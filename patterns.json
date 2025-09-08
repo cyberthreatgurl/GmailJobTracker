@@ -18,14 +18,24 @@
     "next steps",
     "interview"
   ],
-  "ignore": [
-    "your job alert for",
-    "saved job is expiring",
-    "job matches",
-    "new job opportunities",
-    "looking for a new job",
-    "job matches"
-  ],
+"ignore": [
+  "your job alert for",
+  "Registration Confirmation",
+  "how your job search",
+  "saved job is expiring",
+  "job matches",
+  "new job opportunities",
+  "looking for a new job",
+  "application platform",
+  "enterprise application",
+  "application architecture",
+  "application performance",
+  "application development",
+  "multifunctional application",
+  "web application",
+  "cloud application",
+  "application security"
+],
   "response": [
     "thank you for applying",
     "received your resume",

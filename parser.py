@@ -4,6 +4,9 @@ import json
 from email import message_from_bytes
 from datetime import datetime
 from db import insert_email_text
+from bs4 import BeautifulSoup
+import html
+
 
 PARSER_VERSION = '2.0.0'  # Reflects regex improvements, ignore logic, and subject parsing overhaul
 SCHEMA_VERSION = '1.1.0'
@@ -34,15 +37,26 @@ def extract_metadata(service, msg_id):
     except:
         date = date_raw
 
-    # Decode body
+    # Decode body (prefer text/plain, fallback to text/html)
     body = ''
     parts = msg['payload'].get('parts', [])
+
     for part in parts:
-        if part['mimeType'] == 'text/plain':
-            data = part['body'].get('data')
-            if data:
-                body = base64.urlsafe_b64decode(data).decode('utf-8', errors='ignore')
-                break
+        mime_type = part.get('mimeType')
+        data = part['body'].get('data')
+        if not data:
+            continue
+
+        decoded = base64.urlsafe_b64decode(data).decode('utf-8', errors='ignore')
+
+        if mime_type == 'text/plain':
+            body = decoded.strip()
+            break  # Prefer plain text
+        elif mime_type == 'text/html' and not body:
+            soup = BeautifulSoup(decoded, 'html.parser')
+            body = soup.get_text(separator=' ', strip=True)
+            body = html.unescape(body)
+        
     return {
         'subject': subject,
         'date': date,
@@ -87,9 +101,13 @@ def normalize_text(text):
     return text.lower().strip()
 
 def should_ignore(subject, body):
-    combined = normalize_text(f"{subject} {body}")
-    ignore_phrases = [normalize_text(p) for p in PATTERNS.get('ignore', [])]
-    return any(phrase in combined for phrase in ignore_phrases)
+    subject_lower = subject.lower()
+    body_lower = body.lower()
+    for phrase in PATTERNS.get("ignore", []):
+        if phrase in subject_lower or phrase in body_lower:
+            print(f"Ignored due to pattern: '{phrase}' in subject/body")
+            return True
+    return False
 
 def parse_subject(subject): 
     

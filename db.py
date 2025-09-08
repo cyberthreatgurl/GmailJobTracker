@@ -1,9 +1,16 @@
 import sqlite3
+import json
+import pandas as pd
 from datetime import datetime
 import time
+import re
+import os
 import sys
+from pathlib import Path
 
-DB_PATH = 'job_tracker.db'
+DB_PATH = os.getenv("JOB_TRACKER_DB", "job_tracker.db")
+PATTERNS_PATH = Path(__file__).parent / "patterns.json"
+
 SCHEMA_VERSION = '1.1.0'
 
 def get_db_connection(retries=3, delay=2):
@@ -102,8 +109,6 @@ def insert_email_text(message_id, subject, body):
     conn.commit()
     conn.close()
 
-import pandas as pd
-
 def load_training_data():
     conn = sqlite3.connect(DB_PATH)
     query = '''
@@ -114,8 +119,55 @@ def load_training_data():
     '''
     df = pd.read_sql_query(query, conn)
     conn.close()
+
+    # --- Normalize company names ---
+    def normalize_company(name):
+        name = name.strip()
+        # If there's an "at" or "@" followed by company, keep only the company
+        match = re.search(r'\b(?:at|@)\s+(.+)$', name, flags=re.IGNORECASE)
+        if match:
+            name = match.group(1)
+        return name.strip()
+
+    df['company'] = df['company'].apply(normalize_company)
+
+    # --- Remove obvious non-company noise ---
+    df = df[df['company'].str.len() > 3]
+    df = df[~df['company'].str.contains(
+        r'thank you|evaluate|job|sr|intelligence|lead engineer',
+        case=False
+    )]
+
+    # --- Optional: Apply ignore patterns from patterns.json ---
+    if PATTERNS_PATH.exists():
+        with open(PATTERNS_PATH, "r", encoding="utf-8") as f:
+            patterns = json.load(f)
+        ignore_patterns = [p.lower() for p in patterns.get("ignore", [])]
+        mask_ignore = df['subject'].str.lower().apply(
+            lambda subj: any(pat in subj for pat in ignore_patterns)
+        )
+        df = df[~mask_ignore]
+
+    # --- Remove likely personal names ---
+    personal_name_regex = re.compile(r'^[A-Z][a-z]+ [A-Z][a-z]+$')
+    corp_suffix_regex = re.compile(
+        r'(Inc|LLC|Ltd|Technologies|Systems|Group|Corp|Company|Co\.|PLC)$', re.I
+    )
+
+    def is_personal_name(name):
+        return bool(personal_name_regex.match(name)) and not corp_suffix_regex.search(name)
+
+    df = df[~df['company'].apply(is_personal_name)]
+
+    # --- Final safeguard ---
+    unique_companies = df['company'].nunique()
+    if unique_companies < 2:
+        raise ValueError(
+            f"🚫 Not enough unique companies after cleaning ({unique_companies} found) — aborting training."
+        )
+
     return df
-    
+
 def insert_or_update_application(data):
     conn = get_db_connection()
 

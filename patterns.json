@@ -1,0 +1,41 @@
+{
+  "application": [
+    "for applying",
+    "received your application",
+    "we appreciate your interest",
+    "thank you for your application"
+  ],
+  "rejection": [
+    "we regret",
+    "other candidates",
+    "not moving forward",
+    "position closed",
+    "no longer available"
+  ],
+  "interview": [
+    "schedule",
+    "availability",
+    "next steps",
+    "interview"
+  ],
+  "ignore": [
+    "your job alert for",
+    "saved job is expiring",
+    "job matches",
+    "new job opportunities",
+    "looking for a new job",
+    "job matches"
+  ],
+  "response": [
+    "thank you for applying",
+    "received your resume",
+    "application received"
+  ],
+  "follow_up": [
+    "just checking in",
+    "following up",
+    "wanted to follow",
+    "any update on my application",
+    "reaching out again"
+  ]
+}

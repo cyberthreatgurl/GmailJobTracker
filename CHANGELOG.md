@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented here.
 
+## [2.1.0] - 2025-09-08
+
+### Added
+
+- Fallback parsing for HTML-only email bodies using BeautifulSoup
+- Centralized SQLite connection logic with retry-safe `get_db_connection()` function
+- New `email_text` table for ML training (subject + body)
+- `insert_email_text()` and `load_training_data()` functions in `db.py`
+
+### Changed
+
+- Parser now prefers `text/plain` but gracefully falls back to `text/html` when needed
+- All DB access now routed through `get_db_connection()` for lock safety
+
+### Fixed
+
+- Ignored messages no longer written to `email_text`, preserving ML training quality
+- Improved error handling during DB initialization in `main.py`
+
+### Notes
+
+- This version sets the stage for ML-based company prediction using subject + body text
+- Recommended tag: `v2.1.0` before vectorization and model training
+
 ## [2.0.0] - 2025-09-07
 
 ### Added
@@ -18,6 +42,7 @@ All notable changes to this project will be documented here.
 ### Notes
 
 - This version serves as baseline before ML integration
+
 ## [1.1.0] - 2025-09-07
 
 ### Added
@@ -40,7 +65,7 @@ All notable changes to this project will be documented here.
 - Modularize date extraction for response_date, rejection_date, interview_date, and follow_up_dates
 - Scaffold CLI reporting and export tools for job metrics and application statu
 
-## [0.1.0] - 2025-09-06### Adde
+## [0.1.0] - 2025-09-06
 
 ### New
 

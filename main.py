@@ -7,11 +7,20 @@ from parser import (
     should_ignore,
     PATTERNS
 )
-from db import init_db, insert_or_update_application
+from db import init_db, insert_or_update_application, insert_email_text
+import sys
 
 # Initialize Gmail and DB
 service = get_gmail_service()
-init_db()
+from db import init_db
+import sys
+
+try:
+    init_db()
+except Exception as e:
+    print(f"❌ Failed to initialize database: {e}")
+    sys.exit(1)
+    
 print("Database initialized.")
 
 profile = service.users().getProfile(userId='me').execute()
@@ -61,14 +70,20 @@ def sync_messages():
         msg_id = msg['id']
         try:
             metadata = extract_metadata(service, msg_id)
+           
         except Exception as e:
-            print(f"Failed to extract metadata for {msg_id}: {e}")
+            print(f"Failed to extract data for {msg_id}: {e}")
             continue
 
         if should_ignore(metadata['subject'], metadata['body']):
             print(f"Ignored: {metadata['subject']}")
             continue
 
+        # ✅ Store subject and body in the email_text table for ML training.
+        # This data will be used to improve automated classification of job-related emails.
+        # Only subject and body are stored, and the data will not be shared externally to respect user privacy.
+        insert_email_text(msg_id, metadata['subject'], metadata['body'])
+            
         status = classify_message(metadata['body'])
         parsed_subject = parse_subject(metadata['subject'])
         status_dates = extract_status_dates(metadata['body'], metadata['date'])

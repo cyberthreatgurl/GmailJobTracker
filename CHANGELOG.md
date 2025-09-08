@@ -18,7 +18,6 @@ All notable changes to this project will be documented here.
 ### Notes
 
 - This version serves as baseline before ML integration
-
 ## [1.1.0] - 2025-09-07
 
 ### Added

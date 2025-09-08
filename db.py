@@ -1,11 +1,41 @@
 import sqlite3
 from datetime import datetime
+import time
+import sys
 
 DB_PATH = 'job_tracker.db'
 SCHEMA_VERSION = '1.1.0'
 
+def get_db_connection(retries=3, delay=2):
+    """
+    Safely open a SQLite connection with retry logic for locked databases.
+    Exits gracefully if the database is missing or inaccessible.
+    """
+    for attempt in range(retries):
+        try:
+            conn = sqlite3.connect(DB_PATH)
+            return conn
+        except sqlite3.OperationalError as e:
+            error_msg = str(e).lower()
+            if "database is locked" in error_msg:
+                print(f"⚠️ Attempt {attempt+1}: Database is locked. Retrying in {delay} seconds...")
+                time.sleep(delay)
+            elif "unable to open database file" in error_msg:
+                print("❌ Database file not found or inaccessible. Check DB_PATH and permissions.")
+                sys.exit(1)
+            else:
+                print(f"❌ Unexpected SQLite error: {e}")
+                sys.exit(1)
+        except Exception as e:
+            print(f"❌ Unexpected error while opening database: {e}")
+            sys.exit(1)
+
+    print("❌ Failed to acquire database lock after multiple attempts.")
+    sys.exit(1)
+
 def init_db():
-    conn = sqlite3.connect(DB_PATH)
+    conn = get_db_connection()
+
     c = conn.cursor()
 
     # Main applications table
@@ -48,12 +78,47 @@ def init_db():
             FOREIGN KEY(thread_id) REFERENCES applications(thread_id)
         )
     ''')
-
+    
+    # ML training table for subject + body
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS email_text (
+            message_id TEXT PRIMARY KEY,
+            subject TEXT,
+            body TEXT
+        )
+    ''')
     conn.commit()
     conn.close()
 
-def insert_or_update_application(data):
+def insert_email_text(message_id, subject, body):
+    
+    conn = get_db_connection()
+            
+    c = conn.cursor()
+    c.execute('''
+        INSERT OR REPLACE INTO email_text (message_id, subject, body)
+        VALUES (?, ?, ?)
+    ''', (message_id, subject, body))
+    conn.commit()
+    conn.close()
+
+import pandas as pd
+
+def load_training_data():
     conn = sqlite3.connect(DB_PATH)
+    query = '''
+        SELECT e.message_id, e.subject, e.body, a.company
+        FROM email_text e
+        JOIN applications a ON e.message_id = a.thread_id
+        WHERE a.company IS NOT NULL AND a.company != ''
+    '''
+    df = pd.read_sql_query(query, conn)
+    conn.close()
+    return df
+    
+def insert_or_update_application(data):
+    conn = get_db_connection()
+
     c = conn.cursor()
 
     # Add last_updated timestamp

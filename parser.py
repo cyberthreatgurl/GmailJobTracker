@@ -3,6 +3,7 @@ import re
 import json
 from email import message_from_bytes
 from datetime import datetime
+from db import insert_email_text
 
 PARSER_VERSION = '2.0.0'  # Reflects regex improvements, ignore logic, and subject parsing overhaul
 SCHEMA_VERSION = '1.1.0'
@@ -60,17 +61,47 @@ def classify_message(body):
                 return category
     return 'outreach'
 
-def parse_subject(subject):
-    company = ''
-    job_title = ''
-    job_id = ''
+def extract_status_dates(body, received_date):
+    body_lower = body.lower()
+    dates = {
+        'response_date': '',
+        'rejection_date': '',
+        'interview_date': '',
+        'follow_up_dates': ''
+    }
 
+    if any(p in body_lower for p in PATTERNS.get('response', [])):
+        dates['response_date'] = received_date
+    if any(p in body_lower for p in PATTERNS.get('rejection', [])):
+        dates['rejection_date'] = received_date
+    if any(p in body_lower for p in PATTERNS.get('interview', [])):
+        dates['interview_date'] = received_date
+    if any(p in body_lower for p in PATTERNS.get('follow_up', [])):
+        dates['follow_up_dates'] = received_date
+
+    return dates
+
+def normalize_text(text):
+    text = re.sub(r'[^\w\s]', '', text)  # Remove punctuation and emojis
+    text = re.sub(r'\s+', ' ', text)     # Collapse whitespace
+    return text.lower().strip()
+
+def should_ignore(subject, body):
+    combined = normalize_text(f"{subject} {body}")
+    ignore_phrases = [normalize_text(p) for p in PATTERNS.get('ignore', [])]
+    return any(phrase in combined for phrase in ignore_phrases)
+
+def parse_subject(subject): 
+    
+    company = '' 
+    job_title = '' 
+    job_id = '' 
     subject_clean = subject.strip()
 
     # Pattern 1: "Your application to Armis Security"
     match = re.search(r'application (?:to|for|with)\s+([A-Z][\w\s&\-]+)', subject_clean, re.IGNORECASE)
     if match:
-        company = match.group(1).strip()
+     company = match.group(1).strip()
 
     # Pattern 2: "Interview Confirmation from Partner Forces"
     if not company:
@@ -104,41 +135,28 @@ def parse_subject(subject):
     # Job ID extraction
     id_match = re.search(r'(?:Job\s*#?|Position\s*#?|jobId=)([\w\-]+)', subject_clean, re.IGNORECASE)
     if id_match:
-        job_id = id_match.group(1).strip()
+     job_id = id_match.group(1).strip()
 
     return {
         'company': company,
         'job_title': job_title,
         'job_id': job_id
-    }
-    
-def extract_status_dates(body, received_date):
-    body_lower = body.lower()
-    dates = {
-        'response_date': '',
-        'rejection_date': '',
-        'interview_date': '',
-        'follow_up_dates': ''
-    }
+}
 
-    if any(p in body_lower for p in PATTERNS.get('response', [])):
-        dates['response_date'] = received_date
-    if any(p in body_lower for p in PATTERNS.get('rejection', [])):
-        dates['rejection_date'] = received_date
-    if any(p in body_lower for p in PATTERNS.get('interview', [])):
-        dates['interview_date'] = received_date
-    if any(p in body_lower for p in PATTERNS.get('follow_up', [])):
-        dates['follow_up_dates'] = received_date
+# 🔗 ML Prep Integration (example usage during ingestion)
+def ingest_message(service, msg_id, conn):
+    metadata = extract_metadata(service, msg_id)
+
+    # Skip ignored messages
+    if should_ignore(metadata['subject'], metadata['body']):
+        return
+
+    # Ensure ML training table exists
+    ensure_email_text_table(conn)
+
+    # Write subject + body to SQLite for ML training
+    subject, body = metadata['subject'], metadata['body']
+    insert_email_text(msg_id, subject, body)
 
 
-    return dates
-
-def normalize_text(text):
-    text = re.sub(r'[^\w\s]', '', text)  # Remove punctuation and emojis
-    text = re.sub(r'\s+', ' ', text)     # Collapse whitespace
-    return text.lower().strip()
-
-def should_ignore(subject, body):
-    combined = normalize_text(f"{subject} {body}")
-    ignore_phrases = [normalize_text(p) for p in PATTERNS.get('ignore', [])]
-    return any(phrase in combined for phrase in ignore_phrases)
+    # Continue with other ingestion logic...

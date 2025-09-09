@@ -131,22 +131,31 @@ def load_training_data():
 
     df['company'] = df['company'].apply(normalize_company)
 
+    # --- Optional: Apply alias mappings and ignore patterns from patterns.json ---
+    if PATTERNS_PATH.exists():
+        with open(PATTERNS_PATH, "r", encoding="utf-8") as f:
+            patterns = json.load(f)
+
+        # Apply alias map if present
+        alias_map = patterns.get("aliases", {})
+        if alias_map:
+            print(f"🔄 Applying {len(alias_map)} company alias mappings from patterns.json")
+            df['company'] = df['company'].replace(alias_map)
+
+        # Apply ignore patterns if present
+        ignore_patterns = [p.lower() for p in patterns.get("ignore", [])]
+        if ignore_patterns:
+            mask_ignore = df['subject'].str.lower().apply(
+                lambda subj: any(pat in subj for pat in ignore_patterns)
+            )
+            df = df[~mask_ignore]
+
     # --- Remove obvious non-company noise ---
     df = df[df['company'].str.len() > 3]
     df = df[~df['company'].str.contains(
         r'thank you|evaluate|job|sr|intelligence|lead engineer',
         case=False
     )]
-
-    # --- Optional: Apply ignore patterns from patterns.json ---
-    if PATTERNS_PATH.exists():
-        with open(PATTERNS_PATH, "r", encoding="utf-8") as f:
-            patterns = json.load(f)
-        ignore_patterns = [p.lower() for p in patterns.get("ignore", [])]
-        mask_ignore = df['subject'].str.lower().apply(
-            lambda subj: any(pat in subj for pat in ignore_patterns)
-        )
-        df = df[~mask_ignore]
 
     # --- Remove likely personal names ---
     personal_name_regex = re.compile(r'^[A-Z][a-z]+ [A-Z][a-z]+$')
@@ -158,6 +167,24 @@ def load_training_data():
         return bool(personal_name_regex.match(name)) and not corp_suffix_regex.search(name)
 
     df = df[~df['company'].apply(is_personal_name)]
+
+    # --- Apply is_valid_company() filter globally ---
+    def is_valid_company(name):
+        name = name.strip()
+        if re.match(r'^[a-z]', name):
+            return False
+        if re.search(r'\b(your|you|position|manager|engineer|researcher|job|role|title)\b', name, re.I):
+            return False
+        if len(name.split()) > 5:
+            return False
+        return True
+
+    invalids = df[~df['company'].apply(is_valid_company)]
+    if not invalids.empty:
+        print("🧹 Dropped invalid company labels (global filter):")
+        print(invalids['company'].value_counts())
+
+    df = df[df['company'].apply(is_valid_company)]
 
     # --- Final safeguard ---
     unique_companies = df['company'].nunique()

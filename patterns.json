@@ -1,5 +1,11 @@
 {
-  "application": [
+  "aliases": {
+    "Intel phone interview": "Intel",
+    "CVS Health has been received": "CVS Health",
+    "Complete Your SimVentions": "SimVentions",
+    "Farr Shepherd & Kelly Shaw about Available Position": "Farr Shepherd & Kelly Shaw"
+  },
+    "application": [
     "for applying",
     "received your application",
     "we appreciate your interest",

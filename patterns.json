@@ -1,11 +1,14 @@
 {
   "aliases": {
-    "Intel phone interview": "Intel",
     "CVS Health has been received": "CVS Health",
     "Complete Your SimVentions": "SimVentions",
-    "Farr Shepherd & Kelly Shaw about Available Position": "Farr Shepherd & Kelly Shaw"
+    "Farr Shepherd & Kelly Shaw about Available Position": "Farr Shepherd",
+    "CrowdStrike Job": "CrowdStrike",
+    "Follow-up on Dragos": "Dragos",
+    "Security Architect at Tyler Technologies": "Tyler Technologies"
   },
-    "application": [
+
+  "application": [
     "for applying",
     "received your application",
     "we appreciate your interest",
@@ -40,7 +43,18 @@
   "multifunctional application",
   "web application",
   "cloud application",
-  "application security"
+  "application security",
+   "Detection and Response Senior Manager",
+  "Remote",
+  "Researcher",
+  "Retirement",
+  "Sr",
+  "prep materials",
+  "Thank You For Your",
+  "We continue to evaluate your job",
+  "Your",
+  "and Vulnerability Management Position",
+  "do you think of this position"
 ],
   "response": [
     "thank you for applying",

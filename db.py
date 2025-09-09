@@ -50,6 +50,7 @@ def init_db():
         CREATE TABLE IF NOT EXISTS applications (
             thread_id TEXT PRIMARY KEY,
             company TEXT,
+            predicted_company TEXT,
             job_title TEXT,
             job_id TEXT,
             first_sent TEXT,
@@ -59,7 +60,7 @@ def init_db():
             interview_date TEXT,
             status TEXT,
             labels TEXT,
-            notes TEXT,
+            subject TEXT,
             last_updated TEXT
         )
     ''')
@@ -207,7 +208,7 @@ def insert_or_update_application(data):
         INSERT OR REPLACE INTO applications (
             thread_id, company, job_title, job_id, first_sent,
             response_date, follow_up_dates, rejection_date,
-            interview_date, status, labels, notes, last_updated
+            interview_date, status, labels, subject, last_updated
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ''', (
         data['thread_id'],
@@ -221,7 +222,7 @@ def insert_or_update_application(data):
         data.get('interview_date', ''),
         data.get('status', ''),
         data.get('labels', ''),
-        data.get('notes', ''),
+        data.get('subject', ''),
         data['last_updated']
     ))
 

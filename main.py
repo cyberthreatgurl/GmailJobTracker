@@ -1,26 +1,20 @@
 from gmail_auth import get_gmail_service
 from parser import (
-    extract_metadata,
-    classify_message,
-    parse_subject,
-    extract_status_dates,
-    should_ignore,
-    PATTERNS
+    ingest_message,
+    PATTERNS,
 )
-from db import init_db, insert_or_update_application, insert_email_text
+from db import init_db
 import sys
 
 # Initialize Gmail and DB
 service = get_gmail_service()
-from db import init_db
-import sys
 
 try:
     init_db()
 except Exception as e:
     print(f"❌ Failed to initialize database: {e}")
     sys.exit(1)
-    
+
 print("Database initialized.")
 
 profile = service.users().getProfile(userId='me').execute()
@@ -69,42 +63,10 @@ def sync_messages():
     for msg in messages:
         msg_id = msg['id']
         try:
-            metadata = extract_metadata(service, msg_id)
-           
+            ingest_message(service, msg_id)
         except Exception as e:
-            print(f"Failed to extract data for {msg_id}: {e}")
+            print(f"Failed to ingest {msg_id}: {e}")
             continue
 
-        if should_ignore(metadata['subject'], metadata['body']):
-            print(f"Ignored: {metadata['subject']}")
-            continue
-
-        # ✅ Store subject and body in the email_text table for ML training.
-        # This data will be used to improve automated classification of job-related emails.
-        # Only subject and body are stored, and the data will not be shared externally to respect user privacy.
-        insert_email_text(msg_id, metadata['subject'], metadata['body'])
-            
-        status = classify_message(metadata['body'])
-        parsed_subject = parse_subject(metadata['subject'])
-        status_dates = extract_status_dates(metadata['body'], metadata['date'])
-
-        record = {
-            'thread_id': metadata['thread_id'],
-            'company': parsed_subject['company'],
-            'job_title': parsed_subject['job_title'],
-            'job_id': parsed_subject['job_id'],
-            'first_sent': metadata['date'],
-            'response_date': status_dates['response_date'],
-            'follow_up_dates': status_dates['follow_up_dates'],
-            'rejection_date': status_dates['rejection_date'],
-            'interview_date': status_dates['interview_date'],
-            'status': status,
-            'labels': metadata['labels'],
-            'notes': metadata['subject'],
-            'last_updated': metadata['last_updated']
-        }
-
-        insert_or_update_application(record)
-        print(f"Logged: {metadata['subject']} → {status}")
-
-sync_messages()
+if __name__ == "__main__":
+    sync_messages()

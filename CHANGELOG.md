@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented here.
 
+## [2025-09-08]
+
+### Added
+
+- Colon-prefix detection to parse_subject() for cases like "MITRE: ..."
+- Known companies preload from known_companies.txt
+- Sender-domain mapping from domain_to_company.json
+- Manual labeling script (label_companies.py) for training data
+
+### Changed
+
+- ingest_message() now runs ML fallback when company is empty or "Intel"
+- ML predictions stored in predicted_company for review
+
+### Notes
+
+- known_companies.txt and domain_to_company.json can be expanded anytime
+- Next step: integrate sender_domain capture in extract_metadata()
+
 ## [2.1.0] - 2025-09-08
 
 ### Added

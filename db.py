@@ -61,6 +61,8 @@ def init_db():
             status TEXT,
             labels TEXT,
             subject TEXT,
+            sender TEXT,
+            sender_domain TEXT,
             last_updated TEXT
         )
     ''')
@@ -206,13 +208,15 @@ def insert_or_update_application(data):
 
     c.execute('''
         INSERT OR REPLACE INTO applications (
-            thread_id, company, job_title, job_id, first_sent,
+            thread_id, company, predicted_company, job_title, job_id, first_sent,
             response_date, follow_up_dates, rejection_date,
-            interview_date, status, labels, subject, last_updated
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            interview_date, status, labels, subject, sender, sender_domain,
+            last_updated
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ''', (
         data['thread_id'],
         data.get('company', ''),
+        data.get('predicted_company', ''),
         data.get('job_title', ''),
         data.get('job_id', ''),
         data.get('first_sent', ''),
@@ -223,6 +227,8 @@ def insert_or_update_application(data):
         data.get('status', ''),
         data.get('labels', ''),
         data.get('subject', ''),
+        data.get('sender', ''),
+        data.get('sender_domain', ''),
         data['last_updated']
     ))
 

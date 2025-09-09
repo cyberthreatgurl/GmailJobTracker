@@ -1,0 +1,1008 @@
+Logged: [Reminder] Application Deadline: Tomorrow ‚Üí outreach
+Logged: Re: Submission Details :Remote Job SOC ‚Üí outreach
+Logged: Re: Submission Details :Remote Job SOC ‚Üí outreach
+Logged: Re: Remote Job SOC ‚Üí outreach
+Logged: Re: Remote Job  SOC ‚Üí outreach
+Logged: Remote Job  SOC ‚Üí outreach
+Logged: Position You Applied For - Leidos - Cybersecurity PM ‚Üí outreach
+Logged: Thank you for your Application! ‚Üí application
+Predicted company: Intel for message ID 198b4c0fa1c9f941
+Ì¥Æ [ML USED] Predicted company 'Intel' for message 198b4c0fa1c9f941
+Logged: Your application has been received for Principal Threat Intel (R-1081191) ‚Üí outreach
+Logged: Thank you for your application ‚Üí outreach
+Logged: Re: Retirement Application Available ‚Üí outreach
+Logged: Retirement Application Available ‚Üí outreach
+Logged: Thank you for your Application! ‚Üí application
+Logged: Thank you for your Application! ‚Üí application
+Predicted company: Intel for message ID 1988b196b0c4ee79
+Ì¥Æ [ML USED] Predicted company 'Intel' for message 1988b196b0c4ee79
+Logged: Job Opening_Contractor - Cyber Engineer_Sterling Heights, MI 48310, United States ‚Üí outreach
+Logged: Introduction Call with Farr Shepherd & Kelly Shaw about Available Position ‚Üí outreach
+Logged: Application Status for Threat Detection and Response Senior Manager ‚Üí outreach
+Logged: Thank You For Your Application ‚Üí outreach
+Logged: Hi  Kelly - Availability for a second Video interview at Corelight ‚Üí interview
+Predicted company: Intel for message ID 197f58e003edeb00
+Ì¥Æ [ML USED] Predicted company 'Intel' for message 197f58e003edeb00
+Logged: Application Status for Cyber Machine Learning Engineer, Senior ‚Üí outreach
+Predicted company: Intel for message ID 197f58dffc28817d
+Ì¥Æ [ML USED] Predicted company 'Intel' for message 197f58dffc28817d
+Logged: Application Status for Cyber Machine Learning Engineer, Senior ‚Üí outreach
+Ignored due to pattern: 'do you think of this position' in subject/body
+Ignored: RE: I found your resume on USAJOBS. What do you think of this position?
+Ignored due to pattern: 'do you think of this position' in subject/body
+Ignored: Re: I found your resume on USAJOBS. What do you think of this position?
+Ignored due to pattern: 'do you think of this position' in subject/body
+Ignored: I found your resume on USAJOBS. What do you think of this position?
+Predicted company: Intel for message ID 197c88525df1d3fa
+Ì¥Æ [ML USED] Predicted company 'Intel' for message 197c88525df1d3fa
+Logged: Application Received ‚Üí outreach
+Logged: Resume Reviewed: Interview Request ‚Üí outreach
+Logged: PCAOB Job Application Update: Senior Cybersecurity Analyst ‚Äì Threat and Vulnerability Management Position ‚Üí outreach
+Logged: Follow-up on Dragos Application ‚Üí outreach
+Logged: Thank you for your interest in Job ID:20657 - Cyber Security Director (Hybrid) ‚Üí outreach
+Logged: Your application was viewed by Maritime Transportation System ISAC ‚Üí outreach
+Logged: We Got It: Thanks for applying for Lead Network Security Analyst position @ Claroty! ‚Üí application
+Logged: RE: [EXTERNAL] Re: ECS - Regarding Your Job Submission for Lead Cyber Threat Intelligence Analyst Position #2007 ‚Üí outreach
+Logged: Re: [EXTERNAL] Re: ECS - Regarding Your Job Submission for Lead Cyber Threat Intelligence Analyst Position #2007 ‚Üí outreach
+Logged: RE: [EXTERNAL] Re: ECS - Regarding Your Job Submission for Lead Cyber Threat Intelligence Analyst Position #2007 ‚Üí outreach
+Logged: Re: [EXTERNAL] Re: ECS - Regarding Your Job Submission for Lead Cyber Threat Intelligence Analyst Position #2007 ‚Üí interview
+Logged: RE: [EXTERNAL] Re: ECS - Regarding Your Job Submission for Lead Cyber Threat Intelligence Analyst Position #2007 ‚Üí outreach
+Logged: Re: [EXTERNAL] Re: ECS - Regarding Your Job Submission for Lead Cyber Threat Intelligence Analyst Position #2007 ‚Üí outreach
+Logged: RE: [EXTERNAL] Re: ECS - Regarding Your Job Submission for Lead Cyber Threat Intelligence Analyst Position #2007 ‚Üí outreach
+Logged: Re: ECS - Regarding Your Job Submission for Lead Cyber Threat Intelligence Analyst Position #2007 ‚Üí outreach
+Logged: Re: ECS - Regarding Your Job Submission for Lead Cyber Threat Intelligence Analyst Position #2007 ‚Üí outreach
+Logged: RE: ECS - Regarding Your Job Submission for Lead Cyber Threat Intelligence Analyst Position #2007 ‚Üí outreach
+Logged: ECS - Regarding Your Job Submission for Lead Cyber Threat Intelligence Analyst Position #2007 ‚Üí outreach
+Logged: Rapid7 Application Update - Let‚Äôs Keep in Touch! ‚Üí outreach
+Logged: Re: Important information about your application to Partner Forces ‚Üí outreach
+Logged: Important information about your application to Partner Forces ‚Üí outreach
+Logged: Important information about your application with Recorded Future ‚Üí rejection
+Logged: Cloudflare Recruiting | Application Received - Senior Threat Researcher, East Asia ‚Üí application
+Logged: Thank you for your application at ManTech! ‚Üí application
+Logged: Submitted: Application with Banduri ‚Üí outreach
+Logged: Partner Forces Interview Confirmation ‚Üí outreach
+Logged: Re: Partner Forces Interview Availability ‚Üí interview
+Logged: Partner Forces Interview Availability ‚Üí interview
+Logged: Job Opening for the role Lead Machine Learning Engineer || Ft. Belvoir, VA (On-site with Hybrid Option) ‚Üí outreach
+Logged: RE: Job Opening for the role Lead Machine Learning Engineer || Ft. Belvoir, VA (On-site with Hybrid Option) ‚Üí outreach
+Logged: Cloudflare Recruiting | Application Received - Senior Threat Intelligence Analyst ‚Üí application
+Logged: Splunk Application Update | Senior Machine Learning Engineer, AI (FULLY REMOTE-USA) (32661) ‚Üí application
+Logged: Adrian: An invitation to complete your HELOC application ‚úâÔ∏è ‚Üí outreach
+Ignored due to pattern: 'your job alert for' in subject/body
+Ignored: ÌªéÔ∏è Your job alert for: Cybersecurity (IT/OT) Senior Leader, King George, Virginia
+Logged: Update on Leidos Position Full Spectrum Cyber AI Researcher ‚Üí outreach
+Logged: Update on Leidos Position Full Spectrum Cyber AI Researcher ‚Üí outreach
+Logged: Your application for ‚ÄãSenior Manager, Threat Intel Research‚Äã  at Palo Alto Networks ‚Üí rejection
+Logged: Your application with CVS Health has been received! ‚Üí outreach
+Logged: Delta Dental: Continue to apply for the job Expert (Staff) Cyber Defense Engineer ‚Üí outreach
+Logged: Important information about your application with Recorded Future ‚Üí rejection
+Logged: Delta Dental: Continue to apply for the job Expert (Staff) Cyber Defense Engineer ‚Üí outreach
+Logged: Re: [EXTERNAL]: Re: Venture Global LNG Interview Availability - Cyber Security Engineer ‚Üí outreach
+Logged: SEI Application Update ‚Üí outreach
+Logged: Thanks for applying for the Senior Machine Learning Engineer, AI (FULLY REMOTE-USA) (32661) position at Splunk! ‚Üí application
+Logged: Re: Venture Global LNG Interview Availability - Cyber Security Engineer ‚Üí interview
+Logged: Venture Global LNG Interview Availability - Cyber Security Engineer ‚Üí interview
+Logged: We continue to evaluate your job application ‚Üí outreach
+Logged: SEI Application Received ‚Üí outreach
+Logged: CrowdStrike Job Application Confirmation ‚Üí outreach
+Logged: Re: Adrian Kelly Shaw - MRA + 10 Application ‚Üí interview
+Logged: RE: Application check in ‚Üí outreach
+Logged: Re: Application check in ‚Üí outreach
+Logged: RE: Application check in ‚Üí outreach
+Logged: Re: Application check in ‚Üí outreach
+Predicted company: Intel for message ID 19620536af738fcb
+Ì¥Æ [ML USED] Predicted company 'Intel' for message 19620536af738fcb
+Logged: Adrian Kelly Shaw - MRA + 10 Application ‚Üí interview
+Predicted company: Intel for message ID 1961b3324d2a7a6e
+Ì¥Æ [ML USED] Predicted company 'Intel' for message 1961b3324d2a7a6e
+Logged: Application Received - Thank You ‚Üí outreach
+Predicted company: Intel for message ID 1961b3324d2a7a6e
+Ì¥Æ [ML USED] Predicted company 'Intel' for message 1961b3324d2a7a6e
+Logged: Application Received - Thank You ‚Üí outreach
+Ì¥Æ [ML USED] Predicted company 'Intel' for message 1961b3324d2a7a6e
+Logged: Application Received - Thank You ‚Üí outreach
+Logged: Application Received - Thank You ‚Üí outreach
+Logged: Your application to Armis Security ‚Üí rejection
+Logged: Parsons Application Update ‚Äì Req: R165130 ‚Üí outreach
+Logged: Complete Your SimVentions Application! ‚Üí outreach
+Logged: Your application to Armis Security ‚Üí rejection
+Logged: Parsons Application Update ‚Äì Req: R165130 ‚Üí outreach
+Logged: Complete Your SimVentions Application! ‚Üí outreach
+Logged: Your Parsons Job Application for: [not available] ‚Üí outreach
+Logged: Parsons Application Update ‚Äì Req: R165130 ‚Üí outreach
+Logged: Complete Your SimVentions Application! ‚Üí outreach
+Logged: Your Parsons Job Application for: [not available] ‚Üí outreach
+Logged: Complete Your SimVentions Application! ‚Üí outreach
+Logged: Your Parsons Job Application for: [not available] ‚Üí outreach
+Logged: Your Parsons Job Application for: [not available] ‚Üí outreach
+Logged: Your Parsons Job Application Has Been Received ‚Üí outreach
+Logged: Your Parsons Job Application Has Been Received ‚Üí outreach
+Predicted company: Intel for message ID 195ecef2b3f64f70
+Predicted company: Intel for message ID 195ecef2b3f64f70
+Ì¥Æ [ML USED] Predicted company 'Intel' for message 195ecef2b3f64f70
+Logged: Application check in ‚Üí outreach
+Logged: Virginia Tech application status ‚Üí outreach
+Logged: Your application for R0000384231 Lead Engineer ‚Äì Threat Hunting and Countermeasures (Open) at Target ‚Üí outreach
+Ignored due to pattern: 'prep materials' in subject/body
+Ignored: Prep Materials for your Manager, Cyber Threat Intel phone interview
+Logged: Phone interview scheduled - Field CTO  @Claroty ‚Üí interview
+Logged: Your Phone interview with Claroty! ‚Üí outreach
+Logged: Your Phone interview with Claroty! ‚Üí application
+
+kaver@Bob MINGW64 /c/Users/kaver/code/Gmail Job Tracker (main)
+$  cd c:\\Users\\kaver\\code\\Gmail\ Job\ Tracker ; /usr/bin/env d:\\Users\\kaver\\AppData\\Local\\Programs\\Python\\Python313\\python.exe c:\\Users\\kaver\\.vscode\\extensions\\ms-python.debugpy-2025.10.0-win32-x64\\bundled\\libs\\debugpy\\launcher 55573 -- C:\\Users\\kaver\\code\\Gmail\ Job\ Tracker\\main.py
+Ì¥ñ ML model loaded for company prediction.
+Database initialized.
+Connected to Gmail account: kaver68@gmail.com
+Using Gmail query: (subject:(job OR application OR resume OR interview OR position) OR body:("for applying" OR "received your application" OR "Your application has been received" OR "thank you for your application" OR "successfully submitted" OR "schedule" OR "availability" OR "next steps" OR "interview" OR "just checking in" OR "following up" OR "wanted to follow" OR "any update on my application" OR "reaching out again" OR "we regret" OR "we appreciate your interest" OR "other candidates" OR "not moving forward" OR "position closed" OR "no longer available")) newer_than:180d
+Ignored due to pattern: 'your job alert for' in subject/body
+Ignored: ÌªéÔ∏è Your job alert for: Cybersecurity (IT/OT) Senior Leader, United States
+Ignored due to pattern: 'your job alert for' in subject/body
+Ignored: ÌªéÔ∏è Your job alert for: IT Security Engineer, Dahlgren, Virginia
+Ignored due to pattern: 'your job alert for' in subject/body
+Ignored: ÌªéÔ∏è Your job alert for: Cybersecurity (IT/OT) Senior Leader, King George, Virginia
+Logged: Thank you for your application at MANTECH! ‚Üí application
+Ignored due to pattern: 'job matches' in subject/body
+Ignored: Your Top Job matches for ‚ÄúCyber Security Engineer‚Äù ‚Äî 98% match from Jobright - September 08
+Logged: [Due in 4 days] Next Part of your Google Application: Google Hiring Assessment ‚Üí application
+Ignored due to pattern: 'saved job is expiring' in subject/body
+Ignored: Kelly, your saved job is expiring tomorrow! ‚ÄòLead Cyber Security Operations Center (CSOC) Analyst - USDS at TikTok‚Äô
+Ignored due to pattern: 'job matches' in subject/body
+Ignored: New Artificial Intelligence Engineer Job Matches
+Logged: Your application for Sr. DFIR Engineer at Tyler Technologies ‚Üí application
+Ignored due to pattern: 'your job alert for' in subject/body
+Ignored: ÌªéÔ∏è Your job alert for: Cybersecurity (IT/OT) Senior Leader, United States
+Ignored due to pattern: 'your job alert for' in subject/body
+Ignored: ÌªéÔ∏è Your job alert for: IT Security Engineer, Dahlgren, Virginia
+Logged: You have 1 job alerts for Tyler Technologies ‚Üí outreach
+Logged: You have applied to Cisco Job Director of Engineering (Adversarial AI - Red Team, Threat Intelligence), Job ID 1438794 ‚Üí application
+Predicted company: Intel for message ID 19921738621c415f
+Ì¥Æ [ML USED] Predicted company 'Intel' for message 19921738621c415f
+Logged: Kelly, your application was sent to TikTok ‚Üí interview
+Logged: Your application for Security Architect at Tyler Technologies ‚Üí application
+Ignored due to pattern: 'new job opportunities' in subject/body
+Ignored: New job opportunities at Viasat!
+Ignored due to pattern: 'job matches' in subject/body
+Ignored: Your job matches for ‚ÄúSr. Cybersecurity Engineer II (6012)‚Äù ‚Äî curated for you from Jobright - September 04
+Ignored due to pattern: 'job matches' in subject/body
+Ignored: New Artificial Intelligence Engineer Job Matches
+Ignored due to pattern: 'your job alert for' in subject/body
+Ignored: Re: ÌªéÔ∏è Your job alert for: IT Security Engineer, Dahlgren, Virginia
+Ignored due to pattern: 'your job alert for' in subject/body
+Ignored: ÌªéÔ∏è Your job alert for: IT Security Engineer, Dahlgren, Virginia
+Ignored due to pattern: 'your job alert for' in subject/body
+Ignored: ÌªéÔ∏è Your job alert for: Cybersecurity (IT/OT) Senior Leader, King George, Virginia
+Ignored due to pattern: 'new job opportunities' in subject/body
+Ignored: New job opportunities at Viasat!
+Ignored due to pattern: 'job matches' in subject/body
+Ignored: Your Top Job matches for ‚ÄúDelegated Authorizing Official Representative, Level 3  (FORECASTED)‚Äù ‚Äî 98% match from Jobright - September 03
+Predicted company: Intel for message ID 1991113779c0db6d
+Ì¥Æ [ML USED] Predicted company 'Intel' for message 1991113779c0db6d
+Logged: Gemini‚Äôs Environmental Impact, China‚Äôs Emerging AI Hub, Chatbot Job Interviews, Security For Agents ‚Üí interview
+Predicted company: Intel for message ID 19910d9269a298a0
+Ì¥Æ [ML USED] Predicted company 'Intel' for message 19910d9269a298a0
+Logged: Adrian, I've found your job of the week ‚Üí outreach
+Ignored due to pattern: 'job matches' in subject/body
+Ignored: New cybersecurity Job Matches
+Predicted company: Intel for message ID 1990cc55f50150e8
+Ì¥Æ [ML USED] Predicted company 'Intel' for message 1990cc55f50150e8
+Logged: Thanks to you, we‚Äôre in a position to win this race ‚Üí outreach
+Predicted company: Intel for message ID 1990c3d6b55d4bc2
+Ì¥Æ [ML USED] Predicted company 'Intel' for message 1990c3d6b55d4bc2
+Logged: PERMANENT/ FULL TIME JOB | OT Cyber Security Analyst | Apollo Beach, FL 33572 ‚Üí interview
+Predicted company: Intel for message ID 1990c1ea96128e2e
+Ì¥Æ [ML USED] Predicted company 'Intel' for message 1990c1ea96128e2e
+Logged: PERMANENT/ FULL TIME JOB | OT Cyber Security Analyst | Apollo Beach, FL 33572 ‚Üí interview
+Ignored due to pattern: 'how your job search' in subject/body
+Ignored: Here is how your job search went last week, Adrian!
+Logged: Kelly, your job‚Äôs expiring on Sep 7: Lead Cyber Security Operations Center (CSOC) Analyst - USDS at TikTok ‚Üí outreach
+Predicted company: Intel for message ID 1990b529bccc2d6b
+Ì¥Æ [ML USED] Predicted company 'Intel' for message 1990b529bccc2d6b
+Logged: State of the software engineering job market in 2025 ‚Üí interview
+Ignored due to pattern: 'job matches' in subject/body
+Ignored: New Artificial Intelligence Engineer Job Matches
+Ignored due to pattern: 'new job opportunities' in subject/body
+Ignored: New job opportunities at Viasat!
+Ignored due to pattern: 'job matches' in subject/body
+Ignored: Kelly: 1 new job
+Ignored due to pattern: 'job matches' in subject/body
+Ignored: Your job matches for ‚ÄúSenior Security Engineer ‚Äì Remote (US) ‚Äì Competitive Salary Opportunity to work with an Ambitious, Rapidly-Growing Company!‚Äù ‚Äî curated for you from Jobright - September 01
+Ignored due to pattern: 'new job opportunities' in subject/body
+Ignored: New job opportunities at Viasat!
+Logged: MITRE: Thank you for your interest in the Lead Cyber Security Engineer job ‚Üí outreach
+Ignored due to pattern: 'job matches' in subject/body
+Ignored: New cybersecurity Job Matches
+Ignored due to pattern: 'job matches' in subject/body
+Ignored: Your Top Job matches for ‚ÄúSr. Engineer, Product Abuse - Product Security (Remote)‚Äù ‚Äî 98% match from Jobright - August 31
+Ignored due to pattern: 'your job alert for' in subject/body
+Ignored: ÌªéÔ∏è Your job alert for: Cybersecurity (IT/OT) Senior Leader, United States
+Ignored due to pattern: 'your job alert for' in subject/body
+Ignored: ÌªéÔ∏è Your job alert for: Cybersecurity (IT/OT) Senior Leader, King George, Virginia
+Ignored due to pattern: 'your job alert for' in subject/body
+Ignored: ÌªéÔ∏è Your job alert for: IT Security Engineer, Dahlgren, Virginia
+Ignored due to pattern: 'job matches' in subject/body
+Ignored: Your Top Job matches for ‚ÄúSr. Director, Security Operations‚Äù ‚Äî 98% match from Jobright - August 30
+Ignored due to pattern: 'job matches' in subject/body
+Ignored: New Artificial Intelligence Engineer Job Matches
+Ignored due to pattern: 'your job alert for' in subject/body
+Ignored: ÌªéÔ∏è Your job alert for: IT Security Engineer, Dahlgren, Virginia
+Ignored due to pattern: 'your job alert for' in subject/body
+Ignored: ÌªéÔ∏è Your job alert for: Cybersecurity (IT/OT) Senior Leader, United States
+Ignored due to pattern: 'your job alert for' in subject/body
+Ignored: ÌªéÔ∏è Your job alert for: Cybersecurity (IT/OT) Senior Leader, King George, Virginia
+Logged: Indeed Application: Advisory Associate ‚Üí outreach
+Ignored due to pattern: 'new job opportunities' in subject/body
+Ignored: New job opportunities at Viasat!
+Ignored due to pattern: 'looking for a new job' in subject/body
+Ignored: Kelly, looking for a new job?
+Ignored due to pattern: 'job matches' in subject/body
+Ignored: New Artificial Intelligence Engineer Job Matches
+Logged: Re: Position You Applied For - Leidos - Cybersecurity PM ‚Üí outreach
+Logged: Antisyphon Registration Confirmation 2025-09-16 Workshop: Job Hunt Like a Hacker 2025 Edition with Jason Blanchard ‚Üí outreach
+Predicted company: Intel for message ID 198ecd531b5c3d54
+Ì¥Æ [ML USED] Predicted company 'Intel' for message 198ecd531b5c3d54
+Logged: PricewaterhouseCoopers Advisory Services LLC has an open position ‚Üí outreach
+Logged: Peraton Application Update ‚Üí application
+Logged: Re: tuesday interview || Network Security Specialist      ‚Üí outreach
+Predicted company: Intel for message ID 198d3ba492703917
+Ì¥Æ [ML USED] Predicted company 'Intel' for message 198d3ba492703917
+Logged: tuesday interview || Network Security Specialist      ‚Üí outreach
+Logged: Re: RTR Rate Confirmation :Remote Job Security Engineer Senior Lead ‚Üí outreach
+Logged: MITRE: Thank you for applying to the Lead Cyber Security Engineer job ‚Üí outreach
+Logged: Re: RTR Rate Confirmation :Remote Job Security Engineer Senior Lead ‚Üí outreach
+Logged: Re: RTR Rate Confirmation :Remote Job Security Engineer Senior Lead ‚Üí outreach
+Logged: Re: RTR Rate Confirmation :Remote Job Security Engineer Senior  Lead ‚Üí outreach
+Logged: Re: RTR Rate Confirmation :Remote Job Security Engineer Senior  Lead ‚Üí outreach
+Logged: Your Application with SentinelOne | Principal Product Manager, Vulnerability Management ‚Üí application
+Logged: Re: Rate Confirmation RTR :Remote Job SOC ‚Üí outreach
+Logged: Re: Rate Confirmation RTR :Remote Job SOC ‚Üí outreach
+Logged: Re: Rate Confirmation RTR :Remote Job SOC ‚Üí outreach
+Logged: Re: Rate Confirmation RTR :Remote Job SOC ‚Üí outreach
+Logged: Re: Submission Details :Remote Job SOC ‚Üí outreach
+Logged: Re: Submission Details :Remote Job SOC ‚Üí outreach
+Logged: Re: Submission Details :Remote Job SOC ‚Üí outreach
+Predicted company: Intel for message ID 198c855de65dbb96
+Ì¥Æ [ML USED] Predicted company 'Intel' for message 198c855de65dbb96
+Logged: [Reminder] Application Deadline: Tomorrow ‚Üí outreach
+Logged: Re: Submission Details :Remote Job SOC ‚Üí outreach
+Logged: Re: Submission Details :Remote Job SOC ‚Üí outreach
+Logged: Re: Remote Job SOC ‚Üí outreach
+Logged: Re: Remote Job  SOC ‚Üí outreach
+Logged: Remote Job  SOC ‚Üí outreach
+Logged: Position You Applied For - Leidos - Cybersecurity PM ‚Üí outreach
+Logged: Thank you for your Application! ‚Üí application
+Predicted company: Intel for message ID 198b4c0fa1c9f941
+Ì¥Æ [ML USED] Predicted company 'Intel' for message 198b4c0fa1c9f941
+Logged: Your application has been received for Principal Threat Intel (R-1081191) ‚Üí outreach
+Logged: Thank you for your application ‚Üí outreach
+Logged: Re: Retirement Application Available ‚Üí outreach
+Logged: Retirement Application Available ‚Üí outreach
+Logged: Thank you for your Application! ‚Üí application
+Logged: Thank you for your Application! ‚Üí application
+Predicted company: Intel for message ID 1988b196b0c4ee79
+Ì¥Æ [ML USED] Predicted company 'Intel' for message 1988b196b0c4ee79
+Logged: Job Opening_Contractor - Cyber Engineer_Sterling Heights, MI 48310, United States ‚Üí outreach
+Logged: Introduction Call with Farr Shepherd & Kelly Shaw about Available Position ‚Üí outreach
+Logged: Application Status for Threat Detection and Response Senior Manager ‚Üí outreach
+Logged: Thank You For Your Application ‚Üí outreach
+Logged: Hi  Kelly - Availability for a second Video interview at Corelight ‚Üí interview
+Predicted company: Intel for message ID 197f58e003edeb00
+Ì¥Æ [ML USED] Predicted company 'Intel' for message 197f58e003edeb00
+Logged: Application Status for Cyber Machine Learning Engineer, Senior ‚Üí outreach
+Predicted company: Intel for message ID 197f58dffc28817d
+Ì¥Æ [ML USED] Predicted company 'Intel' for message 197f58dffc28817d
+Logged: Application Status for Cyber Machine Learning Engineer, Senior ‚Üí outreach
+Ignored due to pattern: 'do you think of this position' in subject/body
+Ignored: RE: I found your resume on USAJOBS. What do you think of this position?
+Ignored due to pattern: 'do you think of this position' in subject/body
+Ignored: Re: I found your resume on USAJOBS. What do you think of this position?
+Ignored due to pattern: 'do you think of this position' in subject/body
+Ignored: I found your resume on USAJOBS. What do you think of this position?
+Predicted company: Intel for message ID 197c88525df1d3fa
+Ì¥Æ [ML USED] Predicted company 'Intel' for message 197c88525df1d3fa
+Logged: Application Received ‚Üí outreach
+Logged: Resume Reviewed: Interview Request ‚Üí outreach
+Logged: PCAOB Job Application Update: Senior Cybersecurity Analyst ‚Äì Threat and Vulnerability Management Position ‚Üí outreach
+Logged: Follow-up on Dragos Application ‚Üí outreach
+Logged: Thank you for your interest in Job ID:20657 - Cyber Security Director (Hybrid) ‚Üí outreach
+Logged: Your application was viewed by Maritime Transportation System ISAC ‚Üí outreach
+Logged: We Got It: Thanks for applying for Lead Network Security Analyst position @ Claroty! ‚Üí application
+Logged: RE: [EXTERNAL] Re: ECS - Regarding Your Job Submission for Lead Cyber Threat Intelligence Analyst Position #2007 ‚Üí outreach
+Logged: Re: [EXTERNAL] Re: ECS - Regarding Your Job Submission for Lead Cyber Threat Intelligence Analyst Position #2007 ‚Üí outreach
+Logged: RE: [EXTERNAL] Re: ECS - Regarding Your Job Submission for Lead Cyber Threat Intelligence Analyst Position #2007 ‚Üí outreach
+Logged: Re: [EXTERNAL] Re: ECS - Regarding Your Job Submission for Lead Cyber Threat Intelligence Analyst Position #2007 ‚Üí interview
+Logged: RE: [EXTERNAL] Re: ECS - Regarding Your Job Submission for Lead Cyber Threat Intelligence Analyst Position #2007 ‚Üí outreach
+Logged: Re: [EXTERNAL] Re: ECS - Regarding Your Job Submission for Lead Cyber Threat Intelligence Analyst Position #2007 ‚Üí outreach
+Logged: RE: [EXTERNAL] Re: ECS - Regarding Your Job Submission for Lead Cyber Threat Intelligence Analyst Position #2007 ‚Üí outreach
+Logged: Re: ECS - Regarding Your Job Submission for Lead Cyber Threat Intelligence Analyst Position #2007 ‚Üí outreach
+Logged: Re: ECS - Regarding Your Job Submission for Lead Cyber Threat Intelligence Analyst Position #2007 ‚Üí outreach
+Logged: RE: ECS - Regarding Your Job Submission for Lead Cyber Threat Intelligence Analyst Position #2007 ‚Üí outreach
+Logged: ECS - Regarding Your Job Submission for Lead Cyber Threat Intelligence Analyst Position #2007 ‚Üí outreach
+Logged: Rapid7 Application Update - Let‚Äôs Keep in Touch! ‚Üí outreach
+Logged: Re: Important information about your application to Partner Forces ‚Üí outreach
+Logged: Important information about your application to Partner Forces ‚Üí outreach
+Logged: Important information about your application with Recorded Future ‚Üí rejection
+Logged: Cloudflare Recruiting | Application Received - Senior Threat Researcher, East Asia ‚Üí application
+Logged: Thank you for your application at ManTech! ‚Üí application
+Logged: Submitted: Application with Banduri ‚Üí outreach
+Logged: Partner Forces Interview Confirmation ‚Üí outreach
+Logged: Re: Partner Forces Interview Availability ‚Üí interview
+Logged: Partner Forces Interview Availability ‚Üí interview
+Logged: Job Opening for the role Lead Machine Learning Engineer || Ft. Belvoir, VA (On-site with Hybrid Option) ‚Üí outreach
+Logged: RE: Job Opening for the role Lead Machine Learning Engineer || Ft. Belvoir, VA (On-site with Hybrid Option) ‚Üí outreach
+Logged: Cloudflare Recruiting | Application Received - Senior Threat Intelligence Analyst ‚Üí application
+Logged: Splunk Application Update | Senior Machine Learning Engineer, AI (FULLY REMOTE-USA) (32661) ‚Üí application
+Logged: Adrian: An invitation to complete your HELOC application ‚úâÔ∏è ‚Üí outreach
+Ignored due to pattern: 'your job alert for' in subject/body
+Ignored: ÌªéÔ∏è Your job alert for: Cybersecurity (IT/OT) Senior Leader, King George, Virginia
+Logged: Update on Leidos Position Full Spectrum Cyber AI Researcher ‚Üí outreach
+Logged: Update on Leidos Position Full Spectrum Cyber AI Researcher ‚Üí outreach
+Logged: Your application for ‚ÄãSenior Manager, Threat Intel Research‚Äã  at Palo Alto Networks ‚Üí rejection
+Logged: Your application with CVS Health has been received! ‚Üí outreach
+Logged: Delta Dental: Continue to apply for the job Expert (Staff) Cyber Defense Engineer ‚Üí outreach
+Logged: Important information about your application with Recorded Future ‚Üí rejection
+Logged: Delta Dental: Continue to apply for the job Expert (Staff) Cyber Defense Engineer ‚Üí outreach
+Logged: Re: [EXTERNAL]: Re: Venture Global LNG Interview Availability - Cyber Security Engineer ‚Üí outreach
+Logged: SEI Application Update ‚Üí outreach
+Logged: Thanks for applying for the Senior Machine Learning Engineer, AI (FULLY REMOTE-USA) (32661) position at Splunk! ‚Üí application
+Logged: Re: Venture Global LNG Interview Availability - Cyber Security Engineer ‚Üí interview
+Logged: Venture Global LNG Interview Availability - Cyber Security Engineer ‚Üí interview
+Logged: We continue to evaluate your job application ‚Üí outreach
+Logged: SEI Application Received ‚Üí outreach
+Logged: CrowdStrike Job Application Confirmation ‚Üí outreach
+Logged: Re: Adrian Kelly Shaw - MRA + 10 Application ‚Üí interview
+Logged: RE: Application check in ‚Üí outreach
+Logged: Re: Application check in ‚Üí outreach
+Logged: RE: Application check in ‚Üí outreach
+Logged: Re: Application check in ‚Üí outreach
+Predicted company: Intel for message ID 19620536af738fcb
+Ì¥Æ [ML USED] Predicted company 'Intel' for message 19620536af738fcb
+Logged: Adrian Kelly Shaw - MRA + 10 Application ‚Üí interview
+Predicted company: Intel for message ID 1961b3324d2a7a6e
+Ì¥Æ [ML USED] Predicted company 'Intel' for message 1961b3324d2a7a6e
+Logged: Application Received - Thank You ‚Üí outreach
+Logged: Your application to Armis Security ‚Üí rejection
+Logged: Parsons Application Update ‚Äì Req: R165130 ‚Üí outreach
+Logged: Complete Your SimVentions Application! ‚Üí outreach
+Logged: Your Parsons Job Application for: [not available] ‚Üí outreach
+Logged: Your Parsons Job Application Has Been Received ‚Üí outreach
+Predicted company: Intel for message ID 195ecef2b3f64f70
+Ì¥Æ [ML USED] Predicted company 'Intel' for message 195ecef2b3f64f70
+Logged: Application check in ‚Üí outreach
+Logged: Virginia Tech application status ‚Üí outreach
+Logged: Your application for R0000384231 Lead Engineer ‚Äì Threat Hunting and Countermeasures (Open) at Target ‚Üí outreach
+Ignored due to pattern: 'prep materials' in subject/body
+Ignored: Prep Materials for your Manager, Cyber Threat Intel phone interview
+Logged: Phone interview scheduled - Field CTO  @Claroty ‚Üí interview
+Logged: Your Phone interview with Claroty! ‚Üí outreach
+Logged: Your Phone interview with Claroty! ‚Üí application
+
+kaver@Bob MINGW64 /c/Users/kaver/code/Gmail Job Tracker (main)
+$ rm job_tracker.db 
+rm: cannot remove 'job_tracker.db': Device or resource busy
+
+kaver@Bob MINGW64 /c/Users/kaver/code/Gmail Job Tracker (main)
+$ rm job_tracker.db 
+
+kaver@Bob MINGW64 /c/Users/kaver/code/Gmail Job Tracker (main)
+$ python main.py
+Ì¥ñ ML model loaded for company prediction.
+Please visit this URL to authorize this application: https://accounts.google.com/o/oauth2/auth?response_type=code&client_id=957500315323-prf6ljddll36klo7qvk1fvch78h9j7ol.apps.googleusercontent.com&redirect_uri=http%3A%2F%2Flocalhost%3A56056%2F&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fgmail.readonly&state=Ev2ughchVQLRgRbAAtAySSwNzqwch0&access_type=offline
+Database initialized.
+Connected to Gmail account: kaver68@gmail.com
+Using Gmail query: (subject:(job OR application OR resume OR interview OR position) OR body:("for applying" OR "received your application" OR "Your application has been received" OR "thank you for your application" OR "successfully submitted" OR "schedule" OR "availability" OR "next steps" OR "interview" OR "just checking in" OR "following up" OR "wanted to follow" OR "any update on my application" OR "reaching out again" OR "we regret" OR "we appreciate your interest" OR "other candidates" OR "not moving forward" OR "position closed" OR "no longer available")) newer_than:180d
+Ignored due to pattern: 'your job alert for' in subject/body
+Ignored: ÌªéÔ∏è Your job alert for: Cybersecurity (IT/OT) Senior Leader, United States
+Ignored due to pattern: 'your job alert for' in subject/body
+Ignored: ÌªéÔ∏è Your job alert for: IT Security Engineer, Dahlgren, Virginia
+Ignored due to pattern: 'your job alert for' in subject/body
+Ignored: ÌªéÔ∏è Your job alert for: Cybersecurity (IT/OT) Senior Leader, King George, Virginia
+Failed to ingest 1992ec28987bd2e4: name 'data' is not defined
+Ignored due to pattern: 'job matches' in subject/body
+Ignored: Your Top Job matches for ‚ÄúCyber Security Engineer‚Äù ‚Äî 98% match from Jobright - September 08
+Failed to ingest 19929b45500be901: name 'data' is not defined
+Ignored due to pattern: 'saved job is expiring' in subject/body
+Ignored: Kelly, your saved job is expiring tomorrow! ‚ÄòLead Cyber Security Operations Center (CSOC) Analyst - USDS at TikTok‚Äô
+Ignored due to pattern: 'job matches' in subject/body
+Ignored: New Artificial Intelligence Engineer Job Matches
+Failed to ingest 19924b141bea8b31: name 'data' is not defined
+Ignored due to pattern: 'your job alert for' in subject/body
+Ignored: ÌªéÔ∏è Your job alert for: Cybersecurity (IT/OT) Senior Leader, United States
+Ignored due to pattern: 'your job alert for' in subject/body
+Ignored: ÌªéÔ∏è Your job alert for: IT Security Engineer, Dahlgren, Virginia
+Failed to ingest 19923fb2809cdd04: name 'data' is not defined
+Failed to ingest 19921a33fcfd0641: name 'data' is not defined
+Predicted company: Intel for message ID 19921738621c415f
+Ì¥Æ [ML USED] Predicted company 'Intel' for message 19921738621c415f
+Failed to ingest 19921738621c415f: name 'data' is not defined
+Failed to ingest 1992170b2ae82c1b: name 'data' is not defined
+Ignored due to pattern: 'new job opportunities' in subject/body
+Ignored: New job opportunities at Viasat!
+Ignored due to pattern: 'job matches' in subject/body
+Ignored: Your job matches for ‚ÄúSr. Cybersecurity Engineer II (6012)‚Äù ‚Äî curated for you from Jobright - September 04
+Ignored due to pattern: 'job matches' in subject/body
+Ignored: New Artificial Intelligence Engineer Job Matches
+Ignored due to pattern: 'your job alert for' in subject/body
+Ignored: Re: ÌªéÔ∏è Your job alert for: IT Security Engineer, Dahlgren, Virginia
+Ignored due to pattern: 'your job alert for' in subject/body
+Ignored: ÔøΩÔøΩÔ∏è Your job alert for: IT Security Engineer, Dahlgren, Virginia
+Ignored due to pattern: 'your job alert for' in subject/body
+Ignored: ÌªéÔ∏è Your job alert for: Cybersecurity (IT/OT) Senior Leader, King George, Virginia
+Ignored due to pattern: 'new job opportunities' in subject/body
+Ignored: New job opportunities at Viasat!
+Ignored due to pattern: 'job matches' in subject/body
+Ignored: Your Top Job matches for ‚ÄúDelegated Authorizing Official Representative, Level 3  (FORECASTED)‚Äù ‚Äî 98% match from Jobright - September 03
+Predicted company: Intel for message ID 1991113779c0db6d
+Ì¥Æ [ML USED] Predicted company 'Intel' for message 1991113779c0db6d
+Failed to ingest 1991113779c0db6d: name 'data' is not defined
+Predicted company: Intel for message ID 19910d9269a298a0
+Ì¥Æ [ML USED] Predicted company 'Intel' for message 19910d9269a298a0
+Failed to ingest 19910d9269a298a0: name 'data' is not defined
+Ignored due to pattern: 'job matches' in subject/body
+Ignored: New cybersecurity Job Matches
+Predicted company: Intel for message ID 1990cc55f50150e8
+Ì¥Æ [ML USED] Predicted company 'Intel' for message 1990cc55f50150e8
+Failed to ingest 1990cc55f50150e8: name 'data' is not defined
+Predicted company: Intel for message ID 1990c3d6b55d4bc2
+Ì¥Æ [ML USED] Predicted company 'Intel' for message 1990c3d6b55d4bc2
+Failed to ingest 1990c3d6b55d4bc2: name 'data' is not defined
+Predicted company: Intel for message ID 1990c1ea96128e2e
+Ì¥Æ [ML USED] Predicted company 'Intel' for message 1990c1ea96128e2e
+Failed to ingest 1990c1ea96128e2e: name 'data' is not defined
+Ignored due to pattern: 'how your job search' in subject/body
+Ignored: Here is how your job search went last week, Adrian!
+Failed to ingest 1990b856696abe98: name 'data' is not defined
+Predicted company: Intel for message ID 1990b529bccc2d6b
+Ì¥Æ [ML USED] Predicted company 'Intel' for message 1990b529bccc2d6b
+Failed to ingest 1990b529bccc2d6b: name 'data' is not defined
+Ignored due to pattern: 'job matches' in subject/body
+Ignored: New Artificial Intelligence Engineer Job Matches
+Ignored due to pattern: 'new job opportunities' in subject/body
+Ignored: New job opportunities at Viasat!
+Ignored due to pattern: 'job matches' in subject/body
+Ignored: Kelly: 1 new job
+Ignored due to pattern: 'job matches' in subject/body
+Ignored: Your job matches for ‚ÄúSenior Security Engineer ‚Äì Remote (US) ‚Äì Competitive Salary Opportunity to work with an Ambitious, Rapidly-Growing Company!‚Äù ‚Äî curated for you from Jobright - September 01        
+Ignored due to pattern: 'new job opportunities' in subject/body
+Ignored: New job opportunities at Viasat!
+Failed to ingest 19903846cd5fc1a7: name 'data' is not defined
+Ignored due to pattern: 'job matches' in subject/body
+Ignored: New cybersecurity Job Matches
+Ignored due to pattern: 'job matches' in subject/body
+Ignored: Your Top Job matches for ‚ÄúSr. Engineer, Product Abuse - Product Security (Remote)‚Äù ‚Äî 98% match from Jobright - August 31
+Ignored due to pattern: 'your job alert for' in subject/body
+Ignored: ÌªéÔ∏è Your job alert for: Cybersecurity (IT/OT) Senior Leader, United States
+Ignored due to pattern: 'your job alert for' in subject/body
+Ignored: ÌªéÔ∏è Your job alert for: Cybersecurity (IT/OT) Senior Leader, King George, Virginia
+Ignored due to pattern: 'your job alert for' in subject/body
+Ignored: ÔøΩÔøΩÔ∏è Your job alert for: IT Security Engineer, Dahlgren, Virginia
+Ignored due to pattern: 'job matches' in subject/body
+Ignored: Your Top Job matches for ‚ÄúSr. Director, Security Operations‚Äù ‚Äî 98% match from Jobright - August 30
+Ignored due to pattern: 'job matches' in subject/body
+Ignored: New Artificial Intelligence Engineer Job Matches
+Ignored due to pattern: 'your job alert for' in subject/body
+Ignored: ÌªéÔ∏è Your job alert for: IT Security Engineer, Dahlgren, Virginia
+Ignored due to pattern: 'your job alert for' in subject/body
+Ignored: ÌªéÔ∏è Your job alert for: Cybersecurity (IT/OT) Senior Leader, United States
+Ignored due to pattern: 'your job alert for' in subject/body
+Ignored: ÌªéÔ∏è Your job alert for: Cybersecurity (IT/OT) Senior Leader, King George, Virginia
+Failed to ingest 198f6a6ea659a5c3: name 'data' is not defined
+Ignored due to pattern: 'new job opportunities' in subject/body
+Ignored: New job opportunities at Viasat!
+Ignored due to pattern: 'looking for a new job' in subject/body
+Ignored: Kelly, looking for a new job?
+Ignored due to pattern: 'job matches' in subject/body
+Ignored: New Artificial Intelligence Engineer Job Matches
+Failed to ingest 198f0e7c2e8ede8b: name 'data' is not defined
+Failed to ingest 198ed2889a6ac297: name 'data' is not defined
+Predicted company: Intel for message ID 198ecd531b5c3d54
+Ì¥Æ [ML USED] Predicted company 'Intel' for message 198ecd531b5c3d54
+Failed to ingest 198ecd531b5c3d54: name 'data' is not defined
+Failed to ingest 198e776bf7dd45e6: name 'data' is not defined
+Failed to ingest 198d420c4d5cd461: name 'data' is not defined
+Predicted company: Intel for message ID 198d3ba492703917
+Ì¥Æ [ML USED] Predicted company 'Intel' for message 198d3ba492703917
+Failed to ingest 198d3ba492703917: name 'data' is not defined
+Failed to ingest 198cef5698d14ce6: name 'data' is not defined
+Failed to ingest 198cea15689717c5: name 'data' is not defined
+Failed to ingest 198ce49f771a262d: name 'data' is not defined
+Failed to ingest 198ce2d1a5d71fd1: name 'data' is not defined
+Failed to ingest 198ce2bf6a7a2d58: name 'data' is not defined
+Failed to ingest 198ce2b206861f28: name 'data' is not defined
+Failed to ingest 198ce0edd84dde7b: name 'data' is not defined
+Failed to ingest 198c8e14c5ff8b80: name 'data' is not defined
+Failed to ingest 198c8d112c27c24d: name 'data' is not defined
+Failed to ingest 198c8cddb7b20c72: name 'data' is not defined
+Failed to ingest 198c8bc3b314bf95: name 'data' is not defined
+Failed to ingest 198c8b18e3bc0496: name 'data' is not defined
+Failed to ingest 198c896a18fd9104: name 'data' is not defined
+Failed to ingest 198c891d2cf20d1f: name 'data' is not defined
+Predicted company: Intel for message ID 198c855de65dbb96
+Ì¥Æ [ML USED] Predicted company 'Intel' for message 198c855de65dbb96
+Failed to ingest 198c855de65dbb96: name 'data' is not defined
+Failed to ingest 198c5029417e6f9f: name 'data' is not defined
+Failed to ingest 198c3c35d616d71b: name 'data' is not defined
+Failed to ingest 198c3beab24e00c2: name 'data' is not defined
+Failed to ingest 198c3bb7326e4438: name 'data' is not defined
+Failed to ingest 198c3a3d228fd100: name 'data' is not defined
+Failed to ingest 198c2bc2e3aef117: name 'data' is not defined
+Failed to ingest 198b919d74af40bf: name 'data' is not defined
+Predicted company: Intel for message ID 198b4c0fa1c9f941
+Ì¥Æ [ML USED] Predicted company 'Intel' for message 198b4c0fa1c9f941
+Failed to ingest 198b4c0fa1c9f941: name 'data' is not defined
+Failed to ingest 198ae7b80356515d: name 'data' is not defined
+Failed to ingest 198a93d60d74e10b: name 'data' is not defined
+Failed to ingest 198a8af62277c738: name 'data' is not defined
+Failed to ingest 198a4fcc34ef95c2: name 'data' is not defined
+Failed to ingest 198a4f5f42e5ffc4: name 'data' is not defined
+Predicted company: Intel for message ID 1988b196b0c4ee79
+Ì¥Æ [ML USED] Predicted company 'Intel' for message 1988b196b0c4ee79
+Failed to ingest 1988b196b0c4ee79: name 'data' is not defined
+Failed to ingest 1988533d1af1a854: name 'data' is not defined
+Failed to ingest 1985cd0080e84663: name 'data' is not defined
+Failed to ingest 19832d3e3873cd8f: name 'data' is not defined
+Failed to ingest 1980a2920decbec7: name 'data' is not defined
+Predicted company: Intel for message ID 197f58e003edeb00
+Ì¥Æ [ML USED] Predicted company 'Intel' for message 197f58e003edeb00
+Failed to ingest 197f58e003edeb00: name 'data' is not defined
+Predicted company: Intel for message ID 197f58dffc28817d
+Ì¥Æ [ML USED] Predicted company 'Intel' for message 197f58dffc28817d
+Failed to ingest 197f58dffc28817d: name 'data' is not defined
+Ignored due to pattern: 'do you think of this position' in subject/body
+Ignored: RE: I found your resume on USAJOBS. What do you think of this position?
+Ignored due to pattern: 'do you think of this position' in subject/body
+Ignored: Re: I found your resume on USAJOBS. What do you think of this position?
+Ignored due to pattern: 'do you think of this position' in subject/body
+Ignored: I found your resume on USAJOBS. What do you think of this position?
+Predicted company: Intel for message ID 197c88525df1d3fa
+Ì¥Æ [ML USED] Predicted company 'Intel' for message 197c88525df1d3fa
+Failed to ingest 197c88525df1d3fa: name 'data' is not defined
+Failed to ingest 197c84974c4c5167: name 'data' is not defined
+Failed to ingest 197b9e75a5c691f3: name 'data' is not defined
+Failed to ingest 197adfa1fffc0e62: name 'data' is not defined
+Failed to ingest 1979e87ded059f60: name 'data' is not defined
+Failed to ingest 1977971ab578aa49: name 'data' is not defined
+Failed to ingest 1977156cf99e0fb0: name 'data' is not defined
+Failed to ingest 1976b102b684fdd5: name 'data' is not defined
+Failed to ingest 1976ae5ab31daf58: name 'data' is not defined
+Failed to ingest 1976adf8e3cf05f9: name 'data' is not defined
+Failed to ingest 1976ab04691de099: name 'data' is not defined
+Failed to ingest 1976a6e5d6aa877d: name 'data' is not defined
+Failed to ingest 19769d0293852a7b: name 'data' is not defined
+Failed to ingest 19769cf67ebdebad: name 'data' is not defined
+Failed to ingest 19769c308434ec6c: name 'data' is not defined
+Failed to ingest 19769c0053466842: name 'data' is not defined
+Failed to ingest 19769b3d70860daa: name 'data' is not defined
+Failed to ingest 19765a96d9affc7b: name 'data' is not defined
+Failed to ingest 1975dcdb7303dec5: name 'data' is not defined
+Failed to ingest 1975673cea3ba6f2: name 'data' is not defined
+Failed to ingest 1975590443541b2b: name 'data' is not defined
+Failed to ingest 19754c772c9d91f6: name 'data' is not defined
+Failed to ingest 1974d3008aedbccc: name 'data' is not defined
+Failed to ingest 1974cb347937ab04: name 'data' is not defined
+Failed to ingest 19747cfdb8b922ee: name 'data' is not defined
+Failed to ingest 19721a9442bbf9e3: name 'data' is not defined
+Failed to ingest 197218082f5e0658: name 'data' is not defined
+Failed to ingest 1972158319575408: name 'data' is not defined
+Failed to ingest 1971ce1a236c20e7: name 'data' is not defined
+Failed to ingest 1971c5b3f5c1fb9d: name 'data' is not defined
+Failed to ingest 197037756b483657: name 'data' is not defined
+Failed to ingest 196f483fbc884dbd: name 'data' is not defined
+Failed to ingest 196d4b7f48724402: name 'data' is not defined
+Ignored due to pattern: 'your job alert for' in subject/body
+Ignored: ÌªéÔ∏è Your job alert for: Cybersecurity (IT/OT) Senior Leader, King George, Virginia
+Failed to ingest 196cf35ebd92b0c0: name 'data' is not defined
+Failed to ingest 196cf35eb6fa0b18: name 'data' is not defined
+Failed to ingest 196cbc821c79853d: name 'data' is not defined
+Failed to ingest 1969e0e3f1b7664a: name 'data' is not defined
+Failed to ingest 196949af1d0be2eb: name 'data' is not defined
+Failed to ingest 19690de7acee0d70: name 'data' is not defined
+Failed to ingest 19685236c9ddf91b: name 'data' is not defined
+Failed to ingest 19681aacba3db87f: name 'data' is not defined
+Failed to ingest 196808ade46dedeb: name 'data' is not defined
+Failed to ingest 1967ee3ecd7048d1: name 'data' is not defined
+Failed to ingest 1967e1e399a104d7: name 'data' is not defined
+Failed to ingest 1967e0d712990fcf: name 'data' is not defined
+Failed to ingest 1963eaf0e0f7319a: name 'data' is not defined
+Failed to ingest 19635ca2b5919743: name 'data' is not defined
+Failed to ingest 1963084610b201dd: name 'data' is not defined
+Failed to ingest 1962167e0b752b43: name 'data' is not defined
+Failed to ingest 19620cc3646de17f: name 'data' is not defined
+Failed to ingest 19620ca30059a8e8: name 'data' is not defined
+Failed to ingest 19620c240b304e9a: name 'data' is not defined
+Failed to ingest 1962071e3eb1e511: name 'data' is not defined
+Predicted company: Intel for message ID 19620536af738fcb
+Ì¥Æ [ML USED] Predicted company 'Intel' for message 19620536af738fcb
+Failed to ingest 19620536af738fcb: name 'data' is not defined
+Predicted company: Intel for message ID 1961b3324d2a7a6e
+Ì¥Æ [ML USED] Predicted company 'Intel' for message 1961b3324d2a7a6e
+Failed to ingest 1961b3324d2a7a6e: name 'data' is not defined
+Failed to ingest 1961b103bdbdc4d0: name 'data' is not defined
+Failed to ingest 19611db2dfe160a0: name 'data' is not defined
+Failed to ingest 195f9ae32537a4a4: name 'data' is not defined
+Failed to ingest 195f7a6c713551fa: name 'data' is not defined
+Failed to ingest 195f7a6c0c4f10d9: name 'data' is not defined
+Predicted company: Intel for message ID 195ecef2b3f64f70
+Ì¥Æ [ML USED] Predicted company 'Intel' for message 195ecef2b3f64f70
+Failed to ingest 195ecef2b3f64f70: name 'data' is not defined
+Failed to ingest 195b4fe741577d05: name 'data' is not defined
+Failed to ingest 195aceec4d66fb0e: name 'data' is not defined
+Ignored due to pattern: 'prep materials' in subject/body
+Ignored: Prep Materials for your Manager, Cyber Threat Intel phone interview
+Failed to ingest 19595fce4940cd42: name 'data' is not defined
+Failed to ingest 19595fa434042781: name 'data' is not defined
+Failed to ingest 19595fa4272d8ec6: name 'data' is not defined
+
+kaver@Bob MINGW64 /c/Users/kaver/code/Gmail Job Tracker (main)
+$ rm job_tracker.db 
+
+kaver@Bob MINGW64 /c/Users/kaver/code/Gmail Job Tracker (main)
+$ python main.py
+Ì¥ñ ML model loaded for company prediction.
+Database initialized.
+Connected to Gmail account: kaver68@gmail.com
+Using Gmail query: (subject:(job OR application OR resume OR interview OR position) OR body:("for applying" OR "received your application" OR "Your application has been received" OR "thank you for your application" OR "successfully submitted" OR "schedule" OR "availability" OR "next steps" OR "interview" OR "just checking in" OR "following up" OR "wanted to follow" OR "any update on my application" OR "reaching out again" OR "we regret" OR "we appreciate your interest" OR "other candidates" OR "not moving forward" OR "position closed" OR "no longer available")) newer_than:180d
+Ignored due to pattern: 'your job alert for' in subject/body
+Ignored: ÌªéÔ∏è Your job alert for: Cybersecurity (IT/OT) Senior Leader, United States
+Ignored due to pattern: 'your job alert for' in subject/body
+Ignored: ÌªéÔ∏è Your job alert for: IT Security Engineer, Dahlgren, Virginia
+Ignored due to pattern: 'your job alert for' in subject/body
+Ignored: ÌªéÔ∏è Your job alert for: Cybersecurity (IT/OT) Senior Leader, King George, Virginia
+[DEBUG] sender='MANTECH Careers <Careers@mantech.com>', sender_domain='mantech.com'
+Logged: Thank you for your application at MANTECH! ‚Üí application
+Ignored due to pattern: 'job matches' in subject/body
+Ignored: Your Top Job matches for ‚ÄúCyber Security Engineer‚Äù ‚Äî 98% match from Jobright - September 08
+[DEBUG] sender='noreply@google.com', sender_domain='google.com'
+Logged: [Due in 4 days] Next Part of your Google Application: Google Hiring Assessment ‚Üí application
+Ignored due to pattern: 'saved job is expiring' in subject/body
+Ignored: Kelly, your saved job is expiring tomorrow! ‚ÄòLead Cyber Security Operations Center (CSOC) Analyst - USDS at TikTok‚Äô
+Ignored due to pattern: 'job matches' in subject/body
+Ignored: New Artificial Intelligence Engineer Job Matches
+[DEBUG] sender='Tyler Technologies Recruiting Team <reply@careers.tylertech.com>', sender_domain='careers.tylertech.com'
+Logged: Your application for Sr. DFIR Engineer at Tyler Technologies ‚Üí application
+Ignored due to pattern: 'your job alert for' in subject/body
+Ignored: ÌªéÔ∏è Your job alert for: Cybersecurity (IT/OT) Senior Leader, United States
+Ignored due to pattern: 'your job alert for' in subject/body
+Ignored: ÌªéÔ∏è Your job alert for: IT Security Engineer, Dahlgren, Virginia
+[DEBUG] sender='Tyler Technologies <noreply@jobalerts.jobvite.com>', sender_domain='jobalerts.jobvite.com'
+Logged: You have 1 job alerts for Tyler Technologies ‚Üí outreach
+[DEBUG] sender='Cisco Recruiting <donotreply@cisco.avature.net>', sender_domain='cisco.avature.net'
+Logged: You have applied to Cisco Job Director of Engineering (Adversarial AI - Red Team, Threat Intelligence), Job ID 1438794 ‚Üí application
+Predicted company: Intel for message ID 19921738621c415f
+Ì¥Æ [ML USED] Predicted company 'Intel' for message 19921738621c415f
+[DEBUG] sender='LinkedIn <jobs-noreply@linkedin.com>', sender_domain='linkedin.com'
+Logged: Kelly, your application was sent to TikTok ‚Üí interview
+[DEBUG] sender='Tyler Technologies Recruiting Team <reply@careers.tylertech.com>', sender_domain='careers.tylertech.com'
+Logged: Your application for Security Architect at Tyler Technologies ‚Üí application
+Ignored due to pattern: 'new job opportunities' in subject/body
+Ignored: New job opportunities at Viasat!
+Ignored due to pattern: 'job matches' in subject/body
+Ignored: Your job matches for ‚ÄúSr. Cybersecurity Engineer II (6012)‚Äù ‚Äî curated for you from Jobright - September 04
+Ignored due to pattern: 'job matches' in subject/body
+Ignored: New Artificial Intelligence Engineer Job Matches
+Ignored due to pattern: 'your job alert for' in subject/body
+Ignored: Re: ÌªéÔ∏è Your job alert for: IT Security Engineer, Dahlgren, Virginia
+Ignored due to pattern: 'your job alert for' in subject/body
+Ignored: ÌªéÔ∏è Your job alert for: IT Security Engineer, Dahlgren, Virginia
+Ignored due to pattern: 'your job alert for' in subject/body
+Ignored: ÌªéÔ∏è Your job alert for: Cybersecurity (IT/OT) Senior Leader, King George, Virginia
+Ignored due to pattern: 'new job opportunities' in subject/body
+Ignored: New job opportunities at Viasat!
+Ignored due to pattern: 'job matches' in subject/body
+Ignored: Your Top Job matches for ‚ÄúDelegated Authorizing Official Representative, Level 3  (FORECASTED)‚Äù ‚Äî 98% match from Jobright - September 03
+Predicted company: Intel for message ID 1991113779c0db6d
+Ì¥Æ [ML USED] Predicted company 'Intel' for message 1991113779c0db6d
+[DEBUG] sender='"The Batch @ DeepLearning.AI" <thebatch@deeplearning.ai>', sender_domain='deeplearning.ai'
+Logged: Gemini‚Äôs Environmental Impact, China‚Äôs Emerging AI Hub, Chatbot Job Interviews, Security For Agents ‚Üí interview
+Predicted company: Intel for message ID 19910d9269a298a0
+Ì¥Æ [ML USED] Predicted company 'Intel' for message 19910d9269a298a0
+[DEBUG] sender='Taylor at Monster <monster@emails.monster.com>', sender_domain='emails.monster.com'
+Logged: Adrian, I've found your job of the week ‚Üí outreach
+Ignored due to pattern: 'job matches' in subject/body
+Ignored: New cybersecurity Job Matches
+Predicted company: Intel for message ID 1990cc55f50150e8
+ÔøΩÔøΩ [ML USED] Predicted company 'Intel' for message 1990cc55f50150e8
+[DEBUG] sender='Ghazala Hashmi <info@ghazalaforvirginia.com>', sender_domain='ghazalaforvirginia.com'
+Logged: Thanks to you, we‚Äôre in a position to win this race ‚Üí outreach
+Predicted company: Intel for message ID 1990c3d6b55d4bc2
+Ì¥Æ [ML USED] Predicted company 'Intel' for message 1990c3d6b55d4bc2
+[DEBUG] sender='Aakib Qureshi <aakib@irionline.com>', sender_domain='irionline.com'
+Logged: PERMANENT/ FULL TIME JOB | OT Cyber Security Analyst | Apollo Beach, FL 33572 ‚Üí interview
+Predicted company: Intel for message ID 1990c1ea96128e2e
+Ì¥Æ [ML USED] Predicted company 'Intel' for message 1990c1ea96128e2e
+[DEBUG] sender='Aakib Qureshi <aakib@irionline.com>', sender_domain='irionline.com'
+Logged: PERMANENT/ FULL TIME JOB | OT Cyber Security Analyst | Apollo Beach, FL 33572 ‚Üí interview
+Ignored due to pattern: 'how your job search' in subject/body
+Ignored: Here is how your job search went last week, Adrian!
+[DEBUG] sender='LinkedIn <jobs-noreply@linkedin.com>', sender_domain='linkedin.com'
+Logged: Kelly, your job‚Äôs expiring on Sep 7: Lead Cyber Security Operations Center (CSOC) Analyst - USDS at TikTok ‚Üí outreach
+Predicted company: Intel for message ID 1990b529bccc2d6b
+Ì¥Æ [ML USED] Predicted company 'Intel' for message 1990b529bccc2d6b
+[DEBUG] sender='The Pragmatic Engineer <pragmaticengineer+deepdives@substack.com>', sender_domain='substack.com'
+Logged: State of the software engineering job market in 2025 ‚Üí interview
+Ignored due to pattern: 'job matches' in subject/body
+Ignored: New Artificial Intelligence Engineer Job Matches
+Ignored due to pattern: 'new job opportunities' in subject/body
+Ignored: New job opportunities at Viasat!
+Ignored due to pattern: 'job matches' in subject/body
+Ignored: Kelly: 1 new job
+Ignored due to pattern: 'job matches' in subject/body
+Ignored: Your job matches for ‚ÄúSenior Security Engineer ‚Äì Remote (US) ‚Äì Competitive Salary Opportunity to work with an Ambitious, Rapidly-Growing Company!‚Äù ‚Äî curated for you from Jobright - September 01
+Ignored due to pattern: 'new job opportunities' in subject/body
+Ignored: New job opportunities at Viasat!
+[DEBUG] sender='MITRE Workday <mitre@myworkday.com>', sender_domain='myworkday.com'
+Logged: MITRE: Thank you for your interest in the Lead Cyber Security Engineer job ‚Üí outreach
+Ignored due to pattern: 'job matches' in subject/body
+Ignored: New cybersecurity Job Matches
+Ignored due to pattern: 'job matches' in subject/body
+Ignored: Your Top Job matches for ‚ÄúSr. Engineer, Product Abuse - Product Security (Remote)‚Äù ‚Äî 98% match from Jobright - August 31
+Ignored due to pattern: 'your job alert for' in subject/body
+Ignored: ÌªéÔ∏è Your job alert for: Cybersecurity (IT/OT) Senior Leader, United States
+Ignored due to pattern: 'your job alert for' in subject/body
+Ignored: ÌªéÔ∏è Your job alert for: Cybersecurity (IT/OT) Senior Leader, King George, Virginia
+Ignored due to pattern: 'your job alert for' in subject/body
+Ignored: ÌªéÔ∏è Your job alert for: IT Security Engineer, Dahlgren, Virginia
+Ignored due to pattern: 'job matches' in subject/body
+Ignored: Your Top Job matches for ‚ÄúSr. Director, Security Operations‚Äù ‚Äî 98% match from Jobright - August 30
+Ignored due to pattern: 'job matches' in subject/body
+Ignored: New Artificial Intelligence Engineer Job Matches
+Ignored due to pattern: 'your job alert for' in subject/body
+Ignored: ÌªéÔ∏è Your job alert for: IT Security Engineer, Dahlgren, Virginia
+Ignored due to pattern: 'your job alert for' in subject/body
+Ignored: ÌªéÔ∏è Your job alert for: Cybersecurity (IT/OT) Senior Leader, United States
+Ignored due to pattern: 'your job alert for' in subject/body
+Ignored: ÌªéÔ∏è Your job alert for: Cybersecurity (IT/OT) Senior Leader, King George, Virginia
+[DEBUG] sender='Indeed Apply <indeedapply@indeed.com>', sender_domain='indeed.com'
+Logged: Indeed Application: Advisory Associate ‚Üí outreach
+Ignored due to pattern: 'new job opportunities' in subject/body
+Ignored: New job opportunities at Viasat!
+Ignored due to pattern: 'looking for a new job' in subject/body
+Ignored: Kelly, looking for a new job?
+Ignored due to pattern: 'job matches' in subject/body
+Ignored: New Artificial Intelligence Engineer Job Matches
+[DEBUG] sender='Kelly Shaw <kaver68@gmail.com>', sender_domain='gmail.com'
+Logged: Re: Position You Applied For - Leidos - Cybersecurity PM ‚Üí outreach
+[DEBUG] sender='support@antisyphontraining.com', sender_domain='antisyphontraining.com'
+Logged: Antisyphon Registration Confirmation 2025-09-16 Workshop: Job Hunt Like a Hacker 2025 Edition with Jason Blanchard ‚Üí outreach
+Predicted company: Intel for message ID 198ecd531b5c3d54
+Ì¥Æ [ML USED] Predicted company 'Intel' for message 198ecd531b5c3d54
+[DEBUG] sender='Career Center <careercenter@computer.org>', sender_domain='computer.org'
+Logged: PricewaterhouseCoopers Advisory Services LLC has an open position ‚Üí outreach
+[DEBUG] sender='Peraton <peraton+autoreply@talent.icims.com>', sender_domain='talent.icims.com'
+Logged: Peraton Application Update ‚Üí application
+[DEBUG] sender='Kelly Shaw <kaver68@gmail.com>', sender_domain='gmail.com'
+Logged: Re: tuesday interview || Network Security Specialist      ‚Üí outreach
+Predicted company: Intel for message ID 198d3ba492703917
+Ì¥Æ [ML USED] Predicted company 'Intel' for message 198d3ba492703917
+[DEBUG] sender='Shivangi Goswami <shivangi@tekintegral.com>', sender_domain='tekintegral.com'
+Logged: tuesday interview || Network Security Specialist      ‚Üí outreach
+[DEBUG] sender='Kelly Shaw <kaver68@gmail.com>', sender_domain='gmail.com'
+Logged: Re: RTR Rate Confirmation :Remote Job Security Engineer Senior Lead ‚Üí outreach
+[DEBUG] sender='MITRE Workday <mitre@myworkday.com>', sender_domain='myworkday.com'
+Logged: MITRE: Thank you for applying to the Lead Cyber Security Engineer job ‚Üí outreach
+[DEBUG] sender='Kelly Shaw <kaver68@gmail.com>', sender_domain='gmail.com'
+Logged: Re: RTR Rate Confirmation :Remote Job Security Engineer Senior Lead ‚Üí outreach
+[DEBUG] sender='Nagen Banuri <NagenB@globalsolgroup.com>', sender_domain='globalsolgroup.com'
+Logged: Re: RTR Rate Confirmation :Remote Job Security Engineer Senior Lead ‚Üí outreach
+[DEBUG] sender='Kelly Shaw <kaver68@gmail.com>', sender_domain='gmail.com'
+Logged: Re: RTR Rate Confirmation :Remote Job Security Engineer Senior  Lead ‚Üí outreach
+[DEBUG] sender='Nagen Banuri <NagenB@globalsolgroup.com>', sender_domain='globalsolgroup.com'
+Logged: Re: RTR Rate Confirmation :Remote Job Security Engineer Senior  Lead ‚Üí outreach
+[DEBUG] sender='no-reply@sentinelone.com', sender_domain='sentinelone.com'
+Logged: Your Application with SentinelOne | Principal Product Manager, Vulnerability Management ‚Üí application
+[DEBUG] sender='Kelly Shaw <kaver68@gmail.com>', sender_domain='gmail.com'
+Logged: Re: Rate Confirmation RTR :Remote Job SOC ‚Üí outreach
+[DEBUG] sender='Nagen Banuri <NagenB@globalsolgroup.com>', sender_domain='globalsolgroup.com'
+Logged: Re: Rate Confirmation RTR :Remote Job SOC ‚Üí outreach
+[DEBUG] sender='Kelly Shaw <kaver68@gmail.com>', sender_domain='gmail.com'
+Logged: Re: Rate Confirmation RTR :Remote Job SOC ‚Üí outreach
+[DEBUG] sender='Nagen Banuri <NagenB@globalsolgroup.com>', sender_domain='globalsolgroup.com'
+Logged: Re: Rate Confirmation RTR :Remote Job SOC ‚Üí outreach
+[DEBUG] sender='Kelly Shaw <kaver68@gmail.com>', sender_domain='gmail.com'
+Logged: Re: Submission Details :Remote Job SOC ‚Üí outreach
+[DEBUG] sender='Kelly Shaw <kaver68@gmail.com>', sender_domain='gmail.com'
+Logged: Re: Submission Details :Remote Job SOC ‚Üí outreach
+[DEBUG] sender='Kelly Shaw <kaver68@gmail.com>', sender_domain='gmail.com'
+Logged: Re: Submission Details :Remote Job SOC ‚Üí outreach
+Predicted company: Intel for message ID 198c855de65dbb96
+Ì¥Æ [ML USED] Predicted company 'Intel' for message 198c855de65dbb96
+[DEBUG] sender='"AI & ML Program - Texas McCombs" <aiml.utaustin@learn.mygreatlearning.com>', sender_domain='learn.mygreatlearning.com'
+Logged: [Reminder] Application Deadline: Tomorrow ‚Üí outreach
+[DEBUG] sender='Kelly Shaw <kaver68@gmail.com>', sender_domain='gmail.com'
+Logged: Re: Submission Details :Remote Job SOC ‚Üí outreach
+[DEBUG] sender='Nagen Banuri <NagenB@globalsolgroup.com>', sender_domain='globalsolgroup.com'
+Logged: Re: Submission Details :Remote Job SOC ‚Üí outreach
+[DEBUG] sender='Nagen Banuri <NagenB@globalsolgroup.com>', sender_domain='globalsolgroup.com'
+Logged: Re: Remote Job SOC ‚Üí outreach
+[DEBUG] sender='Kelly Shaw <kaver68@gmail.com>', sender_domain='gmail.com'
+Logged: Re: Remote Job  SOC ‚Üí outreach
+[DEBUG] sender='Nagen Banuri <NagenB@globalsolgroup.com>', sender_domain='globalsolgroup.com'
+Logged: Remote Job  SOC ‚Üí outreach
+[DEBUG] sender='"Wakman, Yama [US-US]" <Yama.Wakman@leidos.com>', sender_domain='leidos.com'
+Logged: Position You Applied For - Leidos - Cybersecurity PM ‚Üí outreach
+[DEBUG] sender='Microsoft Recruiting <do-not-reply@jobs.microsoft.com>', sender_domain='jobs.microsoft.com'
+Logged: Thank you for your Application! ‚Üí application
+Predicted company: Intel for message ID 198b4c0fa1c9f941
+Ì¥Æ [ML USED] Predicted company 'Intel' for message 198b4c0fa1c9f941
+[DEBUG] sender='verizon@myworkday.com', sender_domain='myworkday.com'
+Logged: Your application has been received for Principal Threat Intel (R-1081191) ‚Üí outreach
+[DEBUG] sender='"Sabre Systems, Inc. @ icims" <sabresystems+autoreply@talent.icims.com>', sender_domain='talent.icims.com'
+Logged: Thank you for your application ‚Üí outreach
+[DEBUG] sender='Kelly Shaw <kaver68@gmail.com>', sender_domain='gmail.com'
+Logged: Re: Retirement Application Available ‚Üí outreach
+[DEBUG] sender='DoNotReply <DoNotReply@retire.opm.gov>', sender_domain='retire.opm.gov'
+Logged: Retirement Application Available ‚Üí outreach
+[DEBUG] sender='Microsoft Recruiting <do-not-reply@jobs.microsoft.com>', sender_domain='jobs.microsoft.com'
+Logged: Thank you for your Application! ‚Üí application
+[DEBUG] sender='Microsoft Recruiting <do-not-reply@jobs.microsoft.com>', sender_domain='jobs.microsoft.com'
+Logged: Thank you for your Application! ‚Üí application
+Predicted company: Intel for message ID 1988b196b0c4ee79
+Ì¥Æ [ML USED] Predicted company 'Intel' for message 1988b196b0c4ee79
+[DEBUG] sender='Mandy Singh <mandy@infotreeglobal.com>', sender_domain='infotreeglobal.com'
+Logged: Job Opening_Contractor - Cyber Engineer_Sterling Heights, MI 48310, United States ‚Üí outreach
+[DEBUG] sender='Farr Shepherd <farr.shepherd@decyphertech.com>', sender_domain='decyphertech.com'
+Logged: Introduction Call with Farr Shepherd & Kelly Shaw about Available Position ‚Üí outreach
+[DEBUG] sender='"workday@bah.com" <workday@bah.com>', sender_domain='bah.com'
+Logged: Application Status for Threat Detection and Response Senior Manager ‚Üí outreach
+[DEBUG] sender='"AMERICAN SYSTEMS @ icims" <americansystems+autoreply@talent.icims.com>', sender_domain='talent.icims.com'
+Logged: Thank You For Your Application ‚Üí outreach
+[DEBUG] sender='Stan Russell <stan@corelight.com>', sender_domain='corelight.com'
+Logged: Hi  Kelly - Availability for a second Video interview at Corelight ‚Üí interview
+Predicted company: Intel for message ID 197f58e003edeb00
+Ì¥Æ [ML USED] Predicted company 'Intel' for message 197f58e003edeb00
+[DEBUG] sender='"workday@bah.com" <workday@bah.com>', sender_domain='bah.com'
+Logged: Application Status for Cyber Machine Learning Engineer, Senior ‚Üí outreach
+Predicted company: Intel for message ID 197f58dffc28817d
+Ì¥Æ [ML USED] Predicted company 'Intel' for message 197f58dffc28817d
+[DEBUG] sender='"workday@bah.com" <workday@bah.com>', sender_domain='bah.com'
+Logged: Application Status for Cyber Machine Learning Engineer, Senior ‚Üí outreach
+Ignored due to pattern: 'do you think of this position' in subject/body
+Ignored: RE: I found your resume on USAJOBS. What do you think of this position?
+Ignored due to pattern: 'do you think of this position' in subject/body
+Ignored: Re: I found your resume on USAJOBS. What do you think of this position?
+Ignored due to pattern: 'do you think of this position' in subject/body
+Ignored: I found your resume on USAJOBS. What do you think of this position?
+Predicted company: Intel for message ID 197c88525df1d3fa
+Ì¥Æ [ML USED] Predicted company 'Intel' for message 197c88525df1d3fa
+[DEBUG] sender='homedepot@myworkday.com', sender_domain='myworkday.com'
+Logged: Application Received ‚Üí outreach
+[DEBUG] sender='Tammy.Minor@24x7careers.com', sender_domain='24x7careers.com'
+Logged: Resume Reviewed: Interview Request ‚Üí outreach
+[DEBUG] sender='pcaobus@myworkday.com', sender_domain='myworkday.com'
+Logged: PCAOB Job Application Update: Senior Cybersecurity Analyst ‚Äì Threat and Vulnerability Management Position ‚Üí outreach
+[DEBUG] sender='no-reply@dragos.com', sender_domain='dragos.com'
+Logged: Follow-up on Dragos Application ‚Üí outreach
+[DEBUG] sender='<careers-noreply@carefirst.com>', sender_domain='carefirst.com'
+Logged: Thank you for your interest in Job ID:20657 - Cyber Security Director (Hybrid) ‚Üí outreach
+[DEBUG] sender='LinkedIn <jobs-noreply@linkedin.com>', sender_domain='linkedin.com'
+Logged: Your application was viewed by Maritime Transportation System ISAC ‚Üí outreach
+[DEBUG] sender='Claroty <no-reply@claroty.comeet-notifications.com>', sender_domain='claroty.comeet-notifications.com'
+Logged: We Got It: Thanks for applying for Lead Network Security Analyst position @ Claroty! ‚Üí application
+[DEBUG] sender='Colton Miller <Colton.Miller@ecstech.com>', sender_domain='ecstech.com'
+Logged: RE: [EXTERNAL] Re: ECS - Regarding Your Job Submission for Lead Cyber Threat Intelligence Analyst Position #2007 ‚Üí outreach
+[DEBUG] sender='Kelly Shaw <kaver68@gmail.com>', sender_domain='gmail.com'
+Logged: Re: [EXTERNAL] Re: ECS - Regarding Your Job Submission for Lead Cyber Threat Intelligence Analyst Position #2007 ‚Üí outreach
+[DEBUG] sender='Colton Miller <Colton.Miller@ecstech.com>', sender_domain='ecstech.com'
+Logged: RE: [EXTERNAL] Re: ECS - Regarding Your Job Submission for Lead Cyber Threat Intelligence Analyst Position #2007 ‚Üí outreach
+[DEBUG] sender='Kelly Shaw <kaver68@gmail.com>', sender_domain='gmail.com'
+Logged: Re: [EXTERNAL] Re: ECS - Regarding Your Job Submission for Lead Cyber Threat Intelligence Analyst Position #2007 ‚Üí interview
+[DEBUG] sender='Colton Miller <Colton.Miller@ecstech.com>', sender_domain='ecstech.com'
+Logged: RE: [EXTERNAL] Re: ECS - Regarding Your Job Submission for Lead Cyber Threat Intelligence Analyst Position #2007 ‚Üí outreach
+[DEBUG] sender='Kelly Shaw <kaver68@gmail.com>', sender_domain='gmail.com'
+Logged: Re: [EXTERNAL] Re: ECS - Regarding Your Job Submission for Lead Cyber Threat Intelligence Analyst Position #2007 ‚Üí outreach
+[DEBUG] sender='Colton Miller <Colton.Miller@ecstech.com>', sender_domain='ecstech.com'
+Logged: RE: [EXTERNAL] Re: ECS - Regarding Your Job Submission for Lead Cyber Threat Intelligence Analyst Position #2007 ‚Üí outreach
+[DEBUG] sender='Kelly Shaw <kaver68@gmail.com>', sender_domain='gmail.com'
+Logged: Re: ECS - Regarding Your Job Submission for Lead Cyber Threat Intelligence Analyst Position #2007 ‚Üí outreach
+[DEBUG] sender='Kelly Shaw <kaver68@gmail.com>', sender_domain='gmail.com'
+Logged: Re: ECS - Regarding Your Job Submission for Lead Cyber Threat Intelligence Analyst Position #2007 ‚Üí outreach
+[DEBUG] sender='Colton Miller <Colton.Miller@ecstech.com>', sender_domain='ecstech.com'
+Logged: RE: ECS - Regarding Your Job Submission for Lead Cyber Threat Intelligence Analyst Position #2007 ‚Üí outreach
+[DEBUG] sender='Colton Miller <Colton.Miller@ecstech.com>', sender_domain='ecstech.com'
+Logged: ECS - Regarding Your Job Submission for Lead Cyber Threat Intelligence Analyst Position #2007 ‚Üí outreach
+[DEBUG] sender='mymoose@myworkday.com', sender_domain='myworkday.com'
+Logged: Rapid7 Application Update - Let‚Äôs Keep in Touch! ‚Üí outreach
+[DEBUG] sender='Kelly Shaw <kaver68@gmail.com>', sender_domain='gmail.com'
+Logged: Re: Important information about your application to Partner Forces ‚Üí outreach
+[DEBUG] sender='Mary Jo Finley <mary.finley@partnerforces.com>', sender_domain='partnerforces.com'
+Logged: Important information about your application to Partner Forces ‚Üí outreach
+[DEBUG] sender='no-reply@us.greenhouse-mail.io', sender_domain='us.greenhouse-mail.io'
+Logged: Important information about your application with Recorded Future ‚Üí rejection
+[DEBUG] sender='no-reply@cloudflare.com', sender_domain='cloudflare.com'
+Logged: Cloudflare Recruiting | Application Received - Senior Threat Researcher, East Asia ‚Üí application
+[DEBUG] sender='ManTech Careers <Careers@mantech.com>', sender_domain='mantech.com'
+Logged: Thank you for your application at ManTech! ‚Üí application
+[DEBUG] sender='Glassdoor Jobs <glassdoor-apply@indeed.com>', sender_domain='indeed.com'
+Logged: Submitted: Application with Banduri ‚Üí outreach
+[DEBUG] sender='Mary Jo Finley <mary.finley@partnerforces.com>', sender_domain='partnerforces.com'
+Logged: Partner Forces Interview Confirmation ‚Üí outreach
+[DEBUG] sender='Kelly Shaw <kaver68@gmail.com>', sender_domain='gmail.com'
+Logged: Re: Partner Forces Interview Availability ‚Üí interview
+[DEBUG] sender='Mary Jo Finley <mary.finley@partnerforces.com>', sender_domain='partnerforces.com'
+Logged: Partner Forces Interview Availability ‚Üí interview
+[DEBUG] sender='Harsh Sharma <harsh.sharma@hirekeyz.com>', sender_domain='hirekeyz.com'
+Logged: Job Opening for the role Lead Machine Learning Engineer || Ft. Belvoir, VA (On-site with Hybrid Option) ‚Üí outreach
+[DEBUG] sender='Harsh Sharma <harsh.sharma@hirekeyz.com>', sender_domain='hirekeyz.com'
+Logged: RE: Job Opening for the role Lead Machine Learning Engineer || Ft. Belvoir, VA (On-site with Hybrid Option) ‚Üí outreach
+[DEBUG] sender='no-reply@cloudflare.com', sender_domain='cloudflare.com'
+Logged: Cloudflare Recruiting | Application Received - Senior Threat Intelligence Analyst ‚Üí application
+[DEBUG] sender='Splunk Recruiting Team <no-reply@jobvite.com>', sender_domain='jobvite.com'
+Logged: Splunk Application Update | Senior Machine Learning Engineer, AI (FULLY REMOTE-USA) (32661) ‚Üí application
+[DEBUG] sender='Figure <no-reply@email.figure.com>', sender_domain='email.figure.com'
+Logged: Adrian: An invitation to complete your HELOC application ‚úâÔ∏è ‚Üí outreach
+Ignored due to pattern: 'your job alert for' in subject/body
+Ignored: ÌªéÔ∏è Your job alert for: Cybersecurity (IT/OT) Senior Leader, King George, Virginia
+[DEBUG] sender='donotreply_Leidos_HR workday <leidos@myworkday.com>', sender_domain='myworkday.com'
+Logged: Update on Leidos Position Full Spectrum Cyber AI Researcher ‚Üí outreach
+[DEBUG] sender='donotreply_Leidos_HR workday <leidos@myworkday.com>', sender_domain='myworkday.com'
+Logged: Update on Leidos Position Full Spectrum Cyber AI Researcher ‚Üí outreach
+[DEBUG] sender='DeeDee Price from Palo Alto Networks <notifications@smartrecruiters.com>', sender_domain='smartrecruiters.com'
+Logged: Your application for ‚ÄãSenior Manager, Threat Intel Research‚Äã  at Palo Alto Networks ‚Üí rejection
+[DEBUG] sender='Colleague Zone <cvshealth@myworkday.com>', sender_domain='myworkday.com'
+Logged: Your application with CVS Health has been received! ‚Üí outreach
+[DEBUG] sender='Delta Dental Talent Acquisition Team <noreply-talentacquisition@delta.org>', sender_domain='delta.org'
+Logged: Delta Dental: Continue to apply for the job Expert (Staff) Cyber Defense Engineer ‚Üí outreach
+[DEBUG] sender='no-reply@us.greenhouse-mail.io', sender_domain='us.greenhouse-mail.io'
+Logged: Important information about your application with Recorded Future ‚Üí rejection
+[DEBUG] sender='Delta Dental Talent Acquisition Team <noreply-talentacquisition@delta.org>', sender_domain='delta.org'
+Logged: Delta Dental: Continue to apply for the job Expert (Staff) Cyber Defense Engineer ‚Üí outreach
+[DEBUG] sender='Andrew Yom <ayom@venturegloballng.com>', sender_domain='venturegloballng.com'
+Logged: Re: [EXTERNAL]: Re: Venture Global LNG Interview Availability - Cyber Security Engineer ‚Üí outreach
+[DEBUG] sender='"cmu-workday andrew.cmu" <cmu@myworkday.com>', sender_domain='myworkday.com'
+Logged: SEI Application Update ‚Üí outreach
+[DEBUG] sender='Splunk Recruiting Team <notification@jobvite.com>', sender_domain='jobvite.com'
+Logged: Thanks for applying for the Senior Machine Learning Engineer, AI (FULLY REMOTE-USA) (32661) position at Splunk! ‚Üí application
+[DEBUG] sender='Kelly Shaw <kaver68@gmail.com>', sender_domain='gmail.com'
+Logged: Re: Venture Global LNG Interview Availability - Cyber Security Engineer ‚Üí interview
+[DEBUG] sender='Andrew Yom <ayom@venturegloballng.com>', sender_domain='venturegloballng.com'
+Logged: Venture Global LNG Interview Availability - Cyber Security Engineer ‚Üí interview
+[DEBUG] sender='"cmu-workday andrew.cmu" <cmu@myworkday.com>', sender_domain='myworkday.com'
+Logged: We continue to evaluate your job application ‚Üí outreach
+[DEBUG] sender='"cmu-workday andrew.cmu" <cmu@myworkday.com>', sender_domain='myworkday.com'
+Logged: SEI Application Received ‚Üí outreach
+[DEBUG] sender='crowdstrike@myworkday.com', sender_domain='myworkday.com'
+Logged: CrowdStrike Job Application Confirmation ‚Üí outreach
+[DEBUG] sender='Adrian Shaw <kaver68@me.com>', sender_domain='me.com'
+Logged: Re: Adrian Kelly Shaw - MRA + 10 Application ‚Üí interview
+[DEBUG] sender='"wesley.k.barts@nm.com" <wesley.k.barts@nm.com>', sender_domain='nm.com'
+Logged: RE: Application check in ‚Üí outreach
+[DEBUG] sender='Kelly Shaw <kaver68@gmail.com>', sender_domain='gmail.com'
+Logged: Re: Application check in ‚Üí outreach
+[DEBUG] sender='"wesley.k.barts@nm.com" <wesley.k.barts@nm.com>', sender_domain='nm.com'
+Logged: RE: Application check in ‚Üí outreach
+[DEBUG] sender='Kelly Shaw <kaver68@gmail.com>', sender_domain='gmail.com'
+Logged: Re: Application check in ‚Üí outreach
+Predicted company: Intel for message ID 19620536af738fcb
+Ì¥Æ [ML USED] Predicted company 'Intel' for message 19620536af738fcb
+[DEBUG] sender='Kelly Shaw <kaver68@gmail.com>', sender_domain='gmail.com'
+Logged: Adrian Kelly Shaw - MRA + 10 Application ‚Üí interview
+Predicted company: Intel for message ID 1961b3324d2a7a6e
+Ì¥Æ [ML USED] Predicted company 'Intel' for message 1961b3324d2a7a6e
+[DEBUG] sender='sailpoint@myworkday.com', sender_domain='myworkday.com'
+Logged: Application Received - Thank You ‚Üí outreach
+[DEBUG] sender='noreply@armis.com', sender_domain='armis.com'
+Logged: Your application to Armis Security ‚Üí rejection
+[DEBUG] sender='Parsons Workday <Parsons@myworkday.com>', sender_domain='myworkday.com'
+Logged: Parsons Application Update ‚Äì Req: R165130 ‚Üí outreach
+[DEBUG] sender='"Simventions, Inc @ icims" <simventions+autoreply@talent.icims.com>', sender_domain='talent.icims.com'
+Logged: Complete Your SimVentions Application! ‚Üí outreach
+[DEBUG] sender='Parsons Workday <Parsons@myworkday.com>', sender_domain='myworkday.com'
+Logged: Your Parsons Job Application for: [not available] ‚Üí outreach
+[DEBUG] sender='Parsons Workday <Parsons@myworkday.com>', sender_domain='myworkday.com'
+Logged: Your Parsons Job Application Has Been Received ‚Üí outreach
+Predicted company: Intel for message ID 195ecef2b3f64f70
+Ì¥Æ [ML USED] Predicted company 'Intel' for message 195ecef2b3f64f70
+[DEBUG] sender='"lindsey.j.barts@nm.com" <lindsey.j.barts@nm.com>', sender_domain='nm.com'
+Logged: Application check in ‚Üí outreach
+[DEBUG] sender='Virginia Tech Careers <careers-968@mail.pageuppeople.com>', sender_domain='mail.pageuppeople.com'
+Logged: Virginia Tech application status ‚Üí outreach
+[DEBUG] sender='"Workday@Target" <target@myworkday.com>', sender_domain='target'
+Logged: Your application for R0000384231 Lead Engineer ‚Äì Threat Hunting and Countermeasures (Open) at Target ‚Üí outreach
+Ignored due to pattern: 'prep materials' in subject/body
+Ignored: Prep Materials for your Manager, Cyber Threat Intel phone interview
+[DEBUG] sender='Claroty Recruiting <scheduler@comeet-notifications.com>', sender_domain='comeet-notifications.com'
+Logged: Phone interview scheduled - Field CTO  @Claroty ‚Üí interview
+[DEBUG] sender='Alexis Todero <notifications@claroty.comeet-notifications.com>', sender_domain='claroty.comeet-notifications.com'
+Logged: Your Phone interview with Claroty! ‚Üí outreach
+[DEBUG] sender='Alexis Todero <notifications@claroty.comeet-notifications.com>', sender_domain='claroty.comeet-notifications.com'
+Logged: Your Phone interview with Claroty! ‚Üí application

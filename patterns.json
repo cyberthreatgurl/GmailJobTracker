@@ -11,11 +11,13 @@
   "application": [
     "for applying",
     "received your application",
-    "we appreciate your interest",
-    "thank you for your application"
+    "Your application has been received",
+    "thank you for your application",
+    "successfully submitted"
   ],
   "rejection": [
     "we regret",
+    "we appreciate your interest",
     "other candidates",
     "not moving forward",
     "position closed",
@@ -44,7 +46,7 @@
   "web application",
   "cloud application",
   "application security",
-   "Detection and Response Senior Manager",
+  "Detection and Response Senior Manager",
   "Remote",
   "Researcher",
   "Retirement",
@@ -67,5 +69,19 @@
     "wanted to follow",
     "any update on my application",
     "reaching out again"
-  ]
+  ],
+  "domain_to_company": {
+    "cloudflare.com": "Cloudflare",
+    "armis.com": "Armis",
+    "venturegloballng.com": "Venture Global LNG",
+    "nm.com": "Northwestern Mutual",
+    "me.com": "Apple",
+    "gmail.com": "Google",
+    "delta.org": "Delta Dental",
+    "comeet-notifications.com": "Claroty",
+    "talent.icims.com": "Simventions",
+    "pageuppeople.com": "Virginia Tech",
+    "greenhouse-mail.io": "Greenhouse",
+    "email.figure.com": "Figure"
+  }
 }

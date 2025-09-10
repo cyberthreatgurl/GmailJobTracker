@@ -1,3 +1,4 @@
+# parser.py
 import os
 import re
 import json
@@ -7,10 +8,9 @@ import joblib
 from pathlib import Path
 from email.utils import parsedate_to_datetime, parseaddr
 from bs4 import BeautifulSoup
-from db import insert_email_text, insert_or_update_application
+from db import insert_email_text, insert_or_update_application, is_valid_company
 from datetime import datetime, timedelta
-from db_helpers import get_application_by_sender
-
+from db_helpers import get_application_by_sender, build_company_job_index
 
 # --- Load patterns.json ---
 PATTERNS_PATH = Path(__file__).parent / "patterns.json"
@@ -229,7 +229,7 @@ def parse_subject(subject, sender=None, sender_domain=None):
         re.IGNORECASE
     )
     job_id = id_match.group(1).strip() if id_match else ''
-
+    
     return {
         'company': company,
         'job_title': job_title,
@@ -247,7 +247,7 @@ def ingest_message(service, msg_id):
     status = classify_message(metadata['body'])
     status_dates = extract_status_dates(metadata['body'], metadata['date'])
 
-    # ✅ Only ignore if status is empty, not correlated, and matches ignore patterns
+        # ✅ Only ignore if status is empty, not correlated, and matches ignore patterns
     if not status:
         if is_correlated_message(metadata['sender'], metadata['sender_domain'], metadata['date']):
             pass  # keep it
@@ -258,15 +258,27 @@ def ingest_message(service, msg_id):
     # Store subject/body for ML training
     insert_email_text(msg_id, metadata['subject'], metadata['body'])
 
+    # Parse subject for initial extraction
     parsed_subject = parse_subject(
         metadata['subject'],
         sender=metadata.get('sender'),
         sender_domain=metadata.get('sender_domain')
     )
 
-    company = parsed_subject['company']
+    company = parsed_subject['company'] or ""
+    company_norm = company.lower()
 
-    # ML fallback if needed
+    # --- Tier 1 & 2: Whitelist or heuristic keep ---
+    if company_norm not in KNOWN_COMPANIES and not is_valid_company('company'):
+        company = ""
+
+    # --- Tier 3: Fallback enrichment from sender_domain mapping ---
+    if not company:
+        mapped = DOMAIN_TO_COMPANY.get(metadata.get('sender_domain', '').lower(), "")
+        if mapped:
+            company = mapped
+
+    # --- Tier 4: ML fallback ---
     if not company or company.lower() in ('careers', 'hiring team', 'recruiting'):
         predicted = predict_company(metadata['subject'], metadata['body'])
         parsed_subject['predicted_company'] = predicted or ''
@@ -275,6 +287,7 @@ def ingest_message(service, msg_id):
     else:
         parsed_subject['predicted_company'] = ''
 
+    # Final record assembly
     record = {
         'thread_id': metadata['thread_id'],
         'company': company,
@@ -294,6 +307,14 @@ def ingest_message(service, msg_id):
         'last_updated': metadata['last_updated']
     }
 
+    # Build composite index once, from cleaned company/job_title/job_id
+    record['company_job_index'] = build_company_job_index(
+        record.get('company', ''),
+        record.get('job_title', ''),
+        record.get('job_id', '')
+    )
+
+    print(f"🔍 company_job_index: {record['company_job_index']}")
+
     insert_or_update_application(record)
     print(f"✅ Logged: {metadata['subject']}")
-    

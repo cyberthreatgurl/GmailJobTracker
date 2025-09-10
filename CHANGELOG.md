@@ -6,6 +6,17 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
+## 2025-09-09 Ingestion Pipeline – Company Extraction & Index Cleanup
+- Added Tier 3 domain mapping enrichment: If company is blank after whitelist/heuristics, now populated from patterns.json → domain_to_company.
+- Refined Tier 1–4 company cleanup:
+- Tier 1: Keep if in known_companies.txt whitelist.
+- Tier 2: Keep if passes is_valid_company() heuristics.
+- Tier 3: Fallback to domain mapping.
+- Tier 4: ML prediction if still blank or generic.
+- Removed redundant build_company_job_index() call to avoid unnecessary recomputation.
+- Centralized is_valid_company() in db.py for shared use by parser and training logic.
+- Impact: New ingestions will have cleaner company values and fewer junk company_job_index entries. Historical rows unchanged; optional backfill can align them.
+
 
 ## [Unreleased]
 ### Added

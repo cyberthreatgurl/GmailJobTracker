@@ -1,3 +1,5 @@
+# db.py
+#
 import sqlite3
 import json
 import pandas as pd
@@ -12,6 +14,17 @@ DB_PATH = os.getenv("JOB_TRACKER_DB", "job_tracker.db")
 PATTERNS_PATH = Path(__file__).parent / "patterns.json"
 
 SCHEMA_VERSION = '1.1.0'
+
+# --- Apply is_valid_company() filter globally ---
+def is_valid_company(name):
+    name = name.strip()
+    if re.match(r'^[a-z]', name):
+        return False
+    if re.search(r'\b(your|you|position|manager|engineer|researcher|job|role|title)\b', name, re.I):
+        return False
+    if len(name.split()) > 5:
+        return False
+    return True
 
 def get_db_connection(retries=3, delay=2):
     """
@@ -63,6 +76,7 @@ def init_db():
             subject TEXT,
             sender TEXT,
             sender_domain TEXT,
+            company_job_index TEXT,
             last_updated TEXT
         )
     ''')
@@ -70,13 +84,14 @@ def init_db():
     # Indexes for performance
     c.execute('CREATE INDEX IF NOT EXISTS idx_status ON applications(status)')
     c.execute('CREATE INDEX IF NOT EXISTS idx_company ON applications(company)')
-
+    c.execute('CREATE INDEX IF NOT EXISTS idx_company_job_index ON applications(company_job_index)')
+    
     # Meta table for schema versioning
     c.execute('''
-        CREATE TABLE IF NOT EXISTS meta (
-            key TEXT PRIMARY KEY,
-            value TEXT
-        )
+    CREATE TABLE IF NOT EXISTS meta (
+        key TEXT PRIMARY KEY,
+        value TEXT
+    )
     ''')
     c.execute('INSERT OR REPLACE INTO meta (key, value) VALUES (?, ?)', ('schema_version', SCHEMA_VERSION))
 
@@ -171,23 +186,12 @@ def load_training_data():
 
     df = df[~df['company'].apply(is_personal_name)]
 
-    # --- Apply is_valid_company() filter globally ---
-    def is_valid_company(name):
-        name = name.strip()
-        if re.match(r'^[a-z]', name):
-            return False
-        if re.search(r'\b(your|you|position|manager|engineer|researcher|job|role|title)\b', name, re.I):
-            return False
-        if len(name.split()) > 5:
-            return False
-        return True
-
-    invalids = df[~df['company'].apply(is_valid_company)]
+    invalids = df[~df['company'].apply(is_valid_company('company'))]
     if not invalids.empty:
         print("🧹 Dropped invalid company labels (global filter):")
         print(invalids['company'].value_counts())
 
-    df = df[df['company'].apply(is_valid_company)]
+    df = df[df['company'].apply(is_valid_company('company'))]
 
     # --- Final safeguard ---
     unique_companies = df['company'].nunique()
@@ -211,8 +215,8 @@ def insert_or_update_application(data):
             thread_id, company, predicted_company, job_title, job_id, first_sent,
             response_date, follow_up_dates, rejection_date,
             interview_date, status, labels, subject, sender, sender_domain,
-            last_updated
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            company_job_index, last_updated
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ''', (
         data['thread_id'],
         data.get('company', ''),
@@ -229,6 +233,7 @@ def insert_or_update_application(data):
         data.get('subject', ''),
         data.get('sender', ''),
         data.get('sender_domain', ''),
+        data.get('company_job_index', ''),
         data['last_updated']
     ))
 

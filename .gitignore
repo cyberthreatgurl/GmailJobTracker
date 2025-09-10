@@ -5,3 +5,4 @@ token.pickle
 __pycache__/
 *.pyc
 model/
+NOTES.md

@@ -1,5 +1,24 @@
+# db_helpers.py
 import sqlite3
 from datetime import datetime, timedelta
+import re
+from pathlib import Path
+
+COMPANIES_FILE = Path(__file__).parent / "known_companies.txt"
+
+def load_known_companies():
+    with open(COMPANIES_FILE, "r", encoding="utf-8") as f:
+        return {line.strip().lower() for line in f if line.strip()}
+
+KNOWN_COMPANIES = load_known_companies()
+
+def build_company_job_index(company, job_title, job_id):
+    import re
+    def normalize(text):
+        if not text:
+            return ""
+        return re.sub(r'\s+', ' ', text.strip().lower())
+    return f"{normalize(company)}::{normalize(job_title)}::{normalize(job_id)}"
 
 def get_application_by_sender(sender_email, sender_domain):
     """

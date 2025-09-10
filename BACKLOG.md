@@ -2,9 +2,11 @@
 
 ## Now / Next / Later Roadmap
 
+### **Now** (In Progress)
+- [Story 1: Add company/job correlation index](#story-1-add-companyjob-correlation-index)
+
 ### **Now** (Active Focus)
 
-- [Story 1: Add company/job correlation index](#story-1-add-companyjob-correlation-index)
 - [Story 3: Refine company name extraction](#story-3-refine-company-name-extraction)
 - [Story 6: Refine status classification](#story-6-refine-status-classification)
 

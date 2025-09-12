@@ -1,0 +1,8 @@
+credentials.json
+settings.json
+token.pickle
+*.db
+__pycache__/
+*.pyc
+model/
+NOTES.md

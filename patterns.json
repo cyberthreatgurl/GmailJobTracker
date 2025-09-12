@@ -1,0 +1,78 @@
+{
+  "aliases": {
+    "CVS Health has been received": "CVS Health",
+    "Complete Your SimVentions": "SimVentions",
+    "Farr Shepherd & Kelly Shaw about Available Position": "Farr Shepherd",
+    "CrowdStrike Job": "CrowdStrike",
+    "Follow-up on Dragos": "Dragos",
+    "Security Architect at Tyler Technologies": "Tyler Technologies"
+  },
+
+  "application": [
+    "for applying",
+    "received your application",
+    "Your application has been received",
+    "thank you for your application",
+    "successfully submitted"
+  ],
+  "rejection": [
+    "we regret",
+    "we appreciate your interest",
+    "other candidates",
+    "not moving forward",
+    "position closed",
+    "no longer available"
+  ],
+  "interview": [
+    "schedule",
+    "availability",
+    "next steps",
+    "interview"
+  ],
+"ignore": [
+  "your job alert for",
+  "miss out",
+  "Registration Confirmation",
+  "how your job search",
+  "saved job is expiring",
+  "job matches",
+  "new job opportunities",
+  "looking for a new job",
+  "platform",
+  "enterprise ",
+  "architecture",
+  "performance",
+  "development",
+  "multifunctiona",
+  "web",
+  "cloud application",
+  "application security",
+  "Retirement"
+],
+  "response": [
+    "thank you for applying",
+    "received your resume",
+    "application received"
+  ],
+  "follow_up": [
+    "just checking in",
+    "following up",
+    "wanted to follow",
+    "any update on my application",
+    "reaching out again"
+  ],
+  "domain_to_company": {
+    "cloudflare.com": "Cloudflare",
+    "armis.com": "Armis",
+    "venturegloballng.com": "Venture Global LNG",
+    "nm.com": "Northwestern Mutual",
+    "me.com": "Apple",
+    "gmail.com": "Google",
+    "delta.org": "Delta Dental",
+    "comeet-notifications.com": "Claroty",
+    "talent.icims.com": "Simventions",
+    "pageuppeople.com": "Virginia Tech",
+    "greenhouse-mail.io": "Greenhouse",
+    "email.figure.com": "Figure"
+  }
+}

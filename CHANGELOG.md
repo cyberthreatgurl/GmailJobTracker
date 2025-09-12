@@ -5,7 +5,13 @@ All notable changes to this project will be documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)  
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+ 
 ---
+## 2025-09-11 [dashboard-init-20250911]
+- Initial Django dashboard structure pushed
+- VS Code settings tailored for ML/Django workflows
+- Repo synced from WSL Ubuntu with SSH key authentication
+
 ## 2025-09-09 Ingestion Pipeline – Company Extraction & Index Cleanup
 - Added Tier 3 domain mapping enrichment: If company is blank after whitelist/heuristics, now populated from patterns.json → domain_to_company.
 - Refined Tier 1–4 company cleanup:

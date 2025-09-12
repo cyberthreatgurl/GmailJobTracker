@@ -1,35 +1,36 @@
-# JobTracker
+# GmailJobTracker Dashboard
 
-A forensic-grade job application tracker built in Python using the Gmail API and SQLite. It parses sent and received emails, classifies interactions (outreach, response, interview, rejection), and logs them for audit clarity and metric analysis.
+A local-only Django dashboard for tracking job applications, interviews, and message threads.  
+No data leaves your machine. No external servers. Just clean, private job tracking.
 
 ## Features
 
-- Gmail API integration with OAuth
-- Message classification via external pattern file
-- SQLite database for persistent tracking
-- CLI-ready modular architecture
-- Metrics: ghosting rate, response time, interview conversion
+- Threaded message viewer per company
+- Weekly/monthly rejection/interview stats
+- Upcoming interview calendar
+- Clickable company listing with full message history
 
 ## Setup
 
-1. Clone the repo
-2. Add your `credentials.json` from Google Developer Console
-3. Run `main.py` to authenticate and sync messages
+```bash
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py runserver
 
-## File Structure
+## Privacy Statement
 
-job-tracker/
-├── main.py
-├── gmail_auth.py
-├── parser.py
-├── db.py
-├── patterns.json
-├── token.pickle
-├── credentials.json
-├── job_tracker.db
-├── README.md
-├── CHANGELOG.md
+This tool stores all data locally in db.sqlite3. It does not communicate with any external server.
 
-## License
 
-MIT (or your preferred license)
+---
+
+## 🧠 Next Step: Scaffold Django App
+
+Let me know when you’re ready and I’ll generate:
+- `models.py` with threading logic
+- `views.py` for dashboard metrics
+- `urls.py` routing
+- Starter templates for metrics + company threads
+

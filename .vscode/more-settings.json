@@ -1,0 +1,24 @@
+{
+  "python.defaultInterpreterPath": "venv/bin/python",
+  "python.linting.enabled": true,
+  "python.linting.pylintEnabled": true,
+  "python.linting.flake8Enabled": false,
+  "python.linting.mypyEnabled": true,
+  "python.linting.pylintArgs": [
+    "--load-plugins=pylint_django"
+  ],
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": true
+  },
+  "files.exclude": {
+    "**/__pycache__": true,
+    "**/*.pyc": true,
+    "**/.DS_Store": true,
+    "**/.ipynb_checkpoints": true
+  },
+  "git.enableSmartCommit": true,
+  "terminal.integrated.activateEnvironment": true,
+  "jupyter.sendSelectionToInteractiveWindow": true,
+  "jupyter.askForKernelRestart": false
+}

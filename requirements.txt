@@ -1,2 +1,12 @@
 Django>=4.2
 pytz
+numpy
+pandas
+scikit-learn
+matplotlib
+beautifulsoup4
+python-dateutil
+django-crispy-forms
+
+
+

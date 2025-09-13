@@ -1,0 +1,19 @@
+<h1>{{ company.name }}</h1>
+
+<h2>Applications</h2>
+<ul>
+  {% for app in applications %}
+    <li>{{ app.job_title }} — {{ app.status }} (Sent: {{ app.sent_date }})</li>
+  {% empty %}
+    <li>No applications</li>
+  {% endfor %}
+</ul>
+
+<h2>Messages</h2>
+<ul>
+  {% for msg in messages %}
+    <li><strong>{{ msg.timestamp|date:"Y-m-d H:i" }}</strong>: {{ msg.subject }}<br>{{ msg.body }}</li>
+  {% empty %}
+    <li>No messages</li>
+  {% endfor %}
+</ul>

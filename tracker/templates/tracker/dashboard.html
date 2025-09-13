@@ -1,0 +1,25 @@
+<h1>📊 Gmail Job Tracker Dashboard</h1>
+<ul>
+  <li>Total Companies Contacted: {{ companies }}</li>
+  <li>Total Applications Sent: {{ applications }}</li>
+  <li>Rejections This Week: {{ rejections_week }}</li>
+  <li>Interviews This Week: {{ interviews_week }}</li>
+</ul>
+
+<h2>Upcoming Interviews</h2>
+<ul>
+  {% for interview in upcoming_interviews %}
+    <li>{{ interview.company.name }} — {{ interview.interview_date }}</li>
+  {% empty %}
+    <li>No upcoming interviews</li>
+  {% endfor %}
+</ul>
+
+<h2>Companies</h2>
+<ul>
+  {% for company in companies_list %}
+    <li><a href="{% url 'company_detail' company.id %}">{{ company.name }}</a></li>
+  {% empty %}
+    <li>No companies found</li>
+  {% endfor %}
+</ul>

@@ -1,0 +1,9 @@
+{% extends "admin/index.html" %}
+
+{% block content %}
+  <div class="dashboard-widget">
+    <h2>Total Messages Ingested</h2>
+    <p>{{ message_count }}</p>
+  </div>
+  {{ block.super }}
+{% endblock %}

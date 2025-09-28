@@ -7,3 +7,6 @@ __pycache__/
 model/
 NOTES.md
 remind/
+venv/
+.DS_Store
+.vscode/

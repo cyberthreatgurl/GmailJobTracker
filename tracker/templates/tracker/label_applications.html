@@ -1,0 +1,31 @@
+<!-- templates/tracker/label_applications.html -->
+
+<h2>Label Unreviewed Applications</h2>
+<form method="post">
+  {% csrf_token %}
+  <table>
+    <tr>
+      <th>Company</th>
+      <th>Job Title</th>
+      <th>Status</th>
+      <th>Label</th>
+    </tr>
+    {% for app in applications %}
+    <tr>
+      <td>{{ app.company.name }}</td>
+      <td>{{ app.job_title }}</td>
+      <td>{{ app.status }}</td>
+      <td>
+        <select name="label_{{ app.id }}">
+          <option value="">--</option>
+          <option value="job_application">Job Application</option>
+          <option value="job_alert">Job Alert</option>
+          <option value="interview_invite">Interview Invite</option>
+          <option value="noise">Noise</option>
+        </select>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  <button type="submit">Save Labels</button>
+</form>

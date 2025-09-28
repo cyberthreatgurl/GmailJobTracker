@@ -5,13 +5,38 @@ import json
 import base64
 import html
 import joblib
+import django 
+from django.utils import timezone
+#from django.utils.timezone import make_aware
 from pathlib import Path
 from email.utils import parsedate_to_datetime, parseaddr
 from bs4 import BeautifulSoup
 from db import insert_email_text, insert_or_update_application, is_valid_company
 from datetime import datetime, timedelta
 from db_helpers import get_application_by_sender, build_company_job_index
+#from ml_subject_classifier import predict_subject_type
+from ml_entity_extraction import extract_entities
+from tracker.models import Message, IgnoredMessage, IngestionStats
 
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dashboard.settings")
+django.setup()
+stats, _ = IngestionStats.objects.get_or_create(date=datetime.today().date())
+DEBUG = True
+
+
+def log_ignored_message(msg_id, metadata, reason):
+    IgnoredMessage.objects.update_or_create(
+        msg_id=msg_id,
+        defaults={
+            "subject": metadata["subject"],
+            "body": metadata["body"],
+            "sender": metadata["sender"],
+            "sender_domain": metadata["sender_domain"],
+            "date": metadata["timestamp"],
+            "reason": reason,
+        }
+    )
+    
 # --- Load patterns.json ---
 PATTERNS_PATH = Path(__file__).parent / "patterns.json"
 if PATTERNS_PATH.exists():
@@ -43,10 +68,12 @@ try:
     vectorizer = joblib.load("model/vectorizer.pkl")
     label_encoder = joblib.load("model/label_encoder.pkl")
     ml_enabled = True
-    print("🤖 ML model loaded for company prediction.")
+    if DEBUG:
+        print("🤖 ML model loaded for company prediction.")
 except FileNotFoundError:
     ml_enabled = False
-    print("⚠️ ML model not found — skipping prediction.")
+    if DEBUG:
+        print("⚠️ ML model not found — skipping prediction.")
 
 def is_correlated_message(sender_email, sender_domain, msg_date):
     """
@@ -89,12 +116,15 @@ def extract_metadata(service, msg_id):
     date_raw = next((h['value'] for h in headers if h['name'] == 'Date'), '')
     try:
         date_obj = parsedate_to_datetime(date_raw)
+        if timezone.is_naive(date_obj):
+            date_obj = timezone.make_aware(date_obj) # assume settings.TIME_ZONE
         date_str = date_obj.strftime('%Y-%m-%d %H:%M:%S')
     except Exception:
         date_str = date_raw
 
     sender = next((h['value'] for h in headers if h['name'].lower() == 'from'), '')
-    _, email_addr = parseaddr(sender)
+    parsed = parseaddr(sender)
+    email_addr = parsed[1] if len(parsed) == 2 else ''    
     match = re.search(r'@([A-Za-z0-9.-]+)$', email_addr)
     sender_domain = match.group(1).lower() if match else ''
 
@@ -122,6 +152,7 @@ def extract_metadata(service, msg_id):
         'subject': subject,
         'body': body,
         'date': date_str,
+        'timestamp': date_obj, 
         'labels': labels,
         'last_updated': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
         'sender': sender,
@@ -163,19 +194,56 @@ def classify_message(body):
         return 'response'
     return ''
 
+#from ml_subject_classifier import predict_subject_type
+def predict_subject_type(subject):
+    return {"label": "job_application", "confidence": 0.9, "ignore": False}
+
+
 def parse_subject(subject, sender=None, sender_domain=None):
     """Extract company, job title, and job ID from subject line, sender, and optionally sender domain."""
-    company = ''
-    job_title = ''
+
+    # --- ML classification and entity extraction ---
+    label, confidence, ignore = predict_subject_type(subject)
+    
+    if ignore:
+        if DEBUG:
+            print(f"⚠️ Ignored by ML: {subject}")
+        return {
+            "company": "",
+            "job_title": "",
+            "job_id": "",
+            "predicted_company": "",
+            "label": label,
+            "confidence": confidence,
+            "ignore": True
+        }
+
+    if label == "noise" or confidence < 0.5:
+        return {
+            "company": "",
+            "job_title": "",
+            "job_id": "",
+            "predicted_company": "",
+            "label": label,
+            "confidence": confidence,
+            "ignore": True
+        }
+    
+    entities = extract_entities(subject)
+    company = entities.get("company", "")
+    job_title = entities.get("job_title", "")
     job_id = ''
+
+    # --- Continue with original logic for fallback or enrichment ---
     subject_clean = subject.strip()
     subj_lower = subject_clean.lower()
     domain_lower = sender_domain.lower() if sender_domain else None
 
     # Colon-prefix
-    m = re.match(r"^([A-Z][A-Za-z0-9&.\- ]+):", subject_clean)
-    if m:
-        company = m.group(1).strip()
+    if not company:
+        m = re.match(r"^([A-Z][A-Za-z0-9&.\- ]+):", subject_clean)
+        if m:
+            company = m.group(1).strip()
 
     # Known companies
     if not company and KNOWN_COMPANIES:
@@ -214,13 +282,14 @@ def parse_subject(subject, sender=None, sender_domain=None):
             if match:
                 company = match.group(1).strip()
 
-    # Job title
-    title_match = re.search(
-        r'job\s+(?:submission\s+for|application\s+for|title\s+is)?\s*([\w\s\-]+)',
-        subject_clean,
-        re.IGNORECASE
-    )
-    job_title = title_match.group(1).strip() if title_match else ''
+    # Job title fallback
+    if not job_title:
+        title_match = re.search(
+            r'job\s+(?:submission\s+for|application\s+for|title\s+is)?\s*([\w\s\-]+)',
+            subject_clean,
+            re.IGNORECASE
+        )
+        job_title = title_match.group(1).strip() if title_match else ''
 
     # Job ID
     id_match = re.search(
@@ -229,32 +298,40 @@ def parse_subject(subject, sender=None, sender_domain=None):
         re.IGNORECASE
     )
     job_id = id_match.group(1).strip() if id_match else ''
-    
+
     return {
         'company': company,
         'job_title': job_title,
-        'job_id': job_id
+        'job_id': job_id,
+        'predicted_company': company,
+        'label': label,
+        'confidence': confidence,
+        'ignore': False
     }
 
 def ingest_message(service, msg_id):
     try:
         metadata = extract_metadata(service, msg_id)
     except Exception as e:
-        print(f"❌ Failed to extract data for {msg_id}: {e}")
+        if DEBUG:
+            print(f"❌ Failed to extract data for {msg_id}: {e}")
         return
 
     # ✅ Always classify and extract dates first
     status = classify_message(metadata['body'])
     status_dates = extract_status_dates(metadata['body'], metadata['date'])
 
-        # ✅ Only ignore if status is empty, not correlated, and matches ignore patterns
-    if not status:
-        if is_correlated_message(metadata['sender'], metadata['sender_domain'], metadata['date']):
-            pass  # keep it
-        elif should_ignore(metadata['subject'], metadata['body']):
-            print(f"⚠️ Ignored: {metadata['subject']}")
-            return
-
+    # ✅ Only ignore if status is empty, not correlated, and matches ignore patterns
+    #if not status:
+    #    if is_correlated_message(metadata['sender'], metadata['sender_domain'], metadata['date']):
+    #        pass  # keep it
+    #    elif should_ignore(metadata['subject'], metadata['body']):
+    #        print(f"⚠️ Ignored: {metadata['subject']}")
+    #        return
+    
+    if DEBUG:
+        print(f"📥 Inserting message: {metadata['subject']}")
+    
     # Store subject/body for ML training
     insert_email_text(msg_id, metadata['subject'], metadata['body'])
 
@@ -264,28 +341,69 @@ def ingest_message(service, msg_id):
         sender=metadata.get('sender'),
         sender_domain=metadata.get('sender_domain')
     )
+    # ✅ Respect ML ignore flag
+    if parsed_subject.get('ignore'):
+        stats.total_ignored += 1
+        stats.save()
+        if DEBUG:
+            print(f"⚠️ Ignored by ML: {metadata['subject']}")
+        log_ignored_message(msg_id, metadata, reason="ml_ignore")
+        return
+    else:
+        stats.total_inserted += 1
+        stats.save()    
+    
+    Message.objects.create(
+        thread_id=metadata["thread_id"],
+        subject=metadata["subject"],
+        sender=metadata["sender"],
+        body=metadata["body"],
+        timestamp=metadata["timestamp"],
+    )
+
+    company = parsed_subject['company'] or ""
 
     company = parsed_subject['company'] or ""
     company_norm = company.lower()
+    company_source = "subject_parse"
 
     # --- Tier 1 & 2: Whitelist or heuristic keep ---
-    if company_norm not in KNOWN_COMPANIES and not is_valid_company('company'):
+    if company_norm not in KNOWN_COMPANIES and not is_valid_company(company):
         company = ""
 
     # --- Tier 3: Fallback enrichment from sender_domain mapping ---
     if not company:
-        mapped = DOMAIN_TO_COMPANY.get(metadata.get('sender_domain', '').lower(), "")
+        sender_domain = metadata.get('sender_domain', '').lower()
+        mapped = DOMAIN_TO_COMPANY.get(sender_domain, "")
         if mapped:
             company = mapped
+            company_source = "domain_mapping"
+            print(f"🧩 Domain mapping used: {sender_domain} → {company}")
+
+    # --- Tier 3.5: Heuristic from sender name ---
+    if not company:
+        sender_name = metadata.get('sender', '').split('<')[0].strip().lower()
+        for known in KNOWN_COMPANIES:
+            if known.lower() in sender_name:
+                company = known
+                company_source = "sender_name_match"
+                print(f"🔍 Sender name match: {sender_name} → {company}")
+                break
 
     # --- Tier 4: ML fallback ---
-    if not company or company.lower() in ('careers', 'hiring team', 'recruiting'):
-        predicted = predict_company(metadata['subject'], metadata['body'])
-        parsed_subject['predicted_company'] = predicted or ''
-        if predicted and not company:
-            company = predicted
-    else:
-        parsed_subject['predicted_company'] = ''
+    #if not company or company.lower() in ('careers', 'hiring team', 'recruiting'):
+    #    predicted = predict_company(metadata['subject'], metadata['body'])
+    #    parsed_subject['predicted_company'] = predicted or ''
+    #    if predicted and not company:
+    #        company = predicted
+    #        company_source = "ml_prediction"
+    #        print(f"🧠 ML prediction used: {predicted}")
+    #else:
+    #    parsed_subject['predicted_company'] = ''
+    if not company:
+        company_source = "none"
+        if DEBUG:
+            print(f"⚠️ No company matched for {msg_id}")
 
     # Final record assembly
     record = {
@@ -304,7 +422,8 @@ def ingest_message(service, msg_id):
         'subject': metadata['subject'],
         'sender': metadata['sender'],
         'sender_domain': metadata['sender_domain'],
-        'last_updated': metadata['last_updated']
+        'last_updated': metadata['last_updated'],
+        'company_source': company_source
     }
 
     # Build composite index once, from cleaned company/job_title/job_id
@@ -317,4 +436,5 @@ def ingest_message(service, msg_id):
     print(f"🔍 company_job_index: {record['company_job_index']}")
 
     insert_or_update_application(record)
+    
     print(f"✅ Logged: {metadata['subject']}")

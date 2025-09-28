@@ -11,18 +11,23 @@ class Company(models.Model):
         return self.name
 
 class Application(models.Model):
+    thread_id = models.CharField(max_length=255, unique=True)
+    company_source = models.CharField(max_length=50, blank=True)
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
     job_title = models.CharField(max_length=255)
     status = models.CharField(max_length=50)
     sent_date = models.DateField()
     rejection_date = models.DateField(null=True, blank=True)
     interview_date = models.DateField(null=True, blank=True)
-
+    ml_label = models.CharField(max_length=50, blank=True, null=True)  # e.g., job_alert, noise
+    ml_confidence = models.FloatField(blank=True, null=True)
+    reviewed = models.BooleanField(default=False)
     def __str__(self):
         return f"{self.company.name} – {self.job_title}"
 
 class Message(models.Model):
-    company = models.ForeignKey(Company, on_delete=models.CASCADE)
+    #company = models.ForeignKey(Company, on_delete=models.CASCADE)
+    company = models.ForeignKey(Company, null=True, blank=True, on_delete=models.SET_NULL)
     sender = models.CharField(max_length=255)
     subject = models.TextField()
     body = models.TextField()
@@ -31,3 +36,19 @@ class Message(models.Model):
 
     def __str__(self):
         return f"{self.company.name} – {self.timestamp.strftime('%Y-%m-%d %H:%M')}"
+    
+class IgnoredMessage(models.Model):
+    msg_id = models.CharField(max_length=128, unique=True)
+    subject = models.TextField()
+    body = models.TextField()
+    sender = models.CharField(max_length=256)
+    sender_domain = models.CharField(max_length=256)
+    date = models.DateTimeField()
+    reason = models.CharField(max_length=128)  # e.g., 'ml_ignore', 'low_confidence'
+    logged_at = models.DateTimeField(auto_now_add=True)    
+    
+class IngestionStats(models.Model):
+    date = models.DateField(auto_now_add=True)
+    total_fetched = models.IntegerField(default=0)
+    total_inserted = models.IntegerField(default=0)
+    total_ignored = models.IntegerField(default=0)

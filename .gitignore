@@ -7,6 +7,8 @@ __pycache__/
 model/
 NOTES.md
 remind/
+scripts/
+update_copilot/
 venv/
 .DS_Store
 .vscode/

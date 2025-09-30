@@ -215,11 +215,12 @@ def parse_subject(subject, sender=None, sender_domain=None):
     """Extract company, job title, and job ID from subject line, sender, and optionally sender domain."""
 
     # --- ML classification and entity extraction ---
-    label, confidence, ignore = predict_subject_type(subject)
+    result = predict_subject_type(subject)
+    label = result["label"]
+    confidence = result["confidence"]
+    ignore = result["ignore"]
     
     if ignore:
-        if DEBUG:
-            print(f"⚠️ Ignored by ML: {subject}")
         return {
             "company": "",
             "job_title": "",
@@ -230,17 +231,7 @@ def parse_subject(subject, sender=None, sender_domain=None):
             "ignore": True
         }
 
-    if label == "noise" or confidence < 0.5:
-        return {
-            "company": "",
-            "job_title": "",
-            "job_id": "",
-            "predicted_company": "",
-            "label": label,
-            "confidence": confidence,
-            "ignore": True
-        }
-    
+    # --- Entity extraction ---
     entities = extract_entities(subject)
     company = entities.get("company", "")
     job_title = entities.get("job_title", "")
@@ -333,16 +324,6 @@ def ingest_message(service, msg_id):
             print(f"❌ Failed to extract data for {msg_id}: {e}")
         return
 
-    # ✅ Always classify and extract dates first
-    status = classify_message(metadata['body'])
-    status_dates = extract_status_dates(metadata['body'], metadata['date'])
-
-    if DEBUG:
-        print(f"📥 Inserting message: {metadata['subject']}")
-
-    # Store subject/body for ML training
-    insert_email_text(msg_id, metadata['subject'], metadata['body'])
-
     # Parse subject for initial extraction
     parsed_subject = parse_subject(
         metadata['subject'],
@@ -363,6 +344,18 @@ def ingest_message(service, msg_id):
         stats.save()
         return "ignored"
 
+    # ✅ Always classify and extract dates AFTER ignore check
+    ### UPDATED: moved classification down here
+    status = classify_message(body)
+    status_dates = extract_status_dates(body, metadata['date'])
+
+    if DEBUG:
+        print(f"📥 Inserting message: {metadata['subject']}")
+
+    # Store subject/body for ML training
+    ### UPDATED: insert_email_text now only runs if not ignored
+    insert_email_text(msg_id, metadata['subject'], body)
+
     # ✅ Skip if already ingested
     if Message.objects.filter(thread_id=msg_id).exists():
         if DEBUG:
@@ -370,11 +363,13 @@ def ingest_message(service, msg_id):
         stats.total_skipped += 1
         stats.save()
         return "skipped"
-
+    
+    subject=metadata["subject"]
+    
     # ✅ Insert new message
     Message.objects.create(
         thread_id=metadata["thread_id"],
-        subject=metadata["subject"],
+        subject=subject,
         sender=metadata["sender"],
         body=metadata["body"],
         timestamp=metadata["timestamp"],
@@ -415,7 +410,7 @@ def ingest_message(service, msg_id):
     # Tier 4: ML fallback
     if not company:
         try:
-            predicted = predict_company(body)
+            predicted = predict_company(subject, body)
             if predicted:
                 company = predicted
                 company_source = "ml_prediction"

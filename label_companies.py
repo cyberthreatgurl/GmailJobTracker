@@ -1,3 +1,7 @@
+# label_companies.py
+# Script to label companies for job applications with missing or generic company names.
+
+
 import sqlite3
 import csv
 from pathlib import Path

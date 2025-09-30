@@ -9,7 +9,7 @@ import django
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dashboard.settings")   
 django.setup()
-
+from tracker.models import IngestionStats
 from gmail_auth import get_gmail_service
 from parser import ingest_message, PATTERNS
 from db import init_db
@@ -93,9 +93,15 @@ def sync_messages():
         except Exception as e:
             print(f"[{idx}/{len(messages)}] ❌ Failed to ingest {msg_id}: {e}")
             continue
-        else:
-            print(f"[{idx}/{len(messages)}] ✅ Ingested {msg_id}")
-
+    # --- Summary line ---
+    stats = IngestionStats.objects.first()
+    if stats:
+        print(
+            f"Summary: {stats.total_inserted} inserted, "
+            f"{stats.total_ignored} ignored, "
+            f"{stats.total_skipped} skipped"
+        )
+        
     print(f"[{datetime.now():%Y-%m-%d %H:%M:%S}] Sync complete.")
 
 if __name__ == "__main__":

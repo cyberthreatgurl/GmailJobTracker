@@ -1,3 +1,4 @@
+# dashboard/urls.py
 """
 URL configuration for dashboard project.
 

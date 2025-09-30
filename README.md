@@ -9,7 +9,7 @@ No data leaves your machine. No external servers. Just clean, private job tracki
 - Weekly/monthly rejection/interview stats
 - Upcoming interview calendar
 - Clickable company listing with full message history
-
+- Requires Gmail OAuth setup and label configuration.
 ## Setup
 
 ```bash

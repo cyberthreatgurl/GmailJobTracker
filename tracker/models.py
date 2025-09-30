@@ -52,3 +52,4 @@ class IngestionStats(models.Model):
     total_fetched = models.IntegerField(default=0)
     total_inserted = models.IntegerField(default=0)
     total_ignored = models.IntegerField(default=0)
+    total_skipped = models.IntegerField(default=0)

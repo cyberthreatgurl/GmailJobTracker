@@ -1,10 +1,19 @@
+# main.py
+
+import os
 import sys
 from datetime import datetime
+import django
+
+# --- Initialize Gmail and DB --- 
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dashboard.settings")   
+django.setup()
+
 from gmail_auth import get_gmail_service
 from parser import ingest_message, PATTERNS
 from db import init_db
 
-# --- Initialize Gmail and DB ---
 service = get_gmail_service()
 
 try:
@@ -36,9 +45,9 @@ def build_query():
 
     # Combine subject/body queries
     if body_query:
-        return f'(subject:({subject_query}) OR body:({body_query})) newer_than:180d'
+        return f'(subject:({subject_query}) OR body:({body_query})) newer_than:365d'
     else:
-        return f'(subject:({subject_query})) newer_than:180d'
+        return f'(subject:({subject_query})) newer_than:365d'
 
 def fetch_all_messages(service, query):
     """Fetch all Gmail messages matching the query."""
@@ -72,7 +81,15 @@ def sync_messages():
     for idx, msg in enumerate(messages, start=1):
         msg_id = msg['id']
         try:
-            ingest_message(service, msg_id)
+            result = ingest_message(service, msg_id)
+            if result == "ignored":
+                print(f"[{idx}/{len(messages)}] ⚠️ Ignored {msg_id}")
+            elif result == "inserted":
+                print(f"[{idx}/{len(messages)}] ✅ Inserted {msg_id}")
+            elif result == "skipped":
+                print(f"[{idx}/{len(messages)}] ⏩ Skipped duplicate {msg_id}")
+            else:
+                print(f"[{idx}/{len(messages)}] ❓ Unknown result for {msg_id}")
         except Exception as e:
             print(f"[{idx}/{len(messages)}] ❌ Failed to ingest {msg_id}: {e}")
             continue

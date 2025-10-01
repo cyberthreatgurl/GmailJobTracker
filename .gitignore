@@ -10,5 +10,6 @@ remind/
 scripts/
 update_copilot/
 venv/
+.pytest_cache/
 .DS_Store
 .vscode/

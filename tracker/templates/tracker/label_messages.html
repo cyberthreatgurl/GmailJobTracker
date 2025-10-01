@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Label Messages</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      margin: 2rem;
+      background-color: #f9fafb;
+      color: #333;
+      line-height: 1.6;
+    }
+    h1 {
+      color: #1f2937;
+      margin-bottom: 1.5rem;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .card {
+      background: #fff;
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .subject {
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+    .body {
+      font-size: 0.9rem;
+      color: #4b5563;
+      margin-bottom: 0.5rem;
+    }
+    .confidence {
+      font-size: 0.85rem;
+      color: #6b7280;
+      margin-bottom: 0.75rem;
+    }
+    label {
+      font-size: 0.9rem;
+      font-weight: 500;
+      margin-right: 0.5rem;
+    }
+    select {
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      border: 1px solid #d1d5db;
+      font-size: 0.9rem;
+    }
+    button {
+      align-self: flex-start;
+      background-color: #2563eb;
+      color: white;
+      font-weight: 600;
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    button:hover {
+      background-color: #1e40af;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>📝 Label Messages</h1>
+  <form method="post">
+    {% csrf_token %}
+    {% for msg in messages %}
+      <div class="card">
+        <div class="subject">{{ msg.subject }}</div>
+        <div class="body">{{ msg.body|truncatewords:25 }}</div>
+        <div class="confidence">
+          Confidence: {{ msg.confidence|default:"N/A"|floatformat:2 }}
+        </div>
+        <label for="label_{{ msg.id }}">Assign Label:</label>
+        <select name="label_{{ msg.id }}" id="label_{{ msg.id }}">
+          <option value="">--</option>
+          <option value="job_application">Job Application</option>
+          <option value="job_alert">Job Alert</option>
+          <option value="interview_invite">Interview Invite</option>
+          <option value="rejection">Rejection</option>
+          <option value="noise">Noise</option>
+        </select>
+      </div>
+    {% empty %}
+      <p>No unlabeled messages found.</p>
+    {% endfor %}
+    <button type="submit">💾 Save Labels</button>
+  </form>
+
+</body>
+</html>

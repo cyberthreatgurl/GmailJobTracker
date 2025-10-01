@@ -13,7 +13,7 @@ from bs4 import BeautifulSoup
 from db import insert_email_text, insert_or_update_application, is_valid_company
 from datetime import datetime, timedelta
 from db_helpers import get_application_by_sender, build_company_job_index
-#from ml_subject_classifier import predict_subject_type
+from ml_subject_classifier import predict_subject_type
 from ml_entity_extraction import extract_entities
 from tracker.models import Message, IgnoredMessage, IngestionStats
 
@@ -206,11 +206,6 @@ def classify_message(body):
         return 'response'
     return ''
 
-#from ml_subject_classifier import predict_subject_type
-def predict_subject_type(subject):
-    return {"label": "job_application", "confidence": 0.9, "ignore": False}
-
-
 def parse_subject(subject, sender=None, sender_domain=None):
     """Extract company, job title, and job ID from subject line, sender, and optionally sender domain."""
 
@@ -357,7 +352,7 @@ def ingest_message(service, msg_id):
     insert_email_text(msg_id, metadata['subject'], body)
 
     # ✅ Skip if already ingested
-    if Message.objects.filter(thread_id=msg_id).exists():
+    if Message.objects.filter(msg_id_id=msg_id).exists():
         if DEBUG:
             print(f"⏩ Skipping already ingested: {msg_id}")
         stats.total_skipped += 1
@@ -366,13 +361,20 @@ def ingest_message(service, msg_id):
     
     subject=metadata["subject"]
     
-    # ✅ Insert new message
+    # ✅ Call subject/body classifier here
+    result = predict_subject_type(subject, body)
+
+    # ✅ Insert new message with classifier output
     Message.objects.create(
+        msg_id=msg_id,
         thread_id=metadata["thread_id"],
         subject=subject,
         sender=metadata["sender"],
         body=metadata["body"],
         timestamp=metadata["timestamp"],
+        ml_label=result["label"],   # classifier’s predicted label
+        confidence=result["confidence"], # classifier’s confidence
+        reviewed=False              # still available for manual review
     )
     stats.total_inserted += 1
     stats.save()

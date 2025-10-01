@@ -1,26 +1,145 @@
-<h1>📊 Gmail Job Tracker Dashboard</h1>
-<ul>
-  <li>Total Companies Contacted: {{ companies }}</li>
-  <li>Total Applications Sent: {{ applications }}</li>
-  <li>Rejections This Week: {{ rejections_week }}</li>
-  <li>Interviews This Week: {{ interviews_week }}</li>
-</ul>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>📊 Gmail Job Tracker Dashboard</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      margin: 2rem;
+      background-color: #f9fafb;
+      color: #333;
+      line-height: 1.6;
+    }
+    h1, h2 {
+      color: #1f2937;
+      margin-top: 2rem;
+      margin-bottom: 1rem;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      margin-bottom: 0.5rem;
+    }
+    .card {
+      background: #fff;
+      border-radius: 8px;
+      padding: 1rem 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .stats li {
+      font-weight: 500;
+      margin: 0.25rem 0;
+    }
+    a {
+      color: #2563eb;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    details {
+      background: #f3f4f6;
+      border-radius: 6px;
+      margin-bottom: 1rem;
+      padding: 0.75rem 1rem;
+    }
+    details summary {
+      cursor: pointer;
+      font-weight: 600;
+      color: #111827;
+    }
+    details[open] {
+      background: #e5e7eb;
+    }
+    .message {
+      margin-left: 1rem;
+      padding: 0.25rem 0;
+      border-left: 3px solid #d1d5db;
+      padding-left: 0.75rem;
+      font-size: 0.95rem;
+    }
+    .timestamp {
+      color: #6b7280;
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
 
-<h2>Upcoming Interviews</h2>
-<ul>
-  {% for interview in upcoming_interviews %}
-    <li>{{ interview.company.name }} — {{ interview.interview_date }}</li>
-  {% empty %}
-    <li>No upcoming interviews</li>
-  {% endfor %}
-</ul>
+  <h1>📊 Gmail Job Tracker Dashboard</h1>
 
-<h2>Companies</h2>
-<ul>
-  {% for company in companies_list %}
-    <li><a href="{% url 'company_detail' company.id %}">{{ company.name }}</a></li>
-  {% empty %}
-    <li>No companies found</li>
-  {% endfor %}
-</ul>
-<a href="{% url 'label_applications' %}">Label Applications</a>
+  <div class="card">
+    <ul class="stats">
+      <li>Total Companies Contacted: {{ companies }}</li>
+      <li>Total Applications Sent: {{ applications }}</li>
+      <li>Rejections This Week: {{ rejections_week }}</li>
+      <li>Interviews This Week: {{ interviews_week }}</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>Upcoming Interviews</h2>
+    <ul>
+      {% for interview in upcoming_interviews %}
+        <li>{{ interview.company.name }} — {{ interview.interview_date }}</li>
+      {% empty %}
+        <li>No upcoming interviews</li>
+      {% endfor %}
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>Companies</h2>
+    <ul>
+      {% for company in companies_list %}
+        <li><a href="{% url 'company_detail' company.id %}">{{ company.name }}</a></li>
+      {% empty %}
+        <li>No companies found</li>
+      {% endfor %}
+    </ul>
+    <p><a href="{% url 'label_applications' %}">➤ Label Applications</a></p>
+  </div>
+
+  <div class="card">
+    <h2>Recent Messages</h2>
+    <ul>
+      {% for msg in messages %}
+        <li>
+          <strong>{{ msg.company.name if msg.company else "No Company" }}</strong> —
+          {{ msg.subject }} <span class="timestamp">({{ msg.timestamp|date:"Y-m-d H:i" }})</span>
+        </li>
+      {% empty %}
+        <li>No messages found.</li>
+      {% endfor %}
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>Recent Threads</h2>
+    {% for thread_id, msgs in threads %}
+      <details>
+        <summary>
+          Thread {{ thread_id }} — 
+          <strong>{{ msgs|last.company.name if msgs|last.company else "No Company" }}</strong> :
+          {{ msgs|last.subject }}
+          <span class="timestamp">({{ msgs|last.timestamp|date:"Y-m-d H:i" }})</span>
+        </summary>
+        {% for msg in msgs %}
+          <div class="message">
+            <span class="timestamp">{{ msg.timestamp|date:"Y-m-d H:i" }}</span> —
+            <strong>{{ msg.company.name if msg.company else "No Company" }}</strong> :
+            {{ msg.subject }}
+          </div>
+        {% endfor %}
+      </details>
+    {% empty %}
+      <p>No threads found.</p>
+    {% endfor %}
+  </div>
+
+</body>
+</html>

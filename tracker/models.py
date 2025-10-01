@@ -26,17 +26,27 @@ class Application(models.Model):
         return f"{self.company.name} – {self.job_title}"
 
 class Message(models.Model):
-    #company = models.ForeignKey(Company, on_delete=models.CASCADE)
-    company = models.ForeignKey(Company, null=True, blank=True, on_delete=models.SET_NULL)
+    company = models.ForeignKey(
+        Company, null=True, blank=True, on_delete=models.SET_NULL
+    )
     sender = models.CharField(max_length=255)
     subject = models.TextField()
     body = models.TextField()
     timestamp = models.DateTimeField()
-    thread_id = models.CharField(max_length=255)
+
+    # Gmail identifiers
+    msg_id = models.CharField(max_length=255, unique=True)  # NEW: unique Gmail messageId
+    thread_id = models.CharField(max_length=255, db_index=True)   # keep, but index for grouping
+
+    # Manual labeling for ML
+    ml_label = models.CharField(max_length=50, null=True, blank=True)  # NEW
+    confidence = models.FloatField(null=True, blank=True)   # ✅ NEW
+    reviewed = models.BooleanField(default=False)                      # NEW
 
     def __str__(self):
-        return f"{self.company.name} – {self.timestamp.strftime('%Y-%m-%d %H:%M')}"
-    
+        company_name = self.company.name if self.company else "No Company"
+        return f"{company_name} – {self.timestamp.strftime('%Y-%m-%d %H:%M')}"
+        
 class IgnoredMessage(models.Model):
     msg_id = models.CharField(max_length=128, unique=True)
     subject = models.TextField()

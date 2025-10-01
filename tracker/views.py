@@ -1,15 +1,14 @@
 # tracker/views.py
 
 from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
 from tracker.models import Company, Application, Message
 from django.utils.timezone import now
 from django.db import models
-from django.db.models import Q
+from django.db.models import F, Q
 from datetime import timedelta
-
-from django.shortcuts import render, redirect
+from collections import defaultdict
 from tracker.forms import ApplicationEditForm
-
 
 def edit_application(request, pk):
     app = get_object_or_404(Application, pk=pk)
@@ -30,6 +29,7 @@ def flagged_applications(request):
 
     return render(request, 'tracker/flagged.html', {'applications': flagged})
 
+@login_required
 def dashboard(request):
     companies = Company.objects.count()
     companies_list = Company.objects.all()  # ← This is the definition
@@ -44,7 +44,22 @@ def dashboard(request):
     upcoming_interviews = Application.objects.filter(
         interview_date__gte=now()
     ).order_by('interview_date')
+   
+    # pull in recent messages
+    messages = Message.objects.all().order_by('-timestamp')[:100]
 
+    # ✅ Group messages by thread_id
+    threads = defaultdict(list)
+    for msg in Message.objects.all().order_by("thread_id", "timestamp"):
+        threads[msg.thread_id].append(msg)
+
+    # Convert to a list of (thread_id, [messages]) sorted by most recent message
+    thread_list = sorted(
+        threads.items(),
+        key=lambda t: t[1][-1].timestamp,  # last message in thread
+        reverse=True
+    )[:50]  # limit to 50 threads
+    
     return render(request, "tracker/dashboard.html", {
         "companies": companies,
         "companies_list": companies_list,
@@ -52,6 +67,8 @@ def dashboard(request):
         "rejections_week": rejections_week,
         "interviews_week": interviews_week,
         "upcoming_interviews": upcoming_interviews,
+        "messages": messages, 
+        "threads": thread_list,
     })
     
     
@@ -71,11 +88,37 @@ def label_applications(request):
         for key, value in request.POST.items():
             if key.startswith("label_") and value:
                 app_id = int(key.split("_")[1])
-                app = Application.objects.get(pk=app_id)
-                app.ml_label = value
-                app.reviewed = True
-                app.save()
+                try:
+                    app = Application.objects.get(pk=app_id)
+                    app.ml_label = value
+                    app.reviewed = True
+                    app.save()
+                except Message.DoesNotExist:
+                    continue
+              
         return redirect("label_applications")
 
     apps = Application.objects.filter(reviewed=False).order_by("sent_date")[:50]
     return render(request, "tracker/label_applications.html", {"applications": apps})
+
+@login_required
+def label_messages(request):
+    if request.method == "POST":
+        for key, value in request.POST.items():
+            if key.startswith("label_") and value:
+                msg_id = int(key.split("_")[1])
+                try:
+                    msg = Message.objects.get(pk=msg_id)
+                    msg.ml_label = value
+                    msg.reviewed = True
+                    msg.save()
+                except Message.DoesNotExist:
+                    continue
+        return redirect("label_messages")
+
+    # ✅ Order by confidence ascending (NULLs first), then oldest first
+    msgs = Message.objects.filter(reviewed=False).order_by(
+        F("confidence").asc(nulls_first=True), "timestamp"
+    )[:50]
+
+    return render(request, "tracker/label_messages.html", {"messages": msgs})

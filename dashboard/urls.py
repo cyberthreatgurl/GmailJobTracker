@@ -17,9 +17,11 @@ Including another URLconf
 """
 from tracker.admin import custom_admin_site
 from django.urls import path, include
+# urls.py
+from django.contrib.auth import views as auth_views
 
 urlpatterns = [
+    path('accounts/login/', auth_views.LoginView.as_view(), name='login'),
     path("admin/", custom_admin_site.urls),
     path('', include('tracker.urls')),
-
 ]

@@ -4,10 +4,11 @@ import os
 import sys
 from datetime import datetime
 import django
+from django.utils.timezone import localdate
 
-# --- Initialize Gmail and DB --- 
+# --- Initialize Gmail and DB ---
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dashboard.settings")   
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dashboard.settings")
 django.setup()
 from tracker.models import IngestionStats
 from gmail_auth import get_gmail_service
@@ -24,30 +25,36 @@ except Exception as e:
 
 print(f"[{datetime.now():%Y-%m-%d %H:%M:%S}] Database initialized.")
 
-profile = service.users().getProfile(userId='me').execute()
+profile = service.users().getProfile(userId="me").execute()
 print(f"Connected to Gmail account: {profile['emailAddress']}")
+
 
 def build_query():
     """Build Gmail search query from static subject terms and patterns.json body terms."""
     # Subject keywords (static)
-    subject_terms = ['job', 'application', 'resume', 'interview', 'position']
-    subject_query = ' OR '.join(subject_terms)
+    subject_terms = ["job", "application", "resume", "interview", "position"]
+    subject_query = " OR ".join(subject_terms)
 
     # Body keywords from patterns.json (guard against missing keys)
     body_terms = (
-        PATTERNS.get('application', []) +
-        PATTERNS.get('interview', []) +
-        PATTERNS.get('follow_up', []) +
-        PATTERNS.get('rejection', [])
-    ) if PATTERNS else []
+        (
+            PATTERNS.get("application", [])
+            + PATTERNS.get("interview", [])
+            + PATTERNS.get("follow_up", [])
+            + PATTERNS.get("rejection", [])
+        )
+        if PATTERNS
+        else []
+    )
 
-    body_query = ' OR '.join(f'"{term}"' for term in body_terms) if body_terms else ''
+    body_query = " OR ".join(f'"{term}"' for term in body_terms) if body_terms else ""
 
     # Combine subject/body queries
     if body_query:
-        return f'(subject:({subject_query}) OR body:({body_query})) newer_than:365d'
+        return f"(subject:({subject_query}) OR body:({body_query})) newer_than:365d"
     else:
-        return f'(subject:({subject_query})) newer_than:365d'
+        return f"(subject:({subject_query})) newer_than:365d"
+
 
 def fetch_all_messages(service, query):
     """Fetch all Gmail messages matching the query."""
@@ -55,19 +62,20 @@ def fetch_all_messages(service, query):
     next_page_token = None
 
     while True:
-        response = service.users().messages().list(
-            userId='me',
-            q=query,
-            maxResults=100,
-            pageToken=next_page_token
-        ).execute()
+        response = (
+            service.users()
+            .messages()
+            .list(userId="me", q=query, maxResults=100, pageToken=next_page_token)
+            .execute()
+        )
 
-        messages.extend(response.get('messages', []))
-        next_page_token = response.get('nextPageToken')
+        messages.extend(response.get("messages", []))
+        next_page_token = response.get("nextPageToken")
         if not next_page_token:
             break
 
     return messages
+
 
 def sync_messages():
     """Run a full sync of Gmail messages into the database."""
@@ -79,7 +87,7 @@ def sync_messages():
     print(f"Found {len(messages)} messages matching query.")
 
     for idx, msg in enumerate(messages, start=1):
-        msg_id = msg['id']
+        msg_id = msg["id"]
         try:
             result = ingest_message(service, msg_id)
             if result == "ignored":
@@ -94,6 +102,14 @@ def sync_messages():
             print(f"[{idx}/{len(messages)}] ❌ Failed to ingest {msg_id}: {e}")
             continue
     # --- Summary line ---
+    today = localdate()
+    stats, _ = IngestionStats.objects.get_or_create(date=today)
+    print(
+        f"Summary: {stats.total_inserted} inserted, "
+        f"{stats.total_ignored} ignored, "
+        f"{stats.total_skipped} skipped"
+    )
+    
     stats = IngestionStats.objects.first()
     if stats:
         print(
@@ -101,8 +117,10 @@ def sync_messages():
             f"{stats.total_ignored} ignored, "
             f"{stats.total_skipped} skipped"
         )
-        
+
     print(f"[{datetime.now():%Y-%m-%d %H:%M:%S}] Sync complete.")
 
+
 if __name__ == "__main__":
+    init_db()
     sync_messages()

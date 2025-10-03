@@ -66,6 +66,9 @@
       color: #6b7280;
       font-size: 0.85rem;
     }
+    canvas {
+      margin-top: 1rem;
+    }
   </style>
 </head>
 <body>
@@ -79,6 +82,25 @@
       <li>Rejections This Week: {{ rejections_week }}</li>
       <li>Interviews This Week: {{ interviews_week }}</li>
     </ul>
+  </div>
+
+  <!-- ✅ Ingestion Stats card -->
+  <div class="card">
+    <h2>Ingestion Stats (Today)</h2>
+    {% if latest_stats %}
+      <ul class="stats">
+        <li>📥 Fetched: <strong>{{ latest_stats.total_fetched }}</strong></li>
+        <li>✅ Inserted: <strong>{{ latest_stats.total_inserted }}</strong></li>
+        <li>🚫 Ignored: <strong>{{ latest_stats.total_ignored }}</strong></li>
+        <li>⏭️ Skipped: <strong>{{ latest_stats.total_skipped }}</strong></li>
+      </ul>
+      <p class="timestamp">Last updated: {{ latest_stats.date }}</p>
+
+      <!-- Trend chart -->
+      <canvas id="ingestionChart" height="120"></canvas>
+    {% else %}
+      <p>No ingestion stats available yet.</p>
+    {% endif %}
   </div>
 
   <div class="card">
@@ -102,44 +124,108 @@
       {% endfor %}
     </ul>
     <p><a href="{% url 'label_applications' %}">➤ Label Applications</a></p>
+    <p><a href="{% url 'label_messages' %}">➤ Label Messages</a></p>
   </div>
 
-  <div class="card">
-    <h2>Recent Messages</h2>
-    <ul>
-      {% for msg in messages %}
-        <li>
-          <strong>{{ msg.company.name if msg.company else "No Company" }}</strong> —
-          {{ msg.subject }} <span class="timestamp">({{ msg.timestamp|date:"Y-m-d H:i" }})</span>
-        </li>
-      {% empty %}
-        <li>No messages found.</li>
-      {% endfor %}
-    </ul>
-  </div>
-
-  <div class="card">
-    <h2>Recent Threads</h2>
-    {% for thread_id, msgs in threads %}
-      <details>
-        <summary>
-          Thread {{ thread_id }} — 
-          <strong>{{ msgs|last.company.name if msgs|last.company else "No Company" }}</strong> :
-          {{ msgs|last.subject }}
-          <span class="timestamp">({{ msgs|last.timestamp|date:"Y-m-d H:i" }})</span>
-        </summary>
-        {% for msg in msgs %}
-          <div class="message">
-            <span class="timestamp">{{ msg.timestamp|date:"Y-m-d H:i" }}</span> —
-            <strong>{{ msg.company.name if msg.company else "No Company" }}</strong> :
-            {{ msg.subject }}
-          </div>
-        {% endfor %}
-      </details>
+<!-- ✅ Recent Messages -->
+<div class="card">
+  <h2>Recent Messages</h2>
+  <ul>
+    {% for msg in messages %}
+      <li>
+        {% if msg.company %}
+          <strong>{{ msg.company.name }}</strong>
+        {% else %}
+          <strong>No Company</strong>
+        {% endif %}
+        — {{ msg.subject }}
+        <span class="timestamp">({{ msg.timestamp|date:"Y-m-d H:i" }})</span>
+      </li>
     {% empty %}
-      <p>No threads found.</p>
+      <li>No messages found.</li>
     {% endfor %}
-  </div>
+  </ul>
+</div>
+
+<!-- ✅ Recent Threads -->
+<div class="card">
+  <h2>Recent Threads</h2>
+  {% for thread_id, msgs in threads %}
+    <details>
+      <summary>
+        {% with last_msg=msgs|last %}
+          Thread {{ thread_id }} —
+          {% if last_msg.company %}
+            <strong>{{ last_msg.company.name }}</strong>
+          {% else %}
+            <strong>No Company</strong>
+          {% endif %}
+          : {{ last_msg.subject }}
+          <span class="timestamp">({{ last_msg.timestamp|date:"Y-m-d H:i" }})</span>
+        {% endwith %}
+      </summary>
+      {% for msg in msgs %}
+        <div class="message">
+          <span class="timestamp">{{ msg.timestamp|date:"Y-m-d H:i" }}</span> —
+          {% if msg.company %}
+            <strong>{{ msg.company.name }}</strong>
+          {% else %}
+            <strong>No Company</strong>
+          {% endif %}
+          : {{ msg.subject }}
+        </div>
+      {% endfor %}
+    </details>
+  {% empty %}
+    <p>No threads found.</p>
+  {% endfor %}
+</div>
+
+  <!-- ✅ Chart.js integration -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    {% if chart_labels %}
+    const ctx = document.getElementById('ingestionChart').getContext('2d');
+    const ingestionChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: {{ chart_labels|safe }},
+        datasets: [
+          {
+            label: 'Inserted',
+            data: {{ chart_inserted|safe }},
+            backgroundColor: '#10b981'
+          },
+          {
+            label: 'Skipped',
+            data: {{ chart_skipped|safe }},
+            backgroundColor: '#f59e0b'
+          },
+          {
+            label: 'Ignored',
+            data: {{ chart_ignored|safe }},
+            backgroundColor: '#ef4444'
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { position: 'bottom' },
+          title: { display: true, text: 'Ingestion Activity (Last 7 Days)' },
+          tooltip: {
+            mode: 'index',
+            intersect: false
+          }
+        },
+        scales: {
+          x: { stacked: true },
+          y: { stacked: true, beginAtZero: true }
+        }
+      }
+    });
+    {% endif %}
+  </script>
 
 </body>
 </html>

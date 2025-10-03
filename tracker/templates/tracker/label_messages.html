@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <title>Label Messages</title>
+  <p>
+  Reviewed: {{ total_reviewed }} | Remaining: {{ total_unreviewed }}
+  </p>
   <style>
     body {
       font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -94,6 +97,30 @@
     {% endfor %}
     <button type="submit">💾 Save Labels</button>
   </form>
-
+  <!-- ✅ Labeling form -->
+  <form method="post">
+    {% csrf_token %}
+    {% for msg in messages %}
+      <div class="card">
+        <div class="subject">{{ msg.subject }}</div>
+        <div class="body">{{ msg.body|truncatewords:25 }}</div>
+        <div class="confidence">
+          Confidence: {{ msg.confidence|default:"N/A"|floatformat:2 }}
+        </div>
+        <label for="label_{{ msg.id }}">Assign Label:</label>
+        <select name="label_{{ msg.id }}" id="label_{{ msg.id }}">
+          <option value="">--</option>
+          <option value="job_application">Job Application</option>
+          <option value="job_alert">Job Alert</option>
+          <option value="interview_invite">Interview Invite</option>
+          <option value="rejection">Rejection</option>
+          <option value="noise">Noise</option>
+        </select>
+      </div>
+    {% empty %}
+      <p>No unlabeled messages found.</p>
+    {% endfor %}
+    <button type="submit">💾 Save Labels</button>
+  </form>
 </body>
 </html>

@@ -40,8 +40,8 @@ def predict_subject_type(subject, body=""):
     Returns dict with label, confidence, and ignore flag.
     """
     if not model or not vectorizer or not label_encoder:
-        return {"label": "unknown", "confidence": 0.0, "ignore": True}
-
+        return {"label": "unknown", "confidence": 0.0, "ignore": False}
+    
     text = (subject or "") + " " + (body or "")
     X = vectorizer.transform([text])
     pred_encoded = model.predict(X)[0]

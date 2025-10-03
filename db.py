@@ -3,7 +3,7 @@
 import sqlite3
 import json
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, date
 import time
 import re
 import os
@@ -112,6 +112,83 @@ def init_db():
             body TEXT
         )
     ''')
+
+    # Company
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS tracker_company (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            domain TEXT,
+            first_contact TEXT NOT NULL,
+            last_contact TEXT NOT NULL
+        )
+    ''')
+
+    # Application
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS tracker_application (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            thread_id TEXT UNIQUE NOT NULL,
+            company_source TEXT,
+            company_id INTEGER NOT NULL REFERENCES tracker_company(id) ON DELETE CASCADE,
+            job_title TEXT NOT NULL,
+            status TEXT NOT NULL,
+            sent_date TEXT NOT NULL,
+            rejection_date TEXT,
+            interview_date TEXT,
+            ml_label TEXT,
+            ml_confidence REAL,
+            reviewed INTEGER DEFAULT 0
+        )
+    ''')
+
+    # Message
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS tracker_message (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            company_id INTEGER REFERENCES tracker_company(id) ON DELETE SET NULL,
+            sender TEXT NOT NULL,
+            subject TEXT NOT NULL,
+            body TEXT NOT NULL,
+            timestamp TEXT NOT NULL,
+            msg_id TEXT UNIQUE NOT NULL,
+            thread_id TEXT NOT NULL,
+            ml_label TEXT,
+            confidence REAL,
+            reviewed INTEGER DEFAULT 0
+        )
+    ''')
+
+    # IgnoredMessage
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS tracker_ignoredmessage (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            msg_id TEXT UNIQUE NOT NULL,
+            subject TEXT NOT NULL,
+            body TEXT NOT NULL,
+            sender TEXT NOT NULL,
+            sender_domain TEXT NOT NULL,
+            date TEXT NOT NULL,
+            reason TEXT NOT NULL,
+            logged_at TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+
+    # IngestionStats
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS tracker_ingestionstats (
+            date TEXT PRIMARY KEY,
+            total_fetched INTEGER DEFAULT 0,
+            total_inserted INTEGER DEFAULT 0,
+            total_ignored INTEGER DEFAULT 0,
+            total_skipped INTEGER DEFAULT 0
+        )
+    ''')
+
+    # Ensure today's row exists
+    today = date.today().isoformat()
+    c.execute('INSERT OR IGNORE INTO tracker_ingestionstats (date) VALUES (?)', (today,))
+
     conn.commit()
     conn.close()
 
@@ -138,10 +215,12 @@ def load_training_data():
     df = pd.read_sql_query(query, conn)
     conn.close()
 
+    if df.empty:
+        raise ValueError("🚫 No training data found in applications/email_text")
+
     # --- Normalize company names ---
     def normalize_company(name):
-        name = name.strip()
-        # If there's an "at" or "@" followed by company, keep only the company
+        name = name.strip().rstrip(",.")
         match = re.search(r'\b(?:at|@)\s+(.+)$', name, flags=re.IGNORECASE)
         if match:
             name = match.group(1)
@@ -154,13 +233,11 @@ def load_training_data():
         with open(PATTERNS_PATH, "r", encoding="utf-8") as f:
             patterns = json.load(f)
 
-        # Apply alias map if present
         alias_map = patterns.get("aliases", {})
         if alias_map:
             print(f"🔄 Applying {len(alias_map)} company alias mappings from patterns.json")
             df['company'] = df['company'].replace(alias_map)
 
-        # Apply ignore patterns if present
         ignore_patterns = [p.lower() for p in patterns.get("ignore", [])]
         if ignore_patterns:
             mask_ignore = df['subject'].str.lower().apply(
@@ -186,12 +263,13 @@ def load_training_data():
 
     df = df[~df['company'].apply(is_personal_name)]
 
-    invalids = df[~df['company'].apply(is_valid_company('company'))]
+    # --- Global validity filter ---
+    invalids = df[~df['company'].apply(is_valid_company)]
     if not invalids.empty:
         print("🧹 Dropped invalid company labels (global filter):")
         print(invalids['company'].value_counts())
 
-    df = df[df['company'].apply(is_valid_company('company'))]
+    df = df[df['company'].apply(is_valid_company)]
 
     # --- Final safeguard ---
     unique_companies = df['company'].nunique()

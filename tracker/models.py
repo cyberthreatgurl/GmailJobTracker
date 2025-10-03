@@ -58,7 +58,7 @@ class IgnoredMessage(models.Model):
     logged_at = models.DateTimeField(auto_now_add=True)    
     
 class IngestionStats(models.Model):
-    date = models.DateField(auto_now_add=True)
+    date = models.DateField(primary_key=True)
     total_fetched = models.IntegerField(default=0)
     total_inserted = models.IntegerField(default=0)
     total_ignored = models.IntegerField(default=0)

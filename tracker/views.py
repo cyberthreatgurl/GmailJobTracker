@@ -2,7 +2,7 @@
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from tracker.models import Company, Application, Message
+from tracker.models import Company, Application, Message, IngestionStats
 from django.utils.timezone import now
 from django.db import models
 from django.db.models import F, Q
@@ -32,7 +32,7 @@ def flagged_applications(request):
 @login_required
 def dashboard(request):
     companies = Company.objects.count()
-    companies_list = Company.objects.all()  # ← This is the definition
+    companies_list = Company.objects.all()
 
     applications = Application.objects.count()
     rejections_week = Application.objects.filter(
@@ -44,7 +44,7 @@ def dashboard(request):
     upcoming_interviews = Application.objects.filter(
         interview_date__gte=now()
     ).order_by('interview_date')
-   
+
     # pull in recent messages
     messages = Message.objects.all().order_by('-timestamp')[:100]
 
@@ -56,10 +56,22 @@ def dashboard(request):
     # Convert to a list of (thread_id, [messages]) sorted by most recent message
     thread_list = sorted(
         threads.items(),
-        key=lambda t: t[1][-1].timestamp,  # last message in thread
+        key=lambda t: t[1][-1].timestamp,
         reverse=True
-    )[:50]  # limit to 50 threads
-    
+    )[:50]
+
+    # ✅ Ingestion stats
+    latest_stats = IngestionStats.objects.order_by('-date').first()
+
+    # Last 7 days for chart
+    seven_days_ago = now().date() - timedelta(days=6)
+    stats_qs = IngestionStats.objects.filter(date__gte=seven_days_ago).order_by("date")
+
+    chart_labels = [s.date.strftime("%Y-%m-%d") for s in stats_qs]
+    chart_inserted = [s.total_inserted for s in stats_qs]
+    chart_skipped = [s.total_skipped for s in stats_qs]
+    chart_ignored = [s.total_ignored for s in stats_qs]
+
     return render(request, "tracker/dashboard.html", {
         "companies": companies,
         "companies_list": companies_list,
@@ -67,10 +79,14 @@ def dashboard(request):
         "rejections_week": rejections_week,
         "interviews_week": interviews_week,
         "upcoming_interviews": upcoming_interviews,
-        "messages": messages, 
+        "messages": messages,
         "threads": thread_list,
-    })
-    
+        "latest_stats": latest_stats,          # ✅ snapshot
+        "chart_labels": chart_labels,          # ✅ for Chart.js
+        "chart_inserted": chart_inserted,
+        "chart_skipped": chart_skipped,
+        "chart_ignored": chart_ignored,
+    })    
     
 def company_detail(request, company_id):
     company = get_object_or_404(Company, pk=company_id)
@@ -116,9 +132,20 @@ def label_messages(request):
                     continue
         return redirect("label_messages")
 
-    # ✅ Order by confidence ascending (NULLs first), then oldest first
-    msgs = Message.objects.filter(reviewed=False).order_by(
-        F("confidence").asc(nulls_first=True), "timestamp"
-    )[:50]
+    filter_label = request.GET.get("label")
+    qs = Message.objects.filter(reviewed=False)
+    if filter_label:
+        qs = qs.filter(ml_label=filter_label)
 
-    return render(request, "tracker/label_messages.html", {"messages": msgs})
+    msgs = qs.order_by(F("confidence").asc(nulls_first=True), "timestamp")[:50]
+
+    # ✅ Add counts
+    total_unreviewed = Message.objects.filter(reviewed=False).count()
+    total_reviewed = Message.objects.filter(reviewed=True).count()
+
+    return render(request, "tracker/label_messages.html", {
+        "messages": msgs,
+        "filter_label": filter_label,
+        "total_unreviewed": total_unreviewed,
+        "total_reviewed": total_reviewed,
+    })

@@ -1,0 +1,22 @@
+<!-- templates/registration/login.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+</head>
+<body>
+    <h2>Login</h2>
+    {% if form.errors %}
+        <p style="color: red;">Invalid username or password.</p>
+    {% endif %}
+    <form method="post">
+        {% csrf_token %}
+        <label for="id_username">Username:</label>
+        {{ form.username }}<br><br>
+        <label for="id_password">Password:</label>
+        {{ form.password }}<br><br>
+        <button type="submit">Log in</button>
+    </form>
+</body>
+</html>

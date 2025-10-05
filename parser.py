@@ -454,13 +454,17 @@ def ingest_message(service, msg_id):
 
     # Tier 5: body regex fallback
     if not company:
-        body_match = re.search(r"apply(?:ing)? to\s+([A-Z][\w\s&\-]+)", body, re.IGNORECASE)
+        body_match = re.search(
+            r"(?:apply(?:ing)? to|application to|interest in|position at|role at|opportunity with)\s+([A-Z][\w\s&\-]+)",
+            body,
+            re.IGNORECASE
+        )
         if body_match:
             company = body_match.group(1).strip()
             company_source = "body_regex"
             if DEBUG:
                 print(f"📄 Body regex used: {company}")
-    
+                                    
     # Final record assembly
     record = {
         "thread_id": metadata["thread_id"],

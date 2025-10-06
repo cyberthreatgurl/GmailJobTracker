@@ -18,11 +18,9 @@ SCHEMA_VERSION = '1.1.0'
 # --- Apply is_valid_company() filter globally ---
 def is_valid_company(name):
     name = name.strip()
-    if re.match(r'^[a-z]', name):
+    if not name or len(name.split()) > 8:
         return False
-    if re.search(r'\b(your|you|position|manager|engineer|researcher|job|role|title)\b', name, re.I):
-        return False
-    if len(name.split()) > 5:
+    if re.search(r'\b(application|interview|position|role|job|resume|thank you|your)\b', name, re.I):
         return False
     return True
 

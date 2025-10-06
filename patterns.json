@@ -62,6 +62,12 @@
     "reaching out again"
   ],
   "domain_to_company": {
+    "ecs-federal.com": "ECS",
+    "partnerforces.com": "PartnerForce",
+    "claroty.com": "Claroty",
+    "rapid7.com": "Rapid7",
+    "simventions.com": "SimVentions",
+    "caci.com": "CACI", 
     "cloudflare.com": "Cloudflare",
     "armis.com": "Armis",
     "venturegloballng.com": "Venture Global LNG",

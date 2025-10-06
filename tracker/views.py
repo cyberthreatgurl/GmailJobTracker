@@ -45,17 +45,17 @@ def dashboard(request):
         interview_date__gte=now()
     ).order_by('interview_date')
 
-    # pull in recent messages
-    messages = Message.objects.all().order_by('-timestamp')[:100]
+    # ✅ Recent messages with company preloaded
+    messages = Message.objects.select_related("company").order_by('-timestamp')[:100]
 
-    # ✅ Group messages by thread_id
+    # ✅ Group messages by thread_id with company preloaded
     threads = defaultdict(list)
-    for msg in Message.objects.all().order_by("thread_id", "timestamp"):
+    for msg in Message.objects.select_related("company").order_by("thread_id", "timestamp"):
         threads[msg.thread_id].append(msg)
 
-    # Convert to a list of (thread_id, [messages]) sorted by most recent message
+    # ✅ Filter to threads with >1 message, then sort and slice
     thread_list = sorted(
-        threads.items(),
+        [(tid, msgs) for tid, msgs in threads.items() if len(msgs) > 1],
         key=lambda t: t[1][-1].timestamp,
         reverse=True
     )[:50]
@@ -81,12 +81,13 @@ def dashboard(request):
         "upcoming_interviews": upcoming_interviews,
         "messages": messages,
         "threads": thread_list,
-        "latest_stats": latest_stats,          # ✅ snapshot
-        "chart_labels": chart_labels,          # ✅ for Chart.js
+        "latest_stats": latest_stats,
+        "chart_labels": chart_labels,
         "chart_inserted": chart_inserted,
         "chart_skipped": chart_skipped,
         "chart_ignored": chart_ignored,
-    })    
+    })
+  
     
 def company_detail(request, company_id):
     company = get_object_or_404(Company, pk=company_id)

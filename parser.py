@@ -303,6 +303,8 @@ def parse_subject(subject, sender=None, sender_domain=None):
         (r"(?:your application with|application with|interest in|position at)\s+([A-Z][\w\s&\-]+)", re.IGNORECASE),
         (r"update on your ([A-Z][\w\s&\-]+) application", re.IGNORECASE),
         (r"thank you for your application with\s+([A-Z][\w\s&\-]+)", re.IGNORECASE),
+        (r"@\s*([A-Z][\w\s&\-]+)", re.IGNORECASE),
+        (r"^([A-Z][\w\s&\-]+)\s+[-:]", re.IGNORECASE),  # catches "ECS -", "Partner Forces:"
     ]
     for pat, flags in patterns:
         if not company:
@@ -381,12 +383,12 @@ def ingest_message(service, msg_id):
     insert_email_text(msg_id, metadata["subject"], body)
 
     # ✅ Skip if already ingested
-    if Message.objects.filter(msg_id=msg_id).exists():
-        if DEBUG:
-            print(f"⏩ Skipping already ingested: {msg_id}")
-        stats.total_skipped += 1
-        stats.save()
-        return "skipped"
+    #if Message.objects.filter(msg_id=msg_id).exists():
+    #    if DEBUG:
+    #       print(f"⏩ Skipping already ingested: {msg_id}")
+    #    stats.total_skipped += 1
+    #    stats.save()
+    #    return "skipped"
 
     subject = metadata["subject"]
 

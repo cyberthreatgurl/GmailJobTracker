@@ -1,11 +1,58 @@
 # test_ingest_message.py
 import pytest
-from parser import ingest_message, log_ignored_message
+from parser import ingest_message, log_ignored_message, parse_subject
 from db import is_valid_company
+from datetime import datetime
+from django.utils.timezone import make_aware
+from tracker.tests.test_helpers import FakeMessageRecord, FakeManager, FakeQuerySet
 
 pytestmark = pytest.mark.django_db
+timestamp = make_aware(datetime(2025, 9, 29, 12, 0))
 
+def test_subject_with_job_title_at_company(monkeypatch, fake_stats, fake_message_model):
+    queryset, manager = fake_message_model  # ✅ Only if fixture returns a tuple
+    captured_record = {}
+    monkeypatch.setattr("parser.insert_or_update_application", lambda record: captured_record.update(record))
+    subject_line = "We Got It: Thanks for applying for Field CTO position @ Claroty!"
+    monkeypatch.setattr("parser.extract_metadata", lambda s, m: {
+        "subject": subject_line,
+        "body": "Thanks for your interest in Claroty.",
+        "date": "2025-10-08",
+        "thread_id": "t11",
+        "sender": "Claroty Recruiting <jobs@claroty.com>",
+        "sender_domain": "claroty.com",
+        "timestamp": timestamp,
+        "labels": [],
+        "last_updated": "now"
+    })
+
+    monkeypatch.setattr("parser.classify_message", lambda b: "applied")
+    monkeypatch.setattr("parser.extract_status_dates", lambda b, d: {
+        "response_date": "2025-10-08",
+        "follow_up_dates": [],
+        "rejection_date": None,
+        "interview_date": None
+    })
+    monkeypatch.setattr("parser.insert_email_text", lambda *a, **k: None)
+
+    # Let parse_subject run normally to test regex + sanity logic
+
+    monkeypatch.setattr("parser.parse_subject", parse_subject)
+
+    monkeypatch.setattr("parser.build_company_job_index", lambda *a, **k: "claroty_field_cto")
+    monkeypatch.setattr("parser.get_stats", lambda: fake_stats)
+
+    result = ingest_message(None, "m11")
+    assert result == "inserted"
+    assert fake_stats.total_inserted == 1
+
+    # ✅ Confirm correct company extraction
+    assert captured_record["company"] == "Claroty"
+    assert captured_record["job_title"].lower() == "field cto"
+    assert captured_record["company_source"] == "subject_parse"
+    
 def test_ingest_ignored_reason_logging(monkeypatch, fake_stats, fake_message_model):
+    queryset, manager = fake_message_model
     captured = {}
 
     # Patch log_ignored_message to capture its arguments
@@ -19,7 +66,7 @@ def test_ingest_ignored_reason_logging(monkeypatch, fake_stats, fake_message_mod
     monkeypatch.setattr("parser.extract_metadata", lambda s, m: {
         "subject": "foo", "body": "bar", "date": "2025-09-29", "thread_id": "t8",
         "sender": "x", "sender_domain": "example.com",
-        "timestamp": "now", "labels": [], "last_updated": "now"
+        "timestamp": timestamp, "labels": [], "last_updated": "now"
     })
     monkeypatch.setattr("parser.classify_message", lambda b: "applied")
     monkeypatch.setattr("parser.extract_status_dates", lambda b, d: {
@@ -54,31 +101,10 @@ def fake_stats():
         total_inserted = 0
         def save(self): pass
     return Stats()
-
-@pytest.fixture
-def fake_message_model(monkeypatch):
-    class FakeQuerySet:
-        def __init__(self, exists=False): self._exists = exists
-        def exists(self): return self._exists
-
-    class FakeManager:
-        def __init__(self): self.created = []
-        def filter(self, **kwargs): return FakeQuerySet(exists=False)
-        def create(self, **kwargs): self.created.append(kwargs)
-
-    fake_manager = FakeManager()
-    
-    class FakeMessage:
-        objects = fake_manager
-
-    # Patch parser.Message with our fake class
-    monkeypatch.setattr("parser.Message", FakeMessage)
-
-    return fake_manager
-
-    
+   
 def test_ingest_ignored(monkeypatch, fake_stats, fake_message_model):
-    monkeypatch.setattr("parser.extract_metadata", lambda s, m: {"subject": "foo", "body": "bar", "date": "2025-09-29", "thread_id": "t1", "sender": "x", "sender_domain": "y", "timestamp": "now", "labels": [], "last_updated": "now"})
+    queryset, manager = fake_message_model
+    monkeypatch.setattr("parser.extract_metadata", lambda s, m: {"subject": "foo", "body": "bar", "date": "2025-09-29", "thread_id": "t1", "sender": "x", "sender_domain": "y", "timestamp": timestamp, "labels": [], "last_updated": "now"})
     monkeypatch.setattr("parser.classify_message", lambda b: None)
     monkeypatch.setattr("parser.extract_status_dates", lambda b, d: {"response_date": None, "follow_up_dates": [], "rejection_date": None, "interview_date": None})
     monkeypatch.setattr("parser.insert_email_text", lambda *a, **k: None)
@@ -91,59 +117,48 @@ def test_ingest_ignored(monkeypatch, fake_stats, fake_message_model):
     assert fake_stats.total_ignored == 1
 
 def test_ingest_skipped(monkeypatch, fake_stats, fake_message_model):
-    monkeypatch.setattr("parser.extract_metadata", lambda s, m: {"subject": "foo", "body": "bar", "date": "2025-09-29", "thread_id": "t1", "sender": "x", "sender_domain": "y", "timestamp": "now", "labels": [], "last_updated": "now"})
-    monkeypatch.setattr("parser.classify_message", lambda b: None)
-    monkeypatch.setattr("parser.extract_status_dates", lambda b, d: {"response_date": None, "follow_up_dates": [], "rejection_date": None, "interview_date": None})
+    queryset, manager = fake_message_model
+    timestamp = make_aware(datetime(2025, 9, 29, 12, 0))
+
+    monkeypatch.setattr("parser.extract_metadata", lambda s, m: {
+        "subject": "foo",
+        "body": "bar",
+        "date": "2025-09-29",
+        "thread_id": "t1",
+        "sender": "x",
+        "sender_domain": "y",
+        "timestamp": timestamp,
+        "labels": [],
+        "last_updated": "now"
+    })
+
+    monkeypatch.setattr("parser.classify_message", lambda b: {"label": "skipped"})
+    monkeypatch.setattr("parser.extract_status_dates", lambda b, d: {
+        "response_date": None,
+        "follow_up_dates": [],
+        "rejection_date": None,
+        "interview_date": None
+    })
     monkeypatch.setattr("parser.insert_email_text", lambda *a, **k: None)
     monkeypatch.setattr("parser.parse_subject", lambda *a, **k: {"ignore": False})
     monkeypatch.setattr("parser.get_stats", lambda: fake_stats)
 
-    # Force duplicate
-    fake_message_model.filter = lambda **kwargs: type("Q", (), {"exists": lambda self: True})()
+    queryset, manager = fake_message_model
+    queryset.set_first(FakeMessageRecord({"msg_id": "m2"}))
 
     result = ingest_message(None, "m2")
     assert result == "skipped"
-    assert fake_stats.total_skipped == 1
-
-def test_ingest_inserted(monkeypatch, fake_stats, fake_message_model):
-    captured_record = {}
-    monkeypatch.setattr("parser.insert_or_update_application", lambda record: captured_record.update(record))
-
-    monkeypatch.setattr("parser.extract_metadata", lambda s, m: {
-        "subject": "foo", "body": "bar", "date": "2025-09-29", "thread_id": "t1",
-        "sender": "x", "sender_domain": "y", "timestamp": "now", "labels": [], "last_updated": "now"
-    })
-    monkeypatch.setattr("parser.classify_message", lambda b: "applied")
-    monkeypatch.setattr("parser.extract_status_dates", lambda b, d: {
-        "response_date": None, "follow_up_dates": [], "rejection_date": None, "interview_date": None
-    })
-    monkeypatch.setattr("parser.insert_email_text", lambda *a, **k: None)
-    monkeypatch.setattr("parser.parse_subject", lambda *a, **k: {
-        "ignore": False, "company": "TestCo", "job_title": "Engineer", "job_id": "123"
-    })
-    monkeypatch.setattr("parser.build_company_job_index", lambda *a, **k: "test_index")
-    monkeypatch.setattr("parser.get_stats", lambda: fake_stats)
-
-    result = ingest_message(None, "m3")
-    assert result == "inserted"
-    assert fake_stats.total_inserted == 1
-
-    assert len(fake_message_model.created) == 1
-    assert fake_message_model.created[0]["subject"] == "foo"
-    assert fake_message_model.created[0]["thread_id"] == "t1"
-
-    assert captured_record["company"] == "TestCo"
-    assert captured_record["job_title"] == "Engineer"
-    assert captured_record["company_job_index"] == "test_index"
+    assert fake_stats.total_skipped == 1  
 
 def test_ingest_domain_mapping(monkeypatch, fake_stats, fake_message_model):
+    queryset, manager = fake_message_model
     captured_record = {}
     monkeypatch.setattr("parser.insert_or_update_application", lambda record: captured_record.update(record))
     monkeypatch.setattr("parser.DOMAIN_TO_COMPANY", {"example.com": "MappedCo"})
 
     monkeypatch.setattr("parser.extract_metadata", lambda s, m: {
         "subject": "foo", "body": "bar", "date": "2025-09-29", "thread_id": "t1",
-        "sender": "x", "sender_domain": "example.com", "timestamp": "now", "labels": [], "last_updated": "now"
+        "sender": "x", "sender_domain": "example.com", "timestamp":  timestamp, "labels": [], "last_updated": "now"
     })
     monkeypatch.setattr("parser.classify_message", lambda b: "applied")
     monkeypatch.setattr("parser.extract_status_dates", lambda b, d: {
@@ -162,14 +177,14 @@ def test_ingest_domain_mapping(monkeypatch, fake_stats, fake_message_model):
     assert captured_record["company"] == "MappedCo"
     assert captured_record["company_source"] == "domain_mapping"
 
-
 def test_ingest_subject_parse(monkeypatch, fake_stats, fake_message_model):
+    queryset, manager = fake_message_model
     captured_record = {}
     monkeypatch.setattr("parser.insert_or_update_application", lambda record: captured_record.update(record))
 
     monkeypatch.setattr("parser.extract_metadata", lambda s, m: {
         "subject": "foo", "body": "bar", "date": "2025-09-29", "thread_id": "t1",
-        "sender": "x", "sender_domain": "y", "timestamp": "now", "labels": [], "last_updated": "now"
+        "sender": "x", "sender_domain": "y", "timestamp": timestamp, "labels": [], "last_updated": "now"
     })
     monkeypatch.setattr("parser.classify_message", lambda b: "applied")
     monkeypatch.setattr("parser.extract_status_dates", lambda b, d: {
@@ -186,10 +201,10 @@ def test_ingest_subject_parse(monkeypatch, fake_stats, fake_message_model):
     assert result == "inserted"
     assert fake_stats.total_inserted == 1
 
+    assert len(manager.created) == 1
     # ✅ Verify the inserted message content
-    assert len(fake_message_model.created) == 1
-    assert fake_message_model.created[0]["subject"] == "foo"
-    assert fake_message_model.created[0]["thread_id"] == "t1"
+    assert manager.created[0]["subject"] == "foo"
+    assert manager.created[0]["thread_id"] == "t1"
 
     # ✅ Verify the final record
     assert captured_record["company"] == "TestCo"
@@ -200,6 +215,7 @@ def test_ingest_subject_parse(monkeypatch, fake_stats, fake_message_model):
     assert captured_record["status"] == "applied"
     
 def test_ingest_sender_name_match(monkeypatch, fake_stats, fake_message_model):
+    queryset, manager = fake_message_model
     captured_record = {}
     monkeypatch.setattr("parser.insert_or_update_application", lambda record: captured_record.update(record))
 
@@ -209,7 +225,7 @@ def test_ingest_sender_name_match(monkeypatch, fake_stats, fake_message_model):
     monkeypatch.setattr("parser.extract_metadata", lambda s, m: {
         "subject": "foo", "body": "bar", "date": "2025-09-29", "thread_id": "t6",
         "sender": "Airbnb Recruiting <jobs@airbnb.com>", "sender_domain": "airbnb.com",
-        "timestamp": "now", "labels": [], "last_updated": "now"
+        "timestamp":  timestamp, "labels": [], "last_updated": "now"
     })
     monkeypatch.setattr("parser.classify_message", lambda b: "applied")
     monkeypatch.setattr("parser.extract_status_dates", lambda b, d: {
@@ -234,12 +250,13 @@ def test_ingest_sender_name_match(monkeypatch, fake_stats, fake_message_model):
     assert captured_record["company_job_index"] == "test_index"    
     
 def test_ingest_company_rejection(monkeypatch, fake_stats, fake_message_model):
+    queryset, manager = fake_message_model
     captured_record = {}
     monkeypatch.setattr("parser.insert_or_update_application", lambda record: captured_record.update(record))
 
     # Patch known companies and validation logic from db
     monkeypatch.setattr("parser.KNOWN_COMPANIES", [])
-    monkeypatch.setattr("db.is_valid_company", lambda name: False)
+    monkeypatch.setattr("parser.is_valid_company", lambda name: False)
 
     # Patch domain mapping to catch fallback
     monkeypatch.setattr("parser.DOMAIN_TO_COMPANY", {"example.com": "FallbackCo"})
@@ -247,7 +264,7 @@ def test_ingest_company_rejection(monkeypatch, fake_stats, fake_message_model):
     monkeypatch.setattr("parser.extract_metadata", lambda s, m: {
         "subject": "foo", "body": "bar", "date": "2025-09-29", "thread_id": "t7",
         "sender": "x", "sender_domain": "example.com",
-        "timestamp": "now", "labels": [], "last_updated": "now"
+        "timestamp": timestamp, "labels": [], "last_updated": "now"
     })
     monkeypatch.setattr("parser.classify_message", lambda b: "applied")
     monkeypatch.setattr("parser.extract_status_dates", lambda b, d: {
@@ -263,6 +280,7 @@ def test_ingest_company_rejection(monkeypatch, fake_stats, fake_message_model):
     monkeypatch.setattr("parser.get_stats", lambda: fake_stats)
 
     result = ingest_message(None, "m7")
+    
     assert result == "inserted"
     assert fake_stats.total_inserted == 1
 
@@ -271,12 +289,12 @@ def test_ingest_company_rejection(monkeypatch, fake_stats, fake_message_model):
     assert captured_record["company_source"] == "domain_mapping"
     
 def test_ingest_ml_fallback(monkeypatch, fake_stats, fake_message_model):
+    queryset, manager = fake_message_model
     captured_record = {}
     monkeypatch.setattr("parser.insert_or_update_application", lambda record: captured_record.update(record))
 
     # Patch ML prediction directly
-    monkeypatch.setattr("parser.predict_company", lambda body: "MLCo")
-
+    monkeypatch.setattr("parser.predict_company", lambda subject, body: "MLCo")
     monkeypatch.setattr("parser.extract_metadata", lambda s, m: {
         "subject": "foo",
         "body": "This is a job application email",
@@ -284,7 +302,7 @@ def test_ingest_ml_fallback(monkeypatch, fake_stats, fake_message_model):
         "thread_id": "t9",
         "sender": "x",
         "sender_domain": "unknown.com",
-        "timestamp": "now",
+        "timestamp": timestamp,
         "labels": [],
         "last_updated": "now"
     })
@@ -321,6 +339,7 @@ def test_ingest_ml_fallback(monkeypatch, fake_stats, fake_message_model):
     
     
 def test_ingest_record_shape(monkeypatch, fake_stats, fake_message_model):
+    queryset, manager = fake_message_model
     captured_record = {}
     monkeypatch.setattr("parser.insert_or_update_application", lambda record: captured_record.update(record))
 
@@ -331,7 +350,7 @@ def test_ingest_record_shape(monkeypatch, fake_stats, fake_message_model):
         "thread_id": "t10",
         "sender": "x",
         "sender_domain": "example.com",
-        "timestamp": "now",
+        "timestamp": timestamp,
         "labels": ["inbox", "jobs"],
         "last_updated": "now"
     })

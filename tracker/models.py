@@ -1,5 +1,7 @@
 # Create models here.
 from django.db import models
+from django.utils.timezone import now
+
 
 class Company(models.Model):
     name = models.CharField(max_length=255)
@@ -29,6 +31,7 @@ class Message(models.Model):
     company = models.ForeignKey(
         Company, null=True, blank=True, on_delete=models.SET_NULL
     )
+    company_source = models.CharField(max_length=50, null=True, blank=True)  # ✅ Add this
     sender = models.CharField(max_length=255)
     subject = models.TextField()
     body = models.TextField()
@@ -51,6 +54,7 @@ class IgnoredMessage(models.Model):
     msg_id = models.CharField(max_length=128, unique=True)
     subject = models.TextField()
     body = models.TextField()
+    company_source=models.CharField(max_length=50, blank=True)
     sender = models.CharField(max_length=256)
     sender_domain = models.CharField(max_length=256)
     date = models.DateTimeField()
@@ -63,3 +67,16 @@ class IngestionStats(models.Model):
     total_inserted = models.IntegerField(default=0)
     total_ignored = models.IntegerField(default=0)
     total_skipped = models.IntegerField(default=0)
+    
+class UnresolvedCompany(models.Model):
+    msg_id = models.CharField(max_length=128, unique=True)
+    subject = models.TextField()
+    body = models.TextField()
+    sender = models.CharField(max_length=256)
+    sender_domain = models.CharField(max_length=256)
+    timestamp = models.DateTimeField()
+    notes = models.TextField(blank=True, null=True)
+    reviewed = models.BooleanField(default=False)
+    
+    def __str__(self):
+        return f"{self.msg_id} ({self.sender_domain})"

@@ -1,0 +1,287 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.13.7, pytest-8.4.2, pluggy-1.6.0 -- /Users/ashaw/code/GmailJobTracker/venv/bin/python3.13
+cachedir: .pytest_cache
+django: version: 4.2.25, settings: dashboard.settings (from ini)
+rootdir: /Users/ashaw/code/GmailJobTracker
+configfile: pytest.ini
+plugins: django-4.11.1
+collecting ... collected 10 items
+
+tracker/tests/test_ingest_message.py::test_subject_with_job_title_at_company FAILED [ 10%]
+tracker/tests/test_ingest_message.py::test_ingest_ignored_reason_logging PASSED [ 20%]
+tracker/tests/test_ingest_message.py::test_ingest_ignored PASSED         [ 30%]
+tracker/tests/test_ingest_message.py::test_ingest_skipped FAILED         [ 40%]
+tracker/tests/test_ingest_message.py::test_ingest_domain_mapping PASSED  [ 50%]
+tracker/tests/test_ingest_message.py::test_ingest_subject_parse ERROR    [ 60%]
+tracker/tests/test_ingest_message.py::test_ingest_sender_name_match PASSED [ 70%]
+tracker/tests/test_ingest_message.py::test_ingest_company_rejection FAILED [ 80%]
+tracker/tests/test_ingest_message.py::test_ingest_ml_fallback PASSED     [ 90%]
+tracker/tests/test_ingest_message.py::test_ingest_record_shape PASSED    [100%]
+
+==================================== ERRORS ====================================
+_________________ ERROR at setup of test_ingest_subject_parse __________________
+file /Users/ashaw/code/GmailJobTracker/tracker/tests/test_ingest_message.py, line 182
+  def test_ingest_subject_parse(monkeypatch, fake_stats, fake_message_model, fake_manager):
+E       fixture 'fake_manager' not found
+>       available fixtures: _dj_autoclear_mailbox, _django_clear_site_cache, _django_db_helper, _django_db_marker, _django_set_urlconf, _django_setup_unittest, _fail_for_invalid_template_variable, _live_server_helper, _template_string_if_invalid_marker, admin_client, admin_user, async_client, async_rf, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, client, db, django_assert_max_num_queries, django_assert_num_queries, django_capture_on_commit_callbacks, django_db_blocker, django_db_createdb, django_db_keepdb, django_db_modify_db_settings, django_db_modify_db_settings_parallel_suffix, django_db_modify_db_settings_tox_suffix, django_db_modify_db_settings_xdist_suffix, django_db_reset_sequences, django_db_serialized_rollback, django_db_setup, django_db_use_migrations, django_mail_dnsname, django_mail_patch_dns, django_test_environment, django_user_model, django_username_field, doctest_namespace, fake_message_model, fake_stats, live_server, mailoutbox, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, rf, settings, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, transactional_db
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/Users/ashaw/code/GmailJobTracker/tracker/tests/test_ingest_message.py:182
+=================================== FAILURES ===================================
+____________________ test_subject_with_job_title_at_company ____________________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x116282b10>
+fake_stats = <tests.test_ingest_message.fake_stats.<locals>.Stats object at 0x116248ec0>
+fake_message_model = (<tests.conftest.FakeQuerySet object at 0x11624a7b0>, <tests.conftest.FakeManager object at 0x116249010>)
+
+    def test_subject_with_job_title_at_company(monkeypatch, fake_stats, fake_message_model):
+        queryset, manager = fake_message_model
+        captured_record = {}
+        monkeypatch.setattr("parser.insert_or_update_application", lambda record: captured_record.update(record))
+        subject_line = "We Got It: Thanks for applying for Field CTO position @ Claroty!"
+        monkeypatch.setattr("parser.extract_metadata", lambda s, m: {
+            "subject": subject_line,
+            "body": "Thanks for your interest in Claroty.",
+            "date": "2025-10-08",
+            "thread_id": "t11",
+            "sender": "Claroty Recruiting <jobs@claroty.com>",
+            "sender_domain": "claroty.com",
+            "timestamp": timestamp,
+            "labels": [],
+            "last_updated": "now"
+        })
+    
+        monkeypatch.setattr("parser.classify_message", lambda b: "applied")
+        monkeypatch.setattr("parser.extract_status_dates", lambda b, d: {
+            "response_date": "2025-10-08",
+            "follow_up_dates": [],
+            "rejection_date": None,
+            "interview_date": None
+        })
+        monkeypatch.setattr("parser.insert_email_text", lambda *a, **k: None)
+    
+        # Let parse_subject run normally to test regex + sanity logic
+        from parser import parse_subject
+        monkeypatch.setattr("parser.parse_subject", parse_subject)
+    
+        monkeypatch.setattr("parser.build_company_job_index", lambda *a, **k: "claroty_field_cto")
+        monkeypatch.setattr("parser.get_stats", lambda: fake_stats)
+    
+>       result = ingest_message(None, "m11")
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tracker/tests/test_ingest_message.py:44: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+parser.py:362: in ingest_message
+    parsed_subject = parse_subject(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+subject = 'We Got It: Thanks for applying for Field CTO position @ Claroty!'
+sender = 'Claroty Recruiting <jobs@claroty.com>', sender_domain = 'claroty.com'
+
+    def parse_subject(subject, sender=None, sender_domain=None):
+        """Extract company, job title, and job ID from subject line, sender, and optionally sender domain."""
+    
+        RESUME_NOISE_PATTERNS = [
+            r"\bresume\b",
+            r"\bcv\b",
+            r"\bcover letter\b",
+        ]
+    
+        # --- ML classification ---
+        result = predict_subject_type(subject)
+        label = result["label"]
+        confidence = result["confidence"]
+        ignore = result["ignore"]
+    
+        # --- Hard-ignore for resume or known noise patterns ---
+        if label == "noise" or should_ignore(subject, "") or any(re.search(p, subject, re.I) for p in RESUME_NOISE_PATTERNS):
+            return {
+                "company": "",
+                "job_title": "",
+                "job_id": "",
+                "predicted_company": "",
+                "label": "noise",
+                "confidence": 0.9,
+                "ignore": True,
+            }
+    
+        # --- Entity extraction ---
+        entities = extract_entities(subject)
+        company = entities.get("company", "")
+        job_title = entities.get("job_title", "")
+        job_id = ""
+    
+        # --- Continue with original logic for fallback or enrichment ---
+        subject_clean = subject.strip()
+        subj_lower = subject_clean.lower()
+        domain_lower = sender_domain.lower() if sender_domain else None
+    
+        # Colon-prefix
+        if not company:
+            m = re.match(r"^([A-Z][A-Za-z0-9&.\- ]+):", subject_clean)
+            if m:
+                company = m.group(1).strip()
+    
+        # Known companies
+        if not company and KNOWN_COMPANIES:
+            for known in KNOWN_COMPANIES:
+                if known in subj_lower:
+                    company = known.title()
+                    break
+    
+        # Domain mapping
+        if not company and domain_lower and domain_lower in DOMAIN_TO_COMPANY:
+            company = DOMAIN_TO_COMPANY[domain_lower]
+    
+        # ATS domain → display name
+        if not company and domain_lower in ATS_DOMAINS and sender:
+            display_name, _ = parseaddr(sender)
+            cleaned = re.sub(
+                r"\b(Workday|Recruiting Team|Careers|Talent Acquisition Team|HR|Hiring)\b",
+                "",
+                display_name,
+                flags=re.I,
+            ).strip()
+            if cleaned:
+                company = cleaned
+    
+        # Regex patterns
+        patterns = [
+            (r"application (?:to|for|with)\s+([A-Z][\w\s&\-]+)", re.IGNORECASE),
+            (r"(?:from|with|at)\s+([A-Z][\w\s&\-]+)", re.IGNORECASE),
+            (r"position\s+@\s+([A-Z][\w\s&\-]+)", re.IGNORECASE),  # catches "position @ Claroty",
+            (r"^([A-Z][\w\s&\-]+)\s+(Job|Application|Interview)", 0),
+            (r"-\s*([A-Z][\w\s&\-]+)\s*-\s*", 0),
+            (r"^([A-Z][\w\s&\-]+)\s+application", 0),
+            (r"(?:your application with|application with|interest in|position at)\s+([A-Z][\w\s&\-]+)", re.IGNORECASE),
+            (r"update on your ([A-Z][\w\s&\-]+) application", re.IGNORECASE),
+            (r"thank you for your application with\s+([A-Z][\w\s&\-]+)", re.IGNORECASE),
+            (r"@\s*([A-Z][\w\s&\-]+)", re.IGNORECASE),
+            (r"^([A-Z][\w\s&\-]+)\s+[-:]", re.IGNORECASE),  # catches "ECS -", "Partner Forces:",
+            r"applying for ([\w\s\-]+) position @ ([A-Z][\w\s&\-]+)"
+        ]
+>       job_title = match.group(1).strip()
+                    ^^^^^
+E       UnboundLocalError: cannot access local variable 'match' where it is not associated with a value
+
+parser.py:311: UnboundLocalError
+---------------------------- Captured stderr setup -----------------------------
+Creating test database for alias 'default'...
+_____________________________ test_ingest_skipped ______________________________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x1162d46b0>
+fake_stats = <tests.test_ingest_message.fake_stats.<locals>.Stats object at 0x1162497f0>
+fake_message_model = (<tests.conftest.FakeQuerySet object at 0x116283950>, <tests.conftest.FakeManager object at 0x116283820>)
+
+    def test_ingest_skipped(monkeypatch, fake_stats, fake_message_model):
+        queryset, manager = fake_message_model
+        timestamp = make_aware(datetime(2025, 9, 29, 12, 0))
+    
+        monkeypatch.setattr("parser.extract_metadata", lambda s, m: {
+            "subject": "foo",
+            "body": "bar",
+            "date": "2025-09-29",
+            "thread_id": "t1",
+            "sender": "x",
+            "sender_domain": "y",
+            "timestamp": timestamp,
+            "labels": [],
+            "last_updated": "now"
+        })
+    
+        monkeypatch.setattr("parser.classify_message", lambda b: {"label": "skipped"})
+        monkeypatch.setattr("parser.extract_status_dates", lambda b, d: {
+            "response_date": None,
+            "follow_up_dates": [],
+            "rejection_date": None,
+            "interview_date": None
+        })
+        monkeypatch.setattr("parser.insert_email_text", lambda *a, **k: None)
+        monkeypatch.setattr("parser.parse_subject", lambda *a, **k: {"ignore": False})
+        monkeypatch.setattr("parser.get_stats", lambda: fake_stats)
+    
+        class FakeMessageRecord:
+            def __init__(self, data):
+                self.__dict__.update(data)
+    
+>       fake_message_model.set_first(FakeMessageRecord({"msg_id": "m2"}))  # simulate existing message
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'tuple' object has no attribute 'set_first'
+
+tracker/tests/test_ingest_message.py:149: AttributeError
+________________________ test_ingest_company_rejection _________________________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x11625a8a0>
+fake_stats = <tests.test_ingest_message.fake_stats.<locals>.Stats object at 0x1162492b0>
+fake_message_model = (<tests.conftest.FakeQuerySet object at 0x1162d5590>, <tests.conftest.FakeManager object at 0x1162d56a0>)
+
+    def test_ingest_company_rejection(monkeypatch, fake_stats, fake_message_model):
+        queryset, manager = fake_message_model
+        captured_record = {}
+        monkeypatch.setattr("parser.insert_or_update_application", lambda record: captured_record.update(record))
+    
+        # Patch known companies and validation logic from db
+        monkeypatch.setattr("parser.KNOWN_COMPANIES", [])
+        monkeypatch.setattr("db.is_valid_company", lambda name: False)
+    
+        # Patch domain mapping to catch fallback
+        monkeypatch.setattr("parser.DOMAIN_TO_COMPANY", {"example.com": "FallbackCo"})
+    
+        monkeypatch.setattr("parser.extract_metadata", lambda s, m: {
+            "subject": "foo", "body": "bar", "date": "2025-09-29", "thread_id": "t7",
+            "sender": "x", "sender_domain": "example.com",
+            "timestamp": timestamp, "labels": [], "last_updated": "now"
+        })
+        monkeypatch.setattr("parser.classify_message", lambda b: "applied")
+        monkeypatch.setattr("parser.extract_status_dates", lambda b, d: {
+            "response_date": None, "follow_up_dates": [], "rejection_date": None, "interview_date": None
+        })
+        monkeypatch.setattr("parser.insert_email_text", lambda *a, **k: None)
+    
+        # Parsed subject returns a bad company name
+        monkeypatch.setattr("parser.parse_subject", lambda *a, **k: {
+            "ignore": False, "company": "careers", "job_title": "Engineer", "job_id": "123"
+        })
+        monkeypatch.setattr("parser.build_company_job_index", lambda *a, **k: "test_index")
+        monkeypatch.setattr("parser.get_stats", lambda: fake_stats)
+    
+        result = ingest_message(None, "m7")
+    
+        assert result == "inserted"
+        assert fake_stats.total_inserted == 1
+    
+        # ✅ Confirm company was rejected and fallback used
+>       assert captured_record["company"] == "FallbackCo"
+E       AssertionError: assert 'careers' == 'FallbackCo'
+E         
+E         - FallbackCo
+E         + careers
+
+tracker/tests/test_ingest_message.py:290: AssertionError
+----------------------------- Captured stdout call -----------------------------
+📥 Inserting message: foo
+📎 Final company: careers
+📎 company_obj: careers
+🔍 company: careers
+🔍 job_title: Engineer
+🔍 job_id: 123
+🔍 company_source: subject_parse
+🔍 company_job_index: test_index
+✅ Logged: foo
+=============================== warnings summary ===============================
+venv/lib/python3.13/site-packages/spacy/cli/_util.py:23
+  /Users/ashaw/code/GmailJobTracker/venv/lib/python3.13/site-packages/spacy/cli/_util.py:23: DeprecationWarning: Importing 'parser.split_arg_string' is deprecated, it will only be available in 'shell_completion' in Click 9.0.
+    from click.parser import split_arg_string
+
+venv/lib/python3.13/site-packages/weasel/util/config.py:8
+  /Users/ashaw/code/GmailJobTracker/venv/lib/python3.13/site-packages/weasel/util/config.py:8: DeprecationWarning: Importing 'parser.split_arg_string' is deprecated, it will only be available in 'shell_completion' in Click 9.0.
+    from click.parser import split_arg_string
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tracker/tests/test_ingest_message.py::test_subject_with_job_title_at_company
+FAILED tracker/tests/test_ingest_message.py::test_ingest_skipped - AttributeE...
+FAILED tracker/tests/test_ingest_message.py::test_ingest_company_rejection - ...
+ERROR tracker/tests/test_ingest_message.py::test_ingest_subject_parse
+=============== 3 failed, 6 passed, 2 warnings, 1 error in 2.32s ===============

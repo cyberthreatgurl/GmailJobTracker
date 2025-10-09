@@ -280,11 +280,17 @@ def load_training_data():
 
 def insert_or_update_application(data):
     conn = get_db_connection()
-
     c = conn.cursor()
 
     # Add last_updated timestamp
     data['last_updated'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+    # Normalize follow_up_dates and labels to strings
+    follow_up_raw = data.get('follow_up_dates', [])
+    data['follow_up_dates'] = ", ".join(follow_up_raw) if isinstance(follow_up_raw, list) else str(follow_up_raw)
+
+    labels_raw = data.get('labels', [])
+    data['labels'] = ", ".join(labels_raw) if isinstance(labels_raw, list) else str(labels_raw)
 
     c.execute('''
         INSERT OR REPLACE INTO applications (

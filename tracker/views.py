@@ -2,7 +2,7 @@
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from tracker.models import Company, Application, Message, IngestionStats
+from tracker.models import Company, Application, Message, IngestionStats, UnresolvedCompany
 from django.utils.timezone import now
 from django.db import models
 from django.db.models import F, Q
@@ -33,7 +33,8 @@ def flagged_applications(request):
 def dashboard(request):
     companies = Company.objects.count()
     companies_list = Company.objects.all()
-
+    unresolved_companies = UnresolvedCompany.objects.filter(reviewed=False).order_by("-timestamp")[:50]
+    
     applications = Application.objects.count()
     rejections_week = Application.objects.filter(
         rejection_date__gte=now() - timedelta(days=7)
@@ -86,6 +87,7 @@ def dashboard(request):
         "chart_inserted": chart_inserted,
         "chart_skipped": chart_skipped,
         "chart_ignored": chart_ignored,
+        "unresolved_companies": unresolved_companies, 
     })
   
     

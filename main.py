@@ -5,18 +5,36 @@ import sys
 from datetime import datetime
 import django
 from django.utils.timezone import localdate
+import argparse
 
 # --- Initialize Gmail and DB ---
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dashboard.settings")
 django.setup()
+
 from tracker.models import IngestionStats
 from gmail_auth import get_gmail_service
 from parser import ingest_message, PATTERNS
 from db import init_db
 
+# --- Parse CLI flags ---
+parser = argparse.ArgumentParser()
+parser.add_argument("--limit-msg", help="Only ingest this single msg_id")
+args = parser.parse_args()
+
+# --- Initialize Gmail ---
 service = get_gmail_service()
 
+# --- Optional single-message ingest ---
+if args.limit_msg:
+    try:
+        result = ingest_message(service, args.limit_msg)
+        print(f"[single] {result or '❓ Unknown result'} for {args.limit_msg}")
+    except Exception as e:
+        print(f"[single] ❌ Failed to ingest {args.limit_msg}: {e}")
+    sys.exit(0)
+
+# --- Full sync ---
 try:
     init_db()
 except Exception as e:
@@ -31,11 +49,9 @@ print(f"Connected to Gmail account: {profile['emailAddress']}")
 
 def build_query():
     """Build Gmail search query from static subject terms and patterns.json body terms."""
-    # Subject keywords (static)
     subject_terms = ["job", "application", "resume", "interview", "position"]
     subject_query = " OR ".join(subject_terms)
 
-    # Body keywords from patterns.json (guard against missing keys)
     body_terms = (
         (
             PATTERNS.get("application", [])
@@ -49,7 +65,6 @@ def build_query():
 
     body_query = " OR ".join(f'"{term}"' for term in body_terms) if body_terms else ""
 
-    # Combine subject/body queries
     if body_query:
         return f"(subject:({subject_query}) OR body:({body_query})) newer_than:365d"
     else:
@@ -101,7 +116,7 @@ def sync_messages():
         except Exception as e:
             print(f"[{idx}/{len(messages)}] ❌ Failed to ingest {msg_id}: {e}")
             continue
-    # --- Summary line ---
+
     today = localdate()
     stats, _ = IngestionStats.objects.get_or_create(date=today)
     print(
@@ -109,7 +124,7 @@ def sync_messages():
         f"{stats.total_ignored} ignored, "
         f"{stats.total_skipped} skipped"
     )
-    
+
     stats = IngestionStats.objects.first()
     if stats:
         print(

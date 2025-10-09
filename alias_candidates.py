@@ -76,4 +76,12 @@ if __name__ == "__main__":
             ]
             sim_note = f" → similar to {', '.join(sims)}" if sims else ""
 
-            print(f'  "{name}": "{sims[0] if sims else name}"{sim_note}')
+            # Heuristic: strip known suffixes like "Application", "Interview", "Update"
+            clean = re.sub(r'\b(Application|Interview|Update|Confirmation|Availability)\b', '', name, flags=re.I).strip()
+            clean = re.sub(r'[^A-Za-z0-9&\- ]+', '', clean).strip()
+
+            # If clean name is short and looks like a company, suggest it
+            if is_clean_company(clean) and clean.lower() != name.lower():
+                print(f'  "{name}": "{clean}"')
+            elif sims:
+                print(f'  "{name}": "{sims[0]}"{sim_note}')

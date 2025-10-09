@@ -16,6 +16,36 @@
       margin-top: 2rem;
       margin-bottom: 1rem;
     }
+    .tabs {
+  display: flex;
+  margin-top: 2rem;
+  border-bottom: 2px solid #e5e7eb;
+}
+.tab {
+  padding: 0.75rem 1.25rem;
+  cursor: pointer;
+  font-weight: 600;
+  color: #374151;
+  border: 1px solid transparent;
+  border-bottom: none;
+  background: #f3f4f6;
+  margin-right: 0.5rem;
+  border-radius: 6px 6px 0 0;
+}
+.tab:hover {
+  background: #e5e7eb;
+}
+.tab.active {
+  background: #fff;
+  border-color: #d1d5db;
+  border-bottom: 2px solid #fff;
+}
+.tab-content {
+  display: none;
+}
+.tab-content.active {
+  display: block;
+}
     ul {
       list-style: none;
       padding: 0;
@@ -123,9 +153,52 @@
         <li>No companies found</li>
       {% endfor %}
     </ul>
-    <p><a href="{% url 'label_applications' %}">➤ Label Applications</a></p>
-    <p><a href="{% url 'label_messages' %}">➤ Label Messages</a></p>
+<div class="card">
+  <h2>Labeling Tools</h2>
+  <div class="tabs">
+    <div class="tab active" onclick="showTab('applications')">Label Applications</div>
+    <div class="tab" onclick="showTab('messages')">Label Messages</div>
+    <div class="tab" onclick="showTab('unresolved')">Label Unresolved Companies</div>
   </div>
+
+  <div id="applications" class="tab-content active">
+    <p><a href="{% url 'label_applications' %}">➤ Go to Application Labeling</a></p>
+  </div>
+
+  <div id="messages" class="tab-content">
+    <p><a href="{% url 'label_messages' %}">➤ Go to Message Labeling</a></p>
+  </div>
+
+  <div id="unresolved" class="tab-content">
+    {% if unresolved_companies %}
+      <table style="width:100%; border-collapse: collapse;">
+        <thead>
+          <tr style="background:#f3f4f6;">
+            <th style="text-align:left; padding:0.5rem;">Message ID</th>
+            <th style="text-align:left; padding:0.5rem;">Sender Domain</th>
+            <th style="text-align:left; padding:0.5rem;">Timestamp</th>
+            <th style="text-align:left; padding:0.5rem;">Subject</th>
+            <th style="text-align:left; padding:0.5rem;">Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for uc in unresolved_companies %}
+          <tr>
+            <td style="padding:0.5rem;">{{ uc.msg_id }}</td>
+            <td style="padding:0.5rem;">{{ uc.sender_domain }}</td>
+            <td style="padding:0.5rem;">{{ uc.timestamp|date:"Y-m-d H:i" }}</td>
+            <td style="padding:0.5rem;">{{ uc.subject }}</td>
+            <td style="padding:0.5rem;">{{ uc.notes|default:"—" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p>No unresolved companies found.</p>
+    {% endif %}
+  </div>
+</div>
+</div>
 
 <!-- ✅ Recent Messages -->
 <div class="card">
@@ -220,5 +293,13 @@
     {% endif %}
   </script>
 
+<script>
+  function showTab(tabId) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    document.getElementById(tabId).classList.add('active');
+    document.querySelector(`.tab[onclick="showTab('${tabId}')"]`).classList.add('active');
+  }
+</script>  
 </body>
 </html>

@@ -1,6 +1,23 @@
 from django.contrib import admin
-from .models import Company, Application, Message
+from .models import Company, Application, Message, UnresolvedCompany
 
+
+
+class UnresolvedCompanyAdmin(admin.ModelAdmin):
+    fields = ("msg_id", "subject", "body", "sender", "sender_domain", "timestamp", "notes", "reviewed")
+    
+    list_display = ("msg_id", "sender_domain", "timestamp", "reviewed")
+    list_filter = ("reviewed", "sender_domain")
+    search_fields = ("msg_id", "subject", "body", "sender", "sender_domain")
+    readonly_fields = ("msg_id", "subject", "body", "sender", "sender_domain", "timestamp")
+    actions = ["mark_as_reviewed"]
+
+    def mark_as_reviewed(self, request, queryset):
+        updated = queryset.update(reviewed=True)
+        self.message_user(request, f"{updated} entries marked as reviewed.")
+    mark_as_reviewed.short_description = "Mark selected as reviewed"
+    
+   
 class CustomAdminSite(admin.AdminSite):
     site_header = "Gmail Job Tracker Admin"
     site_title = "Gmail Job Tracker"
@@ -34,3 +51,4 @@ class MessageAdmin(admin.ModelAdmin):
 custom_admin_site.register(Application, ApplicationAdmin)
 custom_admin_site.register(Company, CompanyAdmin)
 custom_admin_site.register(Message, MessageAdmin)
+custom_admin_site.register(UnresolvedCompany, UnresolvedCompanyAdmin)

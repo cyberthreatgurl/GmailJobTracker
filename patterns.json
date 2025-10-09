@@ -5,7 +5,13 @@
     "Farr Shepherd & Kelly Shaw about Available Position": "Farr Shepherd",
     "CrowdStrike Job": "CrowdStrike",
     "Follow-up on Dragos": "Dragos",
-    "Security Architect at Tyler Technologies": "Tyler Technologies"
+    "Security Architect at Tyler Technologies": "Tyler Technologies",
+    "Dragos Application": "Dragos",
+    "Google Application": "Google",
+    "SEI Application Update": "SEI",
+    "donotreply_Leidos_HR": "Leidos",
+    "DeeDee Price from Palo Alto Networks": "Palo Alto Networks",
+    "PartnerForce": "Partner Forces"
   },
 
   "application": [
@@ -80,5 +86,30 @@
     "pageuppeople.com": "Virginia Tech",
     "greenhouse-mail.io": "Greenhouse",
     "email.figure.com": "Figure"
-  }
+  },
+"invalid_company_prefixes": [
+    "Cyber Program",
+    "Lead Machine Learning Engineer",
+    "Detection and Response",
+    "Machine Learning Engineer",
+    "Senior Manager",
+    "Program Manager",
+    "Security Architect",
+    "Director of Engineering",
+    "Lead Cyber Security Engineer",
+    "Principal",
+    "Submission Form",
+    "Remote",
+    "Rejection",
+    "Interview Invite",
+    "Job_Application",
+    "Fwd",
+    "VA -",
+    "Detection and Response",
+    "the Lead",
+    "the Senior",
+    "the Principal",
+    "donotreply",
+    "Field CTO"
+  ]
 }

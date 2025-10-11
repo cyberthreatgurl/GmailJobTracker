@@ -1,19 +1,4 @@
 {
-  "aliases": {
-    "CVS Health has been received": "CVS Health",
-    "Complete Your SimVentions": "SimVentions",
-    "Farr Shepherd & Kelly Shaw about Available Position": "Farr Shepherd",
-    "CrowdStrike Job": "CrowdStrike",
-    "Follow-up on Dragos": "Dragos",
-    "Security Architect at Tyler Technologies": "Tyler Technologies",
-    "Dragos Application": "Dragos",
-    "Google Application": "Google",
-    "SEI Application Update": "SEI",
-    "donotreply_Leidos_HR": "Leidos",
-    "DeeDee Price from Palo Alto Networks": "Palo Alto Networks",
-    "PartnerForce": "Partner Forces"
-  },
-
   "application": [
     "for applying",
     "received your application",
@@ -67,26 +52,6 @@
     "any update on my application",
     "reaching out again"
   ],
-  "domain_to_company": {
-    "ecs-federal.com": "ECS",
-    "partnerforces.com": "PartnerForce",
-    "claroty.com": "Claroty",
-    "rapid7.com": "Rapid7",
-    "simventions.com": "SimVentions",
-    "caci.com": "CACI", 
-    "cloudflare.com": "Cloudflare",
-    "armis.com": "Armis",
-    "venturegloballng.com": "Venture Global LNG",
-    "nm.com": "Northwestern Mutual",
-    "me.com": "Apple",
-    "gmail.com": "Google",
-    "delta.org": "Delta Dental",
-    "comeet-notifications.com": "Claroty",
-    "talent.icims.com": "Simventions",
-    "pageuppeople.com": "Virginia Tech",
-    "greenhouse-mail.io": "Greenhouse",
-    "email.figure.com": "Figure"
-  },
 "invalid_company_prefixes": [
     "Cyber Program",
     "Lead Machine Learning Engineer",

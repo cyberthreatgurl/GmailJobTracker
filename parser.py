@@ -23,21 +23,30 @@ from tracker.models import Message, IgnoredMessage, IngestionStats, Company, Unr
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dashboard.settings")
 django.setup()
 DEBUG = True
-DOMAIN_TO_COMPANY = {
-    # example real mappings
-    "stripe.com": "Stripe",
-    "airbnb.com": "Airbnb",
-    "example.com": "MappedCo",  # used in test
-}
-KNOWN_COMPANIES = [
-    "Airbnb",
-    "Stripe",
-    "Google",
-    "Meta",
-    "Netflix",
-    "Amazon",
-    "Microsoft",
-]
+
+# --- Load patterns.json ---
+PATTERNS_PATH = Path(__file__).parent / "patterns.json"
+if PATTERNS_PATH.exists():
+    with open(PATTERNS_PATH, "r", encoding="utf-8") as f:
+        patterns_data = json.load(f)
+    PATTERNS = patterns_data
+else:
+    PATTERNS = {}
+
+COMPANIES_PATH = Path(__file__).parent / "companies.json"
+if COMPANIES_PATH.exists():
+    with open(COMPANIES_PATH, "r", encoding="utf-8") as f:
+        company_data = json.load(f)
+    ATS_DOMAINS = [d.lower() for d in company_data.get("ats_domains", [])]  
+    KNOWN_COMPANIES = {c.lower() for c in company_data.get("known", [])}
+    DOMAIN_TO_COMPANY = {
+        k.lower(): v for k, v in company_data.get("domain_to_company", {}).items()
+    }
+    ALIASES = company_data.get("aliases", {})
+else:
+    KNOWN_COMPANIES = set()
+    DOMAIN_TO_COMPANY = {}
+    ALIASES = {}
 
 def get_stats():
     today = now().date()
@@ -57,32 +66,6 @@ def log_ignored_message(msg_id, metadata, reason):
             "reason": reason,
         },
     )
-
-
-# --- Load patterns.json ---
-PATTERNS_PATH = Path(__file__).parent / "patterns.json"
-if PATTERNS_PATH.exists():
-    with open(PATTERNS_PATH, "r", encoding="utf-8") as f:
-        patterns_data = json.load(f)
-    PATTERNS = patterns_data
-    KNOWN_COMPANIES = {c.lower() for c in patterns_data.get("aliases", {}).values()}
-    DOMAIN_TO_COMPANY = {
-        k.lower(): v for k, v in patterns_data.get("domain_to_company", {}).items()
-    }
-else:
-    PATTERNS = {}
-    KNOWN_COMPANIES = set()
-    DOMAIN_TO_COMPANY = {}
-
-# --- ATS domains for display-name extraction ---
-ATS_DOMAINS = {
-    "myworkday.com",
-    "jobvite.com",
-    "greenhouse-mail.io",
-    "smartrecruiters.com",
-    "pageuppeople.com",
-    "icims.com",
-}
 
 def is_valid_company_name(name):
     """Reject company names that match known invalid prefixes from patterns.json."""
@@ -503,25 +486,39 @@ def ingest_message(service, msg_id):
     if DEBUG:
         print(f"📎 Final company: {company}")
         print(f"📎 company_obj: {company_obj}")
-
-
+    #
+    # This is the re-ingest logic
+    #
     # ✅ Skip logic (now safe to run after enrichment)
     existing = Message.objects.filter(msg_id=msg_id).first()
     if existing:
         if DEBUG:
             print(f"✏️ Updating existing message: {msg_id}")
+            print(f"🧠 Re-ingest reviewed={existing.reviewed} (confidence={result['confidence']:.2f})")
         if company_obj:
             existing.company = company_obj
             existing.company_source = company_source
         if result:
             existing.ml_label = result["label"]
             existing.confidence = result["confidence"]
-        existing.reviewed = False
+
+        # 🧠 Preserve manual review or auto-mark if confidence is high
+        if result["confidence"] >= 0.85:
+            existing.reviewed = True
+
         existing.save()
         stats.total_skipped += 1
         stats.save()
         return "skipped"
+
     
+    reviewed = (
+        result["confidence"] >= 0.85
+        or company_source in {"subject_parse", "domain_mapping", "sender_name_match"}
+        or company_norm in KNOWN_COMPANIES
+    )
+  # or whatever threshold you trust
+
     # ✅ Now safe to insert Message with enriched company
     Message.objects.create(
         msg_id=msg_id,
@@ -532,7 +529,7 @@ def ingest_message(service, msg_id):
         timestamp=metadata["timestamp"],
         ml_label=result["label"],
         confidence=result["confidence"],
-        reviewed=False,
+        reviewed=(reviewed),
         company=company_obj,
         company_source=company_source,
     )

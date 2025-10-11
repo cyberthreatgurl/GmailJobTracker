@@ -4,14 +4,6 @@ from datetime import datetime, timedelta
 import re
 from pathlib import Path
 
-COMPANIES_FILE = Path(__file__).parent / "known_companies.txt"
-
-def load_known_companies():
-    with open(COMPANIES_FILE, "r", encoding="utf-8") as f:
-        return {line.strip().lower() for line in f if line.strip()}
-
-KNOWN_COMPANIES = load_known_companies()
-
 def build_company_job_index(company, job_title, job_id):
     import re
     def normalize(text):

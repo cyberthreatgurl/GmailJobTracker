@@ -1,6 +1,5 @@
 from django.contrib import admin
-from .models import Company, Application, Message, UnresolvedCompany
-
+from .models import Company, Application, Message, UnresolvedCompany,KnownCompany, ATSDomain, DomainToCompany, CompanyAlias, Ticket
 
 
 class UnresolvedCompanyAdmin(admin.ModelAdmin):
@@ -47,8 +46,20 @@ class CompanyAdmin(admin.ModelAdmin):
 class MessageAdmin(admin.ModelAdmin):
     list_display = ("thread_id", "timestamp", "sender", "subject")
     search_fields = ("subject", "sender", "body")
+from .models import Ticket
 
+class TicketAdmin(admin.ModelAdmin):
+    list_display = ("title", "category", "status", "updated_at")
+    list_filter = ("category", "status")
+    search_fields = ("title", "description")
+    
 custom_admin_site.register(Application, ApplicationAdmin)
 custom_admin_site.register(Company, CompanyAdmin)
 custom_admin_site.register(Message, MessageAdmin)
 custom_admin_site.register(UnresolvedCompany, UnresolvedCompanyAdmin)
+custom_admin_site.register(Ticket,TicketAdmin)
+
+admin.site.register(KnownCompany)
+admin.site.register(ATSDomain)
+admin.site.register(DomainToCompany)
+admin.site.register(CompanyAlias)

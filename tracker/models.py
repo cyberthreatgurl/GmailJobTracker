@@ -80,3 +80,41 @@ class UnresolvedCompany(models.Model):
     
     def __str__(self):
         return f"{self.msg_id} ({self.sender_domain})"
+    
+class KnownCompany(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+
+class ATSDomain(models.Model):
+    domain = models.CharField(max_length=255, unique=True)
+
+class DomainToCompany(models.Model):
+    domain = models.CharField(max_length=255, unique=True)
+    company = models.CharField(max_length=255)
+
+class CompanyAlias(models.Model):
+    alias = models.CharField(max_length=255, unique=True)
+    company = models.CharField(max_length=255) 
+    
+class Ticket(models.Model):
+    CATEGORY_CHOICES = [
+        ("code", "Code Problem"),
+        ("admin_ui", "Admin Site Web Problem"),
+        ("upgrade", "Admin Site Upgrade"),
+    ]
+
+    STATUS_CHOICES = [
+        ("open", "Open"),
+        ("in_progress", "In Progress"),
+        ("resolved", "Resolved"),
+        ("wont_fix", "Won't Fix"),
+    ]
+
+    title = models.CharField(max_length=255)
+    description = models.TextField()
+    category = models.CharField(max_length=50, choices=CATEGORY_CHOICES)
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default="open")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"[{self.category}] {self.title}"       

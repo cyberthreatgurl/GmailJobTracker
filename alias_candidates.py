@@ -2,7 +2,7 @@ import pandas as pd
 import re
 import json
 from difflib import SequenceMatcher
-from db import get_db_connection, PATTERNS_PATH
+from db import get_db_connection, PATTERNS_PATH, COMPANIES_PATH
 
 # --- Config ---
 MIN_COUNT = 1  # flag companies with <= this many occurrences
@@ -38,16 +38,18 @@ def similar(a, b):
 if __name__ == "__main__":
     df = load_raw_companies()
 
-    # Load patterns.json
+    # Load patterns.json amd companies.json
     try:
         with open(PATTERNS_PATH, "r", encoding="utf-8") as f:
-            patterns = json.load(f)
+            with open(COMPANIES_PATH, "r", encoding="utf-8") as e:
+                aliases = json.load(e)    
+                patterns = json.load(f)
     except FileNotFoundError:
         patterns = {}
-
+        aliases = {}
     ignore_patterns = set(p.lower() for p in patterns.get("ignore", []))
-    existing_aliases = set(patterns.get("aliases", {}).keys())
-    canonical_names = set(patterns.get("aliases", {}).values())
+    existing_aliases = set(aliases.get("aliases", {}).keys())
+    canonical_names = set(aliases.get("aliases", {}).values())
 
     print(f"📊 Found {len(df)} unique company names in DB")
     print(f"📂 Existing aliases in patterns.json: {len(existing_aliases)}")

@@ -1,6 +1,7 @@
 from django.contrib import admin
 from .models import Company, Application, Message, UnresolvedCompany,KnownCompany, ATSDomain, DomainToCompany, CompanyAlias, Ticket
 
+list_display = ("name", "message_count", "application_count")
 
 class UnresolvedCompanyAdmin(admin.ModelAdmin):
     fields = ("msg_id", "subject", "body", "sender", "sender_domain", "timestamp", "notes", "reviewed")

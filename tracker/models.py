@@ -8,15 +8,23 @@ class Company(models.Model):
     domain = models.CharField(max_length=255, blank=True)
     first_contact = models.DateTimeField()
     last_contact = models.DateTimeField()
+    confidence = models.FloatField(null=True, blank=True)
 
     def __str__(self):
         return self.name
+
+    def message_count(self):
+        return self.message_set.count()
+
+    def application_count(self):
+        return self.application_set.count()
 
 class Application(models.Model):
     thread_id = models.CharField(max_length=255, unique=True)
     company_source = models.CharField(max_length=50, blank=True)
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
     job_title = models.CharField(max_length=255)
+    job_id = models.CharField(max_length=255, blank=True)
     status = models.CharField(max_length=50)
     sent_date = models.DateField()
     rejection_date = models.DateField(null=True, blank=True)
@@ -67,6 +75,7 @@ class IngestionStats(models.Model):
     total_inserted = models.IntegerField(default=0)
     total_ignored = models.IntegerField(default=0)
     total_skipped = models.IntegerField(default=0)
+    last_updated = models.DateTimeField(auto_now=True)
     
 class UnresolvedCompany(models.Model):
     msg_id = models.CharField(max_length=128, unique=True)

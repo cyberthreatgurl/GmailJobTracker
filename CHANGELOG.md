@@ -12,6 +12,17 @@ Add an entry like:
 
 ```markdown
 ## [Unreleased]
+### Added
+- `check_env.py` script to verify environment readiness (DB, models, patterns, permissions, Git, OAuth, detect-secrets)
+- Admin page `/admin/environment_status/` to display environment diagnostics
+- Integrated `detect-secrets` scan into `check_env.py`, with auto-generation of `.secrets.baseline` if missing
+- Training summary output now displayed on the label admin page after labeling
+- ML label and confidence now shown in debug output during message ingestion
+
+### Changed
+- `label_messages` view updated to trigger `train_model.py` after labeling
+- `label_messages.html` updated to include collapsible training summary block
+- `check_env.py` extended to include Git status, Django migrations, directory permissions, and OAuth credential checks
 
 ### Added
 - `ingest_gmail` command with subject parsing and ignore logic

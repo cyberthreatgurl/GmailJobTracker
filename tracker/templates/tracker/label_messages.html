@@ -110,5 +110,23 @@
     {% endfor %}
     <button type="submit">💾 Save Labels</button>
   </form>
+  {% if training_output %}
+  <div class="card mt-4">
+    <div class="card-header">
+      <strong>📊 Model Training Summary</strong>
+      <button class="btn btn-sm btn-secondary float-end" onclick="toggleTrainingOutput()">Toggle</button>
+    </div>
+    <div class="card-body" id="training-output" style="display: none;">
+      <pre style="white-space: pre-wrap;">{{ training_output }}</pre>
+    </div>
+  </div>
+
+  <script>
+  function toggleTrainingOutput() {
+    const block = document.getElementById("training-output");
+    block.style.display = block.style.display === "none" ? "block" : "none";
+  }
+  </script>
+  {% endif %}
 </body>
 </html>

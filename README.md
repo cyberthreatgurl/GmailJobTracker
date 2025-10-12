@@ -19,10 +19,25 @@ pip install -r requirements.txt
 python manage.py migrate
 python manage.py runserver
 
+# Check environment readiness
+python check_env.py
+
+# Visit the admin panel and label messages
+# After labeling, the model will retrain automatically and show training output
+To view environment diagnostics:
+- Visit /admin/environment_status/ (admin login required)
+
 ## Privacy Statement
 
 This tool stores all data locally in db.sqlite3. It does not communicate with any external server.
 
+
+##Features
+
+```markdown
+- Environment diagnostics via `/admin/environment_status/`
+- Secret scanning with `detect-secrets` baseline enforcement
+- Auto-retraining of ML model after labeling
 
 ---
 

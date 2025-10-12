@@ -17,7 +17,7 @@ from datetime import datetime, timedelta
 from db_helpers import get_application_by_sender, build_company_job_index
 from ml_subject_classifier import predict_subject_type
 from ml_entity_extraction import extract_entities
-from tracker.models import Message, IgnoredMessage, IngestionStats, Company, UnresolvedCompany
+from tracker.models import Application, Message, IgnoredMessage, IngestionStats, Company, UnresolvedCompany
 
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dashboard.settings")
@@ -375,7 +375,27 @@ def ingest_message(service, msg_id):
 
     status = classify_message(body)
     status_dates = extract_status_dates(body, metadata["date"])
+    def to_date(value):
+        try:
+            return datetime.strptime(value, "%Y-%m-%d %H:%M:%S").date()
+        except Exception:
+            return None
 
+    status_dates = {
+        "response_date": to_date(status_dates.get("response_date")),
+        "rejection_date": to_date(status_dates.get("rejection_date")),
+        "interview_date": to_date(status_dates.get("interview_date")),
+        "follow_up_dates": status_dates.get("follow_up_dates", []),
+    }   
+    
+    
+    # Normalize follow_up_dates and labels to strings
+    follow_up_raw = status_dates.get("follow_up_dates", [])
+    follow_up_str = ", ".join(follow_up_raw) if isinstance(follow_up_raw, list) else str(follow_up_raw)
+
+    labels_raw = metadata.get("labels", [])
+    labels_str = ", ".join(labels_raw) if isinstance(labels_raw, list) else str(labels_raw)
+    
     if DEBUG:
         print(f"📥 Inserting message: {metadata['subject']}")
 
@@ -387,7 +407,8 @@ def ingest_message(service, msg_id):
     company = parsed_subject.get("company", "") or ""
     company_norm = company.lower()
     company_source = "subject_parse"
-# Reject invalid company names from patterns.json
+    
+    # Reject invalid company names from patterns.json
     if company and not is_valid_company_name(company):
         if DEBUG:
             print(f"🧹 Rejected invalid company name: {company}")
@@ -473,19 +494,33 @@ def ingest_message(service, msg_id):
             if known.lower() in subject_lower and known.lower() != company.lower():
                 print(f"⚠️ Subject mentions different company: {known} vs resolved {company}")
                 break 
+
+    confidence = float(result.get("confidence", 0.0)) if result else 0.0
                     
     if company:
         company_obj, _ = Company.objects.get_or_create(
-            name=company,
+        name=company,
             defaults={
                 "first_contact": metadata["timestamp"],
-                "last_contact": metadata["timestamp"]
+                "last_contact": metadata["timestamp"],
+                "confidence": confidence
                 }
             )
+        if company_obj and not company_obj.domain:
+            sender_domain = metadata.get("sender_domain", "").lower()
+            if sender_domain:
+                company_obj.domain = sender_domain
+                company_obj.save()
+                if DEBUG:
+                    print(f"🌐 Set domain for {company}: {sender_domain}")
 
     if DEBUG:
+        confidence = result.get("confidence", 0.0) if result else 0.0
         print(f"📎 Final company: {company}")
         print(f"📎 company_obj: {company_obj}")
+        print(f"📎 ML label: {result.get('label') if result else 'unknown'}")
+        print(f"📎 confidence: {confidence}")
+
     #
     # This is the re-ingest logic
     #
@@ -503,8 +538,15 @@ def ingest_message(service, msg_id):
             existing.confidence = result["confidence"]
 
         # 🧠 Preserve manual review or auto-mark if confidence is high
-        if result["confidence"] >= 0.85:
+        if (
+            result
+            and result.get("confidence", 0.0) >= 0.85
+            and result.get("label") not in {"noise", "job_alert"}
+            and company_obj is not None
+            and is_valid_company(company)
+        ):
             existing.reviewed = True
+
 
         existing.save()
         stats.total_skipped += 1
@@ -513,12 +555,16 @@ def ingest_message(service, msg_id):
 
     
     reviewed = (
-        result["confidence"] >= 0.85
-        or company_source in {"subject_parse", "domain_mapping", "sender_name_match"}
-        or company_norm in KNOWN_COMPANIES
+        result
+        and result.get("confidence", 0.0) >= 0.85
+        and result.get("label") not in {"noise", "job_alert"}
+        and company_obj is not None
+        and is_valid_company(company)
     )
-  # or whatever threshold you trust
-
+    # or whatever threshold you trust
+    if DEBUG and not reviewed:
+        print(f"🛑 Not reviewed: confidence={result.get('confidence', 0.0):.2f}, label={result.get('label')}, company={company}")
+    
     # ✅ Now safe to insert Message with enriched company
     Message.objects.create(
         msg_id=msg_id,
@@ -533,16 +579,34 @@ def ingest_message(service, msg_id):
         company=company_obj,
         company_source=company_source,
     )
-
+    # ✅ Create or update Application record using Django ORM
+    try:
+        message_obj = Message.objects.get(msg_id=msg_id)
+        if company_obj and message_obj:
+            Application.objects.get_or_create(
+                thread_id=metadata["thread_id"],
+                defaults={
+                    "company": company_obj,
+                    "company_source": company_source,
+                    "job_title": parsed_subject.get("job_title", ""),
+                    "job_id": parsed_subject.get("job_id", ""),
+                    "status": status,
+                    "sent_date": metadata["timestamp"].date(),
+                    "rejection_date": status_dates["rejection_date"],
+                    "interview_date": status_dates["interview_date"],
+                    "ml_label": result.get("label") if result else None,
+                    "ml_confidence": float(result.get("confidence", 0.0)) if result else 0.0,
+                    "reviewed": reviewed,
+                }
+            )
+    except Exception as e:
+        if DEBUG:
+            print(f"⚠️ Failed to create Application: {e}")
+        
     stats.total_inserted += 1
     stats.save()
 
-    # Normalize follow_up_dates and labels to strings
-    follow_up_raw = status_dates.get("follow_up_dates", [])
-    follow_up_str = ", ".join(follow_up_raw) if isinstance(follow_up_raw, list) else str(follow_up_raw)
 
-    labels_raw = metadata.get("labels", [])
-    labels_str = ", ".join(labels_raw) if isinstance(labels_raw, list) else str(labels_raw)
     
     # Final record assembly for applications table
     record = {

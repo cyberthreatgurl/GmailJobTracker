@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Alias Suggestions</h2>
+<form method="POST" action="{% url 'approve_bulk_aliases' %}">
+  {% csrf_token %}
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>Select</th>
+        <th>Alias</th>
+        <th>Suggested</th>
+        <th>Reason</th>
+        <th>Confidence</th>
+        <th>Thread ID</th>
+        <th>Subject</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for s in suggestions %}
+      <tr {% if s.confidence >= 0.85 %}class="table-success"{% endif %}>
+        <td><input type="checkbox" name="alias" value="{{ s.alias }}">
+            <input type="hidden" name="suggested" value="{{ s.suggested }}">
+            <input type="hidden" name="timestamp" value="{{ s.timestamp }}">
+        </td>
+        <td>{{ s.alias }}</td>
+        <td>{{ s.suggested }}</td>
+        <td>{{ s.reason }}</td>
+        <td>{{ s.confidence }}</td>
+        <td>{{ s.source_thread_id }}</td>
+        <td>{{ s.source_subject }}</td>
+        <td>
+          <form method="POST" action="{% url 'reject_alias' %}">
+            {% csrf_token %}
+            <input type="hidden" name="alias" value="{{ s.alias }}">
+            <input type="hidden" name="timestamp" value="{{ s.timestamp }}">
+            <button class="btn btn-danger btn-sm">Reject</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <button class="btn btn-primary">Approve Selected</button>
+</form>
+{% endblock %}

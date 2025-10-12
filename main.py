@@ -5,6 +5,8 @@ import sys
 from datetime import datetime
 import django
 from django.utils.timezone import localdate
+from django.contrib.auth import get_user_model
+
 import argparse
 
 # --- Initialize Gmail and DB ---
@@ -40,6 +42,12 @@ try:
 except Exception as e:
     print(f"❌ Failed to initialize database: {e}")
     sys.exit(1)
+
+def prompt_superuser():
+    User = get_user_model()
+    if not User.objects.filter(is_superuser=True).exists():
+        print("🔐 No superuser found. Create one now:")
+        os.system("python manage.py createsuperuser")
 
 print(f"[{datetime.now():%Y-%m-%d %H:%M:%S}] Database initialized.")
 
@@ -93,6 +101,7 @@ def fetch_all_messages(service, query):
 
 
 def sync_messages():
+       
     """Run a full sync of Gmail messages into the database."""
     print(f"[{datetime.now():%Y-%m-%d %H:%M:%S}] Starting sync...")
     query = build_query()
@@ -100,7 +109,9 @@ def sync_messages():
 
     messages = fetch_all_messages(service, query)
     print(f"Found {len(messages)} messages matching query.")
-
+   
+    
+    new_messages = []
     for idx, msg in enumerate(messages, start=1):
         msg_id = msg["id"]
         try:
@@ -108,6 +119,7 @@ def sync_messages():
             if result == "ignored":
                 print(f"[{idx}/{len(messages)}] ⚠️ Ignored {msg_id}")
             elif result == "inserted":
+                new_messages.append(msg_id)
                 print(f"[{idx}/{len(messages)}] ✅ Inserted {msg_id}")
             elif result == "skipped":
                 print(f"[{idx}/{len(messages)}] ⏩ Skipped duplicate {msg_id}")
@@ -116,7 +128,11 @@ def sync_messages():
         except Exception as e:
             print(f"[{idx}/{len(messages)}] ❌ Failed to ingest {msg_id}: {e}")
             continue
-
+        
+    if not new_messages:
+        print("No new messages to process. Exiting.")
+        return
+    
     today = localdate()
     stats, _ = IngestionStats.objects.get_or_create(date=today)
     print(
@@ -125,17 +141,11 @@ def sync_messages():
         f"{stats.total_skipped} skipped"
     )
 
-    stats = IngestionStats.objects.first()
-    if stats:
-        print(
-            f"Summary: {stats.total_inserted} inserted, "
-            f"{stats.total_ignored} ignored, "
-            f"{stats.total_skipped} skipped"
-        )
-
     print(f"[{datetime.now():%Y-%m-%d %H:%M:%S}] Sync complete.")
 
 
 if __name__ == "__main__":
     init_db()
     sync_messages()
+    prompt_superuser()
+    

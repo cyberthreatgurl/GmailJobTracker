@@ -119,13 +119,24 @@
     <h2>Ingestion Stats (Today)</h2>
     {% if latest_stats %}
       <ul class="stats">
+        {% if latest_stats.total_inserted == 0 %}
+        <div style="background:#fee2e2; padding:0.75rem; border-radius:6px; margin-top:1rem;">
+          ⚠️ No new messages ingested today.</p>
+        </div>
+          {% endif %}
         <li>📥 Fetched: <strong>{{ latest_stats.total_fetched }}</strong></li>
         <li>✅ Inserted: <strong>{{ latest_stats.total_inserted }}</strong></li>
         <li>🚫 Ignored: <strong>{{ latest_stats.total_ignored }}</strong></li>
         <li>⏭️ Skipped: <strong>{{ latest_stats.total_skipped }}</strong></li>
+        <li>📊 Success Rate: 
+          <strong>
+            {{ latest_stats.total_inserted|floatformat:2 }} /
+            {{ latest_stats.total_inserted|add:latest_stats.total_ignored|add:latest_stats.total_skipped }}
+          </strong>
+        </li>
       </ul>
       <p class="timestamp">Last updated: {{ latest_stats.date }}</p>
-
+      <p class="timestamp">Last sync completed: {{ latest_stats.last_updated|date:"Y-m-d H:i" }}</p>
       <!-- Trend chart -->
       <canvas id="ingestionChart" height="120"></canvas>
     {% else %}

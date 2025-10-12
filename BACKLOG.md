@@ -4,6 +4,7 @@
 
 ### **Now** (In Progress)
 - [Story 1: Add company/job correlation index](#story-1-add-companyjob-correlation-index)
+- [Story 9: Environment readiness checker and admin diagnostics]
 
 ### **Now** (Active Focus)
 
@@ -178,3 +179,28 @@ As a future maintainer, I want clear documentation so I can onboard quickly.
 
 - Document all security‑relevant decisions.
 - Keep docs in sync with code changes.
+### Story 9: Environment readiness checker and admin diagnostics
+
+**Description:**  
+As a developer or maintainer, I want a script and admin page that verifies the presence and freshness of critical files (models, DB, JSONs, OAuth credentials) so I can ensure the system is ready to run or deploy.
+
+**Acceptance Criteria:**
+
+- `check_env.py` script verifies:
+  - Required files: DB, model artifacts, patterns.json, companies.json
+  - Optional files: labeled_subjects.csv, alias mappings
+  - Directory write permissions
+  - Git branch and commit
+  - Django migration status
+  - OAuth credentials
+  - `detect-secrets` baseline presence and scan results
+- Admin page at `/admin/environment_status/` displays:
+  - File presence and last modified timestamps
+  - Git info
+  - Secret scan status
+- Automatically generates `.secrets.baseline` if missing
+
+**Security & Documentation:**
+
+- No secrets or credentials printed in logs or UI
+- Documented in `SECURITY.md` and `README.md` under setup and deployment

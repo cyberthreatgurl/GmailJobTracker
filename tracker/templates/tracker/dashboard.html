@@ -1,3 +1,5 @@
+<!--dashboard.html -->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -246,9 +248,17 @@
         <br>
         <strong>{{ msg.subject }}</strong><br>
         <span style="color: #6b7280;">Label: {{ msg.ml_label|default:"Unlabeled" }}</span><br>
-        <div style="font-size: 0.9em; color: #4b5563;">
-          {{ msg.body|truncatewords:40 }}
-        </div>
+
+          <div style="font-size: 0.9em; color: #4b5563;">
+            <button onclick="toggleBody(this)" style="margin-bottom: 0.5rem; font-size: 0.75rem; background: #e5e7eb; border: none; padding: 0.25rem 0.5rem; border-radius: 4px; cursor: pointer;">
+              Toggle View
+            </button>
+            <div class="rendered-body">
+              {{ msg.body_html|default:"<em>No HTML body available.</em>"|safe }}
+            </div>
+            <pre class="raw-body" style="display: none; white-space: pre-wrap;">{{ msg.body }}</pre>
+          </div>
+
       </div>
     {% endfor %}
   </div>
@@ -312,5 +322,23 @@
     document.querySelector(`.tab[onclick="showTab('${tabId}')"]`).classList.add('active');
   }
 </script>  
+<script>
+  function toggleBody(button) {
+    const container = button.parentElement;
+    const rendered = container.querySelector(".rendered-body");
+    const raw = container.querySelector(".raw-body");
+
+    if (rendered.style.display === "none") {
+      rendered.style.display = "block";
+      raw.style.display = "none";
+      button.textContent = "Toggle View";
+    } else {
+      rendered.style.display = "none";
+      raw.style.display = "block";
+      button.textContent = "Toggle View";
+    }
+  }
+</script>
+
 </body>
 </html>

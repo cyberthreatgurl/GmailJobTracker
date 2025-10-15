@@ -6,7 +6,6 @@ from datetime import datetime
 import django
 from django.utils.timezone import localdate
 from django.contrib.auth import get_user_model
-
 import argparse
 
 # --- Initialize Gmail and DB ---
@@ -31,22 +30,22 @@ service = get_gmail_service()
 if args.limit_msg:
     try:
         result = ingest_message(service, args.limit_msg)
-        print(f"[single] {result or '❓ Unknown result'} for {args.limit_msg}")
+        print(f"[single] {result or ' Unknown result'} for {args.limit_msg}")
     except Exception as e:
-        print(f"[single] ❌ Failed to ingest {args.limit_msg}: {e}")
+        print(f"[single]  Failed to ingest {args.limit_msg}: {e}")
     sys.exit(0)
 
 # --- Full sync ---
 try:
     init_db()
 except Exception as e:
-    print(f"❌ Failed to initialize database: {e}")
+    print(f" Failed to initialize database: {e}")
     sys.exit(1)
 
 def prompt_superuser():
     User = get_user_model()
     if not User.objects.filter(is_superuser=True).exists():
-        print("🔐 No superuser found. Create one now:")
+        print(" No superuser found. Create one now:")
         os.system("python manage.py createsuperuser")
 
 print(f"[{datetime.now():%Y-%m-%d %H:%M:%S}] Database initialized.")
@@ -99,6 +98,15 @@ def fetch_all_messages(service, query):
 
     return messages
 
+def print_final_stats():
+    stats = IngestionStats.objects.get(date=localdate())
+    stats.refresh_from_db()
+    print(
+        f"Summary: {stats.total_inserted} inserted, "
+        f"{stats.total_ignored} ignored, "
+        f"{stats.total_skipped} skipped"
+    )
+
 
 def sync_messages():
        
@@ -117,16 +125,16 @@ def sync_messages():
         try:
             result = ingest_message(service, msg_id)
             if result == "ignored":
-                print(f"[{idx}/{len(messages)}] ⚠️ Ignored {msg_id}")
+                print(f"[{idx}/{len(messages)}]  Ignored {msg_id}")
             elif result == "inserted":
                 new_messages.append(msg_id)
-                print(f"[{idx}/{len(messages)}] ✅ Inserted {msg_id}")
+                print(f"[{idx}/{len(messages)}]  Inserted {msg_id}")
             elif result == "skipped":
-                print(f"[{idx}/{len(messages)}] ⏩ Skipped duplicate {msg_id}")
+                print(f"[{idx}/{len(messages)}]  Skipped duplicate {msg_id}")
             else:
-                print(f"[{idx}/{len(messages)}] ❓ Unknown result for {msg_id}")
+                print(f"[{idx}/{len(messages)}]  Unknown result for {msg_id}")
         except Exception as e:
-            print(f"[{idx}/{len(messages)}] ❌ Failed to ingest {msg_id}: {e}")
+            print(f"[{idx}/{len(messages)}]  Failed to ingest {msg_id}: {e}")
             continue
         
     if not new_messages:
@@ -134,18 +142,25 @@ def sync_messages():
         return
     
     today = localdate()
-    stats, _ = IngestionStats.objects.get_or_create(date=today)
-    print(
-        f"Summary: {stats.total_inserted} inserted, "
-        f"{stats.total_ignored} ignored, "
-        f"{stats.total_skipped} skipped"
-    )
-
+    print_final_stats()
     print(f"[{datetime.now():%Y-%m-%d %H:%M:%S}] Sync complete.")
 
+    try:
+        stats = IngestionStats.objects.get(date=today)
+    except IngestionStats.DoesNotExist:
+        stats = None
+
+    if stats:
+        print(f" Stats updated: inserted={stats.total_inserted}, ignored={stats.total_ignored}, skipped={stats.total_skipped}")
+    else:
+        print(" No IngestionStats record found for today.")
+
+
+    return stats
 
 if __name__ == "__main__":
     init_db()
-    sync_messages()
+    stats=sync_messages()
     prompt_superuser()
+
     

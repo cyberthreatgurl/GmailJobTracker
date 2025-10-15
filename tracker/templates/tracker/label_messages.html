@@ -9,6 +9,7 @@
   <style>
     body {
       font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      font-size: 0.8rem; /* or 0.8rem for a tighter look */
       margin: 2rem;
       background-color: #f9fafb;
       color: #333;
@@ -24,9 +25,12 @@
       gap: 1rem;
     }
     .card {
+      clear: both;
       background: #fff;
       border-radius: 8px;
       padding: 1rem 1.25rem;
+      margin-bottom: 1.5rem;
+      margin-top: 1rem;
       box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     }
     .subject {
@@ -34,25 +38,25 @@
       margin-bottom: 0.25rem;
     }
     .body {
-      font-size: 0.9rem;
+      font-size: 0.8rem;
       color: #4b5563;
       margin-bottom: 0.5rem;
     }
     .confidence {
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       color: #6b7280;
       margin-bottom: 0.75rem;
     }
     label {
-      font-size: 0.9rem;
+      font-size: 0.8rem;
       font-weight: 500;
       margin-right: 0.5rem;
     }
     select {
-      padding: 0.25rem 0.5rem;
+      padding: 0.2rem 0.2rem;
       border-radius: 4px;
       border: 1px solid #d1d5db;
-      font-size: 0.9rem;
+      font-size: 0.8rem;
     }
     button {
       align-self: flex-start;
@@ -68,48 +72,90 @@
     button:hover {
       background-color: #1e40af;
     }
+    table {
+      font-size: 0.8rem;
+      border-spacing: 0;
+    }
+
+    th {
+      font-weight: 600;
+      color: #374151;
+    }
+
+    td {
+      vertical-align: top;
+    }
   </style>
 </head>
 <body>
 
   <h1>📝 Label Messages</h1>
-  <form method="post">
+  <form method="post" name="label_form">
     {% csrf_token %}
-    {% for msg in messages %}
-      <div class="card">
-        <div class="subject">{{ msg.subject }}</div>
-        <div class="meta">
-        <div class="meta" style="font-size: 0.85rem; color: #6b7280;">
-          {{ msg.timestamp|date:"Y-m-d H:i" }} —
-          {% if msg.company %}
-            {{ msg.company.name }}
-          {% else %}
-            No Company
-          {% endif %}
-        </div>
-     </div>
-       <div class="body">
-         Body: {{ msg.body|truncatewords:40 }}
-        </div>
-        <div class="confidence">
-          Confidence: {{ msg.confidence|default:"N/A"|floatformat:2 }}
-        </div>
-        <label for="label_{{ msg.id }}">Assign Label:</label>
-        <select name="label_{{ msg.id }}" id="label_{{ msg.id }}">
-          <option value="">--</option>
-          <option value="job_application">Application</option>
-          <option value="job_alert">Job Alert</option>
-          <option value="interview_invite">Interview</option>
-          <option value="rejection">Rejection</option>
-          <option value="head_hunter">Head Hunter</option>
-          <option value="noise">Noise</option>
-        </select>
-      </div>
-    {% empty %}
-      <p>No unlabeled messages found.</p>
-    {% endfor %}
-    <button type="submit">💾 Save Labels</button>
+    <table style="width: 100%; border-collapse: collapse; margin-top: 1.5rem;">
+      <thead>
+        <tr style="background-color: #f3f4f6; text-align: left;">
+          <th style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;">DateTime</th>
+          <th style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;">Company</th>
+          <th style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;">Subject</th>
+          <th style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;">Body</th>
+          <th style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;">Confidence</th>
+          <th style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;">Assign Label</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for msg in messages %}
+        <tr style="vertical-align: top; {% if msg.ml_label == 'ghosted' %}background-color: #fef3c7;{% endif %}">
+          <td style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;">
+            {{ msg.timestamp|date:"Y-m-d H:i" }}
+          </td>
+          <td style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;">
+            {% if msg.company %}
+              {{ msg.company.name }}
+            {% else %}
+              No Company
+            {% endif %}
+          </td>
+          <td style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;">
+            {{ msg.subject }}
+          </td>
+          <td style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb; max-width: 400px;">
+            <details>
+              <summary style="cursor: pointer; font-weight: 500; color: #2563eb;">
+                View message body
+              </summary>
+              <div style="margin-top: 0.5rem; font-size: 0.8em; color: #4b5563;">
+                {{ msg.rendered_body|safe }}
+              </div>
+            </details>
+          </td>
+        </td>
+          <td style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;">
+            {{ msg.confidence|default:"N/A"|floatformat:2 }}
+          </td>
+          <td style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;">
+            <select name="label_{{ msg.id }}" id="label_{{ msg.id }}" title="Assign label to message {{ msg.id }}">
+              <option value="">--</option>
+              <option value="job_application">Application</option>
+              <option value="interview_invite">Interview</option>
+              <option value="rejection">Rejection</option>
+              <option value="head_hunter">Head Hunter</option>
+              <option value="job_alert">Job Alert</option>
+              <option value="ghosted">Ghosted</option>
+              <option value="noise">Noise</option>
+            </select>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" style="padding: 1rem; text-align: center;">No unlabeled messages found.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <button type="submit">Submit Labels</button>
   </form>
+
   {% if training_output %}
   <div class="card mt-4">
     <div class="card-header">

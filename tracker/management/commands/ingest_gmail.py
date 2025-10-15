@@ -1,3 +1,5 @@
+# ingest_gmail.py
+
 from django.core.management.base import BaseCommand
 import os
 import sys
@@ -29,7 +31,7 @@ class Command(BaseCommand):
                 maxResults=1000
             ).execute()
             
-            print(f"📨 Fetching Gmail messages...")
+            print(f" Fetching Gmail messages...")
             messages = results.get('messages', [])
 
             if not messages:
@@ -47,10 +49,10 @@ class Command(BaseCommand):
                     sender_domain = sender.split('@')[-1] if '@' in sender else None
 
                     parsed = parse_subject(subject, sender, sender_domain)
-                    print(f"📥 Processing message: {subject}")
+                    print(f" Processing message: {subject}")
                     
                     if parsed.get('ignore'):
-                        self.stdout.write(f"⚠️ Ignored: {subject}")
+                        self.stdout.write(f" Ignored: {subject}")
                         stats.total_fetched += 1
                         stats.save()
                         continue
@@ -59,10 +61,10 @@ class Command(BaseCommand):
                     stats.total_fetched += 1
                     stats.save()
                 except Exception as e:
-                    self.stderr.write(f"❌ Failed to ingest {msg_id}: {e}")
+                    self.stderr.write(f" Failed to ingest {msg_id}: {e}")
 
             self.stdout.write(self.style.SUCCESS(
                 f"📊 Stats for {stats.date}: Fetched={stats.total_fetched}, Inserted={stats.total_inserted}, Ignored={stats.total_ignored}"
 ))
         except Exception as e:
-            self.stderr.write(self.style.ERROR(f"❌ Ingestion failed: {e}"))
+            self.stderr.write(self.style.ERROR(f" Ingestion failed: {e}"))

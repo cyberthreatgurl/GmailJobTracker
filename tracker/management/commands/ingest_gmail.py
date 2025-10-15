@@ -27,7 +27,7 @@ class Command(BaseCommand):
             # Fetch Gmail messages
             results = service.users().messages().list(
                 userId='me',
-                labelIds=['INBOX'],  # or use a custom label like 'JobApps'
+                labelIds=['INBOX', 'Label_954880951792342706'],  # INBOX and #JobHunt
                 maxResults=1000
             ).execute()
             

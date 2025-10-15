@@ -2,7 +2,6 @@
 from django.db import models
 from django.utils.timezone import now
 
-
 class Company(models.Model):
     name = models.CharField(max_length=255)
     domain = models.CharField(max_length=255, blank=True)
@@ -33,7 +32,7 @@ class Application(models.Model):
     ml_confidence = models.FloatField(blank=True, null=True)
     reviewed = models.BooleanField(default=False)
     def __str__(self):
-        return f"{self.company.name} – {self.job_title}"
+        return f"{self.company.name} - {self.job_title}"
 
 class Message(models.Model):
     company = models.ForeignKey(
@@ -43,6 +42,8 @@ class Message(models.Model):
     sender = models.CharField(max_length=255)
     subject = models.TextField()
     body = models.TextField()
+    body_html = models.TextField(blank=True, null=True)  # new field
+
     timestamp = models.DateTimeField()
 
     # Gmail identifiers

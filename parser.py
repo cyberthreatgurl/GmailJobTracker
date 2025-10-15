@@ -6,26 +6,26 @@ import base64
 import html
 import joblib
 from joblib import load
+import quopri
 import django
 from django.utils import timezone
 from django.utils.timezone import now
+from django.db.models import F
 from pathlib import Path
 from email.utils import parsedate_to_datetime, parseaddr
 from bs4 import BeautifulSoup
-from db import insert_email_text, insert_or_update_application, is_valid_company
+from db import insert_email_text, insert_or_update_application, is_valid_company, PATTERNS_PATH, COMPANIES_PATH
 from datetime import datetime, timedelta
 from db_helpers import get_application_by_sender, build_company_job_index
 from ml_subject_classifier import predict_subject_type
 from ml_entity_extraction import extract_entities
 from tracker.models import Application, Message, IgnoredMessage, IngestionStats, Company, UnresolvedCompany
 
-
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dashboard.settings")
 django.setup()
 DEBUG = True
 
 # --- Load patterns.json ---
-PATTERNS_PATH = Path(__file__).parent / "patterns.json"
 if PATTERNS_PATH.exists():
     with open(PATTERNS_PATH, "r", encoding="utf-8") as f:
         patterns_data = json.load(f)
@@ -33,10 +33,16 @@ if PATTERNS_PATH.exists():
 else:
     PATTERNS = {}
 
-COMPANIES_PATH = Path(__file__).parent / "companies.json"
 if COMPANIES_PATH.exists():
-    with open(COMPANIES_PATH, "r", encoding="utf-8") as f:
-        company_data = json.load(f)
+    try:
+        with open(COMPANIES_PATH, "r", encoding="utf-8") as f:
+            company_data = json.load(f)
+    except json.JSONDecodeError as e:
+        print(f"[Error] Failed to parse companies.json: {e}")
+        company_data = {}
+    except Exception as e:
+        print(f"[Error] Unable to read companies.json: {e}")
+        company_data = {}
     ATS_DOMAINS = [d.lower() for d in company_data.get("ats_domains", [])]  
     KNOWN_COMPANIES = {c.lower() for c in company_data.get("known", [])}
     DOMAIN_TO_COMPANY = {
@@ -47,12 +53,51 @@ else:
     KNOWN_COMPANIES = set()
     DOMAIN_TO_COMPANY = {}
     ALIASES = {}
+    
+def strip_html_tags(text: str) -> str:
+    if not text:
+        return ""
+    # BeautifulSoup handles nested tags, entities, script/style removal better than regex
+    return BeautifulSoup(text, "html.parser").get_text(separator=" ", strip=True)
 
 def get_stats():
     today = now().date()
     stats, _ = IngestionStats.objects.get_or_create(date=today)
     return stats
 
+
+def decode_part(data, encoding):
+    if encoding == "base64":
+        return base64.urlsafe_b64decode(data).decode("utf-8", errors="ignore")
+    elif encoding == "quoted-printable":
+        return quopri.decodestring(data).decode("utf-8", errors="ignore")
+    elif encoding == "7bit":
+        return data  # usually already decoded
+    else:
+        return data
+    
+def extract_body(payload):
+    if 'parts' in payload:
+        for part in payload['parts']:
+            if part['mimeType'] == 'text/plain':
+                return part['body'].get('data', '')
+            elif part['mimeType'] == 'text/html':
+                html = part['body'].get('data', '')
+                return strip_html_tags(html)
+    return payload.get('body', {}).get('data', '')
+
+def extract_body_from_parts(parts):
+    for part in parts:
+        mime_type = part.get("mimeType")
+        body_data = part.get("body", {}).get("data")
+        if mime_type == "text/html" and body_data:
+            decoded = base64.urlsafe_b64decode(body_data).decode("utf-8", errors="ignore")
+            return decoded  # preserve full HTML
+        elif "parts" in part:
+            result = extract_body_from_parts(part["parts"])
+            if result:
+                return result
+    return ""
 
 def log_ignored_message(msg_id, metadata, reason):
     IgnoredMessage.objects.update_or_create(
@@ -127,6 +172,7 @@ def should_ignore(subject, body):
 
 
 def extract_metadata(service, msg_id):
+    body_html = []
     """Extract subject, date, thread_id, labels, sender, sender_domain, and body text from a Gmail message."""
     msg = (
         service.users().messages().get(userId="me", id=msg_id, format="full").execute()
@@ -155,23 +201,37 @@ def extract_metadata(service, msg_id):
 
     body = ""
     parts = msg["payload"].get("parts", [])
+    body = extract_body_from_parts(parts)
+
     for part in parts:
         mime_type = part.get("mimeType")
         data = part["body"].get("data")
         if not data:
             continue
-        decoded = base64.urlsafe_b64decode(data).decode("utf-8", errors="ignore")
-        if mime_type == "text/plain":
+        #decoded = base64.urlsafe_b64decode(data).decode("utf-8", errors="ignore")
+        encoding = part.get("body", {}).get("encoding", "base64").lower()
+        data = part.get("body", {}).get("data")
+        if data:
+            decoded = decode_part(data, encoding)
+
+        if mime_type == "text/plain" and not body:
             body = decoded.strip()
-            break
         elif mime_type == "text/html" and not body:
-            soup = BeautifulSoup(decoded, "html.parser")
-            body = html.unescape(soup.get_text(separator=" ", strip=True))
+            body_html = html.unescape(decoded)
+            soup = BeautifulSoup(body_html, "html.parser")
+            body_text = soup.get_text(separator=" ", strip=True)
+
+    # Fallback if no parts
+    if not body and "body" in msg["payload"]:
+        data = msg["payload"]["body"].get("data")
+        if data:
+            body = base64.urlsafe_b64decode(data).decode("utf-8", errors="ignore")
 
     return {
         "thread_id": thread_id,
         "subject": subject,
         "body": body,
+        "body_html": body_html,
         "date": date_str,
         "timestamp": date_obj,
         "labels": labels,
@@ -225,6 +285,10 @@ def parse_subject(subject, sender=None, sender_domain=None):
         r"\bresume\b",
         r"\bcv\b",
         r"\bcover letter\b",
+        r"\bmuch more\b",
+        r"\bnow available\b",
+        r"\bgift card\b",
+        r"\bcyberattack\b"
     ]
 
     # --- ML classification ---
@@ -350,11 +414,11 @@ def ingest_message(service, msg_id):
     try:
         metadata = extract_metadata(service, msg_id)
         body = metadata["body"]
-        result = None  # ✅ Prevent UnboundLocalError
+        result = None  #  Prevent UnboundLocalError
 
     except Exception as e:
         if DEBUG:
-            print(f"❌ Failed to extract data for {msg_id}: {e}")
+            print(f"Failed to extract data for {msg_id}: {e}")
         return
 
     parsed_subject = parse_subject(
@@ -365,12 +429,17 @@ def ingest_message(service, msg_id):
 
     if parsed_subject.get("ignore"):
         if DEBUG:
-            print(f"⚠️ Ignored by ML: {metadata['subject']}")
+            print(f"Ignored by ML: {metadata['subject']}")
             log_ignored_message(
                 msg_id, metadata, reason=parsed_subject.get("ignore_reason", "ml_ignore")
             )
-        stats.total_ignored += 1
-        stats.save()
+
+        IngestionStats.objects.filter(date=stats.date).update(total_ignored=F("total_ignored") + 1)
+
+        if DEBUG:
+            stats.refresh_from_db()
+            print(f"Stats updated: inserted={stats.total_inserted}, ignored={stats.total_ignored}, skipped={stats.total_skipped}")
+
         return "ignored"
 
     status = classify_message(body)
@@ -414,8 +483,8 @@ def ingest_message(service, msg_id):
             print(f"🧹 Rejected invalid company name: {company}")
         company = ""
         
-    print(f"🧪 company_norm: {company_norm}")
-    print(f"🧪 is_valid_company: {is_valid_company(company)}")
+    print(f" company_norm: {company_norm}")
+    print(f" is_valid_company: {is_valid_company(company)}")
     if company_norm not in KNOWN_COMPANIES and not is_valid_company(company):
         company = ""
     
@@ -428,7 +497,7 @@ def ingest_message(service, msg_id):
                 company = mapped
                 company_source = "domain_mapping"
                 if DEBUG:
-                    print(f"🧩 Domain mapping used: {sender_domain} → {company}")
+                    print(f"Domain mapping used: {sender_domain} → {company}")
 
     if not company:
         sender_name = metadata.get("sender", "").split("<")[0].strip().lower()
@@ -437,23 +506,23 @@ def ingest_message(service, msg_id):
                 company = known
                 company_source = "sender_name_match"
                 if DEBUG:
-                    print(f"🔍 Sender name match: {sender_name} → {company}")
+                    print(f" Sender name match: {sender_name} → {company}")
                 break
 
     if not company:
         try:
             predicted = predict_company(subject, body)
-            if predicted and predicted.lower() in {"job_application", "job_alert", "noise"}:
+            if predicted and predicted.lower() in {"job_application", "job_alert", "noise",}:
                 predicted = ""
             
             if predicted:
                 company = predicted
                 company_source = "ml_prediction"
                 if DEBUG:
-                    print(f"🧠 ML prediction used: {predicted}")
+                    print(f"ML prediction used: {predicted}")
         except NameError:
             if DEBUG:
-                print("⚠️ ML prediction function not available.")
+                print(" ML prediction function not available.")
 
     if not company:
 
@@ -465,7 +534,7 @@ def ingest_message(service, msg_id):
             company = at_match.group(1).strip().title()
             company_source = "body_at_symbol"
             if DEBUG:
-                print(f"📧 '@' symbol match used: {company}")
+                print(f" '@' symbol match used: {company}")
 
     if not company:
         body_match = re.search(
@@ -477,7 +546,9 @@ def ingest_message(service, msg_id):
             company = body_match.group(1).strip()
             company_source = "body_regex"
             if DEBUG:
-                print(f"📄 Body regex used: {company}")
+                print(f" Body regex used: {company}")
+    if not company:
+        company_source = "unresolved"
 
     company_obj = None
 
@@ -492,7 +563,7 @@ def ingest_message(service, msg_id):
     if company and company.lower() not in subject_lower:
         for known in KNOWN_COMPANIES:
             if known.lower() in subject_lower and known.lower() != company.lower():
-                print(f"⚠️ Subject mentions different company: {known} vs resolved {company}")
+                print(f" Subject mentions different company: {known} vs resolved {company}")
                 break 
 
     confidence = float(result.get("confidence", 0.0)) if result else 0.0
@@ -512,24 +583,24 @@ def ingest_message(service, msg_id):
                 company_obj.domain = sender_domain
                 company_obj.save()
                 if DEBUG:
-                    print(f"🌐 Set domain for {company}: {sender_domain}")
+                    print(f" Set domain for {company}: {sender_domain}")
 
     if DEBUG:
         confidence = result.get("confidence", 0.0) if result else 0.0
-        print(f"📎 Final company: {company}")
-        print(f"📎 company_obj: {company_obj}")
-        print(f"📎 ML label: {result.get('label') if result else 'unknown'}")
-        print(f"📎 confidence: {confidence}")
+        print(f" Final company: {company}")
+        print(f" company_obj: {company_obj}")
+        print(f" ML label: {result.get('label') if result else 'unknown'}")
+        print(f" confidence: {confidence}")
 
     #
     # This is the re-ingest logic
     #
-    # ✅ Skip logic (now safe to run after enrichment)
+    #  Skip logic (now safe to run after enrichment)
     existing = Message.objects.filter(msg_id=msg_id).first()
     if existing:
         if DEBUG:
-            print(f"✏️ Updating existing message: {msg_id}")
-            print(f"🧠 Re-ingest reviewed={existing.reviewed} (confidence={result['confidence']:.2f})")
+            print(f" Updating existing message: {msg_id}")
+            print(f" Re-ingest reviewed={existing.reviewed} (confidence={result['confidence']:.2f})")
         if company_obj:
             existing.company = company_obj
             existing.company_source = company_source
@@ -537,7 +608,7 @@ def ingest_message(service, msg_id):
             existing.ml_label = result["label"]
             existing.confidence = result["confidence"]
 
-        # 🧠 Preserve manual review or auto-mark if confidence is high
+        #  Preserve manual review or auto-mark if confidence is high
         if (
             result
             and result.get("confidence", 0.0) >= 0.85
@@ -547,10 +618,12 @@ def ingest_message(service, msg_id):
         ):
             existing.reviewed = True
 
+        IngestionStats.objects.filter(date=stats.date).update(total_skipped=F("total_skipped") + 1)
 
-        existing.save()
-        stats.total_skipped += 1
-        stats.save()
+        if DEBUG:
+            stats.refresh_from_db()
+            print(f" Stats updated: inserted={stats.total_inserted}, ignored={stats.total_skipped}, skipped={stats.total_skipped}")
+
         return "skipped"
 
     
@@ -563,7 +636,7 @@ def ingest_message(service, msg_id):
     )
     # or whatever threshold you trust
     if DEBUG and not reviewed:
-        print(f"🛑 Not reviewed: confidence={result.get('confidence', 0.0):.2f}, label={result.get('label')}, company={company}")
+        print(f" Not reviewed: confidence={result.get('confidence', 0.0):.2f}, label={result.get('label')}, company={company}")
     
     # ✅ Now safe to insert Message with enriched company
     Message.objects.create(
@@ -572,6 +645,7 @@ def ingest_message(service, msg_id):
         subject=subject,
         sender=metadata["sender"],
         body=metadata["body"],
+        body_html=metadata.get("body_html", ""),
         timestamp=metadata["timestamp"],
         ml_label=result["label"],
         confidence=result["confidence"],
@@ -580,10 +654,12 @@ def ingest_message(service, msg_id):
         company_source=company_source,
     )
     # ✅ Create or update Application record using Django ORM
+
+
     try:
         message_obj = Message.objects.get(msg_id=msg_id)
         if company_obj and message_obj:
-            Application.objects.get_or_create(
+            application_obj, created = Application.objects.get_or_create(
                 thread_id=metadata["thread_id"],
                 defaults={
                     "company": company_obj,
@@ -599,15 +675,24 @@ def ingest_message(service, msg_id):
                     "reviewed": reviewed,
                 }
             )
+            if created:
+                IngestionStats.objects.filter(date=stats.date).update(total_inserted=F("total_inserted") + 1)
+            else:
+                IngestionStats.objects.filter(date=stats.date).update(total_ignored=F("total_ignored") + 1)
+        else:
+            # If company_obj or message_obj is missing, count as skipped
+            IngestionStats.objects.filter(date=stats.date).update(total_skipped=F("total_skipped") + 1)
+
     except Exception as e:
         if DEBUG:
-            print(f"⚠️ Failed to create Application: {e}")
-        
-    stats.total_inserted += 1
-    stats.save()
+            print(f" Failed to create Application: {e}")
+        IngestionStats.objects.filter(date=stats.date).update(total_skipped=F("total_skipped") + 1)
 
-
-    
+    # Refresh stats before printing
+    if DEBUG:
+        stats.refresh_from_db()
+        print(f" Stats updated: inserted={stats.total_inserted}, ignored={stats.total_ignored}, skipped={stats.total_skipped}")
+  
     # Final record assembly for applications table
     record = {
         "thread_id": metadata["thread_id"],
@@ -640,14 +725,24 @@ def ingest_message(service, msg_id):
             }
         )
         if DEBUG:
-            print(f"🗂 Logged unresolved company for manual review: {msg_id}")
+            print(f" Logged unresolved company for manual review: {msg_id}")
         
     if not record["company"] and not record["job_title"] and not record["job_id"]:
+        reason = "unclassified"
+        if not metadata["body"]:
+            reason = "missing_body"
+        elif metadata["body"] and not record["company"]:
+            reason = "missing_company"
         if DEBUG:
-            print(f"⚠️ Ignored due to empty metadata: {metadata['subject']}")
-        log_ignored_message(msg_id, metadata, reason="empty_metadata")
-        stats.total_ignored += 1
-        stats.save()
+            print(f" Ignored due to: {reason} → {metadata['subject']}")
+        log_ignored_message(msg_id, metadata, reason=reason)
+
+        IngestionStats.objects.filter(date=stats.date).update(total_ignored=F("total_ignored") + 1)
+
+        if DEBUG:
+            stats.refresh_from_db()
+            print(f"📊 Stats updated: inserted={stats.total_inserted}, ignored={stats.total_ignored}, skipped={stats.total_skipped}")
+
         return "ignored"
 
     record["company_job_index"] = build_company_job_index(
@@ -655,23 +750,28 @@ def ingest_message(service, msg_id):
     )
 
     if DEBUG:
-        print(f"🔍 company: {record['company']}")
-        print(f"🔍 job_title: {record['job_title']}")
-        print(f"🔍 job_id: {record['job_id']}")
-        print(f"🔍 company_source: {record['company_source']}")
-        print(f"🔍 company_job_index: {record['company_job_index']}")
+        print(f" company: {record['company']}")
+        print(f" job_title: {record['job_title']}")
+        print(f" job_id: {record['job_id']}")
+        print(f" company_source: {record['company_source']}")
+        print(f" company_job_index: {record['company_job_index']}")
 
     if should_ignore(metadata["subject"], metadata["body"]):
         if DEBUG:
-            print(f"⚠️ Ignored by pattern: {metadata['subject']}")
+            print(f" Ignored by pattern: {metadata['subject']}")
         log_ignored_message(msg_id, metadata, reason="pattern_ignore")
-        stats.total_ignored += 1
-        stats.save()
+
+        IngestionStats.objects.filter(date=stats.date).update(total_ignored=F("total_ignored") + 1)
+
+        if DEBUG:
+            stats.refresh_from_db()
+            print(f"📊 Stats updated: inserted={stats.total_inserted}, ignored={stats.total_ignored}, skipped={stats.total_skipped}")
+
         return "ignored"
 
     insert_or_update_application(record)
 
     if DEBUG:
-        print(f"✅ Logged: {metadata['subject']}")
+        print(f" Logged: {metadata['subject']}")
 
     return "inserted"

@@ -1,0 +1,80 @@
+{
+  "application": [
+    "for applying",
+    "received your application",
+    "Your application has been received",
+    "thank you for your application",
+    "successfully submitted"
+  ],
+  "rejection": [
+    "we regret",
+    "we appreciate your interest",
+    "other candidates",
+    "not moving forward",
+    "position closed",
+    "no longer available"
+  ],
+  "interview": [
+    "schedule",
+    "availability",
+    "next steps",
+    "interview"
+  ],
+"ignore": [
+  "your job alert for",
+  "miss out",
+  "Registration Confirmation",
+  "how your job search",
+  "saved job is expiring",
+  "job matches",
+  "new job opportunities",
+  "looking for a new job",
+  "platform",
+  "enterprise ",
+  "architecture",
+  "performance",
+  "development",
+  "multifunctiona",
+  "web",
+  "cloud application",
+  "application security",
+  "Retirement"
+],
+  "response": [
+    "thank you for applying",
+    "received your resume",
+    "application received"
+  ],
+  "follow_up": [
+    "just checking in",
+    "following up",
+    "wanted to follow",
+    "any update on my application",
+    "reaching out again"
+  ],
+"invalid_company_prefixes": [
+    "Cyber Program",
+    "Lead Machine Learning Engineer",
+    "Detection and Response",
+    "Machine Learning Engineer",
+    "Senior Manager",
+    "Program Manager",
+    "Security Architect",
+    "Director of Engineering",
+    "Lead Cyber Security Engineer",
+    "Principal",
+    "Submission Form",
+    "Remote",
+    "Rejection",
+    "Interview Invite",
+    "Job_Application",
+    "Fwd",
+    "VA -",
+    "Detection and Response",
+    "the Lead",
+    "the Senior",
+    "the Principal",
+    "donotreply",
+    "Field CTO"
+  ]
+}

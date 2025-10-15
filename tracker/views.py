@@ -1,6 +1,9 @@
 # tracker/views.py
 
 import json
+import sys
+from bs4 import BeautifulSoup
+from db import PATTERNS_PATH
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
@@ -14,8 +17,8 @@ from tracker.forms import ApplicationEditForm
 from pathlib import Path
 import subprocess
 
-ALIAS_EXPORT_PATH = Path("alias_candidates.json")
-PATTERNS_PATH = Path("patterns.json")
+python_path = sys.executable
+ALIAS_EXPORT_PATH = Path("json/alias_candidates.json")
 ALIAS_LOG_PATH = Path("alias_approvals.csv")
 ALIAS_REJECT_LOG_PATH = Path("alias_rejections.csv")
 
@@ -96,6 +99,12 @@ def flagged_applications(request):
 
 @login_required
 def dashboard(request):
+    def clean_html(raw_html):
+        soup = BeautifulSoup(raw_html, "html.parser")
+        for tag in soup(["script", "style", "noscript"]):
+            tag.decompose()
+        return str(soup)
+
     companies = Company.objects.count()
     companies_list = Company.objects.all()
     unresolved_companies = UnresolvedCompany.objects.filter(reviewed=False).order_by("-timestamp")[:50]
@@ -113,6 +122,9 @@ def dashboard(request):
 
     # ✅ Recent messages with company preloaded
     messages = Message.objects.select_related("company").order_by('-timestamp')[:100]
+    for msg in messages:
+        raw_html = msg.body or ""
+        msg.cleaned_body_html = extract_body_content(raw_html)
 
     # ✅ Group messages by thread_id with company preloaded
     threads = defaultdict(list)
@@ -130,7 +142,7 @@ def dashboard(request):
         reverse=True
     )[:50]
 
-    # ✅ Ingestion stats
+    #  Ingestion stats
     latest_stats = IngestionStats.objects.order_by('-date').first()
 
     ingested_today = latest_stats.total_inserted if latest_stats else 0
@@ -178,6 +190,18 @@ def company_detail(request, company_id):
         "messages": messages,
     })
 
+def extract_body_content(raw_html):
+    soup = BeautifulSoup(raw_html, "html.parser")
+
+    # Remove script/style/noscript
+    for tag in soup(["script", "style", "noscript"]):
+        tag.decompose()
+
+    # Extract body content if present
+    body = soup.body
+    return str(body) if body else soup.get_text(separator=" ", strip=True)
+
+
 def label_applications(request):
     if request.method == "POST":
         for key, value in request.POST.items():
@@ -198,7 +222,7 @@ def label_applications(request):
 
 @login_required
 def label_messages(request):
-    training_output = None  # ✅ Initialize outside POST block
+    training_output = None  #  Initialize outside POST block
 
     if request.method == "POST":
         for key, value in request.POST.items():
@@ -212,19 +236,19 @@ def label_messages(request):
                 except Message.DoesNotExist:
                     continue
 
-        # ✅ Trigger model retraining and capture output
+        #  Trigger model retraining and capture output
         try:
             result = subprocess.run(
-                ["python", "train_model.py"],
+                [python_path, "train_model.py"],
                 capture_output=True,
                 text=True,
                 check=True
             )
             training_output = result.stdout
-            print("✅ Model retrained successfully.")
+            print(" Model retrained successfully.")
             print(result.stdout)
         except subprocess.CalledProcessError as e:
-            training_output = f"❌ Model retraining failed:\n{e.stderr}"
+            training_output = f" Model retraining failed:\n{e.stderr}"
             print(training_output)
 
     # ✅ Continue rendering page with training_output in context
@@ -235,6 +259,9 @@ def label_messages(request):
 
     msgs = qs.order_by(F("confidence").asc(nulls_first=True), "timestamp")[:50]
 
+    for msg in msgs:
+        msg.rendered_body = extract_body_content(msg.body or "")
+
     total_unreviewed = Message.objects.filter(reviewed=False).count()
     total_reviewed = Message.objects.filter(reviewed=True).count()
 
@@ -243,5 +270,5 @@ def label_messages(request):
         "filter_label": filter_label,
         "total_unreviewed": total_unreviewed,
         "total_reviewed": total_reviewed,
-        "training_output": training_output  # ✅ Pass to template
+        "training_output": training_output  #  Pass to template
     })

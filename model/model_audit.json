@@ -1,0 +1,13 @@
+{
+  "model_version": "1.2.3",
+  "trained_on": "2025-10-12",
+  "source_count": 842,
+  "label_distribution": {
+    "job_application": 412,
+    "interview_invite": 97,
+    "ghosted": 33,
+    "noise": 300
+  },
+  "scan_passed": true,
+  "scan_tool": "detect-secrets v1.4.0"
+}

@@ -10,9 +10,9 @@ import os
 import sys
 from pathlib import Path
 
-DB_PATH = os.getenv("JOB_TRACKER_DB", "job_tracker.db")
-PATTERNS_PATH = Path(__file__).parent / "patterns.json"
-COMPANIES_PATH = Path(__file__).parent / "companies.json"
+DB_PATH = os.getenv("JOB_TRACKER_DB", "db/job_tracker.db")
+PATTERNS_PATH = Path(__file__).parent / "json/patterns.json"
+COMPANIES_PATH = Path(__file__).parent / "json/companies.json"
 SCHEMA_VERSION = '2.0.0'
 
 # --- Apply is_valid_company() filter globally ---
@@ -227,13 +227,13 @@ def load_training_data():
     df['company'] = df['company'].apply(normalize_company)
 
     # --- Optional: Apply alias mappings and ignore patterns ---
-    if PATTERNS_PATH.exists() and COMPANIES_PATH.exist():
+    if PATTERNS_PATH.exists() and COMPANIES_PATH.exists():
         with open(COMPANIES_PATH, "r", encoding="utf-8") as e:
             patterns = json.load(e)
 
         alias_map = patterns.get("aliases", {})
         if alias_map:
-            print(f"🔄 Applying {len(alias_map)} company alias mappings from companies.json")
+            print(f"Applying {len(alias_map)} company alias mappings from companies.json")
             df['company'] = df['company'].replace(alias_map)
 
         with open(PATTERNS_PATH, "r", encoding="utf-8") as f:
@@ -276,7 +276,7 @@ def load_training_data():
     unique_companies = df['company'].nunique()
     if unique_companies < 2:
         raise ValueError(
-            f"🚫 Not enough unique companies after cleaning ({unique_companies} found) — aborting training."
+            f"Not enough unique companies after cleaning ({unique_companies} found) — aborting training."
         )
 
     return df

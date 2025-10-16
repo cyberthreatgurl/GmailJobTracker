@@ -1,0 +1,22 @@
+                                   precision    recall  f1-score   support
+
+                             Font       0.67      1.00      0.80         2
+                   Globalsolgroup       1.00      1.00      1.00         1
+                            Gmail       0.00      0.00      0.00         3
+                           Import       1.00      0.14      0.25         7
+Invictus International Consulting       1.00      1.00      1.00         1
+                            Media       1.00      0.33      0.50         6
+                      SimVentions       0.33      1.00      0.50         1
+                      Simventions       1.00      1.00      1.00         2
+     Weekly Cyber Threat Bulletin       1.00      1.00      1.00         1
+                           amazon       0.00      0.00      0.00         1
+                          claroty       1.00      1.00      1.00         1
+                        corelight       1.00      1.00      1.00         1
+                           leidos       1.00      1.00      1.00         1
+                        microsoft       1.00      1.00      1.00         1
+                      sentinelone       0.67      1.00      0.80         2
+                          verizon       1.00      1.00      1.00         1
+
+                        micro avg       0.82      0.56      0.67        32
+                        macro avg       0.79      0.78      0.74        32
+                     weighted avg       0.81      0.56      0.58        32

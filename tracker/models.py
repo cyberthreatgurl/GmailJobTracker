@@ -127,4 +127,11 @@ class Ticket(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"[{self.category}] {self.title}"       
+        return f"[{self.category}] {self.title}"
+    
+class ProcessedMessage(models.Model):
+    gmail_id = models.CharField(max_length=255, unique=True, db_index=True)
+    processed_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        indexes = [models.Index(fields=['gmail_id'])]

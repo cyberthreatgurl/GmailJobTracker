@@ -76,5 +76,22 @@
     "the Principal",
     "donotreply",
     "Field CTO"
-  ]
+  ],
+  "message_labels": {
+    "interview": [
+      "\\b(interview|screen|availability|schedule|calendly|teams meeting|zoom)\\b"
+    ],
+    "application": [
+      "\\b(thank you for applying|application (received|submitted)|we received your application)\\b"
+    ],
+    "rejection": [
+      "\\b(we (regret|are sorry)|unfortunately|not selected|won'?t move forward)\\b"
+    ],
+    "offer": [
+      "\\b(offer|compensation|package|extend|congratulations)\\b"
+    ],
+    "noise": [
+      "\\b(unsubscribe|newsletter|digest|promotion|marketing|sale)\\b"
+    ]
+  }
 }

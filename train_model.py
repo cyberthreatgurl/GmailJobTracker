@@ -1,181 +1,133 @@
 import os
-import joblib
-import pandas as pd
-import json
-from db import load_training_data
+import django
+
+# Initialize Django before importing models
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dashboard.settings")
+django.setup()
+
+import re, json, argparse, joblib, pandas as pd
+from pathlib import Path
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
-from sklearn.preprocessing import LabelEncoder
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.calibration import CalibratedClassifierCV
+from sklearn.utils.class_weight import compute_sample_weight
+from db import load_training_data
 from datetime import datetime
-import argparse
-
+from sklearn.pipeline import FeatureUnion
+from scipy.sparse import hstack
 
 # --- Config ---
 EXPORT_PATH = "labeled_subjects.csv"
 MODEL_DIR = "model"
 os.makedirs(MODEL_DIR, exist_ok=True)
 
-parser = argparse.ArgumentParser(description="Train or retrain the ML model.")
-
-parser.add_argument("--verbose", action="store_true",help="Enable verbose output")
+parser = argparse.ArgumentParser(description="Train message-type classifier")
+parser.add_argument("--verbose", action="store_true", help="Enable verbose output")
 args = parser.parse_args()
-                    
+
 print(f"[OK] Training started at {datetime.now().isoformat()}")
 
-# --- Branch 1: If we have manually labeled messages, train on them ---
-if os.path.exists(EXPORT_PATH):
-    print(f"[OK] Found {EXPORT_PATH}, training on manually labeled messages...")
-    df = pd.read_csv(EXPORT_PATH)
-    if args.verbose:
-        print(df.head())
+PATTERNS_PATH = Path(__file__).parent / "json" / "patterns.json"
 
-    required_cols = ["subject", "body", "ml_label", "type"]
-    missing = [col for col in required_cols if col not in df.columns]
-    if missing:
-        print(f"[Error] Missing columns in labeled_subjects.csv: {missing}")
-        exit(1)
-    # Filter only message rows
-    df = df[df["type"] == "message"]
 
-    if df.empty:
-        print("[Warning[ No labeled messages found in export, falling back to company training.")
-        df = None
-    else:
-        # Prepare text field
-        df["text"] = df["subject"].fillna("") + " " + df["body"].fillna("")
+def _load_patterns():
+    try:
+        with open(PATTERNS_PATH, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return {}
 
-        # Encode labels
-        le = LabelEncoder()
-        df["label_encoded"] = le.fit_transform(df["ml_label"])
 
-        # Filter sparse classes
-        label_counts = df["ml_label"].value_counts()
-        df = df[df["ml_label"].isin(label_counts[label_counts > 1].index)]
+_PATTERNS = _load_patterns()
+_MSG_LABEL_PATTERNS = {
+    k: [re.compile(p, re.I) for p in (_PATTERNS.get("message_labels", {}).get(k, []))]
+    for k in ("interview", "application", "rejection", "offer", "noise")
+}
 
-        # Re-encode after filtering
-        le = LabelEncoder()
-        df["label_encoded"] = le.fit_transform(df["ml_label"])
 
-        print("Label distribution:", df["ml_label"].value_counts())
+def weak_label(row: pd.Series) -> str | None:
+    s = f"{row.get('subject','')} {row.get('body','')}".lower()
+    for label in ("interview", "application", "rejection", "offer", "noise"):
+        for rx in _MSG_LABEL_PATTERNS.get(label, []):
+            if rx.search(s):
+                return label
+    return None
 
-        # Safety check
-        if df["label_encoded"].nunique() < 2:
-            print("🚫 Not enough unique labels to train a classifier.")
-            exit(0)
 
-        # Vectorize
-        vectorizer = TfidfVectorizer(
-            stop_words="english",
-            max_features=5000,
-            ngram_range=(1, 2),
-        )
-        X = vectorizer.fit_transform(df["text"])
-        y = df["label_encoded"]
+# Load and prepare data
+df = load_training_data()
 
-        # Train/test split
-        X_train, X_test, y_train, y_test = train_test_split(
-            X, y, test_size=0.2, random_state=42
-        )
+if df.empty or "label" not in df.columns or df["label"].isna().all():
+    print("[Warning] No human message labels; bootstrapping with regex rules")
+    # Apply weak labels as fallback
+    y = df.apply(weak_label, axis=1)
+    df = df[y.notna()].copy()
+    y = y[y.notna()]
+else:
+    # Use human labels
+    y = df["label"].str.lower().str.strip()
+    print(f"[OK] Training on {len(y)} human-labeled messages")
+    print(f"Label distribution:\n{y.value_counts()}")
 
-        # Train model
-        clf = LogisticRegression(max_iter=1000, class_weight="balanced")
-        clf.fit(X_train, y_train)
+if df.empty:
+    raise SystemExit("[Error] No training data available")
 
-        # Evaluate
-        y_pred = clf.predict(X_test)
-        labels_in_test = sorted(set(y_test))
-        target_names = le.inverse_transform(labels_in_test)
-        print(classification_report(y_test, y_pred, labels=labels_in_test, target_names=target_names))
-        
-        with open("training_summary.log", "w", encoding="utf-8") as log:
-            log.write(classification_report(y_test, y_pred, labels=labels_in_test, target_names=target_names))
+# Combine subject + body
+df["text"] = (
+    df.get("subject", "").fillna("") + " " + df.get("body", "").fillna("")
+).str.strip()
 
-        # Save artifacts
-        joblib.dump(clf, os.path.join(MODEL_DIR, "message_classifier.pkl"))
-        joblib.dump(vectorizer, os.path.join(MODEL_DIR, "message_vectorizer.pkl"))
-        joblib.dump(le, os.path.join(MODEL_DIR, "message_label_encoder.pkl"))
-        info = {
-            "trained_on": datetime.now().isoformat(),
-            "labels": le.classes_.tolist(),
-            "num_samples": len(df),
-            "features": vectorizer.get_feature_names_out().tolist()
-        }
+# Filter out classes with < 2 samples (can't stratify)
+min_samples = 2
+class_counts = y.value_counts()
+valid_classes = class_counts[class_counts >= min_samples].index
+df_filtered = df[y.isin(valid_classes)].copy()
+y_filtered = y[y.isin(valid_classes)]
 
-        with open(os.path.join(MODEL_DIR, "model_info.json"), "w", encoding="utf-8") as f:
-            json.dump(info, f, indent=2)
+if len(y_filtered) < 10:
+    raise SystemExit(f"[Error] Need at least 10 samples; only have {len(y_filtered)}")
 
-        print("[OK] Message-level model artifacts saved to /model/")
+print(f"Training with {len(y_filtered)} samples across {y_filtered.nunique()} classes")
 
-# --- Branch 2: Otherwise, fall back to company-level training ---
-if not os.path.exists(EXPORT_PATH) or df is None or df.empty:
-    print("[Warning] No labeled messages available, training on company data from DB...")
-    df = load_training_data()
+X_subject = df_filtered['subject'].fillna('')
+X_body = df_filtered['body'].fillna('')
 
-    print(f"Dataset ready for training: {df.shape[0]} rows")
-    print(df.head())
+subject_vec = TfidfVectorizer(
+    lowercase=True, ngram_range=(1, 2), max_df=0.9, min_df=2, max_features=10000
+)
+body_vec = TfidfVectorizer(
+    lowercase=True, ngram_range=(1, 2), max_df=0.9, min_df=2, max_features=40000
+)
 
-    # Prepare text field
-    df["text"] = df["subject"].fillna("") + " " + df["body"].fillna("")
+X_subject_vec = subject_vec.fit_transform(X_subject)
+X_body_vec = body_vec.fit_transform(X_body)
 
-    # Encode labels
-    le = LabelEncoder()
-    df["company_encoded"] = le.fit_transform(df["company"])
+Xv = hstack([X_subject_vec, X_body_vec])
 
-    # Filter sparse classes
-    company_counts = df["company"].value_counts()
-    df = df[df["company"].isin(company_counts[company_counts > 1].index)]
+Xtr, Xte, ytr, yte = train_test_split(
+    Xv,
+    y_filtered,
+    test_size=0.2,
+    stratify=y_filtered,  # ensures balanced split
+    random_state=42,
+)
 
-    # Re-encode after filtering
-    le = LabelEncoder()
-    df["company_encoded"] = le.fit_transform(df["company"])
+sample_weights = compute_sample_weight("balanced", ytr)
 
-    print("Company label distribution:", df["company"].value_counts())
+base = LogisticRegression(
+    solver="lbfgs",
+    max_iter=2000,
+    C=0.5,
+)
+clf = CalibratedClassifierCV(base, method="isotonic", cv=3)
+clf.fit(Xtr, ytr, sample_weight=sample_weights)  # pass weights here
 
-    if df["company_encoded"].nunique() < 2:
-        print("[Warning] Not enough unique company labels to train a classifier.")
-        exit(0)
-
-    # Vectorize
-    vectorizer = TfidfVectorizer(
-        stop_words="english",
-        max_features=5000,
-        ngram_range=(1, 2),
-    )
-    X = vectorizer.fit_transform(df["text"])
-    y = df["company_encoded"]
-
-    # Train/test split
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.2, random_state=42
-    )
-
-    # Train model
-    clf = LogisticRegression(max_iter=1000, class_weight="balanced")
-    clf.fit(X_train, y_train)
-
-    # Evaluate
-    y_pred = clf.predict(X_test)
-    labels_in_test = sorted(set(y_test))
-    target_names = le.inverse_transform(labels_in_test)
-    print(classification_report(y_test, y_pred, labels=labels_in_test, target_names=target_names))
-    
-    with open("training_summary.log", "w", encoding="utf-8") as log:
-        log.write(classification_report(y_test, y_pred, labels=labels_in_test, target_names=target_names))
-
-    # Save artifacts
-    joblib.dump(clf, os.path.join(MODEL_DIR, "company_classifier.pkl"))
-    joblib.dump(vectorizer, os.path.join(MODEL_DIR, "vectorizer.pkl"))
-    joblib.dump(le, os.path.join(MODEL_DIR, "label_encoder.pkl"))
-    print("Company-level model artifacts saved to /model/")
-
-    info = {
-    "trained_on": datetime.now().isoformat(),
-    "labels": le.classes_.tolist(),
-    "num_samples": len(df),
-    "features": vectorizer.get_feature_names_out().tolist()
-    }
-
-    with open(os.path.join(MODEL_DIR, "model_info.json"), "w", encoding="utf-8") as f:
-        json.dump(info, f, indent=2)
+print(classification_report(yte, clf.predict(Xte), zero_division=0))
+os.makedirs("model", exist_ok=True)
+joblib.dump(clf, "model/message_classifier.pkl")
+joblib.dump(sorted(y_filtered.unique().tolist()), "model/message_label_encoder.pkl")
+joblib.dump(subject_vec, "model/subject_vectorizer.pkl")
+joblib.dump(body_vec, "model/body_vectorizer.pkl")
+print("Message-level model artifacts saved to /model/")

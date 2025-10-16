@@ -1,3 +1,4 @@
+{% load custom_filters %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -98,6 +99,7 @@
           <th style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;">DateTime</th>
           <th style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;">Company</th>
           <th style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;">Subject</th>
+          <th style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;">ML Label</th>
           <th style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;">Body</th>
           <th style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;">Confidence</th>
           <th style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;">Assign Label</th>
@@ -119,6 +121,18 @@
           <td style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;">
             {{ msg.subject }}
           </td>
+          <td style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;">
+            <span style="
+              padding: 0.25rem 0.5rem;
+              border-radius: 4px;
+              font-size: 0.75rem;
+              font-weight: 500;
+              background-color: {% if msg.ml_label == 'job_application' %}#dbeafe{% elif msg.ml_label == 'interview_invite' %}#d1fae5{% elif msg.ml_label == 'rejection' %}#fee2e2{% elif msg.ml_label == 'head_hunter' %}#fef3c7{% elif msg.ml_label == 'job_alert' %}#e0e7ff{% elif msg.ml_label == 'noise' %}#f3f4f6{% else %}#fce7f3{% endif %};
+              color: {% if msg.ml_label == 'job_application' %}#1e40af{% elif msg.ml_label == 'interview_invite' %}#065f46{% elif msg.ml_label == 'rejection' %}#991b1b{% elif msg.ml_label == 'head_hunter' %}#92400e{% elif msg.ml_label == 'job_alert' %}#3730a3{% elif msg.ml_label == 'noise' %}#374151{% else %}#831843{% endif %};
+            ">
+              {{ msg.ml_label|label_display }}
+            </span>
+          </td>
           <td style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb; max-width: 400px;">
             <details>
               <summary style="cursor: pointer; font-weight: 500; color: #2563eb;">
@@ -129,7 +143,6 @@
               </div>
             </details>
           </td>
-        </td>
           <td style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;">
             {{ msg.confidence|default:"N/A"|floatformat:2 }}
           </td>
@@ -148,7 +161,7 @@
         </tr>
         {% empty %}
         <tr>
-          <td colspan="6" style="padding: 1rem; text-align: center;">No unlabeled messages found.</td>
+          <td colspan="7" style="padding: 1rem; text-align: center;">No unlabeled messages found.</td>
         </tr>
         {% endfor %}
       </tbody>

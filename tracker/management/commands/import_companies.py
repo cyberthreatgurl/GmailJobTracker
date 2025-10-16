@@ -27,4 +27,4 @@ class Command(BaseCommand):
         for alias, company in data.get("aliases", {}).items():
             CompanyAlias.objects.get_or_create(alias=alias, company=company)
 
-        self.stdout.write(self.style.SUCCESS("✅ companies.json imported successfully"))
+        self.stdout.write(self.style.SUCCESS("companies.json imported successfully"))

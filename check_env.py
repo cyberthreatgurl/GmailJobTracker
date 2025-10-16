@@ -73,7 +73,7 @@ def check_oauth_credentials():
 
 def check_directory_permissions():
     print("\n Directory Permissions:")
-    writable_dirs = ["json", "db", "model", "data", "logs", "."]
+    writable_dirs = ["json", "db", "model", "logs", "."]
     for d in writable_dirs:
         path = BASE_DIR / d
         if os.access(path, os.W_OK):

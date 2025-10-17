@@ -1,13 +1,1 @@
-{
-  "model_version": "1.2.3",
-  "trained_on": "2025-10-12",
-  "source_count": 842,
-  "label_distribution": {
-    "job_application": 412,
-    "interview_invite": 97,
-    "ghosted": 33,
-    "noise": 300
-  },
-  "scan_passed": true,
-  "scan_tool": "detect-secrets v1.4.0"
-}
+{"training_output": "[OK] Training started at 2025-10-17T00:06:43.719119\n[OK] Loaded 798 human-labeled messages from database\nLabel distribution:\nlabel\nnoise               271\ninterview_invite    209\nhead_hunter         130\njob_alert           107\njob_application      62\nrejection            13\nghosted               5\nreferral              1\nName: count, dtype: int64\n[Info] Filtered out 1 messages with blank/whitespace-only bodies.\n[Info] Merging rare classes ['ghosted', 'referral'] into 'other'.\n[Info] After upsampling, class distribution:\nlabel\nnoise               270\njob_application     270\nrejection           270\nother               270\njob_alert           270\nhead_hunter         270\ninterview_invite    270\nName: count, dtype: int64\n[OK] Training on 1890 human-labeled messages\nLabel distribution:\nlabel\nnoise               270\njob_application     270\nrejection           270\nother               270\njob_alert           270\nhead_hunter         270\ninterview_invite    270\nName: count, dtype: int64\nTraining with 1890 samples across 7 classes\n                  precision    recall  f1-score   support\n\n     head_hunter       0.94      0.93      0.93        54\ninterview_invite       0.95      0.78      0.86        54\n       job_alert       0.91      0.96      0.94        54\n job_application       0.92      1.00      0.96        54\n           noise       0.84      0.87      0.85        54\n           other       1.00      1.00      1.00        54\n       rejection       0.98      1.00      0.99        54\n\n        accuracy                           0.93       378\n       macro avg       0.94      0.93      0.93       378\n    weighted avg       0.94      0.93      0.93       378\n\nMessage-level model artifacts saved to /model/\n"}

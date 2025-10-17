@@ -70,7 +70,7 @@ if "body" in df.columns:
             f"[Info] Filtered out {before-after} messages with blank/whitespace-only bodies."
         )
 
-# --- Merge ultra-rare classes and upsample minorities ---
+# --- Merge ultra-rare classes (no upsampling - class weights handle imbalance) ---
 MIN_SAMPLES_PER_CLASS = 10
 if "label" in df.columns:
     label_counts = df["label"].value_counts()
@@ -79,17 +79,10 @@ if "label" in df.columns:
         print(f"[Info] Merging rare classes {rare_labels} into 'other'.")
         df["label"] = df["label"].apply(lambda x: "other" if x in rare_labels else x)
 
-    # Upsample minority classes
-    max_count = df["label"].value_counts().max()
-    dfs = []
-    for label, group in df.groupby("label"):
-        if len(group) < max_count:
-            upsampled = group.sample(max_count, replace=True, random_state=42)
-            dfs.append(upsampled)
-        else:
-            dfs.append(group)
-    df = pd.concat(dfs).sample(frac=1, random_state=42).reset_index(drop=True)
-    print(f"[Info] After upsampling, class distribution:\n{df['label'].value_counts()}")
+    # Show natural class distribution (no artificial upsampling)
+    print(
+        f"[Info] Natural class distribution (before training):\n{df['label'].value_counts()}"
+    )
 
 if df.empty or "label" not in df.columns or df["label"].isna().all():
     print("[Warning] No human message labels; bootstrapping with regex rules")

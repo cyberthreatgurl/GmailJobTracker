@@ -171,7 +171,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.timezone import now
 from django.db import models
-from django.db.models import F, Q
+from django.db.models import F, Q, Count
 from bs4 import BeautifulSoup
 
 python_path = sys.executable
@@ -570,66 +570,150 @@ import subprocess
 
 @login_required
 def label_messages(request):
-    training_output = None  #  Initialize outside POST block
+    """Bulk message labeling interface with checkboxes"""
+    training_output = None
 
+    # Handle POST - Bulk label selected messages
     if request.method == "POST":
-        for key, value in request.POST.items():
-            if key.startswith("label_") and value:
-                msg_id = int(key.split("_")[1])
-                try:
-                    msg = Message.objects.get(pk=msg_id)
-                    msg.ml_label = value
-                    msg.reviewed = True
-                    msg.save()
-                except Message.DoesNotExist:
-                    continue
-                # Get all reviewed companies (at least one reviewed message)
-                msg_id = int(key.split("_")[1])
-                company_name = value.strip()
-                if company_name:
+        action = request.POST.get("action")
+
+        if action == "bulk_label":
+            selected_ids = request.POST.getlist("selected_messages")
+            bulk_label = request.POST.get("bulk_label")
+
+            if selected_ids and bulk_label:
+                updated_count = 0
+                for msg_id in selected_ids:
                     try:
                         msg = Message.objects.get(pk=msg_id)
-                        # Get or create company
-                        company, created = Company.objects.get_or_create(
-                            name=company_name,
-                            defaults={"domain": "", "confidence": 1.0},
-                        )
-                        msg.company = company
+                        msg.ml_label = bulk_label
+                        msg.reviewed = True
                         msg.save()
+                        updated_count += 1
                     except Message.DoesNotExist:
                         continue
 
-        #  Trigger model retraining and capture output
-        try:
-            result = subprocess.run(
-                [python_path, "train_model.py"],
-                capture_output=True,
-                text=True,
-                check=True,
-            )
-            training_output = result.stdout
-            print(" Model retrained successfully.")
-            print(result.stdout)
-        except subprocess.CalledProcessError as e:
-            training_output = f" Model retraining failed:\n{e.stderr}"
-            print(training_output)
+                messages.success(
+                    request, f"✅ Labeled {updated_count} messages as '{bulk_label}'"
+                )
 
-    # ✅ Continue rendering page with training_output in context
-    filter_label = request.GET.get("label")
+                # Check if we should retrain
+                labeled_count = Message.objects.filter(reviewed=True).count()
+                if labeled_count % 20 == 0:
+                    messages.info(request, "🔄 Triggering model retraining...")
+                    try:
+                        subprocess.Popen([python_path, "train_model.py"])
+                        messages.success(
+                            request, "✅ Model retraining started in background"
+                        )
+                    except Exception as e:
+                        messages.warning(request, f"⚠️ Could not start retraining: {e}")
+            else:
+                messages.warning(request, "⚠️ Please select messages and a label")
+
+    # Get pagination parameters
+    per_page = int(request.GET.get("per_page", 50))
+    page = int(request.GET.get("page", 1))
+
+    # ✅ Enhanced filtering
+    filter_label = request.GET.get("label", "all")
+    filter_confidence = request.GET.get("confidence", "low")  # low, medium, high, all
+    filter_company = request.GET.get("company", "all")  # all, missing, resolved
+
     qs = Message.objects.filter(reviewed=False)
-    if filter_label:
+
+    # Apply label filter
+    if filter_label and filter_label != "all":
         qs = qs.filter(ml_label=filter_label)
+
+    # Apply confidence filter
+    if filter_confidence == "low":
+        qs = qs.filter(confidence__lt=0.5) | qs.filter(confidence__isnull=True)
+    elif filter_confidence == "medium":
+        qs = qs.filter(confidence__gte=0.5, confidence__lt=0.75)
+    elif filter_confidence == "high":
+        qs = qs.filter(confidence__gte=0.75)
+
+    # Apply company filter
+    if filter_company == "missing":
+        qs = qs.filter(company__isnull=True)
+    elif filter_company == "resolved":
+        qs = qs.filter(company__isnull=False)
 
     # Filter out messages with blank or very short bodies
     qs = qs.exclude(body__isnull=True).exclude(body="").exclude(body__regex=r"^\s*$")
 
-    msgs = qs.order_by(F("confidence").asc(nulls_first=True), "timestamp")[:50]
+    # Order by priority: low confidence first, then timestamp
+    qs = qs.order_by(F("confidence").asc(nulls_first=True), "timestamp")
 
-    for msg in msgs:
-        msg.rendered_body = extract_body_content(msg.body or "")
+    # Pagination
+    total_count = qs.count()
+    start_idx = (page - 1) * per_page
+    end_idx = start_idx + per_page
 
+    messages_page = qs[start_idx:end_idx]
+
+    # Extract body snippets for display (plain text only)
+    for msg in messages_page:
+        if msg.body:
+            # Parse HTML and extract plain text
+            soup = BeautifulSoup(msg.body, "html.parser")
+            # Remove script/style/noscript tags
+            for tag in soup(["script", "style", "noscript"]):
+                tag.decompose()
+            # Get plain text, collapse whitespace
+            plain_text = soup.get_text(separator=" ", strip=True)
+            # Collapse multiple spaces
+            plain_text = " ".join(plain_text.split())
+            msg.body_snippet = plain_text[:200]
+        else:
+            msg.body_snippet = ""
+
+        if msg.sender:
+            sender_parts = msg.sender.split("@")
+            msg.sender_domain = sender_parts[1] if len(sender_parts) > 1 else "unknown"
+        else:
+            msg.sender_domain = "unknown"
+
+    # Calculate pagination info
+    total_pages = (total_count + per_page - 1) // per_page
+    has_previous = page > 1
+    has_next = page < total_pages
+
+    # Get stats
     total_unreviewed = Message.objects.filter(reviewed=False).count()
     total_reviewed = Message.objects.filter(reviewed=True).count()
+
+    # Get distinct labels for filter
+    distinct_labels = (
+        Message.objects.filter(reviewed=False)
+        .values_list("ml_label", flat=True)
+        .distinct()
+    )
+
+    # Available label choices
+    label_choices = [
+        "interview_invite",
+        "job_application",
+        "rejection",
+        "offer",
+        "noise",
+        "job_alert",
+        "head_hunter",
+        "referral",
+        "ghosted",
+        "follow_up",
+        "response",
+        "other",
+    ]
+
+    # Get label distribution for prioritization
+    label_counts = (
+        Message.objects.filter(reviewed=True)
+        .values("ml_label")
+        .annotate(count=Count("ml_label"))
+        .order_by("count")
+    )
 
     # Sidebar context
     companies = Company.objects.count()
@@ -649,10 +733,21 @@ def label_messages(request):
         request,
         "tracker/label_messages.html",
         {
-            "messages": msgs,
+            "message_list": messages_page,
             "filter_label": filter_label,
+            "filter_confidence": filter_confidence,
+            "filter_company": filter_company,
+            "distinct_labels": distinct_labels,
+            "label_choices": label_choices,
+            "label_counts": label_counts,
             "total_unreviewed": total_unreviewed,
             "total_reviewed": total_reviewed,
+            "total_count": total_count,
+            "per_page": per_page,
+            "page": page,
+            "total_pages": total_pages,
+            "has_previous": has_previous,
+            "has_next": has_next,
             "training_output": training_output,
             "companies": companies,
             "applications": applications,

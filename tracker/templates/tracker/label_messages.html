@@ -2,221 +2,482 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!DOCTYPE html>
-  <html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <title>🏷️ Label Messages</title>
-    <style>
-      body {
-        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-        margin: 0;
-        background-color: #f9fafb;
-        color: #333;
-        line-height: 1.4;
-        font-size: 0.85rem;
-      }
-      h1 {
-        color: #1f2937;
-        margin-top: 0.5rem;
-        margin-bottom: 0.75rem;
-        font-size: 1.5rem;
-      }
-      .dashboard-layout {
-        display: flex;
-        gap: 0.5rem;
-        margin-top: 1rem;
-      }
-      .sidebar {
-        flex: 0 0 220px;
-        max-width: 240px;
-      }
-      .label-messages-container {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-      }
-      .card {
-        background: #fff;
-        border-radius: 6px;
-        padding: 0.75rem 1rem;
-        margin-bottom: 1rem;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-      }
-      .button {
-        background: #2563eb;
-        color: white;
-        font-weight: 600;
-        font-size: 0.8rem;
-        padding: 0.4rem 0.8rem;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        text-decoration: none;
-        display: inline-block;
-      }
-      .button:hover {
-        background: #1e40af;
-      }
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 0.8rem;
-        margin-top: 1rem;
-      }
-      th, td {
-        padding: 0.4rem 0.5rem;
-        border-bottom: 1px solid #e5e7eb;
-        text-align: left;
-      }
-      th {
-        background: #f3f4f6;
-        font-weight: 600;
-      }
-      tr:last-child td {
-        border-bottom: none;
-      }
-      .label-form {
-        display: flex;
-        gap: 0.5rem;
-        align-items: center;
-      }
-      .label-form select, .label-form input[type="text"] {
-        font-size: 0.85rem;
-        padding: 0.2rem 0.4rem;
-        border-radius: 3px;
-        border: 1px solid #d1d5db;
-      }
-      .label-form button {
-        margin-left: 0.5rem;
-      }
-      .timestamp {
-        color: #6b7280;
-        font-size: 0.75rem;
-      }
-      .label {
-        display: inline-block;
-        background: #e0e7ff;
-        color: #3730a3;
-        border-radius: 3px;
-        padding: 0.1rem 0.4rem;
-        font-size: 0.75rem;
-        margin-right: 0.2rem;
-      }
-      .reviewed {
-        color: #059669;
-        font-weight: 600;
-      }
-      .not-reviewed {
-        color: #b91c1c;
-        font-weight: 600;
-      }
-      .company-link {
-        color: #2563eb;
-        text-decoration: underline;
-        font-size: 0.85rem;
-      }
-      .company-link:hover {
-        color: #1e40af;
-      }
-    </style>
-  </head>
-  <body>
-    <h1>🏷️ Label Messages</h1>
-    <div class="dashboard-layout">
-      {% include "tracker/_sidebar.html" %}
-      <div class="label-messages-container">
-        <div class="card">
-          <h2>Messages Needing Labeling</h2>
+  <meta charset="UTF-8">
+  <title>🏷️ Label Messages - Bulk Mode</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      margin: 0;
+      background-color: #f9fafb;
+      color: #333;
+      line-height: 1.6;
+      font-size: 0.9rem;
+    }
+    h1 {
+      color: #1f2937;
+      margin: 0.5rem 1rem;
+      font-size: 1.5rem;
+    }
+    .dashboard-layout {
+      display: flex;
+      gap: 1rem;
+      padding: 1rem;
+    }
+    .sidebar {
+      flex: 0 0 220px;
+      max-width: 240px;
+    }
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .progress-banner {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 1rem 1.5rem;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .progress-banner h2 {
+      margin: 0;
+      font-size: 1.25rem;
+    }
+    .progress-stats {
+      display: flex;
+      gap: 2rem;
+      font-size: 0.9rem;
+    }
+    .progress-stats span {
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+    .filter-bar {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      align-items: center;
+      padding: 1rem;
+      background: #f3f4f6;
+      border-radius: 8px;
+    }
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+    .filter-group label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: #6b7280;
+      text-transform: uppercase;
+    }
+    .filter-group select {
+      padding: 0.4rem 0.6rem;
+      border-radius: 4px;
+      border: 1px solid #d1d5db;
+      font-size: 0.85rem;
+    }
+    .bulk-actions {
+      background: white;
+      padding: 1rem 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+    .bulk-actions select {
+      padding: 0.6rem;
+      border-radius: 6px;
+      border: 1px solid #d1d5db;
+      font-size: 0.9rem;
+      min-width: 200px;
+    }
+    .btn {
+      padding: 0.6rem 1.5rem;
+      border-radius: 6px;
+      border: none;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-primary {
+      background: #2563eb;
+      color: white;
+    }
+    .btn-primary:hover {
+      background: #1e40af;
+    }
+    .btn-primary:disabled {
+      background: #9ca3af;
+      cursor: not-allowed;
+    }
+    .message-table {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th {
+      background: #f9fafb;
+      padding: 0.75rem;
+      text-align: left;
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: #374151;
+      border-bottom: 2px solid #e5e7eb;
+    }
+    td {
+      padding: 0.75rem;
+      border-bottom: 1px solid #f3f4f6;
+      font-size: 0.85rem;
+    }
+    tr:hover {
+      background: #f9fafb;
+    }
+    .checkbox-cell {
+      width: 40px;
+      text-align: center;
+    }
+    input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+    }
+    .subject-cell {
+      max-width: 300px;
+      font-weight: 500;
+    }
+    .snippet-cell {
+      max-width: 400px;
+      color: #6b7280;
+      font-size: 0.8rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .confidence-badge {
+      display: inline-block;
+      padding: 0.2rem 0.6rem;
+      border-radius: 12px;
+      font-size: 0.7rem;
+      font-weight: 600;
+    }
+    .confidence-high { background: #d1fae5; color: #065f46; }
+    .confidence-medium { background: #fef3c7; color: #92400e; }
+    .confidence-low { background: #fee2e2; color: #991b1b; }
+    .label-badge {
+      display: inline-block;
+      padding: 0.2rem 0.6rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      background: #e0e7ff;
+      color: #3730a3;
+    }
+    .pagination {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 1.5rem;
+      background: white;
+      border-top: 1px solid #e5e7eb;
+    }
+    .pagination-info {
+      font-size: 0.85rem;
+      color: #6b7280;
+    }
+    .pagination-controls {
+      display: flex;
+      gap: 0.5rem;
+    }
+    .pagination-controls button {
+      padding: 0.5rem 1rem;
+      border: 1px solid #d1d5db;
+      background: white;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+    .pagination-controls button:hover:not(:disabled) {
+      background: #f3f4f6;
+    }
+    .pagination-controls button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .alert {
+      padding: 0.75rem 1rem;
+      border-radius: 6px;
+      margin-bottom: 1rem;
+      font-size: 0.85rem;
+    }
+    .alert-success { background: #d1fae5; color: #065f46; border-left: 3px solid #10b981; }
+    .alert-error { background: #fee2e2; color: #991b1b; border-left: 3px solid #ef4444; }
+    .alert-info { background: #dbeafe; color: #1e40af; border-left: 3px solid #3b82f6; }
+    .alert-warning { background: #fef3c7; color: #92400e; border-left: 3px solid #f59e0b; }
+    .selected-count {
+      font-weight: 600;
+      color: #2563eb;
+    }
+  </style>
+</head>
+<body>
+  <h1>🏷️ Label Messages - Bulk Mode</h1>
+  
+  <div class="dashboard-layout">
+    {% include "tracker/_sidebar.html" %}
+    
+    <div class="main-content">
+      
+      <!-- Progress Banner -->
+      <div class="progress-banner">
+        <h2>📊 Labeling Progress</h2>
+        <div class="progress-stats">
+          <div>
+            <div style="font-size: 0.8rem; opacity: 0.9;">Remaining</div>
+            <span>{{ total_unreviewed }}</span>
+          </div>
+          <div>
+            <div style="font-size: 0.8rem; opacity: 0.9;">Labeled</div>
+            <span>{{ total_reviewed }}</span>
+          </div>
+          <div>
+            <div style="font-size: 0.8rem; opacity: 0.9;">Total</div>
+            <span>{{ total_unreviewed|add:total_reviewed }}</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Django Messages -->
+      {% if messages %}
+        {% for message in messages %}
+          <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+      
+      <!-- Filter Bar -->
+      <div class="filter-bar">
+        <div class="filter-group">
+          <label>Label Filter</label>
+          <select id="label-filter" onchange="applyFilters()">
+            <option value="all" {% if filter_label == 'all' %}selected{% endif %}>All Labels</option>
+            {% for label in distinct_labels %}
+              <option value="{{ label }}" {% if filter_label == label %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        
+        <div class="filter-group">
+          <label>Confidence</label>
+          <select id="confidence-filter" onchange="applyFilters()">
+            <option value="low" {% if filter_confidence == 'low' %}selected{% endif %}>Low (&lt; 50%)</option>
+            <option value="medium" {% if filter_confidence == 'medium' %}selected{% endif %}>Medium (50-75%)</option>
+            <option value="high" {% if filter_confidence == 'high' %}selected{% endif %}>High (&gt; 75%)</option>
+            <option value="all" {% if filter_confidence == 'all' %}selected{% endif %}>All</option>
+          </select>
+        </div>
+        
+        <div class="filter-group">
+          <label>Company</label>
+          <select id="company-filter" onchange="applyFilters()">
+            <option value="all" {% if filter_company == 'all' %}selected{% endif %}>All</option>
+            <option value="missing" {% if filter_company == 'missing' %}selected{% endif %}>Missing</option>
+            <option value="resolved" {% if filter_company == 'resolved' %}selected{% endif %}>Resolved</option>
+          </select>
+        </div>
+        
+        <div class="filter-group">
+          <label>Per Page</label>
+          <select id="per-page" onchange="changePerPage()">
+            <option value="10" {% if per_page == 10 %}selected{% endif %}>10</option>
+            <option value="50" {% if per_page == 50 %}selected{% endif %}>50</option>
+            <option value="100" {% if per_page == 100 %}selected{% endif %}>100</option>
+          </select>
+        </div>
+      </div>
+      
+      <!-- Bulk Actions Form -->
+      <form method="post" id="bulk-form">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="bulk_label">
+        
+        <div class="bulk-actions">
+          <div>
+            <span class="selected-count" id="selected-count">0</span> messages selected
+          </div>
+          <select name="bulk_label" id="bulk-label" required>
+            <option value="">-- Select Label --</option>
+            {% for label in label_choices %}
+              <option value="{{ label }}">{{ label }}</option>
+            {% endfor %}
+          </select>
+          <button type="submit" class="btn btn-primary" id="bulk-submit" disabled>
+            Apply Label to Selected
+          </button>
+        </div>
+        
+        <!-- Message Table -->
+        <div class="message-table">
           <table>
             <thead>
               <tr>
+                <th class="checkbox-cell">
+                  <input type="checkbox" id="select-all" onclick="toggleSelectAll()">
+                </th>
                 <th>Subject</th>
                 <th>Company</th>
                 <th>Current Label</th>
-                <th>Label Confidence</th>
-                <th>Company Confidence</th>
-                <th>Reviewed</th>
-                <th>Actions</th>
+                <th>Confidence</th>
+                <th>Sender Domain</th>
+                <th>Date</th>
+                <th>Snippet</th>
               </tr>
             </thead>
             <tbody>
-              {% for message in messages %}
-              <tr>
-                <td>{{ message.subject }}</td>
-                <td>
-                  {% if message.company %}
-                    <a href="{% url 'company_detail' message.company.id %}" class="company-link">{{ message.company.name }}</a>
-                  {% else %}
-                    <span style="color:#b91c1c;">Unresolved</span>
-                  {% endif %}
-                </td>
-                <td>
-                  {% if message.ml_label %}
-                    <span class="label">{{ message.ml_label }}</span>
-                  {% else %}
-                    <span style="color:#b91c1c;">Unlabeled</span>
-                  {% endif %}
-                </td>
-                <td>
-                  {% if message.confidence %}{{ message.confidence|floatformat:2 }}{% else %}N/A{% endif %}
-                </td>
-                <td>
-                  {% if message.company and message.company.confidence %}{{ message.company.confidence|floatformat:2 }}{% else %}N/A{% endif %}
-                </td>
-                <td>
-                  {% if message.reviewed %}
-                    <span class="reviewed">Yes</span>
-                  {% else %}
-                    <span class="not-reviewed">No</span>
-                  {% endif %}
-                </td>
-                <td>
-                  <form method="post" class="label-form" action="{% url 'label_messages' %}">
-                    {% csrf_token %}
-                    <input type="hidden" name="message_id" value="{{ message.id }}">
-                    <select name="ml_label">
-                      {% for label in label_choices %}
-                        <option value="{{ label }}" {% if message.ml_label == label %}selected{% endif %}>{{ label }}</option>
-                      {% endfor %}
-                    </select>
-                    <button type="submit" class="button">Save</button>
-                  </form>
-                </td>
-              </tr>
+              {% for msg in message_list %}
+                <tr>
+                  <td class="checkbox-cell">
+                    <input type="checkbox" name="selected_messages" value="{{ msg.id }}" class="message-checkbox" onchange="updateSelection()">
+                  </td>
+                  <td class="subject-cell">{{ msg.subject }}</td>
+                  <td>
+                    {% if msg.company %}
+                      <a href="{% url 'company_detail' msg.company.id %}" style="color: #2563eb;">
+                        {{ msg.company.name }}
+                      </a>
+                    {% else %}
+                      <span style="color: #b91c1c;">Missing</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if msg.ml_label %}
+                      <span class="label-badge">{{ msg.ml_label }}</span>
+                    {% else %}
+                      <span style="color: #9ca3af;">None</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if msg.confidence %}
+                      {% if msg.confidence >= 0.75 %}
+                        <span class="confidence-badge confidence-high">{{ msg.confidence|floatformat:0 }}%</span>
+                      {% elif msg.confidence >= 0.5 %}
+                        <span class="confidence-badge confidence-medium">{{ msg.confidence|floatformat:0 }}%</span>
+                      {% else %}
+                        <span class="confidence-badge confidence-low">{{ msg.confidence|floatformat:0 }}%</span>
+                      {% endif %}
+                    {% else %}
+                      <span style="color: #9ca3af;">N/A</span>
+                    {% endif %}
+                  </td>
+                  <td style="font-size: 0.75rem; color: #6b7280;">{{ msg.sender_domain }}</td>
+                  <td style="font-size: 0.75rem; color: #6b7280;">{{ msg.timestamp|date:"M d" }}</td>
+                  <td class="snippet-cell" title="{{ msg.body_snippet }}">{{ msg.body_snippet|truncatechars:100 }}</td>
+                </tr>
               {% empty %}
-              <tr><td colspan="5">No messages to label.</td></tr>
+                <tr>
+                  <td colspan="8" style="text-align: center; padding: 2rem; color: #9ca3af;">
+                    🎉 No messages to label with current filters
+                  </td>
+                </tr>
               {% endfor %}
             </tbody>
           </table>
+          
+          <!-- Pagination -->
+          {% if total_pages > 1 %}
+            <div class="pagination">
+              <div class="pagination-info">
+                Showing {{ message_list|length }} of {{ total_count }} messages (Page {{ page }} of {{ total_pages }})
+              </div>
+              <div class="pagination-controls">
+                <button type="button" onclick="goToPage({{ page|add:'-1' }})" {% if not has_previous %}disabled{% endif %}>
+                  ← Previous
+                </button>
+                <button type="button" onclick="goToPage({{ page|add:'1' }})" {% if not has_next %}disabled{% endif %}>
+                  Next →
+                </button>
+              </div>
+            </div>
+          {% endif %}
         </div>
-      </div>
-    </div>
-  </body>
-  </html>
-        });
-      </script>
+      </form>
     </div>
   </div>
-
-  {% if training_output %}
-  <div class="card mt-4">
-    <div class="card-header">
-      <strong>📊 Model Training Summary</strong>
-      <button class="btn btn-sm btn-secondary float-end" onclick="toggleTrainingOutput()">Toggle</button>
-    </div>
-    <div class="card-body" id="training-output" style="display: none;">
-      <pre style="white-space: pre-wrap;">{{ training_output }}</pre>
-    </div>
-  </div>
-
+  
   <script>
-  function toggleTrainingOutput() {
-    const block = document.getElementById("training-output");
-    block.style.display = block.style.display === "none" ? "block" : "none";
-  }
+    function updateSelection() {
+      const checkboxes = document.querySelectorAll('.message-checkbox');
+      const checked = document.querySelectorAll('.message-checkbox:checked');
+      const count = checked.length;
+      
+      document.getElementById('selected-count').textContent = count;
+      document.getElementById('bulk-submit').disabled = count === 0;
+      
+      // Update select-all checkbox state
+      const selectAll = document.getElementById('select-all');
+      selectAll.checked = count === checkboxes.length && count > 0;
+      selectAll.indeterminate = count > 0 && count < checkboxes.length;
+    }
+    
+    function toggleSelectAll() {
+      const selectAll = document.getElementById('select-all');
+      const checkboxes = document.querySelectorAll('.message-checkbox');
+      
+      checkboxes.forEach(cb => {
+        cb.checked = selectAll.checked;
+      });
+      
+      updateSelection();
+    }
+    
+    function applyFilters() {
+      const label = document.getElementById('label-filter').value;
+      const confidence = document.getElementById('confidence-filter').value;
+      const company = document.getElementById('company-filter').value;
+      const perPage = document.getElementById('per-page').value;
+      
+      window.location.href = `{% url 'label_messages' %}?label=${label}&confidence=${confidence}&company=${company}&per_page=${perPage}&page=1`;
+    }
+    
+    function changePerPage() {
+      applyFilters();
+    }
+    
+    function goToPage(pageNum) {
+      const label = document.getElementById('label-filter').value;
+      const confidence = document.getElementById('confidence-filter').value;
+      const company = document.getElementById('company-filter').value;
+      const perPage = document.getElementById('per-page').value;
+      
+      window.location.href = `{% url 'label_messages' %}?label=${label}&confidence=${confidence}&company=${company}&per_page=${perPage}&page=${pageNum}`;
+    }
+    
+    // Confirm before submitting
+    document.getElementById('bulk-form').addEventListener('submit', function(e) {
+      const count = document.querySelectorAll('.message-checkbox:checked').length;
+      const label = document.getElementById('bulk-label').value;
+      
+      if (!label) {
+        e.preventDefault();
+        alert('Please select a label');
+        return;
+      }
+      
+      if (!confirm(`Label ${count} message(s) as "${label}"?`)) {
+        e.preventDefault();
+      }
+    });
   </script>
-  {% endif %}
 </body>
 </html>

@@ -1,0 +1,28 @@
+{
+  "known": [
+    "Amazon",
+    "Apple",
+    "Google",
+    "Microsoft",
+    "Meta",
+    "Netflix"
+  ],
+  "domain_to_company": {
+    "gmail.com": "Google",
+    "me.com": "Apple",
+    "greenhouse-mail.io": "Greenhouse"
+  },
+  "ats_domains": [
+    "myworkday.com",
+    "myworkdayjobs.com",
+    "jobvite.com",
+    "newtonsoftware.com",
+    "greenhouse.io",
+    "greenhouse-mail.io",
+    "smartrecruiters.com",
+    "pageuppeople.com",
+    "icims.com",
+    "lever.co"
+  ],
+  "aliases": {}
+}

@@ -3,6 +3,7 @@
 ## Now / Next / Later Roadmap
 
 ### **Now** (In Progress)
+
 - [Story 1: Add company/job correlation index](#story-1-add-companyjob-correlation-index)
 - [Story 9: Environment readiness checker and admin diagnostics]
 
@@ -178,7 +179,9 @@ As a future maintainer, I want clear documentation so I can onboard quickly.
 **Security & Documentation:**
 
 - Document all security‑relevant decisions.
+  
 - Keep docs in sync with code changes.
+  
 ### Story 9: Environment readiness checker and admin diagnostics
 
 **Description:**  
@@ -203,4 +206,5 @@ As a developer or maintainer, I want a script and admin page that verifies the p
 **Security & Documentation:**
 
 - No secrets or credentials printed in logs or UI
+  
 - Documented in `SECURITY.md` and `README.md` under setup and deployment

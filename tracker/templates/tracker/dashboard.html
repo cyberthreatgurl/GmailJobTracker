@@ -1,5 +1,3 @@
-<!--dashboard.html -->
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,337 +6,225 @@
   <style>
     body {
       font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-      margin: 2rem;
+      margin: 0;
       background-color: #f9fafb;
       color: #333;
-      line-height: 1.6;
-    }
-    h1, h2 {
-      color: #1f2937;
-      margin-top: 2rem;
-      margin-bottom: 1rem;
-    }
-    .tabs {
-  display: flex;
-  margin-top: 2rem;
-  border-bottom: 2px solid #e5e7eb;
-}
-.tab {
-  padding: 0.75rem 1.25rem;
-  cursor: pointer;
-  font-weight: 600;
-  color: #374151;
-  border: 1px solid transparent;
-  border-bottom: none;
-  background: #f3f4f6;
-  margin-right: 0.5rem;
-  border-radius: 6px 6px 0 0;
-}
-.tab:hover {
-  background: #e5e7eb;
-}
-.tab.active {
-  background: #fff;
-  border-color: #d1d5db;
-  border-bottom: 2px solid #fff;
-}
-.tab-content {
-  display: none;
-}
-.tab-content.active {
-  display: block;
-}
-    ul {
-      list-style: none;
-      padding: 0;
-    }
-    li {
-      margin-bottom: 0.5rem;
-    }
-    .card {
-      background: #fff;
-      border-radius: 8px;
-      padding: 1rem 1.5rem;
-      margin-bottom: 1.5rem;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    }
-    .stats li {
-      font-weight: 500;
-      margin: 0.25rem 0;
-    }
-    a {
-      color: #2563eb;
-      text-decoration: none;
-    }
-    a:hover {
-      text-decoration: underline;
-    }
-    details {
-      background: #f3f4f6;
-      border-radius: 6px;
-      margin-bottom: 1rem;
-      padding: 0.75rem 1rem;
-    }
-    details summary {
-      cursor: pointer;
-      font-weight: 600;
-      color: #111827;
-    }
-    details[open] {
-      background: #e5e7eb;
-    }
-    .message {
-      margin-left: 1rem;
-      padding: 0.25rem 0;
-      border-left: 3px solid #d1d5db;
-      padding-left: 0.75rem;
-      font-size: 0.95rem;
-    }
-    .timestamp {
-      color: #6b7280;
+      line-height: 1.4;
       font-size: 0.85rem;
     }
-    canvas {
+    h1 {
+      color: #1f2937;
+      margin-top: 0.5rem;
+      margin-bottom: 0.75rem;
+      font-size: 1.5rem;
+    }
+    h2 {
+      color: #1f2937;
+      margin-top: 1rem;
+      margin-bottom: 0.5rem;
+      font-size: 1.1rem;
+    }
+    .dashboard-layout {
+      display: flex;
+      gap: 0.5rem;
       margin-top: 1rem;
     }
+    .sidebar {
+      flex: 0 0 220px;
+      max-width: 240px;
+    }
+    .charts-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    /* ...other styles... */
   </style>
 </head>
 <body>
 
   <h1>📊 Gmail Job Tracker Dashboard</h1>
 
-  <div class="card">
-    <ul class="stats">
-      <li>Total Companies Contacted: {{ companies }}</li>
-      <li>Total Applications Sent: {{ applications }}</li>
-      <li>Rejections This Week: {{ rejections_week }}</li>
-      <li>Interviews This Week: {{ interviews_week }}</li>
-    </ul>
-  </div>
-
-  <!-- ✅ Ingestion Stats card -->
-  <div class="card">
-    <h2>Ingestion Stats (Today)</h2>
-    {% if latest_stats %}
-      <ul class="stats">
-        {% if latest_stats.total_inserted == 0 %}
-        <div style="background:#fee2e2; padding:0.75rem; border-radius:6px; margin-top:1rem;">
-          ⚠️ No new messages ingested today.</p>
-        </div>
-          {% endif %}
-        <li>📥 Fetched: <strong>{{ latest_stats.total_fetched }}</strong></li>
-        <li>✅ Inserted: <strong>{{ latest_stats.total_inserted }}</strong></li>
-        <li>🚫 Ignored: <strong>{{ latest_stats.total_ignored }}</strong></li>
-        <li>⏭️ Skipped: <strong>{{ latest_stats.total_skipped }}</strong></li>
-        <li>📊 Success Rate: 
-          <strong>
-            {{ latest_stats.total_inserted|floatformat:2 }} /
-            {{ latest_stats.total_inserted|add:latest_stats.total_ignored|add:latest_stats.total_skipped }}
-          </strong>
-        </li>
-      </ul>
-      <p class="timestamp">Last updated: {{ latest_stats.date }}</p>
-      <p class="timestamp">Last sync completed: {{ latest_stats.last_updated|date:"Y-m-d H:i" }}</p>
-      <!-- Trend chart -->
-      <canvas id="ingestionChart" height="120"></canvas>
-    {% else %}
-      <p>No ingestion stats available yet.</p>
-    {% endif %}
-  </div>
-
-  <div class="card">
-    <h2>Upcoming Interviews</h2>
-    <ul>
-      {% for interview in upcoming_interviews %}
-        <li>{{ interview.company.name }} — {{ interview.interview_date }}</li>
-      {% empty %}
-        <li>No upcoming interviews</li>
-      {% endfor %}
-    </ul>
-  </div>
-
-  <div class="card">
-    <h2>Companies</h2>
-    <ul>
-      {% for company in companies_list %}
-        <li><a href="{% url 'company_detail' company.id %}">{{ company.name }}</a></li>
-      {% empty %}
-        <li>No companies found</li>
-      {% endfor %}
-    </ul>
-<div class="card">
-  <h2>Labeling Tools</h2>
-  <div class="tabs">
-    <div class="tab active" onclick="showTab('applications')">Label Applications</div>
-    <div class="tab" onclick="showTab('messages')">Label Messages</div>
-    <div class="tab" onclick="showTab('unresolved')">Label Unresolved Companies</div>
-  </div>
-
-  <div id="applications" class="tab-content active">
-    <p><a href="{% url 'label_applications' %}">➤ Go to Application Labeling</a></p>
-  </div>
-
-  <div id="messages" class="tab-content">
-    <p><a href="{% url 'label_messages' %}">➤ Go to Message Labeling</a></p>
-  </div>
-
-  <div id="unresolved" class="tab-content">
-    {% if unresolved_companies %}
-      <table style="width:100%; border-collapse: collapse;">
-        <thead>
-          <tr style="background:#f3f4f6;">
-            <th style="text-align:left; padding:0.5rem;">Message ID</th>
-            <th style="text-align:left; padding:0.5rem;">Sender Domain</th>
-            <th style="text-align:left; padding:0.5rem;">Timestamp</th>
-            <th style="text-align:left; padding:0.5rem;">Subject</th>
-            <th style="text-align:left; padding:0.5rem;">Notes</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for uc in unresolved_companies %}
-          <tr>
-            <td style="padding:0.5rem;">{{ uc.msg_id }}</td>
-            <td style="padding:0.5rem;">{{ uc.sender_domain }}</td>
-            <td style="padding:0.5rem;">{{ uc.timestamp|date:"Y-m-d H:i" }}</td>
-            <td style="padding:0.5rem;">{{ uc.subject }}</td>
-            <td style="padding:0.5rem;">{{ uc.notes|default:"—" }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    {% else %}
-      <p>No unresolved companies found.</p>
-    {% endif %}
-  </div>
-</div>
-</div>
-
-<!-- ✅ Recent Messages -->
-<div class="card">
-  <h2>Recent Messages</h2>
-  <ul>
-    {% for msg in messages %}
-      <li>
-        {% if msg.company %}
-          <strong>{{ msg.company.name }}</strong>
-        {% else %}
-          <strong>No Company</strong>
-        {% endif %}
-        — {{ msg.subject }}
-        <span class="timestamp">({{ msg.timestamp|date:"Y-m-d H:i" }})</span>
-      </li>
-    {% empty %}
-      <li>No messages found.</li>
-    {% endfor %}
-  </ul>
-</div>
-
-<h2>🧵 Recent Threads</h2>
-{% for thread_id, msgs in threads %}
-  <div class="thread" style="margin-bottom: 2em; padding: 1em; border: 1px solid #ddd;">
-    <strong>Thread {{ thread_id }}</strong><br>
-    {% for msg in msgs %}
-      <div style="margin-top: 0.5em; padding-left: 1em;">
-        <em>{{ msg.timestamp|date:"Y-m-d H:i" }}</em> —
-        {% if msg.company %}
-          {{ msg.company.name }}
-        {% else %}
-          No Company
-        {% endif %}
-        <br>
-        <strong>{{ msg.subject }}</strong><br>
-        <span style="color: #6b7280;">Label: {{ msg.ml_label|default:"Unlabeled" }}</span><br>
-
-          <div style="font-size: 0.9em; color: #4b5563;">
-            <button onclick="toggleBody(this)" style="margin-bottom: 0.5rem; font-size: 0.75rem; background: #e5e7eb; border: none; padding: 0.25rem 0.5rem; border-radius: 4px; cursor: pointer;">
-              Toggle View
-            </button>
-            <div class="rendered-body">
-              {{ msg.body_html|default:"<em>No HTML body available.</em>"|safe }}
-            </div>
-            <pre class="raw-body" style="display: none; white-space: pre-wrap;">{{ msg.body }}</pre>
-          </div>
-
+  <div class="dashboard-layout">
+    {% include "tracker/_sidebar.html" %}
+    <div class="charts-container">
+      <div class="card">
+        <h2>Message Ingestion Activity (Last 30 Days)</h2>
+        <canvas id="ingestionChart" height="100"></canvas>
       </div>
-    {% endfor %}
+
+      <div class="card">
+        <h2>Job Search Activity by Type (Last 30 Days)</h2>
+        <canvas id="activityChart" height="100"></canvas>
+      </div>
+    </div>
   </div>
-{% empty %}
-  <p>No recent threads found.</p>
-{% endfor %}
-
-
 
   <!-- ✅ Chart.js integration -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
     {% if chart_labels %}
-    const ctx = document.getElementById('ingestionChart').getContext('2d');
-    const ingestionChart = new Chart(ctx, {
-      type: 'bar',
+    // Ingestion Stats Chart (Line)
+    const ctxIngestion = document.getElementById('ingestionChart').getContext('2d');
+    const ingestionChart = new Chart(ctxIngestion, {
+      type: 'line',
       data: {
         labels: {{ chart_labels|safe }},
         datasets: [
           {
             label: 'Inserted',
             data: {{ chart_inserted|safe }},
-            backgroundColor: '#10b981'
+            borderColor: '#10b981',
+            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+            fill: true,
+            tension: 0.3,
+            borderWidth: 2
           },
           {
             label: 'Skipped',
             data: {{ chart_skipped|safe }},
-            backgroundColor: '#f59e0b'
+            borderColor: '#f59e0b',
+            backgroundColor: 'rgba(245, 158, 11, 0.1)',
+            fill: true,
+            tension: 0.3,
+            borderWidth: 2
           },
           {
             label: 'Ignored',
             data: {{ chart_ignored|safe }},
-            backgroundColor: '#ef4444'
+            borderColor: '#ef4444',
+            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+            fill: true,
+            tension: 0.3,
+            borderWidth: 2
           }
         ]
       },
       options: {
         responsive: true,
+        maintainAspectRatio: true,
         plugins: {
-          legend: { position: 'bottom' },
-          title: { display: true, text: 'Ingestion Activity (Last 7 Days)' },
+          legend: { 
+            position: 'bottom',
+            labels: { font: { size: 10 } }
+          },
+          title: { display: false },
           tooltip: {
             mode: 'index',
-            intersect: false
+            intersect: false,
+            bodyFont: { size: 10 }
           }
         },
         scales: {
-          x: { stacked: true },
-          y: { stacked: true, beginAtZero: true }
+          x: { 
+            display: true,
+            ticks: { font: { size: 9 } },
+            title: { display: false }
+          },
+          y: { 
+            beginAtZero: true,
+            ticks: { font: { size: 9 } },
+            title: { display: false }
+          }
+        }
+      }
+    });
+
+    // Application Activity Chart (Line)
+    const ctxActivity = document.getElementById('activityChart').getContext('2d');
+    const activityChart = new Chart(ctxActivity, {
+      type: 'line',
+      data: {
+        labels: {{ chart_labels|safe }},
+        datasets: [
+          {
+            label: 'Applications',
+            data: {{ chart_applications|safe }},
+            borderColor: '#2563eb',
+            backgroundColor: 'rgba(37, 99, 235, 0.1)',
+            fill: true,
+            tension: 0.3,
+            borderWidth: 2
+          },
+          {
+            label: 'Rejections',
+            data: {{ chart_rejections|safe }},
+            borderColor: '#ef4444',
+            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+            fill: true,
+            tension: 0.3,
+            borderWidth: 2
+          },
+          {
+            label: 'Interviews',
+            data: {{ chart_interviews|safe }},
+            borderColor: '#10b981',
+            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+            fill: true,
+            tension: 0.3,
+            borderWidth: 2
+          },
+          {
+            label: 'Referrals',
+            data: {{ chart_referrals|safe }},
+            borderColor: '#8b5cf6',
+            backgroundColor: 'rgba(139, 92, 246, 0.1)',
+            fill: true,
+            tension: 0.3,
+            borderWidth: 2
+          },
+          {
+            label: 'Head Hunters',
+            data: {{ chart_headhunters|safe }},
+            borderColor: '#f59e0b',
+            backgroundColor: 'rgba(245, 158, 11, 0.1)',
+            fill: true,
+            tension: 0.3,
+            borderWidth: 2
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+          legend: { 
+            position: 'bottom',
+            labels: { font: { size: 10 } }
+          },
+          title: { display: false },
+          tooltip: {
+            mode: 'index',
+            intersect: false,
+            bodyFont: { size: 10 }
+          }
+        },
+        scales: {
+          x: { 
+            display: true,
+            ticks: { font: { size: 9 } },
+            title: { display: false }
+          },
+          y: { 
+            beginAtZero: true,
+            ticks: { font: { size: 9 } },
+            title: { display: false }
+          }
         }
       }
     });
     {% endif %}
   </script>
 
-<script>
-  function showTab(tabId) {
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-    document.getElementById(tabId).classList.add('active');
-    document.querySelector(`.tab[onclick="showTab('${tabId}')"]`).classList.add('active');
-  }
-</script>  
-<script>
-  function toggleBody(button) {
-    const container = button.parentElement;
-    const rendered = container.querySelector(".rendered-body");
-    const raw = container.querySelector(".raw-body");
-
-    if (rendered.style.display === "none") {
-      rendered.style.display = "block";
-      raw.style.display = "none";
-      button.textContent = "Toggle View";
-    } else {
-      rendered.style.display = "none";
-      raw.style.display = "block";
-      button.textContent = "Toggle View";
+  <script>
+    function showTab(tabId) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+      document.querySelector(`.tab[onclick="showTab('${tabId}')"]`).classList.add('active');
     }
-  }
-</script>
+  </script>
 
 </body>
 </html>

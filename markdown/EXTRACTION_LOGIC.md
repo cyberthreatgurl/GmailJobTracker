@@ -42,4 +42,4 @@ This document outlines how company names, job titles, job IDs, and status values
 
 - Combines keyword rules from `patterns.json` with ML classification
 - Confidence score stored in DB
-- Status values include: `interview`, `rejection`, `job_alert`, `application`, `follow_up`, `noise`
+- Status values include: `interview`, `rejection`, `job_alert`, `application`, `follow_up`, `noise`,`referral`,`empty`

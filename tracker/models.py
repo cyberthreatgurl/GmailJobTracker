@@ -2,9 +2,29 @@
 from django.db import models
 from django.utils.timezone import now
 
+
 class Company(models.Model):
     name = models.CharField(max_length=255)
     domain = models.CharField(max_length=255, blank=True)
+    ats = models.CharField(
+        max_length=255, blank=True, null=True
+    )  # New field for ATS domain
+    homepage = models.URLField(max_length=512, blank=True, null=True)
+    contact_name = models.CharField(max_length=255, blank=True, null=True)
+    contact_email = models.EmailField(max_length=255, blank=True, null=True)
+    status = models.CharField(
+        max_length=32,
+        choices=[
+            ("application", "Application"),
+            ("interview", "Interview"),
+            ("follow-up", "Follow-up"),
+            ("rejected", "Rejected"),
+            ("ghosted", "Ghosted"),
+        ],
+        blank=True,
+        null=True,
+        default="application",
+    )
     first_contact = models.DateTimeField()
     last_contact = models.DateTimeField()
     confidence = models.FloatField(null=True, blank=True)
@@ -18,6 +38,7 @@ class Company(models.Model):
     def application_count(self):
         return self.application_set.count()
 
+
 class Application(models.Model):
     thread_id = models.CharField(max_length=255, unique=True)
     company_source = models.CharField(max_length=50, blank=True)
@@ -28,17 +49,23 @@ class Application(models.Model):
     sent_date = models.DateField()
     rejection_date = models.DateField(null=True, blank=True)
     interview_date = models.DateField(null=True, blank=True)
-    ml_label = models.CharField(max_length=50, blank=True, null=True)  # e.g., job_alert, noise
+    ml_label = models.CharField(
+        max_length=50, blank=True, null=True
+    )  # e.g., job_alert, noise
     ml_confidence = models.FloatField(blank=True, null=True)
     reviewed = models.BooleanField(default=False)
+
     def __str__(self):
         return f"{self.company.name} - {self.job_title}"
+
 
 class Message(models.Model):
     company = models.ForeignKey(
         Company, null=True, blank=True, on_delete=models.SET_NULL
     )
-    company_source = models.CharField(max_length=50, null=True, blank=True)  # ✅ Add this
+    company_source = models.CharField(
+        max_length=50, null=True, blank=True
+    )  # ✅ Add this
     sender = models.CharField(max_length=255)
     subject = models.TextField()
     body = models.TextField()
@@ -47,29 +74,35 @@ class Message(models.Model):
     timestamp = models.DateTimeField()
 
     # Gmail identifiers
-    msg_id = models.CharField(max_length=255, unique=True)  # NEW: unique Gmail messageId
-    thread_id = models.CharField(max_length=255, db_index=True)   # keep, but index for grouping
+    msg_id = models.CharField(
+        max_length=255, unique=True
+    )  # NEW: unique Gmail messageId
+    thread_id = models.CharField(
+        max_length=255, db_index=True
+    )  # keep, but index for grouping
 
     # Manual labeling for ML
     ml_label = models.CharField(max_length=50, null=True, blank=True)  # NEW
-    confidence = models.FloatField(null=True, blank=True)   # ✅ NEW
-    reviewed = models.BooleanField(default=False)                      # NEW
+    confidence = models.FloatField(null=True, blank=True)  # ✅ NEW
+    reviewed = models.BooleanField(default=False)  # NEW
 
     def __str__(self):
         company_name = self.company.name if self.company else "No Company"
         return f"{company_name} – {self.timestamp.strftime('%Y-%m-%d %H:%M')}"
-        
+
+
 class IgnoredMessage(models.Model):
     msg_id = models.CharField(max_length=128, unique=True)
     subject = models.TextField()
     body = models.TextField()
-    company_source=models.CharField(max_length=50, blank=True)
+    company_source = models.CharField(max_length=50, blank=True)
     sender = models.CharField(max_length=256)
     sender_domain = models.CharField(max_length=256)
     date = models.DateTimeField()
     reason = models.CharField(max_length=128)  # e.g., 'ml_ignore', 'low_confidence'
-    logged_at = models.DateTimeField(auto_now_add=True)    
-    
+    logged_at = models.DateTimeField(auto_now_add=True)
+
+
 class IngestionStats(models.Model):
     date = models.DateField(primary_key=True)
     total_fetched = models.IntegerField(default=0)
@@ -77,7 +110,8 @@ class IngestionStats(models.Model):
     total_ignored = models.IntegerField(default=0)
     total_skipped = models.IntegerField(default=0)
     last_updated = models.DateTimeField(auto_now=True)
-    
+
+
 class UnresolvedCompany(models.Model):
     msg_id = models.CharField(max_length=128, unique=True)
     subject = models.TextField()
@@ -87,24 +121,29 @@ class UnresolvedCompany(models.Model):
     timestamp = models.DateTimeField()
     notes = models.TextField(blank=True, null=True)
     reviewed = models.BooleanField(default=False)
-    
+
     def __str__(self):
         return f"{self.msg_id} ({self.sender_domain})"
-    
+
+
 class KnownCompany(models.Model):
     name = models.CharField(max_length=255, unique=True)
 
+
 class ATSDomain(models.Model):
     domain = models.CharField(max_length=255, unique=True)
+
 
 class DomainToCompany(models.Model):
     domain = models.CharField(max_length=255, unique=True)
     company = models.CharField(max_length=255)
 
+
 class CompanyAlias(models.Model):
     alias = models.CharField(max_length=255, unique=True)
-    company = models.CharField(max_length=255) 
-    
+    company = models.CharField(max_length=255)
+
+
 class Ticket(models.Model):
     CATEGORY_CHOICES = [
         ("code", "Code Problem"),
@@ -128,10 +167,11 @@ class Ticket(models.Model):
 
     def __str__(self):
         return f"[{self.category}] {self.title}"
-    
+
+
 class ProcessedMessage(models.Model):
     gmail_id = models.CharField(max_length=255, unique=True, db_index=True)
     processed_at = models.DateTimeField(auto_now_add=True)
-    
+
     class Meta:
-        indexes = [models.Index(fields=['gmail_id'])]
+        indexes = [models.Index(fields=["gmail_id"])]

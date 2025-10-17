@@ -91,7 +91,10 @@
       "\\b(offer|compensation|package|extend|congratulations)\\b"
     ],
     "noise": [
-      "\\b(unsubscribe|newsletter|digest|promotion|marketing|sale)\\b"
+      "\\b(unsubscribe|newsletter|digest|promotion|marketing|sale|verification code|one-time (code|password|verification)|OTP|2FA code|security code|login code|access code)\\b"
+    ],
+    "referral": [
+      "\\b(referral|referred|refer|recommendation|recommended you|intro\\b|introduction|connect you with|connecting you with)\\b"
     ]
   }
 }

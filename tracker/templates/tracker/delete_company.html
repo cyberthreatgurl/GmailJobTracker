@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Delete Company</title>
+  <style>
+    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; margin: 0; background: #f9fafb; color: #333; }
+    .dashboard-layout { display: flex; gap: 0.5rem; margin: 0; }
+    .sidebar { flex: 0 0 220px; max-width: 240px; }
+    .main-content { flex: 1; padding: 2rem 2rem 2rem 0.5rem; }
+    h1 { color: #b91c1c; margin-bottom: 1.5rem; font-size: 1.5rem; }
+    .delete-form { background: #fff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.07); padding: 2rem; max-width: 500px; }
+    .delete-form button { background: #b91c1c; color: white; font-weight: 600; padding: 0.7rem 1.5rem; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem; margin-top: 1.5rem; }
+    .delete-form button:hover { background: #991b1b; }
+    .danger { color: #b91c1c; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <div class="dashboard-layout">
+    {% include "tracker/_sidebar.html" %}
+    <div class="main-content">
+      <h1>Delete Company</h1>
+      <div class="delete-form">
+        <p class="danger">Are you sure you want to delete <strong>{{ company.name }}</strong> and all its associated applications, messages, and details? This action cannot be undone.</p>
+        <form method="post">
+          {% csrf_token %}
+          <button type="submit">Yes, Delete Company</button>
+          <a href="{% url 'label_companies' %}" style="margin-left:1.5rem; color:#2563eb; text-decoration:underline;">Cancel</a>
+        </form>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

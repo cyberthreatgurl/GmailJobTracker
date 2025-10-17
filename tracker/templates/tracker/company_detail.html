@@ -1,19 +1,72 @@
-<h1>{{ company.name }}</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ company.name }} — Company Detail</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      font-size: 0.9rem;
+      margin: 0;
+      background-color: #f9fafb;
+      color: #333;
+      line-height: 1.6;
+    }
+    .dashboard-layout { display: flex; gap: 1rem; margin: 0; }
+    .sidebar { flex: 0 0 30%; max-width: 30%; }
+    .main-content { flex: 1; padding: 2rem 2rem 2rem 0; }
+    h1 {
+      color: #1f2937;
+      margin-bottom: 1.5rem;
+      font-size: 1.5rem;
+    }
+    h2 {
+      color: #374151;
+      margin-top: 1.5rem;
+      margin-bottom: 0.75rem;
+      font-size: 1.1rem;
+    }
+    ul {
+      padding-left: 1.2rem;
+      margin-bottom: 1.5rem;
+    }
+    li {
+      margin-bottom: 0.5rem;
+    }
+    .msg-body {
+      color: #4b5563;
+      font-size: 0.85rem;
+      margin-top: 0.2rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard-layout">
+    {% include "tracker/_sidebar.html" %}
+    <div class="main-content">
+      <h1>{{ company.name }}</h1>
 
-<h2>Applications</h2>
-<ul>
-  {% for app in applications %}
-    <li>{{ app.job_title }} — {{ app.status }} (Sent: {{ app.sent_date }})</li>
-  {% empty %}
-    <li>No applications</li>
-  {% endfor %}
-</ul>
+      <h2>Applications</h2>
+      <ul>
+        {% for app in applications %}
+          <li>{{ app.job_title }} — {{ app.status }} (Sent: {{ app.sent_date }})</li>
+        {% empty %}
+          <li>No applications</li>
+        {% endfor %}
+      </ul>
 
-<h2>Messages</h2>
-<ul>
-  {% for msg in messages %}
-    <li><strong>{{ msg.timestamp|date:"Y-m-d H:i" }}</strong>: {{ msg.subject }}<br>{{ msg.body }}</li>
-  {% empty %}
-    <li>No messages</li>
-  {% endfor %}
-</ul>
+      <h2>Messages</h2>
+      <ul>
+        {% for msg in messages %}
+          <li>
+            <strong>{{ msg.timestamp|date:"Y-m-d H:i" }}</strong>: {{ msg.subject }}<br>
+            <span class="msg-body">{{ msg.body }}</span>
+          </li>
+        {% empty %}
+          <li>No messages</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</body>
+</html>

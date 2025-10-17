@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Company Threads</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      font-size: 0.9rem;
+      margin: 0;
+      background-color: #f9fafb;
+      color: #333;
+      line-height: 1.6;
+    }
+    .dashboard-layout { display: flex; gap: 1rem; margin: 0; }
+    .sidebar { flex: 0 0 30%; max-width: 30%; }
+    .main-content { flex: 1; padding: 2rem 2rem 2rem 0; }
+    h1 {
+      color: #1f2937;
+      margin-bottom: 1.5rem;
+      font-size: 1.5rem;
+    }
+    .company-select {
+      margin-bottom: 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    select {
+      padding: 0.4rem 0.6rem;
+      border-radius: 4px;
+      border: 1px solid #d1d5db;
+      font-size: 1rem;
+      min-width: 220px;
+    }
+    .threads-container {
+      margin-top: 1rem;
+    }
+    .thread-card {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.07);
+      margin-bottom: 2rem;
+      padding: 1.25rem 1.5rem;
+    }
+    .thread-subject {
+      font-weight: 600;
+      font-size: 1.1rem;
+      color: #2563eb;
+      margin-bottom: 0.5rem;
+    }
+    .msg-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .msg-item {
+      border-bottom: 1px solid #e5e7eb;
+      padding: 0.5rem 0;
+    }
+    .msg-item:last-child {
+      border-bottom: none;
+    }
+    .msg-meta {
+      color: #6b7280;
+      font-size: 0.85rem;
+      margin-bottom: 0.2rem;
+    }
+    .msg-body {
+      color: #374151;
+      font-size: 0.97rem;
+      margin-bottom: 0.2rem;
+      white-space: pre-line;
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard-layout" style="gap:0.5rem;">
+    {% include "tracker/_sidebar.html" %}
+    <div class="main-content" style="padding-left:0.5rem;">
+      <h1>Company Message Threads</h1>
+      <form method="get" class="company-select">
+        <label for="company">Select Company:</label>
+        <select name="company" id="company" onchange="this.form.submit()">
+          <option value="">-- Choose a company --</option>
+          {% for c in company_list %}
+            <option value="{{ c.id }}" {% if selected_company and c.id == selected_company.id %}selected{% endif %}>{{ c.name }}</option>
+          {% endfor %}
+        </select>
+      </form>
+
+      {% if selected_company %}
+        <h2 style="margin-bottom:1.5rem;">Threads for <span style="color:#2563eb;">{{ selected_company.name }}</span></h2>
+        <div class="threads-container">
+          <table style="width:100%; border-collapse:collapse;">
+            <thead>
+              <tr style="background:#f3f4f6;">
+                <th style="padding:0.5rem;">Initial Date</th>
+                <th style="padding:0.5rem;">Subject</th>
+                <th style="padding:0.5rem;">Label</th>
+                <th style="padding:0.5rem;">Thread</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for thread in threads_by_subject %}
+                {% with first_msg=thread.messages.0 %}
+                <tr class="thread-row">
+                  <td style="padding:0.5rem;">{{ first_msg.timestamp|date:"Y-m-d H:i" }}</td>
+                  <td style="padding:0.5rem; font-weight:600; color:#2563eb;">{{ thread.subject }}</td>
+                  <td style="padding:0.5rem;">
+                    <span style="background:#e0e7ff; color:#3730a3; border-radius:4px; padding:0.2rem 0.5rem; font-size:0.85rem;">
+                      {{ first_msg.ml_label|default:"N/A" }}
+                    </span>
+                  </td>
+                  <td style="padding:0.5rem;">
+                    <details class="thread-details">
+                      <summary style="cursor:pointer; font-weight:500; color:#2563eb;">Show Thread ({{ thread.messages|length }})</summary>
+                      <ul class="msg-list" style="margin-top:0.5rem;">
+                        {% for msg in thread.messages %}
+                          <li class="msg-item">
+                            <div class="msg-meta">
+                              <strong>{{ msg.timestamp|date:"Y-m-d H:i" }}</strong> — {{ msg.sender }}
+                              <span style="background:#f3f4f6; color:#374151; border-radius:4px; padding:0.15rem 0.4rem; font-size:0.8rem; margin-left:0.5rem;">{{ msg.ml_label|default:"N/A" }}</span>
+                            </div>
+                            <div class="msg-body">
+                              {% if msg.body_html %}
+                                {{ msg.body_html|safe }}
+                              {% else %}
+                                {{ msg.body|linebreaksbr }}
+                              {% endif %}
+                            </div>
+                          </li>
+                        {% endfor %}
+                      </ul>
+                    </details>
+                  </td>
+                </tr>
+                {% endwith %}
+              {% empty %}
+                <tr><td colspan="4" style="color:#9ca3af; text-align:center; padding:1rem;">No threads found for this company.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <script>
+          // Auto-close other details when one is opened
+          document.addEventListener('click', function(e) {
+            if (e.target.tagName === 'SUMMARY') {
+              const allDetails = document.querySelectorAll('.thread-details');
+              allDetails.forEach(details => {
+                if (details !== e.target.parentElement && details.open) {
+                  details.open = false;
+                }
+              });
+            }
+          });
+        </script>
+      {% else %}
+        <div style="color:#9ca3af; margin-top:2rem;">Select a company to view message threads.</div>
+      {% endif %}
+    </div>
+  </div>
+</body>
+</html>

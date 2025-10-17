@@ -2,172 +2,203 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Label Messages</title>
-  <p>
-  Reviewed: {{ total_reviewed }} | Remaining: {{ total_unreviewed }}
-  </p>
-  <style>
-    body {
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-      font-size: 0.8rem; /* or 0.8rem for a tighter look */
-      margin: 2rem;
-      background-color: #f9fafb;
-      color: #333;
-      line-height: 1.6;
-    }
-    h1 {
-      color: #1f2937;
-      margin-bottom: 1.5rem;
-    }
-    form {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
-    .card {
-      clear: both;
-      background: #fff;
-      border-radius: 8px;
-      padding: 1rem 1.25rem;
-      margin-bottom: 1.5rem;
-      margin-top: 1rem;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    }
-    .subject {
-      font-weight: 600;
-      margin-bottom: 0.25rem;
-    }
-    .body {
-      font-size: 0.8rem;
-      color: #4b5563;
-      margin-bottom: 0.5rem;
-    }
-    .confidence {
-      font-size: 0.8rem;
-      color: #6b7280;
-      margin-bottom: 0.75rem;
-    }
-    label {
-      font-size: 0.8rem;
-      font-weight: 500;
-      margin-right: 0.5rem;
-    }
-    select {
-      padding: 0.2rem 0.2rem;
-      border-radius: 4px;
-      border: 1px solid #d1d5db;
-      font-size: 0.8rem;
-    }
-    button {
-      align-self: flex-start;
-      background-color: #2563eb;
-      color: white;
-      font-weight: 600;
-      padding: 0.5rem 1rem;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background-color 0.2s;
-    }
-    button:hover {
-      background-color: #1e40af;
-    }
-    table {
-      font-size: 0.8rem;
-      border-spacing: 0;
-    }
-
-    th {
-      font-weight: 600;
-      color: #374151;
-    }
-
-    td {
-      vertical-align: top;
-    }
-  </style>
-</head>
-<body>
-
-  <h1>📝 Label Messages</h1>
-  <form method="post" name="label_form">
-    {% csrf_token %}
-    <table style="width: 100%; border-collapse: collapse; margin-top: 1.5rem;">
-      <thead>
-        <tr style="background-color: #f3f4f6; text-align: left;">
-          <th style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;">DateTime</th>
-          <th style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;">Company</th>
-          <th style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;">Subject</th>
-          <th style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;">ML Label</th>
-          <th style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;">Body</th>
-          <th style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;">Confidence</th>
-          <th style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;">Assign Label</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for msg in messages %}
-        <tr style="vertical-align: top; {% if msg.ml_label == 'ghosted' %}background-color: #fef3c7;{% endif %}">
-          <td style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;">
-            {{ msg.timestamp|date:"Y-m-d H:i" }}
-          </td>
-          <td style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;">
-            {% if msg.company %}
-              {{ msg.company.name }}
-            {% else %}
-              No Company
-            {% endif %}
-          </td>
-          <td style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;">
-            {{ msg.subject }}
-          </td>
-          <td style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;">
-            <span style="
-              padding: 0.25rem 0.5rem;
-              border-radius: 4px;
-              font-size: 0.75rem;
-              font-weight: 500;
-              background-color: {% if msg.ml_label == 'job_application' %}#dbeafe{% elif msg.ml_label == 'interview_invite' %}#d1fae5{% elif msg.ml_label == 'rejection' %}#fee2e2{% elif msg.ml_label == 'head_hunter' %}#fef3c7{% elif msg.ml_label == 'job_alert' %}#e0e7ff{% elif msg.ml_label == 'noise' %}#f3f4f6{% else %}#fce7f3{% endif %};
-              color: {% if msg.ml_label == 'job_application' %}#1e40af{% elif msg.ml_label == 'interview_invite' %}#065f46{% elif msg.ml_label == 'rejection' %}#991b1b{% elif msg.ml_label == 'head_hunter' %}#92400e{% elif msg.ml_label == 'job_alert' %}#3730a3{% elif msg.ml_label == 'noise' %}#374151{% else %}#831843{% endif %};
-            ">
-              {{ msg.ml_label|label_display }}
-            </span>
-          </td>
-          <td style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb; max-width: 400px;">
-            <details>
-              <summary style="cursor: pointer; font-weight: 500; color: #2563eb;">
-                View message body
-              </summary>
-              <div style="margin-top: 0.5rem; font-size: 0.8em; color: #4b5563;">
-                {{ msg.rendered_body|safe }}
-              </div>
-            </details>
-          </td>
-          <td style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;">
-            {{ msg.confidence|default:"N/A"|floatformat:2 }}
-          </td>
-          <td style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;">
-            <select name="label_{{ msg.id }}" id="label_{{ msg.id }}" title="Assign label to message {{ msg.id }}">
-              <option value="">--</option>
-              <option value="job_application">Application</option>
-              <option value="interview_invite">Interview</option>
-              <option value="rejection">Rejection</option>
-              <option value="head_hunter">Head Hunter</option>
-              <option value="job_alert">Job Alert</option>
-              <option value="ghosted">Ghosted</option>
-              <option value="noise">Noise</option>
-            </select>
-          </td>
-        </tr>
-        {% empty %}
-        <tr>
-          <td colspan="7" style="padding: 1rem; text-align: center;">No unlabeled messages found.</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-    <button type="submit">Submit Labels</button>
-  </form>
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>🏷️ Label Messages</title>
+    <style>
+      body {
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        margin: 0;
+        background-color: #f9fafb;
+        color: #333;
+        line-height: 1.4;
+        font-size: 0.85rem;
+      }
+      h1 {
+        color: #1f2937;
+        margin-top: 0.5rem;
+        margin-bottom: 0.75rem;
+        font-size: 1.5rem;
+      }
+      .dashboard-layout {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 1rem;
+      }
+      .sidebar {
+        flex: 0 0 220px;
+        max-width: 240px;
+      }
+      .label-messages-container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+      .card {
+        background: #fff;
+        border-radius: 6px;
+        padding: 0.75rem 1rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      }
+      .button {
+        background: #2563eb;
+        color: white;
+        font-weight: 600;
+        font-size: 0.8rem;
+        padding: 0.4rem 0.8rem;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+      }
+      .button:hover {
+        background: #1e40af;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.8rem;
+        margin-top: 1rem;
+      }
+      th, td {
+        padding: 0.4rem 0.5rem;
+        border-bottom: 1px solid #e5e7eb;
+        text-align: left;
+      }
+      th {
+        background: #f3f4f6;
+        font-weight: 600;
+      }
+      tr:last-child td {
+        border-bottom: none;
+      }
+      .label-form {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+      }
+      .label-form select, .label-form input[type="text"] {
+        font-size: 0.85rem;
+        padding: 0.2rem 0.4rem;
+        border-radius: 3px;
+        border: 1px solid #d1d5db;
+      }
+      .label-form button {
+        margin-left: 0.5rem;
+      }
+      .timestamp {
+        color: #6b7280;
+        font-size: 0.75rem;
+      }
+      .label {
+        display: inline-block;
+        background: #e0e7ff;
+        color: #3730a3;
+        border-radius: 3px;
+        padding: 0.1rem 0.4rem;
+        font-size: 0.75rem;
+        margin-right: 0.2rem;
+      }
+      .reviewed {
+        color: #059669;
+        font-weight: 600;
+      }
+      .not-reviewed {
+        color: #b91c1c;
+        font-weight: 600;
+      }
+      .company-link {
+        color: #2563eb;
+        text-decoration: underline;
+        font-size: 0.85rem;
+      }
+      .company-link:hover {
+        color: #1e40af;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🏷️ Label Messages</h1>
+    <div class="dashboard-layout">
+      {% include "tracker/_sidebar.html" %}
+      <div class="label-messages-container">
+        <div class="card">
+          <h2>Messages Needing Labeling</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Subject</th>
+                <th>Company</th>
+                <th>Current Label</th>
+                <th>Label Confidence</th>
+                <th>Company Confidence</th>
+                <th>Reviewed</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for message in messages %}
+              <tr>
+                <td>{{ message.subject }}</td>
+                <td>
+                  {% if message.company %}
+                    <a href="{% url 'company_detail' message.company.id %}" class="company-link">{{ message.company.name }}</a>
+                  {% else %}
+                    <span style="color:#b91c1c;">Unresolved</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if message.ml_label %}
+                    <span class="label">{{ message.ml_label }}</span>
+                  {% else %}
+                    <span style="color:#b91c1c;">Unlabeled</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if message.confidence %}{{ message.confidence|floatformat:2 }}{% else %}N/A{% endif %}
+                </td>
+                <td>
+                  {% if message.company and message.company.confidence %}{{ message.company.confidence|floatformat:2 }}{% else %}N/A{% endif %}
+                </td>
+                <td>
+                  {% if message.reviewed %}
+                    <span class="reviewed">Yes</span>
+                  {% else %}
+                    <span class="not-reviewed">No</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <form method="post" class="label-form" action="{% url 'label_messages' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="message_id" value="{{ message.id }}">
+                    <select name="ml_label">
+                      {% for label in label_choices %}
+                        <option value="{{ label }}" {% if message.ml_label == label %}selected{% endif %}>{{ label }}</option>
+                      {% endfor %}
+                    </select>
+                    <button type="submit" class="button">Save</button>
+                  </form>
+                </td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="5">No messages to label.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </body>
+  </html>
+        });
+      </script>
+    </div>
+  </div>
 
   {% if training_output %}
   <div class="card mt-4">

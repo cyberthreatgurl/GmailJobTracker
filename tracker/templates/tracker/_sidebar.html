@@ -1,0 +1,77 @@
+{# tracker/templates/tracker/_sidebar.html #}
+<div class="sidebar" style="max-width: 240px; min-width: 200px; flex: 0 0 220px;">
+  <!-- Main Dashboard Button -->
+  <div style="margin-bottom:1.2rem;">
+    <a href="{% url 'dashboard' %}" class="button" style="display:block; width:100%; background:#2563eb; color:white; font-weight:600; border-radius:6px; padding:0.7rem 0; text-align:center; font-size:1.1rem;">🏠 Dashboard</a>
+  </div>
+  <!-- Upcoming Interviews at the top -->
+  <div class="card">
+    <h2>🗓️ Upcoming Interviews</h2>
+    <ul>
+      {% for interview in upcoming_interviews %}
+        <li>{{ interview.company.name }} — {{ interview.interview_date|date:"Y-m-d" }}</li>
+      {% empty %}
+        <li>No upcoming interviews</li>
+      {% endfor %}
+    </ul>
+  </div>
+
+  <!-- Summary Stats -->
+  <div class="card">
+    <h2>📊 Summary</h2>
+    <ul class="stats">
+  <li>Total Companies: {{ companies }}</li>
+  <li>Total Applications: {{ applications_count|default:applications }}</li>
+      <li>Rejections This Week: {{ rejections_week }}</li>
+      <li>Interviews This Week: {{ interviews_week }}</li>
+    </ul>
+  </div>
+
+  <!-- Ingestion Stats -->
+  <div class="card">
+    <h2>Ingestion Stats (Today)</h2>
+    {% if latest_stats %}
+      <ul class="stats">
+        {% if latest_stats.total_inserted == 0 %}
+        <div style="background:#fee2e2; padding:0.5rem; border-radius:4px; margin-top:0.5rem; font-size:0.75rem;">
+          ⚠️ No new messages ingested today.
+        </div>
+        {% endif %}
+        <li>📥 Fetched: <strong>{{ latest_stats.total_fetched }}</strong></li>
+        <li>✅ Inserted: <strong>{{ latest_stats.total_inserted }}</strong></li>
+        <li>🚫 Ignored: <strong>{{ latest_stats.total_ignored }}</strong></li>
+        <li>⏭️ Skipped: <strong>{{ latest_stats.total_skipped }}</strong></li>
+        <li>📊 Success Rate: 
+          <strong>
+            {{ latest_stats.total_inserted|floatformat:2 }} /
+            {{ latest_stats.total_inserted|add:latest_stats.total_ignored|add:latest_stats.total_skipped }}
+          </strong>
+        </li>
+      </ul>
+      <p class="timestamp">Last updated: {{ latest_stats.date }}</p>
+      <p class="timestamp">Last sync: {{ latest_stats.last_updated|date:"Y-m-d H:i" }}</p>
+    {% else %}
+      <p style="font-size:0.75rem;">No ingestion stats available yet.</p>
+    {% endif %}
+  </div>
+
+  <!-- Labeling Tool: Label Messages & Companies -->
+  <div class="card">
+    <h2>🏷️ Labeling Tool</h2>
+    <a href="{% url 'label_messages' %}" class="button" style="width:100%; background:#2563eb; color:white; font-weight:600; border-radius:6px; padding:0.6rem 0; text-align:center; margin-bottom:0.5rem;">Label Messages</a>
+    <a href="{% url 'label_companies' %}" class="button" style="width:100%; background:#2563eb; color:white; font-weight:600; border-radius:6px; padding:0.6rem 0; text-align:center;">Label Companies</a>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="card">
+    <h2>⚙️ Quick Actions</h2>
+    <div style="display:flex; flex-direction:column; gap:0.5rem;">
+      <a href="{% url 'metrics' %}" class="button" style="width:100%; background:#2563eb; color:white; font-weight:600; border-radius:6px; padding:0.6rem 0; text-align:center;">View Metrics</a>
+      <a href="{% url 'company_threads' %}" class="button" style="width:100%; background:#2563eb; color:white; font-weight:600; border-radius:6px; padding:0.6rem 0; text-align:center;">Company Threads</a>
+      <form method="post" action="{% url 'retrain_model' %}" style="margin:0;">
+        {% csrf_token %}
+        <button type="submit" class="button" style="width:100%; background:#2563eb; color:white; font-weight:600; border-radius:6px; padding:0.6rem 0; text-align:center;">Retrain Model</button>
+      </form>
+    </div>
+  </div>
+</div>

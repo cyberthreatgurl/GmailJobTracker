@@ -59,13 +59,22 @@ _MSG_LABEL_PATTERNS = {
         "ignore",
         "response",
         "follow_up",
+        "referral",
     )
 }
 
 
 def rule_label(subject: str, body: str = "") -> str | None:
     s = f"{subject or ''} {body or ''}"
-    for label in ("interview", "application", "rejection", "offer", "noise"):
+    for label in (
+        "interview",
+        "application",
+        "rejection",
+        "offer",
+        "noise",
+        "referral",
+        "blank",
+    ):
         for rx in _MSG_LABEL_PATTERNS.get(label, []):
             if rx.search(s):
                 return label
@@ -90,11 +99,11 @@ def predict_with_fallback(
     return ml
 
 
-def strip_html_tags(text: str) -> str:
-    if not text:
-        return ""
-    # BeautifulSoup handles nested tags, entities, script/style removal better than regex
-    return BeautifulSoup(text, "html.parser").get_text(separator=" ", strip=True)
+# def strip_html_tags(text: str) -> str:
+#    if not text:
+#        return "Empty"
+#    # BeautifulSoup handles nested tags, entities, script/style removal better than regex
+#    return BeautifulSoup(text, "html.parser").get_text(separator=" ", strip=True)
 
 
 def get_stats():
@@ -114,23 +123,23 @@ def decode_part(data, encoding):
         return data
 
 
-def extract_body(payload):
-    """Best-effort plain-text body extraction for simple payloads."""
-    if "parts" in payload:
-        for part in payload["parts"]:
-            mt = part.get("mimeType")
-            data = part.get("body", {}).get("data")
-            if not data:
-                continue
-            decoded = base64.urlsafe_b64decode(data).decode("utf-8", errors="ignore")
-            if mt == "text/plain":
-                return decoded
-            if mt == "text/html":
-                return strip_html_tags(decoded)
-    data = payload.get("body", {}).get("data")
-    return (
-        base64.urlsafe_b64decode(data).decode("utf-8", errors="ignore") if data else ""
-    )
+# def extract_body(payload):
+#    """Best-effort plain-text body extraction for simple payloads."""
+##    if "parts" in payload:
+#        for part in payload["parts"]:
+#            mt = part.get("mimeType")
+#            data = part.get("body", {}).get("data")
+#            if not data:
+#               continue
+#            decoded = base64.urlsafe_b64decode(data).decode("utf-8", errors="ignore")
+#            if mt == "text/plain":
+#                return decoded
+#            if mt == "text/html":
+#                return strip_html_tags(decoded)
+#    data = payload.get("body", {}).get("data")
+#    return (
+#        base64.urlsafe_b64decode(data).decode("utf-8", errors="ignore") if data else ""
+#    )
 
 
 def extract_body_from_parts(parts):
@@ -141,11 +150,16 @@ def extract_body_from_parts(parts):
             decoded = base64.urlsafe_b64decode(body_data).decode(
                 "utf-8", errors="ignore"
             )
+            if not decoded:
+                decoded = "Empty Body"
+                print("Decoded Body/HTML part is empty.")
             return decoded  # preserve full HTML
         elif "parts" in part:
             result = extract_body_from_parts(part["parts"])
             if result:
                 return result
+            else:
+                return "Empty Body"
     return ""
 
 
@@ -269,9 +283,9 @@ def extract_metadata(service, msg_id):
         if data:
             decoded = decode_part(data, encoding)
 
-        if mime_type == "text/plain" and not body:
+        if mime_type == "text/plain" and body == "Empty Body":
             body = decoded.strip()
-        elif mime_type == "text/html" and not body:
+        elif mime_type == "text/html" and body != "Empty Body":
             body_html = html.unescape(decoded)
             # also provide a plain-text fallback
             body = BeautifulSoup(body_html, "html.parser").get_text(
@@ -492,6 +506,15 @@ def ingest_message(service, msg_id):
         body = metadata["body"]
         result = None  #  Prevent UnboundLocalError
 
+        # --- PATCH: Skip and log blank/whitespace-only bodies ---
+        if not body or not body.strip():
+            if DEBUG:
+                print(f"[BLANK BODY] Skipping message {msg_id}: {metadata.get('subject','(no subject)')}")
+                print("Stats: ignored++ (blank body)")
+            log_ignored_message(msg_id, metadata, reason="blank_body")
+            IngestionStats.objects.filter(date=stats.date).update(total_ignored=F("total_ignored") + 1)
+            return "ignored"
+
     except Exception as e:
         if DEBUG:
             print(f"Failed to extract data for {msg_id}: {e}")
@@ -510,22 +533,13 @@ def ingest_message(service, msg_id):
     if parsed_subject.get("ignore"):
         if DEBUG:
             print(f"Ignored by ML: {metadata['subject']}")
-            log_ignored_message(
-                msg_id,
-                metadata,
-                reason=parsed_subject.get("ignore_reason", "ml_ignore"),
-            )
-
-        IngestionStats.objects.filter(date=stats.date).update(
-            total_ignored=F("total_ignored") + 1
+            print("Stats: ignored++ (ML ignore)")
+        log_ignored_message(
+            msg_id,
+            metadata,
+            reason=parsed_subject.get("ignore_reason", "ml_ignore"),
         )
-
-        if DEBUG:
-            stats.refresh_from_db()
-            print(
-                f"Stats updated: inserted={stats.total_inserted}, ignored={stats.total_ignored}, skipped={stats.total_skipped}"
-            )
-
+        IngestionStats.objects.filter(date=stats.date).update(total_ignored=F("total_ignored") + 1)
         return "ignored"
 
     status = classify_message(body)
@@ -699,17 +713,13 @@ def ingest_message(service, msg_id):
     if existing:
         if DEBUG:
             print(f"Updating existing message: {msg_id}")
-            print(
-                f"Re-ingest reviewed={existing.reviewed} (confidence={confidence:.2f})"
-            )
+            print(f"Stats: skipped++ (re-ingest)")
         if company_obj:
             existing.company = company_obj
             existing.company_source = company_source
         if result:
             existing.ml_label = result["label"]
             existing.confidence = result["confidence"]
-
-        #  Preserve manual review or auto-mark if confidence is high
         if (
             result
             and result.get("confidence", 0.0) >= 0.85
@@ -718,17 +728,7 @@ def ingest_message(service, msg_id):
             and is_valid_company(company)
         ):
             existing.reviewed = True
-
-        IngestionStats.objects.filter(date=stats.date).update(
-            total_skipped=F("total_skipped") + 1
-        )
-
-        if DEBUG:
-            stats.refresh_from_db()
-            print(
-                f"Stats updated: inserted={stats.total_inserted}, ignored={stats.total_skipped}, skipped={stats.total_skipped}"
-            )
-
+        IngestionStats.objects.filter(date=stats.date).update(total_skipped=F("total_skipped") + 1)
         return "skipped"
 
     reviewed = (
@@ -783,18 +783,17 @@ def ingest_message(service, msg_id):
                 },
             )
             if created:
-                IngestionStats.objects.filter(date=stats.date).update(
-                    total_inserted=F("total_inserted") + 1
-                )
+                if DEBUG:
+                    print("Stats: inserted++ (new application)")
+                IngestionStats.objects.filter(date=stats.date).update(total_inserted=F("total_inserted") + 1)
             else:
-                IngestionStats.objects.filter(date=stats.date).update(
-                    total_ignored=F("total_ignored") + 1
-                )
+                if DEBUG:
+                    print("Stats: ignored++ (duplicate application)")
+                IngestionStats.objects.filter(date=stats.date).update(total_ignored=F("total_ignored") + 1)
         else:
-            # If company_obj or message_obj is missing, count as skipped
-            IngestionStats.objects.filter(date=stats.date).update(
-                total_skipped=F("total_skipped") + 1
-            )
+            if DEBUG:
+                print("Stats: skipped++ (missing company/message)")
+            IngestionStats.objects.filter(date=stats.date).update(total_skipped=F("total_skipped") + 1)
 
     except Exception as e:
         if DEBUG:
@@ -852,18 +851,9 @@ def ingest_message(service, msg_id):
             reason = "missing_company"
         if DEBUG:
             print(f"Ignored due to: {reason} -> {metadata['subject']}")
+            print("Stats: ignored++ (unclassified)")
         log_ignored_message(msg_id, metadata, reason=reason)
-
-        IngestionStats.objects.filter(date=stats.date).update(
-            total_ignored=F("total_ignored") + 1
-        )
-
-        if DEBUG:
-            stats.refresh_from_db()
-            print(
-                f"Stats updated: inserted={stats.total_inserted}, ignored={stats.total_ignored}, skipped={stats.total_skipped}"
-            )
-
+        IngestionStats.objects.filter(date=stats.date).update(total_ignored=F("total_ignored") + 1)
         return "ignored"
 
     record["company_job_index"] = build_company_job_index(
@@ -880,18 +870,9 @@ def ingest_message(service, msg_id):
     if should_ignore(metadata["subject"], metadata["body"]):
         if DEBUG:
             print(f"Ignored by pattern: {metadata['subject']}")
+            print("Stats: ignored++ (pattern ignore)")
         log_ignored_message(msg_id, metadata, reason="pattern_ignore")
-
-        IngestionStats.objects.filter(date=stats.date).update(
-            total_ignored=F("total_ignored") + 1
-        )
-
-        if DEBUG:
-            stats.refresh_from_db()
-            print(
-                f"Stats updated: inserted={stats.total_inserted}, ignored={stats.total_ignored}, skipped={stats.total_skipped}"
-            )
-
+        IngestionStats.objects.filter(date=stats.date).update(total_ignored=F("total_ignored") + 1)
         return "ignored"
 
     insert_or_update_application(record)

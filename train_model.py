@@ -57,7 +57,39 @@ def weak_label(row: pd.Series) -> str | None:
 
 
 # Load and prepare data
+
+
 df = load_training_data()
+# Filter out blank/whitespace-only bodies
+if "body" in df.columns:
+    before = len(df)
+    df = df[df["body"].fillna("").str.strip() != ""]
+    after = len(df)
+    if before != after:
+        print(
+            f"[Info] Filtered out {before-after} messages with blank/whitespace-only bodies."
+        )
+
+# --- Merge ultra-rare classes and upsample minorities ---
+MIN_SAMPLES_PER_CLASS = 10
+if "label" in df.columns:
+    label_counts = df["label"].value_counts()
+    rare_labels = label_counts[label_counts < MIN_SAMPLES_PER_CLASS].index.tolist()
+    if rare_labels:
+        print(f"[Info] Merging rare classes {rare_labels} into 'other'.")
+        df["label"] = df["label"].apply(lambda x: "other" if x in rare_labels else x)
+
+    # Upsample minority classes
+    max_count = df["label"].value_counts().max()
+    dfs = []
+    for label, group in df.groupby("label"):
+        if len(group) < max_count:
+            upsampled = group.sample(max_count, replace=True, random_state=42)
+            dfs.append(upsampled)
+        else:
+            dfs.append(group)
+    df = pd.concat(dfs).sample(frac=1, random_state=42).reset_index(drop=True)
+    print(f"[Info] After upsampling, class distribution:\n{df['label'].value_counts()}")
 
 if df.empty or "label" not in df.columns or df["label"].isna().all():
     print("[Warning] No human message labels; bootstrapping with regex rules")
@@ -91,8 +123,8 @@ if len(y_filtered) < 10:
 
 print(f"Training with {len(y_filtered)} samples across {y_filtered.nunique()} classes")
 
-X_subject = df_filtered['subject'].fillna('')
-X_body = df_filtered['body'].fillna('')
+X_subject = df_filtered["subject"].fillna("")
+X_body = df_filtered["body"].fillna("")
 
 subject_vec = TfidfVectorizer(
     lowercase=True, ngram_range=(1, 2), max_df=0.9, min_df=2, max_features=10000
@@ -130,4 +162,64 @@ joblib.dump(clf, "model/message_classifier.pkl")
 joblib.dump(sorted(y_filtered.unique().tolist()), "model/message_label_encoder.pkl")
 joblib.dump(subject_vec, "model/subject_vectorizer.pkl")
 joblib.dump(body_vec, "model/body_vectorizer.pkl")
+
+# Save model info for metrics page
+# Filter out HTML/CSS artifacts and keep only meaningful features
+all_features = (
+    subject_vec.get_feature_names_out().tolist()
+    + body_vec.get_feature_names_out().tolist()
+)
+
+
+def is_meaningful_feature(feature):
+    """Filter out HTML/CSS/number artifacts, keep actual words"""
+    # Skip if starts with numbers or hex codes
+    if re.match(r"^[0-9a-f]+$", feature):
+        return False
+    # Skip if contains HTML/CSS indicators
+    if any(
+        keyword in feature.lower()
+        for keyword in [
+            "div",
+            "span",
+            "font",
+            "px",
+            "pt",
+            "webkit",
+            "mso",
+            "margin",
+            "padding",
+            "border",
+            "width",
+            "height",
+            "display",
+            "important",
+            "rgba",
+            "amp",
+            "nbsp",
+        ]
+    ):
+        return False
+    # Skip if too short (likely artifacts)
+    if len(feature) <= 2:
+        return False
+    # Keep if contains actual letters and reasonable length
+    if re.search(r"[a-z]{3,}", feature.lower()):
+        return True
+    return False
+
+
+meaningful_features = [f for f in all_features if is_meaningful_feature(f)][:100]
+
+model_info = {
+    "trained_on": datetime.now().isoformat(),
+    "labels": sorted(y_filtered.unique().tolist()),
+    "num_samples": len(y_filtered),
+    "total_features": len(all_features),
+    "meaningful_features_sample": sorted(meaningful_features),
+}
+with open("model/model_info.json", "w") as f:
+    json.dump(model_info, f, indent=2)
+
 print("Message-level model artifacts saved to /model/")
+print(f"Model trained on {len(y_filtered)} samples with {y_filtered.nunique()} labels")

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Model Training Metrics</title>
+  <style>
+    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; margin: 0; background: #f9fafb; color: #333; }
+    .dashboard-layout { display: flex; gap: 1rem; margin: 0; }
+    .sidebar { flex: 0 0 30%; max-width: 30%; }
+    .main-content { flex: 1; padding: 2rem 2rem 2rem 0; }
+    h1 { color: #1f2937; margin-bottom: 1.5rem; font-size: 1.5rem; }
+    .metrics-card { background: #fff; border-radius: 8px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.08); margin-bottom: 2rem; }
+    table { width: 100%; border-collapse: collapse; margin-top: 1rem; font-size: 0.9rem; }
+    th, td { padding: 0.5rem 1rem; border-bottom: 1px solid #e5e7eb; text-align: left; }
+    th { background: #f3f4f6; }
+    .button { background: #2563eb; color: white; font-weight: 600; padding: 0.5rem 1rem; border: none; border-radius: 6px; cursor: pointer; margin-top: 1rem; font-size: 0.9rem; }
+    .button:hover { background: #1e40af; }
+    .output { background: #f3f4f6; border-radius: 6px; padding: 1rem; margin-top: 1rem; font-family: monospace; white-space: pre-wrap; }
+    .features-toggle { color: #2563eb; cursor: pointer; text-decoration: underline; }
+    .features-toggle:hover { color: #1e40af; }
+    .features-list { display: none; margin-top: 0.5rem; padding: 0.75rem; background: #f9fafb; border-radius: 4px; max-height: 300px; overflow-y: auto; font-size: 0.85rem; line-height: 1.6; }
+    .features-list.expanded { display: block; }
+    .label-breakdown { display: flex; gap: 1rem; margin-top: 0.5rem; }
+    .label-count { display: inline-block; padding: 0.3rem 0.6rem; border-radius: 4px; font-size: 0.85rem; font-weight: 600; }
+    .label-count.real { background: #d1fae5; color: #065f46; }
+    .label-count.extra { background: #fee2e2; color: #991b1b; }
+    .labels-list { display: none; margin-top: 0.5rem; padding: 0.75rem; background: #f9fafb; border-radius: 4px; max-height: 200px; overflow-y: auto; font-size: 0.85rem; line-height: 1.6; }
+    .labels-list.expanded { display: block; }
+  </style>
+</head>
+<body>
+  <div class="dashboard-layout">
+    {% include "tracker/_sidebar.html" %}
+    <div class="main-content">
+      <h1>Model Training Metrics</h1>
+      <div class="metrics-card">
+        <h2>Latest Training Results</h2>
+        {% if metrics %}
+          <table>
+            <tr><th>Metric</th><th>Value</th></tr>
+            {% for k, v in metrics.items %}
+              {% if k == 'labels' and label_breakdown %}
+                <tr>
+                  <td>{{ k }}</td>
+                  <td>
+                    <div class="label-breakdown">
+                      <span class="label-count real" style="cursor: pointer;" onclick="toggleLabels('real')">✅ {{ label_breakdown.real_count }} real labels</span>
+                      <span class="label-count extra" style="cursor: pointer;" onclick="toggleLabels('extra')">⚠️ {{ label_breakdown.extra_count }} uncleaned company names in database</span>
+                    </div>
+                    <div class="labels-list" id="real-labels">
+                      <strong>Real labels:</strong><br>
+                      {% for label in label_breakdown.real_labels %}
+                        <span>{{ label }}</span>{% if not forloop.last %}, {% endif %}
+                      {% endfor %}
+                    </div>
+                    <div class="labels-list" id="extra-labels">
+                      <strong>Uncleaned company names (need to be fixed in database):</strong><br>
+                      {% for label in label_breakdown.extra_labels %}
+                        <span>{{ label }}</span>{% if not forloop.last %}, {% endif %}
+                      {% endfor %}
+                    </div>
+                  </td>
+                </tr>
+              {% elif k == 'features' %}
+                <tr>
+                  <td>{{ k }}</td>
+                  <td>
+                    <span class="features-toggle" onclick="toggleFeatures()">{{ v|length }} features (click to expand)</span>
+                    <div class="features-list" id="features-list">
+                      {% for feature in v %}
+                        <span>{{ feature }}</span>{% if not forloop.last %}, {% endif %}
+                      {% endfor %}
+                    </div>
+                  </td>
+                </tr>
+              {% elif k == 'total_features' %}
+                <tr><td>Total Features</td><td>{{ v }} (includes HTML/CSS artifacts)</td></tr>
+              {% elif k == 'meaningful_features_sample' %}
+                <tr>
+                  <td>Meaningful Features</td>
+                  <td>
+                    <span class="features-toggle" onclick="toggleFeatures()">{{ v|length }} sample features (click to expand)</span>
+                    <div class="features-list" id="features-list">
+                      {% for feature in v %}
+                        <span>{{ feature }}</span>{% if not forloop.last %}, {% endif %}
+                      {% endfor %}
+                    </div>
+                  </td>
+                </tr>
+              {% elif k != 'labels' %}
+                <tr><td>{{ k }}</td><td>{{ v }}</td></tr>
+              {% endif %}
+            {% endfor %}
+          </table>
+        {% else %}
+          <p>No metrics available. Retrain the model to see results.</p>
+        {% endif %}
+        {% if training_output %}
+          <div class="output">{{ training_output }}</div>
+        {% endif %}
+        <form method="post" action="{% url 'retrain_model' %}">
+          {% csrf_token %}
+          <button type="submit" class="button">Retrain Model</button>
+        </form>
+      </div>
+      <a href="{% url 'dashboard' %}" class="button" style="background:#e5e7eb; color:#333;">Back to Dashboard</a>
+    </div>
+  </div>
+  
+  <script>
+    function toggleFeatures() {
+      const featuresList = document.getElementById('features-list');
+      const toggle = document.querySelector('.features-toggle');
+      featuresList.classList.toggle('expanded');
+      if (featuresList.classList.contains('expanded')) {
+        toggle.textContent = '{{ metrics.features|length }} features (click to collapse)';
+      } else {
+        toggle.textContent = '{{ metrics.features|length }} features (click to expand)';
+      }
+    }
+    
+    function toggleLabels(type) {
+      const labelsList = document.getElementById(type + '-labels');
+      labelsList.classList.toggle('expanded');
+    }
+  </script>
+</body>
+</html>

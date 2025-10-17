@@ -1,0 +1,77 @@
+{
+  "message_labels": {
+    "job_application": [
+      "(?i)\\bthank you for (your )?(applying|application)\\b",
+      "(?i)\\b(received|submitted) your (application|resume)\\b",
+      "(?i)\\bapplication (has been )?(received|submitted)\\b",
+      "(?i)\\bsuccessfully submitted\\b"
+    ],
+    "rejection": [
+      "(?i)\\bwe regret (to inform)?\\b",
+      "(?i)\\bother candidates\\b",
+      "(?i)\\bnot moving forward\\b",
+      "(?i)\\bposition (has been )?(closed|filled)\\b",
+      "(?i)\\bno longer available\\b",
+      "(?i)\\bwe appreciate your interest\\b"
+    ],
+    "interview_invite": [
+      "(?i)\\b(schedule|scheduling|scheduled) (an? )?interview\\b",
+      "(?i)\\bnext (steps?|stage|round)\\b",
+      "(?i)\\bavailability\\b.*\\binterview\\b",
+      "(?i)\\binvite you to (an? )?(interview|meeting)\\b"
+    ],
+    "noise": [
+      "(?i)\\byour job alert for\\b",
+      "(?i)\\bmiss out\\b",
+      "(?i)\\bRegistration Confirmation\\b",
+      "(?i)\\bhow (is )?your job search\\b",
+      "(?i)\\bsaved job is expiring\\b"
+    ],
+    "head_hunter": [
+      "(?i)\\brecruiter\\b",
+      "(?i)\\btalent acquisition\\b",
+      "(?i)\\binterested in (discussing|exploring)\\b",
+      "(?i)\\bopportunity that might interest you\\b"
+    ],
+    "job_alert": [
+      "(?i)\\bnew job (opportunities|matches|alerts?)\\b",
+      "(?i)\\bjob recommendations?\\b",
+      "(?i)\\bdaily job digest\\b"
+    ],
+    "other": []
+  },
+  "invalid_company_prefixes": [
+    "Resume",
+    "CV",
+    "Application",
+    "Job",
+    "Interview",
+    "Notification",
+    "Alert",
+    "Update",
+    "Confirmation",
+    "Gift Card",
+    "Your"
+  ],
+  "ats_domains": [
+    "myworkday.com",
+    "myworkdayjobs.com",
+    "jobvite.com",
+    "newtonsoftware.com",
+    "greenhouse.io",
+    "greenhouse-mail.io",
+    "smartrecruiters.com",
+    "pageuppeople.com",
+    "icims.com",
+    "lever.co",
+    "ashbyhq.com",
+    "workable.com"
+  ],
+  "ignore_senders": [
+    "noreply@",
+    "no-reply@",
+    "donotreply@",
+    "notifications@linkedin.com",
+    "jobs-listings@linkedin.com"
+  ]
+}

@@ -1,23 +1,76 @@
+# Python
 __pycache__/
-.coverage
-.DS_Store
-.env
-.pytest_cache/
-.secrets*
-.vscode/
-*.db
-*.patch
-*.pkl
 *.pyc
-*.txt
-*/.DS_Store
-credentials.json
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+ENV/
+env/
+
+# Django
+*.db
+*.sqlite3
+db.sqlite3
+staticfiles/
+media/
+*.log
+
+# Environment variables
+.env
+.env.local
+
+# OAuth credentials (sensitive!)
+json/credentials.json
+json/token.json
+token.pickle
+
+# Data directories
 db/
 logs/
-model/
+model/*.pkl
+model/*.json
+model/*.csv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Testing
+.coverage
+.pytest_cache/
+htmlcov/
+.tox/
+.hypothesis/
+
+# Security
+.secrets*
+.secrets.baseline
+
+# Misc
+*.patch
+*.bak
+*.orig
+
+# Project-specific (keep these for now)
 remind/
 scripts/
-staticfiles/
-token.pickle
 update_copilot/
-.venv/

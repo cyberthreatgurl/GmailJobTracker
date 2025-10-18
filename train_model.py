@@ -43,7 +43,7 @@ def _load_patterns():
 _PATTERNS = _load_patterns()
 _MSG_LABEL_PATTERNS = {
     k: [re.compile(p, re.I) for p in (_PATTERNS.get("message_labels", {}).get(k, []))]
-    for k in ("interview", "application", "rejection", "offer", "noise")
+    for k in ("interview_invite", "job_application", "rejected", "offer", "referral","response""ghosted","noise","job_alert","follow-up","ignore")
 }
 
 

@@ -1,8 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Model Training Metrics</title>
+{% extends "base.html" %}
+{% block title %}Model Training Metrics - GmailJobTracker{% endblock %}
+{% block extra_head %}
   <style>
     body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; margin: 0; background: #f9fafb; color: #333; }
     .dashboard-layout { display: flex; gap: 1rem; margin: 0; }
@@ -27,12 +25,67 @@
     .labels-list { display: none; margin-top: 0.5rem; padding: 0.75rem; background: #f9fafb; border-radius: 4px; max-height: 200px; overflow-y: auto; font-size: 0.85rem; line-height: 1.6; }
     .labels-list.expanded { display: block; }
   </style>
-</head>
-<body>
-  <div class="dashboard-layout">
-    {% include "tracker/_sidebar.html" %}
+{% endblock %}
+{% block content %}
     <div class="main-content">
       <h1>Model Training Metrics</h1>
+
+      <!-- Ingestion Stats Plot -->
+      <div class="metrics-card" style="margin-bottom:2rem;">
+        <h2>Ingestion Stats (Daily)</h2>
+        <canvas id="ingestionStatsChart" height="80"></canvas>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script>
+          const ctx = document.getElementById('ingestionStatsChart').getContext('2d');
+          const ingestionStatsChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+              labels: {{ chart_labels|safe }},
+              datasets: [
+                {
+                  label: 'Inserted',
+                  data: {{ chart_inserted|safe }},
+                  borderColor: '#2563eb',
+                  backgroundColor: 'rgba(37,99,235,0.08)',
+                  fill: true,
+                  tension: 0.2,
+                },
+                {
+                  label: 'Skipped',
+                  data: {{ chart_skipped|safe }},
+                  borderColor: '#eab308',
+                  backgroundColor: 'rgba(234,179,8,0.08)',
+                  fill: true,
+                  tension: 0.2,
+                },
+                {
+                  label: 'Ignored',
+                  data: {{ chart_ignored|safe }},
+                  borderColor: '#ef4444',
+                  backgroundColor: 'rgba(239,68,68,0.08)',
+                  fill: true,
+                  tension: 0.2,
+                },
+              ]
+            },
+            options: {
+              responsive: true,
+              plugins: {
+                legend: { position: 'top' },
+                title: {
+                  display: false,
+                  text: 'Ingestion Stats',
+                }
+              },
+              scales: {
+                x: { title: { display: true, text: 'Date' } },
+                y: { title: { display: true, text: 'Count' }, beginAtZero: true }
+              }
+            }
+          });
+        </script>
+      </div>
+
       <div class="metrics-card">
         <h2>Latest Training Results</h2>
         {% if metrics %}
@@ -105,7 +158,6 @@
       </div>
       <a href="{% url 'dashboard' %}" class="button" style="background:#e5e7eb; color:#333;">Back to Dashboard</a>
     </div>
-  </div>
   
   <script>
     function toggleFeatures() {
@@ -124,5 +176,4 @@
       labelsList.classList.toggle('expanded');
     }
   </script>
-</body>
-</html>
+{% endblock %}

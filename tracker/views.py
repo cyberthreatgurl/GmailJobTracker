@@ -57,32 +57,9 @@ def delete_company(request, company_id):
             )
 
         return redirect("label_companies")
-    # Sidebar context
-    companies_count = Company.objects.count()
-    applications = Application.objects.count()
-    rejections_week = Application.objects.filter(
-        rejection_date__gte=now() - timedelta(days=7)
-    ).count()
-    interviews_week = Application.objects.filter(
-        interview_date__gte=now() - timedelta(days=7)
-    ).count()
-    upcoming_interviews = Application.objects.filter(
-        interview_date__gte=now()
-    ).order_by("interview_date")
-    latest_stats = IngestionStats.objects.order_by("-date").first()
-    return render(
-        request,
-        "tracker/delete_company.html",
-        {
-            "company": company,
-            "companies": companies_count,
-            "applications": applications,
-            "rejections_week": rejections_week,
-            "interviews_week": interviews_week,
-            "upcoming_interviews": upcoming_interviews,
-            "latest_stats": latest_stats,
-        },
-    )
+    ctx = {"company": company}
+    ctx.update(build_sidebar_context())
+    return render(request, "tracker/delete_company.html", ctx)
 
 
 from django.contrib.auth.decorators import login_required
@@ -97,6 +74,8 @@ def label_companies(request):
     selected_company = None
     latest_label = None
     form = None
+    message_count = 0
+    message_info_list = []
     if selected_id:
         try:
             selected_company = companies.get(id=selected_id)
@@ -110,6 +89,12 @@ def label_companies(request):
                 .first()
             )
             latest_label = latest_msg.ml_label if latest_msg else None
+            # Get message count and (date, subject) list
+            messages_qs = Message.objects.filter(company=selected_company).order_by(
+                "-timestamp"
+            )
+            message_count = messages_qs.count()
+            message_info_list = list(messages_qs.values_list("timestamp", "subject"))
             if request.method == "POST":
                 form = CompanyEditForm(request.POST, instance=selected_company)
                 if form.is_valid():
@@ -117,36 +102,18 @@ def label_companies(request):
             else:
                 form = CompanyEditForm(instance=selected_company)
 
-    # Sidebar context
-    companies_count = Company.objects.count()
-    applications = Application.objects.count()
-    rejections_week = Application.objects.filter(
-        rejection_date__gte=now() - timedelta(days=7)
-    ).count()
-    interviews_week = Application.objects.filter(
-        interview_date__gte=now() - timedelta(days=7)
-    ).count()
-    upcoming_interviews = Application.objects.filter(
-        interview_date__gte=now()
-    ).order_by("interview_date")
-    latest_stats = IngestionStats.objects.order_by("-date").first()
-
-    return render(
-        request,
-        "tracker/label_companies.html",
+    ctx = build_sidebar_context()
+    ctx.update(
         {
-            "companies": companies_count,
-            "applications": applications,
-            "rejections_week": rejections_week,
-            "interviews_week": interviews_week,
-            "upcoming_interviews": upcoming_interviews,
-            "latest_stats": latest_stats,
             "company_list": companies,
             "selected_company": selected_company,
             "form": form,
             "latest_label": latest_label,
-        },
+            "message_count": message_count,
+            "message_info_list": message_info_list,
+        }
     )
+    return render(request, "tracker/label_companies.html", ctx)
 
 
 from tracker.models import (
@@ -170,14 +137,50 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.timezone import now
+import os
+from datetime import datetime
 from django.db import models
-from django.db.models import F, Q, Count
+from django.db.models import (
+    F,
+    Q,
+    Count,
+    Case,
+    When,
+    Value,
+    IntegerField,
+    CharField,
+    ExpressionWrapper,
+)
+from django.db.models.functions import Coalesce, Substr, StrIndex
 from bs4 import BeautifulSoup
 
 python_path = sys.executable
 ALIAS_EXPORT_PATH = Path("json/alias_candidates.json")
 ALIAS_LOG_PATH = Path("alias_approvals.csv")
 ALIAS_REJECT_LOG_PATH = Path("alias_rejections.csv")
+
+
+def build_sidebar_context():
+    companies_count = Company.objects.count()
+    applications_count = Application.objects.count()
+    rejections_week = Application.objects.filter(
+        rejection_date__gte=now() - timedelta(days=7)
+    ).count()
+    interviews_week = Application.objects.filter(
+        interview_date__gte=now() - timedelta(days=7)
+    ).count()
+    upcoming_interviews = Application.objects.filter(
+        interview_date__gte=now()
+    ).order_by("interview_date")
+    latest_stats = IngestionStats.objects.order_by("-date").first()
+    return {
+        "companies": companies_count,
+        "applications": applications_count,
+        "rejections_week": rejections_week,
+        "interviews_week": interviews_week,
+        "upcoming_interviews": upcoming_interviews,
+        "latest_stats": latest_stats,
+    }
 
 
 @login_required
@@ -248,12 +251,16 @@ def company_threads(request):
 @login_required
 def manage_aliases(request):
     if not ALIAS_EXPORT_PATH.exists():
-        return render(request, "tracker/manage_aliases.html", {"suggestions": []})
+        ctx = {"suggestions": []}
+        ctx.update(build_sidebar_context())
+        return render(request, "tracker/manage_aliases.html", ctx)
 
     with open(ALIAS_EXPORT_PATH, "r", encoding="utf-8") as f:
         suggestions = json.load(f)
 
-    return render(request, "tracker/manage_aliases.html", {"suggestions": suggestions})
+    ctx = {"suggestions": suggestions}
+    ctx.update(build_sidebar_context())
+    return render(request, "tracker/manage_aliases.html", ctx)
 
 
 @csrf_exempt
@@ -380,91 +387,226 @@ def dashboard(request):
     ignored_today = latest_stats.total_ignored if latest_stats else 0
     skipped_today = latest_stats.total_skipped if latest_stats else 0
 
-    # Last 30 days for chart
-    days_back = 30
-    start_date = now().date() - timedelta(days=days_back - 1)
-    date_list = [start_date + timedelta(days=i) for i in range(days_back)]
-
-    # Ingestion stats (existing)
-    stats_qs = IngestionStats.objects.filter(date__gte=start_date).order_by("date")
-    stats_map = {s.date: s for s in stats_qs}
-    chart_labels = [d.strftime("%Y-%m-%d") for d in date_list]
-    chart_inserted = [
-        stats_map.get(d, None).total_inserted if stats_map.get(d, None) else 0
-        for d in date_list
-    ]
-    chart_skipped = [
-        stats_map.get(d, None).total_skipped if stats_map.get(d, None) else 0
-        for d in date_list
-    ]
-    chart_ignored = [
-        stats_map.get(d, None).total_ignored if stats_map.get(d, None) else 0
-        for d in date_list
-    ]
+    # Ingestion plot: start at earliest activity date
+    earliest_stat = IngestionStats.objects.order_by("date").first()
+    if earliest_stat:
+        start_date = earliest_stat.date
+        end_date = now().date()
+        num_days = (end_date - start_date).days + 1
+        date_list = [start_date + timedelta(days=i) for i in range(num_days)]
+        stats_qs = IngestionStats.objects.filter(date__gte=start_date).order_by("date")
+        stats_map = {s.date: s for s in stats_qs}
+        chart_labels = [d.strftime("%Y-%m-%d") for d in date_list]
+        chart_inserted = [
+            stats_map.get(d, None).total_inserted if stats_map.get(d, None) else 0
+            for d in date_list
+        ]
+        chart_skipped = [
+            stats_map.get(d, None).total_skipped if stats_map.get(d, None) else 0
+            for d in date_list
+        ]
+        chart_ignored = [
+            stats_map.get(d, None).total_ignored if stats_map.get(d, None) else 0
+            for d in date_list
+        ]
+    else:
+        chart_labels = []
+        chart_inserted = []
+        chart_skipped = []
+        chart_ignored = []
 
     # Multi-line chart: daily totals for rejections, applications, interviews, total
-    app_qs = Application.objects.filter(sent_date__gte=start_date)
+    earliest_app = Application.objects.order_by("sent_date").first()
+    # Default: use earliest application date
+    app_start_date = earliest_app.sent_date if earliest_app else None
+    # Check for REPORTING_DEFAULT_START_DATE in env
+    env_start_date = os.environ.get("REPORTING_DEFAULT_START_DATE")
+    reporting_default_start_date = None
+    if env_start_date:
+        try:
+            # Accept YYYY-MM-DD only
+            reporting_default_start_date = datetime.strptime(
+                env_start_date.strip().replace('"', ""), "%Y-%m-%d"
+            ).date()
+        except Exception:
+            reporting_default_start_date = None
+    # Use the later of the two (env or earliest_app)
+    if reporting_default_start_date and app_start_date:
+        if reporting_default_start_date > app_start_date:
+            app_start_date = reporting_default_start_date
+    elif reporting_default_start_date:
+        app_start_date = reporting_default_start_date
 
-    # Build date→count dicts for each type
-    def date_count(qs, field):
-        return {
-            r["date"]: r["count"]
-            for r in qs.values(field)
-            .annotate(date=models.F(field))
-            .values("date")
-            .annotate(count=models.Count("id"))
+    # Load plot series config from JSON file and validate
+    import json
+    from .models import MessageLabel
+    from django.core.exceptions import ValidationError
+    import re
+
+    def is_valid_color(color):
+        # Accept #RRGGBB, #RGB, or valid CSS color names
+        if re.match(r"^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$", color):
+            return True
+        # Accept common color names (basic validation)
+        css_colors = {
+            "red",
+            "blue",
+            "green",
+            "yellow",
+            "gray",
+            "grey",
+            "black",
+            "white",
+            "orange",
+            "purple",
+            "pink",
+            "brown",
+            "teal",
+            "lime",
+            "indigo",
+            "violet",
+            "gold",
+            "silver",
         }
+        return color.lower() in css_colors
 
-    # Applications per day
-    apps_by_day = app_qs.values("sent_date").annotate(count=models.Count("id"))
-    apps_map = {r["sent_date"]: r["count"] for r in apps_by_day}
-    # Rejections per day
-    rejs_by_day = (
-        app_qs.exclude(rejection_date=None)
-        .values("rejection_date")
-        .annotate(count=models.Count("id"))
-    )
-    rejs_map = {r["rejection_date"]: r["count"] for r in rejs_by_day}
-    # Interviews per day
-    ints_by_day = (
-        app_qs.exclude(interview_date=None)
-        .values("interview_date")
-        .annotate(count=models.Count("id"))
-    )
-    ints_map = {r["interview_date"]: r["count"] for r in ints_by_day}
+    plot_series_config = []
+    try:
+        with open("json/plot_series.json", "r", encoding="utf-8") as f:
+            config = json.load(f)
+        allowed_labels = set(MessageLabel.objects.values_list("label", flat=True))
+        for entry in config:
+            label = entry.get("label")
+            display_name = entry.get("display_name")
+            color = entry.get("color")
+            # Validate label
+            if label not in allowed_labels:
+                continue
+            # Validate color
+            if not is_valid_color(color):
+                color = "#2563eb"  # fallback to default
+            plot_series_config.append(
+                {
+                    "key": label,  # Add key field for chart logic
+                    "label": label,
+                    "display_name": display_name,
+                    "color": color,
+                    "ml_label": label,  # use label as ml_label for consistency
+                }
+            )
+    except Exception as e:
+        # fallback to hardcoded config if error
+        plot_series_config = [
+            {
+                "label": "application",
+                "display_name": "Application",
+                "color": "#2563eb",
+                "ml_label": "application",
+            },
+            {
+                "label": "interview",
+                "display_name": "Interview",
+                "color": "#22c55e",
+                "ml_label": "interview",
+            },
+            {
+                "label": "rejected",
+                "display_name": "Rejected",
+                "color": "#ef4444",
+                "ml_label": "rejected",
+            },
+            {
+                "label": "ghosted",
+                "display_name": "Ghosted",
+                "color": "#a3a3a3",
+                "ml_label": "ghosted",
+            },
+            {
+                "label": "job_alert",
+                "display_name": "Job Alert",
+                "color": "#eab308",
+                "ml_label": "job_alert",
+            },
+        ]
 
-    # Message counts by label per day
-    msg_qs = Message.objects.filter(timestamp__date__gte=start_date)
-    # Referrals per day
-    refs_by_day = (
-        msg_qs.filter(ml_label="referral")
-        .extra(select={"day": "date(timestamp)"})
-        .values("day")
-        .annotate(count=models.Count("id"))
-    )
-    refs_map = {r["day"]: r["count"] for r in refs_by_day}
-    # Head hunter messages per day
-    hh_by_day = (
-        msg_qs.filter(ml_label="head_hunter")
-        .extra(select={"day": "date(timestamp)"})
-        .values("day")
-        .annotate(count=models.Count("id"))
-    )
-    hh_map = {r["day"]: r["count"] for r in hh_by_day}
+    # Now build date list
+    if app_start_date:
+        app_end_date = now().date()
+        app_num_days = (app_end_date - app_start_date).days + 1
+        app_date_list = [
+            app_start_date + timedelta(days=i) for i in range(app_num_days)
+        ]
+        app_qs = Application.objects.filter(sent_date__gte=app_start_date)
+    else:
+        app_date_list = []
+        app_qs = Application.objects.none()
 
-    # Cumulative total applications
-    total = 0
-    total_apps = []
-    for d in date_list:
-        total += apps_map.get(d, 0)
-        total_apps.append(total)
+    # Build chart data dynamically based on configured series
+    chart_series_data = []
+    msg_qs = (
+        Message.objects.filter(timestamp__date__gte=app_start_date)
+        if app_date_list
+        else Message.objects.none()
+    )
 
-    chart_rejections = [rejs_map.get(d, 0) for d in date_list]
-    chart_applications = [apps_map.get(d, 0) for d in date_list]
-    chart_interviews = [ints_map.get(d, 0) for d in date_list]
-    chart_referrals = [refs_map.get(d, 0) for d in date_list]
-    chart_headhunters = [hh_map.get(d, 0) for d in date_list]
-    chart_total = total_apps
+    for series in plot_series_config:
+        ml_label = series["ml_label"]
+        # Check if this is an application-based series or message-based series
+        if ml_label == "job_application":
+            # Applications per day
+            apps_by_day = app_qs.values("sent_date").annotate(count=models.Count("id"))
+            apps_map = {r["sent_date"]: r["count"] for r in apps_by_day}
+            data = [apps_map.get(d, 0) for d in app_date_list]
+        elif ml_label == "rejected":
+            # Rejections per day
+            rejs_by_day = (
+                app_qs.exclude(rejection_date=None)
+                .values("rejection_date")
+                .annotate(count=models.Count("id"))
+            )
+            rejs_map = {r["rejection_date"]: r["count"] for r in rejs_by_day}
+            data = [rejs_map.get(d, 0) for d in app_date_list]
+        elif ml_label == "interview_invite":
+            # Interviews per day
+            ints_by_day = (
+                app_qs.exclude(interview_date=None)
+                .values("interview_date")
+                .annotate(count=models.Count("id"))
+            )
+            ints_map = {r["interview_date"]: r["count"] for r in ints_by_day}
+            data = [ints_map.get(d, 0) for d in app_date_list]
+        else:
+            # Message-based series (referral, head_hunter, noise, etc.)
+            msgs_by_day = (
+                msg_qs.filter(ml_label=ml_label)
+                .extra(select={"day": "date(timestamp)"})
+                .values("day")
+                .annotate(count=models.Count("id"))
+            )
+            msgs_map = {r["day"]: r["count"] for r in msgs_by_day}
+            data = [msgs_map.get(d.strftime("%Y-%m-%d"), 0) for d in app_date_list]
+
+        chart_series_data.append(
+            {
+                "key": series["key"],
+                "label": series["label"],
+                "color": series["color"],
+                "data": data,
+            }
+        )
+
+    # Defensive: ensure all chart arrays exist
+    chart_activity_labels = (
+        [d.strftime("%Y-%m-%d") for d in app_date_list] if app_date_list else []
+    )
+    if not chart_labels:
+        chart_labels = []
+        chart_inserted = []
+        chart_skipped = []
+        chart_ignored = []
+    if not chart_activity_labels:
+        chart_activity_labels = []
+        chart_series_data = []
 
     return render(
         request,
@@ -483,16 +625,18 @@ def dashboard(request):
             "chart_inserted": chart_inserted,
             "chart_skipped": chart_skipped,
             "chart_ignored": chart_ignored,
-            "chart_rejections": chart_rejections,
-            "chart_applications": chart_applications,
-            "chart_interviews": chart_interviews,
-            "chart_referrals": chart_referrals,
-            "chart_headhunters": chart_headhunters,
-            "chart_total": chart_total,
+            "chart_activity_labels": chart_activity_labels,
+            "chart_series_data": chart_series_data,
+            "plot_series_config": plot_series_config,
             "unresolved_companies": unresolved_companies,
             "ingested_today": ingested_today,
             "ignored_today": ignored_today,
             "skipped_today": skipped_today,
+            "reporting_default_start_date": (
+                reporting_default_start_date.strftime("%Y-%m-%d")
+                if reporting_default_start_date
+                else ""
+            ),
         },
     )
 
@@ -501,36 +645,9 @@ def company_detail(request, company_id):
     company = get_object_or_404(Company, pk=company_id)
     applications = Application.objects.filter(company=company)
     messages = Message.objects.filter(company=company).order_by("timestamp")
-
-    # Sidebar context
-    companies = Company.objects.count()
-    total_applications = Application.objects.count()
-    rejections_week = Application.objects.filter(
-        rejection_date__gte=now() - timedelta(days=7)
-    ).count()
-    interviews_week = Application.objects.filter(
-        interview_date__gte=now() - timedelta(days=7)
-    ).count()
-    upcoming_interviews = Application.objects.filter(
-        interview_date__gte=now()
-    ).order_by("interview_date")
-    latest_stats = IngestionStats.objects.order_by("-date").first()
-
-    return render(
-        request,
-        "tracker/company_detail.html",
-        {
-            "company": company,
-            "applications": applications,
-            "messages": messages,
-            "companies": companies,
-            "applications_count": total_applications,
-            "rejections_week": rejections_week,
-            "interviews_week": interviews_week,
-            "upcoming_interviews": upcoming_interviews,
-            "latest_stats": latest_stats,
-        },
-    )
+    ctx = {"company": company, "applications": applications, "messages": messages}
+    ctx.update(build_sidebar_context())
+    return render(request, "tracker/company_detail.html", ctx)
 
 
 def extract_body_content(raw_html):
@@ -561,7 +678,9 @@ def label_applications(request):
         return redirect("label_applications")
 
     apps = Application.objects.filter(reviewed=False).order_by("sent_date")[:50]
-    return render(request, "tracker/label_applications.html", {"applications": apps})
+    ctx = {"applications": apps}
+    ctx.update(build_sidebar_context())
+    return render(request, "tracker/label_applications.html", ctx)
 
 
 import json
@@ -583,18 +702,34 @@ def label_messages(request):
 
             if selected_ids and bulk_label:
                 updated_count = 0
+                touched_threads = set()
                 for msg_id in selected_ids:
                     try:
                         msg = Message.objects.get(pk=msg_id)
                         msg.ml_label = bulk_label
                         msg.reviewed = True
                         msg.save()
+                        if msg.thread_id:
+                            touched_threads.add(msg.thread_id)
                         updated_count += 1
                     except Message.DoesNotExist:
                         continue
 
+                # Also update corresponding Application rows by thread_id
+                apps_updated = 0
+                if touched_threads:
+                    apps_updated = Application.objects.filter(
+                        thread_id__in=list(touched_threads)
+                    ).update(ml_label=bulk_label, reviewed=True)
+
                 messages.success(
-                    request, f"✅ Labeled {updated_count} messages as '{bulk_label}'"
+                    request,
+                    f"✅ Labeled {updated_count} messages as '{bulk_label}'"
+                    + (
+                        f" and updated {apps_updated} application(s)"
+                        if apps_updated
+                        else ""
+                    ),
                 )
 
                 # Check if we should retrain
@@ -615,12 +750,25 @@ def label_messages(request):
     per_page = int(request.GET.get("per_page", 50))
     page = int(request.GET.get("page", 1))
 
-    # ✅ Enhanced filtering
+    # Enhanced filtering
     filter_label = request.GET.get("label", "all")
-    filter_confidence = request.GET.get("confidence", "low")  # low, medium, high, all
+    filter_confidence = request.GET.get("confidence", "all")  # low, medium, high, all
     filter_company = request.GET.get("company", "all")  # all, missing, resolved
+    filter_reviewed = request.GET.get(
+        "reviewed", "unreviewed"
+    )  # unreviewed, reviewed, all
+    sort = request.GET.get(
+        "sort", ""
+    )  # subject, company, confidence, sender_domain, date
+    order = request.GET.get("order", "asc")  # asc, desc
 
-    qs = Message.objects.filter(reviewed=False)
+    # Build queryset based on reviewed filter
+    if filter_reviewed == "unreviewed":
+        qs = Message.objects.filter(reviewed=False)
+    elif filter_reviewed == "reviewed":
+        qs = Message.objects.filter(reviewed=True)
+    else:
+        qs = Message.objects.all()
 
     # Apply label filter
     if filter_label and filter_label != "all":
@@ -628,7 +776,7 @@ def label_messages(request):
 
     # Apply confidence filter
     if filter_confidence == "low":
-        qs = qs.filter(confidence__lt=0.5) | qs.filter(confidence__isnull=True)
+        qs = qs.filter(Q(confidence__lt=0.5) | Q(confidence__isnull=True))
     elif filter_confidence == "medium":
         qs = qs.filter(confidence__gte=0.5, confidence__lt=0.75)
     elif filter_confidence == "high":
@@ -640,11 +788,59 @@ def label_messages(request):
     elif filter_company == "resolved":
         qs = qs.filter(company__isnull=False)
 
-    # Filter out messages with blank or very short bodies
-    qs = qs.exclude(body__isnull=True).exclude(body="").exclude(body__regex=r"^\s*$")
+    # Do not exclude messages with blank or very short bodies; show all for debugging
 
-    # Order by priority: low confidence first, then timestamp
-    qs = qs.order_by(F("confidence").asc(nulls_first=True), "timestamp")
+    # Annotate helper fields for sorting
+    qs = qs.select_related("company").annotate(
+        company_name=Coalesce(F("company__name"), Value("")),
+    )
+    # Annotate sender_domain extracted after '@' when present
+    at_pos = StrIndex(F("sender"), Value("@"))
+    start_pos = ExpressionWrapper(at_pos + Value(1), output_field=IntegerField())
+    sender_domain_expr = Case(
+        When(sender__contains="@", then=Substr(F("sender"), start_pos)),
+        default=F("sender"),
+        output_field=CharField(),
+    )
+    qs = qs.annotate(sender_domain=sender_domain_expr)
+
+    # Sorting
+    sort = sort.lower()
+    order = order.lower()
+    is_desc = order == "desc"
+
+    if sort == "confidence":
+        qs = qs.order_by(
+            (
+                F("confidence").desc(nulls_last=True)
+                if is_desc
+                else F("confidence").asc(nulls_first=True)
+            ),
+            "-timestamp" if is_desc else "timestamp",
+        )
+    elif sort == "company":
+        qs = qs.order_by(
+            "-company_name" if is_desc else "company_name",
+            "-timestamp" if is_desc else "timestamp",
+        )
+    elif sort == "sender_domain":
+        qs = qs.order_by(
+            "-sender_domain" if is_desc else "sender_domain",
+            "-timestamp" if is_desc else "timestamp",
+        )
+    elif sort == "subject":
+        qs = qs.order_by(
+            "-subject" if is_desc else "subject",
+            "-timestamp" if is_desc else "timestamp",
+        )
+    elif sort == "date":
+        qs = qs.order_by("-timestamp" if is_desc else "timestamp")
+    else:
+        # Fallback: order by confidence priority similar to previous behavior
+        if filter_confidence in ("high", "medium"):
+            qs = qs.order_by(F("confidence").desc(nulls_last=True), "-timestamp")
+        else:
+            qs = qs.order_by(F("confidence").asc(nulls_first=True), "timestamp")
 
     # Pagination
     total_count = qs.count()
@@ -655,19 +851,20 @@ def label_messages(request):
 
     # Extract body snippets for display (plain text only)
     for msg in messages_page:
-        if msg.body:
-            # Parse HTML and extract plain text
+        if msg.body and msg.body.strip():
             soup = BeautifulSoup(msg.body, "html.parser")
-            # Remove script/style/noscript tags
             for tag in soup(["script", "style", "noscript"]):
                 tag.decompose()
-            # Get plain text, collapse whitespace
             plain_text = soup.get_text(separator=" ", strip=True)
-            # Collapse multiple spaces
             plain_text = " ".join(plain_text.split())
             msg.body_snippet = plain_text[:200]
         else:
-            msg.body_snippet = ""
+            msg.body_snippet = "[empty body]"
+
+        if msg.subject and msg.subject.strip():
+            msg.display_subject = msg.subject
+        else:
+            msg.display_subject = "[blank subject]"
 
         if msg.sender:
             sender_parts = msg.sender.split("@")
@@ -684,11 +881,9 @@ def label_messages(request):
     total_unreviewed = Message.objects.filter(reviewed=False).count()
     total_reviewed = Message.objects.filter(reviewed=True).count()
 
-    # Get distinct labels for filter
+    # Get distinct labels for filter (all labels, not just unreviewed)
     distinct_labels = (
-        Message.objects.filter(reviewed=False)
-        .values_list("ml_label", flat=True)
-        .distinct()
+        Message.objects.all().values_list("ml_label", flat=True).distinct()
     )
 
     # Available label choices
@@ -737,6 +932,8 @@ def label_messages(request):
             "filter_label": filter_label,
             "filter_confidence": filter_confidence,
             "filter_company": filter_company,
+            "sort": sort,
+            "order": order,
             "distinct_labels": distinct_labels,
             "label_choices": label_choices,
             "label_counts": label_counts,
@@ -755,6 +952,7 @@ def label_messages(request):
             "interviews_week": interviews_week,
             "upcoming_interviews": upcoming_interviews,
             "latest_stats": latest_stats,
+            "filter_reviewed": filter_reviewed,
         },
     )
 
@@ -780,13 +978,32 @@ def metrics(request):
         except Exception:
             training_output = None
 
+    # Ingestion stats plot data (same as dashboard)
+    earliest_stat = IngestionStats.objects.order_by("date").first()
+    if earliest_stat:
+        start_date = earliest_stat.date
+        end_date = now().date()
+        num_days = (end_date - start_date).days + 1
+        date_list = [start_date + timedelta(days=i) for i in range(num_days)]
+        stats_qs = IngestionStats.objects.filter(date__gte=start_date).order_by("date")
+        stats_map = {s.date: s for s in stats_qs}
+        chart_labels = [d.strftime("%Y-%m-%d") for d in date_list]
+        chart_inserted = [stats_map.get(d, None).total_inserted if stats_map.get(d, None) else 0 for d in date_list]
+        chart_skipped = [stats_map.get(d, None).total_skipped if stats_map.get(d, None) else 0 for d in date_list]
+        chart_ignored = [stats_map.get(d, None).total_ignored if stats_map.get(d, None) else 0 for d in date_list]
+    else:
+        chart_labels = []
+        chart_inserted = []
+        chart_skipped = []
+        chart_ignored = []
+
     # Categorize labels into real vs extra (company names that need fixing)
     valid_labels = {
         "interview",
         "interview_invite",
         "application",
         "job_application",
-        "rejection",
+        "rejected",
         "offer",
         "noise",
         "referral",
@@ -839,6 +1056,10 @@ def metrics(request):
             "interviews_week": interviews_week,
             "upcoming_interviews": upcoming_interviews,
             "latest_stats": latest_stats,
+            "chart_labels": chart_labels,
+            "chart_inserted": chart_inserted,
+            "chart_skipped": chart_skipped,
+            "chart_ignored": chart_ignored,
         },
     )
 
@@ -881,6 +1102,464 @@ def retrain_model(request):
         {
             "metrics": {},
             "training_output": training_output,
+            "companies": companies,
+            "applications": applications,
+            "rejections_week": rejections_week,
+            "interviews_week": interviews_week,
+            "upcoming_interviews": upcoming_interviews,
+            "latest_stats": latest_stats,
+        },
+    )
+
+
+import re
+import html
+
+
+def validate_regex_pattern(pattern):
+    """
+    Validate regex pattern for security issues.
+    Returns (is_valid, error_message)
+    """
+    if not pattern or not isinstance(pattern, str):
+        return False, "Pattern must be a non-empty string"
+
+    # Length limit to prevent DoS
+    if len(pattern) > 500:
+        return False, "Pattern too long (max 500 characters)"
+
+    # Check for suspicious patterns that could cause ReDoS
+    # (Regular Expression Denial of Service)
+    redos_patterns = [
+        r"\(\?\#",  # Comment groups can be abused
+        r"\(\?\=.*\)\+",  # Nested lookaheads with quantifiers
+        r"\(\?\!.*\)\+",  # Nested negative lookaheads
+        r"(\(.*\)\+){3,}",  # Multiple nested groups with quantifiers
+    ]
+
+    for redos in redos_patterns:
+        if re.search(redos, pattern):
+            return False, f"Pattern contains potentially unsafe construct"
+
+    # Try to compile the regex to ensure it's valid
+    try:
+        re.compile(pattern)
+    except re.error as e:
+        return False, f"Invalid regex: {str(e)}"
+
+    # Check for extremely complex patterns (complexity check)
+    quantifier_count = len(re.findall(r"[*+?{]", pattern))
+    if quantifier_count > 20:
+        return False, "Pattern too complex (too many quantifiers)"
+
+    return True, None
+
+
+def sanitize_string(value, max_length=200, allow_regex=False):
+    """
+    Sanitize user input string for security.
+    Returns sanitized string or None if invalid.
+    """
+    if not value or not isinstance(value, str):
+        return None
+
+    # Remove leading/trailing whitespace
+    value = value.strip()
+
+    if not value:
+        return None
+
+    # Length check
+    if len(value) > max_length:
+        return None
+
+    # HTML escape to prevent XSS
+    value = html.escape(value)
+
+    # Block obvious code injection attempts
+    dangerous_chars = [
+        "<script",
+        "javascript:",
+        "onerror=",
+        "onload=",
+        "<?php",
+        "<%",
+        "__import__",
+        "eval(",
+        "exec(",
+    ]
+    value_lower = value.lower()
+    for danger in dangerous_chars:
+        if danger in value_lower:
+            return None
+
+    # Block path traversal
+    if "../" in value or "..\\" in value or "%2e%2e" in value.lower():
+        return None
+
+    # Block null bytes
+    if "\x00" in value:
+        return None
+
+    # For regex patterns, additional validation
+    if allow_regex:
+        is_valid, error = validate_regex_pattern(value)
+        if not is_valid:
+            return None
+
+    return value
+
+
+def validate_domain(domain):
+    """
+    Validate domain name format.
+    Returns (is_valid, sanitized_domain)
+    """
+    if not domain or not isinstance(domain, str):
+        return False, None
+
+    domain = domain.strip().lower()
+
+    # Length check
+    if len(domain) > 253:
+        return False, None
+
+    # Basic domain format check
+    # Allow letters, numbers, dots, hyphens
+    if not re.match(
+        r"^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)*$",
+        domain,
+    ):
+        return False, None
+
+    # Must have at least one dot (TLD)
+    if "." not in domain:
+        return False, None
+
+    # HTML escape for safety
+    domain = html.escape(domain)
+
+    return True, domain
+
+
+@login_required
+def json_file_viewer(request):
+    """View and edit JSON configuration files (patterns.json, companies.json)"""
+
+    patterns_path = Path("json/patterns.json")
+    companies_path = Path("json/companies.json")
+
+    success_message = None
+    error_message = None
+    validation_errors = []
+
+    # Handle POST - Save changes to JSON files
+    if request.method == "POST":
+        action = request.POST.get("action")
+        file_type = request.POST.get("file_type")
+
+        try:
+            if action == "save_patterns":
+                # Update patterns.json with security validation
+                patterns_data = {}
+
+                # Save message_labels patterns with validation
+                for label in [
+                    "interview",
+                    "application",
+                    "rejection",
+                    "offer",
+                    "noise",
+                    "referral",
+                    "head_hunter",
+                    "job_alert",
+                    "follow_up",
+                    "response",
+                    "ghosted",
+                    "other",
+                ]:
+                    patterns_raw = (
+                        request.POST.get(f"pattern_{label}", "").strip().split("\n")
+                    )
+                    patterns_list = []
+
+                    for pattern in patterns_raw:
+                        if not pattern.strip():
+                            continue
+
+                        # Validate and sanitize regex pattern
+                        sanitized = sanitize_string(
+                            pattern, max_length=500, allow_regex=True
+                        )
+                        if sanitized:
+                            patterns_list.append(sanitized)
+                        else:
+                            validation_errors.append(
+                                f"Invalid pattern in '{label}': {pattern[:50]}..."
+                            )
+
+                    if patterns_list:
+                        if "message_labels" not in patterns_data:
+                            patterns_data["message_labels"] = {}
+                        patterns_data["message_labels"][label] = patterns_list
+
+                # Save invalid_company_prefixes with validation
+                invalid_prefixes_raw = (
+                    request.POST.get("invalid_company_prefixes", "").strip().split("\n")
+                )
+                invalid_prefixes = []
+
+                for prefix in invalid_prefixes_raw:
+                    if not prefix.strip():
+                        continue
+
+                    # Validate prefix (alphanumeric + common chars only)
+                    sanitized = sanitize_string(
+                        prefix, max_length=100, allow_regex=False
+                    )
+                    if sanitized:
+                        invalid_prefixes.append(sanitized)
+                    else:
+                        validation_errors.append(
+                            f"Invalid company prefix: {prefix[:50]}..."
+                        )
+
+                if invalid_prefixes:
+                    patterns_data["invalid_company_prefixes"] = invalid_prefixes
+
+                # Save old-style patterns for backward compatibility
+                for key in [
+                    "application",
+                    "rejection",
+                    "interview",
+                    "ignore",
+                    "response",
+                    "follow_up",
+                ]:
+                    old_patterns_raw = (
+                        request.POST.get(f"old_{key}", "").strip().split("\n")
+                    )
+                    old_patterns = []
+
+                    for pattern in old_patterns_raw:
+                        if not pattern.strip():
+                            continue
+
+                        sanitized = sanitize_string(
+                            pattern, max_length=500, allow_regex=False
+                        )
+                        if sanitized:
+                            old_patterns.append(sanitized)
+
+                    if old_patterns:
+                        patterns_data[key] = old_patterns
+
+                # Only write if no validation errors
+                if validation_errors:
+                    error_message = f"⚠️ Validation errors: {len(validation_errors)} patterns rejected for security reasons"
+                else:
+                    # Backup original file before overwriting
+                    if patterns_path.exists():
+                        backup_path = Path("json/patterns.json.backup")
+                        import shutil
+
+                        shutil.copy2(patterns_path, backup_path)
+
+                    # Write to file with restrictive permissions
+                    with open(patterns_path, "w", encoding="utf-8") as f:
+                        json.dump(patterns_data, f, indent=2)
+
+                    success_message = "✅ Patterns saved successfully! (Backup created)"
+
+            elif action == "save_companies":
+                # Update companies.json with security validation
+                companies_data = {}
+
+                # Save known companies with validation
+                known_raw = request.POST.get("known_companies", "").strip().split("\n")
+                known_list = []
+
+                for company in known_raw:
+                    if not company.strip():
+                        continue
+
+                    # Validate company name
+                    sanitized = sanitize_string(
+                        company, max_length=200, allow_regex=False
+                    )
+                    if sanitized:
+                        known_list.append(sanitized)
+                    else:
+                        validation_errors.append(
+                            f"Invalid company name: {company[:50]}..."
+                        )
+
+                if known_list:
+                    companies_data["known"] = sorted(known_list)
+
+                # Save domain mappings with validation
+                domain_mappings = {}
+                domains_raw = (
+                    request.POST.get("domain_mappings", "").strip().split("\n")
+                )
+
+                for line in domains_raw:
+                    if not line.strip():
+                        continue
+
+                    if ":" in line or "=" in line:
+                        separator = ":" if ":" in line else "="
+                        parts = line.split(separator, 1)
+
+                        if len(parts) == 2:
+                            domain = parts[0].strip()
+                            company = parts[1].strip()
+
+                            # Validate domain format
+                            is_valid, sanitized_domain = validate_domain(domain)
+                            if not is_valid:
+                                validation_errors.append(
+                                    f"Invalid domain format: {domain}"
+                                )
+                                continue
+
+                            # Validate company name
+                            sanitized_company = sanitize_string(
+                                company, max_length=200, allow_regex=False
+                            )
+                            if not sanitized_company:
+                                validation_errors.append(
+                                    f"Invalid company name for domain {domain}"
+                                )
+                                continue
+
+                            domain_mappings[sanitized_domain] = sanitized_company
+
+                if domain_mappings:
+                    companies_data["domain_to_company"] = domain_mappings
+
+                # Save ATS domains with validation
+                ats_raw = request.POST.get("ats_domains", "").strip().split("\n")
+                ats_list = []
+
+                for domain in ats_raw:
+                    if not domain.strip():
+                        continue
+
+                    # Validate domain format
+                    is_valid, sanitized_domain = validate_domain(domain)
+                    if is_valid:
+                        ats_list.append(sanitized_domain)
+                    else:
+                        validation_errors.append(f"Invalid ATS domain: {domain}")
+
+                if ats_list:
+                    companies_data["ats_domains"] = sorted(ats_list)
+
+                # Save aliases with validation
+                aliases = {}
+                aliases_raw = request.POST.get("aliases", "").strip().split("\n")
+
+                for line in aliases_raw:
+                    if not line.strip():
+                        continue
+
+                    if ":" in line or "=" in line:
+                        separator = ":" if ":" in line else "="
+                        parts = line.split(separator, 1)
+
+                        if len(parts) == 2:
+                            alias = parts[0].strip()
+                            canonical = parts[1].strip()
+
+                            # Validate both alias and canonical names
+                            sanitized_alias = sanitize_string(
+                                alias, max_length=200, allow_regex=False
+                            )
+                            sanitized_canonical = sanitize_string(
+                                canonical, max_length=200, allow_regex=False
+                            )
+
+                            if sanitized_alias and sanitized_canonical:
+                                aliases[sanitized_alias] = sanitized_canonical
+                            else:
+                                validation_errors.append(
+                                    f"Invalid alias: {alias} → {canonical}"
+                                )
+
+                if aliases:
+                    companies_data["aliases"] = aliases
+
+                # Check for reasonable data size (DoS prevention)
+                total_entries = (
+                    len(known_list)
+                    + len(domain_mappings)
+                    + len(ats_list)
+                    + len(aliases)
+                )
+
+                if total_entries > 10000:
+                    error_message = "❌ Too many entries (max 10,000 total). Possible DoS attempt blocked."
+                elif validation_errors:
+                    error_message = f"⚠️ Validation errors: {len(validation_errors)} entries rejected for security reasons"
+                else:
+                    # Backup original file before overwriting
+                    if companies_path.exists():
+                        backup_path = Path("json/companies.json.backup")
+                        import shutil
+
+                        shutil.copy2(companies_path, backup_path)
+
+                    # Write to file
+                    with open(companies_path, "w", encoding="utf-8") as f:
+                        json.dump(companies_data, f, indent=2)
+
+                    success_message = "✅ Companies configuration saved successfully! (Backup created)"
+
+        except Exception as e:
+            error_message = f"❌ Error saving file: {str(e)}"
+
+    # Load current JSON data
+    patterns_data = {}
+    companies_data = {}
+
+    try:
+        if patterns_path.exists():
+            with open(patterns_path, "r", encoding="utf-8") as f:
+                patterns_data = json.load(f)
+    except Exception as e:
+        error_message = f"⚠️ Error loading patterns.json: {str(e)}"
+
+    try:
+        if companies_path.exists():
+            with open(companies_path, "r", encoding="utf-8") as f:
+                companies_data = json.load(f)
+    except Exception as e:
+        error_message = f"⚠️ Error loading companies.json: {str(e)}"
+
+    # Sidebar context
+    companies = Company.objects.count()
+    applications = Application.objects.count()
+    rejections_week = Application.objects.filter(
+        rejection_date__gte=now() - timedelta(days=7)
+    ).count()
+    interviews_week = Application.objects.filter(
+        interview_date__gte=now() - timedelta(days=7)
+    ).count()
+    upcoming_interviews = Application.objects.filter(
+        interview_date__gte=now()
+    ).order_by("interview_date")
+    latest_stats = IngestionStats.objects.order_by("-date").first()
+
+    return render(
+        request,
+        "tracker/json_file_viewer.html",
+        {
+            "patterns_data": patterns_data,
+            "companies_data": companies_data,
+            "success_message": success_message,
+            "error_message": error_message,
+            "validation_errors": validation_errors,
             "companies": companies,
             "applications": applications,
             "rejections_week": rejections_week,

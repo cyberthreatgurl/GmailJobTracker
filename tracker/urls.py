@@ -20,4 +20,5 @@ urlpatterns = [
     path("aliases/reject/", views.reject_alias, name="reject_alias"),
     path("label_companies/", views.label_companies, name="label_companies"),
     path("company_threads/", views.company_threads, name="company_threads"),
+    path("json_viewer/", views.json_file_viewer, name="json_file_viewer"),
 ]

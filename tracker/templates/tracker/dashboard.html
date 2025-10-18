@@ -1,17 +1,7 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>📊 Gmail Job Tracker Dashboard</title>
+{% extends "base.html" %}
+{% block title %}Dashboard - GmailJobTracker{% endblock %}
+{% block extra_head %}
   <style>
-    body {
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-      margin: 0;
-      background-color: #f9fafb;
-      color: #333;
-      line-height: 1.4;
-      font-size: 0.85rem;
-    }
     h1 {
       color: #1f2937;
       margin-top: 0.5rem;
@@ -24,166 +14,190 @@
       margin-bottom: 0.5rem;
       font-size: 1.1rem;
     }
-    .dashboard-layout {
+    .charts-row {
       display: flex;
-      gap: 0.5rem;
+      gap: 1.5rem;
       margin-top: 1rem;
     }
-    .sidebar {
-      flex: 0 0 220px;
-      max-width: 240px;
-    }
-    .charts-container {
-      flex: 1;
+    .chart-card {
+      background: white;
+      padding: 1rem;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      flex: 1 1 33%;
+      min-width: 260px;
+      max-width: 33%;
+      transition: max-width 0.3s, min-width 0.3s;
+      position: relative;
       display: flex;
       flex-direction: column;
-      gap: 1rem;
+      align-items: stretch;
     }
-    /* ...other styles... */
+    .chart-card.expanded {
+      max-width: 100%;
+      min-width: 600px;
+      z-index: 2;
+    }
+    .expand-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 0.3rem 0.7rem;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .expand-btn:hover {
+      background: #1e40af;
+    }
+    canvas {
+      width: 100% !important;
+      height: 180px !important;
+      max-width: 100%;
+      margin-top: 0.5rem;
+    }
+    .date-filter-container {
+      margin-top: 1rem;
+      padding: 0.75rem;
+      background: #f9fafb;
+      border-radius: 6px;
+      border: 1px solid #e5e7eb;
+    }
+    .date-filter-container label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #4b5563;
+      margin-bottom: 0.5rem;
+    }
+    .filter-wrapper {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .date-input-group {
+      display: flex;
+      gap: 0.4rem;
+      align-items: center;
+    }
+    .date-input-group input[type="date"],
+    select#quickRange {
+      padding: 0.3rem 0.4rem;
+      border: 1px solid #d1d5db;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      color: #111827;
+      background: white;
+    }
+    .date-input-group .sep { color: #6b7280; font-size: 0.85rem; }
+    .reset-btn {
+      background: #6b7280;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 0.3rem 0.6rem;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .reset-btn:hover {
+      background: #4b5563;
+    }
+    @media (max-width: 900px) {
+      .charts-row { flex-direction: column; }
+      .chart-card { max-width: 100%; min-width: 220px; }
+    }
   </style>
-</head>
-<body>
+{% endblock %}
 
+{% block content %}
   <h1>📊 Gmail Job Tracker Dashboard</h1>
-
-  <div class="dashboard-layout">
-    {% include "tracker/_sidebar.html" %}
-    <div class="charts-container">
-      <div class="card">
-        <h2>Message Ingestion Activity (Last 30 Days)</h2>
-        <canvas id="ingestionChart" height="100"></canvas>
+  <div class="charts-row">
+    <!-- Removed Message Ingestion Activity (Last 30 Days) plot -->
+    <div class="chart-card expanded" id="activityCard">
+      <h2>Job Search Activity by Type</h2>
+      <div class="date-filter-container">
+        <label>Date Range:</label>
+        <div class="filter-wrapper">
+          <div class="date-input-group">
+            <input type="date" id="startDateInput" />
+            <span class="sep">to</span>
+            <input type="date" id="endDateInput" />
+          </div>
+          <select id="quickRange">
+            <option value="all">All</option>
+            <option value="7">Last 7 days</option>
+            <option value="14">Last 14 days</option>
+            <option value="30">Last 30 days</option>
+            <option value="60">Last 60 days</option>
+            <option value="90">Last 90 days</option>
+          </select>
+          <button class="reset-btn" onclick="resetActivityDateRange()">Reset</button>
+        </div>
+        <div style="margin-top:0.5rem; display:flex; gap:1.5rem; align-items:flex-start; flex-wrap:wrap;">
+          <div>
+            <label for="xAxisType" style="font-size:0.85rem; font-weight:500; color:#374151;">X-Axis:</label>
+            <select id="xAxisType" style="margin-left:0.5rem;">
+              <option value="date">Date (default)</option>
+              <option value="week">Week</option>
+              <option value="month">Month</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:0.85rem; font-weight:500; color:#374151; display:block; margin-bottom:0.3rem;">Plot Series:</label>
+            <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
+              {% for series in plot_series_config %}
+              <label style="font-size:0.8rem; color:#374151; cursor:pointer; white-space:nowrap;">
+                <input type="checkbox" class="series-checkbox" value="{{ series.key }}" checked style="margin-right:0.3rem;">
+                <a href="{% url 'label_messages' %}?label={{ series.ml_label }}" style="color:{{ series.color }}; text-decoration:none;" title="View {{ series.label|lower }} messages">{{ series.label }}</a>
+              </label>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
       </div>
-
-      <div class="card">
-        <h2>Job Search Activity by Type (Last 30 Days)</h2>
-        <canvas id="activityChart" height="100"></canvas>
-      </div>
+      <canvas id="activityChart" height="100"></canvas>
     </div>
   </div>
+{% endblock %}
 
-  <!-- ✅ Chart.js integration -->
+{% block extra_scripts %}
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
-    {% if chart_labels %}
-    // Ingestion Stats Chart (Line)
-    const ctxIngestion = document.getElementById('ingestionChart').getContext('2d');
-    const ingestionChart = new Chart(ctxIngestion, {
-      type: 'line',
-      data: {
-        labels: {{ chart_labels|safe }},
-        datasets: [
-          {
-            label: 'Inserted',
-            data: {{ chart_inserted|safe }},
-            borderColor: '#10b981',
-            backgroundColor: 'rgba(16, 185, 129, 0.1)',
-            fill: true,
-            tension: 0.3,
-            borderWidth: 2
-          },
-          {
-            label: 'Skipped',
-            data: {{ chart_skipped|safe }},
-            borderColor: '#f59e0b',
-            backgroundColor: 'rgba(245, 158, 11, 0.1)',
-            fill: true,
-            tension: 0.3,
-            borderWidth: 2
-          },
-          {
-            label: 'Ignored',
-            data: {{ chart_ignored|safe }},
-            borderColor: '#ef4444',
-            backgroundColor: 'rgba(239, 68, 68, 0.1)',
-            fill: true,
-            tension: 0.3,
-            borderWidth: 2
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: true,
-        plugins: {
-          legend: { 
-            position: 'bottom',
-            labels: { font: { size: 10 } }
-          },
-          title: { display: false },
-          tooltip: {
-            mode: 'index',
-            intersect: false,
-            bodyFont: { size: 10 }
-          }
-        },
-        scales: {
-          x: { 
-            display: true,
-            ticks: { font: { size: 9 } },
-            title: { display: false }
-          },
-          y: { 
-            beginAtZero: true,
-            ticks: { font: { size: 9 } },
-            title: { display: false }
-          }
-        }
-      }
-    });
+    // Removed Ingestion Stats Chart (Line)
 
     // Application Activity Chart (Line)
+    {% if chart_activity_labels %}
+    // Store full dataset
+    const fullActivityLabels = {{ chart_activity_labels|safe }};
+    // Dynamic series data from configuration
+    const seriesConfig = {{ plot_series_config|safe }};
+    const seriesData = {{ chart_series_data|safe }};
+    
+    // Build datasets array dynamically
+    const activityDatasets = seriesData.map((series, idx) => ({
+      label: seriesConfig[idx].label,
+      data: series.data.map(Number),
+      borderColor: seriesConfig[idx].color,
+      backgroundColor: seriesConfig[idx].color + '1a', // Add alpha for fill
+      fill: true,
+      tension: 0.3,
+      borderWidth: 1,
+      pointRadius: 0,
+      pointHoverRadius: 4
+    }));
+    
     const ctxActivity = document.getElementById('activityChart').getContext('2d');
-    const activityChart = new Chart(ctxActivity, {
+    let activityChart = new Chart(ctxActivity, {
       type: 'line',
       data: {
-        labels: {{ chart_labels|safe }},
-        datasets: [
-          {
-            label: 'Applications',
-            data: {{ chart_applications|safe }},
-            borderColor: '#2563eb',
-            backgroundColor: 'rgba(37, 99, 235, 0.1)',
-            fill: true,
-            tension: 0.3,
-            borderWidth: 2
-          },
-          {
-            label: 'Rejections',
-            data: {{ chart_rejections|safe }},
-            borderColor: '#ef4444',
-            backgroundColor: 'rgba(239, 68, 68, 0.1)',
-            fill: true,
-            tension: 0.3,
-            borderWidth: 2
-          },
-          {
-            label: 'Interviews',
-            data: {{ chart_interviews|safe }},
-            borderColor: '#10b981',
-            backgroundColor: 'rgba(16, 185, 129, 0.1)',
-            fill: true,
-            tension: 0.3,
-            borderWidth: 2
-          },
-          {
-            label: 'Referrals',
-            data: {{ chart_referrals|safe }},
-            borderColor: '#8b5cf6',
-            backgroundColor: 'rgba(139, 92, 246, 0.1)',
-            fill: true,
-            tension: 0.3,
-            borderWidth: 2
-          },
-          {
-            label: 'Head Hunters',
-            data: {{ chart_headhunters|safe }},
-            borderColor: '#f59e0b',
-            backgroundColor: 'rgba(245, 158, 11, 0.1)',
-            fill: true,
-            tension: 0.3,
-            borderWidth: 2
-          }
-        ]
+        labels: fullActivityLabels,
+        datasets: activityDatasets
       },
       options: {
         responsive: true,
@@ -214,17 +228,191 @@
         }
       }
     });
-    {% endif %}
-  </script>
+    // Date filter controls
+    const startDateInput = document.getElementById('startDateInput');
+    const endDateInput = document.getElementById('endDateInput');
+    const quickRange = document.getElementById('quickRange');
 
-  <script>
-    function showTab(tabId) {
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-      document.getElementById(tabId).classList.add('active');
-      document.querySelector(`.tab[onclick="showTab('${tabId}')"]`).classList.add('active');
+
+    const minDateStr = fullActivityLabels[0];
+    const maxDateStr = fullActivityLabels[fullActivityLabels.length - 1];
+
+    // Set input bounds
+    startDateInput.min = minDateStr;
+    startDateInput.max = maxDateStr;
+    endDateInput.min = minDateStr;
+    endDateInput.max = maxDateStr;
+
+    // Use reporting_default_start_date if present and in range
+    const reportingDefaultStart = "{{ reporting_default_start_date|default:'' }}";
+    if (reportingDefaultStart && reportingDefaultStart >= minDateStr && reportingDefaultStart <= maxDateStr) {
+      startDateInput.value = reportingDefaultStart;
+    } else {
+      startDateInput.value = minDateStr;
     }
-  </script>
+    endDateInput.value = maxDateStr;
 
-</body>
-</html>
+    function clampDateStr(str) {
+      if (str < minDateStr) return minDateStr;
+      if (str > maxDateStr) return maxDateStr;
+      return str;
+    }
+
+    function formatDate(d) {
+      const pad = (n) => String(n).padStart(2, '0');
+      const y = d.getUTCFullYear();
+      const m = pad(d.getUTCMonth() + 1);
+      const day = pad(d.getUTCDate());
+      return `${y}-${m}-${day}`;
+    }
+
+    function findStartIdx(dateStr) {
+      // first index with label >= dateStr
+      for (let i = 0; i < fullActivityLabels.length; i++) {
+        if (fullActivityLabels[i] >= dateStr) return i;
+      }
+      return 0;
+    }
+
+    function findEndIdx(dateStr) {
+      // last index with label <= dateStr
+      for (let i = fullActivityLabels.length - 1; i >= 0; i--) {
+        if (fullActivityLabels[i] <= dateStr) return i;
+      }
+      return fullActivityLabels.length - 1;
+    }
+
+    function groupLabelsAndData(labels, dataArrays, type) {
+      // type: 'date', 'week', 'month'
+      if (type === 'date') {
+        return { labels, dataArrays };
+      }
+      const grouped = {};
+      const labelMap = [];
+      for (let i = 0; i < labels.length; i++) {
+        let key;
+        if (type === 'week') {
+          // YYYY-Www (ISO week)
+          const d = new Date(labels[i] + 'T00:00:00Z');
+          const y = d.getUTCFullYear();
+          // get week number
+          const firstDay = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+          const pastDaysOfYear = (d - firstDay) / 86400000;
+          key = y + '-W' + String(Math.ceil((pastDaysOfYear + firstDay.getUTCDay()+1)/7)).padStart(2,'0');
+        } else if (type === 'month') {
+          // YYYY-MM
+          const d = new Date(labels[i] + 'T00:00:00Z');
+          key = d.getUTCFullYear() + '-' + String(d.getUTCMonth()+1).padStart(2,'0');
+        }
+        if (!grouped[key]) {
+          grouped[key] = dataArrays.map(() => 0);
+          labelMap.push(key);
+        }
+        for (let j = 0; j < dataArrays.length; j++) {
+          grouped[key][j] += dataArrays[j][i];
+        }
+      }
+      // Return grouped labels and arrays
+      const newDataArrays = dataArrays.map((_, idx) => labelMap.map(l => grouped[l][idx]));
+      return { labels: labelMap, dataArrays: newDataArrays };
+    }
+
+    function updateActivityChartByDates() {
+      let startStr = clampDateStr(startDateInput.value || minDateStr);
+      let endStr = clampDateStr(endDateInput.value || maxDateStr);
+
+      // Ensure start <= end; if not, swap
+      if (startStr > endStr) {
+        const tmp = startStr; startStr = endStr; endStr = tmp;
+        startDateInput.value = startStr;
+        endDateInput.value = endStr;
+      }
+
+      const startIdx = findStartIdx(startStr);
+      const endIdx = findEndIdx(endStr);
+
+      let slicedLabels = fullActivityLabels.slice(startIdx, endIdx + 1);
+      
+      // Slice all series data dynamically
+      let slicedSeriesData = seriesData.map(series => series.data.slice(startIdx, endIdx + 1));
+
+      // If slice empty due to an edge case, fallback to full
+      if (slicedLabels.length === 0) {
+        slicedLabels = fullActivityLabels;
+        slicedSeriesData = seriesData.map(series => series.data);
+      }
+
+      // X-axis type
+      const xAxisType = document.getElementById('xAxisType').value;
+      const grouped = groupLabelsAndData(
+        slicedLabels,
+        slicedSeriesData,
+        xAxisType
+      );
+
+      // Series selection
+      const seriesCheckboxes = document.querySelectorAll('.series-checkbox');
+      const selectedKeys = Array.from(seriesCheckboxes)
+        .filter(cb => cb.checked)
+        .map(cb => cb.value);
+
+      activityChart.data.labels = grouped.labels;
+      // Update datasets and hide/show based on selection
+      seriesConfig.forEach((config, idx) => {
+        activityChart.data.datasets[idx].data = grouped.dataArrays[idx];
+        activityChart.data.datasets[idx].hidden = !selectedKeys.includes(config.key);
+      });
+      activityChart.update();
+    }
+  // X-axis type change handler
+  document.getElementById('xAxisType').addEventListener('change', updateActivityChartByDates);
+  // Series selection change handler - attach to all checkboxes
+  document.querySelectorAll('.series-checkbox').forEach(cb => {
+    cb.addEventListener('change', updateActivityChartByDates);
+  });
+
+    // Quick range handler
+    quickRange.addEventListener('change', () => {
+      const val = quickRange.value;
+      if (val === 'all') {
+        startDateInput.value = minDateStr;
+        endDateInput.value = maxDateStr;
+      } else {
+        const days = parseInt(val, 10);
+        // end is the max date by default
+        const end = new Date(maxDateStr + 'T00:00:00Z');
+        const start = new Date(end);
+        start.setUTCDate(start.getUTCDate() - (days - 1));
+        const startStr = clampDateStr(formatDate(start));
+        startDateInput.value = startStr;
+        endDateInput.value = maxDateStr;
+      }
+      updateActivityChartByDates();
+    });
+
+    // Input change handlers
+    startDateInput.addEventListener('change', () => {
+      // Clear quick range selection when manually edited
+      quickRange.value = 'all';
+      updateActivityChartByDates();
+    });
+    endDateInput.addEventListener('change', () => {
+      quickRange.value = 'all';
+      updateActivityChartByDates();
+    });
+
+    function resetActivityDateRange() {
+      quickRange.value = 'all';
+      startDateInput.value = minDateStr;
+      endDateInput.value = maxDateStr;
+      updateActivityChartByDates();
+    }
+
+    // Initialize chart with full range
+    updateActivityChartByDates();
+    {% endif %}
+
+    // Expand/collapse chart cards
+    // Removed expand/collapse logic for activity chart; always expanded
+  </script>
+{% endblock %}

@@ -9,6 +9,7 @@ from .models import (
     DomainToCompany,
     CompanyAlias,
     Ticket,
+    MessageLabel,
 )
 
 list_display = ("name", "message_count", "application_count")
@@ -121,3 +122,4 @@ admin.site.register(KnownCompany)
 admin.site.register(ATSDomain)
 admin.site.register(DomainToCompany)
 admin.site.register(CompanyAlias)
+admin.site.register(MessageLabel)

@@ -59,6 +59,15 @@ class Application(models.Model):
         return f"{self.company.name} - {self.job_title}"
 
 
+class MessageLabel(models.Model):
+    label = models.CharField(max_length=50, unique=True)
+    display_name = models.CharField(max_length=100)
+    color = models.CharField(max_length=16, default="#2563eb")
+
+    def __str__(self):
+        return f"{self.label} ({self.display_name})"
+
+
 class Message(models.Model):
     company = models.ForeignKey(
         Company, null=True, blank=True, on_delete=models.SET_NULL

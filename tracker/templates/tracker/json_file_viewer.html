@@ -1,0 +1,406 @@
+{% extends "base.html" %}
+{% load static %}
+{% load custom_filters %}
+{% block title %}JSON File Viewer - GmailJobTracker{% endblock %}
+{% block extra_head %}
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #1f2937;
+      min-height: 100vh;
+      padding: 1rem;
+    }
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      gap: 1.5rem;
+    }
+    .main-content {
+      flex: 1;
+      background: white;
+      border-radius: 12px;
+      padding: 2rem;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+    }
+    h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      color: #1f2937;
+    }
+    .subtitle {
+      color: #6b7280;
+      margin-bottom: 2rem;
+      font-size: 0.95rem;
+    }
+    .alert {
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+      font-weight: 500;
+    }
+    .alert-success {
+      background: #d1fae5;
+      color: #065f46;
+      border: 1px solid #10b981;
+    }
+    .alert-error {
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #ef4444;
+    }
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .json-card {
+      background: #f9fafb;
+      border: 2px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 1.5rem;
+      transition: all 0.3s ease;
+    }
+    .json-card:hover {
+      border-color: #667eea;
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 2px solid #e5e7eb;
+    }
+    .card-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #1f2937;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .card-icon {
+      font-size: 1.5rem;
+    }
+    .section {
+      margin-bottom: 1.5rem;
+    }
+    .section-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #4b5563;
+      margin-bottom: 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .form-group {
+      margin-bottom: 1rem;
+    }
+    label {
+      display: block;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 0.4rem;
+      font-size: 0.9rem;
+    }
+    textarea, input[type="text"] {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.85rem;
+      resize: vertical;
+      transition: border-color 0.2s;
+    }
+    textarea:focus, input[type="text"]:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    textarea {
+      min-height: 120px;
+    }
+    .helper-text {
+      font-size: 0.8rem;
+      color: #6b7280;
+      margin-top: 0.3rem;
+      font-style: italic;
+    }
+    .button-group {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+    .btn {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.95rem;
+    }
+    .btn-primary {
+      background: #667eea;
+      color: white;
+    }
+    .btn-primary:hover {
+      background: #5568d3;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+    .btn-secondary {
+      background: #e5e7eb;
+      color: #374151;
+    }
+    .btn-secondary:hover {
+      background: #d1d5db;
+    }
+    .expandable {
+      margin-bottom: 1rem;
+    }
+    .expandable-header {
+      background: #e5e7eb;
+      padding: 0.75rem 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+    .expandable-header:hover {
+      background: #d1d5db;
+    }
+    .expandable-content {
+      padding: 1rem;
+      display: none;
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-top: none;
+      border-radius: 0 0 6px 6px;
+    }
+    .expandable-content.active {
+      display: block;
+    }
+    .toggle-icon {
+      transition: transform 0.2s;
+    }
+    .toggle-icon.active {
+      transform: rotate(180deg);
+    }
+    /* Sidebar styles */
+    .sidebar { /* styles from _sidebar.html */ }
+    .card { 
+      background: white;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .card h2 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+      color: #1f2937;
+    }
+    .card ul {
+      list-style: none;
+    }
+    .card ul li {
+      padding: 0.4rem 0;
+      font-size: 0.85rem;
+      color: #4b5563;
+    }
+    .stats li {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px solid #f3f4f6;
+    }
+    .button {
+      display: inline-block;
+      text-decoration: none;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      transition: all 0.2s;
+    }
+    .timestamp {
+      font-size: 0.7rem;
+      color: #9ca3af;
+      margin-top: 0.5rem;
+    }
+  </style>
+{% endblock %}
+{% block content %}
+    <div class="main-content">
+      <h1>📄 JSON File Viewer</h1>
+      <p class="subtitle">View and edit configuration files for patterns and company mappings</p>
+
+      {% if success_message %}
+      <div class="alert alert-success">{{ success_message }}</div>
+      {% endif %}
+
+      {% if error_message %}
+      <div class="alert alert-error">{{ error_message }}</div>
+      {% endif %}
+
+      {% if validation_errors %}
+      <div class="alert alert-error">
+        <h3 style="margin-bottom: 0.5rem;">🔒 Security Validation Errors:</h3>
+        <ul style="margin-left: 1.5rem; font-size: 0.85rem;">
+          {% for error in validation_errors %}
+          <li>{{ error }}</li>
+          {% endfor %}
+        </ul>
+        <p style="margin-top: 0.5rem; font-size: 0.85rem;">
+          <strong>Note:</strong> Invalid entries were rejected to prevent security issues (XSS, code injection, ReDoS).
+        </p>
+      </div>
+      {% endif %}
+
+      <div class="cards-grid">
+        <!-- Patterns.json Card -->
+        <div class="json-card">
+          <div class="card-header">
+            <div class="card-title">
+              <span class="card-icon">🔍</span>
+              <span>patterns.json</span>
+            </div>
+          </div>
+
+          <form method="post" action="{% url 'json_file_viewer' %}">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="save_patterns">
+
+            <div class="section">
+              <div class="section-title">Message Label Patterns (Regex)</div>
+              
+              {% for label in "interview,application,rejection,offer,noise,referral,head_hunter,job_alert,follow_up,response,ghosted,other"|split:"," %}
+              <div class="expandable">
+                <div class="expandable-header" onclick="toggleExpand(this)">
+                  <span>{{ label|title }}</span>
+                  <span class="toggle-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                  <textarea name="pattern_{{ label }}" placeholder="One regex pattern per line">{% if patterns_data.message_labels %}{{ patterns_data.message_labels|get_item:label|join:"&#10;" }}{% endif %}</textarea>
+                  <div class="helper-text">Enter regex patterns, one per line e.g., \b(interview|schedule)\b</div>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+
+            <div class="section">
+              <div class="section-title">Invalid Company Prefixes</div>
+              <div class="form-group">
+                <textarea name="invalid_company_prefixes" placeholder="One prefix per line">{{ patterns_data.invalid_company_prefixes|join:"&#10;" }}</textarea>
+                <div class="helper-text">Company names starting with these will be rejected</div>
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">Legacy Patterns (Backward Compatibility)</div>
+              {% for key in "application,rejection,interview,ignore,response,follow_up"|split:"," %}
+              <div class="expandable">
+                <div class="expandable-header" onclick="toggleExpand(this)">
+                  <span>{{ key|title }}</span>
+                  <span class="toggle-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                  <textarea name="old_{{ key }}">{% if patterns_data|get_item:key %}{{ patterns_data|get_item:key|join:"&#10;" }}{% endif %}</textarea>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+
+            <div class="button-group">
+              <button type="submit" class="btn btn-primary">💾 Save Patterns</button>
+              <button type="button" class="btn btn-secondary" onclick="location.reload()">🔄 Reset</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Companies.json Card -->
+        <div class="json-card">
+          <div class="card-header">
+            <div class="card-title">
+              <span class="card-icon">🏢</span>
+              <span>companies.json</span>
+            </div>
+          </div>
+
+          <form method="post" action="{% url 'json_file_viewer' %}">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="save_companies">
+
+            <div class="section">
+              <div class="section-title">Known Companies</div>
+              <div class="form-group">
+                <textarea name="known_companies" placeholder="One company per line">{{ companies_data.known|join:"&#10;" }}</textarea>
+                <div class="helper-text">Whitelist of known companies (exact match)</div>
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">Domain → Company Mappings</div>
+              <div class="form-group">
+                <textarea name="domain_mappings" placeholder="domain.com: Company Name">{% for domain, company in companies_data.domain_to_company.items %}{{ domain }}: {{ company }}
+{% endfor %}</textarea>
+                <div class="helper-text">Format: domain.com: Company Name (one per line)</div>
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">ATS Domains</div>
+              <div class="form-group">
+                <textarea name="ats_domains" placeholder="One domain per line">{{ companies_data.ats_domains|join:"&#10;" }}</textarea>
+                <div class="helper-text">Applicant Tracking System domains (e.g., greenhouse.io)</div>
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">Company Aliases</div>
+              <div class="form-group">
+                <textarea name="aliases" placeholder="Alias Name: Canonical Name">{% for alias, canonical in companies_data.aliases.items %}{{ alias }}: {{ canonical }}
+{% endfor %}</textarea>
+                <div class="helper-text">Format: Alias: Canonical Name (one per line)</div>
+              </div>
+            </div>
+
+            <div class="button-group">
+              <button type="submit" class="btn btn-primary">💾 Save Companies</button>
+              <button type="button" class="btn btn-secondary" onclick="location.reload()">🔄 Reset</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div style="background: #fffbeb; border: 1px solid #fbbf24; border-radius: 8px; padding: 1rem; margin-top: 2rem;">
+        <h3 style="margin-bottom: 0.5rem; color: #92400e;">⚠️ Important Notes:</h3>
+        <ul style="margin-left: 1.5rem; color: #78350f; font-size: 0.9rem;">
+          <li>Changes take effect immediately after saving</li>
+          <li>Consider retraining the model after pattern changes</li>
+          <li>Re-ingest messages to apply new company mappings: <code>python manage.py ingest_gmail --force --days-back 30</code></li>
+          <li>Always backup files before major changes</li>
+        </ul>
+      </div>
+    </div>
+  
+  <script>
+    function toggleExpand(header) {
+      const content = header.nextElementSibling;
+      const icon = header.querySelector('.toggle-icon');
+      
+      content.classList.toggle('active');
+      icon.classList.toggle('active');
+    }
+  </script>
+{% endblock %}

@@ -51,14 +51,15 @@ else:
 _MSG_LABEL_PATTERNS = {
     k: [re.compile(p, re.I) for p in PATTERNS.get(k, [])]
     for k in (
-        "interview",
-        "application",
-        "rejection",
+        "interview_invite",
+        "job_application",
+        "rejected",
         "offer",
         "noise",
         "ignore",
         "response",
         "follow_up",
+        "ghosted",
         "referral",
     )
 }
@@ -67,12 +68,13 @@ _MSG_LABEL_PATTERNS = {
 def rule_label(subject: str, body: str = "") -> str | None:
     s = f"{subject or ''} {body or ''}"
     for label in (
-        "interview",
-        "application",
-        "rejection",
+        "interview_invite",
+        "job_application",
+        "rejected",
         "offer",
         "noise",
         "referral",
+        "ghosted",
         "blank",
     ):
         for rx in _MSG_LABEL_PATTERNS.get(label, []):
@@ -337,15 +339,17 @@ def classify_message(body):
     """Classify message body into a status category based on patterns.json."""
     body_lower = body.lower()
     if any(p in body_lower for p in PATTERNS.get("rejection", [])):
-        return "rejection"
+        return "rejected"
     if any(p in body_lower for p in PATTERNS.get("interview", [])):
-        return "interview"
+        return "interview_invitre"
     if any(p in body_lower for p in PATTERNS.get("follow_up", [])):
         return "follow_up"
     if any(p in body_lower for p in PATTERNS.get("application", [])):
-        return "application"
+        return "job_application"
     if any(p in body_lower for p in PATTERNS.get("response", [])):
         return "response"
+    if any(p in body_lower for p in PATTERNS.get("job_alert", [])):
+        return "job_alert"
     return ""
 
 
@@ -509,10 +513,14 @@ def ingest_message(service, msg_id):
         # --- PATCH: Skip and log blank/whitespace-only bodies ---
         if not body or not body.strip():
             if DEBUG:
-                print(f"[BLANK BODY] Skipping message {msg_id}: {metadata.get('subject','(no subject)')}")
+                print(
+                    f"[BLANK BODY] Skipping message {msg_id}: {metadata.get('subject','(no subject)')}"
+                )
                 print("Stats: ignored++ (blank body)")
             log_ignored_message(msg_id, metadata, reason="blank_body")
-            IngestionStats.objects.filter(date=stats.date).update(total_ignored=F("total_ignored") + 1)
+            IngestionStats.objects.filter(date=stats.date).update(
+                total_ignored=F("total_ignored") + 1
+            )
             return "ignored"
 
     except Exception as e:
@@ -539,7 +547,9 @@ def ingest_message(service, msg_id):
             metadata,
             reason=parsed_subject.get("ignore_reason", "ml_ignore"),
         )
-        IngestionStats.objects.filter(date=stats.date).update(total_ignored=F("total_ignored") + 1)
+        IngestionStats.objects.filter(date=stats.date).update(
+            total_ignored=F("total_ignored") + 1
+        )
         return "ignored"
 
     status = classify_message(body)
@@ -728,7 +738,9 @@ def ingest_message(service, msg_id):
             and is_valid_company(company)
         ):
             existing.reviewed = True
-        IngestionStats.objects.filter(date=stats.date).update(total_skipped=F("total_skipped") + 1)
+        IngestionStats.objects.filter(date=stats.date).update(
+            total_skipped=F("total_skipped") + 1
+        )
         return "skipped"
 
     reviewed = (
@@ -785,15 +797,21 @@ def ingest_message(service, msg_id):
             if created:
                 if DEBUG:
                     print("Stats: inserted++ (new application)")
-                IngestionStats.objects.filter(date=stats.date).update(total_inserted=F("total_inserted") + 1)
+                IngestionStats.objects.filter(date=stats.date).update(
+                    total_inserted=F("total_inserted") + 1
+                )
             else:
                 if DEBUG:
                     print("Stats: ignored++ (duplicate application)")
-                IngestionStats.objects.filter(date=stats.date).update(total_ignored=F("total_ignored") + 1)
+                IngestionStats.objects.filter(date=stats.date).update(
+                    total_ignored=F("total_ignored") + 1
+                )
         else:
             if DEBUG:
                 print("Stats: skipped++ (missing company/message)")
-            IngestionStats.objects.filter(date=stats.date).update(total_skipped=F("total_skipped") + 1)
+            IngestionStats.objects.filter(date=stats.date).update(
+                total_skipped=F("total_skipped") + 1
+            )
 
     except Exception as e:
         if DEBUG:
@@ -853,7 +871,9 @@ def ingest_message(service, msg_id):
             print(f"Ignored due to: {reason} -> {metadata['subject']}")
             print("Stats: ignored++ (unclassified)")
         log_ignored_message(msg_id, metadata, reason=reason)
-        IngestionStats.objects.filter(date=stats.date).update(total_ignored=F("total_ignored") + 1)
+        IngestionStats.objects.filter(date=stats.date).update(
+            total_ignored=F("total_ignored") + 1
+        )
         return "ignored"
 
     record["company_job_index"] = build_company_job_index(
@@ -872,7 +892,9 @@ def ingest_message(service, msg_id):
             print(f"Ignored by pattern: {metadata['subject']}")
             print("Stats: ignored++ (pattern ignore)")
         log_ignored_message(msg_id, metadata, reason="pattern_ignore")
-        IngestionStats.objects.filter(date=stats.date).update(total_ignored=F("total_ignored") + 1)
+        IngestionStats.objects.filter(date=stats.date).update(
+            total_ignored=F("total_ignored") + 1
+        )
         return "ignored"
 
     insert_or_update_application(record)

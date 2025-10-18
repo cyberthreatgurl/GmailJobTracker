@@ -1,0 +1,27 @@
+[
+  {
+    "label": "job_application",
+    "display_name": "Application",
+    "color": "#2563eb"
+  },
+  {
+    "label": "interview_invite",
+    "display_name": "Interview",
+    "color": "#22c55e"
+  },
+  {
+    "label": "rejected",
+    "display_name": "Rejected",
+    "color": "#ef4444"
+  },
+  {
+    "label": "ghosted",
+    "display_name": "Ghosted",
+    "color": "#a3a3a3"
+  },
+  {
+    "label": "job_alert",
+    "display_name": "Job Alert",
+    "color": "#eab308"
+  }
+]

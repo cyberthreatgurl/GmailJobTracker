@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Label Applications{% endblock %}
+{% block extra_head %}
+<style>
+	h1 { color:#1f2937; margin-bottom:1rem; font-size:1.4rem; }
+	.card { background:white; padding:1rem; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.1); }
+	table { width:100%; border-collapse:collapse; }
+	th, td { padding:0.6rem; border-bottom:1px solid #f3f4f6; font-size:0.9rem; }
+	th { background:#f9fafb; text-align:left; }
+	.btn { padding:0.4rem 0.8rem; border-radius:6px; border:1px solid #d1d5db; background:#2563eb; color:white; font-weight:600; }
+	select { padding:0.3rem 0.5rem; border:1px solid #d1d5db; border-radius:6px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<h1>Label Applications</h1>
+
+<form method="post" class="card">
+	{% csrf_token %}
+	<table>
+		<thead>
+			<tr>
+				<th>Company</th>
+				<th>Job Title</th>
+				<th>Sent Date</th>
+				<th>Current Label</th>
+				<th>New Label</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for app in applications %}
+			<tr>
+				<td>{% if app.company %}{{ app.company.name }}{% else %}<em>Unknown</em>{% endif %}</td>
+				<td>{{ app.job_title|default:'—' }}</td>
+				<td>{{ app.sent_date|date:"Y-m-d" }}</td>
+				<td>{{ app.ml_label|default:'—' }}</td>
+				<td>
+					<select name="label_{{ app.id }}">
+						<option value="">-- choose --</option>
+						<option value="job_application">job_application</option>
+						<option value="interview_invite">interview_invite</option>
+						<option value="rejection">rejection</option>
+						<option value="offer">offer</option>
+						<option value="follow_up">follow_up</option>
+						<option value="response">response</option>
+						<option value="ghosted">ghosted</option>
+						<option value="other">other</option>
+					</select>
+				</td>
+			</tr>
+			{% empty %}
+			<tr>
+				<td colspan="5" style="text-align:center; color:#6b7280; padding:1rem;">No unlabeled applications.</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+	<div style="margin-top:0.75rem;">
+		<button class="btn" type="submit">Save Labels</button>
+	</div>
+</form>
+{% endblock %}

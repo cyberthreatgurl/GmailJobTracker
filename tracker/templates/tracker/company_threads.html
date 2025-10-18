@@ -1,8 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Company Threads</title>
+{% extends "base.html" %}
+{% block title %}Company Threads - GmailJobTracker{% endblock %}
+{% block extra_head %}
   <style>
     body {
       font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -73,10 +71,8 @@
       white-space: pre-line;
     }
   </style>
-</head>
-<body>
-  <div class="dashboard-layout" style="gap:0.5rem;">
-    {% include "tracker/_sidebar.html" %}
+{% endblock %}
+{% block content %}
     <div class="main-content" style="padding-left:0.5rem;">
       <h1>Company Message Threads</h1>
       <form method="get" class="company-select">
@@ -90,7 +86,12 @@
       </form>
 
       {% if selected_company %}
-        <h2 style="margin-bottom:1.5rem;">Threads for <span style="color:#2563eb;">{{ selected_company.name }}</span></h2>
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1.5rem;">
+          <h2 style="margin:0;">Threads for <span style="color:#2563eb;">{{ selected_company.name }}</span></h2>
+          <form method="get" action="{% url 'delete_company' selected_company.id %}" style="margin:0;">
+            <button type="submit" style="background:#b91c1c; color:white; font-weight:600; border-radius:6px; padding:0.5rem 1.1rem; border:none; cursor:pointer; font-size:1rem;">Delete Company</button>
+          </form>
+        </div>
         <div class="threads-container">
           <table style="width:100%; border-collapse:collapse;">
             <thead>
@@ -159,6 +160,4 @@
         <div style="color:#9ca3af; margin-top:2rem;">Select a company to view message threads.</div>
       {% endif %}
     </div>
-  </div>
-</body>
-</html>
+{% endblock %}

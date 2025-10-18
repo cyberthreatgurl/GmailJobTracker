@@ -1,9 +1,7 @@
+{% extends "base.html" %}
 {% load custom_filters %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>🏷️ Label Messages - Bulk Mode</title>
+{% block title %}🏷️ Label Messages - Bulk Mode{% endblock %}
+{% block extra_head %}
   <style>
     body {
       font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -144,6 +142,16 @@
     tr:hover {
       background: #f9fafb;
     }
+    /* Row highlighting */
+    .row-reviewed-high {
+      background-color: #ecfdf5; /* light green */
+    }
+    .row-unreviewed {
+      background-color: #fef9c3; /* light yellow */
+    }
+    /* Preserve highlight on hover */
+    tr.row-reviewed-high:hover { background-color: #d1fae5; }
+    tr.row-unreviewed:hover { background-color: #fde68a; }
     .checkbox-cell {
       width: 40px;
       text-align: center;
@@ -228,194 +236,248 @@
       font-weight: 600;
       color: #2563eb;
     }
+    /* Legend styles */
+    .legend {
+      display: flex;
+      gap: 1.5rem;
+      align-items: center;
+      padding: 0.5rem 1rem;
+      background: white;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+      margin: 0 1rem;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .legend-chip {
+      width: 24px;
+      height: 16px;
+      border-radius: 4px;
+      border: 1px solid rgba(0,0,0,0.1);
+    }
+    .legend-chip.green {
+      background-color: #ecfdf5;
+    }
+    .legend-chip.yellow {
+      background-color: #fef9c3;
+    }
   </style>
-</head>
-<body>
+{% endblock %}
+
+{% block content %}
   <h1>🏷️ Label Messages - Bulk Mode</h1>
-  
-  <div class="dashboard-layout">
-    {% include "tracker/_sidebar.html" %}
-    
-    <div class="main-content">
       
-      <!-- Progress Banner -->
-      <div class="progress-banner">
-        <h2>📊 Labeling Progress</h2>
-        <div class="progress-stats">
-          <div>
-            <div style="font-size: 0.8rem; opacity: 0.9;">Remaining</div>
-            <span>{{ total_unreviewed }}</span>
-          </div>
-          <div>
-            <div style="font-size: 0.8rem; opacity: 0.9;">Labeled</div>
-            <span>{{ total_reviewed }}</span>
-          </div>
-          <div>
-            <div style="font-size: 0.8rem; opacity: 0.9;">Total</div>
-            <span>{{ total_unreviewed|add:total_reviewed }}</span>
-          </div>
-        </div>
+  <!-- Progress Banner -->
+  <div class="progress-banner">
+    <h2>📊 Labeling Progress</h2>
+    <div class="progress-stats">
+      <div>
+        <div style="font-size: 0.8rem; opacity: 0.9;">Labeled</div>
+        <span>{{ total_reviewed }}</span>
       </div>
-      
-      <!-- Django Messages -->
-      {% if messages %}
-        {% for message in messages %}
-          <div class="alert alert-{{ message.tags }}">
-            {{ message }}
-          </div>
-        {% endfor %}
-      {% endif %}
-      
-      <!-- Filter Bar -->
-      <div class="filter-bar">
-        <div class="filter-group">
-          <label>Label Filter</label>
-          <select id="label-filter" onchange="applyFilters()">
-            <option value="all" {% if filter_label == 'all' %}selected{% endif %}>All Labels</option>
-            {% for label in distinct_labels %}
-              <option value="{{ label }}" {% if filter_label == label %}selected{% endif %}>{{ label }}</option>
-            {% endfor %}
-          </select>
-        </div>
-        
-        <div class="filter-group">
-          <label>Confidence</label>
-          <select id="confidence-filter" onchange="applyFilters()">
-            <option value="low" {% if filter_confidence == 'low' %}selected{% endif %}>Low (&lt; 50%)</option>
-            <option value="medium" {% if filter_confidence == 'medium' %}selected{% endif %}>Medium (50-75%)</option>
-            <option value="high" {% if filter_confidence == 'high' %}selected{% endif %}>High (&gt; 75%)</option>
-            <option value="all" {% if filter_confidence == 'all' %}selected{% endif %}>All</option>
-          </select>
-        </div>
-        
-        <div class="filter-group">
-          <label>Company</label>
-          <select id="company-filter" onchange="applyFilters()">
-            <option value="all" {% if filter_company == 'all' %}selected{% endif %}>All</option>
-            <option value="missing" {% if filter_company == 'missing' %}selected{% endif %}>Missing</option>
-            <option value="resolved" {% if filter_company == 'resolved' %}selected{% endif %}>Resolved</option>
-          </select>
-        </div>
-        
-        <div class="filter-group">
-          <label>Per Page</label>
-          <select id="per-page" onchange="changePerPage()">
-            <option value="10" {% if per_page == 10 %}selected{% endif %}>10</option>
-            <option value="50" {% if per_page == 50 %}selected{% endif %}>50</option>
-            <option value="100" {% if per_page == 100 %}selected{% endif %}>100</option>
-          </select>
-        </div>
+      <div>
+        <div style="font-size: 0.8rem; opacity: 0.9;">Total</div>
+        <span>{{ total_unreviewed|add:total_reviewed }}</span>
       </div>
-      
-      <!-- Bulk Actions Form -->
-      <form method="post" id="bulk-form">
-        {% csrf_token %}
-        <input type="hidden" name="action" value="bulk_label">
-        
-        <div class="bulk-actions">
-          <div>
-            <span class="selected-count" id="selected-count">0</span> messages selected
-          </div>
-          <select name="bulk_label" id="bulk-label" required>
-            <option value="">-- Select Label --</option>
-            {% for label in label_choices %}
-              <option value="{{ label }}">{{ label }}</option>
-            {% endfor %}
-          </select>
-          <button type="submit" class="btn btn-primary" id="bulk-submit" disabled>
-            Apply Label to Selected
-          </button>
-        </div>
-        
-        <!-- Message Table -->
-        <div class="message-table">
-          <table>
-            <thead>
-              <tr>
-                <th class="checkbox-cell">
-                  <input type="checkbox" id="select-all" onclick="toggleSelectAll()">
-                </th>
-                <th>Subject</th>
-                <th>Company</th>
-                <th>Current Label</th>
-                <th>Confidence</th>
-                <th>Sender Domain</th>
-                <th>Date</th>
-                <th>Snippet</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for msg in message_list %}
-                <tr>
-                  <td class="checkbox-cell">
-                    <input type="checkbox" name="selected_messages" value="{{ msg.id }}" class="message-checkbox" onchange="updateSelection()">
-                  </td>
-                  <td class="subject-cell">{{ msg.subject }}</td>
-                  <td>
-                    {% if msg.company %}
-                      <a href="{% url 'company_detail' msg.company.id %}" style="color: #2563eb;">
-                        {{ msg.company.name }}
-                      </a>
-                    {% else %}
-                      <span style="color: #b91c1c;">Missing</span>
-                    {% endif %}
-                  </td>
-                  <td>
-                    {% if msg.ml_label %}
-                      <span class="label-badge">{{ msg.ml_label }}</span>
-                    {% else %}
-                      <span style="color: #9ca3af;">None</span>
-                    {% endif %}
-                  </td>
-                  <td>
-                    {% if msg.confidence %}
-                      {% if msg.confidence >= 0.75 %}
-                        <span class="confidence-badge confidence-high">{{ msg.confidence|floatformat:0 }}%</span>
-                      {% elif msg.confidence >= 0.5 %}
-                        <span class="confidence-badge confidence-medium">{{ msg.confidence|floatformat:0 }}%</span>
-                      {% else %}
-                        <span class="confidence-badge confidence-low">{{ msg.confidence|floatformat:0 }}%</span>
-                      {% endif %}
-                    {% else %}
-                      <span style="color: #9ca3af;">N/A</span>
-                    {% endif %}
-                  </td>
-                  <td style="font-size: 0.75rem; color: #6b7280;">{{ msg.sender_domain }}</td>
-                  <td style="font-size: 0.75rem; color: #6b7280;">{{ msg.timestamp|date:"M d" }}</td>
-                  <td class="snippet-cell" title="{{ msg.body_snippet }}">{{ msg.body_snippet|truncatechars:100 }}</td>
-                </tr>
-              {% empty %}
-                <tr>
-                  <td colspan="8" style="text-align: center; padding: 2rem; color: #9ca3af;">
-                    🎉 No messages to label with current filters
-                  </td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-          
-          <!-- Pagination -->
-          {% if total_pages > 1 %}
-            <div class="pagination">
-              <div class="pagination-info">
-                Showing {{ message_list|length }} of {{ total_count }} messages (Page {{ page }} of {{ total_pages }})
-              </div>
-              <div class="pagination-controls">
-                <button type="button" onclick="goToPage({{ page|add:'-1' }})" {% if not has_previous %}disabled{% endif %}>
-                  ← Previous
-                </button>
-                <button type="button" onclick="goToPage({{ page|add:'1' }})" {% if not has_next %}disabled{% endif %}>
-                  Next →
-                </button>
-              </div>
-            </div>
-          {% endif %}
-        </div>
-      </form>
     </div>
   </div>
-  
+
+  <!-- Debug Summary (can remove later) -->
+  <div class="alert-info" style="margin: 0 1rem 1rem 1rem; padding: 0.5rem 0.75rem; border-radius: 6px;">
+    Showing {{ message_list|length }} of {{ total_count }} results. Page {{ page }} of {{ total_pages }}.
+  </div>
+
+  <!-- Legend -->
+  <div class="legend">
+    <strong style="color: #6b7280;">Row Colors:</strong>
+    <div class="legend-item">
+      <div class="legend-chip green"></div>
+      <span>Reviewed</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-chip yellow"></div>
+      <span>Unreviewed</span>
+    </div>
+  </div>
+
+  <!-- Filter Bar -->
+  <div class="filter-bar">
+    <div class="filter-group">
+      <label>Status</label>
+      <select id="reviewed-filter" onchange="applyFilters()">
+        <option value="unreviewed" {% if filter_reviewed == 'unreviewed' %}selected{% endif %}>Unreviewed</option>
+        <option value="reviewed" {% if filter_reviewed == 'reviewed' %}selected{% endif %}>Reviewed</option>
+        <option value="all" {% if filter_reviewed == 'all' %}selected{% endif %}>All</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Label Filter</label>
+      <select id="label-filter" onchange="applyFilters()">
+        <option value="all" {% if filter_label == 'all' %}selected{% endif %}>All Labels</option>
+        {% for label in distinct_labels %}
+          <option value="{{ label }}" {% if filter_label == label %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Confidence</label>
+      <select id="confidence-filter" onchange="applyFilters()">
+        <option value="low" {% if filter_confidence == 'low' %}selected{% endif %}>Low (&lt; 50%)</option>
+        <option value="medium" {% if filter_confidence == 'medium' %}selected{% endif %}>Medium (50-75%)</option>
+        <option value="high" {% if filter_confidence == 'high' %}selected{% endif %}>High (&gt; 75%)</option>
+        <option value="all" {% if filter_confidence == 'all' %}selected{% endif %}>All</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Company</label>
+      <select id="company-filter" onchange="applyFilters()">
+        <option value="all" {% if filter_company == 'all' %}selected{% endif %}>All</option>
+        <option value="missing" {% if filter_company == 'missing' %}selected{% endif %}>Missing</option>
+        <option value="resolved" {% if filter_company == 'resolved' %}selected{% endif %}>Resolved</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Per Page</label>
+      <select id="per-page" onchange="changePerPage()">
+        <option value="10" {% if per_page == 10 %}selected{% endif %}>10</option>
+        <option value="50" {% if per_page == 50 %}selected{% endif %}>50</option>
+        <option value="100" {% if per_page == 100 %}selected{% endif %}>100</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Bulk Actions Form -->
+  <form method="post" id="bulk-form">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="bulk_label">
+    <div class="bulk-actions">
+      <div>
+        <span class="selected-count" id="selected-count">0</span> messages selected
+      </div>
+      <select name="bulk_label" id="bulk-label" required>
+        <option value="">-- Select Label --</option>
+        {% for label in label_choices %}
+          <option value="{{ label }}">{{ label }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="btn btn-primary" id="bulk-submit" disabled>
+        Apply Label to Selected
+      </button>
+    </div>
+    <!-- Message Table -->
+    <div class="message-table">
+      <table>
+        <thead>
+          <tr>
+            <th class="checkbox-cell">
+              <input type="checkbox" id="select-all" onclick="toggleSelectAll()">
+            </th>
+            <th>
+              <button type="button" onclick="sortBy('subject')" style="all:unset; cursor:pointer; font-weight:600; color:#374151;">
+                Subject {% if sort == 'subject' %}<span style="font-size:0.8rem; color:#6b7280;">{% if order == 'desc' %}▼{% else %}▲{% endif %}</span>{% endif %}
+              </button>
+            </th>
+            <th>
+              <button type="button" onclick="sortBy('company')" style="all:unset; cursor:pointer; font-weight:600; color:#374151;">
+                Company {% if sort == 'company' %}<span style="font-size:0.8rem; color:#6b7280;">{% if order == 'desc' %}▼{% else %}▲{% endif %}</span>{% endif %}
+              </button>
+            </th>
+            <th>Current Label</th>
+            <th>
+              <button type="button" onclick="sortBy('confidence')" style="all:unset; cursor:pointer; font-weight:600; color:#374151;">
+                Confidence {% if sort == 'confidence' %}<span style="font-size:0.8rem; color:#6b7280;">{% if order == 'desc' %}▼{% else %}▲{% endif %}</span>{% endif %}
+              </button>
+            </th>
+            <th>
+              <button type="button" onclick="sortBy('sender_domain')" style="all:unset; cursor:pointer; font-weight:600; color:#374151;">
+                Sender Domain {% if sort == 'sender_domain' %}<span style="font-size:0.8rem; color:#6b7280;">{% if order == 'desc' %}▼{% else %}▲{% endif %}</span>{% endif %}
+              </button>
+            </th>
+            <th>
+              <button type="button" onclick="sortBy('date')" style="all:unset; cursor:pointer; font-weight:600; color:#374151;">
+                Date {% if sort == 'date' %}<span style="font-size:0.8rem; color:#6b7280;">{% if order == 'desc' %}▼{% else %}▲{% endif %}</span>{% endif %}
+              </button>
+            </th>
+            <th>Snippet</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for msg in message_list %}
+            <tr class="{% if not msg.reviewed %}row-unreviewed{% elif msg.reviewed %}row-reviewed-high{% endif %}">
+              <td class="checkbox-cell">
+                <input type="checkbox" name="selected_messages" value="{{ msg.id }}" class="message-checkbox" onchange="updateSelection()">
+              </td>
+              <td class="subject-cell">{{ msg.display_subject }}</td>
+              <td>
+                {% if msg.company %}
+                  <a href="{% url 'company_detail' msg.company.id %}" style="color: #2563eb;">
+                    {{ msg.company.name }}
+                  </a>
+                {% else %}
+                  <span style="color: #b91c1c;">Missing</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if msg.ml_label %}
+                  <span class="label-badge">{{ msg.ml_label }}</span>
+                {% else %}
+                  <span style="color: #9ca3af;">None</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if msg.confidence %}
+                  {% if msg.confidence >= 0.75 %}
+                    <span class="confidence-badge confidence-high">{{ msg.confidence|as_percentage|floatformat:0 }}%</span>
+                  {% elif msg.confidence >= 0.5 %}
+                    <span class="confidence-badge confidence-medium">{{ msg.confidence|as_percentage|floatformat:0 }}%</span>
+                  {% else %}
+                    <span class="confidence-badge confidence-low">{{ msg.confidence|as_percentage|floatformat:0 }}%</span>
+                  {% endif %}
+                {% else %}
+                  <span style="color: #9ca3af;">N/A</span>
+                {% endif %}
+              </td>
+              <td style="font-size: 0.75rem; color: #6b7280;">{{ msg.sender_domain }}</td>
+              <td style="font-size: 0.75rem; color: #6b7280;">{{ msg.timestamp|date:"M d" }}</td>
+              <td class="snippet-cell" title="{{ msg.body_snippet }}">{{ msg.body_snippet|truncatechars:100 }}</td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="8" style="text-align: center; padding: 2rem; color: #9ca3af;">
+                🎉 No messages to label with current filters
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <!-- Pagination -->
+      {% if total_pages > 1 %}
+        <div class="pagination">
+          <div class="pagination-info">
+            Showing {{ message_list|length }} of {{ total_count }} messages (Page {{ page }} of {{ total_pages }})
+          </div>
+          <div class="pagination-controls">
+            <button type="button" onclick="goToPage({{ page|add:'-1' }})" {% if not has_previous %}disabled{% endif %}>
+              ← Previous
+            </button>
+            <button type="button" onclick="goToPage({{ page|add:'1' }})" {% if not has_next %}disabled{% endif %}>
+              Next →
+            </button>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  </form>
+
   <script>
+    // current sort state from server
+    const currentSort = "{{ sort|default:'' }}";
+    const currentOrder = "{{ order|default:'asc' }}";
+
     function updateSelection() {
       const checkboxes = document.querySelectorAll('.message-checkbox');
       const checked = document.querySelectorAll('.message-checkbox:checked');
@@ -442,12 +504,15 @@
     }
     
     function applyFilters() {
-      const label = document.getElementById('label-filter').value;
-      const confidence = document.getElementById('confidence-filter').value;
-      const company = document.getElementById('company-filter').value;
-      const perPage = document.getElementById('per-page').value;
-      
-      window.location.href = `{% url 'label_messages' %}?label=${label}&confidence=${confidence}&company=${company}&per_page=${perPage}&page=1`;
+  const label = document.getElementById('label-filter').value;
+  const confidence = document.getElementById('confidence-filter').value;
+  const company = document.getElementById('company-filter').value;
+  const perPage = document.getElementById('per-page').value;
+  const reviewed = document.getElementById('reviewed-filter').value;
+  // keep current sort/order when changing filters
+  const sort = currentSort || '';
+  const order = currentOrder || 'asc';
+  window.location.href = `{% url 'label_messages' %}?label=${label}&confidence=${confidence}&company=${company}&per_page=${perPage}&reviewed=${reviewed}&sort=${sort}&order=${order}&page=1`;
     }
     
     function changePerPage() {
@@ -459,8 +524,26 @@
       const confidence = document.getElementById('confidence-filter').value;
       const company = document.getElementById('company-filter').value;
       const perPage = document.getElementById('per-page').value;
-      
-      window.location.href = `{% url 'label_messages' %}?label=${label}&confidence=${confidence}&company=${company}&per_page=${perPage}&page=${pageNum}`;
+      const reviewed = document.getElementById('reviewed-filter').value;
+      const sort = currentSort || '';
+      const order = currentOrder || 'asc';
+      window.location.href = `{% url 'label_messages' %}?label=${label}&confidence=${confidence}&company=${company}&per_page=${perPage}&reviewed=${reviewed}&sort=${sort}&order=${order}&page=${pageNum}`;
+    }
+
+    function sortBy(field) {
+      const label = document.getElementById('label-filter').value;
+      const confidence = document.getElementById('confidence-filter').value;
+      const company = document.getElementById('company-filter').value;
+      const perPage = document.getElementById('per-page').value;
+      const reviewed = document.getElementById('reviewed-filter').value;
+
+      // toggle order if clicking same field, else default asc
+      let nextOrder = 'asc';
+      if (currentSort === field) {
+        nextOrder = currentOrder === 'asc' ? 'desc' : 'asc';
+      }
+
+      window.location.href = `{% url 'label_messages' %}?label=${label}&confidence=${confidence}&company=${company}&per_page=${perPage}&reviewed=${reviewed}&sort=${field}&order=${nextOrder}&page=1`;
     }
     
     // Confirm before submitting
@@ -479,5 +562,4 @@
       }
     });
   </script>
-</body>
-</html>
+{% endblock %}

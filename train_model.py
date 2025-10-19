@@ -43,7 +43,18 @@ def _load_patterns():
 _PATTERNS = _load_patterns()
 _MSG_LABEL_PATTERNS = {
     k: [re.compile(p, re.I) for p in (_PATTERNS.get("message_labels", {}).get(k, []))]
-    for k in ("interview_invite", "job_application", "rejected", "offer", "referral","response""ghosted","noise","job_alert","follow-up","ignore")
+    for k in (
+        "interview_invite",
+        "job_application",
+        "rejected",
+        "offer",
+        "referral",
+        "response" "ghosted",
+        "noise",
+        "job_alert",
+        "follow-up",
+        "ignore",
+    )
 }
 
 
@@ -150,6 +161,11 @@ clf = CalibratedClassifierCV(base, method="isotonic", cv=3)
 clf.fit(Xtr, ytr, sample_weight=sample_weights)  # pass weights here
 
 print(classification_report(yte, clf.predict(Xte), zero_division=0))
+# Capture metrics for persistence
+report_text = classification_report(yte, clf.predict(Xte), zero_division=0)
+report_dict = classification_report(
+    yte, clf.predict(Xte), zero_division=0, output_dict=True
+)
 os.makedirs("model", exist_ok=True)
 joblib.dump(clf, "model/message_classifier.pkl")
 joblib.dump(sorted(y_filtered.unique().tolist()), "model/message_label_encoder.pkl")
@@ -216,3 +232,53 @@ with open("model/model_info.json", "w") as f:
 
 print("Message-level model artifacts saved to /model/")
 print(f"Model trained on {len(y_filtered)} samples with {y_filtered.nunique()} labels")
+
+# --- Persist training metrics to DB ---
+try:
+    from tracker.models import (
+        ModelTrainingRun,
+        ModelTrainingLabelMetric,
+    )
+
+    # Aggregate metrics
+    n_samples = int(len(y_filtered))
+    n_classes = int(y_filtered.nunique())
+
+    # Defensive lookups
+    acc = float(report_dict.get("accuracy", 0.0))
+    macro = report_dict.get("macro avg", {})
+    weighted = report_dict.get("weighted avg", {})
+
+    run = ModelTrainingRun.objects.create(
+        n_samples=n_samples,
+        n_classes=n_classes,
+        accuracy=acc,
+        macro_precision=float(macro.get("precision") or 0.0),
+        macro_recall=float(macro.get("recall") or 0.0),
+        macro_f1=float(macro.get("f1-score") or 0.0),
+        weighted_precision=float(weighted.get("precision") or 0.0),
+        weighted_recall=float(weighted.get("recall") or 0.0),
+        weighted_f1=float(weighted.get("f1-score") or 0.0),
+        label_distribution=json.dumps(y_filtered.value_counts().to_dict(), indent=2),
+        classification_report=report_text,
+    )
+
+    # Per-label metrics
+    special_keys = {"accuracy", "macro avg", "weighted avg"}
+    for lbl, stats in report_dict.items():
+        if lbl in special_keys:
+            continue
+        # Expect stats to be a dict with precision/recall/f1-score/support
+        if not isinstance(stats, dict):
+            continue
+        ModelTrainingLabelMetric.objects.create(
+            run=run,
+            label=str(lbl),
+            precision=float(stats.get("precision") or 0.0),
+            recall=float(stats.get("recall") or 0.0),
+            f1=float(stats.get("f1-score") or 0.0),
+            support=int(stats.get("support") or 0),
+        )
+    print("[OK] Saved training metrics to DB.")
+except Exception as e:
+    print(f"[Warn] Could not persist training metrics to DB: {e}")

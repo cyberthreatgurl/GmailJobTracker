@@ -89,53 +89,47 @@ def _load_patterns():
 
 _PATTERNS = _load_patterns()
 
+# Compile message label patterns from patterns.json to avoid hardcoding
+_COMPILED_PATTERNS = {}
+if _PATTERNS and "message_labels" in _PATTERNS:
+    for label, pattern_list in _PATTERNS["message_labels"].items():
+        _COMPILED_PATTERNS[label] = [
+            re.compile(p, re.IGNORECASE) for p in pattern_list if p and p != "None"
+        ]
+
 
 def rule_label(subject: str, body: str = "") -> str | None:
-    """Apply regex rules before ML prediction."""
+    """Apply regex rules from patterns.json before ML prediction."""
     text = f"{subject or ''} {body or ''}".lower()
 
-    # Interview keywords (high priority)
-    if re.search(
-        r"\b(interview|schedule|screening|availability|calendly|book a time)\b", text
-    ):
-        return "interview_invite"
+    # Use patterns from patterns.json instead of hardcoded regexes
+    # Priority order: interview, application, rejection, job_alert, head_hunter, noise
+    priority_order = [
+        "interview_invite",
+        "job_application",
+        "rejected",
+        "job_alert",
+        "head_hunter",
+        "noise",
+        "referral",
+        "offer",
+    ]
 
-    # Application confirmation
-    if re.search(
-        r"\b(thank you for applying|application (received|submitted)|we received your application)\b",
-        text,
-    ):
-        return "job_application"
-
-    # Rejection
-    if re.search(
-        r"\b(not selected|won\'?t move forward|decided to move forward with other|regret to inform)\b",
-        text,
-    ):
-        return "rejection"
-
-    # Job alerts/newsletters
-    if re.search(
-        r"\b(job alert|new jobs? matching|recommended for you|jobs? you might like|unsubscribe)\b",
-        text,
-    ):
-        return "job_alert"
-
-    # Headhunter/recruiter outreach
-    if re.search(
-        r"\b(recruiting|talent acquisition|opportunity|reach out|would love to connect)\b",
-        text,
-    ):
-        return "head_hunter"
-
-    # Noise
-    if re.search(r"\b(newsletter|digest|promotion|marketing|sale)\b", text):
-        return "noise"
+    for label in priority_order:
+        patterns = _COMPILED_PATTERNS.get(label, [])
+        for pattern in patterns:
+            if pattern.search(text):
+                return label
 
     return None
 
 
 def predict_subject_type(subject: str, body: str = "", threshold: float = 0.6):
+    # Get ignore labels from patterns.json (configurable instead of hardcoded)
+    ignore_labels = set(
+        _PATTERNS.get("ignore_labels", ["noise", "job_alert", "head_hunter"])
+    )
+
     # Try rule-based first
     rule_result = rule_label(subject, body)
 
@@ -144,7 +138,7 @@ def predict_subject_type(subject: str, body: str = "", threshold: float = 0.6):
         return {
             "label": rule_result,
             "confidence": 0.95,
-            "ignore": rule_result in {"noise", "job_alert"},
+            "ignore": rule_result in ignore_labels,
             "method": "rules",
         }
 
@@ -175,12 +169,11 @@ def predict_subject_type(subject: str, body: str = "", threshold: float = 0.6):
             return {
                 "label": rule_result,
                 "confidence": confidence,
-                "ignore": rule_result in {"noise", "job_alert"},
+                "ignore": rule_result in ignore_labels,
                 "method": "rules_fallback",
             }
 
     # Use ML prediction
-    ignore_labels = {"noise", "job_alert", "head_hunter"}
     return {
         "label": label,
         "confidence": confidence,

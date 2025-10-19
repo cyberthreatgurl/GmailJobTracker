@@ -310,6 +310,37 @@ def build_sidebar_context():
     }
 
 
+# --- Log Viewer Page ---
+@login_required
+def log_viewer(request):
+    """Display and refresh log files from the logs directory."""
+    from django.conf import settings
+
+    logs_dir = Path(settings.BASE_DIR) / "logs"
+    log_files = [f.name for f in logs_dir.glob("*.log") if f.is_file()]
+    log_files.sort()
+    selected_log = request.GET.get("logfile") or (log_files[0] if log_files else None)
+    log_content = ""
+    if selected_log and (logs_dir / selected_log).exists():
+        try:
+            with open(
+                logs_dir / selected_log, "r", encoding="utf-8", errors="replace"
+            ) as f:
+                # Read last 100KB to avoid memory issues with huge logs
+                log_content = f.read()[-100_000:]
+        except Exception as e:
+            log_content = f"[Error reading log: {e}]"
+    ctx = build_sidebar_context()
+    ctx.update(
+        {
+            "log_files": log_files,
+            "selected_log": selected_log,
+            "log_content": log_content,
+        }
+    )
+    return render(request, "tracker/log_viewer.html", ctx)
+
+
 @login_required
 def company_threads(request):
     # Get all reviewed companies (at least one reviewed message)

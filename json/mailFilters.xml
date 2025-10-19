@@ -1,0 +1,86 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<feed xmlns='http://www.w3.org/2005/Atom' xmlns:apps='http://schemas.google.com/apps/2006'>
+	<title>Mail Filters</title>
+	<id>tag:mail.google.com,2008:filters:z0000001760802084322*2919298993736495980,z0000001760802640433*5131767561652528897,z0000001760806607565*8252731003559750331,z0000001760835586491*5580136557406427529,z0000001760836648864*4901012552016765542,z0000001760838881456*7647590238609463062</id>
+	<updated>2025-10-19T04:26:20Z</updated>
+	<author>
+		<name>Kelly Shaw</name>
+		<email>kaver68@gmail.com</email>
+	</author>
+	<entry>
+		<category term='filter'></category>
+		<title>Mail Filter</title>
+		<id>tag:mail.google.com,2008:filter:z0000001760802084322*2919298993736495980</id>
+		<updated>2025-10-19T04:26:20Z</updated>
+		<content></content>
+		<apps:property name='hasTheWord' value='&quot;job alert&quot; | &quot;job alerts&quot; | &quot;careercenter@computer.org&quot; | &quot;jobs matches&quot;'/>
+		<apps:property name='label' value='#job-hunt/job_alert'/>
+		<apps:property name='shouldArchive' value='true'/>
+		<apps:property name='sizeOperator' value='s_sl'/>
+		<apps:property name='sizeUnit' value='s_smb'/>
+	</entry>
+	<entry>
+		<category term='filter'></category>
+		<title>Mail Filter</title>
+		<id>tag:mail.google.com,2008:filter:z0000001760802640433*5131767561652528897</id>
+		<updated>2025-10-19T04:26:20Z</updated>
+		<content></content>
+		<apps:property name='hasTheWord' value='&quot;acknowledge the receipt&quot; | &quot;thanks for your application&quot; | &quot;thank you for your application&quot; | &quot;will be reviewed&quot; | &quot;received your appliction&quot;'/>
+		<apps:property name='doesNotHaveTheWord' value='&quot;noreply-newsletters&quot; | &quot;payment&quot; | &quot;booklet&quot; | &quot;child&quot; | &quot;waiver&quot; | &quot;financial aid&quot; |&quot;eeo&quot; | &quot;eeoc&quot; | &quot;paid&quot; | &quot;move forward with other&quot; | &quot;unfortunately&quot; | &quot;phone call&quot; | &quot;prescreen&quot; | &quot;olivermattei.net&quot; | &quot;Admissions&quot; | &quot;substack.com&quot;'/>
+		<apps:property name='label' value='#job-hunt/application'/>
+		<apps:property name='shouldArchive' value='true'/>
+		<apps:property name='sizeOperator' value='s_sl'/>
+		<apps:property name='sizeUnit' value='s_smb'/>
+	</entry>
+	<entry>
+		<category term='filter'></category>
+		<title>Mail Filter</title>
+		<id>tag:mail.google.com,2008:filter:z0000001760806607565*8252731003559750331</id>
+		<updated>2025-10-19T04:26:20Z</updated>
+		<content></content>
+		<apps:property name='hasTheWord' value='&quot;seeking&quot; | &quot;urgent need&quot; | &quot;urgent hiring&quot; | &quot;looking for&quot; | &quot;came across&quot; | &quot;direct hire&quot; | &quot;found your resume&quot; | &quot;matches your profile&quot;'/>
+		<apps:property name='doesNotHaveTheWord' value='&quot;job alerts&quot; |&quot;looking for something&quot; | &quot;newsletters&quot; | &quot;glassdoor.com&quot; | careercenter@computer.org'/>
+		<apps:property name='label' value='#job-hunt/headhunter'/>
+		<apps:property name='shouldArchive' value='true'/>
+		<apps:property name='sizeOperator' value='s_sl'/>
+		<apps:property name='sizeUnit' value='s_smb'/>
+	</entry>
+	<entry>
+		<category term='filter'></category>
+		<title>Mail Filter</title>
+		<id>tag:mail.google.com,2008:filter:z0000001760835586491*5580136557406427529</id>
+		<updated>2025-10-19T04:26:20Z</updated>
+		<content></content>
+		<apps:property name='hasTheWord' value='&quot;has been closed&quot; | &quot;we regret&quot;| &quot;we are sorry&quot; | unfortunately | &quot;not selected&quot; |&quot; move forward with other&quot; | &quot;better fit our needs&quot;'/>
+		<apps:property name='doesNotHaveTheWord' value='&quot;newsletter-noreply&quot; | headlines | terminate'/>
+		<apps:property name='label' value='#job-hunt/rejection'/>
+		<apps:property name='shouldArchive' value='true'/>
+		<apps:property name='sizeOperator' value='s_sl'/>
+		<apps:property name='sizeUnit' value='s_smb'/>
+	</entry>
+	<entry>
+		<category term='filter'></category>
+		<title>Mail Filter</title>
+		<id>tag:mail.google.com,2008:filter:z0000001760836648864*4901012552016765542</id>
+		<updated>2025-10-19T04:26:20Z</updated>
+		<content></content>
+		<apps:property name='hasTheWord' value='&quot;you have withdrawn&quot; | &quot;meet any of your requirements&quot;'/>
+		<apps:property name='doesNotHaveTheWord' value='lease'/>
+		<apps:property name='label' value='#job-hunt/rejection (from me)'/>
+		<apps:property name='shouldArchive' value='true'/>
+		<apps:property name='sizeOperator' value='s_sl'/>
+		<apps:property name='sizeUnit' value='s_smb'/>
+	</entry>
+	<entry>
+		<category term='filter'></category>
+		<title>Mail Filter</title>
+		<id>tag:mail.google.com,2008:filter:z0000001760838881456*7647590238609463062</id>
+		<updated>2025-10-19T04:26:20Z</updated>
+		<content></content>
+		<apps:property name='hasTheWord' value='&quot;gather a bit more&quot; | &quot;prescreening&quot;'/>
+		<apps:property name='label' value='#job-hunt/prescreen'/>
+		<apps:property name='shouldArchive' value='true'/>
+		<apps:property name='sizeOperator' value='s_sl'/>
+		<apps:property name='sizeUnit' value='s_smb'/>
+	</entry>
+</feed>

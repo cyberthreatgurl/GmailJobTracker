@@ -12,6 +12,8 @@ from .models import (
     MessageLabel,
     ModelTrainingRun,
     ModelTrainingLabelMetric,
+    GmailFilterImportLog,
+    AppSetting,
 )
 
 list_display = ("name", "message_count", "application_count")
@@ -121,6 +123,7 @@ custom_admin_site.register(UnresolvedCompany, UnresolvedCompanyAdmin)
 custom_admin_site.register(Ticket, TicketAdmin)
 custom_admin_site.register(ModelTrainingRun)
 custom_admin_site.register(ModelTrainingLabelMetric)
+custom_admin_site.register(GmailFilterImportLog)
 
 admin.site.register(KnownCompany)
 admin.site.register(ATSDomain)
@@ -129,3 +132,5 @@ admin.site.register(CompanyAlias)
 admin.site.register(MessageLabel)
 admin.site.register(ModelTrainingRun)
 admin.site.register(ModelTrainingLabelMetric)
+admin.site.register(GmailFilterImportLog)
+admin.site.register(AppSetting)

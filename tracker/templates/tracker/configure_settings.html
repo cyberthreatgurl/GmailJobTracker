@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Configure Settings{% endblock %}
+{% block content %}
+<div class="main-content">
+  <h1>Configure Settings</h1>
+  <form method="post" class="edit-form" style="max-width:520px;">
+    {% csrf_token %}
+    <div style="margin:0.75rem 0;">
+      <label for="GHOSTED_DAYS_THRESHOLD" style="font-weight:600;">Ghosted Days Threshold</label>
+      <input id="GHOSTED_DAYS_THRESHOLD" name="GHOSTED_DAYS_THRESHOLD" type="number" min="1" max="3650" value="{{ current.GHOSTED_DAYS_THRESHOLD }}" style="width:100%; padding:0.5rem; border:1px solid #d1d5db; border-radius:6px;" />
+      <div style="font-size:0.85rem; color:#6b7280; margin-top:0.25rem;">Days since last message to show the "Consider ghosted" hint (default 30).</div>
+    </div>
+    <button type="submit" class="button" style="background:#2563eb; color:#fff; font-weight:600; border:none; border-radius:6px; padding:0.6rem 1rem; cursor:pointer;">Save Settings</button>
+  </form>
+</div>
+{% endblock %}

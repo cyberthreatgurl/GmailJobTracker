@@ -1,15 +1,21 @@
 {
   "message_labels": {
     "interview_invite": [
+      "(gather\\ a\\ bit\\ more|prescreening)",
       "\\b(interview|screen|availability|schedule|calendly|teams meeting|zoom)\\b"
     ],
     "job_application": [
+      "(acknowledge\\ the\\ receipt|thanks\\ for\\ your\\ application|thank\\ you\\ for\\ your\\ application|will\\ be\\ reviewed|received\\ your\\ appliction)",
       "\\b(thank you for applying|application (received|submitted)|we received your application)\\b"
     ],
     "rejected": [
-      "\\b(we (regret|are sorry)|unfortunately|not selected|won&amp;amp;#x27;?t move forward)\\b"
+      "(unfortunately|has\\ been\\ closed|we\\ regret|we\\ are\\ sorry|not\\ selected|\\ move\\ forward\\ with\\ other|better\\ fit\\ our\\ needs)",
+      "(you\\ have\\ withdrawn|meet\\ any\\ of\\ your\\ requirements)",
+      "\\b(we (regret|are sorry)|unfortunately|not selected|won'?t move forward)\\b"
     ],
-    "offer": ["\\b(offer|compensation|package|extend|congratulations)\\b"],
+    "offer": [
+      "\\b(offer|compensation|package|extend|congratulations)\\b"
+    ],
     "noise": [
       "\\b(unsubscribe|newsletter|digest|promotion|marketing|sale|verification code|one-time (code|password|verification)|OTP|2FA code|security code|login code|access code)\\b"
     ],
@@ -17,18 +23,28 @@
       "\\b(referral|referred|refer|recommendation|recommended you|intro\\b|introduction|connect you with|connecting you with)\\b"
     ],
     "head_hunter": [
+      "(seeking|urgent\\ need|urgent\\ hiring|looking\\ for|came\\ across|direct\\ hire|found\\ your\\ resume|matches\\ your\\ profile)",
       "\\b(contractual assignment)\\b|(looking for candidates)\\b|\\b(is seeking)\\b"
     ],
     "job_alert": [
+      "(job\\ alert|job\\ alerts|careercenter@computer\\.org|jobs\\ matches)",
       "\\b(cybersecurity|matches)\\b",
       "\\b(interview|schedule)\\b",
       "\\b(saved search)\\b",
       "\\b(search results)\\b"
     ],
-    "follow_up": ["None"],
-    "response": ["None"],
-    "ghosted": ["None"],
-    "other": ["None"]
+    "follow_up": [
+      "None"
+    ],
+    "response": [
+      "None"
+    ],
+    "ghosted": [
+      "None"
+    ],
+    "other": [
+      "None"
+    ]
   },
   "invalid_company_prefixes": [
     "Cyber Program",
@@ -70,7 +86,12 @@
     "position closed",
     "no longer available"
   ],
-  "interview": ["schedule", "availability", "next steps", "interview"],
+  "interview": [
+    "schedule",
+    "availability",
+    "next steps",
+    "interview"
+  ],
   "ignore": [
     "your job alert for",
     "miss out",

@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Merge Companies{% endblock %}
+{% block content %}
+<div class="main-content">
+  <h1>Merge Companies</h1>
+  <p style="margin-bottom:1.5rem; color:#6b7280;">Select which company name is the canonical (real) name. All messages, applications, and data from the other companies will be moved to it, and the duplicates will be deleted.</p>
+
+  <form method="post" style="background:#fff; border-radius:8px; padding:1.5rem; box-shadow:0 1px 3px rgba(0,0,0,0.07); max-width:600px;">
+    {% csrf_token %}
+    {% for company in companies_to_merge %}
+      <input type="hidden" name="company_ids" value="{{ company.id }}" />
+    {% endfor %}
+
+    <div style="margin-bottom:1.5rem;">
+      <strong style="display:block; margin-bottom:0.75rem; font-size:1.05rem;">Companies to merge:</strong>
+      <table style="width:100%; border-collapse:collapse;">
+        <thead>
+          <tr style="border-bottom:2px solid #e5e7eb;">
+            <th style="text-align:left; padding:0.5rem; font-weight:600;">Canonical?</th>
+            <th style="text-align:left; padding:0.5rem; font-weight:600;">Company Name</th>
+            <th style="text-align:right; padding:0.5rem; font-weight:600;">Messages</th>
+            <th style="text-align:right; padding:0.5rem; font-weight:600;">Applications</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for company in companies_to_merge %}
+          <tr style="border-bottom:1px solid #f3f4f6;">
+            <td style="padding:0.5rem;">
+              <input type="radio" name="canonical_id" value="{{ company.id }}" id="canonical_{{ company.id }}" required />
+            </td>
+            <td style="padding:0.5rem;">
+              <label for="canonical_{{ company.id }}" style="cursor:pointer; font-weight:500;">{{ company.name }}</label>
+            </td>
+            <td style="padding:0.5rem; text-align:right;">{{ company.message_set.count }}</td>
+            <td style="padding:0.5rem; text-align:right;">{{ company.application_set.count }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div style="display:flex; gap:0.75rem;">
+      <button type="submit" style="background:#2563eb; color:#fff; font-weight:600; border:none; border-radius:6px; padding:0.6rem 1.2rem; cursor:pointer;">Merge Companies</button>
+      <a href="{% url 'label_companies' %}" style="background:#6b7280; color:#fff; font-weight:600; border-radius:6px; padding:0.6rem 1.2rem; text-decoration:none; display:inline-block;">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

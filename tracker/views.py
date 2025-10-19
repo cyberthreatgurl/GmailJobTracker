@@ -1,24 +1,5 @@
-from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from tracker.models import (
-    Company,
-    Application,
-    Message,
-    IngestionStats,
-    UnresolvedCompany,
-)
-from datetime import timedelta, datetime
-from collections import defaultdict
-from tracker.forms import ApplicationEditForm
-from pathlib import Path
-import subprocess
-import sys
-from db import PATTERNS_PATH
-from django.shortcuts import render, redirect, get_object_or_404
-from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_http_methods
-from django.utils.timezone import now
-import os
+from django.contrib.auth.decorators import login_required
 from django.db import models
 from django.db.models import (
     F,
@@ -32,124 +13,38 @@ from django.db.models import (
     ExpressionWrapper,
 )
 from django.db.models.functions import Coalesce, Substr, StrIndex
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils.timezone import now
+from django.views.decorators.csrf import csrf_exempt
+
 from bs4 import BeautifulSoup
+from pathlib import Path
+from collections import defaultdict
+import subprocess
+import sys
+import os
 import json
 import re
 import html
+import tempfile
 
-
-# --- Re-ingestion Admin Page ---
-@login_required
-@require_http_methods(["GET", "POST"])
-def reingest_admin(request):
-    import os
-    import subprocess
-    import sys
-    from datetime import datetime
-
-    # For dropdown
-    DAY_CHOICES = [
-        (1, "1 day"),
-        (7, "7 days"),
-        (14, "14 days"),
-        (30, "30 days"),
-        (60, "60 days"),
-        (90, "90 days"),
-        (99999, "ALL since REPORTING_DEFAULT_START_DATE"),
-    ]
-    default_days = 7
-    reporting_default_start_date = os.environ.get(
-        "REPORTING_DEFAULT_START_DATE", "2025-02-15"
-    )
-    # Defaults
-    result = None
-    before_metrics = None
-    after_metrics = None
-    error = None
-    if request.method == "POST":
-        # Parse form
-        days_back = int(request.POST.get("days_back", default_days))
-        force = bool(request.POST.get("force"))
-        reparse_all = bool(request.POST.get("reparse_all"))
-        metrics_before = True
-        metrics_after = True
-        # Build command
-        cmd = [sys.executable, "manage.py", "ingest_gmail"]
-        if days_back == 99999:
-            # Calculate days since REPORTING_DEFAULT_START_DATE
-            try:
-                dt = datetime.strptime(
-                    reporting_default_start_date.replace('"', ""), "%Y-%m-%d"
-                )
-                delta = (datetime.now() - dt).days
-                cmd += ["--days-back", str(delta)]
-            except Exception:
-                cmd += ["--days-back", "90"]
-        else:
-            cmd += ["--days-back", str(days_back)]
-        if force:
-            cmd.append("--force")
-        if reparse_all:
-            cmd.append("--reparse-all")
-        if metrics_before:
-            cmd.append("--metrics-before")
-        if metrics_after:
-            cmd.append("--metrics-after")
-        # Run command and capture output
-        try:
-            proc = subprocess.run(
-                cmd, capture_output=True, text=True, timeout=600, encoding="utf-8"
-            )
-            result = proc.stdout + "\n" + proc.stderr
-        except Exception as e:
-            error = str(e)
-    ctx = build_sidebar_context()
-    ctx.update(
-        {
-            "day_choices": DAY_CHOICES,
-            "default_days": default_days,
-            "reporting_default_start_date": reporting_default_start_date,
-            "result": result,
-            "error": error,
-        }
-    )
-    return render(request, "tracker/reingest_admin.html", ctx)
-
-
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
+from db import PATTERNS_PATH
 from tracker.models import (
     Company,
     Application,
     Message,
     IngestionStats,
     UnresolvedCompany,
+    GmailFilterImportLog,
 )
-from datetime import timedelta, datetime
-from collections import defaultdict
 from tracker.forms import ApplicationEditForm
-from pathlib import Path
-import subprocess
-import sys
-from db import PATTERNS_PATH
-from django.shortcuts import render, redirect, get_object_or_404
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.timezone import now
-import os
-from django.db import models
-from django.db.models import (
-    F,
-    Q,
-    Count,
-    Case,
-    When,
-    Value,
-    IntegerField,
-    CharField,
-    ExpressionWrapper,
+from .forms_company import CompanyEditForm
+from scripts.import_gmail_filters import (
+    load_json,
+    parse_filters,
+    sanitize_to_regex_terms,
+    make_or_pattern,
 )
-from django.db.models.functions import Coalesce, Substr, StrIndex
-from bs4 import BeautifulSoup
 
 
 # --- Delete Company Page ---
@@ -212,17 +107,40 @@ def delete_company(request, company_id):
     return render(request, "tracker/delete_company.html", ctx)
 
 
-from django.contrib.auth.decorators import login_required
-from .forms_company import CompanyEditForm
-
-
 # --- Label Companies Page ---
 @login_required
 def label_companies(request):
     companies = Company.objects.order_by("name")
-    selected_id = request.GET.get("company")
+    # Preserve selected company on POST actions as well
+    selected_id = request.GET.get("company") or request.POST.get("company")
     selected_company = None
     latest_label = None
+    last_message_ts = None
+    days_since_last_message = None
+    # Configurable threshold for ghosted hint (default 30). DB AppSetting overrides env.
+    from tracker.models import AppSetting
+
+    ghosted_days_threshold = 30
+    try:
+        db_val = (
+            AppSetting.objects.filter(key="GHOSTED_DAYS_THRESHOLD")
+            .values_list("value", flat=True)
+            .first()
+        )
+        if db_val is not None and str(db_val).strip() != "":
+            ghosted_days_threshold = int(str(db_val).strip())
+        else:
+            env_val = (
+                (os.environ.get("GHOSTED_DAYS_THRESHOLD") or "")
+                .strip()
+                .replace('"', "")
+            )
+            if env_val:
+                ghosted_days_threshold = int(env_val)
+    except Exception:
+        pass
+    if ghosted_days_threshold < 1 or ghosted_days_threshold > 3650:
+        ghosted_days_threshold = 30
     form = None
     message_count = 0
     message_info_list = []
@@ -245,7 +163,27 @@ def label_companies(request):
             )
             message_count = messages_qs.count()
             message_info_list = list(messages_qs.values_list("timestamp", "subject"))
+            # Compute days since last message for ghosted assessment
+            if message_count > 0:
+                last_message_ts = messages_qs.first().timestamp
+                try:
+                    days_since_last_message = (now() - last_message_ts).days
+                except Exception:
+                    days_since_last_message = None
             if request.method == "POST":
+                # Quick action: mark as ghosted
+                if request.POST.get("action") == "mark_ghosted":
+                    try:
+                        selected_company.status = "ghosted"
+                        selected_company.save()
+                        messages.success(
+                            request,
+                            f"✅ Marked {selected_company.name} as ghosted.",
+                        )
+                    except Exception as e:
+                        messages.error(request, f"Failed to mark ghosted: {e}")
+                    # Redirect to avoid form resubmission and preserve selection
+                    return redirect(f"/label_companies/?company={selected_company.id}")
                 form = CompanyEditForm(request.POST, instance=selected_company)
                 if form.is_valid():
                     form.save()
@@ -259,6 +197,9 @@ def label_companies(request):
             "selected_company": selected_company,
             "form": form,
             "latest_label": latest_label,
+            "last_message_ts": last_message_ts,
+            "days_since_last_message": days_since_last_message,
+            "ghosted_days_threshold": ghosted_days_threshold,
             "message_count": message_count,
             "message_info_list": message_info_list,
         }
@@ -266,43 +207,79 @@ def label_companies(request):
     return render(request, "tracker/label_companies.html", ctx)
 
 
-from tracker.models import (
-    Company,
-    Application,
-    Message,
-    IngestionStats,
-    UnresolvedCompany,
-)
+# --- Merge Companies ---
+@login_required
+def merge_companies(request):
+    """Merge multiple companies: reassign all messages/applications to canonical company, delete duplicates."""
+    if request.method == "POST":
+        company_ids = request.POST.getlist("company_ids")
+        canonical_id = request.POST.get("canonical_id")
+
+        if not company_ids or len(company_ids) < 2:
+            messages.error(request, "⚠️ Please select at least 2 companies to merge.")
+            return redirect("label_companies")
+
+        if not canonical_id or canonical_id not in company_ids:
+            messages.error(
+                request, "⚠️ Please select which company is the canonical (real) name."
+            )
+            return redirect("label_companies")
+
+        try:
+            canonical_company = Company.objects.get(id=canonical_id)
+            duplicate_ids = [cid for cid in company_ids if cid != canonical_id]
+            duplicates = Company.objects.filter(id__in=duplicate_ids)
+
+            # Reassign all messages
+            messages_moved = Message.objects.filter(company__in=duplicates).update(
+                company=canonical_company
+            )
+            # Reassign all applications
+            apps_moved = Application.objects.filter(company__in=duplicates).update(
+                company=canonical_company
+            )
+
+            # Update canonical company timestamps if needed
+            all_messages = Message.objects.filter(company=canonical_company).order_by(
+                "timestamp"
+            )
+            if all_messages.exists():
+                canonical_company.first_contact = all_messages.first().timestamp
+                canonical_company.last_contact = all_messages.last().timestamp
+                canonical_company.save()
+
+            # Delete duplicate companies
+            dup_names = list(duplicates.values_list("name", flat=True))
+            duplicates.delete()
+
+            messages.success(
+                request,
+                f"✅ Merged {len(dup_names)} companies into '{canonical_company.name}'. "
+                f"Moved {messages_moved} messages and {apps_moved} applications. Deleted: {', '.join(dup_names)}.",
+            )
+        except Company.DoesNotExist:
+            messages.error(request, "⚠️ Canonical company not found.")
+        except Exception as e:
+            messages.error(request, f"❌ Merge failed: {e}")
+
+        return redirect("label_companies")
+
+    # GET: show merge form with selected companies
+    company_ids = request.GET.getlist("company_ids")
+    if not company_ids or len(company_ids) < 2:
+        messages.warning(
+            request,
+            "⚠️ Please select at least 2 companies to merge from the Label Companies page.",
+        )
+        return redirect("label_companies")
+
+    companies_to_merge = Company.objects.filter(id__in=company_ids).order_by("name")
+    ctx = {"companies_to_merge": companies_to_merge}
+    ctx.update(build_sidebar_context())
+    return render(request, "tracker/merge_companies.html", ctx)
 
 
-from datetime import timedelta
-from collections import defaultdict
-
-from tracker.forms import ApplicationEditForm
-from pathlib import Path
-import subprocess
-import sys
-from db import PATTERNS_PATH
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.timezone import now
-import os
-from datetime import datetime
-from django.db import models
-from django.db.models import (
-    F,
-    Q,
-    Count,
-    Case,
-    When,
-    Value,
-    IntegerField,
-    CharField,
-    ExpressionWrapper,
-)
-from django.db.models.functions import Coalesce, Substr, StrIndex
-from bs4 import BeautifulSoup
+from datetime import timedelta, datetime
 
 python_path = sys.executable
 ALIAS_EXPORT_PATH = Path("json/alias_candidates.json")
@@ -333,7 +310,6 @@ def build_sidebar_context():
     }
 
 
-@login_required
 @login_required
 def company_threads(request):
     # Get all reviewed companies (at least one reviewed message)
@@ -831,10 +807,6 @@ def label_applications(request):
     ctx = {"applications": apps}
     ctx.update(build_sidebar_context())
     return render(request, "tracker/label_applications.html", ctx)
-
-
-import json
-import subprocess
 
 
 @login_required
@@ -1727,3 +1699,252 @@ def json_file_viewer(request):
             "latest_stats": latest_stats,
         },
     )
+
+
+# --- Re-ingest Gmail Admin ---
+@login_required
+def reingest_admin(request):
+    """Run the ingest_gmail command with options and show output."""
+    base_dir = Path(__file__).resolve().parents[1]
+    day_choices = [
+        ("ALL", "ALL"),
+        (1, "1 day"),
+        (7, "7 days"),
+        (14, "14 days"),
+        (30, "30 days"),
+    ]
+    default_days = 7
+
+    ctx = {
+        "result": None,
+        "error": None,
+        "day_choices": day_choices,
+        "default_days": default_days,
+    }
+    # Include reporting default start date info for the template
+    env_start_date = os.environ.get("REPORTING_DEFAULT_START_DATE")
+    ctx["reporting_default_start_date"] = env_start_date or ""
+    ctx.update(build_sidebar_context())
+
+    if request.method == "POST":
+        days_back = request.POST.get("days_back", str(default_days))
+        force = request.POST.get("force") == "on"
+        reparse_all = request.POST.get("reparse_all") == "on"
+
+        cmd = [
+            sys.executable,
+            "manage.py",
+            "ingest_gmail",
+            "--metrics-before",
+            "--metrics-after",
+        ]
+        if days_back and days_back != "ALL":
+            cmd += ["--days-back", str(days_back)]
+        if force:
+            cmd.append("--force")
+        if reparse_all:
+            cmd.append("--reparse-all")
+
+        try:
+            result = subprocess.run(
+                cmd,
+                cwd=str(base_dir),
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                check=False,
+            )
+            output = result.stdout or ""
+            if result.stderr:
+                output += "\n[stderr]\n" + result.stderr
+            ctx["result"] = output
+        except Exception as e:
+            ctx["error"] = f"Failed to run ingestion: {e}"
+
+    return render(request, "tracker/reingest_admin.html", ctx)
+
+
+# --- Gmail Filters Import Admin ---
+@login_required
+def import_gmail_filters_view(request):
+    """Upload Gmail filters XML, validate, preview diff, and apply to patterns.json with logging."""
+    ctx = {"result": None, "error": None, "preview": None}
+    ctx.update(build_sidebar_context())
+
+    if request.method == "POST":
+        action = request.POST.get("action", "preview")
+        xml_file = request.FILES.get("filters_xml")
+        if not xml_file:
+            ctx["error"] = "No file uploaded."
+            return render(request, "tracker/import_gmail_filters.html", ctx)
+
+        # Save temp file
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".xml") as tmp:
+            tmp.write(xml_file.read())
+            tmp_path = Path(tmp.name)
+
+        # Load current patterns and label map (optional)
+        patterns_path = Path("json/patterns.json")
+        label_map_path = Path("json/gmail_label_map.json")
+        patterns = load_json(patterns_path, default={"message_labels": {}})
+        msg_labels = patterns.setdefault("message_labels", {})
+        msg_excludes = patterns.setdefault("message_label_excludes", {})
+        label_map = load_json(label_map_path, default={})
+
+        # Parse filters
+        try:
+            entries = list(parse_filters(tmp_path))
+        except Exception as e:
+            ctx["error"] = f"Invalid XML: {e}"
+            return render(request, "tracker/import_gmail_filters.html", ctx)
+
+        # Build additions and excludes; validate mapping coverage
+        additions = {}
+        exclude_additions = {}
+        unmatched = set()
+        for props in entries:
+            gmail_label = props.get("label") or props.get("shouldApplyLabel")
+            if not gmail_label:
+                continue
+            internal = label_map.get(gmail_label)
+            if not internal:
+                unmatched.add(gmail_label)
+                continue
+            terms = []
+            for key in ("subject", "hasTheWord"):
+                terms += sanitize_to_regex_terms(props.get(key, ""))
+            pattern = make_or_pattern(terms)
+            if pattern:
+                additions.setdefault(internal, set()).add(pattern)
+            ex_terms = sanitize_to_regex_terms(props.get("doesNotHaveTheWord", ""))
+            ex_pat = make_or_pattern(ex_terms)
+            if ex_pat:
+                exclude_additions.setdefault(internal, set()).add(ex_pat)
+
+        # Cross-label conflict suggestion: any term added to label A appears in excludes of other labels?
+        conflicts = []
+        for label, pats in additions.items():
+            for other_label, ex_pats in exclude_additions.items():
+                if label == other_label:
+                    continue
+                for p in pats:
+                    for ex in ex_pats:
+                        if any(tok and tok in ex for tok in re.split(r"\W+", p)):
+                            conflicts.append(
+                                {
+                                    "label": label,
+                                    "other": other_label,
+                                    "pattern": p,
+                                    "exclude": ex,
+                                }
+                            )
+
+        # Compute preview diff
+        preview = {
+            "add": {},
+            "exclude": {},
+            "unmatched": sorted(unmatched),
+            "conflicts": conflicts,
+        }
+        for label, new in additions.items():
+            before = set(msg_labels.get(label, []))
+            to_add = sorted(set(new) - before)
+            if to_add:
+                preview["add"][label] = to_add
+        for label, new in exclude_additions.items():
+            before = set(msg_excludes.get(label, []))
+            to_add = sorted(set(new) - before)
+            if to_add:
+                preview["exclude"][label] = to_add
+
+        if action == "preview":
+            ctx["preview"] = json.dumps(preview, indent=2)
+            return render(request, "tracker/import_gmail_filters.html", ctx)
+
+        # Apply changes
+        for label, new in preview["add"].items():
+            msg_labels[label] = sorted(set(msg_labels.get(label, [])) | set(new))
+        for label, new in preview["exclude"].items():
+            msg_excludes[label] = sorted(set(msg_excludes.get(label, [])) | set(new))
+        try:
+            with open(patterns_path, "w", encoding="utf-8") as f:
+                json.dump(patterns, f, indent=2, ensure_ascii=False)
+        except Exception as e:
+            ctx["error"] = f"Failed to write patterns.json: {e}"
+            return render(request, "tracker/import_gmail_filters.html", ctx)
+
+        # Log import run
+        GmailFilterImportLog.objects.create(
+            uploaded_by=request.user if request.user.is_authenticated else None,
+            original_filename=getattr(xml_file, "name", ""),
+            labels_updated=sum(len(v) for v in preview["add"].values()),
+            excludes_updated=sum(len(v) for v in preview["exclude"].values()),
+            skipped=0,
+            unmatched_labels=json.dumps(preview["unmatched"]),
+            diff_json=json.dumps(preview),
+            notes=f"Conflicts: {len(conflicts)}",
+        )
+        ctx["result"] = "Patterns updated from Gmail filters."
+        return render(request, "tracker/import_gmail_filters.html", ctx)
+
+    return render(request, "tracker/import_gmail_filters.html", ctx)
+
+
+# --- Configure Settings ---
+@login_required
+def configure_settings(request):
+    from tracker.models import AppSetting
+
+    # Known settings and validators
+    def clamp_int(val, lo, hi, default):
+        try:
+            n = int(str(val).strip())
+            if n < lo or n > hi:
+                return default
+            return n
+        except Exception:
+            return default
+
+    settings_spec = {
+        "GHOSTED_DAYS_THRESHOLD": {
+            "label": "Ghosted Days Threshold",
+            "help": "Days since last message to show 'Consider ghosted' hint.",
+            "type": "int",
+            "default": 30,
+            "min": 1,
+            "max": 3650,
+        },
+    }
+
+    # Load current values from DB (or defaults)
+    current = {}
+    for key, spec in settings_spec.items():
+        db_val = (
+            AppSetting.objects.filter(key=key).values_list("value", flat=True).first()
+        )
+        if db_val is None or str(db_val).strip() == "":
+            current[key] = spec["default"]
+        else:
+            if spec["type"] == "int":
+                current[key] = clamp_int(
+                    db_val, spec["min"], spec["max"], spec["default"]
+                )
+            else:
+                current[key] = db_val
+
+    if request.method == "POST":
+        # Save posted values
+        for key, spec in settings_spec.items():
+            raw = request.POST.get(key)
+            if spec["type"] == "int":
+                val = clamp_int(raw, spec["min"], spec["max"], spec["default"])
+            else:
+                val = (raw or "").strip()
+            AppSetting.objects.update_or_create(key=key, defaults={"value": str(val)})
+        messages.success(request, "✅ Settings updated.")
+        return redirect("configure_settings")
+
+    ctx = {"settings_spec": settings_spec, "current": current}
+    ctx.update(build_sidebar_context())
+    return render(request, "tracker/configure_settings.html", ctx)

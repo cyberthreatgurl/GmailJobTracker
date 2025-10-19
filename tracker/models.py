@@ -189,6 +189,24 @@ class ProcessedMessage(models.Model):
         indexes = [models.Index(fields=["gmail_id"])]
 
 
+class GmailFilterImportLog(models.Model):
+    uploaded_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    uploaded_by = models.ForeignKey(
+        "auth.User", on_delete=models.SET_NULL, null=True, blank=True
+    )
+    original_filename = models.CharField(max_length=255, blank=True)
+    labels_updated = models.IntegerField(default=0)
+    excludes_updated = models.IntegerField(default=0)
+    skipped = models.IntegerField(default=0)
+    unmatched_labels = models.TextField(blank=True)  # JSON array
+    diff_json = models.TextField(blank=True)  # JSON of before/after or added lists
+    notes = models.TextField(blank=True)
+
+    def __str__(self):
+        who = self.uploaded_by.username if self.uploaded_by else "system"
+        return f"Filters import on {self.uploaded_at:%Y-%m-%d %H:%M} by {who}"
+
+
 # --- ML Model Training Tracking ---
 class ModelTrainingRun(models.Model):
     trained_at = models.DateTimeField(default=now, db_index=True)
@@ -221,3 +239,21 @@ class ModelTrainingLabelMetric(models.Model):
 
     def __str__(self):
         return f"{self.label} ({self.run.trained_at.strftime('%Y-%m-%d %H:%M:%S')})"
+
+
+class AppSetting(models.Model):
+    """Simple key/value settings store editable via UI.
+
+    Example keys:
+    - GHOSTED_DAYS_THRESHOLD: int (1..3650)
+    """
+
+    key = models.CharField(max_length=100, unique=True)
+    value = models.TextField()
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        indexes = [models.Index(fields=["key"])]
+
+    def __str__(self):
+        return f"{self.key}={self.value}"

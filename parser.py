@@ -64,6 +64,23 @@ _MSG_LABEL_PATTERNS = {
     )
 }
 
+# Optional per-label negative patterns derived from Gmail's doesNotHaveTheWord
+_MSG_LABEL_EXCLUDES = {
+    k: [re.compile(p, re.I) for p in PATTERNS.get("message_label_excludes", {}).get(k, [])]
+    for k in (
+        "interview_invite",
+        "job_application",
+        "rejected",
+        "offer",
+        "noise",
+        "ignore",
+        "response",
+        "follow_up",
+        "ghosted",
+        "referral",
+    )
+}
+
 
 def rule_label(subject: str, body: str = "") -> str | None:
     s = f"{subject or ''} {body or ''}"
@@ -79,6 +96,10 @@ def rule_label(subject: str, body: str = "") -> str | None:
     ):
         for rx in _MSG_LABEL_PATTERNS.get(label, []):
             if rx.search(s):
+                # If any exclude pattern matches, skip this label
+                excludes = _MSG_LABEL_EXCLUDES.get(label, [])
+                if any(ex.search(s) for ex in excludes):
+                    continue
                 return label
     return None
 
@@ -589,6 +610,7 @@ def ingest_message(service, msg_id):
     subject = metadata["subject"]
     result = predict_subject_type(subject, body)
 
+
     # --- NEW LOGIC: Robust company extraction order ---
     # Add guard: skip company assignment for noise/job_alert labels
     label_guard = result.get("label") if result else None
@@ -622,8 +644,7 @@ def ingest_message(service, msg_id):
                 predicted = predict_company(subject, body)
                 if (
                     predicted
-                    and predicted.lower()
-                    not in {"job_application", "job_alert", "noise"}
+                    and predicted.lower() not in {"job_application", "job_alert", "noise"}
                     and is_valid_company_name(predicted)
                 ):
                     company = predicted

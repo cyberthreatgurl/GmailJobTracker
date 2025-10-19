@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Re-ingest Gmail Messages{% endblock %}
+{% block content %}
+<div class="main-content">
+  <h1>Re-ingest Gmail Messages</h1>
+  <form method="post">
+    {% csrf_token %}
+    <div style="margin-bottom:1rem;">
+      <label><b>Days Back:</b></label>
+      <select name="days_back">
+        {% for val, label in day_choices %}
+          <option value="{{ val }}" {% if val == default_days %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      <span style="font-size:0.9em;color:#888;">(ALL = since {{ reporting_default_start_date }})</span>
+    </div>
+    <div style="margin-bottom:1rem;">
+      <label><input type="checkbox" name="force"> Force (re-process already seen messages)</label><br>
+      <label><input type="checkbox" name="reparse_all"> Re-parse ALL (ignore ProcessedMessage table)</label>
+    </div>
+    <button class="button" type="submit">Run Ingestion</button>
+  </form>
+  {% if result %}
+    <h2>Ingestion Output</h2>
+    <pre style="background:#f3f4f6;padding:1em;border-radius:6px;max-height:400px;overflow:auto;">{{ result }}</pre>
+  {% endif %}
+  {% if error %}
+    <div style="color:red;font-weight:bold;">Error: {{ error }}</div>
+  {% endif %}
+</div>
+{% endblock %}

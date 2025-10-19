@@ -1,5 +1,155 @@
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from tracker.models import (
+    Company,
+    Application,
+    Message,
+    IngestionStats,
+    UnresolvedCompany,
+)
+from datetime import timedelta, datetime
+from collections import defaultdict
+from tracker.forms import ApplicationEditForm
+from pathlib import Path
+import subprocess
+import sys
+from db import PATTERNS_PATH
+from django.shortcuts import render, redirect, get_object_or_404
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
+from django.utils.timezone import now
+import os
+from django.db import models
+from django.db.models import (
+    F,
+    Q,
+    Count,
+    Case,
+    When,
+    Value,
+    IntegerField,
+    CharField,
+    ExpressionWrapper,
+)
+from django.db.models.functions import Coalesce, Substr, StrIndex
+from bs4 import BeautifulSoup
+import json
+import re
+import html
+
+
+# --- Re-ingestion Admin Page ---
+@login_required
+@require_http_methods(["GET", "POST"])
+def reingest_admin(request):
+    import os
+    import subprocess
+    import sys
+    from datetime import datetime
+
+    # For dropdown
+    DAY_CHOICES = [
+        (1, "1 day"),
+        (7, "7 days"),
+        (14, "14 days"),
+        (30, "30 days"),
+        (60, "60 days"),
+        (90, "90 days"),
+        (99999, "ALL since REPORTING_DEFAULT_START_DATE"),
+    ]
+    default_days = 7
+    reporting_default_start_date = os.environ.get(
+        "REPORTING_DEFAULT_START_DATE", "2025-02-15"
+    )
+    # Defaults
+    result = None
+    before_metrics = None
+    after_metrics = None
+    error = None
+    if request.method == "POST":
+        # Parse form
+        days_back = int(request.POST.get("days_back", default_days))
+        force = bool(request.POST.get("force"))
+        reparse_all = bool(request.POST.get("reparse_all"))
+        metrics_before = True
+        metrics_after = True
+        # Build command
+        cmd = [sys.executable, "manage.py", "ingest_gmail"]
+        if days_back == 99999:
+            # Calculate days since REPORTING_DEFAULT_START_DATE
+            try:
+                dt = datetime.strptime(
+                    reporting_default_start_date.replace('"', ""), "%Y-%m-%d"
+                )
+                delta = (datetime.now() - dt).days
+                cmd += ["--days-back", str(delta)]
+            except Exception:
+                cmd += ["--days-back", "90"]
+        else:
+            cmd += ["--days-back", str(days_back)]
+        if force:
+            cmd.append("--force")
+        if reparse_all:
+            cmd.append("--reparse-all")
+        if metrics_before:
+            cmd.append("--metrics-before")
+        if metrics_after:
+            cmd.append("--metrics-after")
+        # Run command and capture output
+        try:
+            proc = subprocess.run(
+                cmd, capture_output=True, text=True, timeout=600, encoding="utf-8"
+            )
+            result = proc.stdout + "\n" + proc.stderr
+        except Exception as e:
+            error = str(e)
+    ctx = build_sidebar_context()
+    ctx.update(
+        {
+            "day_choices": DAY_CHOICES,
+            "default_days": default_days,
+            "reporting_default_start_date": reporting_default_start_date,
+            "result": result,
+            "error": error,
+        }
+    )
+    return render(request, "tracker/reingest_admin.html", ctx)
+
+
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from tracker.models import (
+    Company,
+    Application,
+    Message,
+    IngestionStats,
+    UnresolvedCompany,
+)
+from datetime import timedelta, datetime
+from collections import defaultdict
+from tracker.forms import ApplicationEditForm
+from pathlib import Path
+import subprocess
+import sys
+from db import PATTERNS_PATH
+from django.shortcuts import render, redirect, get_object_or_404
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.timezone import now
+import os
+from django.db import models
+from django.db.models import (
+    F,
+    Q,
+    Count,
+    Case,
+    When,
+    Value,
+    IntegerField,
+    CharField,
+    ExpressionWrapper,
+)
+from django.db.models.functions import Coalesce, Substr, StrIndex
+from bs4 import BeautifulSoup
 
 
 # --- Delete Company Page ---
@@ -988,9 +1138,18 @@ def metrics(request):
         stats_qs = IngestionStats.objects.filter(date__gte=start_date).order_by("date")
         stats_map = {s.date: s for s in stats_qs}
         chart_labels = [d.strftime("%Y-%m-%d") for d in date_list]
-        chart_inserted = [stats_map.get(d, None).total_inserted if stats_map.get(d, None) else 0 for d in date_list]
-        chart_skipped = [stats_map.get(d, None).total_skipped if stats_map.get(d, None) else 0 for d in date_list]
-        chart_ignored = [stats_map.get(d, None).total_ignored if stats_map.get(d, None) else 0 for d in date_list]
+        chart_inserted = [
+            stats_map.get(d, None).total_inserted if stats_map.get(d, None) else 0
+            for d in date_list
+        ]
+        chart_skipped = [
+            stats_map.get(d, None).total_skipped if stats_map.get(d, None) else 0
+            for d in date_list
+        ]
+        chart_ignored = [
+            stats_map.get(d, None).total_ignored if stats_map.get(d, None) else 0
+            for d in date_list
+        ]
     else:
         chart_labels = []
         chart_inserted = []

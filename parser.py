@@ -341,7 +341,7 @@ def classify_message(body):
     if any(p in body_lower for p in PATTERNS.get("rejection", [])):
         return "rejected"
     if any(p in body_lower for p in PATTERNS.get("interview", [])):
-        return "interview_invitre"
+        return "interview_invite"
     if any(p in body_lower for p in PATTERNS.get("follow_up", [])):
         return "follow_up"
     if any(p in body_lower for p in PATTERNS.get("application", [])):
@@ -589,105 +589,104 @@ def ingest_message(service, msg_id):
     subject = metadata["subject"]
     result = predict_subject_type(subject, body)
 
-    company = parsed_subject.get("company", "") or ""
-    company_norm = company.lower()
-    company_source = "subject_parse"
-
-    # Reject invalid company names from patterns.json
-    if company and not is_valid_company_name(company):
-        if DEBUG:
-            print(f" Rejected invalid company name: {company}")
-        company = ""
-
-    print(f" company_norm: {company_norm}")
-    print(f" is_valid_company: {is_valid_company(company)}")
-    if company_norm not in KNOWN_COMPANIES and not is_valid_company(company):
-        company = ""
-
-    if not company:
+    # --- NEW LOGIC: Robust company extraction order ---
+    # Add guard: skip company assignment for noise/job_alert labels
+    label_guard = result.get("label") if result else None
+    skip_company_assignment = label_guard in {"noise", "job_alert"}
+    company = ""
+    company_source = ""
+    company_obj = None
+    if not skip_company_assignment:
         sender_domain = metadata.get("sender_domain", "").lower()
         is_ats = any(d in sender_domain for d in ATS_DOMAINS)
-        if not is_ats:
-            mapped = DOMAIN_TO_COMPANY.get(sender_domain, "")
-            if mapped:
-                company = mapped
-                company_source = "domain_mapping"
-                if DEBUG:
-                    print(f"Domain mapping used: {sender_domain} → {company}")
 
-    if not company:
-        sender_name = metadata.get("sender", "").split("<")[0].strip().lower()
-        for known in KNOWN_COMPANIES:
-            if known.lower() in sender_name:
-                company = known
-                company_source = "sender_name_match"
-                if DEBUG:
-                    print(f" Sender name match: {sender_name} → {company}")
-                break
-
-    if not company:
-        try:
-            predicted = predict_company(subject, body)
-            if predicted and predicted.lower() in {
-                "job_application",
-                "job_alert",
-                "noise",
-            }:
-                predicted = ""
-
-            if predicted:
-                company = predicted
-                company_source = "ml_prediction"
-                if DEBUG:
-                    print(f"ML prediction used: {predicted}")
-        except NameError:
+        # 1. Domain mapping (if not ATS)
+        if sender_domain and not is_ats and sender_domain in DOMAIN_TO_COMPANY:
+            company = DOMAIN_TO_COMPANY[sender_domain]
+            company_source = "domain_mapping"
             if DEBUG:
-                print(" ML prediction function not available.")
+                print(f"Domain mapping used: {sender_domain} → {company}")
 
-    if not company:
+        # 2. Subject/body parse (if not resolved by domain)
+        if not company:
+            parsed_company = parsed_subject.get("company", "") or ""
+            if parsed_company and is_valid_company_name(parsed_company):
+                company = parsed_company
+                company_source = "subject_parse"
+                if DEBUG:
+                    print(f"Subject/body parse used: {company}")
 
-        # Allow optional space, punctuation‐agnostic, case‐insensitive
-        at_match = re.search(
-            r"@\s*([A-Za-z][\w\s&\-]+?)(?=[\W]|$)", body, flags=re.IGNORECASE
-        )
-        if at_match:
-            # Normalize casing
-            company = at_match.group(1).strip().title()
-            company_source = "body_at_symbol"
-            if DEBUG:
-                print(f"'@' symbol match used: {company}")
+        # 3. ML/NER extraction (if still unresolved)
+        if not company:
+            try:
+                predicted = predict_company(subject, body)
+                if (
+                    predicted
+                    and predicted.lower()
+                    not in {"job_application", "job_alert", "noise"}
+                    and is_valid_company_name(predicted)
+                ):
+                    company = predicted
+                    company_source = "ml_prediction"
+                    if DEBUG:
+                        print(f"ML prediction used: {predicted}")
+            except NameError:
+                if DEBUG:
+                    print(" ML prediction function not available.")
 
-    if not company:
-        body_match = re.search(
-            r"(?:apply(?:ing)? to|application to|interest in|position at|role at|opportunity with)\s+([A-Z][\w\s&\-]+)",
-            body,
-            re.IGNORECASE,
-        )
-        if body_match:
-            company = body_match.group(1).strip()
-            company_source = "body_regex"
-            if DEBUG:
-                print(f" Body regex used: {company}")
-    if not company:
-        company_source = "unresolved"
+        # 4. Regex/body fallback (if still unresolved)
+        if not company:
+            at_match = re.search(
+                r"@\s*([A-Za-z][\w\s&\-]+?)(?=[\W]|$)", body, flags=re.IGNORECASE
+            )
+            if at_match:
+                company = at_match.group(1).strip().title()
+                company_source = "body_at_symbol"
+                if DEBUG:
+                    print(f"'@' symbol match used: {company}")
 
-    company_obj = None
+        if not company:
+            body_match = re.search(
+                r"(?:apply(?:ing)? to|application to|interest in|position at|role at|opportunity with)\s+([A-Z][\w\s&\-]+)",
+                body,
+                re.IGNORECASE,
+            )
+            if body_match:
+                company = body_match.group(1).strip()
+                company_source = "body_regex"
+                if DEBUG:
+                    print(f" Body regex used: {company}")
 
-    # Normalize casing for known companies
-    if company:
-        for known in KNOWN_COMPANIES:
-            if company.lower() == known.lower():
-                company = known
-                break
-    # Sanity check: does subject contain a conflicting company name?
-    subject_lower = metadata["subject"].lower()
-    if company and company.lower() not in subject_lower:
-        for known in KNOWN_COMPANIES:
-            if known.lower() in subject_lower and known.lower() != company.lower():
-                print(
-                    f"Subject mentions different company: {known} vs resolved {company}"
-                )
-                break
+        # 5. Sender name fallback (rare, last resort)
+        if not company:
+            sender_name = metadata.get("sender", "").split("<")[0].strip().lower()
+            for known in KNOWN_COMPANIES:
+                if known.lower() in sender_name:
+                    company = known
+                    company_source = "sender_name_match"
+                    if DEBUG:
+                        print(f" Sender name match: {sender_name} → {company}")
+                    break
+
+        # 6. Final fallback
+        if not company:
+            company_source = "unresolved"
+
+        # Normalize casing for known companies
+        if company:
+            for known in KNOWN_COMPANIES:
+                if company.lower() == known.lower():
+                    company = known
+                    break
+        # Sanity check: does subject contain a conflicting company name?
+        subject_lower = metadata["subject"].lower()
+        if company and company.lower() not in subject_lower:
+            for known in KNOWN_COMPANIES:
+                if known.lower() in subject_lower and known.lower() != company.lower():
+                    print(
+                        f"Subject mentions different company: {known} vs resolved {company}"
+                    )
+                    break
 
     confidence = float(result.get("confidence", 0.0)) if result else 0.0
 

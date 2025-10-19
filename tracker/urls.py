@@ -22,4 +22,9 @@ urlpatterns = [
     path("label_companies/", views.label_companies, name="label_companies"),
     path("company_threads/", views.company_threads, name="company_threads"),
     path("json_viewer/", views.json_file_viewer, name="json_file_viewer"),
+    path(
+        "filters/import/", views.import_gmail_filters_view, name="import_gmail_filters"
+    ),
+    path("settings/", views.configure_settings, name="configure_settings"),
+    path("companies/merge/", views.merge_companies, name="merge_companies"),
 ]

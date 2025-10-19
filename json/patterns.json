@@ -13,9 +13,7 @@
       "(you\\ have\\ withdrawn|meet\\ any\\ of\\ your\\ requirements)",
       "\\b(we (regret|are sorry)|unfortunately|not selected|won'?t move forward)\\b"
     ],
-    "offer": [
-      "\\b(offer|compensation|package|extend|congratulations)\\b"
-    ],
+    "offer": ["\\b(offer|compensation|package|extend|congratulations)\\b"],
     "noise": [
       "\\b(unsubscribe|newsletter|digest|promotion|marketing|sale|verification code|one-time (code|password|verification)|OTP|2FA code|security code|login code|access code)\\b"
     ],
@@ -33,18 +31,10 @@
       "\\b(saved search)\\b",
       "\\b(search results)\\b"
     ],
-    "follow_up": [
-      "None"
-    ],
-    "response": [
-      "None"
-    ],
-    "ghosted": [
-      "None"
-    ],
-    "other": [
-      "None"
-    ]
+    "follow_up": ["None"],
+    "response": ["None"],
+    "ghosted": ["None"],
+    "other": ["None"]
   },
   "invalid_company_prefixes": [
     "Cyber Program",
@@ -86,12 +76,7 @@
     "position closed",
     "no longer available"
   ],
-  "interview": [
-    "schedule",
-    "availability",
-    "next steps",
-    "interview"
-  ],
+  "interview": ["schedule", "availability", "next steps", "interview"],
   "ignore": [
     "your job alert for",
     "miss out",
@@ -123,5 +108,6 @@
     "wanted to follow",
     "any update on my application",
     "reaching out again"
-  ]
+  ],
+  "ignore_labels": ["noise", "job_alert", "head_hunter"]
 }

@@ -3,6 +3,7 @@ from . import views
 from tracker.admin import custom_admin_site, admin
 
 urlpatterns = [
+    path("logs/", views.log_viewer, name="log_viewer"),
     path("reingest_admin/", views.reingest_admin, name="reingest_admin"),
     path("", views.dashboard, name="dashboard"),
     path("company/<int:company_id>/", views.company_detail, name="company_detail"),

@@ -1,3 +1,6 @@
+# (Moved ML training models below imports)
+
+
 # Create models here.
 from django.db import models
 from django.utils.timezone import now
@@ -184,3 +187,37 @@ class ProcessedMessage(models.Model):
 
     class Meta:
         indexes = [models.Index(fields=["gmail_id"])]
+
+
+# --- ML Model Training Tracking ---
+class ModelTrainingRun(models.Model):
+    trained_at = models.DateTimeField(default=now, db_index=True)
+    n_samples = models.IntegerField()
+    n_classes = models.IntegerField()
+    accuracy = models.FloatField(null=True, blank=True)
+    macro_precision = models.FloatField(null=True, blank=True)
+    macro_recall = models.FloatField(null=True, blank=True)
+    macro_f1 = models.FloatField(null=True, blank=True)
+    weighted_precision = models.FloatField(null=True, blank=True)
+    weighted_recall = models.FloatField(null=True, blank=True)
+    weighted_f1 = models.FloatField(null=True, blank=True)
+    label_distribution = models.TextField()  # JSON or pretty string
+    classification_report = models.TextField()  # Full sklearn report
+
+    def __str__(self):
+        return f"ModelTrainingRun {self.trained_at.strftime('%Y-%m-%d %H:%M:%S')} ({self.n_samples} samples)"
+
+
+# Optionally, per-label metrics for each run
+class ModelTrainingLabelMetric(models.Model):
+    run = models.ForeignKey(
+        ModelTrainingRun, on_delete=models.CASCADE, related_name="label_metrics"
+    )
+    label = models.CharField(max_length=64)
+    precision = models.FloatField(null=True, blank=True)
+    recall = models.FloatField(null=True, blank=True)
+    f1 = models.FloatField(null=True, blank=True)
+    support = models.IntegerField(null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.label} ({self.run.trained_at.strftime('%Y-%m-%d %H:%M:%S')})"

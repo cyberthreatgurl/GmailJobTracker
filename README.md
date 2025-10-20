@@ -14,18 +14,21 @@ A local-only Django application that transforms your Gmail into an intelligent j
 ## ✨ Features
 
 ### 🎯 Smart Email Classification
+
 - **Hybrid ML + Regex**: Combines TF-IDF/Logistic Regression with rule-based patterns
 - **Auto-labeling**: 85%+ confidence messages auto-reviewed
 - **7 Message Types**: job_application, interview_invite, rejection, head_hunter, job_alert, noise, other
 - **Confidence scoring**: See ML certainty for each classification
 
 ### 🏢 Company Resolution
+
 - **4-tier fallback**: Known whitelist → domain mapping → ML prediction → body regex
 - **ATS-aware**: Handles Greenhouse, Workday, Lever, and 10+ ATS platforms
 - **Alias management**: Merge duplicate company names
 - **Domain intelligence**: Maps recruiter domains to companies
 
 ### 📊 Dashboard & Analytics
+
 - **Threaded view**: See entire conversation threads per company
 - **Weekly/monthly stats**: Track rejection rates, interview funnel
 - **Bulk labeling**: Label 10/50/100 messages at once with checkboxes
@@ -33,6 +36,7 @@ A local-only Django application that transforms your Gmail into an intelligent j
 - **Calendar view**: Upcoming interviews timeline
 
 ### 🔒 Privacy & Security
+
 - **100% local**: All data stored in SQLite, no cloud sync
 - **OAuth-only**: Read-only Gmail access, revocable anytime
 - **Secret scanning**: detect-secrets baseline enforced in CI
@@ -43,6 +47,7 @@ A local-only Django application that transforms your Gmail into an intelligent j
 ## 🚀 Quick Start (5 Minutes)
 
 ### Prerequisites
+
 - Python 3.10+ (tested on 3.12)
 - Gmail account with API access
 - Git
@@ -60,8 +65,11 @@ python -m venv .venv
 pip install -r requirements.txt
 python -m spacy download en_core_web_sm
 
-# 3. Initialize database
-python init_db.py
+# 3. Initialize database (Django models)
+python manage.py migrate
+
+# (Optional) Create an admin user for the dashboard
+python manage.py createsuperuser
 
 # 4. Configure Gmail OAuth
 # Place your credentials.json in json/ (see INSTALL.md section 4)
@@ -77,7 +85,7 @@ python manage.py ingest_gmail --days-back 7
 python manage.py runserver
 ```
 
-**Visit:** http://127.0.0.1:8000/
+**Visit:** <http://127.0.0.1:8000/>
 
 **Full setup guide:** See [INSTALL.md](INSTALL.md) for detailed instructions.
 
@@ -86,19 +94,21 @@ python manage.py runserver
 ## 📸 Screenshots
 
 ### Dashboard Overview
-*Coming soon: Screenshot of main dashboard with stats*
+
+### Coming soon: Screenshot of main dashboard with stats*
 
 ### Bulk Labeling Interface
-*Coming soon: Screenshot of bulk labeling with checkboxes*
+
+## Coming soon: Screenshot of bulk labeling with checkboxes*
 
 ### Company Detail View
-*Coming soon: Screenshot of threaded messages per company*
+
+## Coming soon: Screenshot of threaded messages per company*
 
 ---
 
 ## 🏗️ Architecture
 
-```
 ┌─────────────────────────────────────────────────────────────┐
 │                    Gmail API (OAuth2)                       │
 └────────────┬────────────────────────────────────────────────┘
@@ -146,9 +156,9 @@ python manage.py runserver
 │  • Metrics dashboard (weekly/monthly stats)                 │
 │  • Admin panel (manual company assignment)                  │
 └─────────────────────────────────────────────────────────────┘
-```
 
 **Data Flow:**
+
 1. Gmail API → Extract metadata
 2. Parse subject/body → ML classification
 3. Company resolution (4-tier)
@@ -156,6 +166,7 @@ python manage.py runserver
 5. Display in Django dashboard
 
 **Key Technologies:**
+
 - **Backend:** Django 5.2, scikit-learn 1.7, spaCy 3.8
 - **ML:** TF-IDF + Logistic Regression (calibrated probabilities)
 - **Database:** SQLite (single file, no server)
@@ -168,12 +179,13 @@ python manage.py runserver
 ### Initial Training (First Time)
 
 1. **Ingest last 7 days:**
+
    ```bash
    python manage.py ingest_gmail --days-back 7
    ```
 
 2. **Label 50-100 messages:**
-   - Visit: http://127.0.0.1:8000/tracker/label_messages/
+   - Visit: <http://127.0.0.1:8000/tracker/label_messages/>
    - Select messages with checkboxes
    - Choose correct label from dropdown
    - Click "Apply Label to Selected"
@@ -181,6 +193,7 @@ python manage.py runserver
 3. **Model retrains automatically** after every 20 labels
 
 4. **Re-classify existing messages:**
+
    ```bash
    python manage.py reclassify_messages
    ```
@@ -188,16 +201,19 @@ python manage.py runserver
 ### Daily Sync
 
 **Manual:**
+
 ```bash
 python manage.py ingest_gmail --days-back 1
 ```
 
 **Automated (Windows Task Scheduler):**
+
 ```powershell
 schtasks /create /tn "GmailJobTracker" /tr "C:\path\to\.venv\Scripts\python.exe C:\path\to\manage.py ingest_gmail --days-back 1" /sc daily /st 09:00
 ```
 
 **Automated (Linux/macOS cron):**
+
 ```bash
 0 9 * * * cd /path/to/GmailJobTracker && .venv/bin/python manage.py ingest_gmail --days-back 1
 ```
@@ -205,6 +221,7 @@ schtasks /create /tn "GmailJobTracker" /tr "C:\path\to\.venv\Scripts\python.exe 
 ### Company Management
 
 **Add domain mappings:**
+
 ```json
 // json/companies.json
 {
@@ -216,13 +233,14 @@ schtasks /create /tn "GmailJobTracker" /tr "C:\path\to\.venv\Scripts\python.exe 
 ```
 
 **Re-ingest with new mappings:**
+
 ```bash
 python manage.py ingest_gmail --force --days-back 30
 ```
 
 ### View Unresolved Companies
 
-Visit: http://127.0.0.1:8000/admin/tracker/unresolvedcompany/
+Visit: <http://127.0.0.1:8000/admin/tracker/unresolvedcompany/>
 
 Manually assign companies to messages where resolution failed.
 
@@ -257,11 +275,75 @@ python check_env.py
 
 ---
 
+## 🧹 Start With a Fresh Database (keep models)
+
+If you want to wipe all data and start clean while keeping your Django models, migrations, and ML artifacts, reset the SQLite database file.
+
+Notes:
+
+- The database path is controlled by the environment variable `JOB_TRACKER_DB`; if not set, it defaults to `db/job_tracker.db` (see `db.py` and `dashboard/settings.py`).
+- Close any running server or ingestion before deleting (to avoid “database is locked”).
+- Model artifacts under `model/` are not affected.
+
+### Option A — Delete the SQLite file (recommended)
+
+Windows PowerShell:
+
+```powershell
+# Stop the server/ingestion if running
+# Remove the DB file (default path)
+Remove-Item -LiteralPath "db/job_tracker.db" -Force -ErrorAction SilentlyContinue
+
+# If you customized the location via env var
+if ($env:JOB_TRACKER_DB) { Remove-Item -LiteralPath $env:JOB_TRACKER_DB -Force -ErrorAction SilentlyContinue }
+
+# Recreate the schema
+python manage.py migrate
+
+# (Optional) Recreate an admin account
+python manage.py createsuperuser
+
+# (Optional) Re-ingest some recent emails
+python manage.py ingest_gmail --days-back 7
+```
+
+Linux/macOS bash:
+
+```bash
+# Stop the server/ingestion if running
+# Remove the DB file (default path)
+rm -f db/job_tracker.db
+
+# If you customized the location via env var
+[ -n "$JOB_TRACKER_DB" ] && rm -f "$JOB_TRACKER_DB"
+
+# Recreate the schema
+python manage.py migrate
+
+# (Optional) Recreate an admin account
+python manage.py createsuperuser
+
+# (Optional) Re-ingest some recent emails
+python manage.py ingest_gmail --days-back 7
+```
+
+### Option B — Flush data in-place (keeps the file)
+
+If you prefer to keep the same SQLite file but empty all tables:
+
+```bash
+python manage.py flush --noinput
+python manage.py createsuperuser  # users are removed by flush
+```
+
+Tip: If you see “database is locked”, ensure no other process is using the DB and try again.
+
+---
+
 ## 🛠️ Development
 
 ### Project Structure
 
-```
 GmailJobTracker/
 ├── tracker/                 # Django app
 │   ├── models.py            # Company, Application, Message models
@@ -280,7 +362,6 @@ GmailJobTracker/
     ├── message_classifier.pkl
     ├── subject_vectorizer.pkl
     └── body_vectorizer.pkl
-```
 
 ### Adding Features
 
@@ -297,6 +378,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 ## 🤝 Contributing
 
 Contributions welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for:
+
 - Code style guidelines
 - Testing requirements
 - PR submission process
@@ -345,6 +427,7 @@ See [markdown/BACKLOG.md](markdown/BACKLOG.md) for detailed roadmap.
 ## ⚠️ Privacy Notice
 
 **All data stays local.** This application:
+
 - ✅ Stores everything in SQLite (single file)
 - ✅ Uses OAuth with read-only Gmail scope
 - ✅ Never sends data to external servers
@@ -352,7 +435,7 @@ See [markdown/BACKLOG.md](markdown/BACKLOG.md) for detailed roadmap.
 - ❌ Does NOT sync to cloud
 - ❌ Does NOT require internet (except Gmail API)
 
-**To revoke access:** https://myaccount.google.com/permissions
+**To revoke access:** <https://myaccount.google.com/permissions>
 
 ---
 
@@ -360,10 +443,8 @@ See [markdown/BACKLOG.md](markdown/BACKLOG.md) for detailed roadmap.
 
 - **Issues:** [GitHub Issues](https://github.com/<your-username>/GmailJobTracker/issues)
 - **Discussions:** [GitHub Discussions](https://github.com/<your-username>/GmailJobTracker/discussions)
-- **Email:** your-email@example.com
+- **Email:** <your-email@example.com>
 
 ---
 
-<div align="center">
 Made with ❤️ by privacy-conscious job seekers
-</div>

@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Label Rule Debugger{% endblock %}
+{% block content %}
+<div class="main-content">
+  <h1>Label Rule Debugger</h1>
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div style="margin-bottom:1rem;">
+      <label for="message_file"><b>Upload Raw Gmail Message (JSON or EML)</b></label>
+      <input type="file" id="message_file" name="message_file" accept=".json,.eml,.txt" />
+      <button class="button" type="submit" style="margin-left:1em;">Analyze</button>
+    </div>
+    <div style="margin-bottom:1rem;">
+      <label for="pasted_message"><b>Or paste full message source</b></label>
+      <textarea id="pasted_message" name="pasted_message" rows="14" placeholder="Paste full JSON or raw EML/headers+body here..." style="width:100%; max-height:50vh; overflow:auto; resize:vertical; border:1px solid #d1d5db; border-radius:6px; padding:0.75rem; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;"></textarea>
+      <div style="font-size:0.85rem; color:#6b7280; margin-top:0.25rem;">Note: Pasted content takes precedence over uploaded file.</div>
+    </div>
+  </form>
+  {% if error %}
+    <div style="color:#b91c1c; font-weight:600;">{{ error }}</div>
+  {% endif %}
+  {% if result %}
+    <h2>Result</h2>
+    <div><b>Matched Label(s):</b>
+      {% if result.no_matches %}
+        <span style="color:#b91c1c; font-weight:600;">No Matches</span>
+      {% elif matched_labels and matched_labels|length > 0 %}
+        <span style="color:#2563eb; font-weight:600;">{{ matched_labels|join:", " }}</span>
+      {% else %}
+        <span style="color:#2563eb; font-weight:600;">{{ matched_label }}</span>
+      {% endif %}
+    </div>
+    <details style="margin-top:0.5rem;">
+      <summary style="cursor:pointer;">Show matched patterns</summary>
+      <div><b>Matched Patterns:</b>
+        <ul>
+          {% for pat in matched_patterns %}
+            <li><code>{{ pat }}</code></li>
+          {% endfor %}
+        </ul>
+      </div>
+    </details>
+    <div><b>Highlighted Words:</b>
+      <ul>
+        {% for word in highlights %}
+          <li style="color:#059669; font-weight:600;">{{ word }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    <h3>Message Text</h3>
+    <div style="background:#f3f4f6; border-radius:6px; padding:1em; white-space:pre-wrap;">
+      {% autoescape off %}
+      {{ message_text|safe }}
+      {% endautoescape %}
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

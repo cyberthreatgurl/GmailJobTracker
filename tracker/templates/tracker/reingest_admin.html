@@ -20,6 +20,10 @@
     </div>
     <button class="button" type="submit">Run Ingestion</button>
   </form>
+  <div id="live-output" style="display:none;">
+    <h2>Live Ingestion Output</h2>
+    <pre id="output-box" style="background:#0b1021;color:#d1d5db;padding:1em;border-radius:6px;max-height:480px;overflow:auto;white-space:pre-wrap;"></pre>
+  </div>
   {% if result %}
     <h2>Ingestion Output</h2>
     <pre style="background:#f3f4f6;padding:1em;border-radius:6px;max-height:400px;overflow:auto;">{{ result }}</pre>
@@ -28,4 +32,38 @@
     <div style="color:red;font-weight:bold;">Error: {{ error }}</div>
   {% endif %}
 </div>
+
+<script>
+  // Hijack the form submit to stream output instead of waiting for completion
+  const form = document.querySelector('form');
+  const live = document.getElementById('live-output');
+  const box = document.getElementById('output-box');
+  function append(text){ box.textContent += text; box.scrollTop = box.scrollHeight; }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(form);
+    const params = new URLSearchParams();
+    const days = fd.get('days_back');
+    const force = fd.get('force') === 'on';
+    const reparseAll = fd.get('reparse_all') === 'on';
+    if(days) params.set('days_back', days);
+    params.set('force', String(force));
+    params.set('reparse_all', String(reparseAll));
+
+    live.style.display = 'block';
+    box.textContent = '';
+
+    const resp = await fetch(`{% url 'reingest_stream' %}?${params.toString()}`);
+    if (!resp.ok || !resp.body) { append(`Request failed: ${resp.status}`); return; }
+
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      append(decoder.decode(value));
+    }
+  });
+</script>
 {% endblock %}

@@ -10,7 +10,34 @@
       <input id="GHOSTED_DAYS_THRESHOLD" name="GHOSTED_DAYS_THRESHOLD" type="number" min="1" max="3650" value="{{ current.GHOSTED_DAYS_THRESHOLD }}" style="width:100%; padding:0.5rem; border:1px solid #d1d5db; border-radius:6px;" />
       <div style="font-size:0.85rem; color:#6b7280; margin-top:0.25rem;">Days since last message to show the "Consider ghosted" hint (default 30).</div>
     </div>
-    <button type="submit" class="button" style="background:#2563eb; color:#fff; font-weight:600; border:none; border-radius:6px; padding:0.6rem 1rem; cursor:pointer;">Save Settings</button>
+    <button type="submit" name="action" value="save" class="button" style="background:#2563eb; color:#fff; font-weight:600; border:none; border-radius:6px; padding:0.6rem 1rem; cursor:pointer;">Save Settings</button>
   </form>
+
+  <div style="margin-top:2rem; padding:1rem; border:1px solid #e5e7eb; border-radius:8px;">
+    <h2 style="margin-top:0;">Gmail Filters → patterns.json</h2>
+    <p style="color:#4b5563;">Fetch Gmail filter rules via the Gmail API and update regex patterns for message labels. Only filters whose added label names start with the prefix will be considered.</p>
+    <div style="margin-bottom:0.75rem;">
+      <a href="{% url 'compare_gmail_filters' %}" class="button" style="background:#f59e42; color:#fff; font-weight:600; border:none; border-radius:6px; padding:0.4rem 0.9rem; text-decoration:none;">Compare Gmail Filters</a>
+      <span style="font-size:0.95em; color:#6b7280; margin-left:0.5em;">(Incremental, side-by-side, selective update)</span>
+    </div>
+    <form method="post" style="margin-top:0.5rem;">
+      {% csrf_token %}
+      <div style="display:flex; gap:0.75rem; align-items:flex-end; flex-wrap:wrap;">
+        <div style="flex:1; min-width:240px;">
+          <label for="gmail_label_prefix" style="font-weight:600;">Label Prefix</label>
+          <input id="gmail_label_prefix" name="gmail_label_prefix" type="text" value="{{ request.POST.gmail_label_prefix|default:'#job-hunt' }}" placeholder="#job-hunt" style="width:100%; padding:0.5rem; border:1px solid #d1d5db; border-radius:6px;" />
+          <div style="font-size:0.85rem; color:#6b7280; margin-top:0.25rem;">Default uses #job-hunt (or JOB_HUNT_LABEL_PREFIX env var if set).</div>
+        </div>
+        <div style="display:flex; gap:0.5rem;">
+          <button class="button" name="action" value="gmail_filters_preview" type="submit">Preview</button>
+          <button class="button" name="action" value="gmail_filters_apply" type="submit" style="background:#059669;">Apply</button>
+        </div>
+      </div>
+    </form>
+    {% if gmail_filters_preview %}
+      <h3>Preview</h3>
+      <pre style="background:#f3f4f6;padding:1em;border-radius:6px;max-height:500px;overflow:auto;">{{ gmail_filters_preview }}</pre>
+    {% endif %}
+  </div>
 </div>
 {% endblock %}

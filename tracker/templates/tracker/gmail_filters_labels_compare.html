@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Gmail Filter Label Patterns Compare{% endblock %}
+{% block content %}
+<div class="main-content">
+  <h1>Gmail Filter Label Patterns Compare</h1>
+  <form method="post">
+    {% csrf_token %}
+    <div style="margin-bottom:1.5rem;">
+      <label for="gmail_label_prefix" style="font-weight:600;">Label Prefix</label>
+      <input id="gmail_label_prefix" name="gmail_label_prefix" type="text" value="{{ gmail_label_prefix|default:'#job-hunt' }}" placeholder="#job-hunt" style="width:220px; padding:0.5rem; border:1px solid #d1d5db; border-radius:6px; margin-left:0.5rem;" />
+      <button class="button" name="action" value="fetch" type="submit" style="margin-left:1rem;">Fetch Filters</button>
+    </div>
+    {% if filters %}
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="gmail_label_prefix" value="{{ gmail_label_prefix }}" />
+        <table class="table" style="width:100%;">
+          <thead>
+            <tr>
+              <th>Update?</th>
+              <th>Gmail Label</th>
+              <th>Internal Label</th>
+              <th>Old Patterns</th>
+              <th>New Patterns (Editable)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for f in filters %}
+            <tr>
+              <td style="text-align:center;">
+                <input type="checkbox" name="update_{{ forloop.counter0 }}" {% if f.checked %}checked{% endif %} />
+                <input type="hidden" name="label_{{ forloop.counter0 }}" value="{{ f.label }}" />
+                <input type="hidden" name="internal_{{ forloop.counter0 }}" value="{{ f.internal }}" />
+              </td>
+              <td>{{ f.label }}</td>
+              <td>{{ f.internal }}</td>
+              <td><pre style="background:#f3f4f6; border-radius:4px; padding:0.5em;">{{ f.old_patterns|join:'\n' }}</pre></td>
+              <td>
+                <textarea name="new_patterns_{{ forloop.counter0 }}" rows="3" style="width:100%;">{{ f.new_patterns|join:'\n' }}</textarea>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        <div style="margin-top:1.5rem;">
+          <button class="button" name="action" value="update" type="submit" style="background:#059669;">Update Filters</button>
+        </div>
+      </form>
+    {% elif error %}
+      <div style="color:#dc2626; margin-top:1rem;">{{ error }}</div>
+    {% endif %}
+</div>
+{% endblock %}

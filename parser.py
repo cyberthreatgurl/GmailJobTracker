@@ -47,26 +47,61 @@ if PATTERNS_PATH.exists():
 else:
     PATTERNS = {}
 
-# Compile message label regexes from top-level patterns (application/interview/rejection/etc.)
-_MSG_LABEL_PATTERNS = {
-    k: [re.compile(p, re.I) for p in PATTERNS.get(k, [])]
-    for k in (
-        "interview_invite",
-        "job_application",
-        "rejected",
-        "offer",
-        "noise",
-        "ignore",
-        "response",
-        "follow_up",
-        "ghosted",
-        "referral",
-    )
+# Compile message label regexes from message_labels (new structure) or top-level (legacy)
+# Map from label names used in code to JSON keys
+LABEL_MAP = {
+    "interview_invite": ["interview", "interview_invite"],
+    "job_application": ["application", "job_application"],
+    "rejected": ["rejection", "rejected"],
+    "offer": ["offer"],
+    "noise": ["noise"],
+    "ignore": ["ignore"],
+    "response": ["response"],
+    "follow_up": ["follow_up"],
+    "ghosted": ["ghosted"],
+    "referral": ["referral"],
+    "head_hunter": ["head_hunter"],
+    "job_alert": ["job_alert"],
 }
+
+_MSG_LABEL_PATTERNS = {}
+for code_label, json_keys in LABEL_MAP.items():
+    patterns = []
+    # Try message_labels first (new structure)
+    if "message_labels" in PATTERNS:
+        for key in json_keys:
+            if key in PATTERNS["message_labels"]:
+                pattern_list = PATTERNS["message_labels"][key]
+                if isinstance(pattern_list, list):
+                    patterns.extend(pattern_list)
+                elif isinstance(pattern_list, str):
+                    patterns.append(pattern_list)
+    # Fall back to top-level keys (legacy structure)
+    if not patterns:
+        for key in json_keys:
+            if key in PATTERNS:
+                pattern_list = PATTERNS[key]
+                if isinstance(pattern_list, list):
+                    patterns.extend(pattern_list)
+                elif isinstance(pattern_list, str):
+                    patterns.append(pattern_list)
+
+    # Compile patterns, skip "None"
+    compiled = []
+    for p in patterns:
+        if p != "None":
+            try:
+                compiled.append(re.compile(p, re.I))
+            except re.error as e:
+                print(f"⚠️  Invalid regex pattern for {code_label}: {p} - {e}")
+    _MSG_LABEL_PATTERNS[code_label] = compiled
 
 # Optional per-label negative patterns derived from Gmail's doesNotHaveTheWord
 _MSG_LABEL_EXCLUDES = {
-    k: [re.compile(p, re.I) for p in PATTERNS.get("message_label_excludes", {}).get(k, [])]
+    k: [
+        re.compile(p, re.I)
+        for p in PATTERNS.get("message_label_excludes", {}).get(k, [])
+    ]
     for k in (
         "interview_invite",
         "job_application",
@@ -84,6 +119,7 @@ _MSG_LABEL_EXCLUDES = {
 
 def rule_label(subject: str, body: str = "") -> str | None:
     s = f"{subject or ''} {body or ''}"
+    # Check labels in priority order
     for label in (
         "interview_invite",
         "job_application",
@@ -91,6 +127,8 @@ def rule_label(subject: str, body: str = "") -> str | None:
         "offer",
         "noise",
         "referral",
+        "head_hunter",
+        "job_alert",
         "ghosted",
         "blank",
     ):
@@ -206,8 +244,16 @@ def is_valid_company_name(name):
         return False
 
     invalid_prefixes = PATTERNS.get("invalid_company_prefixes", [])
-    lowered = name.lower()
-    return not any(lowered.startswith(prefix.lower()) for prefix in invalid_prefixes)
+    for prefix in invalid_prefixes:
+        try:
+            # Compile each prefix as regex, using re.IGNORECASE
+            if re.match(prefix, name, re.IGNORECASE):
+                return False
+        except re.error:
+            # If invalid regex, fallback to simple startswith
+            if name.lower().startswith(prefix.lower()):
+                return False
+    return True
 
 
 PARSER_VERSION = "1.0.0"
@@ -610,7 +656,6 @@ def ingest_message(service, msg_id):
     subject = metadata["subject"]
     result = predict_subject_type(subject, body)
 
-
     # --- NEW LOGIC: Robust company extraction order ---
     # Add guard: skip company assignment for noise/job_alert labels
     label_guard = result.get("label") if result else None
@@ -644,7 +689,8 @@ def ingest_message(service, msg_id):
                 predicted = predict_company(subject, body)
                 if (
                     predicted
-                    and predicted.lower() not in {"job_application", "job_alert", "noise"}
+                    and predicted.lower()
+                    not in {"job_application", "job_alert", "noise"}
                     and is_valid_company_name(predicted)
                 ):
                     company = predicted

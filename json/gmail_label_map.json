@@ -1,8 +1,9 @@
 {
   "#job-hunt/job_alert": "job_alert",
-  "#job-hunt/application": "job_application",
+  "#job-hunt/application": "application",
   "#job-hunt/headhunter": "head_hunter",
-  "#job-hunt/rejection": "rejected",
-  "#job-hunt/rejection (from me)": "rejected",
-  "#job-hunt/prescreen": "interview_invite"
+  "#job-hunt/rejection": "rejection",
+  "#job-hunt/rejection (from me)": "rejection_from_me",
+  "#job-hunt/prescreen": "prescreen",
+  "#job-hunt/interview": "interview"
 }

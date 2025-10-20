@@ -1,3 +1,13 @@
+# --- Label Rule Debugger ---
+from pathlib import Path
+import json
+import re
+from scripts.import_gmail_filters import load_json, sanitize_to_regex_terms
+from parser import extract_metadata
+from django.db.models.functions import Coalesce, Substr, StrIndex
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils.timezone import now
+from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import models
@@ -12,6 +22,707 @@ from django.db.models import (
     CharField,
     ExpressionWrapper,
 )
+from django.http import StreamingHttpResponse, HttpResponse
+
+
+@login_required
+def label_rule_debugger(request):
+    """
+    Web page to upload a raw Gmail message, parse it, and highlight which words/patterns caused it to be sorted to a specific label.
+    Shows:
+      - Message text (with highlights)
+      - Installed rule(s) that fired
+      - Words/patterns that matched
+    """
+    result = None
+    error = None
+    highlights = []
+    matched_label = None
+    matched_patterns = []  # list of strings like "<label>: <pattern>"
+    matched_labels = []  # unique labels that matched
+    message_text = ""
+    no_matches = False
+    if request.method == "POST":
+        pasted = (request.POST.get("pasted_message") or "").strip()
+        upload = request.FILES.get("message_file")
+        if not pasted and not upload:
+            error = "Provide an uploaded file or paste the full message source."
+        else:
+            try:
+                if pasted:
+                    raw_text = pasted
+                else:
+                    raw_text = upload.read().decode("utf-8", errors="replace")
+                # Try JSON first
+                try:
+                    msg_obj = json.loads(raw_text)
+                except Exception:
+                    msg_obj = raw_text
+                # Extract metadata with fallback
+                subject = ""
+                body = ""
+                try:
+                    meta = extract_metadata(msg_obj)
+                    # meta may be dict-like per project convention
+                    subject = (
+                        meta.get("subject") if isinstance(meta, dict) else ""
+                    ) or subject
+                    body = (meta.get("body") if isinstance(meta, dict) else "") or body
+                except Exception:
+                    # naive fallback: split headers/body for EML-like content
+                    parts = raw_text.split("\n\n", 1)
+                    if parts:
+                        headers = parts[0]
+                        body = parts[1] if len(parts) > 1 else raw_text
+                        for line in headers.splitlines():
+                            if line.lower().startswith("subject:"):
+                                subject = line.split(":", 1)[1].strip()
+                message_text = body or subject
+                patterns_path = Path("json/patterns.json")
+                patterns = load_json(patterns_path, default={"message_labels": {}})
+                msg_labels = patterns.get("message_labels", {})
+                # Find which label and pattern(s) match without duplicates
+                # Uses STANDARD REGEX (Python re module) with case-insensitive matching
+                seen_rules = set()  # (label, rule)
+                matched_labels_set = set()
+                highlights_set = set()
+                for label, rules in msg_labels.items():
+                    for rule in rules:
+                        if rule == "None":
+                            continue
+
+                        # Use the rule as a standard regex pattern
+                        try:
+                            # Compile regex with case-insensitive flag
+                            pattern = re.compile(rule, re.IGNORECASE)
+                            match = pattern.search(message_text)
+
+                            if match:
+                                if (label, rule) not in seen_rules:
+                                    matched_patterns.append(f"{label}: {rule}")
+                                    matched_label = label
+                                    matched_labels_set.add(label)
+                                    seen_rules.add((label, rule))
+
+                                # Extract matched text for highlighting
+                                matched_text = match.group(0)
+                                highlights_set.add(matched_text)
+
+                                # Also try to extract individual OR alternatives for highlighting
+                                # Split on | outside of character classes and groups
+                                simple_split = rule.split("|")
+                                for alt in simple_split:
+                                    clean_alt = alt.strip("()").strip()
+                                    if clean_alt:
+                                        try:
+                                            alt_pattern = re.compile(
+                                                clean_alt, re.IGNORECASE
+                                            )
+                                            alt_match = alt_pattern.search(message_text)
+                                            if alt_match:
+                                                highlights_set.add(alt_match.group(0))
+                                        except:
+                                            pass
+                        except re.error as e:
+                            # Invalid regex pattern - log but continue
+                            print(
+                                f"Invalid regex pattern for {label}: {rule} - Error: {e}"
+                            )
+                            continue
+
+                highlights = sorted(highlights_set, key=lambda s: s.lower())
+                matched_labels = sorted(matched_labels_set)
+                if not matched_labels:
+                    no_matches = True
+                # Highlight words in message_text
+                # re is now imported globally
+
+                def highlight_text(text, words):
+                    for word in set(words):
+                        pattern = re.compile(re.escape(word), re.IGNORECASE)
+                        text = pattern.sub(
+                            lambda m: f'<span style="background:#f59e42;">{m.group(0)}</span>',
+                            text,
+                        )
+                    return text
+
+                message_text = highlight_text(message_text, highlights)
+                result = {
+                    "subject": subject,
+                    "body": body,
+                    "matched_label": matched_label,
+                    "matched_labels": matched_labels,
+                    "matched_patterns": matched_patterns,
+                    "highlights": highlights,
+                    "no_matches": no_matches,
+                }
+            except Exception as e:
+                error = f"Failed to parse message: {e}"
+    ctx = {
+        "result": result,
+        "error": error,
+        "message_text": message_text,
+        "highlights": highlights,
+        "matched_label": matched_label,
+        "matched_labels": matched_labels,
+        "matched_patterns": matched_patterns,
+        "no_matches": no_matches,
+    }
+    # Include sidebar stats so the shared sidebar renders without missing variables
+    try:
+        ctx.update(build_sidebar_context())
+    except Exception:
+        # Keep page functional even if stats query fails
+        pass
+    return render(request, "tracker/label_rule_debugger.html", ctx)
+
+
+from bs4 import BeautifulSoup
+from pathlib import Path
+from collections import defaultdict
+import subprocess
+import sys
+import os
+import json
+import re
+import html
+import tempfile
+from difflib import HtmlDiff
+from datetime import datetime
+from gmail_auth import get_gmail_service
+from scripts.import_gmail_filters import (
+    load_json,
+    sanitize_to_regex_terms,
+    make_or_pattern,
+)
+
+
+@login_required
+def compare_gmail_filters(request):
+    """
+    Enhanced Gmail filter import page:
+    1. Auto-fetch Gmail filters and save to timestamped XML file.
+    2. Display filters and installed rules side-by-side.
+    3. Highlight differences in installed rules.
+    4. Support checkboxes for all/individual filters.
+    5. Allow editing and saving installed rules.
+    """
+    filters = []
+    error = None
+    gmail_label_prefix = (
+        request.POST.get("gmail_label_prefix")
+        or request.GET.get("gmail_label_prefix")
+        or os.environ.get("GMAIL_ROOT_FILTER_LABEL")
+        or os.environ.get("JOB_HUNT_LABEL_PREFIX")
+        or "#job-hunt"
+    )
+    patterns_path = Path("json/patterns.json")
+    label_map_path = Path("json/gmail_label_map.json")
+    patterns = load_json(patterns_path, default={"message_labels": {}})
+    msg_labels = patterns.setdefault("message_labels", {})
+    label_map = load_json(label_map_path, default={})
+
+    # 1) Auto-fetch Gmail filters and save to timestamped XML file
+    try:
+        service = get_gmail_service()
+        if not service:
+            raise RuntimeError(
+                "Failed to initialize Gmail service. Check OAuth credentials in json/."
+            )
+        prefix = gmail_label_prefix.strip()
+        labels_resp = service.users().labels().list(userId="me").execute()
+        id_to_name = {
+            lab.get("id"): lab.get("name") for lab in labels_resp.get("labels", [])
+        }
+        name_to_id = {v: k for k, v in id_to_name.items()}
+        filt_resp = service.users().settings().filters().list(userId="me").execute()
+        filters_raw = filt_resp.get("filter", []) or []
+
+        # Debug logging
+        print(f"🔍 DEBUG: Fetched {len(filters_raw)} Gmail filters")
+        print(f"🔍 DEBUG: Using prefix: '{prefix}'")
+        print(f"🔍 DEBUG: Total Gmail labels: {len(id_to_name)}")
+
+        # Save to timestamped XML file
+        now_str = datetime.now().strftime("%Y%m%d-%H%M%S")
+        xml_filename = f"gmail_filters_{now_str}.xml"
+        xml_path = Path("json") / xml_filename
+        import xml.etree.ElementTree as ET
+
+        root = ET.Element("filters")
+        for f in filters_raw:
+            entry = ET.SubElement(root, "filter")
+            for k, v in f.items():
+                sub = ET.SubElement(entry, k)
+                sub.text = str(v)
+        tree = ET.ElementTree(root)
+        tree.write(xml_path, encoding="utf-8", xml_declaration=True)
+        print(f"✅ Saved Gmail filters to {xml_path}")
+    except Exception as e:
+        error = f"Failed to fetch/save Gmail filters: {e}"
+        filters_raw = []
+        print(f"❌ ERROR: {error}")
+
+    # 2) Display filters and installed rules side-by-side
+    diff_engine = HtmlDiff()
+    debug_mappings = []  # For debugging: track how each Gmail label maps to internal
+    unmapped_labels = []  # Track labels that couldn't be mapped
+
+    filters_checked = 0  # Count how many filters we process
+    filters_skipped = 0  # Count how many filters we skip
+
+    print("\n==== DEBUG: All Gmail filter labels fetched from API ====")
+    for i, f in enumerate(filters_raw):
+        criteria = f.get("criteria", {}) or {}
+        action = f.get("action", {}) or {}
+        add_ids = action.get("addLabelIds", []) or []
+        target_label_names = [id_to_name.get(j, "") for j in add_ids]
+        print(f"Filter #{i}: {target_label_names}")
+    print("==== END DEBUG FILTER LABELS ====")
+
+    for i, f in enumerate(filters_raw):
+        criteria = f.get("criteria", {}) or {}
+        action = f.get("action", {}) or {}
+        add_ids = action.get("addLabelIds", []) or []
+        target_label_names = [id_to_name.get(j, "") for j in add_ids]
+
+        # Debug: show all target labels for this filter
+        if target_label_names:
+            print(f"🔍 Filter #{i}: labels={target_label_names}, prefix='{prefix}'")
+
+        matched_names = [
+            nm
+            for nm in target_label_names
+            if isinstance(nm, str) and nm.startswith(prefix)
+        ]
+        if not matched_names:
+            filters_skipped += 1
+            continue
+
+        filters_checked += 1
+        for lname in matched_names:
+            gmail_label = lname
+            # Always strip the root prefix for display and mapping
+            root_prefix = gmail_label_prefix.rstrip("/") + "/"
+            display_label = (
+                gmail_label[len(root_prefix) :]
+                if gmail_label.startswith(root_prefix)
+                else gmail_label
+            )
+
+            # Debug: show full criteria for this filter
+            print(f"   📧 Criteria keys: {list(criteria.keys())}")
+            print(f"   📧 Criteria content: {criteria}")
+
+            internal = label_map.get(gmail_label)
+            if not internal:
+                direct = display_label.strip()
+                base_key = direct.lower().split("/")[-1]
+                synonyms = {
+                    # Map Gmail label suffixes to our internal message_labels keys
+                    "rejection": "rejection",
+                    "reject": "rejection",
+                    "rejected": "rejection",
+                    "application": "application",
+                    "apply": "application",
+                    "interview": "interview",
+                    "prescreen": "prescreen",
+                    "headhunter": "head_hunter",
+                    "head_hunter": "head_hunter",
+                    "job_alert": "job_alert",
+                    "alert": "job_alert",
+                    "noise": "noise",
+                    "referral": "referral",
+                    "offer": "offer",
+                    "follow_up": "follow_up",
+                    "followup": "follow_up",
+                    "response": "response",
+                    "ghosted": "ghosted",
+                    "other": "other",
+                    "ignore": "ignore",
+                }
+                tentative = synonyms.get(base_key, direct)
+                allowed_labels = set(msg_labels.keys()) | {
+                    "application",
+                    "interview",
+                    "rejection",
+                    "job_alert",
+                    "head_hunter",
+                    "noise",
+                    "referral",
+                    "offer",
+                    "follow_up",
+                    "response",
+                    "ghosted",
+                    "other",
+                    "ignore",
+                }
+                internal = tentative if tentative in allowed_labels else None
+
+            # Track mapping for debug display
+            mapping_info = {
+                "gmail_label": gmail_label,
+                "display_label": display_label,
+                "base_key": (
+                    display_label.lower().split("/")[-1]
+                    if not label_map.get(gmail_label)
+                    else "(from map)"
+                ),
+                "internal": internal or "UNMAPPED",
+                "source": (
+                    "label_map"
+                    if label_map.get(gmail_label)
+                    else "synonym" if internal else "none"
+                ),
+            }
+            debug_mappings.append(mapping_info)
+            if not internal:
+                unmapped_labels.append(gmail_label)
+
+            # Gmail rule (raw)
+            terms = []
+            for key in ("subject", "hasTheWord", "query"):
+                raw_value = criteria.get(key, "")
+                if raw_value:
+                    print(f"   📝 {key}: {raw_value}")
+                extracted = sanitize_to_regex_terms(raw_value)
+                if extracted:
+                    print(f"      → extracted: {extracted}")
+                terms += extracted
+
+            print(f"   🔧 Total terms: {len(terms)}")
+            gmail_rule = make_or_pattern(terms) or ""
+            print(
+                f"   📋 Gmail rule result: {gmail_rule[:100] if gmail_rule else '(empty)'}"
+            )
+
+            # Installed rule (editable): Only show if label is present in msg_labels
+            if internal and internal in msg_labels:
+                installed_rule = "\n".join(msg_labels[internal])
+            else:
+                installed_rule = ""
+            # Diff highlight
+            diff_html = ""
+            if installed_rule and gmail_rule:
+                diff_html = diff_engine.make_table(
+                    gmail_rule.splitlines(),
+                    installed_rule.splitlines(),
+                    fromdesc="Gmail Rule",
+                    todesc="Installed Rule",
+                    context=True,
+                    numlines=2,
+                )
+            filters.append(
+                {
+                    "label": display_label,
+                    "gmail_rule": gmail_rule,
+                    "installed_rule": installed_rule,
+                    "diff_html": diff_html,
+                    "checked": bool(
+                        internal and gmail_rule and (gmail_rule not in installed_rule)
+                    ),
+                }
+            )
+
+    # Debug summary
+    print(f"📊 Filter processing summary:")
+    print(f"   - Total raw filters: {len(filters_raw)}")
+    print(f"   - Filters checked: {filters_checked}")
+    print(f"   - Filters skipped (no matching prefix): {filters_skipped}")
+    print(f"   - Final filters for display: {len(filters)}")
+    print(f"   - Debug mappings: {len(debug_mappings)}")
+    print(f"   - Unmapped labels: {len(unmapped_labels)}")
+
+    # 3) Handle POST: apply selected filters
+    if (
+        request.method == "POST"
+        and request.POST.get("action") == "apply_selected_filters"
+    ):
+        updated = 0
+        for i, f in enumerate(filters):
+            if not request.POST.get(f"update_{i}"):
+                continue
+            internal = label_map.get(f["label"])
+            if not internal:
+                continue
+            new_rule = request.POST.get(f"installed_pattern_{i}")
+            if new_rule:
+                msg_labels[internal] = [
+                    r.strip() for r in new_rule.splitlines() if r.strip()
+                ]
+                updated += 1
+        with open(patterns_path, "w", encoding="utf-8") as f:
+            json.dump(patterns, f, indent=2, ensure_ascii=False)
+        messages.success(
+            request, f"✅ Imported and updated {updated} filter(s) in patterns.json."
+        )
+        return redirect("import_gmail_filters_compare")
+
+    ctx = {
+        "filters": filters,
+        "error": error,
+        "gmail_label_prefix": gmail_label_prefix,
+        "debug_mappings": debug_mappings,
+        "unmapped_labels": unmapped_labels,
+    }
+    ctx.update(build_sidebar_context())
+    return render(request, "tracker/import_gmail_filters_compare.html", ctx)
+
+
+# --- IMPORTS ---
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.db import models
+from django.db.models import (
+    F,
+    Q,
+    Count,
+    Case,
+    When,
+    Value,
+    IntegerField,
+    CharField,
+    ExpressionWrapper,
+)
+from django.db.models.functions import Coalesce, Substr, StrIndex
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils.timezone import now
+from django.views.decorators.csrf import csrf_exempt
+
+from bs4 import BeautifulSoup
+from pathlib import Path
+from collections import defaultdict
+import subprocess
+import sys
+import os
+import json
+import re
+import html
+import tempfile
+
+from gmail_auth import get_gmail_service
+from scripts.import_gmail_filters import (
+    load_json,
+    sanitize_to_regex_terms,
+    make_or_pattern,
+)
+
+# --- END IMPORTS ---
+
+
+@login_required
+def gmail_filters_labels_compare(request):
+    """
+    Fetch Gmail filter rules via the Gmail API, compare old/new regex patterns for message labels, and allow incremental update.
+    Only filters whose added label names start with the prefix are considered.
+    UI: checkboxes for each label, editable new patterns, and a button to update selected.
+    """
+
+
+# --- IMPORTS ---
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.db import models
+from django.db.models import (
+    F,
+    Q,
+    Count,
+    Case,
+    When,
+    Value,
+    IntegerField,
+    CharField,
+    ExpressionWrapper,
+)
+from django.db.models.functions import Coalesce, Substr, StrIndex
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils.timezone import now
+from django.views.decorators.csrf import csrf_exempt
+
+from bs4 import BeautifulSoup
+from pathlib import Path
+from collections import defaultdict
+import subprocess
+import sys
+import os
+import json
+import re
+import html
+import tempfile
+
+# --- END IMPORTS ---
+
+
+# --- Gmail Filters Label Patterns Compare ---
+@login_required
+def gmail_filters_labels_compare(request):
+    """
+    Fetch Gmail filter rules via the Gmail API, compare old/new regex patterns for message labels, and allow incremental update.
+    Only filters whose added label names start with the prefix are considered.
+    UI: checkboxes for each label, editable new patterns, and a button to update selected.
+    """
+    from gmail_auth import get_gmail_service
+    from scripts.import_gmail_filters import (
+        load_json,
+        sanitize_to_regex_terms,
+        make_or_pattern,
+    )
+
+    error = None
+    filters = []
+    gmail_label_prefix = (
+        request.POST.get("gmail_label_prefix")
+        or request.GET.get("gmail_label_prefix")
+        or os.environ.get("JOB_HUNT_LABEL_PREFIX")
+        or "#job-hunt"
+    )
+    if request.method == "POST" and request.POST.get("action") == "update":
+        # Handle update: only update checked labels
+        patterns_path = Path("json/patterns.json")
+        label_map_path = Path("json/gmail_label_map.json")
+        patterns = load_json(patterns_path, default={"message_labels": {}})
+        msg_labels = patterns.setdefault("message_labels", {})
+        updated = 0
+        for i in range(0, 100):
+            if not request.POST.get(f"label_{i}"):
+                continue
+            if not request.POST.get(f"update_{i}"):
+                continue
+            label = request.POST.get(f"label_{i}")
+            internal = request.POST.get(f"internal_{i}")
+            new_patterns = request.POST.get(f"new_patterns_{i}")
+            if not internal or not new_patterns:
+                continue
+            # Split and clean
+            pat_list = [p.strip() for p in new_patterns.splitlines() if p.strip()]
+            if pat_list:
+                msg_labels[internal] = pat_list
+                updated += 1
+        with open(patterns_path, "w", encoding="utf-8") as f:
+            json.dump(patterns, f, indent=2, ensure_ascii=False)
+        messages.success(
+            request, f"✅ Updated {updated} label pattern(s) in patterns.json."
+        )
+        return redirect("gmail_filters_labels_compare")
+    elif request.method == "POST" and request.POST.get("action") == "fetch":
+        # fall through to fetch logic
+        pass
+    elif request.method == "GET":
+        # fall through to fetch logic
+        pass
+    try:
+        service = get_gmail_service()
+        if not service:
+            raise RuntimeError(
+                "Failed to initialize Gmail service. Check OAuth credentials in json/."
+            )
+        prefix = gmail_label_prefix.strip()
+        labels_resp = service.users().labels().list(userId="me").execute()
+        id_to_name = {
+            lab.get("id"): lab.get("name") for lab in labels_resp.get("labels", [])
+        }
+        name_to_id = {v: k for k, v in id_to_name.items()}
+        filt_resp = service.users().settings().filters().list(userId="me").execute()
+        filters_raw = filt_resp.get("filter", []) or []
+        # Load current patterns and label map
+        patterns_path = Path("json/patterns.json")
+        label_map_path = Path("json/gmail_label_map.json")
+        patterns = load_json(patterns_path, default={"message_labels": {}})
+        msg_labels = patterns.setdefault("message_labels", {})
+        label_map = load_json(label_map_path, default={})
+        # Build filter list for display
+        for f in filters_raw:
+            criteria = f.get("criteria", {}) or {}
+            action = f.get("action", {}) or {}
+            add_ids = action.get("addLabelIds", []) or []
+            target_label_names = [id_to_name.get(i, "") for i in add_ids]
+            matched_names = [
+                nm
+                for nm in target_label_names
+                if isinstance(nm, str) and nm.startswith(prefix)
+            ]
+            if not matched_names:
+                continue
+            for lname in matched_names:
+                gmail_label = lname
+                internal = label_map.get(gmail_label)
+                if not internal:
+                    # allow direct internal and synonyms
+                    direct = gmail_label.strip()
+                    base_key = direct.lower().split("/")[-1]
+                    synonyms = {
+                        # Map Gmail label suffixes to our internal message_labels keys
+                        "rejection": "rejection",
+                        "reject": "rejection",
+                        "rejected": "rejection",
+                        "application": "application",
+                        "apply": "application",
+                        "interview": "interview",
+                        "prescreen": "interview",
+                        "headhunter": "head_hunter",
+                        "head_hunter": "head_hunter",
+                        "job_alert": "job_alert",
+                        "alert": "job_alert",
+                        "noise": "noise",
+                        "referral": "referral",
+                        "offer": "offer",
+                        "follow_up": "follow_up",
+                        "followup": "follow_up",
+                        "response": "response",
+                        "ghosted": "ghosted",
+                        "other": "other",
+                        "ignore": "ignore",
+                    }
+                    tentative = synonyms.get(base_key, direct)
+                    allowed_labels = set(msg_labels.keys()) | {
+                        "application",
+                        "interview",
+                        "rejection",
+                        "job_alert",
+                        "head_hunter",
+                        "noise",
+                        "referral",
+                        "offer",
+                        "follow_up",
+                        "response",
+                        "ghosted",
+                        "other",
+                        "ignore",
+                    }
+                    internal = tentative if tentative in allowed_labels else None
+                # Build new patterns from filter
+                terms = []
+                for key in ("subject", "hasTheWord"):
+                    terms += sanitize_to_regex_terms(criteria.get(key, ""))
+                pattern = make_or_pattern(terms)
+                new_patterns = [pattern] if pattern else []
+                old_patterns = msg_labels.get(internal, []) if internal else []
+                filters.append(
+                    {
+                        "label": gmail_label,
+                        "internal": internal or "",
+                        "old_patterns": old_patterns,
+                        "new_patterns": new_patterns,
+                        "checked": bool(
+                            internal
+                            and new_patterns
+                            and (set(new_patterns) != set(old_patterns))
+                        ),
+                    }
+                )
+    except Exception as e:
+        error = f"Failed to fetch Gmail filters: {e}"
+    ctx = {
+        "filters": filters,
+        "error": error,
+        "gmail_label_prefix": gmail_label_prefix,
+    }
+    from .views import build_sidebar_context
+
+    ctx.update(build_sidebar_context())
+    return render(request, "tracker/gmail_filters_labels_compare.html", ctx)
+
+
 from django.db.models.functions import Coalesce, Substr, StrIndex
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.timezone import now
@@ -45,6 +756,7 @@ from scripts.import_gmail_filters import (
     sanitize_to_regex_terms,
     make_or_pattern,
 )
+from gmail_auth import get_gmail_service
 
 
 # --- Delete Company Page ---
@@ -303,6 +1015,7 @@ def build_sidebar_context():
     return {
         "companies": companies_count,
         "applications": applications_count,
+        "applications_count": applications_count,
         "rejections_week": rejections_week,
         "interviews_week": interviews_week,
         "upcoming_interviews": upcoming_interviews,
@@ -1321,6 +2034,7 @@ def sanitize_string(value, max_length=200, allow_regex=False):
     """
     Sanitize user input string for security.
     Returns sanitized string or None if invalid.
+    For regex patterns, preserves literal characters (no HTML escaping).
     """
     if not value or not isinstance(value, str):
         return None
@@ -1335,10 +2049,7 @@ def sanitize_string(value, max_length=200, allow_regex=False):
     if len(value) > max_length:
         return None
 
-    # HTML escape to prevent XSS
-    value = html.escape(value)
-
-    # Block obvious code injection attempts
+    # Block obvious code injection attempts (check before any escaping)
     dangerous_chars = [
         "<script",
         "javascript:",
@@ -1363,11 +2074,16 @@ def sanitize_string(value, max_length=200, allow_regex=False):
     if "\x00" in value:
         return None
 
-    # For regex patterns, additional validation
+    # For regex patterns, validate but DON'T html-escape (preserves literal chars)
     if allow_regex:
         is_valid, error = validate_regex_pattern(value)
         if not is_valid:
             return None
+        # Return as-is for JSON storage (template will handle display escaping)
+        return value
+
+    # For non-regex strings, HTML escape to prevent XSS
+    value = html.escape(value)
 
     return value
 
@@ -1471,16 +2187,25 @@ def json_file_viewer(request):
                 )
                 invalid_prefixes = []
 
+                import re
+
                 for prefix in invalid_prefixes_raw:
                     if not prefix.strip():
                         continue
 
-                    # Validate prefix (alphanumeric + common chars only)
+                    # Allow regex (including \\s) in invalid_company_prefixes
                     sanitized = sanitize_string(
-                        prefix, max_length=100, allow_regex=False
+                        prefix, max_length=100, allow_regex=True
                     )
                     if sanitized:
-                        invalid_prefixes.append(sanitized)
+                        # Validate regex (warn but allow fallback)
+                        try:
+                            re.compile(sanitized)
+                            invalid_prefixes.append(sanitized)
+                        except re.error:
+                            validation_errors.append(
+                                f"Invalid regex in company prefix: {prefix[:50]}..."
+                            )
                     else:
                         validation_errors.append(
                             f"Invalid company prefix: {prefix[:50]}..."
@@ -1796,130 +2521,102 @@ def reingest_admin(request):
     return render(request, "tracker/reingest_admin.html", ctx)
 
 
-# --- Gmail Filters Import Admin ---
 @login_required
-def import_gmail_filters_view(request):
-    """Upload Gmail filters XML, validate, preview diff, and apply to patterns.json with logging."""
-    ctx = {"result": None, "error": None, "preview": None}
-    ctx.update(build_sidebar_context())
+def reingest_stream(request):
+    """Stream output from ingest_gmail command for live updates in the UI."""
+    base_dir = Path(__file__).resolve().parents[1]
+    days_back = request.GET.get("days_back")
+    force = request.GET.get("force") == "true"
+    reparse_all = request.GET.get("reparse_all") == "true"
 
-    if request.method == "POST":
-        action = request.POST.get("action", "preview")
-        xml_file = request.FILES.get("filters_xml")
-        if not xml_file:
-            ctx["error"] = "No file uploaded."
-            return render(request, "tracker/import_gmail_filters.html", ctx)
+    cmd = [
+        sys.executable,
+        "manage.py",
+        "ingest_gmail",
+        "--metrics-before",
+        "--metrics-after",
+        "-u",  # unbuffered
+    ]
+    if days_back and days_back != "ALL":
+        cmd += ["--days-back", str(days_back)]
+    if force:
+        cmd.append("--force")
+    if reparse_all:
+        cmd.append("--reparse-all")
 
-        # Save temp file
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".xml") as tmp:
-            tmp.write(xml_file.read())
-            tmp_path = Path(tmp.name)
-
-        # Load current patterns and label map (optional)
-        patterns_path = Path("json/patterns.json")
-        label_map_path = Path("json/gmail_label_map.json")
-        patterns = load_json(patterns_path, default={"message_labels": {}})
-        msg_labels = patterns.setdefault("message_labels", {})
-        msg_excludes = patterns.setdefault("message_label_excludes", {})
-        label_map = load_json(label_map_path, default={})
-
-        # Parse filters
+    def generate():
+        yield f"Running: {' '.join(cmd)}\n\n"
         try:
-            entries = list(parse_filters(tmp_path))
+            with subprocess.Popen(
+                cmd,
+                cwd=str(base_dir),
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                bufsize=1,
+                universal_newlines=True,
+            ) as proc:
+                for line in proc.stdout:
+                    yield line
+                ret = proc.wait()
+                yield f"\n[exit code] {ret}\n"
         except Exception as e:
-            ctx["error"] = f"Invalid XML: {e}"
-            return render(request, "tracker/import_gmail_filters.html", ctx)
+            yield f"[error] {e}\n"
 
-        # Build additions and excludes; validate mapping coverage
-        additions = {}
-        exclude_additions = {}
-        unmatched = set()
-        for props in entries:
-            gmail_label = props.get("label") or props.get("shouldApplyLabel")
-            if not gmail_label:
-                continue
-            internal = label_map.get(gmail_label)
-            if not internal:
-                unmatched.add(gmail_label)
-                continue
-            terms = []
-            for key in ("subject", "hasTheWord"):
-                terms += sanitize_to_regex_terms(props.get(key, ""))
-            pattern = make_or_pattern(terms)
-            if pattern:
-                additions.setdefault(internal, set()).add(pattern)
-            ex_terms = sanitize_to_regex_terms(props.get("doesNotHaveTheWord", ""))
-            ex_pat = make_or_pattern(ex_terms)
-            if ex_pat:
-                exclude_additions.setdefault(internal, set()).add(ex_pat)
+    return StreamingHttpResponse(generate(), content_type="text/plain; charset=utf-8")
 
-        # Cross-label conflict suggestion: any term added to label A appears in excludes of other labels?
-        conflicts = []
-        for label, pats in additions.items():
-            for other_label, ex_pats in exclude_additions.items():
-                if label == other_label:
-                    continue
-                for p in pats:
-                    for ex in ex_pats:
-                        if any(tok and tok in ex for tok in re.split(r"\W+", p)):
-                            conflicts.append(
-                                {
-                                    "label": label,
-                                    "other": other_label,
-                                    "pattern": p,
-                                    "exclude": ex,
-                                }
-                            )
 
-        # Compute preview diff
-        preview = {
-            "add": {},
-            "exclude": {},
-            "unmatched": sorted(unmatched),
-            "conflicts": conflicts,
+def _parse_pasted_gmail_spec(text: str):
+    """Yield dicts like parse_filters() from pasted Gmail spec blocks.
+
+    Recognizes case-insensitive markers:
+      - label:
+      - Haswords:
+      - DoesNotHave:
+
+    Haswords/DoesNotHave may include quoted phrases and | separators; we pass the
+    captured strings to sanitize_to_regex_terms downstream.
+    """
+    current_label = None
+    has_buf: list[str] = []
+    not_buf: list[str] = []
+    lines = text.splitlines()
+    for raw in lines:
+        line = raw.strip()
+        if not line:
+            continue
+        m_label = re.match(r"(?i)^label\s*:\s*(.+)$", line)
+        if m_label:
+            # flush previous
+            if current_label:
+                yield {
+                    "label": current_label,
+                    "subject": "",
+                    "hasTheWord": " | ".join(has_buf).strip(),
+                    "doesNotHaveTheWord": " | ".join(not_buf).strip(),
+                }
+            current_label = m_label.group(1).strip()
+            has_buf, not_buf = [], []
+            continue
+        if re.match(r"(?i)^haswords\s*:\s*", line):
+            parts = line.split(":", 1)
+            if len(parts) == 2:
+                has_buf.append(parts[1].strip())
+            continue
+        if re.match(r"(?i)^doesnothave\s*:\s*", line):
+            parts = line.split(":", 1)
+            if len(parts) == 2:
+                not_buf.append(parts[1].strip())
+            continue
+        # Free text lines after a section: treat as additional Haswords
+        if current_label:
+            has_buf.append(line)
+    if current_label:
+        yield {
+            "label": current_label,
+            "subject": "",
+            "hasTheWord": " | ".join(has_buf).strip(),
+            "doesNotHaveTheWord": " | ".join(not_buf).strip(),
         }
-        for label, new in additions.items():
-            before = set(msg_labels.get(label, []))
-            to_add = sorted(set(new) - before)
-            if to_add:
-                preview["add"][label] = to_add
-        for label, new in exclude_additions.items():
-            before = set(msg_excludes.get(label, []))
-            to_add = sorted(set(new) - before)
-            if to_add:
-                preview["exclude"][label] = to_add
-
-        if action == "preview":
-            ctx["preview"] = json.dumps(preview, indent=2)
-            return render(request, "tracker/import_gmail_filters.html", ctx)
-
-        # Apply changes
-        for label, new in preview["add"].items():
-            msg_labels[label] = sorted(set(msg_labels.get(label, [])) | set(new))
-        for label, new in preview["exclude"].items():
-            msg_excludes[label] = sorted(set(msg_excludes.get(label, [])) | set(new))
-        try:
-            with open(patterns_path, "w", encoding="utf-8") as f:
-                json.dump(patterns, f, indent=2, ensure_ascii=False)
-        except Exception as e:
-            ctx["error"] = f"Failed to write patterns.json: {e}"
-            return render(request, "tracker/import_gmail_filters.html", ctx)
-
-        # Log import run
-        GmailFilterImportLog.objects.create(
-            uploaded_by=request.user if request.user.is_authenticated else None,
-            original_filename=getattr(xml_file, "name", ""),
-            labels_updated=sum(len(v) for v in preview["add"].values()),
-            excludes_updated=sum(len(v) for v in preview["exclude"].values()),
-            skipped=0,
-            unmatched_labels=json.dumps(preview["unmatched"]),
-            diff_json=json.dumps(preview),
-            notes=f"Conflicts: {len(conflicts)}",
-        )
-        ctx["result"] = "Patterns updated from Gmail filters."
-        return render(request, "tracker/import_gmail_filters.html", ctx)
-
-    return render(request, "tracker/import_gmail_filters.html", ctx)
 
 
 # --- Configure Settings ---
@@ -1964,18 +2661,187 @@ def configure_settings(request):
             else:
                 current[key] = db_val
 
+    preview = None
     if request.method == "POST":
-        # Save posted values
-        for key, spec in settings_spec.items():
-            raw = request.POST.get(key)
-            if spec["type"] == "int":
-                val = clamp_int(raw, spec["min"], spec["max"], spec["default"])
-            else:
-                val = (raw or "").strip()
-            AppSetting.objects.update_or_create(key=key, defaults={"value": str(val)})
-        messages.success(request, "✅ Settings updated.")
-        return redirect("configure_settings")
+        action = request.POST.get("action") or "save"
+        if action == "save":
+            # Save posted values
+            for key, spec in settings_spec.items():
+                raw = request.POST.get(key)
+                if spec["type"] == "int":
+                    val = clamp_int(raw, spec["min"], spec["max"], spec["default"])
+                else:
+                    val = (raw or "").strip()
+                AppSetting.objects.update_or_create(
+                    key=key, defaults={"value": str(val)}
+                )
+            messages.success(request, "✅ Settings updated.")
+            return redirect("configure_settings")
+        elif action in ("gmail_filters_preview", "gmail_filters_apply"):
+            # Fetch filters via Gmail API and build preview/apply into patterns.json
+            try:
+                service = get_gmail_service()
+                if not service:
+                    raise RuntimeError(
+                        "Failed to initialize Gmail service. Check OAuth credentials in json/."
+                    )
+                # Label prefix from env (or default)
+                prefix = (
+                    request.POST.get("gmail_label_prefix")
+                    or os.environ.get("JOB_HUNT_LABEL_PREFIX")
+                    or "#job-hunt"
+                ).strip()
+                # Build label maps
+                labels_resp = service.users().labels().list(userId="me").execute()
+                id_to_name = {
+                    lab.get("id"): lab.get("name")
+                    for lab in labels_resp.get("labels", [])
+                }
+                name_to_id = {v: k for k, v in id_to_name.items()}
+                # Fetch all filters
+                filt_resp = (
+                    service.users().settings().filters().list(userId="me").execute()
+                )
+                filters = filt_resp.get("filter", []) or []
 
-    ctx = {"settings_spec": settings_spec, "current": current}
+                # Convert to entries compatible with existing import logic
+                entries = []
+                for f in filters:
+                    criteria = f.get("criteria", {}) or {}
+                    action = f.get("action", {}) or {}
+                    add_ids = action.get("addLabelIds", []) or []
+                    target_label_names = [id_to_name.get(i, "") for i in add_ids]
+                    # Only include filters where at least one added label starts with prefix
+                    matched_names = [
+                        nm
+                        for nm in target_label_names
+                        if isinstance(nm, str) and nm.startswith(prefix)
+                    ]
+                    if not matched_names:
+                        continue
+                    # For each matched label, produce an entry
+                    for lname in matched_names:
+                        entries.append(
+                            {
+                                "label": lname,
+                                "subject": criteria.get("subject", ""),
+                                "hasTheWord": " | ".join(
+                                    [
+                                        criteria.get("query", ""),
+                                        criteria.get("from", ""),
+                                        criteria.get("to", ""),
+                                        # keep subject also in hasTheWord for broader match
+                                        criteria.get("subject", ""),
+                                    ]
+                                ).strip(" |"),
+                                "doesNotHaveTheWord": criteria.get("negatedQuery", ""),
+                            }
+                        )
+
+                # Load current patterns and label map
+                patterns_path = Path("json/patterns.json")
+                label_map_path = Path("json/gmail_label_map.json")
+                patterns = load_json(patterns_path, default={"message_labels": {}})
+                msg_labels = patterns.setdefault("message_labels", {})
+                msg_excludes = patterns.setdefault("message_label_excludes", {})
+                label_map = load_json(label_map_path, default={})
+
+                additions = {}
+                exclude_additions = {}
+                unmatched = set()
+                for props in entries:
+                    gmail_label = props.get("label")
+                    if not gmail_label:
+                        continue
+                    internal = label_map.get(gmail_label)
+                    if not internal:
+                        # allow direct internal and synonyms
+                        direct = gmail_label.strip()
+                        synonyms = {
+                            "rejection": "rejected",
+                            "reject": "rejected",
+                            "application": "job_application",
+                            "apply": "job_application",
+                            "interview": "interview_invite",
+                            "prescreen": "interview_invite",
+                            "headhunter": "head_hunter",
+                        }
+                        tentative = synonyms.get(direct.lower().split("/")[-1], direct)
+                        internal = (
+                            tentative
+                            if tentative in msg_labels
+                            or tentative
+                            in (
+                                "job_application",
+                                "interview_invite",
+                                "rejected",
+                                "job_alert",
+                                "head_hunter",
+                                "noise",
+                            )
+                            else None
+                        )
+                    if not internal:
+                        unmatched.add(gmail_label)
+                        continue
+                    terms = []
+                    for key in ("subject", "hasTheWord"):
+                        terms += sanitize_to_regex_terms(props.get(key, ""))
+                    pattern = make_or_pattern(terms)
+                    if pattern:
+                        additions.setdefault(internal, set()).add(pattern)
+                    ex_terms = sanitize_to_regex_terms(
+                        props.get("doesNotHaveTheWord", "")
+                    )
+                    ex_pat = make_or_pattern(ex_terms)
+                    if ex_pat:
+                        exclude_additions.setdefault(internal, set()).add(ex_pat)
+
+                # Compute preview
+                preview = {
+                    "add": {},
+                    "exclude": {},
+                    "unmatched": sorted(unmatched),
+                    "prefix": prefix,
+                }
+                for label, new in additions.items():
+                    before = set(msg_labels.get(label, []))
+                    to_add = sorted(set(new) - before)
+                    if to_add:
+                        preview["add"][label] = to_add
+                for label, new in exclude_additions.items():
+                    before = set(msg_excludes.get(label, []))
+                    to_add = sorted(set(new) - before)
+                    if to_add:
+                        preview["exclude"][label] = to_add
+
+                if action == "gmail_filters_preview":
+                    # fall-through to render with preview
+                    pass
+                else:
+                    # Apply and save
+                    for label, new in preview["add"].items():
+                        msg_labels[label] = sorted(
+                            set(msg_labels.get(label, [])) | set(new)
+                        )
+                    for label, new in preview["exclude"].items():
+                        msg_excludes[label] = sorted(
+                            set(msg_excludes.get(label, [])) | set(new)
+                        )
+                    with open(patterns_path, "w", encoding="utf-8") as f:
+                        json.dump(patterns, f, indent=2, ensure_ascii=False)
+                    messages.success(
+                        request,
+                        f"✅ Updated patterns from Gmail API filters (prefix {prefix}).",
+                    )
+                    return redirect("configure_settings")
+            except Exception as e:
+                messages.error(request, f"⚠️ Failed to fetch/apply Gmail filters: {e}")
+
+    ctx = {
+        "settings_spec": settings_spec,
+        "current": current,
+        "gmail_filters_preview": json.dumps(preview, indent=2) if preview else None,
+    }
     ctx.update(build_sidebar_context())
     return render(request, "tracker/configure_settings.html", ctx)

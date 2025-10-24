@@ -119,16 +119,19 @@ _MSG_LABEL_EXCLUDES = {
 
 def rule_label(subject: str, body: str = "") -> str | None:
     s = f"{subject or ''} {body or ''}"
-    # Check labels in priority order
+    # Check labels in priority order (most specific → least specific)
+    # Rejection before application: catches "received application BUT unfortunately..."
+    # Interview before application: catches action-oriented "next steps"
+    # Application last: generic catch-all for confirmations
     for label in (
-        "interview_invite",
-        "job_application",
-        "rejected",
-        "offer",
-        "noise",
-        "referral",
-        "head_hunter",
-        "job_alert",
+        "offer",  # Most specific: offer, compensation, package
+        "rejected",  # Specific negatives: unfortunately, other candidates
+        "interview_invite",  # Action-oriented: schedule, availability, interview
+        "job_application",  # Generic: received, thank you, will be reviewed
+        "job_alert",  # Job alerts from boards (place before noise/referral due to footers)
+        "referral",  # Referral/intro messages
+        "head_hunter",  # Recruiter blasts
+        "noise",  # Generic promos, OTPs, newsletters (often matched by body/footer)
         "ghosted",
         "blank",
     ):
@@ -258,20 +261,44 @@ def is_valid_company_name(name):
 
 PARSER_VERSION = "1.0.0"
 
-# --- Load ML model artifacts at startup ---
-# --- Load message-level ML model artifacts at startup ---
-try:
-    CLASSIFIER = joblib.load("model/message_classifier.pkl")
-    VECTORIZER = joblib.load("model/message_vectorizer.pkl")
-    LABEL_ENCODER = joblib.load("model/message_label_encoder.pkl")
-    ml_enabled = True
-    if DEBUG:
-        print("🤖 Loaded message-level classifier.")
-except FileNotFoundError:
-    CLASSIFIER = None
+# --- Optional local ML artifact load (parser-local). Actual classification is handled in ml_subject_classifier. ---
+MODEL_DIR = Path(__file__).parent / "model"
+_MODEL_PATH = MODEL_DIR / "message_classifier.pkl"
+_SUBJ_VEC_PATH = MODEL_DIR / "subject_vectorizer.pkl"
+_BODY_VEC_PATH = MODEL_DIR / "body_vectorizer.pkl"
+_LABELS_PATH = MODEL_DIR / "message_label_encoder.pkl"
+
+CLASSIFIER = None
+SUBJECT_VECTORIZER = None
+BODY_VECTORIZER = None
+LABEL_ENCODER = None
+ml_enabled = False
+
+if (
+    _MODEL_PATH.exists()
+    and _SUBJ_VEC_PATH.exists()
+    and _BODY_VEC_PATH.exists()
+    and _LABELS_PATH.exists()
+):
+    try:
+        CLASSIFIER = joblib.load(_MODEL_PATH)
+        SUBJECT_VECTORIZER = joblib.load(_SUBJ_VEC_PATH)
+        BODY_VECTORIZER = joblib.load(_BODY_VEC_PATH)
+        LABEL_ENCODER = joblib.load(_LABELS_PATH)
+        ml_enabled = True
+        if DEBUG:
+            print("🤖 Parser: local ML artifacts loaded (optional).")
+    except Exception as _e:
+        # Non-fatal: ml_subject_classifier handles predictions; keep quiet to avoid confusing logs
+        CLASSIFIER = None
+        SUBJECT_VECTORIZER = None
+        BODY_VECTORIZER = None
+        LABEL_ENCODER = None
+        ml_enabled = False
+else:
+    # Artifacts missing locally; this is fine since ml_subject_classifier is authoritative.
+    # Do not print a warning to avoid noise during management commands.
     ml_enabled = False
-    if DEBUG:
-        print("⚠️ ML model not found — skipping prediction.")
 
 
 def is_correlated_message(sender_email, sender_domain, msg_date):
@@ -464,6 +491,10 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
 
     # --- Continue with original logic for fallback or enrichment ---
     subject_clean = subject.strip()
+    # Strip common email reply/forward prefixes that interfere with company extraction
+    subject_clean = re.sub(
+        r"^(Re|RE|Fwd|FW|Fw):\s*", "", subject_clean, flags=re.IGNORECASE
+    ).strip()
     subj_lower = subject_clean.lower()
     domain_lower = sender_domain.lower() if sender_domain else None
 
@@ -514,10 +545,7 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
         (r"update on your ([A-Z][\w\s&\-]+) application", re.IGNORECASE),
         (r"thank you for your application with\s+([A-Z][\w\s&\-]+)", re.IGNORECASE),
         (r"@\s*([A-Z][\w\s&\-]+)", re.IGNORECASE),
-        (
-            r"^([A-Z][\w\s&\-]+)\s+[-:]",
-            re.IGNORECASE,
-        ),  # catches "ECS -", "Partner Forces:",
+        # Removed the problematic pattern that was matching "Re:" - now handled by prefix stripping above
         (
             r"applying for ([\w\s\-]+) position @ ([A-Z][\w\s&\-]+)",
             re.IGNORECASE,

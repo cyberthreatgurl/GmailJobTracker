@@ -116,16 +116,16 @@
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
           <h2 style="margin:0; color:#1e40af; font-size:1.1rem;">Company Metrics</h2>
           <div style="display:flex; gap:0.5rem;">
-            <form method="post" style="margin:0;" id="save-company-form">
-              {% csrf_token %}
-              <input type="hidden" name="company" value="{{ selected_company.id }}" />
-              <button type="submit" style="background:#2563eb; color:white; font-weight:600; border-radius:6px; padding:0.45rem 1rem; border:none; cursor:pointer;">Save Changes</button>
-            </form>
+            {# Save is handled by the main edit form below; no separate POST here #}
+            {% if latest_label != 'rejection' and latest_label != 'rejected' %}
             <form method="post" style="margin:0;">
               {% csrf_token %}
               <input type="hidden" name="company" value="{{ selected_company.id }}" />
               <button type="submit" name="action" value="mark_ghosted" style="background:#92400e; color:white; font-weight:600; border-radius:6px; padding:0.45rem 1rem; border:none; cursor:pointer;">Mark as Ghosted</button>
             </form>
+            {% else %}
+              <button type="button" title="Cannot ghost: latest message is a rejection" style="background:#d1d5db; color:#6b7280; font-weight:600; border-radius:6px; padding:0.45rem 1rem; border:none; cursor:not-allowed;">Mark as Ghosted</button>
+            {% endif %}
             <form method="get" action="{% url 'delete_company' selected_company.id %}" style="margin:0;">
               <button type="submit" style="background:#b91c1c; color:white; font-weight:600; border-radius:6px; padding:0.45rem 1rem; border:none; cursor:pointer;">Delete Company</button>
             </form>
@@ -144,7 +144,7 @@
           <div>
             <strong style="display:block; font-size:0.85rem; color:#6b7280; margin-bottom:0.2rem;">Days since last message:</strong>
             <span style="background:#fef3c7; color:#92400e; border-radius:4px; padding:0.25rem 0.6rem; font-size:0.95rem; display:inline-block;">{{ days_since_last_message }}</span>
-            {% if ghosted_days_threshold and days_since_last_message >= ghosted_days_threshold %}
+            {% if ghosted_days_threshold and days_since_last_message >= ghosted_days_threshold and latest_label != 'rejection' and latest_label != 'rejected' %}
               <span title="Consider marking as ghosted if appropriate" style="margin-left:0.4rem; color:#b45309; font-size:0.9rem;">(Consider ghosted)</span>
             {% endif %}
           </div>
@@ -153,8 +153,9 @@
       </div>
       <div style="display: flex; gap: 2rem; align-items: flex-start;">
         <div style="flex: 1;">
-          <form method="post" class="edit-form" onsubmit="document.getElementById('save-company-form').dispatchEvent(new Event('submit', {bubbles: true, cancelable: true})); return false;">
+          <form method="post" class="edit-form">
           {% csrf_token %}
+          <input type="hidden" name="company" value="{{ selected_company.id }}" />
           <label for="id_name">Company Name</label>
           {{ form.name }}
           <label for="id_domain">Domain Name</label>
@@ -169,6 +170,7 @@
           {{ form.contact_email }}
           <label for="id_status">Status</label>
           {{ form.status }}
+          <button type="submit" style="background:#2563eb; color:white; font-weight:600; border-radius:6px; padding:0.6rem 1.2rem; border:none; cursor:pointer; margin-top:1rem;">Save Changes</button>
         </form>
         </div>
         <div style="flex: 1; background: #f3f4f6; border-radius: 8px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">

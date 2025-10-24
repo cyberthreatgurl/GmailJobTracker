@@ -306,6 +306,10 @@
 
   <!-- Filter Bar -->
   <div class="filter-bar">
+    <div class="filter-group" style="flex: 2; max-width: 300px;">
+      <label>Search</label>
+      <input type="text" id="search-box" placeholder="Search subject, body, or sender..." value="{{ search_query|default:'' }}" onkeypress="if(event.key === 'Enter') applyFilters()" style="width: 100%; padding: 0.4rem 0.6rem; border-radius: 4px; border: 1px solid #d1d5db; font-size: 0.95rem;">
+    </div>
     <div class="filter-group">
       <label>Status</label>
       <select id="reviewed-filter" onchange="applyFilters()">
@@ -509,10 +513,11 @@
   const company = document.getElementById('company-filter').value;
   const perPage = document.getElementById('per-page').value;
   const reviewed = document.getElementById('reviewed-filter').value;
+  const search = document.getElementById('search-box').value;
   // keep current sort/order when changing filters
   const sort = currentSort || '';
   const order = currentOrder || 'asc';
-  window.location.href = `{% url 'label_messages' %}?label=${label}&confidence=${confidence}&company=${company}&per_page=${perPage}&reviewed=${reviewed}&sort=${sort}&order=${order}&page=1`;
+  window.location.href = `{% url 'label_messages' %}?label=${label}&confidence=${confidence}&company=${company}&per_page=${perPage}&reviewed=${reviewed}&search=${encodeURIComponent(search)}&sort=${sort}&order=${order}&page=1`;
     }
     
     function changePerPage() {
@@ -525,9 +530,10 @@
       const company = document.getElementById('company-filter').value;
       const perPage = document.getElementById('per-page').value;
       const reviewed = document.getElementById('reviewed-filter').value;
+      const search = document.getElementById('search-box').value;
       const sort = currentSort || '';
       const order = currentOrder || 'asc';
-      window.location.href = `{% url 'label_messages' %}?label=${label}&confidence=${confidence}&company=${company}&per_page=${perPage}&reviewed=${reviewed}&sort=${sort}&order=${order}&page=${pageNum}`;
+      window.location.href = `{% url 'label_messages' %}?label=${label}&confidence=${confidence}&company=${company}&per_page=${perPage}&reviewed=${reviewed}&search=${encodeURIComponent(search)}&sort=${sort}&order=${order}&page=${pageNum}`;
     }
 
     function sortBy(field) {
@@ -536,6 +542,7 @@
       const company = document.getElementById('company-filter').value;
       const perPage = document.getElementById('per-page').value;
       const reviewed = document.getElementById('reviewed-filter').value;
+      const search = document.getElementById('search-box').value;
 
       // toggle order if clicking same field, else default asc
       let nextOrder = 'asc';
@@ -543,7 +550,7 @@
         nextOrder = currentOrder === 'asc' ? 'desc' : 'asc';
       }
 
-      window.location.href = `{% url 'label_messages' %}?label=${label}&confidence=${confidence}&company=${company}&per_page=${perPage}&reviewed=${reviewed}&sort=${field}&order=${nextOrder}&page=1`;
+      window.location.href = `{% url 'label_messages' %}?label=${label}&confidence=${confidence}&company=${company}&per_page=${perPage}&reviewed=${reviewed}&search=${encodeURIComponent(search)}&sort=${field}&order=${nextOrder}&page=1`;
     }
     
     // Confirm before submitting

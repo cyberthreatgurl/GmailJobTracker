@@ -1,7 +1,11 @@
 {
   "known": [
+    "Analysis and Resilience Center for Systemic Risk",
+    "Amentum",
     "Amazon",
     "Apple",
+    "Armis",
+    "BCI",
     "Banduri",
     "Claroty",
     "Corelight",
@@ -32,7 +36,10 @@
     "Verizon"
   ],
   "domain_to_company": {
+    "systemicrisk.org": "Analysis and Resilience Center for Systemic Risk",
+    "amentum.com": "Amentum",
     "armis.com": "Armis",
+    "bcisse.com": "BCI",
     "caci.com": "CACI",
     "claroty.com": "Claroty",
     "cloudflare.com": "Cloudflare",
@@ -43,6 +50,7 @@
     "gts.us.com": "Global Technical Systems",
     "gmail.com": "Google",
     "greenhouse-mail.io": "Greenhouse",
+    "jrcisi.com": "JRC Integrated Systems",
     "me.com": "Apple",
     "nm.com": "Northwestern Mutual",
     "northropgrumman.com": "Northrop Grumman",
@@ -52,8 +60,20 @@
     "simventions.com": "SimVentions",
     "venturegloballng.com": "Venture Global LNG"
   },
+  "headhunter_domains": [
+    "hirexcorp.com",
+    "vtechsolution.us",
+    "sr2rec.com",
+    "globalsolgroup.com",
+    "tklm.io",
+    "lancesoft.com"
+  ],
   "ats_domains": [
+    "applicantpro.com",
     "greenhouse-mail.io",
+    "hirebridge.com",
+    "sharpdecisions.com",
+    "highbridgemail.com",
     "icims.com",
     "jobvite.com",
     "myworkday.com",
@@ -68,12 +88,20 @@
     "DeeDee Price from Palo Alto Networks": "Palo Alto Networks",
     "donotreply_Leidos_HR": "Leidos",
     "Dragos Application": "Dragos",
-    "Farr Shepherd &amp;amp;amp; Kelly Shaw about Available Position": "Farr Shepherd",
     "Follow-up on Dragos": "Dragos",
     "Global Technical Systems": "GTS",
     "Google Application": "Google",
+    "RC Integrated Systems, LLC": "JRC",
     "PartnerForce": "Partner Forces",
     "Security Architect at Tyler Technologies": "Tyler Technologies",
     "SEI Application Update": "SEI"
+  },
+  "JobSites": {
+    "Amentum": "https://www.amentumcareers.com/jobs/search?query=",
+    "BCI": "https://bcisse.applicantpro.com/jobs/",
+    "Chenega": "https://chenega.jibeapply.com/chenega-careers",
+    "IBM": "https://www.ibm.com/careers/search",
+    "TMC Technoologies": "https://tmctechnologies.com/careers/?search=",
+    "City of Tuscon": "https://tucsonaz.wd1.myworkdayjobs.com/en-US/Tucson_Talent"
   }
 }

@@ -10,6 +10,22 @@ from datetime import datetime, timedelta
 from tracker_logger import log_console
 
 
+def get_jobhunt_label_ids(service, root_label_name):
+    """Get all label IDs for the root label and its children (e.g., #job-hunt and #job-hunt/*)."""
+    labels_resp = service.users().labels().list(userId="me").execute()
+    all_labels = labels_resp.get("labels", [])
+
+    # Find all labels that match the root or are children
+    jobhunt_label_ids = []
+    for label in all_labels:
+        name = label.get("name", "")
+        # Match exact root label or any child label
+        if name == root_label_name or name.startswith(f"{root_label_name}/"):
+            jobhunt_label_ids.append(label["id"])
+
+    return jobhunt_label_ids
+
+
 def fetch_all_messages(service, label_ids, max_results=500, after_date=None):
     """Fetch all pages of messages for given label IDs, optionally filtered by date."""
     all_msgs = []
@@ -102,18 +118,40 @@ class Command(BaseCommand):
 
             log_console(f"Fetching Gmail messages from last {days_back} days...")
 
-            # Fetch with date filter
+            # Fetch from INBOX
             inbox_msgs = fetch_all_messages(service, ["INBOX"], after_date=after_date)
-            jobhunt_label = os.getenv(
-                "GMAIL_JOBHUNT_LABEL_ID"
-            )  # e.g., "Label_954880951792342706"
-            jobhunt_msgs = (
-                fetch_all_messages(service, [jobhunt_label], after_date=after_date)
-                if jobhunt_label
-                else []
-            )
 
+            # Fetch from ALL #job-hunt labels (parent + children)
+            root_label_name = os.getenv("GMAIL_ROOT_FILTER_LABEL", "#job-hunt")
+            jobhunt_label_ids = get_jobhunt_label_ids(service, root_label_name)
+
+            if jobhunt_label_ids:
+                log_console(
+                    f"Found {len(jobhunt_label_ids)} job-hunt labels: {root_label_name} and sublabels"
+                )
+
+                # Fetch messages from each label individually (Gmail uses AND logic for multiple labels)
+                jobhunt_msgs = []
+                for label_id in jobhunt_label_ids:
+                    msgs = fetch_all_messages(
+                        service, [label_id], after_date=after_date
+                    )
+                    jobhunt_msgs.extend(msgs)
+
+                # Remove duplicates (a message might have multiple job-hunt labels)
+                unique_jobhunt_msgs = {msg["id"]: msg for msg in jobhunt_msgs}.values()
+                jobhunt_msgs = list(unique_jobhunt_msgs)
+
+                log_console(
+                    f"Fetched {len(jobhunt_msgs)} messages from job-hunt labels"
+                )
+            else:
+                log_console(f"WARNING: No labels found matching '{root_label_name}'")
+                jobhunt_msgs = []
+
+            log_console(f"Fetched {len(inbox_msgs)} messages from INBOX")
             all_msgs_by_id = {m["id"]: m for m in (inbox_msgs + jobhunt_msgs)}
+            log_console(f"Total unique messages: {len(all_msgs_by_id)}")
 
             # If --reparse-all, skip ProcessedMessage filtering and reprocess everything
             if options.get("reparse_all"):
@@ -147,13 +185,15 @@ class Command(BaseCommand):
             for msg in all_msgs_by_id.values():
                 msg_id = msg["id"]
                 try:
+                    # Get basic metadata for logging
                     msg_meta = (
                         service.users()
                         .messages()
                         .get(
                             userId="me",
                             id=msg_id,
-                            format="full",  # or 'metadata' with snippet
+                            format="metadata",
+                            metadataHeaders=["Subject", "From", "Date"],
                         )
                         .execute()
                     )
@@ -162,48 +202,40 @@ class Command(BaseCommand):
                         for h in msg_meta.get("payload", {}).get("headers", [])
                     }
                     subject = headers.get("Subject", "") or ""
-                    sender = headers.get("From", "") or ""
-                    sender_domain = sender.split("@")[-1] if "@" in sender else None
+                    date = headers.get("Date", "") or ""
 
-                    parsed = parse_subject(
-                        subject,
-                        body="",
-                        sender=sender,
-                        sender_domain=sender_domain,
-                    )
-                    log_console(f"Processing: {subject}")
+                    # Log before processing
+                    log_console(f"Processing {date}: {subject}")
 
-                    if parsed.get("ignore"):
-                        ignored += 1
-                        fetched += 1
-                        ProcessedMessage.objects.get_or_create(
-                            gmail_id=msg_id
-                        )  # Mark as processed
-                        continue
-
+                    # Let ingest_message handle full classification with body
                     ret = ingest_message(service, msg_id)
                     fetched += 1
 
                     # Mark as processed
                     ProcessedMessage.objects.get_or_create(gmail_id=msg_id)
 
-                    # Best-effort detection if an insert happened
-                    inserted_flag = False
-                    if isinstance(ret, bool):
-                        inserted_flag = ret
-                    elif isinstance(ret, int):
-                        inserted_flag = ret > 0
-                    elif isinstance(ret, dict):
-                        inserted_flag = bool(
-                            ret.get("inserted")
-                            or ret.get("created")
-                            or ret.get("saved")
-                        )
+                    # Track if message was inserted or ignored
+                    # ingest_message returns "ignored" if the message was ignored
+                    if ret == "ignored":
+                        ignored += 1
                     else:
-                        inserted_flag = True
+                        # Best-effort detection if an insert happened
+                        inserted_flag = False
+                        if isinstance(ret, bool):
+                            inserted_flag = ret
+                        elif isinstance(ret, int):
+                            inserted_flag = ret > 0
+                        elif isinstance(ret, dict):
+                            inserted_flag = bool(
+                                ret.get("inserted")
+                                or ret.get("created")
+                                or ret.get("saved")
+                            )
+                        else:
+                            inserted_flag = True
 
-                    if inserted_flag:
-                        inserted += 1
+                        if inserted_flag:
+                            inserted += 1
 
                 except Exception as e:
                     log_console(f"Failed to ingest {msg_id}: {e}")

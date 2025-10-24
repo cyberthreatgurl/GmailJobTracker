@@ -31,7 +31,13 @@
       "\\bsubmitted\\b.*\\bapplication\\b",
       "^submitted[:\\s]",
       "\\bsubmission\\sreceived\\b",
-      "\\bwe\\sreceived\\syour\\ssubmission\\b"
+      "\\bwe\\sreceived\\syour\\ssubmission\\b",
+      "\\bcomplete\\s+(?:your|the)\\s+.*?\\sapplication\\b",
+      "\\bcomplete\\s+your\\s+application\\b",
+      "\\bapplication\\s+is\\s+incomplete\\b",
+      "\\byour\\s+job\\s+application\\s+is\\s+incomplete\\b",
+      "\\bfinish(?:ing)?\\s+your\\s+application\\b",
+      "\\baction\\s+needed\\s+to\\s+complete\\s+(?:your\\s+)?application\\b"
     ],
     "rejection": [
       "another\\scandidate\\shas\\sbeen\\sselected",
@@ -39,9 +45,10 @@
       "better\\sfit\\sour\\sneeds",
       "has\\sbeen\\sclosed",
       "we\\sappreciate\\syour\\sinterest",
-      "other\\scandidates",
+      "\\bother\\scandidates\\b",
       "not\\smoving\\sforward",
-      "not\\sselected\\b",
+      "\\bnot\\sto\\smove\\sforward\\b",
+      "\\bnot\\sselected\\b",
       "\\bposition\\sclosed",
       "\\bunfortunately\\b",
       "\\bmove\\sforward\\swith\\sothers\\b",

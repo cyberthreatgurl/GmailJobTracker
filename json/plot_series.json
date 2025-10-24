@@ -2,26 +2,31 @@
   {
     "label": "job_application",
     "display_name": "Application",
-    "color": "#2563eb"
+    "color": "#2563eb",
+    "ml_label": "job_application"
   },
   {
     "label": "interview_invite",
     "display_name": "Interview",
-    "color": "#22c55e"
+    "color": "#22c55e",
+    "ml_label": "interview_invite"
   },
   {
     "label": "rejected",
     "display_name": "Rejected",
-    "color": "#ef4444"
+    "color": "#ef4444",
+    "ml_label": "rejected"
   },
   {
     "label": "ghosted",
     "display_name": "Ghosted",
-    "color": "#a3a3a3"
+    "color": "#a3a3a3",
+    "ml_label": "ghosted"
   },
   {
     "label": "job_alert",
     "display_name": "Job Alert",
-    "color": "#eab308"
+    "color": "#eab308",
+    "ml_label": "job_alert"
   }
 ]

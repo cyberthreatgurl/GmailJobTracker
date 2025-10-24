@@ -108,6 +108,17 @@
     .reset-btn:hover {
       background: #4b5563;
     }
+    .copy-btn {
+      background: #e5e7eb;
+      color: #111827;
+      border: none;
+      border-radius: 4px;
+      padding: 0.25rem 0.5rem;
+      font-size: 0.75rem;
+      margin-left: 0.5rem;
+      cursor: pointer;
+    }
+    .copy-btn:hover { background: #d1d5db; }
     @media (max-width: 900px) {
       .charts-row { flex-direction: column; }
       .chart-card { max-width: 100%; min-width: 220px; }
@@ -164,27 +175,93 @@
       <canvas id="activityChart" height="100"></canvas>
     </div>
   </div>
+
+  <!-- Company Breakdown by Status -->
+  <div style="margin-top: 2rem;">
+    <h2>Companies by Activity Type (for selected period)</h2>
+    <div style="display: flex; gap: 2rem; flex-wrap: wrap; margin-top: 1rem;">
+      <!-- Rejections -->
+      <div style="flex: 1; min-width: 250px; background: #fef2f2; padding: 1rem; border-radius: 8px; border-left: 4px solid #ef4444;">
+        <h3 style="color: #991b1b; margin: 0 0 0.75rem 0; font-size: 1rem; font-weight: 600; display:flex; align-items:center; gap:0.5rem;">
+          <span>🚫 Rejections From (<span id="rejectionCount">{{ initial_rejection_companies|length }}</span>)</span>
+          <button class="copy-btn" onclick="copyCompanyList('rejectionList', this)">Copy</button>
+        </h3>
+        <ul id="rejectionList" style="margin: 0; padding-left: 1.25rem; list-style: disc; color: #7f1d1d; font-size: 0.9rem; line-height: 1.6;">
+          {% if initial_rejection_companies %}
+            {% for c in initial_rejection_companies %}
+              <li><a href="/company/{{ c.id }}/" style="text-decoration:none; color:inherit;">{{ c.name }}</a></li>
+            {% endfor %}
+          {% else %}
+            <li style="color: #9ca3af;">No data in selected range</li>
+          {% endif %}
+        </ul>
+      </div>
+
+      <!-- Applications Sent -->
+      <div style="flex: 1; min-width: 250px; background: #eff6ff; padding: 1rem; border-radius: 8px; border-left: 4px solid #2563eb;">
+        <h3 style="color: #1e40af; margin: 0 0 0.75rem 0; font-size: 1rem; font-weight: 600; display:flex; align-items:center; gap:0.5rem;">
+          <span>📤 Applications Sent to (<span id="applicationCount">{{ initial_application_companies|length }}</span>)</span>
+          <button class="copy-btn" onclick="copyCompanyList('applicationList', this)">Copy</button>
+        </h3>
+        <ul id="applicationList" style="margin: 0; padding-left: 1.25rem; list-style: disc; color: #1e3a8a; font-size: 0.9rem; line-height: 1.6;">
+          {% if initial_application_companies %}
+            {% for c in initial_application_companies %}
+              <li><a href="/company/{{ c.id }}/" style="text-decoration:none; color:inherit;">{{ c.name }}</a></li>
+            {% endfor %}
+          {% else %}
+            <li style="color: #9ca3af;">No data in selected range</li>
+          {% endif %}
+        </ul>
+      </div>
+
+      <!-- Ghosted By -->
+      <div style="flex: 1; min-width: 250px; background: #f5f5f5; padding: 1rem; border-radius: 8px; border-left: 4px solid #737373;">
+        <h3 style="color: #404040; margin: 0 0 0.75rem 0; font-size: 1rem; font-weight: 600; display:flex; align-items:center; gap:0.5rem;">
+          <span>👻 Ghosted By (<span id="ghostedCount">{{ initial_ghosted_companies|length }}</span>)</span>
+          <button class="copy-btn" onclick="copyCompanyList('ghostedList', this)">Copy</button>
+        </h3>
+        <ul id="ghostedList" style="margin: 0; padding-left: 1.25rem; list-style: disc; color: #525252; font-size: 0.9rem; line-height: 1.6;">
+          {% if initial_ghosted_companies %}
+            {% for c in initial_ghosted_companies %}
+              <li><a href="/company/{{ c.id }}/" style="text-decoration:none; color:inherit;">{{ c.name }}</a></li>
+            {% endfor %}
+          {% else %}
+            <li style="color: #9ca3af;">No data in selected range</li>
+          {% endif %}
+        </ul>
+      </div>
+    </div>
+  </div>
 {% endblock %}
 
 {% block extra_scripts %}
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
+    // Company breakdown data from Django (declare early so downstream code can use it)
+    const rejectionCompanies = {{ rejection_companies_json|safe }};
+    const applicationCompanies = {{ application_companies_json|safe }};
+    const ghostedCompanies = {{ ghosted_companies_json|safe }};
+    console.log('Rejection companies:', rejectionCompanies);
+    console.log('Application companies:', applicationCompanies);
+    console.log('Ghosted companies:', ghostedCompanies);
+
     // Removed Ingestion Stats Chart (Line)
 
     // Application Activity Chart (Line)
-    {% if chart_activity_labels %}
+  {% if chart_activity_labels %}
     // Store full dataset
     const fullActivityLabels = {{ chart_activity_labels|safe }};
-    // Dynamic series data from configuration
-    const seriesConfig = {{ plot_series_config|safe }};
-    const seriesData = {{ chart_series_data|safe }};
+  // Dynamic series data from server (each item includes key, label, color, data)
+  const seriesConfig = {{ plot_series_config|safe }}; // used for checkboxes only
+  const seriesData = {{ chart_series_data|safe }};
     
     // Build datasets array dynamically
-    const activityDatasets = seriesData.map((series, idx) => ({
-      label: seriesConfig[idx].label,
+    const activityDatasets = seriesData.map((series) => ({
+      key: series.key,
+      label: series.label,
       data: series.data.map(Number),
-      borderColor: seriesConfig[idx].color,
-      backgroundColor: seriesConfig[idx].color + '1a', // Add alpha for fill
+      borderColor: series.color,
+      backgroundColor: series.color + '1a', // Add alpha for fill
       fill: true,
       tension: 0.3,
       borderWidth: 1,
@@ -192,43 +269,48 @@
       pointHoverRadius: 4
     }));
     
-    const ctxActivity = document.getElementById('activityChart').getContext('2d');
-    let activityChart = new Chart(ctxActivity, {
-      type: 'line',
-      data: {
-        labels: fullActivityLabels,
-        datasets: activityDatasets
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: true,
-        plugins: {
-          legend: { 
-            position: 'bottom',
-            labels: { font: { size: 10 } }
-          },
-          title: { display: false },
-          tooltip: {
-            mode: 'index',
-            intersect: false,
-            bodyFont: { size: 10 }
-          }
+    let activityChart = null;
+    try {
+      const ctxActivity = document.getElementById('activityChart').getContext('2d');
+      activityChart = new Chart(ctxActivity, {
+        type: 'line',
+        data: {
+          labels: fullActivityLabels,
+          datasets: activityDatasets
         },
-        scales: {
-          x: { 
-            display: true,
-            ticks: { font: { size: 9 } },
-            title: { display: false }
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          plugins: {
+            legend: { 
+              position: 'bottom',
+              labels: { font: { size: 10 } }
+            },
+            title: { display: false },
+            tooltip: {
+              mode: 'index',
+              intersect: false,
+              bodyFont: { size: 10 }
+            }
           },
-          y: { 
-            beginAtZero: true,
-            ticks: { font: { size: 9 } },
-            title: { display: false }
+          scales: {
+            x: { 
+              display: true,
+              ticks: { font: { size: 9 } },
+              title: { display: false }
+            },
+            y: { 
+              beginAtZero: true,
+              ticks: { font: { size: 9 } },
+              title: { display: false }
+            }
           }
         }
-      }
-    });
-    // Date filter controls
+      });
+    } catch (e) {
+      console.warn('Activity chart failed to initialize:', e);
+    }
+  // Date filter controls
     const startDateInput = document.getElementById('startDateInput');
     const endDateInput = document.getElementById('endDateInput');
     const quickRange = document.getElementById('quickRange');
@@ -357,12 +439,15 @@
         .map(cb => cb.value);
 
       activityChart.data.labels = grouped.labels;
-      // Update datasets and hide/show based on selection
-      seriesConfig.forEach((config, idx) => {
-        activityChart.data.datasets[idx].data = grouped.dataArrays[idx];
-        activityChart.data.datasets[idx].hidden = !selectedKeys.includes(config.key);
+      // Update datasets and hide/show based on selection, aligned by dataset order
+      activityChart.data.datasets.forEach((ds, idx) => {
+        ds.data = grouped.dataArrays[idx];
+        ds.hidden = !selectedKeys.includes(ds.key);
       });
       activityChart.update();
+      
+      // ✅ Update company breakdown lists based on date range
+      updateCompanyBreakdown(startStr, endStr);
     }
   // X-axis type change handler
   document.getElementById('xAxisType').addEventListener('change', updateActivityChartByDates);
@@ -410,9 +495,160 @@
 
     // Initialize chart with full range
     updateActivityChartByDates();
-    {% endif %}
+  {% endif %}
+
+    function toDayNumber(dateStr) {
+      // Converts 'YYYY-MM-DD' to a UTC day number (ms since epoch at 00:00Z)
+      if (!dateStr || typeof dateStr !== 'string') return NaN;
+      // Ensure ISO-like format; incoming data is serialized as 'YYYY-MM-DD'
+      return new Date(dateStr + 'T00:00:00Z').getTime();
+    }
+
+    function updateCompanyBreakdown(startStr, endStr) {
+      console.log('Filtering by date range:', startStr, 'to', endStr);
+
+      // Derive date range from datasets if not provided
+      const startDateInput = document.getElementById('startDateInput');
+      const endDateInput = document.getElementById('endDateInput');
+      if (!startStr || !endStr) {
+        const dates = [];
+        try {
+          (rejectionCompanies || []).forEach(i => { if (i && i.rejection_date) dates.push(i.rejection_date); });
+          (applicationCompanies || []).forEach(i => { if (i && i.sent_date) dates.push(i.sent_date); });
+          (ghostedCompanies || []).forEach(i => { if (i && i.sent_date) dates.push(i.sent_date); });
+        } catch (e) {
+          console.warn('Could not derive dates for fallback:', e);
+        }
+        if (dates.length) {
+          dates.sort();
+          startStr = dates[0];
+          endStr = dates[dates.length - 1];
+          if (startDateInput) {
+            startDateInput.min = startStr; startDateInput.max = endStr; startDateInput.value = startStr;
+          }
+          if (endDateInput) {
+            endDateInput.min = startStr; endDateInput.max = endStr; endDateInput.value = endStr;
+          }
+        }
+      }
+      // Normalize bounds to day numbers for reliable comparisons
+      const startNum = toDayNumber(startStr);
+      const endNum = toDayNumber(endStr);
+
+      // Filter companies by date range, keep id+name (inclusive bounds)
+      const rejections = rejectionCompanies
+        .filter(item => {
+          const d = toDayNumber(item.rejection_date);
+          const matched = !isNaN(d) && !isNaN(startNum) && !isNaN(endNum) && d >= startNum && d <= endNum;
+          if (matched) console.log('Rejection matched:', item.company__name, item.rejection_date);
+          return matched;
+        })
+        .map(item => ({ id: item.company_id, name: item.company__name }));
+      
+      const applications = applicationCompanies
+        .filter(item => {
+          const d = toDayNumber(item.sent_date);
+          const matched = !isNaN(d) && !isNaN(startNum) && !isNaN(endNum) && d >= startNum && d <= endNum;
+          if (matched) console.log('Application matched:', item.company__name, item.sent_date);
+          return matched;
+        })
+        .map(item => ({ id: item.company_id, name: item.company__name }));
+      
+      const ghosted = ghostedCompanies
+        .filter(item => {
+          const d = toDayNumber(item.sent_date);
+          const matched = !isNaN(d) && !isNaN(startNum) && !isNaN(endNum) && d >= startNum && d <= endNum;
+          if (matched) console.log('Ghosted matched:', item.company__name, item.sent_date);
+          return matched;
+        })
+        .map(item => ({ id: item.company_id, name: item.company__name }));
+
+      console.log('Filtered rejections:', rejections);
+      console.log('Filtered applications:', applications);
+      console.log('Filtered ghosted:', ghosted);
+
+      // Get unique companies by id (deduplicate)
+      function uniqueById(arr) {
+        const map = new Map();
+        for (const item of arr) {
+          if (item && item.id != null && !map.has(item.id)) {
+            map.set(item.id, item);
+          }
+        }
+        return Array.from(map.values());
+      }
+      const uniqueRejections = uniqueById(rejections);
+      const uniqueApplications = uniqueById(applications);
+      const uniqueGhosted = uniqueById(ghosted);
+
+      // Update DOM
+      const rejectionList = document.getElementById('rejectionList');
+      const applicationList = document.getElementById('applicationList');
+      const ghostedList = document.getElementById('ghostedList');
+  const rejectionCount = document.getElementById('rejectionCount');
+  const applicationCount = document.getElementById('applicationCount');
+  const ghostedCount = document.getElementById('ghostedCount');
+
+      // Helper to render list
+      function renderList(listEl, companies) {
+        if (companies.length === 0) {
+          listEl.innerHTML = '<li style="color: #9ca3af;">No data in selected range</li>';
+        } else {
+          const sorted = companies.slice().sort((a,b) => a.name.localeCompare(b.name));
+          listEl.innerHTML = sorted
+            .map(item => `<li><a href="/company/${item.id}/" style="text-decoration:none; color:inherit;">${item.name}</a></li>`)
+            .join('');
+        }
+      }
+
+      renderList(rejectionList, uniqueRejections);
+      renderList(applicationList, uniqueApplications);
+      renderList(ghostedList, uniqueGhosted);
+
+      // Update counts
+      if (rejectionCount) rejectionCount.textContent = String(uniqueRejections.length);
+      if (applicationCount) applicationCount.textContent = String(uniqueApplications.length);
+      if (ghostedCount) ghostedCount.textContent = String(uniqueGhosted.length);
+    }
+
+    // Copy helper
+    function copyCompanyList(listId, btnEl) {
+      const listEl = document.getElementById(listId);
+      if (!listEl) return;
+      const items = Array.from(listEl.querySelectorAll('li'))
+        .map(li => (li.querySelector('a') ? li.querySelector('a').textContent.trim() : li.textContent.trim()))
+        .filter(t => t && t.toLowerCase() !== 'no data in selected range');
+      const text = items.join('\n');
+      if (!text) return;
+      navigator.clipboard.writeText(text).then(() => {
+        if (btnEl) {
+          const prev = btnEl.textContent;
+          btnEl.textContent = 'Copied!';
+          setTimeout(() => (btnEl.textContent = prev), 1200);
+        }
+      }).catch(() => {
+        // Fallback: prompt
+        window.prompt('Copy the list:', text);
+      });
+    }
 
     // Expand/collapse chart cards
     // Removed expand/collapse logic for activity chart; always expanded
+
+    // Initialize lists at least once after DOM is ready
+    (function(){
+      function initLists() {
+        const sEl = document.getElementById('startDateInput');
+        const eEl = document.getElementById('endDateInput');
+        const sVal = sEl && sEl.value;
+        const eVal = eEl && eEl.value;
+        updateCompanyBreakdown(sVal, eVal);
+      }
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initLists);
+      } else {
+        initLists();
+      }
+    })();
   </script>
 {% endblock %}

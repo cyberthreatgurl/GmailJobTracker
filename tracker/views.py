@@ -1331,7 +1331,12 @@ def dashboard(request):
         chart_ignored = []
 
     # Multi-line chart: daily totals for rejections, applications, interviews, total
-    earliest_app = Application.objects.order_by("sent_date").first()
+    # Use earliest non-null sent_date to avoid None breaking the chart
+    earliest_app = (
+        Application.objects.filter(sent_date__isnull=False)
+        .order_by("sent_date")
+        .first()
+    )
     # Default: use earliest application date
     app_start_date = earliest_app.sent_date if earliest_app else None
     # Check for REPORTING_DEFAULT_START_DATE in env
@@ -1389,13 +1394,15 @@ def dashboard(request):
     try:
         with open("json/plot_series.json", "r", encoding="utf-8") as f:
             config = json.load(f)
+        # If MessageLabel table has entries, validate against it; otherwise accept config as-is
         allowed_labels = set(MessageLabel.objects.values_list("label", flat=True))
         for entry in config:
             label = entry.get("label")
             display_name = entry.get("display_name")
             color = entry.get("color")
             # Validate label
-            if label not in allowed_labels:
+            if allowed_labels and label not in allowed_labels:
+                # Skip only when we have a whitelist defined in DB
                 continue
             # Validate color
             if not is_valid_color(color):
@@ -1404,7 +1411,7 @@ def dashboard(request):
                 {
                     "key": label,  # Add key field for chart logic
                     "label": label,
-                    "display_name": display_name,
+                    "display_name": display_name or label,
                     "color": color,
                     "ml_label": label,  # use label as ml_label for consistency
                 }
@@ -1523,6 +1530,85 @@ def dashboard(request):
         chart_activity_labels = []
         chart_series_data = []
 
+    # ✅ Company breakdown by status for the selected time period
+    # This will be filtered client-side based on the chart's date range
+    # Get all applications with their company names and dates
+    rejection_companies_qs = (
+        Application.objects.filter(rejection_date__isnull=False, company__isnull=False)
+        .select_related("company")
+        .values("company_id", "company__name", "rejection_date")
+        .order_by("-rejection_date")
+    )
+
+    application_companies_qs = (
+        Application.objects.filter(sent_date__isnull=False, company__isnull=False)
+        .select_related("company")
+        .values("company_id", "company__name", "sent_date")
+        .order_by("-sent_date")
+    )
+
+    ghosted_companies_qs = (
+        Application.objects.filter(
+            Q(status="ghosted") | Q(ml_label="ghosted"), company__isnull=False
+        )
+        .select_related("company")
+        .values("company_id", "company__name", "sent_date")
+        .order_by("-sent_date")
+    )
+
+    # Convert date objects to strings for JSON serialization
+    import json
+
+    rejection_companies = [
+        {
+            "company_id": item["company_id"],
+            "company__name": item["company__name"],
+            "rejection_date": item["rejection_date"].strftime("%Y-%m-%d"),
+        }
+        for item in rejection_companies_qs
+    ]
+
+    application_companies = [
+        {
+            "company_id": item["company_id"],
+            "company__name": item["company__name"],
+            "sent_date": item["sent_date"].strftime("%Y-%m-%d"),
+        }
+        for item in application_companies_qs
+    ]
+
+    ghosted_companies = [
+        {
+            "company_id": item["company_id"],
+            "company__name": item["company__name"],
+            "sent_date": item["sent_date"].strftime("%Y-%m-%d"),
+        }
+        for item in ghosted_companies_qs
+    ]
+
+    # Convert to JSON strings for template
+    rejection_companies_json = json.dumps(rejection_companies)
+    application_companies_json = json.dumps(application_companies)
+    ghosted_companies_json = json.dumps(ghosted_companies)
+
+    # Server-side initial fallback lists (unique by company for full available range)
+    def unique_by_company(items, id_key="company_id", name_key="company__name"):
+        seen = set()
+        out = []
+        for it in items:
+            cid = it.get(id_key)
+            cname = it.get(name_key)
+            if cid is not None and cid not in seen and cname:
+                out.append({"id": cid, "name": cname})
+                seen.add(cid)
+        # sort by name for a stable display
+        out.sort(key=lambda x: (x["name"] or "").lower())
+        return out
+
+    initial_rejection_companies = unique_by_company(rejection_companies)
+    initial_application_companies = unique_by_company(application_companies)
+    initial_ghosted_companies = unique_by_company(ghosted_companies)
+
     return render(
         request,
         "tracker/dashboard.html",
@@ -1552,6 +1638,12 @@ def dashboard(request):
                 if reporting_default_start_date
                 else ""
             ),
+            "rejection_companies_json": rejection_companies_json,
+            "application_companies_json": application_companies_json,
+            "ghosted_companies_json": ghosted_companies_json,
+            "initial_rejection_companies": initial_rejection_companies,
+            "initial_application_companies": initial_application_companies,
+            "initial_ghosted_companies": initial_ghosted_companies,
         },
     )
 

@@ -268,11 +268,21 @@ _SUBJ_VEC_PATH = MODEL_DIR / "subject_vectorizer.pkl"
 _BODY_VEC_PATH = MODEL_DIR / "body_vectorizer.pkl"
 _LABELS_PATH = MODEL_DIR / "message_label_encoder.pkl"
 
+# Optional company-level classifier artifacts (if present)
+_COMP_MODEL_PATH = MODEL_DIR / "company_classifier.pkl"
+_COMP_VEC_PATH = MODEL_DIR / "vectorizer.pkl"
+_COMP_LABELS_PATH = MODEL_DIR / "label_encoder.pkl"
+
 CLASSIFIER = None
 SUBJECT_VECTORIZER = None
 BODY_VECTORIZER = None
 LABEL_ENCODER = None
 ml_enabled = False
+
+# Company classifier handles company name prediction (optional)
+COMPANY_CLASSIFIER = None
+COMPANY_VECTORIZER = None
+COMPANY_LABEL_ENCODER = None
 
 if (
     _MODEL_PATH.exists()
@@ -300,6 +310,19 @@ else:
     # Do not print a warning to avoid noise during management commands.
     ml_enabled = False
 
+# Load optional company classifier artifacts (non-fatal if missing)
+if _COMP_MODEL_PATH.exists() and _COMP_VEC_PATH.exists() and _COMP_LABELS_PATH.exists():
+    try:
+        COMPANY_CLASSIFIER = joblib.load(_COMP_MODEL_PATH)
+        COMPANY_VECTORIZER = joblib.load(_COMP_VEC_PATH)
+        COMPANY_LABEL_ENCODER = joblib.load(_COMP_LABELS_PATH)
+        if DEBUG:
+            print("🤖 Parser: company classifier artifacts loaded (optional).")
+    except Exception:
+        COMPANY_CLASSIFIER = None
+        COMPANY_VECTORIZER = None
+        COMPANY_LABEL_ENCODER = None
+
 
 def is_correlated_message(sender_email, sender_domain, msg_date):
     """
@@ -321,12 +344,24 @@ def is_correlated_message(sender_email, sender_domain, msg_date):
 
 def predict_company(subject, body):
     """Predict company name using the trained ML model."""
-    if not ml_enabled:
+    # Use optional company-specific classifier if available; otherwise skip
+    if not (COMPANY_CLASSIFIER and COMPANY_VECTORIZER):
         return None
     text = (subject or "") + " " + (body or "")
-    X = VECTORIZER.transform([text])
-    pred_encoded = CLASSIFIER.predict(X)[0]
-    return LABEL_ENCODER.inverse_transform([pred_encoded])[0]
+    try:
+        X = COMPANY_VECTORIZER.transform([text])
+        pred = COMPANY_CLASSIFIER.predict(X)[0]
+        if COMPANY_LABEL_ENCODER is not None and hasattr(
+            COMPANY_LABEL_ENCODER, "inverse_transform"
+        ):
+            try:
+                return COMPANY_LABEL_ENCODER.inverse_transform([pred])[0]
+            except Exception:
+                pass
+        # Fallback to string conversion
+        return str(pred)
+    except Exception:
+        return None
 
 
 def should_ignore(subject, body):
@@ -832,6 +867,44 @@ def ingest_message(service, msg_id):
             and is_valid_company(company)
         ):
             existing.reviewed = True
+        existing.save()
+        
+        # ✅ Also update Application record during re-ingestion if dates are missing
+        ml_label = result.get("label") if result else None
+        if company_obj and ml_label:
+            try:
+                app = Application.objects.filter(thread_id=metadata["thread_id"]).first()
+                if DEBUG:
+                    print(f"[Re-ingest] Looking for Application with thread_id={metadata['thread_id']}, found: {app is not None}")
+                if app:
+                    if DEBUG:
+                        print(f"[Re-ingest] App ml_label={app.ml_label}, rejection_date={app.rejection_date}, ml_label_param={ml_label}")
+                    updated = False
+                    if not app.rejection_date and ml_label == "rejected":
+                        app.rejection_date = metadata["timestamp"].date()
+                        updated = True
+                        if DEBUG:
+                            print(f"✓ Set rejection_date during re-ingest: {app.rejection_date}")
+                    if not app.interview_date and ml_label == "interview_invite":
+                        app.interview_date = metadata["timestamp"].date()
+                        updated = True
+                        if DEBUG:
+                            print(f"✓ Set interview_date during re-ingest: {app.interview_date}")
+                    if not app.ml_label or app.ml_label != ml_label:
+                        app.ml_label = ml_label
+                        app.ml_confidence = float(result.get("confidence", 0.0)) if result else 0.0
+                        updated = True
+                    if updated:
+                        app.save()
+                        if DEBUG:
+                            print(f"✓ Updated Application during re-ingest")
+                else:
+                    if DEBUG:
+                        print(f"[Re-ingest] No Application found for thread_id={metadata['thread_id']}")
+            except Exception as e:
+                if DEBUG:
+                    print(f"Warning: Could not update Application during re-ingest: {e}")
+        
         IngestionStats.objects.filter(date=stats.date).update(
             total_skipped=F("total_skipped") + 1
         )
@@ -866,6 +939,22 @@ def ingest_message(service, msg_id):
         company_source=company_source,
     )
     # ✅ Create or update Application record using Django ORM
+    
+    # ✅ Fallback: if pattern-based extraction didn't find rejection/interview dates,
+    # but ML classified it as rejected/interview_invite, use message timestamp
+    ml_label = result.get("label") if result else None
+    rejection_date_final = status_dates["rejection_date"]
+    interview_date_final = status_dates["interview_date"]
+    
+    if not rejection_date_final and ml_label == "rejected":
+        rejection_date_final = metadata["timestamp"].date()
+        if DEBUG:
+            print(f"✓ Set rejection_date from ML label: {rejection_date_final}")
+    
+    if not interview_date_final and ml_label == "interview_invite":
+        interview_date_final = metadata["timestamp"].date()
+        if DEBUG:
+            print(f"✓ Set interview_date from ML label: {interview_date_final}")
 
     try:
         message_obj = Message.objects.get(msg_id=msg_id)
@@ -879,15 +968,29 @@ def ingest_message(service, msg_id):
                     "job_id": parsed_subject.get("job_id", ""),
                     "status": status,
                     "sent_date": metadata["timestamp"].date(),
-                    "rejection_date": status_dates["rejection_date"],
-                    "interview_date": status_dates["interview_date"],
-                    "ml_label": result.get("label") if result else None,
+                    "rejection_date": rejection_date_final,
+                    "interview_date": interview_date_final,
+                    "ml_label": ml_label,
                     "ml_confidence": (
                         float(result.get("confidence", 0.0)) if result else 0.0
                     ),
                     "reviewed": reviewed,
                 },
             )
+            
+            # ✅ Update existing application if dates are missing but ML classified it
+            if not created:
+                updated = False
+                if not application_obj.rejection_date and ml_label == "rejected":
+                    application_obj.rejection_date = rejection_date_final
+                    updated = True
+                if not application_obj.interview_date and ml_label == "interview_invite":
+                    application_obj.interview_date = interview_date_final
+                    updated = True
+                if updated:
+                    application_obj.save()
+                    if DEBUG:
+                        print(f"✓ Updated existing application with ML-derived dates")
             if created:
                 if DEBUG:
                     print("Stats: inserted++ (new application)")

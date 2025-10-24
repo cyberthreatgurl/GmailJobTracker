@@ -1,18 +1,17 @@
 {
-  "trained_on": "2025-10-24T00:53:28.896755",
+  "trained_on": "2025-10-24T16:49:13.680294",
   "labels": [
     "head_hunter",
     "interview_invite",
     "job_alert",
     "job_application",
     "noise",
-    "offer",
     "other",
     "referral",
     "rejected"
   ],
-  "num_samples": 729,
-  "total_features": 41323,
+  "num_samples": 737,
+  "total_features": 41353,
   "meaningful_features_sample": [
     "10 more",
     "100 remote",
@@ -29,6 +28,7 @@
     "activate your",
     "adrian",
     "adrian check",
+    "adrian kelly",
     "adrian nice",
     "adrian shaw",
     "adrian ve",
@@ -56,6 +56,7 @@
     "america",
     "amid",
     "amid the",
+    "an old",
     "an open",
     "an update",
     "analyst",
@@ -111,8 +112,6 @@
     "arlington",
     "arlington va",
     "as discussed",
-    "assessment",
-    "assessment results",
-    "assistant"
+    "assessment"
   ]
 }

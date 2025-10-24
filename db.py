@@ -265,7 +265,6 @@ def load_training_data():
     df = df.rename(columns={"ml_label": "label"})
 
     print(f"[OK] Loaded {len(df)} human-labeled messages from database")
-    print(f"Label distribution:\n{df['label'].value_counts()}")
     return df
 
 

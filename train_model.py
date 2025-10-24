@@ -90,11 +90,6 @@ if "label" in df.columns:
         print(f"[Info] Merging rare classes {rare_labels} into 'other'.")
         df["label"] = df["label"].apply(lambda x: "other" if x in rare_labels else x)
 
-    # Show natural class distribution (no artificial upsampling)
-    print(
-        f"[Info] Natural class distribution (before training):\n{df['label'].value_counts()}"
-    )
-
 if df.empty or "label" not in df.columns or df["label"].isna().all():
     print("[Warning] No human message labels; bootstrapping with regex rules")
     # Apply weak labels as fallback
@@ -105,7 +100,8 @@ else:
     # Use human labels
     y = df["label"].str.lower().str.strip()
     print(f"[OK] Training on {len(y)} human-labeled messages")
-    print(f"Label distribution:\n{y.value_counts()}")
+    if args.verbose:
+        print(f"Label distribution:\n{y.value_counts()}")
 
 if df.empty:
     raise SystemExit("[Error] No training data available")
@@ -160,12 +156,40 @@ base = LogisticRegression(
 clf = CalibratedClassifierCV(base, method="isotonic", cv=3)
 clf.fit(Xtr, ytr, sample_weight=sample_weights)  # pass weights here
 
-print(classification_report(yte, clf.predict(Xte), zero_division=0))
+# Evaluate on held-out validation split
+y_pred = clf.predict(Xte)
+print(classification_report(yte, y_pred, zero_division=0))
+
+# Optional, richer diagnostics under --verbose
+if args.verbose:
+    # Predicted label distribution on validation set (this is the true "after training" view)
+    try:
+        import pandas as _pd  # lazy import for convenience
+
+        val_pred_counts = _pd.Series(y_pred).value_counts().sort_values(ascending=False)
+        print(f"[Info] Validation predicted label distribution:\n{val_pred_counts}")
+    except Exception:
+        pass
+
+    # Show effective training weights per class (illustrates balancing effect of class weights)
+    try:
+        import pandas as _pd
+
+        sw_df = _pd.DataFrame(
+            {"label": _pd.Series(ytr).reset_index(drop=True), "weight": sample_weights}
+        )
+        eff_weights = (
+            sw_df.groupby("label")["weight"].sum().sort_values(ascending=False)
+        )
+        print(
+            f"[Info] Effective training class weights (sum of sample weights):\n{eff_weights}"
+        )
+    except Exception:
+        pass
+
 # Capture metrics for persistence
-report_text = classification_report(yte, clf.predict(Xte), zero_division=0)
-report_dict = classification_report(
-    yte, clf.predict(Xte), zero_division=0, output_dict=True
-)
+report_text = classification_report(yte, y_pred, zero_division=0)
+report_dict = classification_report(yte, y_pred, zero_division=0, output_dict=True)
 os.makedirs("model", exist_ok=True)
 joblib.dump(clf, "model/message_classifier.pkl")
 joblib.dump(sorted(y_filtered.unique().tolist()), "model/message_label_encoder.pkl")

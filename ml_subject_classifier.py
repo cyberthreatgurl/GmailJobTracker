@@ -45,6 +45,9 @@ else:
 _MODEL = model
 _LABEL_ENCODER = label_encoder
 
+# Toggle verbose debug logging with env var: CLASSIFIER_DEBUG=1
+DEBUG = os.getenv("CLASSIFIER_DEBUG", "0") in {"1", "true", "True"}
+
 
 def _decode_label(idx: int) -> str:
     """Return a human-readable class label from a predicted index."""
@@ -97,86 +100,163 @@ if _PATTERNS and "message_labels" in _PATTERNS:
             re.compile(p, re.IGNORECASE) for p in pattern_list if p and p != "None"
         ]
 
+# Labels to suppress (map to 'other'), configurable in patterns.json
+_SUPPRESS_LABELS = set(_PATTERNS.get("suppress_labels", []))
+
 
 def rule_label(subject: str, body: str = "") -> str | None:
-    """Apply regex rules from patterns.json before ML prediction."""
+    """Apply regex rules from patterns.json before ML prediction.
+
+    Priority order is tuned for specificity:
+      1) offer
+      2) rejected
+      3) interview_invite
+      4) job_application
+      5) referral
+      6) job_alert
+      7) head_hunter
+      8) noise
+    """
     text = f"{subject or ''} {body or ''}".lower()
 
-    # Use patterns from patterns.json instead of hardcoded regexes
-    # Priority order: interview, application, rejection, job_alert, head_hunter, noise
     priority_order = [
+        "offer",
+        "rejected",
         "interview_invite",
         "job_application",
-        "rejected",
+        "referral",
         "job_alert",
         "head_hunter",
         "noise",
-        "referral",
-        "offer",
     ]
 
     for label in priority_order:
         patterns = _COMPILED_PATTERNS.get(label, [])
         for pattern in patterns:
             if pattern.search(text):
+                # If label is suppressed, pretend no rule hit so ML or other rules can proceed
+                if label in _SUPPRESS_LABELS:
+                    return "other"
                 return label
 
     return None
 
 
+def _get_rule_label_func():
+    """Return the canonical rule_label function from parser.py if available.
+
+    Avoid top-level import to prevent circular imports, since parser imports
+    predict_subject_type from this module. Fallback to the local implementation
+    if importing parser.rule_label fails for any reason.
+    """
+    try:
+        # Local import to avoid circular import at module load time
+        from parser import rule_label as parser_rule_label  # type: ignore
+
+        if callable(parser_rule_label):
+            return parser_rule_label
+    except Exception:
+        pass
+    # Fallback to local
+    return rule_label
+
+
 def predict_subject_type(subject: str, body: str = "", threshold: float = 0.6):
+    """Predict message label from subject+body using rules first, then ML.
+
+    Returns dict: {label, confidence, ignore, method}
+    method is one of: rules | rules_fallback | ml | unknown
+    """
     # Get ignore labels from patterns.json (configurable instead of hardcoded)
     ignore_labels = set(
         _PATTERNS.get("ignore_labels", ["noise", "job_alert", "head_hunter"])
     )
 
-    # Try rule-based first
-    rule_result = rule_label(subject, body)
+    # Debug header
+    if DEBUG:
+        print(f"[DEBUG] predict_subject_type: subject='{(subject or '')[:80]}'")
 
-    # If confident rule match, use it
+    # Try rule-based first (use the canonical implementation from parser.py if available)
+    rule_fn = _get_rule_label_func()
+    rule_result = rule_fn(subject, body)
+    if DEBUG:
+        print(f"[DEBUG] rules-first returned: {repr(rule_result)}")
     if rule_result:
+        if DEBUG:
+            print("[DEBUG] Using rules-first result")
+        # Apply suppression mapping, if configured
+        mapped_label = "other" if rule_result in _SUPPRESS_LABELS else rule_result
         return {
-            "label": rule_result,
+            "label": mapped_label,
             "confidence": 0.95,
-            "ignore": rule_result in ignore_labels,
-            "method": "rules",
+            "ignore": mapped_label in ignore_labels,
+            "method": "rules" if mapped_label == rule_result else "rules_suppressed",
         }
+
+    if DEBUG:
+        print("[DEBUG] No rule match, evaluating ML...")
 
     # Fall back to ML model
     if model is None or subject_vectorizer is None or body_vectorizer is None:
-        return {"label": "unknown", "confidence": 0.0, "ignore": False}
+        if DEBUG:
+            print("[DEBUG] ML artifacts missing, returning unknown")
+        return {
+            "label": "unknown",
+            "confidence": 0.0,
+            "ignore": False,
+            "method": "unknown",
+        }
 
     # Use separate vectorizers for subject and body
-    X_subj = subject_vectorizer.transform([subject or ""])
-    X_body = body_vectorizer.transform([body or ""])
+    X_subj = subject_vectorizer.transform([subject or ""])  # type: ignore[name-defined]
+    X_body = body_vectorizer.transform([body or ""])  # type: ignore[name-defined]
 
     from scipy.sparse import hstack
 
     X = hstack([X_subj, X_body])
 
     if X.nnz == 0:
-        return {"label": "unknown", "confidence": 0.0, "ignore": False}
+        print("[DEBUG] Empty feature vector, returning unknown")
+        return {
+            "label": "unknown",
+            "confidence": 0.0,
+            "ignore": False,
+            "method": "unknown",
+        }
 
     proba = model.predict_proba(X)[0]
     idx = int(np.argmax(proba))
     confidence = float(proba[idx])
     label = _decode_label(idx)
+    if DEBUG:
+        print(f"[DEBUG] ML predicted: label={label}, confidence={confidence:.3f}")
 
     # If ML is uncertain, try rules again as backup
     if confidence < threshold:
-        rule_result = rule_label(subject, body)
+        rule_result = rule_fn(subject, body)
+        if DEBUG:
+            print(
+                f"[DEBUG] ML below threshold; rules-fallback returned: {repr(rule_result)}"
+            )
         if rule_result:
+            mapped_label = "other" if rule_result in _SUPPRESS_LABELS else rule_result
             return {
-                "label": rule_result,
+                "label": mapped_label,
                 "confidence": confidence,
-                "ignore": rule_result in ignore_labels,
-                "method": "rules_fallback",
+                "ignore": mapped_label in ignore_labels,
+                "method": (
+                    "rules_fallback"
+                    if mapped_label == rule_result
+                    else "rules_fallback_suppressed"
+                ),
             }
 
     # Use ML prediction
+    # Suppress ML-only offers or other configured labels
+    mapped_label = "other" if label in _SUPPRESS_LABELS else label
     return {
-        "label": label,
+        "label": mapped_label,
         "confidence": confidence,
-        "ignore": label in ignore_labels,
-        "method": "ml",
+        "ignore": mapped_label in ignore_labels,
+        "method": "ml" if mapped_label == label else "ml_suppressed",
     }

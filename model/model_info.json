@@ -1,16 +1,18 @@
 {
-  "trained_on": "2025-10-19T14:37:42.687639",
+  "trained_on": "2025-10-24T00:53:28.896755",
   "labels": [
     "head_hunter",
     "interview_invite",
     "job_alert",
     "job_application",
     "noise",
+    "offer",
     "other",
-    "rejection"
+    "referral",
+    "rejected"
   ],
-  "num_samples": 723,
-  "total_features": 41300,
+  "num_samples": 729,
+  "total_features": 41323,
   "meaningful_features_sample": [
     "10 more",
     "100 remote",
@@ -23,7 +25,6 @@
     "account",
     "action",
     "action officer",
-    "action required",
     "activate",
     "activate your",
     "adrian",
@@ -47,10 +48,12 @@
     "allen",
     "allen hamilton",
     "allen posted",
+    "allowed",
     "alto",
     "alto networks",
     "amazon",
     "amazon security",
+    "america",
     "amid",
     "amid the",
     "an open",
@@ -105,12 +108,11 @@
     "are",
     "are waiting",
     "are you",
+    "arlington",
+    "arlington va",
     "as discussed",
     "assessment",
     "assessment results",
-    "assistant",
-    "associate",
-    "at booz",
-    "at cahaba"
+    "assistant"
   ]
 }

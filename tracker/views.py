@@ -748,6 +748,7 @@ from tracker.models import (
     UnresolvedCompany,
     GmailFilterImportLog,
 )
+from tracker.models import DomainToCompany
 from tracker.forms import ApplicationEditForm
 from .forms_company import CompanyEditForm
 from scripts.import_gmail_filters import (
@@ -869,6 +870,21 @@ def label_companies(request):
                 .first()
             )
             latest_label = latest_msg.ml_label if latest_msg else None
+            # If the latest message is a rejection, ensure company status reflects that
+            try:
+                if (
+                    latest_label in ("rejected", "rejection")
+                    and selected_company.status != "rejected"
+                ):
+                    selected_company.status = "rejected"
+                    selected_company.save()
+                    messages.info(
+                        request,
+                        f"ℹ️ Company status set to 'rejected' based on latest message label.",
+                    )
+            except Exception:
+                pass
+
             # Get message count and (date, subject) list
             messages_qs = Message.objects.filter(company=selected_company).order_by(
                 "-timestamp"
@@ -885,20 +901,49 @@ def label_companies(request):
             if request.method == "POST":
                 # Quick action: mark as ghosted
                 if request.POST.get("action") == "mark_ghosted":
-                    try:
-                        selected_company.status = "ghosted"
-                        selected_company.save()
-                        messages.success(
+                    # Do not allow ghosted if last message was a rejection
+                    if latest_label in ("rejected", "rejection"):
+                        messages.error(
                             request,
-                            f"✅ Marked {selected_company.name} as ghosted.",
+                            "❌ Cannot mark as ghosted: the latest message is a rejection.",
                         )
-                    except Exception as e:
-                        messages.error(request, f"Failed to mark ghosted: {e}")
+                    else:
+                        try:
+                            selected_company.status = "ghosted"
+                            selected_company.save()
+                            messages.success(
+                                request,
+                                f"✅ Marked {selected_company.name} as ghosted.",
+                            )
+                        except Exception as e:
+                            messages.error(request, f"Failed to mark ghosted: {e}")
                     # Redirect to avoid form resubmission and preserve selection
                     return redirect(f"/label_companies/?company={selected_company.id}")
                 form = CompanyEditForm(request.POST, instance=selected_company)
                 if form.is_valid():
                     form.save()
+                    # Upsert domain_to_company when complete
+                    try:
+                        name = (selected_company.name or "").strip()
+                        domain = (selected_company.domain or "").strip().lower()
+                        if name and domain:
+                            # Normalize domain
+                            for prefix in ("http://", "https://"):
+                                if domain.startswith(prefix):
+                                    domain = domain[len(prefix) :]
+                            if domain.startswith("www."):
+                                domain = domain[4:]
+                            if "." in domain:
+                                DomainToCompany.objects.update_or_create(
+                                    domain=domain, defaults={"company": name}
+                                )
+                    except Exception as e:
+                        # Non-fatal; continue with redirect
+                        print(f"⚠️ Failed to upsert DomainToCompany: {e}")
+                    messages.success(
+                        request, f"✅ Saved changes for {selected_company.name}."
+                    )
+                    return redirect(f"/label_companies/?company={selected_company.id}")
             else:
                 form = CompanyEditForm(instance=selected_company)
 
@@ -1623,6 +1668,7 @@ def label_messages(request):
     filter_reviewed = request.GET.get(
         "reviewed", "unreviewed"
     )  # unreviewed, reviewed, all
+    search_query = request.GET.get("search", "").strip()  # text search
     sort = request.GET.get(
         "sort", ""
     )  # subject, company, confidence, sender_domain, date
@@ -1638,7 +1684,11 @@ def label_messages(request):
 
     # Apply label filter
     if filter_label and filter_label != "all":
-        qs = qs.filter(ml_label=filter_label)
+        # Normalize: "rejection" matches both "rejection" and "rejected"
+        if filter_label == "rejection":
+            qs = qs.filter(Q(ml_label="rejection") | Q(ml_label="rejected"))
+        else:
+            qs = qs.filter(ml_label=filter_label)
 
     # Apply confidence filter
     if filter_confidence == "low":
@@ -1653,6 +1703,14 @@ def label_messages(request):
         qs = qs.filter(company__isnull=True)
     elif filter_company == "resolved":
         qs = qs.filter(company__isnull=False)
+
+    # Apply search filter (searches subject, body, and sender)
+    if search_query:
+        qs = qs.filter(
+            Q(subject__icontains=search_query)
+            | Q(body__icontains=search_query)
+            | Q(sender__icontains=search_query)
+        )
 
     # Do not exclude messages with blank or very short bodies; show all for debugging
 
@@ -1748,9 +1806,20 @@ def label_messages(request):
     total_reviewed = Message.objects.filter(reviewed=True).count()
 
     # Get distinct labels for filter (all labels, not just unreviewed)
-    distinct_labels = (
+    distinct_labels_raw = (
         Message.objects.all().values_list("ml_label", flat=True).distinct()
     )
+    # Normalize: merge "rejected" into "rejection"
+    distinct_labels = []
+    seen = set()
+    for lbl in distinct_labels_raw:
+        if lbl == "rejected":
+            normalized = "rejection"
+        else:
+            normalized = lbl
+        if normalized and normalized not in seen:
+            distinct_labels.append(normalized)
+            seen.add(normalized)
 
     # Available label choices
     label_choices = [
@@ -1798,6 +1867,8 @@ def label_messages(request):
             "filter_label": filter_label,
             "filter_confidence": filter_confidence,
             "filter_company": filter_company,
+            "filter_reviewed": filter_reviewed,
+            "search_query": search_query,
             "sort": sort,
             "order": order,
             "distinct_labels": distinct_labels,

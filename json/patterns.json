@@ -70,12 +70,12 @@
     ],
     "offer": ["None"],
     "noise": [
-      "\\bunsubscribe\\b",
       "\\bnewsletter\\b",
       "\\bdigest\\b",
       "\\bpromotion\\b",
       "\\bmarketing\\b",
       "\\bsale\\b",
+      "\\bjob\\salert\\b",
       "\\bverification\\scode\\b",
       "\\bone-time\\scode\\b",
       "\\bpassword\\sverification\\b",
@@ -91,16 +91,6 @@
     "head_hunter": [
       "(seeking|urgent\\sneed|urgent\\shiring|looking\\sfor|came\\sacross|direct\\shire|found\\syour\\sresume|matches\\syour\\sprofile)",
       "\\b(contractual assignment)\\b|(looking for candidates)\\b|\\b(is seeking)\\b"
-    ],
-    "job_alert": [
-      "\\bjob\\salerts?\\b",
-      "\\byour\\sjob\\salert\\b",
-      "careercenter@computer\\.org",
-      "\\byour\\sjob\\smatches\\b",
-      "\\bnew\\smatches\\savailable\\b",
-      "\\b(saved\\ssearch|search\\sresults)\\b",
-      "\\bnew\\sjobs?\\s(in|near|for)\\b",
-      "\\bapply\\snow\\b"
     ],
     "follow_up": [
       "just\\schecking\\sin",
@@ -124,6 +114,7 @@
     ]
   },
   "suppress_labels": ["offer"],
+  "ignore_labels": ["noise", "head_hunter"],
   "message_label_excludes": {
     "application": [
       "refills\\sat",

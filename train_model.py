@@ -51,7 +51,6 @@ _MSG_LABEL_PATTERNS = {
         "referral",
         "response" "ghosted",
         "noise",
-        "job_alert",
         "follow-up",
         "ignore",
     )

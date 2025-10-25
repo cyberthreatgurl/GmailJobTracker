@@ -22,11 +22,5 @@
     "display_name": "Ghosted",
     "color": "#a3a3a3",
     "ml_label": "ghosted"
-  },
-  {
-    "label": "job_alert",
-    "display_name": "Job Alert",
-    "color": "#eab308",
-    "ml_label": "job_alert"
   }
 ]

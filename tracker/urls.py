@@ -7,7 +7,6 @@ urlpatterns = [
     path("reingest_admin/", views.reingest_admin, name="reingest_admin"),
     path("reingest_admin/stream", views.reingest_stream, name="reingest_stream"),
     path("", views.dashboard, name="dashboard"),
-    path("company/<int:company_id>/", views.company_detail, name="company_detail"),
     path(
         "company/<int:company_id>/delete/", views.delete_company, name="delete_company"
     ),

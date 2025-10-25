@@ -108,7 +108,7 @@ pytest --cov=tracker --cov-report=html    # Coverage report
 - **ML first**: `predict_subject_type()` combines subject + body TF-IDF features
 - **Rule fallback**: If confidence < 0.55, apply `rule_label()` from `patterns.json`
 - **Auto-review**: Messages with 85%+ confidence + valid company + non-noise label → `reviewed=True`
-- **Ignore threshold**: `noise`, `job_alert`, `head_hunter` labels trigger `IgnoredMessage` logging
+- **Ignore threshold**: `noise`, `head_hunter` labels trigger `IgnoredMessage` logging
 
 ### DB Patterns
 - **Threading**: `thread_id` from Gmail API groups related messages (e.g., application → response → rejection)

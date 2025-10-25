@@ -113,9 +113,8 @@ def rule_label(subject: str, body: str = "") -> str | None:
       3) interview_invite
       4) job_application
       5) referral
-      6) job_alert
-      7) head_hunter
-      8) noise
+      6) head_hunter
+      7) noise
     """
     text = f"{subject or ''} {body or ''}".lower()
 
@@ -125,7 +124,6 @@ def rule_label(subject: str, body: str = "") -> str | None:
         "interview_invite",
         "job_application",
         "referral",
-        "job_alert",
         "head_hunter",
         "noise",
     ]
@@ -168,9 +166,7 @@ def predict_subject_type(subject: str, body: str = "", threshold: float = 0.6):
     method is one of: rules | rules_fallback | ml | unknown
     """
     # Get ignore labels from patterns.json (configurable instead of hardcoded)
-    ignore_labels = set(
-        _PATTERNS.get("ignore_labels", ["noise", "job_alert", "head_hunter"])
-    )
+    ignore_labels = set(_PATTERNS.get("ignore_labels", ["noise", "head_hunter"]))
 
     # Debug header
     if DEBUG:

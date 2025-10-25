@@ -19,10 +19,10 @@ def load_ignore_labels() -> Set[str]:
     try:
         with open(patterns_path, "r", encoding="utf-8") as f:
             data = json.load(f)
-        ignore = set(data.get("ignore_labels", ["noise", "job_alert", "head_hunter"]))
+        ignore = set(data.get("ignore_labels", ["noise", "head_hunter"]))
         return ignore
     except Exception:
-        return {"noise", "job_alert", "head_hunter"}
+        return {"noise", "head_hunter"}
 
 
 class Command(BaseCommand):
@@ -65,7 +65,7 @@ class Command(BaseCommand):
         parser.add_argument(
             "--include-ignored",
             action="store_true",
-            help="Include ignore_labels (noise/job_alert/head_hunter) in app set",
+            help="Include ignore_labels (noise/head_hunter) in app set",
         )
         parser.add_argument(
             "--only-stats",

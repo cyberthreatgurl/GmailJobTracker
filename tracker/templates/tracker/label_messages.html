@@ -418,7 +418,7 @@
               <td class="subject-cell">{{ msg.display_subject }}</td>
               <td>
                 {% if msg.company %}
-                  <a href="{% url 'company_detail' msg.company.id %}" style="color: #2563eb;">
+                  <a href="{% url 'label_companies' %}?company={{ msg.company.id }}" style="color: #2563eb;">
                     {{ msg.company.name }}
                   </a>
                 {% else %}

@@ -17,7 +17,7 @@ A local-only Django application that transforms your Gmail into an intelligent j
 
 - **Hybrid ML + Regex**: Combines TF-IDF/Logistic Regression with rule-based patterns
 - **Auto-labeling**: 85%+ confidence messages auto-reviewed
-- **7 Message Types**: job_application, interview_invite, rejection, head_hunter, job_alert, noise, other
+- **6 Message Types**: job_application, interview_invite, rejection, head_hunter, noise, other
 - **Confidence scoring**: See ML certainty for each classification
 
 ### 🏢 Company Resolution

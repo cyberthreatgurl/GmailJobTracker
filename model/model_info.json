@@ -1,16 +1,15 @@
 {
-  "trained_on": "2025-10-24T16:49:13.680294",
+  "trained_on": "2025-10-24T22:36:42.589432",
   "labels": [
     "head_hunter",
     "interview_invite",
-    "job_alert",
     "job_application",
     "noise",
     "other",
     "referral",
     "rejected"
   ],
-  "num_samples": 737,
+  "num_samples": 736,
   "total_features": 41353,
   "meaningful_features_sample": [
     "10 more",

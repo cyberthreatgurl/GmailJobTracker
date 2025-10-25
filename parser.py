@@ -46,8 +46,6 @@ if PATTERNS_PATH.exists():
     PATTERNS = patterns_data
 else:
     PATTERNS = {}
-
-# Compile message label regexes from message_labels (new structure) or top-level (legacy)
 # Map from label names used in code to JSON keys
 LABEL_MAP = {
     "interview_invite": ["interview", "interview_invite"],
@@ -61,7 +59,6 @@ LABEL_MAP = {
     "ghosted": ["ghosted"],
     "referral": ["referral"],
     "head_hunter": ["head_hunter"],
-    "job_alert": ["job_alert"],
 }
 
 _MSG_LABEL_PATTERNS = {}
@@ -128,7 +125,6 @@ def rule_label(subject: str, body: str = "") -> str | None:
         "rejected",  # Specific negatives: unfortunately, other candidates
         "interview_invite",  # Action-oriented: schedule, availability, interview
         "job_application",  # Generic: received, thank you, will be reviewed
-        "job_alert",  # Job alerts from boards (place before noise/referral due to footers)
         "referral",  # Referral/intro messages
         "head_hunter",  # Recruiter blasts
         "noise",  # Generic promos, OTPs, newsletters (often matched by body/footer)
@@ -477,13 +473,18 @@ def classify_message(body):
         return "job_application"
     if any(p in body_lower for p in PATTERNS.get("response", [])):
         return "response"
-    if any(p in body_lower for p in PATTERNS.get("job_alert", [])):
-        return "job_alert"
+    # removed job_alert label
     return ""
 
 
 def parse_subject(subject, body="", sender=None, sender_domain=None):
     """Extract company, job title, and job ID from subject line, sender, and optionally sender domain."""
+
+    if DEBUG:
+        print(f"[DEBUG] parse_subject called with:")
+        print(f"[DEBUG]   subject={subject[:60]}...")
+        print(f"[DEBUG]   sender={sender}")
+        print(f"[DEBUG]   sender_domain={sender_domain}")
 
     RESUME_NOISE_PATTERNS = [
         r"\bresume\b",
@@ -502,26 +503,19 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
     label = result["label"]
     ignore = bool(result.get("ignore", False))
 
-    # --- Hard-ignore for resume or known noise patterns ---
-    if (
-        label == "noise"
-        or should_ignore(subject, "")
-        or any(re.search(p, subject, re.I) for p in RESUME_NOISE_PATTERNS)
-    ):
-        return {
-            "company": "",
-            "job_title": "",
-            "job_id": "",
-            "predicted_company": "",
-            "label": "noise",
-            "confidence": 0.9,
-            "ignore": True,
-        }
+    print("=== PARSE_SUBJECT CALLED ===", flush=True)
+    print(f"DEBUG={DEBUG}", flush=True)
+    if DEBUG:
+        print(f"[DEBUG parse_subject] subject='{subject[:80]}'", flush=True)
+        print(f"[DEBUG parse_subject] sender='{sender}'", flush=True)
+        print(f"[DEBUG parse_subject] sender_domain='{sender_domain}'", flush=True)
+        print(
+            f"[DEBUG parse_subject] label={label}, confidence={confidence}", flush=True
+        )
 
-    # --- Entity extraction ---
-    entities = extract_entities(subject)
-    company = entities.get("company", "")
-    job_title = entities.get("job_title", "")
+    # --- Initialize variables ---
+    company = ""
+    job_title = ""
     job_id = ""
 
     # --- Continue with original logic for fallback or enrichment ---
@@ -533,36 +527,67 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
     subj_lower = subject_clean.lower()
     domain_lower = sender_domain.lower() if sender_domain else None
 
-    # Colon-prefix
+    # PRIORITY 1: ATS domain with known sender prefix (most reliable)
+    if not company and domain_lower in ATS_DOMAINS and sender:
+        # First try to extract from sender email prefix (e.g., ngc@myworkday.com)
+        if "@" in sender:
+            sender_prefix = sender.split("@")[0].strip().lower()
+            # Check if prefix matches an alias
+            aliases_lower = {
+                k.lower(): v for k, v in company_data.get("aliases", {}).items()
+            }
+            if sender_prefix in aliases_lower:
+                company = aliases_lower[sender_prefix]
+                if DEBUG:
+                    print(f"[DEBUG] ATS alias match: {sender_prefix} -> {company}")
+
+        # Fallback to display name extraction
+        if not company:
+            display_name, _ = parseaddr(sender)
+            cleaned = re.sub(
+                r"\b(Workday|Recruiting Team|Careers|Talent Acquisition Team|HR|Hiring)\b",
+                "",
+                display_name,
+                flags=re.I,
+            ).strip()
+            if cleaned:
+                company = cleaned
+                if DEBUG:
+                    print(f"[DEBUG] ATS display name: {company}")
+
+    # PRIORITY 2: Domain mapping (direct company domains)
+    if not company and domain_lower and domain_lower in DOMAIN_TO_COMPANY:
+        company = DOMAIN_TO_COMPANY[domain_lower]
+
+    # PRIORITY 3: Known companies in subject
+    if not company and KNOWN_COMPANIES:
+        # Sort by length descending to match "Northrop Grumman" before "Northrop"
+        sorted_companies = sorted(KNOWN_COMPANIES, key=len, reverse=True)
+        for known in sorted_companies:
+            if known in subj_lower:
+                # Find original casing from known list
+                for orig in company_data.get("known", []):
+                    if orig.lower() == known:
+                        company = orig
+                        break
+                if not company:  # fallback to title case
+                    company = known.title()
+                break
+
+    # PRIORITY 4: Entity extraction (spaCy NER)
+    if not company:
+        entities = extract_entities(subject)
+        company = entities.get("company", "")
+        if not job_title:
+            job_title = entities.get("job_title", "")
+
+    # PRIORITY 5: Colon-prefix pattern
     if not company:
         m = re.match(r"^([A-Z][A-Za-z0-9&.\- ]+):", subject_clean)
         if m:
             company = m.group(1).strip()
 
-    # Known companies
-    if not company and KNOWN_COMPANIES:
-        for known in KNOWN_COMPANIES:
-            if known in subj_lower:
-                company = known.title()
-                break
-
-    # Domain mapping
-    if not company and domain_lower and domain_lower in DOMAIN_TO_COMPANY:
-        company = DOMAIN_TO_COMPANY[domain_lower]
-
-    # ATS domain → display name
-    if not company and domain_lower in ATS_DOMAINS and sender:
-        display_name, _ = parseaddr(sender)
-        cleaned = re.sub(
-            r"\b(Workday|Recruiting Team|Careers|Talent Acquisition Team|HR|Hiring)\b",
-            "",
-            display_name,
-            flags=re.I,
-        ).strip()
-        if cleaned:
-            company = cleaned
-
-    # Regex patterns
+    # PRIORITY 6: Regex patterns
     patterns = [
         (r"application (?:to|for|with)\s+([A-Z][\w\s&\-]+)", re.IGNORECASE),
         (r"(?:from|with|at)\s+([A-Z][\w\s&\-]+)", re.IGNORECASE),
@@ -620,6 +645,33 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
         r"(?:Job\s*#?|Position\s*#?|jobId=)([\w\-]+)", subject_clean, re.IGNORECASE
     )
     job_id = id_match.group(1).strip() if id_match else ""
+
+    # --- Hard-ignore check AFTER company extraction ---
+    # If we found a valid company from known list or domain, override noise classification
+    if company and (
+        (domain_lower and domain_lower in DOMAIN_TO_COMPANY)
+        or (subj_lower and any(known in subj_lower for known in KNOWN_COMPANIES))
+    ):
+        # Valid company detected, not noise - reclassify if needed
+        if label == "noise":
+            label = "job_application"  # assume application if company found
+            confidence = 0.7  # moderate confidence for overridden classification
+
+    # Hard-ignore for resume or known noise patterns (only if no valid company)
+    if not company and (
+        label == "noise"
+        or should_ignore(subject, "")
+        or any(re.search(p, subject, re.I) for p in RESUME_NOISE_PATTERNS)
+    ):
+        return {
+            "company": "",
+            "job_title": "",
+            "job_id": "",
+            "predicted_company": "",
+            "label": "noise",
+            "confidence": 0.9,
+            "ignore": True,
+        }
 
     return {
         "company": company,
@@ -720,9 +772,9 @@ def ingest_message(service, msg_id):
     result = predict_subject_type(subject, body)
 
     # --- NEW LOGIC: Robust company extraction order ---
-    # Add guard: skip company assignment for noise/job_alert labels
+    # Add guard: skip company assignment for noise label
     label_guard = result.get("label") if result else None
-    skip_company_assignment = label_guard in {"noise", "job_alert"}
+    skip_company_assignment = label_guard == "noise"
     company = ""
     company_source = ""
     company_obj = None
@@ -752,8 +804,7 @@ def ingest_message(service, msg_id):
                 predicted = predict_company(subject, body)
                 if (
                     predicted
-                    and predicted.lower()
-                    not in {"job_application", "job_alert", "noise"}
+                    and predicted.lower() not in {"job_application", "noise"}
                     and is_valid_company_name(predicted)
                 ):
                     company = predicted
@@ -862,37 +913,49 @@ def ingest_message(service, msg_id):
         if (
             result
             and result.get("confidence", 0.0) >= 0.85
-            and result.get("label") not in {"noise", "job_alert"}
+            and result.get("label") != "noise"
             and company_obj is not None
             and is_valid_company(company)
         ):
             existing.reviewed = True
         existing.save()
-        
+
         # ✅ Also update Application record during re-ingestion if dates are missing
         ml_label = result.get("label") if result else None
         if company_obj and ml_label:
             try:
-                app = Application.objects.filter(thread_id=metadata["thread_id"]).first()
+                app = Application.objects.filter(
+                    thread_id=metadata["thread_id"]
+                ).first()
                 if DEBUG:
-                    print(f"[Re-ingest] Looking for Application with thread_id={metadata['thread_id']}, found: {app is not None}")
+                    print(
+                        f"[Re-ingest] Looking for Application with thread_id={metadata['thread_id']}, found: {app is not None}"
+                    )
                 if app:
                     if DEBUG:
-                        print(f"[Re-ingest] App ml_label={app.ml_label}, rejection_date={app.rejection_date}, ml_label_param={ml_label}")
+                        print(
+                            f"[Re-ingest] App ml_label={app.ml_label}, rejection_date={app.rejection_date}, ml_label_param={ml_label}"
+                        )
                     updated = False
                     if not app.rejection_date and ml_label == "rejected":
                         app.rejection_date = metadata["timestamp"].date()
                         updated = True
                         if DEBUG:
-                            print(f"✓ Set rejection_date during re-ingest: {app.rejection_date}")
+                            print(
+                                f"✓ Set rejection_date during re-ingest: {app.rejection_date}"
+                            )
                     if not app.interview_date and ml_label == "interview_invite":
                         app.interview_date = metadata["timestamp"].date()
                         updated = True
                         if DEBUG:
-                            print(f"✓ Set interview_date during re-ingest: {app.interview_date}")
+                            print(
+                                f"✓ Set interview_date during re-ingest: {app.interview_date}"
+                            )
                     if not app.ml_label or app.ml_label != ml_label:
                         app.ml_label = ml_label
-                        app.ml_confidence = float(result.get("confidence", 0.0)) if result else 0.0
+                        app.ml_confidence = (
+                            float(result.get("confidence", 0.0)) if result else 0.0
+                        )
                         updated = True
                     if updated:
                         app.save()
@@ -900,11 +963,15 @@ def ingest_message(service, msg_id):
                             print(f"✓ Updated Application during re-ingest")
                 else:
                     if DEBUG:
-                        print(f"[Re-ingest] No Application found for thread_id={metadata['thread_id']}")
+                        print(
+                            f"[Re-ingest] No Application found for thread_id={metadata['thread_id']}"
+                        )
             except Exception as e:
                 if DEBUG:
-                    print(f"Warning: Could not update Application during re-ingest: {e}")
-        
+                    print(
+                        f"Warning: Could not update Application during re-ingest: {e}"
+                    )
+
         IngestionStats.objects.filter(date=stats.date).update(
             total_skipped=F("total_skipped") + 1
         )
@@ -913,7 +980,7 @@ def ingest_message(service, msg_id):
     reviewed = (
         result
         and result.get("confidence", 0.0) >= 0.85
-        and result.get("label") not in {"noise", "job_alert"}
+        and result.get("label") != "noise"
         and company_obj is not None
         and is_valid_company(company)
     )
@@ -939,18 +1006,18 @@ def ingest_message(service, msg_id):
         company_source=company_source,
     )
     # ✅ Create or update Application record using Django ORM
-    
+
     # ✅ Fallback: if pattern-based extraction didn't find rejection/interview dates,
     # but ML classified it as rejected/interview_invite, use message timestamp
     ml_label = result.get("label") if result else None
     rejection_date_final = status_dates["rejection_date"]
     interview_date_final = status_dates["interview_date"]
-    
+
     if not rejection_date_final and ml_label == "rejected":
         rejection_date_final = metadata["timestamp"].date()
         if DEBUG:
             print(f"✓ Set rejection_date from ML label: {rejection_date_final}")
-    
+
     if not interview_date_final and ml_label == "interview_invite":
         interview_date_final = metadata["timestamp"].date()
         if DEBUG:
@@ -977,14 +1044,17 @@ def ingest_message(service, msg_id):
                     "reviewed": reviewed,
                 },
             )
-            
+
             # ✅ Update existing application if dates are missing but ML classified it
             if not created:
                 updated = False
                 if not application_obj.rejection_date and ml_label == "rejected":
                     application_obj.rejection_date = rejection_date_final
                     updated = True
-                if not application_obj.interview_date and ml_label == "interview_invite":
+                if (
+                    not application_obj.interview_date
+                    and ml_label == "interview_invite"
+                ):
                     application_obj.interview_date = interview_date_final
                     updated = True
                 if updated:

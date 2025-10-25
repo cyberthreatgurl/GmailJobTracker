@@ -329,8 +329,6 @@ def compare_gmail_filters(request):
                     "prescreen": "prescreen",
                     "headhunter": "head_hunter",
                     "head_hunter": "head_hunter",
-                    "job_alert": "job_alert",
-                    "alert": "job_alert",
                     "noise": "noise",
                     "referral": "referral",
                     "offer": "offer",
@@ -346,7 +344,6 @@ def compare_gmail_filters(request):
                     "application",
                     "interview",
                     "rejection",
-                    "job_alert",
                     "head_hunter",
                     "noise",
                     "referral",
@@ -661,8 +658,6 @@ def gmail_filters_labels_compare(request):
                         "prescreen": "interview",
                         "headhunter": "head_hunter",
                         "head_hunter": "head_hunter",
-                        "job_alert": "job_alert",
-                        "alert": "job_alert",
                         "noise": "noise",
                         "referral": "referral",
                         "offer": "offer",
@@ -678,7 +673,6 @@ def gmail_filters_labels_compare(request):
                         "application",
                         "interview",
                         "rejection",
-                        "job_alert",
                         "head_hunter",
                         "noise",
                         "referral",
@@ -763,7 +757,15 @@ from gmail_auth import get_gmail_service
 # --- Delete Company Page ---
 @login_required
 def delete_company(request, company_id):
-    company = get_object_or_404(Company, pk=company_id)
+    try:
+        company = Company.objects.get(pk=company_id)
+    except Company.DoesNotExist:
+        messages.error(
+            request,
+            f"❌ Company with ID {company_id} not found. It may have already been deleted.",
+        )
+        return redirect("label_companies")
+    
     if request.method == "POST":
         company_name = company.name
 
@@ -862,6 +864,10 @@ def label_companies(request):
             selected_company = companies.get(id=selected_id)
         except Company.DoesNotExist:
             selected_company = None
+            messages.warning(
+                request,
+                f"⚠️ Company with ID {selected_id} not found. It may have been deleted.",
+            )
         if selected_company:
             # Get latest label from messages
             latest_msg = (
@@ -1443,12 +1449,6 @@ def dashboard(request):
                 "color": "#a3a3a3",
                 "ml_label": "ghosted",
             },
-            {
-                "label": "job_alert",
-                "display_name": "Job Alert",
-                "color": "#eab308",
-                "ml_label": "job_alert",
-            },
         ]
 
     # Now build date list
@@ -1646,15 +1646,6 @@ def dashboard(request):
             "initial_ghosted_companies": initial_ghosted_companies,
         },
     )
-
-
-def company_detail(request, company_id):
-    company = get_object_or_404(Company, pk=company_id)
-    applications = Application.objects.filter(company=company)
-    messages = Message.objects.filter(company=company).order_by("timestamp")
-    ctx = {"company": company, "applications": applications, "messages": messages}
-    ctx.update(build_sidebar_context())
-    return render(request, "tracker/company_detail.html", ctx)
 
 
 def extract_body_content(raw_html):
@@ -1920,7 +1911,6 @@ def label_messages(request):
         "rejection",
         "offer",
         "noise",
-        "job_alert",
         "head_hunter",
         "referral",
         "ghosted",
@@ -2046,7 +2036,6 @@ def metrics(request):
         "noise",
         "referral",
         "head_hunter",
-        "job_alert",
         "ghosted",
         "follow_up",
         "response",
@@ -2313,7 +2302,6 @@ def json_file_viewer(request):
                     "noise",
                     "referral",
                     "head_hunter",
-                    "job_alert",
                     "follow_up",
                     "response",
                     "ghosted",
@@ -2938,7 +2926,6 @@ def configure_settings(request):
                                 "job_application",
                                 "interview_invite",
                                 "rejected",
-                                "job_alert",
                                 "head_hunter",
                                 "noise",
                             )

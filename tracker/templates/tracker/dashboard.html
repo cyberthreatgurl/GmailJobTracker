@@ -189,7 +189,7 @@
         <ul id="rejectionList" style="margin: 0; padding-left: 1.25rem; list-style: disc; color: #7f1d1d; font-size: 0.9rem; line-height: 1.6;">
           {% if initial_rejection_companies %}
             {% for c in initial_rejection_companies %}
-              <li><a href="/company/{{ c.id }}/" style="text-decoration:none; color:inherit;">{{ c.name }}</a></li>
+              <li><a href="/label_companies/?company={{ c.id }}" style="text-decoration:none; color:inherit;">{{ c.name }}</a></li>
             {% endfor %}
           {% else %}
             <li style="color: #9ca3af;">No data in selected range</li>
@@ -206,7 +206,7 @@
         <ul id="applicationList" style="margin: 0; padding-left: 1.25rem; list-style: disc; color: #1e3a8a; font-size: 0.9rem; line-height: 1.6;">
           {% if initial_application_companies %}
             {% for c in initial_application_companies %}
-              <li><a href="/company/{{ c.id }}/" style="text-decoration:none; color:inherit;">{{ c.name }}</a></li>
+              <li><a href="/label_companies/?company={{ c.id }}" style="text-decoration:none; color:inherit;">{{ c.name }}</a></li>
             {% endfor %}
           {% else %}
             <li style="color: #9ca3af;">No data in selected range</li>
@@ -223,7 +223,7 @@
         <ul id="ghostedList" style="margin: 0; padding-left: 1.25rem; list-style: disc; color: #525252; font-size: 0.9rem; line-height: 1.6;">
           {% if initial_ghosted_companies %}
             {% for c in initial_ghosted_companies %}
-              <li><a href="/company/{{ c.id }}/" style="text-decoration:none; color:inherit;">{{ c.name }}</a></li>
+              <li><a href="/label_companies/?company={{ c.id }}" style="text-decoration:none; color:inherit;">{{ c.name }}</a></li>
             {% endfor %}
           {% else %}
             <li style="color: #9ca3af;">No data in selected range</li>
@@ -596,7 +596,7 @@
         } else {
           const sorted = companies.slice().sort((a,b) => a.name.localeCompare(b.name));
           listEl.innerHTML = sorted
-            .map(item => `<li><a href="/company/${item.id}/" style="text-decoration:none; color:inherit;">${item.name}</a></li>`)
+            .map(item => `<li><a href="/label_companies/?company=${item.id}" style="text-decoration:none; color:inherit;">${item.name}</a></li>`)
             .join('');
         }
       }

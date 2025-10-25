@@ -284,7 +284,7 @@
             <div class="section">
               <div class="section-title">Message Label Patterns (Regex)</div>
               
-              {% for label in "interview,application,rejection,offer,noise,referral,head_hunter,job_alert,follow_up,response,ghosted,other"|split:"," %}
+              {% for label in "interview,application,rejection,offer,noise,referral,head_hunter,follow_up,response,ghosted,other"|split:"," %}
               <div class="expandable">
                 <div class="expandable-header" onclick="toggleExpand(this)">
                   <span>{{ label|title }}</span>

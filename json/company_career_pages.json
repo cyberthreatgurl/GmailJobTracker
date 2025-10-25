@@ -1,0 +1,10 @@
+{
+  "_comment": "Curated list of company career pages for seeding companies.json. Run scripts/extract_companies_from_url.py --from-file to batch-process these URLs.",
+  "career_pages": [
+    {
+      "company": "Splunk",
+      "url": "https://www.splunk.com/en_us/careers/search-jobs.html",
+      "notes": "Main careers search page with job listings and partner links"
+    }
+  ]
+}

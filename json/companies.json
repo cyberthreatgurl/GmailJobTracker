@@ -34,7 +34,15 @@
     "Stripe",
     "Target",
     "VA Tech",
-    "Verizon"
+    "Verizon",
+    "Appdynamics",
+    "Rigor",
+    "Gartner",
+    "Peerspot",
+    "Cisco",
+    "Victorops",
+    "Signalfx",
+    "Trustradius"
   ],
   "domain_to_company": {
     "systemicrisk.org": "Analysis and Resilience Center for Systemic Risk",
@@ -59,7 +67,16 @@
     "partnerforces.com": "PartnerForces",
     "rapid7.com": "Rapid7",
     "simventions.com": "SimVentions",
-    "venturegloballng.com": "Venture Global LNG"
+    "venturegloballng.com": "Venture Global LNG",
+    "splunk.com": "Splunk",
+    "cisco.com": "Cisco",
+    "signalfx.com": "Signalfx",
+    "appdynamics.com": "Appdynamics",
+    "victorops.com": "Victorops",
+    "rigor.com": "Rigor",
+    "gartner.com": "Gartner",
+    "peerspot.com": "Peerspot",
+    "trustradius.com": "Trustradius"
   },
   "headhunter_domains": [
     "hirexcorp.com",

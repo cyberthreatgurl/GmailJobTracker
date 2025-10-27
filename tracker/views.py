@@ -1,4 +1,6 @@
 # --- Label Rule Debugger ---
+
+import os
 from pathlib import Path
 import json
 import re
@@ -451,7 +453,7 @@ def compare_gmail_filters(request):
         with open(patterns_path, "w", encoding="utf-8") as f:
             json.dump(patterns, f, indent=2, ensure_ascii=False)
         messages.success(
-            request, f"✅ Imported and updated {updated} filter(s) in patterns.json."
+            request, f"Imported and updated {updated} filter(s) in patterns.json."
         )
         return redirect("import_gmail_filters_compare")
 
@@ -765,7 +767,7 @@ def delete_company(request, company_id):
             f"❌ Company with ID {company_id} not found. It may have already been deleted.",
         )
         return redirect("label_companies")
-    
+
     if request.method == "POST":
         company_name = company.name
 
@@ -862,6 +864,18 @@ def label_companies(request):
     if selected_id:
         try:
             selected_company = companies.get(id=selected_id)
+            # Load career URL from companies.json JobSites
+            companies_json_path = Path("json/companies.json")
+            career_url = ""
+            try:
+                if companies_json_path.exists():
+                    with open(companies_json_path, "r", encoding="utf-8") as f:
+                        companies_json_data = json.load(f)
+                        career_url = companies_json_data.get("JobSites", {}).get(
+                            selected_company.name, ""
+                        )
+            except Exception:
+                pass
         except Company.DoesNotExist:
             selected_company = None
             messages.warning(
@@ -927,31 +941,44 @@ def label_companies(request):
                     return redirect(f"/label_companies/?company={selected_company.id}")
                 form = CompanyEditForm(request.POST, instance=selected_company)
                 if form.is_valid():
+                    # Save career URL to companies.json JobSites
+                    career_url_input = form.cleaned_data.get("career_url", "").strip()
+                    if career_url_input and selected_company.name:
+                        try:
+                            companies_json_path = Path("json/companies.json")
+                            if companies_json_path.exists():
+                                with open(
+                                    companies_json_path, "r", encoding="utf-8"
+                                ) as f:
+                                    companies_json_data = json.load(f)
+
+                                if "JobSites" not in companies_json_data:
+                                    companies_json_data["JobSites"] = {}
+
+                                companies_json_data["JobSites"][
+                                    selected_company.name
+                                ] = career_url_input
+
+                                with open(
+                                    companies_json_path, "w", encoding="utf-8"
+                                ) as f:
+                                    json.dump(
+                                        companies_json_data,
+                                        f,
+                                        indent=2,
+                                        ensure_ascii=False,
+                                    )
+                        except Exception as e:
+                            print(f"⚠️ Failed to save career URL: {e}")
                     form.save()
-                    # Upsert domain_to_company when complete
-                    try:
-                        name = (selected_company.name or "").strip()
-                        domain = (selected_company.domain or "").strip().lower()
-                        if name and domain:
-                            # Normalize domain
-                            for prefix in ("http://", "https://"):
-                                if domain.startswith(prefix):
-                                    domain = domain[len(prefix) :]
-                            if domain.startswith("www."):
-                                domain = domain[4:]
-                            if "." in domain:
-                                DomainToCompany.objects.update_or_create(
-                                    domain=domain, defaults={"company": name}
-                                )
-                    except Exception as e:
-                        # Non-fatal; continue with redirect
-                        print(f"⚠️ Failed to upsert DomainToCompany: {e}")
-                    messages.success(
-                        request, f"✅ Saved changes for {selected_company.name}."
-                    )
+                    messages.success(request, "✅ Company details saved.")
                     return redirect(f"/label_companies/?company={selected_company.id}")
+                # If invalid, fall through to render the bound form with errors
             else:
-                form = CompanyEditForm(instance=selected_company)
+                # GET request: initialize form with current data and career URL from companies.json
+                form = CompanyEditForm(
+                    instance=selected_company, initial={"career_url": career_url}
+                )
 
     ctx = build_sidebar_context()
     ctx.update(

@@ -255,56 +255,53 @@ def is_valid_company_name(name):
     return True
 
 
+def normalize_company_name(name: str) -> str:
+    """Normalize common subject-derived artifacts from company names.
+
+    - Strip whitespace and trailing punctuation
+    - Remove suffix fragments like "- Application ..." or trailing "Application"
+    - Collapse repeated whitespace
+    - Map known pseudo-companies like "Indeed Application" -> "Indeed"
+    """
+    if not name:
+        return ""
+
+    n = name.strip()
+
+    # Remove common subject suffixes accidentally captured
+    n = re.sub(r"\s*-\s*Application.*$", "", n, flags=re.IGNORECASE)
+    n = re.sub(r"\bApplication\b\s*$", "", n, flags=re.IGNORECASE)
+
+    # Trim lingering separators/punctuation
+    n = re.sub(r"[\s\-:|•]+$", "", n)
+
+    # Collapse multiple internal spaces
+    n = re.sub(r"\s{2,}", " ", n)
+
+    # Known normalizations
+    lower = n.lower()
+    if lower == "indeed application":
+        return "Indeed"
+
+    return n
+
+
 PARSER_VERSION = "1.0.0"
 
-# --- Optional local ML artifact load (parser-local). Actual classification is handled in ml_subject_classifier. ---
+# --- ML Model Paths ---
+# Message classification is handled by ml_subject_classifier.py (imported on line 27)
+# Company classification is handled locally in predict_company() function
 MODEL_DIR = Path(__file__).parent / "model"
-_MODEL_PATH = MODEL_DIR / "message_classifier.pkl"
-_SUBJ_VEC_PATH = MODEL_DIR / "subject_vectorizer.pkl"
-_BODY_VEC_PATH = MODEL_DIR / "body_vectorizer.pkl"
-_LABELS_PATH = MODEL_DIR / "message_label_encoder.pkl"
 
-# Optional company-level classifier artifacts (if present)
+# Company-level classifier artifacts (optional, used by predict_company())
 _COMP_MODEL_PATH = MODEL_DIR / "company_classifier.pkl"
 _COMP_VEC_PATH = MODEL_DIR / "vectorizer.pkl"
 _COMP_LABELS_PATH = MODEL_DIR / "label_encoder.pkl"
-
-CLASSIFIER = None
-SUBJECT_VECTORIZER = None
-BODY_VECTORIZER = None
-LABEL_ENCODER = None
-ml_enabled = False
 
 # Company classifier handles company name prediction (optional)
 COMPANY_CLASSIFIER = None
 COMPANY_VECTORIZER = None
 COMPANY_LABEL_ENCODER = None
-
-if (
-    _MODEL_PATH.exists()
-    and _SUBJ_VEC_PATH.exists()
-    and _BODY_VEC_PATH.exists()
-    and _LABELS_PATH.exists()
-):
-    try:
-        CLASSIFIER = joblib.load(_MODEL_PATH)
-        SUBJECT_VECTORIZER = joblib.load(_SUBJ_VEC_PATH)
-        BODY_VECTORIZER = joblib.load(_BODY_VEC_PATH)
-        LABEL_ENCODER = joblib.load(_LABELS_PATH)
-        ml_enabled = True
-        if DEBUG:
-            print("🤖 Parser: local ML artifacts loaded (optional).")
-    except Exception as _e:
-        # Non-fatal: ml_subject_classifier handles predictions; keep quiet to avoid confusing logs
-        CLASSIFIER = None
-        SUBJECT_VECTORIZER = None
-        BODY_VECTORIZER = None
-        LABEL_ENCODER = None
-        ml_enabled = False
-else:
-    # Artifacts missing locally; this is fine since ml_subject_classifier is authoritative.
-    # Do not print a warning to avoid noise during management commands.
-    ml_enabled = False
 
 # Load optional company classifier artifacts (non-fatal if missing)
 if _COMP_MODEL_PATH.exists() and _COMP_VEC_PATH.exists() and _COMP_LABELS_PATH.exists():
@@ -530,8 +527,10 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
     # PRIORITY 1: ATS domain with known sender prefix (most reliable)
     if not company and domain_lower in ATS_DOMAINS and sender:
         # First try to extract from sender email prefix (e.g., ngc@myworkday.com)
-        if "@" in sender:
-            sender_prefix = sender.split("@")[0].strip().lower()
+        # Use parseaddr to extract the actual email address from "Display Name <email@domain.com>"
+        _, sender_email = parseaddr(sender)
+        if sender_email and "@" in sender_email:
+            sender_prefix = sender_email.split("@")[0].strip().lower()
             # Check if prefix matches an alias
             aliases_lower = {
                 k.lower(): v for k, v in company_data.get("aliases", {}).items()
@@ -541,7 +540,57 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
                 if DEBUG:
                     print(f"[DEBUG] ATS alias match: {sender_prefix} -> {company}")
 
-        # Fallback to display name extraction
+        # Special case: Indeed Apply emails - extract actual employer from body
+        if not company and domain_lower == "indeed.com" and body:
+            if "indeedapply" in sender_email:
+                # Extract plain text body for pattern matching
+                body_plain = body
+                try:
+                    if body and ("<html" in body.lower() or "<style" in body.lower()):
+                        soup = BeautifulSoup(body, "html.parser")
+                        for tag in soup(["style", "script"]):
+                            tag.decompose()
+                        body_plain = soup.get_text(separator=" ", strip=True)
+                except Exception:
+                    body_plain = body
+
+                # Look for "The following items were sent to COMPANY" or "about your application" patterns
+                if body_plain:
+                    # Try pattern 1: "sent to COMPANY"
+                    indeed_pattern = re.search(
+                        r"(?:the following items were sent to|sent to)\s+([A-Z][A-Za-z0-9\s&.,'-]+?)\s*[.\n]",
+                        body_plain,
+                        re.IGNORECASE,
+                    )
+                    if not indeed_pattern:
+                        # Try pattern 2: "about your application" with company name before it
+                        indeed_pattern = re.search(
+                            r"<strong>\s*<a[^>]+>([A-Z][A-Za-z0-9\s&.,'-]+?)</a>\s*</strong>.*?about your application",
+                            body,
+                            re.IGNORECASE | re.DOTALL,
+                        )
+
+                    if indeed_pattern:
+                        extracted = indeed_pattern.group(1).strip()
+                        # Clean up common trailing words
+                        extracted = re.sub(
+                            r"\s+(and|About|Your|Application|Details)$",
+                            "",
+                            extracted,
+                            flags=re.IGNORECASE,
+                        ).strip()
+                        # Remove trailing punctuation
+                        extracted = extracted.rstrip(".,;:")
+                        if (
+                            extracted
+                            and len(extracted) > 2
+                            and is_valid_company_name(extracted)
+                        ):
+                            company = extracted
+                            if DEBUG:
+                                print(f"[DEBUG] Indeed employer extraction: {company}")
+
+        # Fallback to display name extraction (only if not Indeed or if Indeed extraction failed)
         if not company:
             display_name, _ = parseaddr(sender)
             cleaned = re.sub(
@@ -588,26 +637,48 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
             company = m.group(1).strip()
 
     # PRIORITY 6: Regex patterns
+    # Note: Patterns use limited word capture (1-3 words max for company names) to avoid over-matching
+    # Example: "Proofpoint - We have received your application" should extract "Proofpoint", not the whole phrase
     patterns = [
-        (r"application (?:to|for|with)\s+([A-Z][\w\s&\-]+)", re.IGNORECASE),
-        (r"(?:from|with|at)\s+([A-Z][\w\s&\-]+)", re.IGNORECASE),
+        # Prefer stopping at separators like " application" or " -" to avoid over-capture
         (
-            r"position\s+@\s+([A-Z][\w\s&\-]+)",
-            re.IGNORECASE,
-        ),  # catches "position @ Claroty",
-        (r"^([A-Z][\w\s&\-]+)\s+(Job|Application|Interview)", 0),
-        (r"-\s*([A-Z][\w\s&\-]+)\s*-\s*", 0),
-        (r"^([A-Z][\w\s&\-]+)\s+application", 0),
-        (
-            r"(?:your application with|application with|interest in|position at)\s+([A-Z][\w\s&\-]+)",
+            r"^([A-Z][a-zA-Z]+(?:\s+(?:[A-Z][a-zA-Z]+|&[A-Z]?))*?)(?:\s+application|\s+-)",
             re.IGNORECASE,
         ),
-        (r"update on your ([A-Z][\w\s&\-]+) application", re.IGNORECASE),
-        (r"thank you for your application with\s+([A-Z][\w\s&\-]+)", re.IGNORECASE),
-        (r"@\s*([A-Z][\w\s&\-]+)", re.IGNORECASE),
+        (
+            r"application (?:to|for|with)\s+([A-Z][\w&-]+(?:\s+[\w&-]+){0,2})\b",
+            re.IGNORECASE,
+        ),
+        (r"(?:from|with|at)\s+([A-Z][\w&-]+(?:\s+[\w&-]+){0,2})\b", re.IGNORECASE),
+        (
+            r"position\s+@\s+([A-Z][\w&-]+(?:\s+[\w&-]+){0,2})\b",
+            re.IGNORECASE,
+        ),  # catches "position @ Claroty"
+        (
+            r"^([A-Z][\w&-]+(?:\s+[\w&-]+){0,2}?)\s+(?:Job|Application|Interview)\b",
+            re.IGNORECASE,
+        ),  # Max 3 words, non-greedy
+        (
+            r"-\s*([A-Z][\w&-]+(?:\s+[\w&-]+){0,2}?)\s*-\s*",
+            0,
+        ),  # Between dashes, max 3 words
+        # (moved earlier)
+        (
+            r"(?:your application with|application with|interest in|position at)\s+([A-Z][\w&-]+(?:\s+[\w&-]+){0,2})\b",
+            re.IGNORECASE,
+        ),
+        (
+            r"update on your ([A-Z][\w&-]+(?:\s+[\w&-]+){0,2}) application\b",
+            re.IGNORECASE,
+        ),
+        (
+            r"thank you for your application with\s+([A-Z][\w&-]+(?:\s+[\w&-]+){0,2})\b",
+            re.IGNORECASE,
+        ),
+        (r"@\s*([A-Z][\w&-]+(?:\s+[\w&-]+){0,2})\b", re.IGNORECASE),
         # Removed the problematic pattern that was matching "Re:" - now handled by prefix stripping above
         (
-            r"applying for ([\w\s\-]+) position @ ([A-Z][\w\s&\-]+)",
+            r"applying for ([\w\s\-]{1,50}) position @ ([A-Z][\w&-]+(?:\s+[\w&-]+){0,2})\b",
             re.IGNORECASE,
         ),  # special case
     ]
@@ -623,7 +694,7 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
         if not company:
             match = re.search(pat, subject_clean, flags)
             if match:
-                company = match.group(1).strip()
+                company = normalize_company_name(match.group(1).strip())
 
     # 🧼 Sanity check: reject job titles misclassified as companies
     if company and re.search(
@@ -674,10 +745,10 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
         }
 
     return {
-        "company": company,
+        "company": normalize_company_name(company),
         "job_title": job_title,
         "job_id": job_id,
-        "predicted_company": company,
+        "predicted_company": normalize_company_name(company),
         "label": label,
         "confidence": confidence,
         "ignore": False,
@@ -781,19 +852,69 @@ def ingest_message(service, msg_id):
     if not skip_company_assignment:
         sender_domain = metadata.get("sender_domain", "").lower()
         is_ats = any(d in sender_domain for d in ATS_DOMAINS)
+        is_headhunter = sender_domain in HEADHUNTER_DOMAINS
 
-        # 1. Domain mapping (if not ATS)
-        if sender_domain and not is_ats and sender_domain in DOMAIN_TO_COMPANY:
+        # 0. Headhunter domain check (highest priority)
+        if is_headhunter:
+            company = "HeadHunter"
+            company_source = "headhunter_domain"
+            if DEBUG:
+                print(f"Headhunter domain detected: {sender_domain} → HeadHunter")
+
+        # 1. Domain mapping (if not ATS and not headhunter)
+        if (
+            not company
+            and sender_domain
+            and not is_ats
+            and sender_domain in DOMAIN_TO_COMPANY
+        ):
             company = DOMAIN_TO_COMPANY[sender_domain]
             company_source = "domain_mapping"
             if DEBUG:
                 print(f"Domain mapping used: {sender_domain} → {company}")
 
-        # 2. Subject/body parse (if not resolved by domain)
+        # 1.5. Indeed job board special case - extract actual employer from body
+        if not company and sender_domain == "indeed.com":
+            # Check for Indeed Apply confirmation pattern
+            if (
+                "Indeed Application:" in subject
+                or "indeedapply@indeed.com" in metadata.get("sender", "").lower()
+            ):
+                # Extract plain text body for pattern matching
+                body_plain = body
+                try:
+                    if body and ("<html" in body.lower() or "<style" in body.lower()):
+                        soup = BeautifulSoup(body, "html.parser")
+                        for tag in soup(["style", "script"]):
+                            tag.decompose()
+                        body_plain = soup.get_text(separator=" ", strip=True)
+                except Exception:
+                    body_plain = body
+
+                # Look for "The following items were sent to COMPANY" pattern
+                if body_plain:
+                    indeed_pattern = re.search(
+                        r"(?:the following items were sent to|about your application.*?with)\s+([A-Z][A-Za-z0-9\s&.,'-]+?)(?:\s+(?:and|About|Your application|Resume|Cover letter|\n|$))",
+                        body_plain,
+                        re.IGNORECASE,
+                    )
+                    if indeed_pattern:
+                        extracted = indeed_pattern.group(1).strip()
+                        # Clean up common trailing words
+                        extracted = re.sub(
+                            r"\s+(and|About|Your)$", "", extracted, flags=re.IGNORECASE
+                        ).strip()
+                        if extracted and is_valid_company_name(extracted):
+                            company = normalize_company_name(extracted)
+                            company_source = "indeed_body_extraction"
+                            if DEBUG:
+                                print(f"Indeed employer extraction: {company}")
+
+        # 2. Subject/body parse (if not resolved by domain or Indeed extraction)
         if not company:
             parsed_company = parsed_subject.get("company", "") or ""
             if parsed_company and is_valid_company_name(parsed_company):
-                company = parsed_company
+                company = normalize_company_name(parsed_company)
                 company_source = "subject_parse"
                 if DEBUG:
                     print(f"Subject/body parse used: {company}")
@@ -807,18 +928,54 @@ def ingest_message(service, msg_id):
                     and predicted.lower() not in {"job_application", "noise"}
                     and is_valid_company_name(predicted)
                 ):
-                    company = predicted
-                    company_source = "ml_prediction"
-                    if DEBUG:
-                        print(f"ML prediction used: {predicted}")
+                    # Extra guard: require presence in subject/body (plain text) to avoid artifacts like 'Font'
+                    body_plain = body
+                    try:
+                        if body and (
+                            "<html" in body.lower() or "<style" in body.lower()
+                        ):
+                            soup = BeautifulSoup(body, "html.parser")
+                            for tag in soup(["style", "script"]):
+                                tag.decompose()
+                            body_plain = soup.get_text(separator=" ", strip=True)
+                    except Exception:
+                        body_plain = body
+
+                    if predicted.lower() in subject.lower() or (
+                        body_plain and predicted.lower() in body_plain.lower()
+                    ):
+                        company = normalize_company_name(predicted)
+                        company_source = "ml_prediction"
+                        if DEBUG:
+                            print(f"ML prediction used: {predicted}")
+                    elif DEBUG:
+                        print(
+                            f"ML prediction discarded (not in subject/body): {predicted}"
+                        )
             except NameError:
                 if DEBUG:
                     print(" ML prediction function not available.")
 
         # 4. Regex/body fallback (if still unresolved)
+        # Strip HTML tags from body to avoid matching CSS @import, @media, etc.
         if not company:
+            # Remove HTML tags and CSS to get plain text
+            body_plain = body
+            if body and ("<html" in body.lower() or "<style" in body.lower()):
+                try:
+                    soup = BeautifulSoup(body, "html.parser")
+                    # Remove style and script tags entirely
+                    for tag in soup(["style", "script"]):
+                        tag.decompose()
+                    body_plain = soup.get_text(separator=" ", strip=True)
+                except Exception:
+                    body_plain = body  # fallback to original if parsing fails
+
+            # Now search in plain text body
             at_match = re.search(
-                r"@\s*([A-Za-z][\w\s&\-]+?)(?=[\W]|$)", body, flags=re.IGNORECASE
+                r"(?:position|role|opportunity)\s+@\s*([A-Za-z][\w\s&\-]+?)(?=[\W]|$)",
+                body_plain,
+                flags=re.IGNORECASE,
             )
             if at_match:
                 company = at_match.group(1).strip().title()
@@ -855,7 +1012,7 @@ def ingest_message(service, msg_id):
 
         # Normalize casing for known companies
         if company:
-            for known in KNOWN_COMPANIES:
+            for known in KNOWN_COMPANIES_CASED:
                 if company.lower() == known.lower():
                     company = known
                     break
@@ -872,6 +1029,8 @@ def ingest_message(service, msg_id):
     confidence = float(result.get("confidence", 0.0)) if result else 0.0
 
     if company:
+        # Final normalization before persistence
+        company = normalize_company_name(company)
         company_obj, _ = Company.objects.get_or_create(
             name=company,
             defaults={
@@ -1185,14 +1344,18 @@ if COMPANIES_PATH.exists():
         print(f"[Error] Unable to read companies.json: {e}")
         company_data = {}
     ATS_DOMAINS = [d.lower() for d in company_data.get("ats_domains", [])]
+    HEADHUNTER_DOMAINS = [d.lower() for d in company_data.get("headhunter_domains", [])]
     KNOWN_COMPANIES = {c.lower() for c in company_data.get("known", [])}
+    KNOWN_COMPANIES_CASED = company_data.get("known", [])  # Keep original casing
     DOMAIN_TO_COMPANY = {
         k.lower(): v for k, v in company_data.get("domain_to_company", {}).items()
     }
     ALIASES = company_data.get("aliases", {})
 else:
     ATS_DOMAINS = []
+    HEADHUNTER_DOMAINS = []
     KNOWN_COMPANIES = set()
+    KNOWN_COMPANIES_CASED = []
     DOMAIN_TO_COMPANY = {}
     ALIASES = {}
 

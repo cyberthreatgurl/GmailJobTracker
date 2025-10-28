@@ -357,19 +357,29 @@
   <!-- Bulk Actions Form -->
   <form method="post" id="bulk-form">
     {% csrf_token %}
-    <input type="hidden" name="action" value="bulk_label">
+    <input type="hidden" name="action" value="bulk_label" id="form-action">
     <div class="bulk-actions">
       <div>
         <span class="selected-count" id="selected-count">0</span> messages selected
       </div>
-      <select name="bulk_label" id="bulk-label" required>
+      <select name="bulk_label" id="bulk-label">
         <option value="">-- Select Label --</option>
         {% for label in label_choices %}
           <option value="{{ label }}">{{ label }}</option>
         {% endfor %}
       </select>
-      <button type="submit" class="btn btn-primary" id="bulk-submit" disabled>
+      <button type="submit" class="btn btn-primary" id="bulk-submit" disabled onclick="return submitBulkLabel()">
         Apply Label to Selected
+      </button>
+      <select name="company_id" id="company-select" style="margin-left: 1rem; padding: 0.6rem; border-radius: 6px; border: 1px solid #d1d5db; font-size: 0.9rem; min-width: 200px;">
+        <option value="">-- Select Company --</option>
+        <option value="none">None (Clear Company)</option>
+        {% for company in all_companies %}
+          <option value="{{ company.id }}">{{ company.name }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="btn btn-primary" id="company-submit" disabled onclick="return submitCompanyReassign()">
+        Reassign Company
       </button>
     </div>
     <!-- Message Table -->
@@ -489,11 +499,48 @@
       
       document.getElementById('selected-count').textContent = count;
       document.getElementById('bulk-submit').disabled = count === 0;
+      document.getElementById('company-submit').disabled = count === 0;
       
       // Update select-all checkbox state
       const selectAll = document.getElementById('select-all');
       selectAll.checked = count === checkboxes.length && count > 0;
       selectAll.indeterminate = count > 0 && count < checkboxes.length;
+    }
+
+    function submitBulkLabel() {
+      const count = document.querySelectorAll('.message-checkbox:checked').length;
+      const label = document.getElementById('bulk-label').value;
+      
+      if (!label) {
+        alert('Please select a label');
+        return false;
+      }
+      
+      if (!confirm(`Apply label "${label}" to ${count} message(s)?`)) {
+        return false;
+      }
+      
+      document.getElementById('form-action').value = 'bulk_label';
+      return true;
+    }
+
+    function submitCompanyReassign() {
+      const count = document.querySelectorAll('.message-checkbox:checked').length;
+      const companyId = document.getElementById('company-select').value;
+      
+      if (!companyId) {
+        alert('Please select a company');
+        return false;
+      }
+      
+      const companyName = document.getElementById('company-select').options[document.getElementById('company-select').selectedIndex].text;
+      
+      if (!confirm(`Reassign ${count} message(s) to company: ${companyName}?`)) {
+        return false;
+      }
+      
+      document.getElementById('form-action').value = 'reassign_company';
+      return true;
     }
     
     function toggleSelectAll() {

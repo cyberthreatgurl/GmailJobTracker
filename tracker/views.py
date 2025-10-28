@@ -762,8 +762,12 @@ def delete_company(request, company_id):
     if request.method == "POST":
         company_name = company.name
 
-        # Count related data before deletion
-        message_count = Message.objects.filter(company=company).count()
+        # Count related data before deletion (including noise messages)
+        total_message_count = Message.objects.filter(company=company).count()
+        noise_message_count = Message.objects.filter(
+            company=company, ml_label="noise"
+        ).count()
+        non_noise_message_count = total_message_count - noise_message_count
         application_count = Application.objects.filter(company=company).count()
 
         # Delete all related messages, applications, etc.
@@ -774,10 +778,16 @@ def delete_company(request, company_id):
 
         # Show detailed deletion info
         messages.success(request, f"✅ Company '{company_name}' deleted successfully.")
-        messages.info(
-            request,
-            f"📊 Removed {message_count} messages and {application_count} applications.",
-        )
+        if noise_message_count > 0:
+            messages.info(
+                request,
+                f"📊 Removed {non_noise_message_count} messages ({noise_message_count} noise) and {application_count} applications.",
+            )
+        else:
+            messages.info(
+                request,
+                f"📊 Removed {total_message_count} messages and {application_count} applications.",
+            )
 
         # Trigger model retraining in background
         messages.info(request, "🔄 Retraining model to update training data...")
@@ -1777,6 +1787,40 @@ def label_messages(request):
             else:
                 messages.warning(request, "⚠️ Please select messages and a label")
 
+        elif action == "reassign_company":
+            selected_ids = request.POST.getlist("selected_messages")
+            company_id = request.POST.get("company_id")
+
+            if selected_ids and company_id:
+                try:
+                    if company_id == "none":
+                        company = None
+                    else:
+                        company = Company.objects.get(pk=int(company_id))
+
+                    updated_count = 0
+                    for msg_id in selected_ids:
+                        try:
+                            msg = Message.objects.get(pk=msg_id)
+                            msg.company = company
+                            # Explicitly preserve existing label - only update company
+                            msg.save(update_fields=["company"])
+                            updated_count += 1
+                        except Message.DoesNotExist:
+                            continue
+
+                    company_name = company.name if company else "None"
+                    messages.success(
+                        request,
+                        f"✅ Reassigned {updated_count} message(s) to company: {company_name}",
+                    )
+                except Company.DoesNotExist:
+                    messages.error(request, "❌ Selected company not found")
+                except ValueError:
+                    messages.error(request, "❌ Invalid company ID")
+            else:
+                messages.warning(request, "⚠️ Please select messages and a company")
+
     # Get pagination parameters
     per_page = int(request.GET.get("per_page", 50))
     page = int(request.GET.get("page", 1))
@@ -1964,6 +2008,11 @@ def label_messages(request):
         .order_by("count")
     )
 
+    # Get all companies for the dropdown (sorted by name)
+    from django.db.models.functions import Lower
+
+    all_companies = Company.objects.order_by(Lower("name"))
+
     ctx = {
         "message_list": messages_page,
         "filter_label": filter_label,
@@ -1986,6 +2035,7 @@ def label_messages(request):
         "has_next": has_next,
         "training_output": training_output,
         "filter_reviewed": filter_reviewed,
+        "all_companies": all_companies,
     }
     return render(request, "tracker/label_messages.html", ctx)
 

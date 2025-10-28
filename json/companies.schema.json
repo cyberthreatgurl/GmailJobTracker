@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/cyberthreatgurl/GmailJobTracker/json/companies.schema.json",
+  "title": "GmailJobTracker companies.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "known",
+    "domain_to_company",
+    "headhunter_domains",
+    "ats_domains",
+    "aliases",
+    "JobSites"
+  ],
+  "properties": {
+    "known": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true
+    },
+    "domain_to_company": {
+      "type": "object",
+      "additionalProperties": { "type": "string", "minLength": 1 },
+      "patternProperties": {
+        "^.+\\..+$": { "type": "string" }
+      }
+    },
+    "headhunter_domains": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "ats_domains": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "aliases": {
+      "type": "object",
+      "additionalProperties": { "type": "string", "minLength": 1 }
+    },
+    "JobSites": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "format": "uri"
+      }
+    }
+  }
+}

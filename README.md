@@ -257,6 +257,48 @@ Manually assign companies to messages where resolution failed.
 
 ---
 
+## 🌐 Public companies.json dataset
+
+This project maintains a public, version-controlled mapping of companies, domains, aliases, and ATS/headhunter domains used for company resolution:
+
+- File: `json/companies.json`
+- Schema: `json/companies.schema.json`
+- CI validation: `.github/workflows/validate-companies.yml`
+
+Contributions welcome! If you want to add or correct entries:
+
+1. Edit `json/companies.json` (keep entries alphabetized where possible)
+2. Validate locally:
+
+   ```powershell
+   # Windows PowerShell
+   python -m scripts.validate_companies
+   ```
+
+   ```bash
+   # Linux/macOS
+   python -m scripts.validate_companies
+   ```
+
+3. Open a PR – CI will run the same validation.
+
+Fields in `companies.json`:
+
+- `known`: Canonical company names (array of strings)
+- `domain_to_company`: Map of email/web domains → company name
+- `aliases`: Common display names/sender prefixes → company name
+- `ats_domains`: Applicant Tracking System domains (used for ATS-aware parsing)
+- `headhunter_domains`: Recruiter/agency domains (auto-mapped to HeadHunter)
+- `JobSites`: Company → careers URL (optional; used in UI)
+
+Notes:
+
+- Please avoid adding personal or private domains. Only add public employer or ATS/recruiter domains.
+- Typos and casing matter for matching – use exact, properly cased company names.
+- If you aren't sure whether a value belongs in `aliases` vs `domain_to_company`, open a PR and we can review.
+
+---
+
 ## 🧪 Testing
 
 ```bash

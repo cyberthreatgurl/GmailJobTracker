@@ -23,6 +23,7 @@ class Company(models.Model):
             ("follow-up", "Follow-up"),
             ("rejected", "Rejected"),
             ("ghosted", "Ghosted"),
+            ("headhunter", "HeadHunter")
         ],
         blank=True,
         null=True,

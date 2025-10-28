@@ -24,6 +24,7 @@ from django.db.models import (
     CharField,
     ExpressionWrapper,
 )
+from django.db.models.functions import Lower
 from django.http import StreamingHttpResponse, HttpResponse
 
 
@@ -170,12 +171,6 @@ def label_rule_debugger(request):
         "matched_patterns": matched_patterns,
         "no_matches": no_matches,
     }
-    # Include sidebar stats so the shared sidebar renders without missing variables
-    try:
-        ctx.update(build_sidebar_context())
-    except Exception:
-        # Keep page functional even if stats query fails
-        pass
     return render(request, "tracker/label_rule_debugger.html", ctx)
 
 
@@ -464,7 +459,6 @@ def compare_gmail_filters(request):
         "debug_mappings": debug_mappings,
         "unmapped_labels": unmapped_labels,
     }
-    ctx.update(build_sidebar_context())
     return render(request, "tracker/import_gmail_filters_compare.html", ctx)
 
 
@@ -713,9 +707,6 @@ def gmail_filters_labels_compare(request):
         "error": error,
         "gmail_label_prefix": gmail_label_prefix,
     }
-    from .views import build_sidebar_context
-
-    ctx.update(build_sidebar_context())
     return render(request, "tracker/gmail_filters_labels_compare.html", ctx)
 
 
@@ -820,14 +811,13 @@ def delete_company(request, company_id):
 
         return redirect("label_companies")
     ctx = {"company": company}
-    ctx.update(build_sidebar_context())
     return render(request, "tracker/delete_company.html", ctx)
 
 
 # --- Label Companies Page ---
 @login_required
 def label_companies(request):
-    companies = Company.objects.order_by("name")
+    companies = Company.objects.order_by(Lower("name"))
     # Preserve selected company on POST actions as well
     selected_id = request.GET.get("company") or request.POST.get("company")
     selected_company = None
@@ -863,7 +853,7 @@ def label_companies(request):
     message_info_list = []
     if selected_id:
         try:
-            selected_company = companies.get(id=selected_id)
+            selected_company = Company.objects.get(id=selected_id)
             # Load career URL from companies.json JobSites
             companies_json_path = Path("json/companies.json")
             career_url = ""
@@ -905,9 +895,11 @@ def label_companies(request):
             except Exception:
                 pass
 
-            # Get message count and (date, subject) list
-            messages_qs = Message.objects.filter(company=selected_company).order_by(
-                "-timestamp"
+            # Get message count and (date, subject) list (exclude noise messages)
+            messages_qs = (
+                Message.objects.filter(company=selected_company)
+                .exclude(ml_label="noise")
+                .order_by("-timestamp")
             )
             message_count = messages_qs.count()
             message_info_list = list(messages_qs.values_list("timestamp", "subject"))
@@ -1065,7 +1057,6 @@ def merge_companies(request):
 
     companies_to_merge = Company.objects.filter(id__in=company_ids).order_by("name")
     ctx = {"companies_to_merge": companies_to_merge}
-    ctx.update(build_sidebar_context())
     return render(request, "tracker/merge_companies.html", ctx)
 
 
@@ -1078,17 +1069,76 @@ ALIAS_REJECT_LOG_PATH = Path("alias_rejections.csv")
 
 
 def build_sidebar_context():
-    companies_count = Company.objects.count()
-    applications_count = Application.objects.count()
-    rejections_week = Application.objects.filter(
-        rejection_date__gte=now() - timedelta(days=7)
-    ).count()
-    interviews_week = Application.objects.filter(
-        interview_date__gte=now() - timedelta(days=7)
-    ).count()
-    upcoming_interviews = Application.objects.filter(
-        interview_date__gte=now()
-    ).order_by("interview_date")
+    # Exclude the user's own messages (replies) from counts
+    user_email = (os.environ.get("USER_EMAIL_ADDRESS") or "").strip()
+    # Load headhunter domains from companies.json (if available)
+    headhunter_domains = []
+    try:
+        companies_path = Path("json/companies.json")
+        if companies_path.exists():
+            with open(companies_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                headhunter_domains = [
+                    d.strip().lower()
+                    for d in data.get("headhunter_domains", [])
+                    if d and isinstance(d, str)
+                ]
+    except Exception:
+        headhunter_domains = []
+
+    # Count companies only if they have at least one non-headhunter message
+    # Build a Q for any headhunter sender
+    hh_sender_q = Q()
+    for d in headhunter_domains:
+        # Match typical email pattern '@domain'
+        hh_sender_q |= Q(message__sender__icontains=f"@{d}")
+
+    # A non-headhunter message is: not labeled head_hunter AND sender not from any headhunter domain
+    non_hh_msg_filter = ~Q(message__ml_label="head_hunter") & ~hh_sender_q
+
+    companies_count = (
+        Company.objects.annotate(
+            non_hh_msg_count=Count("message", filter=non_hh_msg_filter)
+        )
+        .filter(non_hh_msg_count__gt=0)
+        .count()
+    )
+
+    # Count all job application confirmation messages (each message = one application submitted)
+    applications_qs = Message.objects.filter(
+        ml_label="job_application", company__isnull=False
+    )
+    if user_email:
+        applications_qs = applications_qs.exclude(sender__icontains=user_email)
+    applications_count = applications_qs.count()
+
+    # Count rejection messages this week
+    rejections_qs = Message.objects.filter(
+        ml_label__in=["rejected", "rejection"],
+        timestamp__gte=now() - timedelta(days=7),
+        company__isnull=False,
+    )
+    if user_email:
+        rejections_qs = rejections_qs.exclude(sender__icontains=user_email)
+    rejections_week = rejections_qs.count()
+
+    # Count interview invitation messages this week
+    interviews_qs = Message.objects.filter(
+        ml_label="interview_invite",
+        timestamp__gte=now() - timedelta(days=7),
+        company__isnull=False,
+    )
+    if user_email:
+        interviews_qs = interviews_qs.exclude(sender__icontains=user_email)
+    interviews_week = interviews_qs.count()
+
+    # Get upcoming interviews from Application table where interview_date is set
+    upcoming_interviews = (
+        Application.objects.filter(interview_date__gte=now(), company__isnull=False)
+        .select_related("company")
+        .order_by("interview_date")[:10]  # Limit to next 10
+    )
+
     latest_stats = IngestionStats.objects.order_by("-date").first()
     return {
         "companies": companies_count,
@@ -1121,14 +1171,11 @@ def log_viewer(request):
                 log_content = f.read()[-100_000:]
         except Exception as e:
             log_content = f"[Error reading log: {e}]"
-    ctx = build_sidebar_context()
-    ctx.update(
-        {
-            "log_files": log_files,
-            "selected_log": selected_log,
-            "log_content": log_content,
-        }
-    )
+    ctx = {
+        "log_files": log_files,
+        "selected_log": selected_log,
+        "log_content": log_content,
+    }
     return render(request, "tracker/log_viewer.html", ctx)
 
 
@@ -1165,49 +1212,25 @@ def company_threads(request):
                 for subj, thread in threads.items()
             ]
 
-    # Sidebar context
-    companies_count = Company.objects.count()
-    applications = Application.objects.count()
-    rejections_week = Application.objects.filter(
-        rejection_date__gte=now() - timedelta(days=7)
-    ).count()
-    interviews_week = Application.objects.filter(
-        interview_date__gte=now() - timedelta(days=7)
-    ).count()
-    upcoming_interviews = Application.objects.filter(
-        interview_date__gte=now()
-    ).order_by("interview_date")
-    latest_stats = IngestionStats.objects.order_by("-date").first()
-
-    return render(
-        request,
-        "tracker/company_threads.html",
-        {
-            "companies": companies_count,
-            "applications": applications,
-            "rejections_week": rejections_week,
-            "interviews_week": interviews_week,
-            "upcoming_interviews": upcoming_interviews,
-            "latest_stats": latest_stats,
-            "company_list": companies,
-            "selected_company": selected_company,
-            "threads_by_subject": threads_by_subject,
-        },
-    )
+    # Build context and ensure sidebar values come from build_sidebar_context()
+    ctx = {
+        "company_list": companies,
+        "selected_company": selected_company,
+        "threads_by_subject": threads_by_subject,
+    }
+    return render(request, "tracker/company_threads.html", ctx)
 
 
 @login_required
 def manage_aliases(request):
     if not ALIAS_EXPORT_PATH.exists():
         ctx = {"suggestions": []}
-        ctx.update(build_sidebar_context())
         return render(request, "tracker/manage_aliases.html", ctx)
 
     with open(ALIAS_EXPORT_PATH, "r", encoding="utf-8") as f:
         suggestions = json.load(f)
 
     ctx = {"suggestions": suggestions}
-    ctx.update(build_sidebar_context())
     return render(request, "tracker/manage_aliases.html", ctx)
 
 
@@ -1294,16 +1317,7 @@ def dashboard(request):
         "-timestamp"
     )[:50]
 
-    applications = Application.objects.count()
-    rejections_week = Application.objects.filter(
-        rejection_date__gte=now() - timedelta(days=7)
-    ).count()
-    interviews_week = Application.objects.filter(
-        interview_date__gte=now() - timedelta(days=7)
-    ).count()
-    upcoming_interviews = Application.objects.filter(
-        interview_date__gte=now()
-    ).order_by("interview_date")
+    # Sidebar metrics will be populated via build_sidebar_context()
 
     # ✅ Recent messages with company preloaded
     messages = Message.objects.select_related("company").order_by("-timestamp")[:100]
@@ -1494,9 +1508,13 @@ def dashboard(request):
     chart_series_data = []
     msg_qs = (
         Message.objects.filter(timestamp__date__gte=app_start_date)
-        if app_date_list
+        if app_start_date
         else Message.objects.none()
     )
+    # Exclude user's own messages from message-based series
+    user_email = (os.environ.get("USER_EMAIL_ADDRESS") or "").strip()
+    if user_email:
+        msg_qs = msg_qs.exclude(sender__icontains=user_email)
 
     for series in plot_series_config:
         ml_label = series["ml_label"]
@@ -1636,43 +1654,35 @@ def dashboard(request):
     initial_application_companies = unique_by_company(application_companies)
     initial_ghosted_companies = unique_by_company(ghosted_companies)
 
-    return render(
-        request,
-        "tracker/dashboard.html",
-        {
-            "companies": companies,
-            "companies_list": companies_list,
-            "applications": applications,
-            "rejections_week": rejections_week,
-            "interviews_week": interviews_week,
-            "upcoming_interviews": upcoming_interviews,
-            "messages": messages,
-            "threads": thread_list,
-            "latest_stats": latest_stats,
-            "chart_labels": chart_labels,
-            "chart_inserted": chart_inserted,
-            "chart_skipped": chart_skipped,
-            "chart_ignored": chart_ignored,
-            "chart_activity_labels": chart_activity_labels,
-            "chart_series_data": chart_series_data,
-            "plot_series_config": plot_series_config,
-            "unresolved_companies": unresolved_companies,
-            "ingested_today": ingested_today,
-            "ignored_today": ignored_today,
-            "skipped_today": skipped_today,
-            "reporting_default_start_date": (
-                reporting_default_start_date.strftime("%Y-%m-%d")
-                if reporting_default_start_date
-                else ""
-            ),
-            "rejection_companies_json": rejection_companies_json,
-            "application_companies_json": application_companies_json,
-            "ghosted_companies_json": ghosted_companies_json,
-            "initial_rejection_companies": initial_rejection_companies,
-            "initial_application_companies": initial_application_companies,
-            "initial_ghosted_companies": initial_ghosted_companies,
-        },
-    )
+    ctx = {
+        "companies_list": companies_list,
+        "messages": messages,
+        "threads": thread_list,
+        "latest_stats": latest_stats,
+        "chart_labels": chart_labels,
+        "chart_inserted": chart_inserted,
+        "chart_skipped": chart_skipped,
+        "chart_ignored": chart_ignored,
+        "chart_activity_labels": chart_activity_labels,
+        "chart_series_data": chart_series_data,
+        "plot_series_config": plot_series_config,
+        "unresolved_companies": unresolved_companies,
+        "ingested_today": ingested_today,
+        "ignored_today": ignored_today,
+        "skipped_today": skipped_today,
+        "reporting_default_start_date": (
+            reporting_default_start_date.strftime("%Y-%m-%d")
+            if reporting_default_start_date
+            else ""
+        ),
+        "rejection_companies_json": rejection_companies_json,
+        "application_companies_json": application_companies_json,
+        "ghosted_companies_json": ghosted_companies_json,
+        "initial_rejection_companies": initial_rejection_companies,
+        "initial_application_companies": initial_application_companies,
+        "initial_ghosted_companies": initial_ghosted_companies,
+    }
+    return render(request, "tracker/dashboard.html", ctx)
 
 
 def extract_body_content(raw_html):
@@ -1704,7 +1714,6 @@ def label_applications(request):
 
     apps = Application.objects.filter(reviewed=False).order_by("sent_date")[:50]
     ctx = {"applications": apps}
-    ctx.update(build_sidebar_context())
     return render(request, "tracker/label_applications.html", ctx)
 
 
@@ -1753,17 +1762,18 @@ def label_messages(request):
                     ),
                 )
 
-                # Check if we should retrain
-                labeled_count = Message.objects.filter(reviewed=True).count()
-                if labeled_count % 20 == 0:
-                    messages.info(request, "🔄 Triggering model retraining...")
-                    try:
-                        subprocess.Popen([python_path, "train_model.py"])
-                        messages.success(
-                            request, "✅ Model retraining started in background"
-                        )
-                    except Exception as e:
-                        messages.warning(request, f"⚠️ Could not start retraining: {e}")
+                # Trigger model retraining in background whenever messages are labeled
+                messages.info(request, "🔄 Retraining model to update training data...")
+                try:
+                    subprocess.Popen([python_path, "train_model.py"])
+                    messages.success(
+                        request, "✅ Model retraining started in background"
+                    )
+                except Exception as e:
+                    messages.warning(
+                        request,
+                        f"⚠️ Could not start retraining: {e}. Please retrain manually from the sidebar.",
+                    )
             else:
                 messages.warning(request, "⚠️ Please select messages and a label")
 
@@ -1954,53 +1964,30 @@ def label_messages(request):
         .order_by("count")
     )
 
-    # Sidebar context
-    companies = Company.objects.count()
-    applications = Application.objects.count()
-    rejections_week = Application.objects.filter(
-        rejection_date__gte=now() - timedelta(days=7)
-    ).count()
-    interviews_week = Application.objects.filter(
-        interview_date__gte=now() - timedelta(days=7)
-    ).count()
-    upcoming_interviews = Application.objects.filter(
-        interview_date__gte=now()
-    ).order_by("interview_date")
-    latest_stats = IngestionStats.objects.order_by("-date").first()
-
-    return render(
-        request,
-        "tracker/label_messages.html",
-        {
-            "message_list": messages_page,
-            "filter_label": filter_label,
-            "filter_confidence": filter_confidence,
-            "filter_company": filter_company,
-            "filter_reviewed": filter_reviewed,
-            "search_query": search_query,
-            "sort": sort,
-            "order": order,
-            "distinct_labels": distinct_labels,
-            "label_choices": label_choices,
-            "label_counts": label_counts,
-            "total_unreviewed": total_unreviewed,
-            "total_reviewed": total_reviewed,
-            "total_count": total_count,
-            "per_page": per_page,
-            "page": page,
-            "total_pages": total_pages,
-            "has_previous": has_previous,
-            "has_next": has_next,
-            "training_output": training_output,
-            "companies": companies,
-            "applications": applications,
-            "rejections_week": rejections_week,
-            "interviews_week": interviews_week,
-            "upcoming_interviews": upcoming_interviews,
-            "latest_stats": latest_stats,
-            "filter_reviewed": filter_reviewed,
-        },
-    )
+    ctx = {
+        "message_list": messages_page,
+        "filter_label": filter_label,
+        "filter_confidence": filter_confidence,
+        "filter_company": filter_company,
+        "filter_reviewed": filter_reviewed,
+        "search_query": search_query,
+        "sort": sort,
+        "order": order,
+        "distinct_labels": distinct_labels,
+        "label_choices": label_choices,
+        "label_counts": label_counts,
+        "total_unreviewed": total_unreviewed,
+        "total_reviewed": total_reviewed,
+        "total_count": total_count,
+        "per_page": per_page,
+        "page": page,
+        "total_pages": total_pages,
+        "has_previous": has_previous,
+        "has_next": has_next,
+        "training_output": training_output,
+        "filter_reviewed": filter_reviewed,
+    }
+    return render(request, "tracker/label_messages.html", ctx)
 
 
 @login_required
@@ -2083,39 +2070,16 @@ def metrics(request):
             "extra_labels": extra_labels,
         }
 
-    # Sidebar context
-    companies = Company.objects.count()
-    applications = Application.objects.count()
-    rejections_week = Application.objects.filter(
-        rejection_date__gte=now() - timedelta(days=7)
-    ).count()
-    interviews_week = Application.objects.filter(
-        interview_date__gte=now() - timedelta(days=7)
-    ).count()
-    upcoming_interviews = Application.objects.filter(
-        interview_date__gte=now()
-    ).order_by("interview_date")
-    latest_stats = IngestionStats.objects.order_by("-date").first()
-
-    return render(
-        request,
-        "tracker/metrics.html",
-        {
-            "metrics": metrics,
-            "training_output": training_output,
-            "label_breakdown": label_breakdown,
-            "companies": companies,
-            "applications": applications,
-            "rejections_week": rejections_week,
-            "interviews_week": interviews_week,
-            "upcoming_interviews": upcoming_interviews,
-            "latest_stats": latest_stats,
-            "chart_labels": chart_labels,
-            "chart_inserted": chart_inserted,
-            "chart_skipped": chart_skipped,
-            "chart_ignored": chart_ignored,
-        },
-    )
+    ctx = {
+        "metrics": metrics,
+        "training_output": training_output,
+        "label_breakdown": label_breakdown,
+        "chart_labels": chart_labels,
+        "chart_inserted": chart_inserted,
+        "chart_skipped": chart_skipped,
+        "chart_ignored": chart_ignored,
+    }
+    return render(request, "tracker/metrics.html", ctx)
 
 
 @csrf_exempt
@@ -2136,34 +2100,11 @@ def retrain_model(request):
                 json.dump({"training_output": training_output}, f)
         except subprocess.CalledProcessError as e:
             training_output = f"Retraining failed:\n{e.stderr}"
-    # Sidebar context
-    companies = Company.objects.count()
-    applications = Application.objects.count()
-    rejections_week = Application.objects.filter(
-        rejection_date__gte=now() - timedelta(days=7)
-    ).count()
-    interviews_week = Application.objects.filter(
-        interview_date__gte=now() - timedelta(days=7)
-    ).count()
-    upcoming_interviews = Application.objects.filter(
-        interview_date__gte=now()
-    ).order_by("interview_date")
-    latest_stats = IngestionStats.objects.order_by("-date").first()
-
-    return render(
-        request,
-        "tracker/metrics.html",
-        {
-            "metrics": {},
-            "training_output": training_output,
-            "companies": companies,
-            "applications": applications,
-            "rejections_week": rejections_week,
-            "interviews_week": interviews_week,
-            "upcoming_interviews": upcoming_interviews,
-            "latest_stats": latest_stats,
-        },
-    )
+    ctx = {
+        "metrics": {},
+        "training_output": training_output,
+    }
+    return render(request, "tracker/metrics.html", ctx)
 
 
 import re
@@ -2602,37 +2543,14 @@ def json_file_viewer(request):
     except Exception as e:
         error_message = f"⚠️ Error loading companies.json: {str(e)}"
 
-    # Sidebar context
-    companies = Company.objects.count()
-    applications = Application.objects.count()
-    rejections_week = Application.objects.filter(
-        rejection_date__gte=now() - timedelta(days=7)
-    ).count()
-    interviews_week = Application.objects.filter(
-        interview_date__gte=now() - timedelta(days=7)
-    ).count()
-    upcoming_interviews = Application.objects.filter(
-        interview_date__gte=now()
-    ).order_by("interview_date")
-    latest_stats = IngestionStats.objects.order_by("-date").first()
-
-    return render(
-        request,
-        "tracker/json_file_viewer.html",
-        {
-            "patterns_data": patterns_data,
-            "companies_data": companies_data,
-            "success_message": success_message,
-            "error_message": error_message,
-            "validation_errors": validation_errors,
-            "companies": companies,
-            "applications": applications,
-            "rejections_week": rejections_week,
-            "interviews_week": interviews_week,
-            "upcoming_interviews": upcoming_interviews,
-            "latest_stats": latest_stats,
-        },
-    )
+    ctx = {
+        "patterns_data": patterns_data,
+        "companies_data": companies_data,
+        "success_message": success_message,
+        "error_message": error_message,
+        "validation_errors": validation_errors,
+    }
+    return render(request, "tracker/json_file_viewer.html", ctx)
 
 
 # --- Re-ingest Gmail Admin ---
@@ -2658,7 +2576,6 @@ def reingest_admin(request):
     # Include reporting default start date info for the template
     env_start_date = os.environ.get("REPORTING_DEFAULT_START_DATE")
     ctx["reporting_default_start_date"] = env_start_date or ""
-    ctx.update(build_sidebar_context())
 
     if request.method == "POST":
         days_back = request.POST.get("days_back", str(default_days))
@@ -3020,5 +2937,4 @@ def configure_settings(request):
         "current": current,
         "gmail_filters_preview": json.dumps(preview, indent=2) if preview else None,
     }
-    ctx.update(build_sidebar_context())
     return render(request, "tracker/configure_settings.html", ctx)

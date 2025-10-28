@@ -1,5 +1,5 @@
 {
-  "trained_on": "2025-10-28T00:17:45.728339",
+  "trained_on": "2025-10-28T01:31:25.794222",
   "labels": [
     "head_hunter",
     "interview_invite",
@@ -9,8 +9,8 @@
     "referral",
     "rejected"
   ],
-  "num_samples": 841,
-  "total_features": 41442,
+  "num_samples": 827,
+  "total_features": 41393,
   "meaningful_features_sample": [
     "10 more",
     "1074 cyber",
@@ -45,7 +45,6 @@
     "ai security",
     "alert",
     "alert for",
-    "alert from",
     "alerts",
     "alerts for",
     "allen",
@@ -59,7 +58,6 @@
     "america",
     "amid",
     "amid the",
-    "an old",
     "an open",
     "an update",
     "analyst",
@@ -70,7 +68,6 @@
     "analyst mantech",
     "analyst mid",
     "analyst position",
-    "analytics",
     "and",
     "and 10",
     "and more",
@@ -111,6 +108,9 @@
     "arc cyber",
     "arc interview",
     "arc update",
-    "architect"
+    "architect",
+    "architect at",
+    "are",
+    "are hiring"
   ]
 }

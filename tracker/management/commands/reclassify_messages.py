@@ -48,7 +48,9 @@ class Command(BaseCommand):
         changed = 0
 
         for i, msg in enumerate(qs.iterator(), 1):
-            result = predict_subject_type(msg.subject, msg.body or "")
+            result = predict_subject_type(
+                msg.subject, msg.body or "", sender=msg.sender
+            )
 
             old_label = msg.ml_label
             old_conf = msg.confidence
@@ -120,7 +122,9 @@ class Command(BaseCommand):
         if msg:
             self.stdout.write(f"\nSubject: {msg.subject}")
             self.stdout.write(f"Current: {msg.ml_label} ({msg.confidence:.2f})")
-            result = predict_subject_type(msg.subject, msg.body or "")
+            result = predict_subject_type(
+                msg.subject, msg.body or "", sender=msg.sender
+            )
             self.stdout.write(
                 f"New prediction: {result['label']} ({result['confidence']:.2f}) [{result['method']}]"
             )

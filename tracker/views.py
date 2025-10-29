@@ -1097,11 +1097,16 @@ def build_sidebar_context():
         headhunter_domains = []
 
     # Count companies only if they have at least one non-headhunter message
-    # Build a Q for any headhunter sender
+    # Build a Q for any headhunter sender (Company context joins via message__sender)
     hh_sender_q = Q()
     for d in headhunter_domains:
         # Match typical email pattern '@domain'
         hh_sender_q |= Q(message__sender__icontains=f"@{d}")
+
+    # Build a Q for Message model context (direct sender field)
+    msg_hh_sender_q = Q()
+    for d in headhunter_domains:
+        msg_hh_sender_q |= Q(sender__icontains=f"@{d}")
 
     # A non-headhunter message is: not labeled head_hunter AND sender not from any headhunter domain
     non_hh_msg_filter = ~Q(message__ml_label="head_hunter") & ~hh_sender_q
@@ -1115,14 +1120,19 @@ def build_sidebar_context():
     )
 
     # Count all job application confirmation messages (each message = one application submitted)
+    # Exclude: user's own replies AND headhunter senders/domains
     applications_qs = Message.objects.filter(
         ml_label="job_application", company__isnull=False
     )
     if user_email:
         applications_qs = applications_qs.exclude(sender__icontains=user_email)
+    # Exclude headhunters by sender domain or explicit head_hunter label
+    if headhunter_domains:
+        applications_qs = applications_qs.exclude(msg_hh_sender_q)
+    applications_qs = applications_qs.exclude(ml_label="head_hunter")
     applications_count = applications_qs.count()
 
-    # Count rejection messages this week
+    # Count rejection messages this week (exclude headhunters and user's own replies)
     rejections_qs = Message.objects.filter(
         ml_label__in=["rejected", "rejection"],
         timestamp__gte=now() - timedelta(days=7),
@@ -1130,6 +1140,10 @@ def build_sidebar_context():
     )
     if user_email:
         rejections_qs = rejections_qs.exclude(sender__icontains=user_email)
+    # Exclude headhunter senders and head_hunter-labeled messages
+    if headhunter_domains:
+        rejections_qs = rejections_qs.exclude(msg_hh_sender_q)
+    rejections_qs = rejections_qs.exclude(ml_label="head_hunter")
     rejections_week = rejections_qs.count()
 
     # Count interview invitation messages this week
@@ -1329,6 +1343,21 @@ def dashboard(request):
 
     # Sidebar metrics will be populated via build_sidebar_context()
 
+    # Load headhunter domains once for dashboard-level filtering
+    headhunter_domains = []
+    try:
+        companies_path = Path("json/companies.json")
+        if companies_path.exists():
+            with open(companies_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                headhunter_domains = [
+                    d.strip().lower()
+                    for d in data.get("headhunter_domains", [])
+                    if d and isinstance(d, str)
+                ]
+    except Exception:
+        headhunter_domains = []
+
     # ✅ Recent messages with company preloaded
     messages = Message.objects.select_related("company").order_by("-timestamp")[:100]
     for msg in messages:
@@ -1510,6 +1539,25 @@ def dashboard(request):
             app_start_date + timedelta(days=i) for i in range(app_num_days)
         ]
         app_qs = Application.objects.filter(sent_date__gte=app_start_date)
+        # Exclude headhunter companies from application-based charts
+        if headhunter_domains:
+            hh_company_q = Q()
+            # Exclude by company domain when available
+            for d in headhunter_domains:
+                hh_company_q |= Q(company__domain__iendswith=d)
+            # Also exclude companies whose messages originate from headhunter domains or are labeled head_hunter
+            msg_hh_q = Q()
+            for d in headhunter_domains:
+                msg_hh_q |= Q(company__message__sender__icontains=f"@{d}")
+            hh_companies = (
+                Company.objects.filter(
+                    hh_company_q | msg_hh_q | Q(message__ml_label="head_hunter")
+                )
+                .distinct()
+                .values_list("id", flat=True)
+            )
+            if hh_companies:
+                app_qs = app_qs.exclude(company_id__in=list(hh_companies))
     else:
         app_date_list = []
         app_qs = Application.objects.none()
@@ -1601,6 +1649,25 @@ def dashboard(request):
         .values("company_id", "company__name", "sent_date")
         .order_by("-sent_date")
     )
+    # Exclude headhunter companies from the Applications-by-company listing
+    if headhunter_domains:
+        hh_company_q = Q()
+        for d in headhunter_domains:
+            hh_company_q |= Q(company__domain__iendswith=d)
+        msg_hh_q = Q()
+        for d in headhunter_domains:
+            msg_hh_q |= Q(company__message__sender__icontains=f"@{d}")
+        hh_companies = (
+            Company.objects.filter(
+                hh_company_q | msg_hh_q | Q(message__ml_label="head_hunter")
+            )
+            .distinct()
+            .values_list("id", flat=True)
+        )
+        if hh_companies:
+            application_companies_qs = application_companies_qs.exclude(
+                company_id__in=list(hh_companies)
+            )
 
     ghosted_companies_qs = (
         Application.objects.filter(
@@ -1820,6 +1887,38 @@ def label_messages(request):
                     messages.error(request, "❌ Invalid company ID")
             else:
                 messages.warning(request, "⚠️ Please select messages and a company")
+
+        elif action == "mark_all_reviewed":
+            # Mark all visible messages on current page as reviewed
+            page_message_ids = request.POST.getlist("page_message_ids")
+
+            if page_message_ids:
+                updated_count = Message.objects.filter(pk__in=page_message_ids).update(
+                    reviewed=True
+                )
+
+                messages.success(
+                    request,
+                    f"✅ Marked {updated_count} message(s) on this page as reviewed",
+                )
+
+                # Trigger model retraining in background when messages are marked as reviewed
+                messages.info(request, "🔄 Retraining model to update training data...")
+                try:
+                    subprocess.Popen([python_path, "train_model.py"])
+                    messages.success(
+                        request, "✅ Model retraining started in background"
+                    )
+                except Exception as e:
+                    messages.warning(
+                        request,
+                        f"⚠️ Could not start retraining: {e}. Please retrain manually from the sidebar.",
+                    )
+            else:
+                messages.warning(request, "⚠️ No messages found on this page")
+
+            # Redirect to refresh the page with current filters
+            return redirect(request.get_full_path())
 
     # Get pagination parameters
     per_page = int(request.GET.get("per_page", 50))

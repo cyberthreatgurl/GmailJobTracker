@@ -142,13 +142,13 @@ def rule_label(subject: str, body: str = "") -> str | None:
 
 
 def predict_with_fallback(
-    predict_subject_type_fn, subject: str, body: str = "", threshold: float = 0.55
+    predict_subject_type_fn, subject: str, body: str = "", threshold: float = 0.55, sender: str = ""
 ):
     """
     Wrap ML predictor; if low confidence or empty features, fall back to rules.
     Expects ML to return dict with keys: label, confidence (or proba).
     """
-    ml = predict_subject_type_fn(subject, body)
+    ml = predict_subject_type_fn(subject, body, sender=sender)
     conf = float(ml.get("confidence", ml.get("proba", 0.0)) if ml else 0.0)
     if not ml or conf < threshold:
         rl = rule_label(subject, body)
@@ -495,7 +495,7 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
 
     # --- ML classification ---
     # Use ML with rule fallback
-    result = predict_with_fallback(predict_subject_type, subject, body, threshold=0.55)
+    result = predict_with_fallback(predict_subject_type, subject, body, threshold=0.55, sender=sender)
     confidence = _conf(result)
     label = result["label"]
     ignore = bool(result.get("ignore", False))
@@ -840,7 +840,8 @@ def ingest_message(service, msg_id):
     insert_email_text(msg_id, metadata["subject"], body)
 
     subject = metadata["subject"]
-    result = predict_subject_type(subject, body)
+    sender = metadata.get("sender", "")
+    result = predict_subject_type(subject, body, sender=sender)
 
     # --- NEW LOGIC: Robust company extraction order ---
     # Add guard: skip company assignment for noise label
@@ -1185,53 +1186,96 @@ def ingest_message(service, msg_id):
     try:
         message_obj = Message.objects.get(msg_id=msg_id)
         if company_obj and message_obj:
-            application_obj, created = Application.objects.get_or_create(
-                thread_id=metadata["thread_id"],
-                defaults={
-                    "company": company_obj,
-                    "company_source": company_source,
-                    "job_title": parsed_subject.get("job_title", ""),
-                    "job_id": parsed_subject.get("job_id", ""),
-                    "status": status,
-                    "sent_date": metadata["timestamp"].date(),
-                    "rejection_date": rejection_date_final,
-                    "interview_date": interview_date_final,
-                    "ml_label": ml_label,
-                    "ml_confidence": (
-                        float(result.get("confidence", 0.0)) if result else 0.0
-                    ),
-                    "reviewed": reviewed,
-                },
+            # Headhunter guard: do NOT create Application records for headhunters
+            sender_domain = (metadata.get("sender_domain") or "").lower()
+            is_hh_sender = sender_domain in HEADHUNTER_DOMAINS
+            company_name_norm = (company_obj.name or "").strip().lower()
+            company_domain_norm = (getattr(company_obj, "domain", "") or "").strip().lower()
+            is_hh_company_domain = any(
+                company_domain_norm.endswith(d) for d in HEADHUNTER_DOMAINS
+            ) if company_domain_norm else False
+            is_hh_label = (ml_label == "head_hunter")
+            is_hh_company_name = (company_name_norm == "headhunter")
+
+            skip_application_creation = (
+                is_hh_sender or is_hh_label or is_hh_company_domain or is_hh_company_name
             )
 
-            # ✅ Update existing application if dates are missing but ML classified it
-            if not created:
-                updated = False
-                if not application_obj.rejection_date and ml_label == "rejected":
-                    application_obj.rejection_date = rejection_date_final
-                    updated = True
-                if (
-                    not application_obj.interview_date
-                    and ml_label == "interview_invite"
-                ):
-                    application_obj.interview_date = interview_date_final
-                    updated = True
-                if updated:
-                    application_obj.save()
-                    if DEBUG:
-                        print(f"✓ Updated existing application with ML-derived dates")
-            if created:
+            if skip_application_creation:
                 if DEBUG:
-                    print("Stats: inserted++ (new application)")
-                IngestionStats.objects.filter(date=stats.date).update(
-                    total_inserted=F("total_inserted") + 1
-                )
+                    print("↩️ Skipping Application creation for headhunter source/company")
+                # Do not create or update Application for headhunters
             else:
-                if DEBUG:
-                    print("Stats: ignored++ (duplicate application)")
-                IngestionStats.objects.filter(date=stats.date).update(
-                    total_ignored=F("total_ignored") + 1
-                )
+                # Only create Application rows for actual application confirmations
+                if ml_label == "job_application":
+                    application_obj, created = Application.objects.get_or_create(
+                        thread_id=metadata["thread_id"],
+                        defaults={
+                            "company": company_obj,
+                            "company_source": company_source,
+                            "job_title": parsed_subject.get("job_title", ""),
+                            "job_id": parsed_subject.get("job_id", ""),
+                            "status": status,
+                            "sent_date": metadata["timestamp"].date(),
+                            "rejection_date": rejection_date_final,
+                            "interview_date": interview_date_final,
+                            "ml_label": ml_label,
+                            "ml_confidence": (
+                                float(result.get("confidence", 0.0)) if result else 0.0
+                            ),
+                            "reviewed": reviewed,
+                        },
+                    )
+
+                    # ✅ Update existing application if dates are missing but ML classified it
+                    if not created:
+                        updated = False
+                        if not application_obj.rejection_date and ml_label == "rejected":
+                            application_obj.rejection_date = rejection_date_final
+                            updated = True
+                        if (
+                            not application_obj.interview_date
+                            and ml_label == "interview_invite"
+                        ):
+                            application_obj.interview_date = interview_date_final
+                            updated = True
+                        if updated:
+                            application_obj.save()
+                            if DEBUG:
+                                print(f"✓ Updated existing application with ML-derived dates")
+                    if created:
+                        if DEBUG:
+                            print("Stats: inserted++ (new application)")
+                        IngestionStats.objects.filter(date=stats.date).update(
+                            total_inserted=F("total_inserted") + 1
+                        )
+                    else:
+                        if DEBUG:
+                            print("Stats: ignored++ (duplicate application)")
+                        IngestionStats.objects.filter(date=stats.date).update(
+                            total_ignored=F("total_ignored") + 1
+                        )
+                else:
+                    # Not an application email: update existing Application if present, do not create a new one
+                    try:
+                        application_obj = Application.objects.get(thread_id=metadata["thread_id"])
+                        updated = False
+                        if not application_obj.rejection_date and ml_label == "rejected":
+                            application_obj.rejection_date = rejection_date_final
+                            updated = True
+                        if (
+                            not application_obj.interview_date
+                            and ml_label == "interview_invite"
+                        ):
+                            application_obj.interview_date = interview_date_final
+                            updated = True
+                        if updated:
+                            application_obj.save()
+                            if DEBUG:
+                                print("✓ Updated existing application (no new creation)")
+                    except Application.DoesNotExist:
+                        if DEBUG:
+                            print("ℹ️ No existing Application for this thread; not creating because this is not a job_application email")
         else:
             if DEBUG:
                 print("Stats: skipped++ (missing company/message)")

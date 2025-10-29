@@ -63,6 +63,7 @@
     "Rigor",
     "SEI",
     "SentinelOne",
+    "Shentel",
     "Signalfx",
     "SimVentions",
     "Snap",
@@ -74,15 +75,19 @@
     "Trustradius",
     "Tyler Technologies",
     "VA Tech",
+    "Starbucks",
     "The TJX Companies",
     "Valkyrie",
+    "Kodiak",
     "Venture Global LNG",
     "Verizon",
     "Virginia Tech",
     "Victorops",
-    "Westinghouse Nuclear"
+    "Westinghouse Nuclear",
+    "Center for a New American Security "
   ],
   "domain_to_company": {
+    "cnas.org": "Center for a New American Security",
     "systemicrisk.org": "Analysis and Resilience Center for Systemic Risk",
     "arescorporation.com": "ARES Corporation",
     "amentum.com": "Amentum",
@@ -114,6 +119,7 @@
     "pageuppeople.com": "Virginia Tech",
     "partnerforces.com": "PartnerForces",
     "rapid7.com": "Rapid7",
+    "kodiak.ai": "Kodiak",
     "simventions.com": "SimVentions",
     "venturegloballng.com": "Venture Global LNG",
     "splunk.com": "Splunk",
@@ -122,6 +128,8 @@
     "signalfx.com": "Signalfx",
     "appdynamics.com": "Appdynamics",
     "victorops.com": "Victorops",
+    "shentel.com": "Shentel",
+    "starbucks.com": "Starbucks",
     "rigor.com": "Rigor",
     "gartner.com": "Gartner",
     "peerspot.com": "Peerspot",
@@ -151,6 +159,7 @@
   ],
   "ats_domains": [
     "applicantpro.com",
+    "dayforcehcm.com",
     "indeed.com",
     "greenhouse-mail.io",
     "hirebridge.com",
@@ -200,6 +209,7 @@
   "JobSites": {
     "Amentum": "https://www.amentumcareers.com/jobs/",
     "BCI": "https://bcisse.applicantpro.com/jobs/",
+    "Kodiak": "https://kodiak.ai/careers/",
     "Chenega": "https://chenega.jibeapply.com/chenega-careers",
     "Dominion Energy": "https://careers.dominionenergy.com/",
     "IBM": "https://www.ibm.com/careers/search",
@@ -218,7 +228,6 @@
     "Google": "https://www.google.com/about/careers/applications/",
     "Cahaba Federal Solutions": "https://cahabafederal.com/careers/",
     "Headwit Global Inc.": "https://headwitglobal.com/",
-    "Netflix1": "https://jobs.netflix.com",
     "Netflix": "https://jobs.netflix.com",
     "Sentinel One": "https://www.sentinelone.com/jobs/",
     "Banduri": "https://www.banduri.com/Jobs",
@@ -226,6 +235,9 @@
     "Trellix": "https://careers.trellix.com/",
     "Amazon": "https://www.amazon.jobs/en/",
     "Partner Forces": "https://www.partnerforces.com/careers/",
-    "Integrated Resources, Inc.": "https://irionline.jobs.net/jobs"
+    "Integrated Resources, Inc.": "https://irionline.jobs.net/jobs",
+    "Endyna": "https://endyna.bamboohr.com/careers",
+    "CNAS": "https://www.cnas.org/careers",
+    "Shentel": "https://www.shentel.com/en/careers"
   }
 }

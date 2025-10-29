@@ -159,7 +159,7 @@ def _get_rule_label_func():
     return rule_label
 
 
-def predict_subject_type(subject: str, body: str = "", threshold: float = 0.6):
+def predict_subject_type(subject: str, body: str = "", threshold: float = 0.6, sender: str = ""):
     """Predict message label from subject+body using rules first, then ML.
 
     Returns dict: {label, confidence, ignore, method}
@@ -172,11 +172,28 @@ def predict_subject_type(subject: str, body: str = "", threshold: float = 0.6):
     if DEBUG:
         print(f"[DEBUG] predict_subject_type: subject='{(subject or '')[:80]}'")
 
+    # Check if sender is the user (skip head_hunter classification for user's own messages)
+    import os
+    user_email = (os.environ.get("USER_EMAIL_ADDRESS") or "").strip().lower()
+    exclude_user_hh = (os.environ.get("HEADHUNTER_EXCLUDE_USER_SENDER", "false").strip().lower() in {"1", "true", "yes", "y"})
+    is_user_message = False
+    if user_email and sender:
+        is_user_message = user_email in sender.lower()
+        if DEBUG and is_user_message and exclude_user_hh:
+            print(f"[DEBUG] Sender is user ({user_email}), will skip head_hunter classification (env gated)")
+
     # Try rule-based first (use the canonical implementation from parser.py if available)
     rule_fn = _get_rule_label_func()
     rule_result = rule_fn(subject, body)
     if DEBUG:
         print(f"[DEBUG] rules-first returned: {repr(rule_result)}")
+    
+    # Skip head_hunter label for user's own messages (env gated)
+    if rule_result == "head_hunter" and is_user_message and exclude_user_hh:
+        if DEBUG:
+            print("[DEBUG] Skipping head_hunter label for user message, treating as 'other'")
+        rule_result = "other"
+    
     if rule_result:
         if DEBUG:
             print("[DEBUG] Using rules-first result")
@@ -227,6 +244,12 @@ def predict_subject_type(subject: str, body: str = "", threshold: float = 0.6):
     if DEBUG:
         print(f"[DEBUG] ML predicted: label={label}, confidence={confidence:.3f}")
 
+    # Skip head_hunter label for user's own messages (env gated)
+    if label == "head_hunter" and is_user_message and exclude_user_hh:
+        if DEBUG:
+            print("[DEBUG] Skipping ML head_hunter prediction for user message, using 'other'")
+        label = "other"
+
     # If ML is uncertain, try rules again as backup
     if confidence < threshold:
         rule_result = rule_fn(subject, body)
@@ -234,6 +257,12 @@ def predict_subject_type(subject: str, body: str = "", threshold: float = 0.6):
             print(
                 f"[DEBUG] ML below threshold; rules-fallback returned: {repr(rule_result)}"
             )
+        # Skip head_hunter for user messages in fallback too (env gated)
+        if rule_result == "head_hunter" and is_user_message and exclude_user_hh:
+            if DEBUG:
+                print("[DEBUG] Skipping fallback head_hunter for user message")
+            rule_result = "other"
+        
         if rule_result:
             mapped_label = "other" if rule_result in _SUPPRESS_LABELS else rule_result
             return {

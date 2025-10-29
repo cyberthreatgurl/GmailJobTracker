@@ -115,6 +115,13 @@
       background: #9ca3af;
       cursor: not-allowed;
     }
+    .btn-success {
+      background: #059669;
+      color: white;
+    }
+    .btn-success:hover {
+      background: #047857;
+    }
     .message-table {
       background: white;
       border-radius: 8px;
@@ -358,6 +365,10 @@
   <form method="post" id="bulk-form">
     {% csrf_token %}
     <input type="hidden" name="action" value="bulk_label" id="form-action">
+    <!-- Hidden inputs for all message IDs on current page -->
+    {% for msg in message_list %}
+      <input type="hidden" name="page_message_ids" value="{{ msg.id }}">
+    {% endfor %}
     <div class="bulk-actions">
       <div>
         <span class="selected-count" id="selected-count">0</span> messages selected
@@ -381,6 +392,11 @@
       <button type="submit" class="btn btn-primary" id="company-submit" disabled onclick="return submitCompanyReassign()">
         Reassign Company
       </button>
+      {% if message_list %}
+      <button type="submit" class="btn btn-success" id="mark-reviewed-submit" onclick="return submitMarkAllReviewed()" style="margin-left: auto;">
+        ✓ Mark All on Page as Reviewed
+      </button>
+      {% endif %}
     </div>
     <!-- Message Table -->
     <div class="message-table">
@@ -542,6 +558,22 @@
       document.getElementById('form-action').value = 'reassign_company';
       return true;
     }
+
+    function submitMarkAllReviewed() {
+      const pageCount = {{ message_list|length }};
+      
+      if (pageCount === 0) {
+        alert('No messages on this page');
+        return false;
+      }
+      
+      if (!confirm(`Mark all ${pageCount} message(s) on this page as reviewed?`)) {
+        return false;
+      }
+      
+      document.getElementById('form-action').value = 'mark_all_reviewed';
+      return true;
+    }
     
     function toggleSelectAll() {
       const selectAll = document.getElementById('select-all');
@@ -600,19 +632,28 @@
       window.location.href = `{% url 'label_messages' %}?label=${label}&confidence=${confidence}&company=${company}&per_page=${perPage}&reviewed=${reviewed}&search=${encodeURIComponent(search)}&sort=${field}&order=${nextOrder}&page=1`;
     }
     
-    // Confirm before submitting
+    // Confirm before submitting - only require label for bulk_label action
     document.getElementById('bulk-form').addEventListener('submit', function(e) {
-      const count = document.querySelectorAll('.message-checkbox:checked').length;
-      const label = document.getElementById('bulk-label').value;
-      
-      if (!label) {
-        e.preventDefault();
-        alert('Please select a label');
+      const action = (document.getElementById('form-action').value || 'bulk_label');
+      if (action === 'bulk_label') {
+        const count = document.querySelectorAll('.message-checkbox:checked').length;
+        const label = document.getElementById('bulk-label').value;
+        if (!label) {
+          e.preventDefault();
+          alert('Please select a label');
+          return;
+        }
+        if (count === 0) {
+          e.preventDefault();
+          alert('Please select at least one message');
+          return;
+        }
+        if (!confirm(`Label ${count} message(s) as "${label}"?`)) {
+          e.preventDefault();
+        }
+      } else {
+        // Other actions (reassign_company, mark_all_reviewed) have their own validations via onclick handlers
         return;
-      }
-      
-      if (!confirm(`Label ${count} message(s) as "${label}"?`)) {
-        e.preventDefault();
       }
     });
   </script>

@@ -912,7 +912,10 @@ def label_companies(request):
                 .order_by("-timestamp")
             )
             message_count = messages_qs.count()
-            message_info_list = list(messages_qs.values_list("timestamp", "subject"))
+            # Provide (id, timestamp, subject) for deep links to label_messages focus
+            message_info_list = list(
+                messages_qs.values_list("id", "timestamp", "subject")
+            )
             # Compute days since last message for ghosted assessment
             if message_count > 0:
                 last_message_ts = messages_qs.first().timestamp
@@ -1132,6 +1135,11 @@ def build_sidebar_context():
     applications_qs = applications_qs.exclude(ml_label="head_hunter")
     applications_count = applications_qs.count()
 
+    # Applications this week
+    applications_week = applications_qs.filter(
+        timestamp__gte=now() - timedelta(days=7)
+    ).count()
+
     # Count rejection messages this week (exclude headhunters and user's own replies)
     rejections_qs = Message.objects.filter(
         ml_label__in=["rejected", "rejection"],
@@ -1168,6 +1176,7 @@ def build_sidebar_context():
         "companies": companies_count,
         "applications": applications_count,
         "applications_count": applications_count,
+        "applications_week": applications_week,
         "rejections_week": rejections_week,
         "interviews_week": interviews_week,
         "upcoming_interviews": upcoming_interviews,
@@ -1932,10 +1941,20 @@ def label_messages(request):
         "reviewed", "unreviewed"
     )  # unreviewed, reviewed, all
     search_query = request.GET.get("search", "").strip()  # text search
+    hide_noise = request.GET.get("hide_noise", "false").lower() in (
+        "true",
+        "1",
+        "yes",
+    )  # checkbox filter
     sort = request.GET.get(
         "sort", ""
     )  # subject, company, confidence, sender_domain, date
     order = request.GET.get("order", "asc")  # asc, desc
+    # Focus support: if linking to a specific message and no sort provided, default to date desc
+    focus_msg_id = request.GET.get("focus") or request.GET.get("focus_msg_id")
+    if focus_msg_id and not sort:
+        sort = "date"
+        order = "desc"
 
     # Build queryset based on reviewed filter
     if filter_reviewed == "unreviewed":
@@ -1974,6 +1993,10 @@ def label_messages(request):
             | Q(body__icontains=search_query)
             | Q(sender__icontains=search_query)
         )
+
+    # Apply hide noise filter
+    if hide_noise:
+        qs = qs.exclude(ml_label="noise")
 
     # Do not exclude messages with blank or very short bodies; show all for debugging
 
@@ -2021,13 +2044,39 @@ def label_messages(request):
             "-timestamp" if is_desc else "timestamp",
         )
     elif sort == "date":
-        qs = qs.order_by("-timestamp" if is_desc else "timestamp")
+        # Include id as a tiebreaker for deterministic ordering
+        qs = qs.order_by(
+            ("-timestamp" if is_desc else "timestamp"), ("-id" if is_desc else "id")
+        )
     else:
         # Fallback: order by confidence priority similar to previous behavior
         if filter_confidence in ("high", "medium"):
             qs = qs.order_by(F("confidence").desc(nulls_last=True), "-timestamp")
         else:
             qs = qs.order_by(F("confidence").asc(nulls_first=True), "timestamp")
+
+    # If focusing a specific message, compute the page where it appears
+    if focus_msg_id:
+        try:
+            target_id = int(focus_msg_id)
+            # Verify target exists in current filtered set
+            if qs.filter(id=target_id).exists():
+                target = Message.objects.get(pk=target_id)
+                if sort == "date":
+                    if is_desc:
+                        # Count items that would appear before the target
+                        before_count = qs.filter(
+                            Q(timestamp__gt=target.timestamp)
+                            | (Q(timestamp=target.timestamp) & Q(id__gt=target.id))
+                        ).count()
+                    else:
+                        before_count = qs.filter(
+                            Q(timestamp__lt=target.timestamp)
+                            | (Q(timestamp=target.timestamp) & Q(id__lt=target.id))
+                        ).count()
+                    page = before_count // per_page + 1
+        except Exception:
+            pass
 
     # Pagination
     total_count = qs.count()
@@ -2119,6 +2168,7 @@ def label_messages(request):
         "filter_company": filter_company,
         "filter_reviewed": filter_reviewed,
         "search_query": search_query,
+        "hide_noise": hide_noise,
         "sort": sort,
         "order": order,
         "distinct_labels": distinct_labels,
@@ -2135,6 +2185,9 @@ def label_messages(request):
         "training_output": training_output,
         "filter_reviewed": filter_reviewed,
         "all_companies": all_companies,
+        "focus_msg_id": (
+            int(focus_msg_id) if str(focus_msg_id or "").isdigit() else None
+        ),
     }
     return render(request, "tracker/label_messages.html", ctx)
 

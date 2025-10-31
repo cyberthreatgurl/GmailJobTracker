@@ -8,7 +8,7 @@ import os
 
 
 class Command(BaseCommand):
-    help = "Delete Application records that belong to headhunter companies (by domain, HH label, or HH sender)."
+    help = "Delete Application records that belong to headhunter companies, Glassdoor noreply, or have HH triggers."
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -30,8 +30,10 @@ class Command(BaseCommand):
         verbose = options.get("verbose", False)
         company_id_filter = options.get("company_id")
 
-        # Load headhunter domains
+        # Load safety configuration from companies.json
         headhunter_domains = []
+        ats_domains = []
+        domain_to_company = {}
         companies_path = Path("json/companies.json")
         if companies_path.exists():
             try:
@@ -42,6 +44,19 @@ class Command(BaseCommand):
                         for d in data.get("headhunter_domains", [])
                         if d and isinstance(d, str)
                     ]
+                    ats_domains = [
+                        d.strip().lower()
+                        for d in data.get("ats_domains", [])
+                        if d and isinstance(d, str)
+                    ]
+                    # Map of domain -> canonical company name
+                    raw_map = data.get("domain_to_company", {}) or {}
+                    # Normalize keys to lowercase
+                    domain_to_company = {
+                        (k or "").strip().lower(): (v or "").strip()
+                        for k, v in raw_map.items()
+                        if isinstance(k, str) and isinstance(v, str)
+                    }
             except Exception as e:
                 self.stdout.write(
                     self.style.WARNING(f"Warning: could not read companies.json: {e}")
@@ -63,11 +78,19 @@ class Command(BaseCommand):
             Message.objects.filter(thread_id=OuterRef("thread_id")).filter(msg_hh_q)
         )
 
+        # Detect Glassdoor noreply threads
+        glassdoor_thread_exists = Exists(
+            Message.objects.filter(
+                thread_id=OuterRef("thread_id"),
+                sender__icontains="noreply@glassdoor.com"
+            )
+        )
+
         # Base queryset
         apps_qs = (
             Application.objects.select_related("company")
-            .annotate(hh_thread=hh_thread_exists)
-            .filter(Q(company_id__in=hh_company_ids) | Q(hh_thread=True))
+            .annotate(hh_thread=hh_thread_exists, glassdoor_thread=glassdoor_thread_exists)
+            .filter(Q(company_id__in=hh_company_ids) | Q(hh_thread=True) | Q(glassdoor_thread=True))
         )
         if company_id_filter:
             apps_qs = apps_qs.filter(company_id=company_id_filter)
@@ -88,30 +111,108 @@ class Command(BaseCommand):
             s = (sender or "").lower()
             at = s.rfind("@")
             if at != -1:
-                dom = s[at + 1 :].strip().strip(">)")
+                dom = s[at + 1 :].strip().strip(")>")
                 dom = dom.split()[0].strip(",.;")
                 return dom
             return ""
 
+        def _domain_suffixes(dom: str):
+            """Yield domain suffixes from most specific to TLD-level.
+
+            e.g., 'a.mail.amazon.com' -> 'a.mail.amazon.com', 'mail.amazon.com', 'amazon.com', 'com'
+            """
+            dom = (dom or "").lower().strip()
+            if not dom:
+                return []
+            parts = dom.split(".")
+            return [".".join(parts[i:]) for i in range(len(parts))]
+
+        def _canonical_company_for_domain(dom: str) -> str:
+            """Lookup canonical company name for a domain using companies.json domain_to_company mapping.
+
+            Tries all suffixes to allow subdomain matches. Returns empty string if no mapping.
+            """
+            for suf in _domain_suffixes(dom):
+                mapped = domain_to_company.get(suf)
+                if mapped:
+                    return mapped.strip()
+            return ""
+
+        def _is_ats_domain(dom: str) -> bool:
+            d = (dom or "").lower().strip()
+            return any(d.endswith(ad) for ad in ats_domains)
+
         def triggers_for_app(app):
+            # Collect HH triggers
             tqs = Message.objects.filter(thread_id=app.thread_id).filter(msg_hh_q)
             if exclude_user_hh and user_email:
                 tqs = tqs.exclude(sender__icontains=user_email)
-            return list(tqs.values("id", "msg_id", "sender", "ml_label", "timestamp"))
+            hh_triggers = list(tqs.values("id", "msg_id", "sender", "ml_label", "timestamp"))
+            
+            # Collect Glassdoor triggers
+            glassdoor_triggers = list(
+                Message.objects.filter(
+                    thread_id=app.thread_id,
+                    sender__icontains="noreply@glassdoor.com"
+                ).values("id", "msg_id", "sender", "ml_label", "timestamp")
+            )
+            
+            # Combine and return all triggers
+            return hh_triggers + glassdoor_triggers
 
-        def is_safe_same_company_trigger(app, trig_msgs):
+        def is_safe_triggers_for_app(app, trig_msgs):
+            """Safe if ALL trigger messages are from ATS domains or map to the same company as the Application.
+
+            Rules:
+            - If Application's company domain is a headhunter domain, not safe.
+            - If no triggers, not safe (we rely on explicit triggers to decide safety).
+            - If any trigger is from Glassdoor noreply, not safe (always delete).
+            - For each trigger message domain:
+              - If it's an ATS domain -> safe for that message
+              - Else, if it endswith the application's company domain -> safe
+              - Else, if mapped canonical company equals the application's canonical company -> safe
+              - Otherwise, unsafe
+            Only if all triggers are safe do we consider the Application safe (excluded from deletion).
+            """
             company = getattr(app, "company", None)
-            company_domain = (company.domain or "").lower().strip() if company else ""
-            if not company_domain:
-                return False
-            if any(company_domain.endswith(d) for d in headhunter_domains):
+            app_company_name = (company.name or "").strip().lower() if company else ""
+            app_company_domain = (
+                (company.domain or "").lower().strip() if company else ""
+            )
+            if app_company_domain and any(
+                app_company_domain.endswith(d) for d in headhunter_domains
+            ):
                 return False
             if not trig_msgs:
                 return False
+
+            # Glassdoor noreply is never safe - always delete
+            for m in trig_msgs:
+                sender = (m.get("sender") or "").lower()
+                if "noreply@glassdoor.com" in sender:
+                    return False
+
+            # Determine canonical company for the app by domain mapping first, then by name
+            app_canonical = _canonical_company_for_domain(app_company_domain)
+            if not app_canonical:
+                app_canonical = app_company_name
+
             for m in trig_msgs:
                 dom = _sender_domain(m.get("sender") or "")
-                if not dom or not dom.endswith(company_domain):
+                if not dom:
                     return False
+                # ATS domains are safe
+                if _is_ats_domain(dom):
+                    continue
+                # Same-domain (subdomain) safe
+                if app_company_domain and dom.endswith(app_company_domain):
+                    continue
+                # Corporate recruiter domain mapping safe
+                mapped = _canonical_company_for_domain(dom).strip().lower()
+                if mapped and app_canonical and mapped == app_canonical:
+                    continue
+                # Otherwise, this trigger is unsafe
+                return False
             return True
 
         # Filter to delete vs excluded-safe
@@ -119,7 +220,7 @@ class Command(BaseCommand):
         apps_excluded_safe = []
         for app in apps_qs.iterator():
             trig = triggers_for_app(app)
-            if is_safe_same_company_trigger(app, trig):
+            if is_safe_triggers_for_app(app, trig):
                 apps_excluded_safe.append((app, trig))
             else:
                 apps_to_delete.append((app, trig))
@@ -128,8 +229,17 @@ class Command(BaseCommand):
             reasons = []
             if app.company_id in hh_company_ids:
                 reasons.append("company is headhunter (name/domain match)")
-            if trig_msgs:
-                reasons.append(f"{len(trig_msgs)} headhunter-like message(s) in thread")
+            
+            # Check for Glassdoor triggers
+            glassdoor_count = sum(1 for m in trig_msgs if "noreply@glassdoor.com" in (m.get("sender") or "").lower())
+            if glassdoor_count:
+                reasons.append(f"{glassdoor_count} Glassdoor noreply message(s)")
+            
+            # Check for other HH triggers
+            hh_count = len(trig_msgs) - glassdoor_count
+            if hh_count:
+                reasons.append(f"{hh_count} headhunter-like message(s) in thread")
+            
             if reasons:
                 self.stdout.write("    reasons: " + "; ".join(reasons))
             for m in trig_msgs[:5]:
@@ -164,7 +274,9 @@ class Command(BaseCommand):
                     print_triggers_for_app(app, trig)
                 if apps_excluded_safe:
                     self.stdout.write(
-                        self.style.WARNING("\nExcluded (safe same-company triggers):")
+                        self.style.WARNING(
+                            "\nExcluded (safe triggers: same-company/corporate/ATS):"
+                        )
                     )
                     for app, _ in apps_excluded_safe[:20]:
                         self.stdout.write(

@@ -179,10 +179,16 @@
           <h2 style="margin-top:0; color:#1e40af; font-size:1.1rem;">Company Data Preview</h2>
           <div style="margin-bottom:1rem;"><strong>Messages in database:</strong> {{ message_count }}</div>
           <div style="max-height: 320px; overflow-y: auto;">
-            <strong>All Email Dates &amp; Subjects to be Deleted:</strong>
+            <strong>All Email Dates &amp; Subjects:</strong>
             <ul style="margin:0.5rem 0 0 0; padding-left:1.2rem; font-size:0.97rem;">
-              {% for ts, subj in message_info_list %}
-                <li><span style="color:#6b7280;">{{ ts|date:"Y-m-d H:i" }}</span> — <span style="color:#111827;">{{ subj|truncatechars:80 }}</span></li>
+              {% for mid, ts, subj in message_info_list %}
+                <li>
+                  <span style="color:#6b7280;">{{ ts|date:"Y-m-d H:i" }}</span>
+                  —
+                  <a href="{% url 'label_messages' %}?reviewed=all&label=all&sort=date&order=desc&focus={{ mid }}" style="color:#2563eb; text-decoration: none;">
+                    {{ subj|truncatechars:80 }}
+                  </a>
+                </li>
               {% empty %}
                 <li style="color:#9ca3af;">No messages found for this company.</li>
               {% endfor %}

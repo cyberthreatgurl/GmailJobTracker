@@ -272,6 +272,15 @@
     .legend-chip.yellow {
       background-color: #fef9c3;
     }
+    /* Focus highlight animation for deep-linked message rows */
+    .focus-flash {
+      animation: flashBg 1.6s ease-in-out;
+    }
+    @keyframes flashBg {
+      0% { background-color: #fef08a; }
+      50% { background-color: #fde68a; }
+      100% { background-color: transparent; }
+    }
   </style>
 {% endblock %}
 
@@ -359,6 +368,10 @@
         <option value="100" {% if per_page == 100 %}selected{% endif %}>100</option>
       </select>
     </div>
+    <div class="filter-group" style="flex-direction: row; align-items: center; gap: 0.5rem;">
+      <input type="checkbox" id="hide-noise-checkbox" onchange="applyFilters()" {% if hide_noise %}checked{% endif %} style="width: 18px; height: 18px; margin: 0;">
+      <label for="hide-noise-checkbox" style="margin: 0; text-transform: none; font-size: 0.85rem; font-weight: 500; color: #374151; cursor: pointer;">Hide Noise</label>
+    </div>
   </div>
 
   <!-- Bulk Actions Form -->
@@ -437,7 +450,7 @@
         </thead>
         <tbody>
           {% for msg in message_list %}
-            <tr class="{% if not msg.reviewed %}row-unreviewed{% elif msg.reviewed %}row-reviewed-high{% endif %}">
+            <tr id="msg-{{ msg.id }}" class="{% if not msg.reviewed %}row-unreviewed{% elif msg.reviewed %}row-reviewed-high{% endif %}">
               <td class="checkbox-cell">
                 <input type="checkbox" name="selected_messages" value="{{ msg.id }}" class="message-checkbox" onchange="updateSelection()">
               </td>
@@ -507,6 +520,19 @@
     // current sort state from server
     const currentSort = "{{ sort|default:'' }}";
     const currentOrder = "{{ order|default:'asc' }}";
+
+    // If a focused message id is provided, scroll to it and briefly highlight
+    const focusMsgId = {{ focus_msg_id|default:'null' }};
+    if (focusMsgId) {
+      window.addEventListener('DOMContentLoaded', () => {
+        const el = document.getElementById(`msg-${focusMsgId}`);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          el.classList.add('focus-flash');
+          setTimeout(() => el.classList.remove('focus-flash'), 2000);
+        }
+      });
+    }
 
     function updateSelection() {
       const checkboxes = document.querySelectorAll('.message-checkbox');
@@ -593,10 +619,13 @@
   const perPage = document.getElementById('per-page').value;
   const reviewed = document.getElementById('reviewed-filter').value;
   const search = document.getElementById('search-box').value;
+  const hideNoiseChecked = document.getElementById('hide-noise-checkbox').checked;
   // keep current sort/order when changing filters
   const sort = currentSort || '';
   const order = currentOrder || 'asc';
-  window.location.href = `{% url 'label_messages' %}?label=${label}&confidence=${confidence}&company=${company}&per_page=${perPage}&reviewed=${reviewed}&search=${encodeURIComponent(search)}&sort=${sort}&order=${order}&page=1`;
+  // Only include hide_noise parameter if checked
+  const hideNoiseParam = hideNoiseChecked ? '&hide_noise=true' : '';
+  window.location.href = `{% url 'label_messages' %}?label=${label}&confidence=${confidence}&company=${company}&per_page=${perPage}&reviewed=${reviewed}&search=${encodeURIComponent(search)}${hideNoiseParam}&sort=${sort}&order=${order}&page=1`;
     }
     
     function changePerPage() {
@@ -610,9 +639,12 @@
       const perPage = document.getElementById('per-page').value;
       const reviewed = document.getElementById('reviewed-filter').value;
       const search = document.getElementById('search-box').value;
+      const hideNoiseChecked = document.getElementById('hide-noise-checkbox').checked;
       const sort = currentSort || '';
       const order = currentOrder || 'asc';
-      window.location.href = `{% url 'label_messages' %}?label=${label}&confidence=${confidence}&company=${company}&per_page=${perPage}&reviewed=${reviewed}&search=${encodeURIComponent(search)}&sort=${sort}&order=${order}&page=${pageNum}`;
+      // Only include hide_noise parameter if checked
+      const hideNoiseParam = hideNoiseChecked ? '&hide_noise=true' : '';
+      window.location.href = `{% url 'label_messages' %}?label=${label}&confidence=${confidence}&company=${company}&per_page=${perPage}&reviewed=${reviewed}&search=${encodeURIComponent(search)}${hideNoiseParam}&sort=${sort}&order=${order}&page=${pageNum}`;
     }
 
     function sortBy(field) {
@@ -622,6 +654,7 @@
       const perPage = document.getElementById('per-page').value;
       const reviewed = document.getElementById('reviewed-filter').value;
       const search = document.getElementById('search-box').value;
+      const hideNoiseChecked = document.getElementById('hide-noise-checkbox').checked;
 
       // toggle order if clicking same field, else default asc
       let nextOrder = 'asc';
@@ -629,7 +662,9 @@
         nextOrder = currentOrder === 'asc' ? 'desc' : 'asc';
       }
 
-      window.location.href = `{% url 'label_messages' %}?label=${label}&confidence=${confidence}&company=${company}&per_page=${perPage}&reviewed=${reviewed}&search=${encodeURIComponent(search)}&sort=${field}&order=${nextOrder}&page=1`;
+      // Only include hide_noise parameter if checked
+      const hideNoiseParam = hideNoiseChecked ? '&hide_noise=true' : '';
+      window.location.href = `{% url 'label_messages' %}?label=${label}&confidence=${confidence}&company=${company}&per_page=${perPage}&reviewed=${reviewed}&search=${encodeURIComponent(search)}${hideNoiseParam}&sort=${field}&order=${nextOrder}&page=1`;
     }
     
     // Confirm before submitting - only require label for bulk_label action

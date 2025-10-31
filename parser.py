@@ -142,7 +142,11 @@ def rule_label(subject: str, body: str = "") -> str | None:
 
 
 def predict_with_fallback(
-    predict_subject_type_fn, subject: str, body: str = "", threshold: float = 0.55, sender: str = ""
+    predict_subject_type_fn,
+    subject: str,
+    body: str = "",
+    threshold: float = 0.55,
+    sender: str = "",
 ):
     """
     Wrap ML predictor; if low confidence or empty features, fall back to rules.
@@ -495,7 +499,9 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
 
     # --- ML classification ---
     # Use ML with rule fallback
-    result = predict_with_fallback(predict_subject_type, subject, body, threshold=0.55, sender=sender)
+    result = predict_with_fallback(
+        predict_subject_type, subject, body, threshold=0.55, sender=sender
+    )
     confidence = _conf(result)
     label = result["label"]
     ignore = bool(result.get("ignore", False))
@@ -1150,6 +1156,46 @@ def ingest_message(service, msg_id):
             f"Not reviewed: confidence={result.get('confidence', 0.0):.2f}, label={result.get('label')}, company={company}"
         )
 
+    # ✅ Check for near-duplicate messages (same subject, sender, timestamp within 5 seconds)
+    from django.utils.timezone import make_aware
+    import datetime
+
+    ts = metadata["timestamp"]
+    window_start = ts - datetime.timedelta(seconds=5)
+    window_end = ts + datetime.timedelta(seconds=5)
+    duplicate_qs = Message.objects.filter(
+        subject=subject,
+        sender=metadata["sender"],
+        timestamp__gte=window_start,
+        timestamp__lte=window_end,
+    )
+    if duplicate_qs.exists():
+        # Optionally log or ignore
+        if DEBUG:
+            print(
+                f"⚠️ Duplicate message detected: subject='{subject}', sender='{metadata['sender']}', ts={ts}"
+            )
+        # Optionally log to IgnoredMessage
+        from tracker.models import IgnoredMessage
+
+        IgnoredMessage.objects.get_or_create(
+            msg_id=msg_id,
+            defaults={
+                "subject": subject,
+                "body": metadata["body"],
+                "company_source": company_source or "",
+                "sender": metadata["sender"],
+                "sender_domain": (
+                    metadata["sender"].split("@")[-1]
+                    if "@" in metadata["sender"]
+                    else ""
+                ),
+                "date": ts,
+                "reason": "duplicate_near",
+            },
+        )
+        return  # Skip duplicate
+
     # ✅ Now safe to insert Message with enriched company
     Message.objects.create(
         msg_id=msg_id,
@@ -1190,20 +1236,29 @@ def ingest_message(service, msg_id):
             sender_domain = (metadata.get("sender_domain") or "").lower()
             is_hh_sender = sender_domain in HEADHUNTER_DOMAINS
             company_name_norm = (company_obj.name or "").strip().lower()
-            company_domain_norm = (getattr(company_obj, "domain", "") or "").strip().lower()
-            is_hh_company_domain = any(
-                company_domain_norm.endswith(d) for d in HEADHUNTER_DOMAINS
-            ) if company_domain_norm else False
-            is_hh_label = (ml_label == "head_hunter")
-            is_hh_company_name = (company_name_norm == "headhunter")
+            company_domain_norm = (
+                (getattr(company_obj, "domain", "") or "").strip().lower()
+            )
+            is_hh_company_domain = (
+                any(company_domain_norm.endswith(d) for d in HEADHUNTER_DOMAINS)
+                if company_domain_norm
+                else False
+            )
+            is_hh_label = ml_label == "head_hunter"
+            is_hh_company_name = company_name_norm == "headhunter"
 
             skip_application_creation = (
-                is_hh_sender or is_hh_label or is_hh_company_domain or is_hh_company_name
+                is_hh_sender
+                or is_hh_label
+                or is_hh_company_domain
+                or is_hh_company_name
             )
 
             if skip_application_creation:
                 if DEBUG:
-                    print("↩️ Skipping Application creation for headhunter source/company")
+                    print(
+                        "↩️ Skipping Application creation for headhunter source/company"
+                    )
                 # Do not create or update Application for headhunters
             else:
                 # Only create Application rows for actual application confirmations
@@ -1230,7 +1285,10 @@ def ingest_message(service, msg_id):
                     # ✅ Update existing application if dates are missing but ML classified it
                     if not created:
                         updated = False
-                        if not application_obj.rejection_date and ml_label == "rejected":
+                        if (
+                            not application_obj.rejection_date
+                            and ml_label == "rejected"
+                        ):
                             application_obj.rejection_date = rejection_date_final
                             updated = True
                         if (
@@ -1242,7 +1300,9 @@ def ingest_message(service, msg_id):
                         if updated:
                             application_obj.save()
                             if DEBUG:
-                                print(f"✓ Updated existing application with ML-derived dates")
+                                print(
+                                    f"✓ Updated existing application with ML-derived dates"
+                                )
                     if created:
                         if DEBUG:
                             print("Stats: inserted++ (new application)")
@@ -1258,9 +1318,14 @@ def ingest_message(service, msg_id):
                 else:
                     # Not an application email: update existing Application if present, do not create a new one
                     try:
-                        application_obj = Application.objects.get(thread_id=metadata["thread_id"])
+                        application_obj = Application.objects.get(
+                            thread_id=metadata["thread_id"]
+                        )
                         updated = False
-                        if not application_obj.rejection_date and ml_label == "rejected":
+                        if (
+                            not application_obj.rejection_date
+                            and ml_label == "rejected"
+                        ):
                             application_obj.rejection_date = rejection_date_final
                             updated = True
                         if (
@@ -1272,10 +1337,14 @@ def ingest_message(service, msg_id):
                         if updated:
                             application_obj.save()
                             if DEBUG:
-                                print("✓ Updated existing application (no new creation)")
+                                print(
+                                    "✓ Updated existing application (no new creation)"
+                                )
                     except Application.DoesNotExist:
                         if DEBUG:
-                            print("ℹ️ No existing Application for this thread; not creating because this is not a job_application email")
+                            print(
+                                "ℹ️ No existing Application for this thread; not creating because this is not a job_application email"
+                            )
         else:
             if DEBUG:
                 print("Stats: skipped++ (missing company/message)")

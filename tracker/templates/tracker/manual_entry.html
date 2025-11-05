@@ -1,0 +1,320 @@
+{% extends "base.html" %}
+{% block title %}Manual Entry - GmailJobTracker{% endblock %}
+{% block extra_head %}
+  <style>
+    .manual-entry-container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .form-card {
+      background: white;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      margin-bottom: 2rem;
+    }
+    .form-card h2 {
+      margin-top: 0;
+      color: #1f2937;
+      font-size: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+    .form-group label {
+      display: block;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 0.5rem;
+      font-size: 0.95rem;
+    }
+    .form-group input[type="text"],
+    .form-group input[type="date"],
+    .form-group textarea,
+    .form-group select {
+      width: 100%;
+      padding: 0.6rem;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      font-family: inherit;
+    }
+    .form-group textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+    .help-text {
+      font-size: 0.85rem;
+      color: #6b7280;
+      margin-top: 0.3rem;
+    }
+    .radio-group {
+      display: flex;
+      gap: 1.5rem;
+      margin-top: 0.5rem;
+    }
+    .radio-group label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .radio-group input[type="radio"] {
+      width: auto;
+      cursor: pointer;
+    }
+    .submit-btn {
+      background: #2563eb;
+      color: white;
+      border: none;
+      padding: 0.75rem 2rem;
+      border-radius: 6px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .submit-btn:hover {
+      background: #1e40af;
+    }
+    .recent-entries {
+      background: #f9fafb;
+      padding: 1.5rem;
+      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+    }
+    .recent-entries h3 {
+      margin-top: 0;
+      color: #1f2937;
+      font-size: 1.1rem;
+      margin-bottom: 1rem;
+    }
+    .entry-item {
+      background: white;
+      padding: 1rem;
+      border-radius: 6px;
+      margin-bottom: 0.75rem;
+      border-left: 4px solid #2563eb;
+    }
+    .entry-item.interview {
+      border-left-color: #22c55e;
+    }
+    .entry-item.rejection {
+      border-left-color: #ef4444;
+    }
+    .entry-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+    .entry-title {
+      font-weight: 600;
+      color: #111827;
+      font-size: 0.95rem;
+    }
+    .entry-date {
+      color: #6b7280;
+      font-size: 0.85rem;
+    }
+    .entry-company {
+      color: #2563eb;
+      font-size: 0.9rem;
+    }
+    .entry-type-badge {
+      display: inline-block;
+      padding: 0.2rem 0.6rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .entry-type-badge.application {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+    .entry-type-badge.interview {
+      background: #d1fae5;
+      color: #065f46;
+    }
+    .entry-type-badge.rejection {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+    .error {
+      background: #fee2e2;
+      border: 1px solid #fecaca;
+      color: #991b1b;
+      padding: 0.75rem;
+      border-radius: 6px;
+      margin-bottom: 1rem;
+    }
+    .errorlist {
+      list-style: none;
+      padding: 0;
+      margin: 0.5rem 0 0 0;
+    }
+    .errorlist li {
+      color: #dc2626;
+      font-size: 0.85rem;
+      margin-top: 0.25rem;
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+<div class="manual-entry-container">
+  <h1>📝 Manual Entry</h1>
+  <p style="color: #6b7280; margin-bottom: 2rem;">
+    Add job applications, interviews, or rejections from external sources (LinkedIn, Indeed, email, etc.)
+  </p>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="{% if message.tags %}{{ message.tags }}{% endif %}" style="background: #d1fae5; border: 1px solid #a7f3d0; color: #065f46; padding: 0.75rem; border-radius: 6px; margin-bottom: 1rem;">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <div class="form-card">
+    <h2>Add New Entry</h2>
+    <form method="post">
+      {% csrf_token %}
+      
+      <div class="form-group">
+        <label for="{{ form.entry_type.id_for_label }}">{{ form.entry_type.label }}</label>
+        <div class="radio-group">
+          {% for choice in form.entry_type %}
+            {{ choice }}
+          {% endfor %}
+        </div>
+        {% if form.entry_type.errors %}
+          <ul class="errorlist">
+            {% for error in form.entry_type.errors %}
+              <li>{{ error }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      </div>
+
+      <div class="form-group">
+        <label for="{{ form.company_name.id_for_label }}">{{ form.company_name.label }}</label>
+        {{ form.company_name }}
+        <div class="help-text">{{ form.company_name.help_text }}</div>
+        {% if form.company_name.errors %}
+          <ul class="errorlist">
+            {% for error in form.company_name.errors %}
+              <li>{{ error }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <div class="form-group">
+          <label for="{{ form.job_title.id_for_label }}">{{ form.job_title.label }}</label>
+          {{ form.job_title }}
+          <div class="help-text">{{ form.job_title.help_text }}</div>
+          {% if form.job_title.errors %}
+            <ul class="errorlist">
+              {% for error in form.job_title.errors %}
+                <li>{{ error }}</li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.job_id.id_for_label }}">{{ form.job_id.label }}</label>
+          {{ form.job_id }}
+          <div class="help-text">{{ form.job_id.help_text }}</div>
+          {% if form.job_id.errors %}
+            <ul class="errorlist">
+              {% for error in form.job_id.errors %}
+                <li>{{ error }}</li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+        <div class="form-group">
+          <label for="{{ form.application_date.id_for_label }}">{{ form.application_date.label }}</label>
+          {{ form.application_date }}
+          <div class="help-text">{{ form.application_date.help_text }}</div>
+          {% if form.application_date.errors %}
+            <ul class="errorlist">
+              {% for error in form.application_date.errors %}
+                <li>{{ error }}</li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.interview_date.id_for_label }}">{{ form.interview_date.label }}</label>
+          {{ form.interview_date }}
+          <div class="help-text">{{ form.interview_date.help_text }}</div>
+          {% if form.interview_date.errors %}
+            <ul class="errorlist">
+              {% for error in form.interview_date.errors %}
+                <li>{{ error }}</li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.source.id_for_label }}">{{ form.source.label }}</label>
+          {{ form.source }}
+          <div class="help-text">{{ form.source.help_text }}</div>
+          {% if form.source.errors %}
+            <ul class="errorlist">
+              {% for error in form.source.errors %}
+                <li>{{ error }}</li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="{{ form.notes.id_for_label }}">{{ form.notes.label }}</label>
+        {{ form.notes }}
+        <div class="help-text">{{ form.notes.help_text }}</div>
+        {% if form.notes.errors %}
+          <ul class="errorlist">
+            {% for error in form.notes.errors %}
+              <li>{{ error }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      </div>
+
+      <button type="submit" class="submit-btn">Add Entry</button>
+    </form>
+  </div>
+
+  {% if recent_entries %}
+  <div class="recent-entries">
+    <h3>Recent Manual Entries ({{ recent_entries|length }})</h3>
+    {% for entry in recent_entries %}
+    <div class="entry-item {{ entry.ml_label }}">
+      <div class="entry-header">
+        <div>
+          <span class="entry-type-badge {{ entry.ml_label }}">{{ entry.ml_label }}</span>
+          <span class="entry-title">{{ entry.job_title }}</span>
+        </div>
+        <span class="entry-date">{{ entry.sent_date|date:"M d, Y" }}</span>
+      </div>
+      <div class="entry-company">{{ entry.company.name }}</div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

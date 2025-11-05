@@ -24,7 +24,7 @@ carefirst_variants = [
 ]
 
 # Update Applications
-apps = Application.objects.filter(company__name__in=carefirst_variants).exclude(
+apps = ThreadTracking.objects.filter(company__name__in=carefirst_variants).exclude(
     company=canonical
 )
 print(f"Found {apps.count()} Application(s) with non-canonical CareFirst company")
@@ -48,3 +48,4 @@ for msg in msgs:
 print("✅ Messages updated")
 
 print("\nDone! All CareFirst references are now normalized.")
+

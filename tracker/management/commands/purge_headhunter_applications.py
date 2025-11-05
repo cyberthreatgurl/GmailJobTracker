@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from tracker.models import Application, Company, Message
+from tracker.models import ThreadTracking, Company, Message
 from django.db.models import Q, Count, Exists, OuterRef
 from pathlib import Path
 from email.utils import parseaddr
@@ -88,7 +88,7 @@ class Command(BaseCommand):
 
         # Base queryset
         apps_qs = (
-            Application.objects.select_related("company")
+            ThreadTracking.objects.select_related("company")
             .annotate(hh_thread=hh_thread_exists, glassdoor_thread=glassdoor_thread_exists)
             .filter(Q(company_id__in=hh_company_ids) | Q(hh_thread=True) | Q(glassdoor_thread=True))
         )
@@ -318,9 +318,10 @@ class Command(BaseCommand):
                     print_triggers_for_app(app, trig)
 
             to_delete_ids = [app.id for app, _ in apps_to_delete]
-            deleted_info = Application.objects.filter(id__in=to_delete_ids).delete()
+            deleted_info = ThreadTracking.objects.filter(id__in=to_delete_ids).delete()
             deleted = deleted_info[0]
 
         self.stdout.write(
             self.style.SUCCESS(f"Deleted {deleted} headhunter application(s).")
         )
+

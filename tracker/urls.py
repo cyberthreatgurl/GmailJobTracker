@@ -13,7 +13,7 @@ urlpatterns = [
     path("label_messages/", views.label_messages, name="label_messages"),
     path("metrics/", views.metrics, name="metrics"),
     path("retrain_model/", views.retrain_model, name="retrain_model"),
-    path("admin/", custom_admin_site.urls, name="custom_admin"),
+    path("manual_entry/", views.manual_entry, name="manual_entry"),
     path("django_admin/", admin.site.urls, name="django_admin"),
     path("aliases/manage/", views.manage_aliases, name="manage_aliases"),
     path(

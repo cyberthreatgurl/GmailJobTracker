@@ -27,7 +27,7 @@ from db_helpers import get_application_by_sender, build_company_job_index
 from ml_subject_classifier import predict_subject_type
 from ml_entity_extraction import extract_entities
 from tracker.models import (
-    Application,
+    ThreadTracking,
     Message,
     IgnoredMessage,
     IngestionStats,
@@ -1070,9 +1070,17 @@ def ingest_message(service, msg_id):
         if DEBUG:
             print(f"Updating existing message: {msg_id}")
             print(f"Stats: skipped++ (re-ingest)")
-        if company_obj:
+
+        # Update company (including clearing it for reviewed noise messages)
+        if skip_company_assignment and existing.reviewed:
+            # Reviewed noise messages should have no company
+            existing.company = None
+            existing.company_source = ""
+        elif company_obj:
+            # Normal messages get the resolved company
             existing.company = company_obj
             existing.company_source = company_source
+
         if result:
             existing.ml_label = result["label"]
             existing.confidence = result["confidence"]
@@ -1090,7 +1098,7 @@ def ingest_message(service, msg_id):
         ml_label = result.get("label") if result else None
         if company_obj and ml_label:
             try:
-                app = Application.objects.filter(
+                app = ThreadTracking.objects.filter(
                     thread_id=metadata["thread_id"]
                 ).first()
                 if DEBUG:
@@ -1103,7 +1111,8 @@ def ingest_message(service, msg_id):
                             f"[Re-ingest] App ml_label={app.ml_label}, rejection_date={app.rejection_date}, ml_label_param={ml_label}"
                         )
                     updated = False
-                    if not app.rejection_date and ml_label == "rejected":
+                    # Normalize: treat both 'rejected' and 'rejection' as rejection outcome
+                    if not app.rejection_date and ml_label in ("rejected", "rejection"):
                         app.rejection_date = metadata["timestamp"].date()
                         updated = True
                         if DEBUG:
@@ -1196,6 +1205,48 @@ def ingest_message(service, msg_id):
         )
         return  # Skip duplicate
 
+    # Headhunter enforcement: prevent misleading labels on HH sources/companies
+    if result:
+        blocked_hh_labels = {
+            "job_application",
+            "application",
+            "interview_invite",
+            "rejected",
+            "rejection",
+        }
+        proposed_label = result.get("label")
+        if proposed_label in blocked_hh_labels:
+            sender_domain = (metadata.get("sender_domain") or "").lower()
+            is_hh_sender = sender_domain in HEADHUNTER_DOMAINS
+            company_name_norm = (
+                (company_obj.name if company_obj else "").strip().lower()
+            )
+            company_domain_norm = (
+                (getattr(company_obj, "domain", "") or "").strip().lower()
+                if company_obj
+                else ""
+            )
+            is_hh_company_domain = (
+                any(company_domain_norm.endswith(d) for d in HEADHUNTER_DOMAINS)
+                if company_domain_norm
+                else False
+            )
+            is_hh_company_status = (
+                getattr(company_obj, "status", "") == "headhunter"
+                if company_obj
+                else False
+            )
+            is_hh_company_name = company_name_norm == "headhunter"
+
+            if (
+                is_hh_sender
+                or is_hh_company_domain
+                or is_hh_company_status
+                or is_hh_company_name
+            ):
+                # Force headhunter label for these cases
+                result["label"] = "head_hunter"
+
     # ✅ Now safe to insert Message with enriched company
     Message.objects.create(
         msg_id=msg_id,
@@ -1263,7 +1314,7 @@ def ingest_message(service, msg_id):
             else:
                 # Only create Application rows for actual application confirmations
                 if ml_label == "job_application":
-                    application_obj, created = Application.objects.get_or_create(
+                    application_obj, created = ThreadTracking.objects.get_or_create(
                         thread_id=metadata["thread_id"],
                         defaults={
                             "company": company_obj,
@@ -1285,6 +1336,18 @@ def ingest_message(service, msg_id):
                     # ✅ Update existing application if dates are missing but ML classified it
                     if not created:
                         updated = False
+                        # Also update company if it's different (fix company mismatch)
+                        if (
+                            application_obj.company != company_obj
+                            and company_obj is not None
+                        ):
+                            application_obj.company = company_obj
+                            application_obj.company_source = company_source
+                            updated = True
+                            if DEBUG:
+                                print(
+                                    f"✓ Updated application company: {company_obj.name}"
+                                )
                         if (
                             not application_obj.rejection_date
                             and ml_label == "rejected"
@@ -1318,10 +1381,22 @@ def ingest_message(service, msg_id):
                 else:
                     # Not an application email: update existing Application if present, do not create a new one
                     try:
-                        application_obj = Application.objects.get(
+                        application_obj = ThreadTracking.objects.get(
                             thread_id=metadata["thread_id"]
                         )
                         updated = False
+                        # Also update company if it's different (fix company mismatch)
+                        if (
+                            application_obj.company != company_obj
+                            and company_obj is not None
+                        ):
+                            application_obj.company = company_obj
+                            application_obj.company_source = company_source
+                            updated = True
+                            if DEBUG:
+                                print(
+                                    f"✓ Updated application company: {company_obj.name}"
+                                )
                         if (
                             not application_obj.rejection_date
                             and ml_label == "rejected"
@@ -1340,10 +1415,10 @@ def ingest_message(service, msg_id):
                                 print(
                                     "✓ Updated existing application (no new creation)"
                                 )
-                    except Application.DoesNotExist:
+                    except ThreadTracking.DoesNotExist:
                         if DEBUG:
                             print(
-                                "ℹ️ No existing Application for this thread; not creating because this is not a job_application email"
+                                "ℹ️ No existing ThreadTracking for this thread; not creating because this is not a job_application email"
                             )
         else:
             if DEBUG:

@@ -23,6 +23,8 @@ from django.db.models import (
     IntegerField,
     CharField,
     ExpressionWrapper,
+    Exists,
+    OuterRef,
 )
 from django.db.models.functions import Lower
 from django.http import StreamingHttpResponse, HttpResponse
@@ -729,14 +731,14 @@ import tempfile
 from db import PATTERNS_PATH
 from tracker.models import (
     Company,
-    Application,
+    ThreadTracking,
     Message,
     IngestionStats,
     UnresolvedCompany,
     GmailFilterImportLog,
 )
 from tracker.models import DomainToCompany
-from tracker.forms import ApplicationEditForm
+from tracker.forms import ApplicationEditForm, ManualEntryForm
 from .forms_company import CompanyEditForm
 from scripts.import_gmail_filters import (
     load_json,
@@ -768,11 +770,11 @@ def delete_company(request, company_id):
             company=company, ml_label="noise"
         ).count()
         non_noise_message_count = total_message_count - noise_message_count
-        application_count = Application.objects.filter(company=company).count()
+        application_count = ThreadTracking.objects.filter(company=company).count()
 
         # Delete all related messages, applications, etc.
         Message.objects.filter(company=company).delete()
-        Application.objects.filter(company=company).delete()
+        ThreadTracking.objects.filter(company=company).delete()
         # Remove company itself
         company.delete()
 
@@ -827,7 +829,38 @@ def delete_company(request, company_id):
 # --- Label Companies Page ---
 @login_required
 def label_companies(request):
-    companies = Company.objects.order_by(Lower("name"))
+    # Quick Add Company action (before loading companies list)
+    if request.method == "POST" and request.POST.get("action") == "quick_add_company":
+        company_name = request.POST.get("new_company_name", "").strip()
+        if company_name:
+            try:
+                new_company, created = Company.objects.get_or_create(
+                    name=company_name,
+                    defaults={
+                        "confidence": 1.0,
+                        "status": "application",
+                        "first_contact": now(),
+                        "last_contact": now(),
+                    },
+                )
+                if created:
+                    messages.success(
+                        request, f"✅ Company '{company_name}' created successfully!"
+                    )
+                    return redirect(f"/label_companies/?company={new_company.id}")
+                else:
+                    messages.info(
+                        request, f"ℹ️ Company '{company_name}' already exists."
+                    )
+                    return redirect(f"/label_companies/?company={new_company.id}")
+            except Exception as e:
+                messages.error(request, f"❌ Failed to create company: {e}")
+        else:
+            messages.error(request, "❌ Please enter a company name.")
+        return redirect("label_companies")
+
+    # Exclude headhunter companies from the dropdown
+    companies = Company.objects.exclude(status="headhunter").order_by(Lower("name"))
     # Preserve selected company on POST actions as well
     selected_id = request.GET.get("company") or request.POST.get("company")
     selected_company = None
@@ -1030,7 +1063,7 @@ def merge_companies(request):
                 company=canonical_company
             )
             # Reassign all applications
-            apps_moved = Application.objects.filter(company__in=duplicates).update(
+            apps_moved = ThreadTracking.objects.filter(company__in=duplicates).update(
                 company=canonical_company
             )
 
@@ -1115,9 +1148,8 @@ def build_sidebar_context():
     non_hh_msg_filter = ~Q(message__ml_label="head_hunter") & ~hh_sender_q
 
     companies_count = (
-        Company.objects.annotate(
-            non_hh_msg_count=Count("message", filter=non_hh_msg_filter)
-        )
+        Company.objects.exclude(status="headhunter")
+        .annotate(non_hh_msg_count=Count("message", filter=non_hh_msg_filter))
         .filter(non_hh_msg_count__gt=0)
         .count()
     )
@@ -1162,11 +1194,14 @@ def build_sidebar_context():
     )
     if user_email:
         interviews_qs = interviews_qs.exclude(sender__icontains=user_email)
+    # Exclude headhunter senders/domains for interviews as well
+    if headhunter_domains:
+        interviews_qs = interviews_qs.exclude(msg_hh_sender_q)
     interviews_week = interviews_qs.count()
 
     # Get upcoming interviews from Application table where interview_date is set
     upcoming_interviews = (
-        Application.objects.filter(interview_date__gte=now(), company__isnull=False)
+        ThreadTracking.objects.filter(interview_date__gte=now(), company__isnull=False)
         .select_related("company")
         .order_by("interview_date")[:10]  # Limit to next 10
     )
@@ -1316,7 +1351,7 @@ def reject_alias(request):
 
 
 def edit_application(request, pk):
-    app = get_object_or_404(Application, pk=pk)
+    app = get_object_or_404(ThreadTracking, pk=pk)
     if request.method == "POST":
         form = ApplicationEditForm(request.POST, instance=app)
         if form.is_valid():
@@ -1328,12 +1363,124 @@ def edit_application(request, pk):
 
 
 def flagged_applications(request):
-    flagged = Application.objects.filter(
+    flagged = ThreadTracking.objects.filter(
         models.Q(company="")
         | models.Q(company_source__in=["none", "ml_prediction", "sender_name_match"])
     ).order_by("-first_sent")[:100]
 
     return render(request, "tracker/flagged.html", {"applications": flagged})
+
+
+@login_required
+def manual_entry(request):
+    """Manual entry form for job applications from external sources."""
+    if request.method == "POST":
+        form = ManualEntryForm(request.POST)
+        if form.is_valid():
+            # Extract cleaned data
+            company_name = form.cleaned_data["company_name"]
+            entry_type = form.cleaned_data["entry_type"]
+            job_title = form.cleaned_data.get("job_title") or "Manual Entry"
+            job_id = form.cleaned_data.get("job_id") or ""
+            application_date = form.cleaned_data["application_date"]
+            interview_date = form.cleaned_data.get("interview_date")
+            notes = form.cleaned_data.get("notes") or ""
+            source = form.cleaned_data.get("source") or "manual"
+
+            # Get or create company
+            # First try case-insensitive lookup
+            existing_company = Company.objects.filter(name__iexact=company_name).first()
+
+            if existing_company:
+                company = existing_company
+                # Update last contact and status
+                company.last_contact = now()
+                if entry_type == "rejection":
+                    company.status = "rejected"
+                elif entry_type == "interview" and company.status != "rejected":
+                    company.status = "interview"
+                company.save()
+            else:
+                # Create new company
+                company = Company.objects.create(
+                    name=company_name,
+                    first_contact=now(),
+                    last_contact=now(),
+                    status=entry_type,
+                )
+
+            # Generate unique thread_id for manual entry
+            import hashlib
+
+            thread_id_base = f"manual_{company_name}_{job_title}_{application_date}_{now().timestamp()}"
+            thread_id = hashlib.md5(thread_id_base.encode()).hexdigest()[:16]
+
+            # Create Application record
+            status_map = {
+                "application": "application",
+                "interview": "interview",
+                "rejection": "rejected",
+            }
+
+            rejection_date = application_date if entry_type == "rejection" else None
+            interview_dt = interview_date if entry_type == "interview" else None
+
+            application = ThreadTracking.objects.create(
+                thread_id=thread_id,
+                company=company,
+                company_source="manual",
+                job_title=job_title,
+                job_id=job_id,
+                status=status_map[entry_type],
+                sent_date=application_date,
+                rejection_date=rejection_date,
+                interview_date=interview_dt,
+                ml_label=entry_type,
+                ml_confidence=1.0,  # Manual entries are 100% confident
+                reviewed=True,
+            )
+
+            # Create Message record for tracking
+            msg_id = f"manual_{thread_id}"
+            subject = f"{entry_type.title()}: {job_title} at {company_name}"
+            body = f"Source: {source}\n\n{notes}" if notes else f"Source: {source}"
+
+            Message.objects.create(
+                company=company,
+                company_source="manual",
+                sender=f"manual@{source}",
+                subject=subject,
+                body=body,
+                body_html=f"<p>{body.replace(chr(10), '<br>')}</p>",
+                timestamp=now(),
+                msg_id=msg_id,
+                thread_id=thread_id,
+                ml_label=entry_type,
+                confidence=1.0,
+                reviewed=True,
+            )
+
+            messages.success(
+                request,
+                f"✅ Successfully added {entry_type} for {company_name} - {job_title}",
+            )
+            return redirect("manual_entry")
+    else:
+        form = ManualEntryForm()
+
+    # Show recent manual entries
+    recent_entries = (
+        ThreadTracking.objects.filter(company_source="manual")
+        .select_related("company")
+        .order_by("-sent_date")[:20]
+    )
+
+    ctx = {
+        "form": form,
+        "recent_entries": recent_entries,
+    }
+    ctx.update(build_sidebar_context())
+    return render(request, "tracker/manual_entry.html", ctx)
 
 
 @login_required
@@ -1349,6 +1496,22 @@ def dashboard(request):
     unresolved_companies = UnresolvedCompany.objects.filter(reviewed=False).order_by(
         "-timestamp"
     )[:50]
+
+    # Handle company filter
+    selected_company = None
+    company_filter = request.GET.get("company")
+    if company_filter:
+        try:
+            selected_company = Company.objects.get(id=int(company_filter))
+        except (Company.DoesNotExist, ValueError):
+            selected_company = None
+
+    company_filter_id = selected_company.id if selected_company else None
+
+    # Get all companies for dropdown (excluding headhunters)
+    from django.db.models.functions import Lower
+
+    all_companies = Company.objects.exclude(status="headhunter").order_by(Lower("name"))
 
     # Sidebar metrics will be populated via build_sidebar_context()
 
@@ -1426,14 +1589,33 @@ def dashboard(request):
         chart_ignored = []
 
     # Multi-line chart: daily totals for rejections, applications, interviews, total
-    # Use earliest non-null sent_date to avoid None breaking the chart
-    earliest_app = (
-        Application.objects.filter(sent_date__isnull=False)
-        .order_by("sent_date")
-        .first()
+    # Use earliest non-null of sent_date, rejection_date, or interview_date so standalone
+    # rejections/interviews (without a sent_date) still show up on the chart
+    from django.db.models import Min
+
+    date_floor = ThreadTracking.objects.aggregate(
+        min_sent=Min("sent_date"),
+        min_rej=Min("rejection_date"),
+        min_int=Min("interview_date"),
     )
-    # Default: use earliest application date
-    app_start_date = earliest_app.sent_date if earliest_app else None
+    # Pick the earliest non-null among the three
+    non_null_dates = [
+        d
+        for d in [
+            date_floor.get("min_sent"),
+            date_floor.get("min_rej"),
+            date_floor.get("min_int"),
+        ]
+        if d
+    ]
+    # Also include earliest message timestamp so message-only events are visible
+    msg_floor = Message.objects.aggregate(min_ts=Min("timestamp")).get("min_ts")
+    if msg_floor:
+        try:
+            non_null_dates.append(msg_floor.date())
+        except Exception:
+            pass
+    app_start_date = min(non_null_dates) if non_null_dates else None
     # Check for REPORTING_DEFAULT_START_DATE in env
     env_start_date = os.environ.get("REPORTING_DEFAULT_START_DATE")
     reporting_default_start_date = None
@@ -1532,29 +1714,21 @@ def dashboard(request):
                 "color": "#ef4444",
                 "ml_label": "rejected",
             },
-            {
-                "label": "ghosted",
-                "display_name": "Ghosted",
-                "color": "#a3a3a3",
-                "ml_label": "ghosted",
-            },
         ]
 
-    # Now build date list
+    # Now build date list and identify headhunter companies for exclusion
     if app_start_date:
         app_end_date = now().date()
         app_num_days = (app_end_date - app_start_date).days + 1
         app_date_list = [
             app_start_date + timedelta(days=i) for i in range(app_num_days)
         ]
-        app_qs = Application.objects.filter(sent_date__gte=app_start_date)
-        # Exclude headhunter companies from application-based charts
+        # Determine headhunter companies once (by domain, sender, or explicit label)
+        hh_companies = []
         if headhunter_domains:
             hh_company_q = Q()
-            # Exclude by company domain when available
             for d in headhunter_domains:
                 hh_company_q |= Q(company__domain__iendswith=d)
-            # Also exclude companies whose messages originate from headhunter domains or are labeled head_hunter
             msg_hh_q = Q()
             for d in headhunter_domains:
                 msg_hh_q |= Q(company__message__sender__icontains=f"@{d}")
@@ -1565,11 +1739,10 @@ def dashboard(request):
                 .distinct()
                 .values_list("id", flat=True)
             )
-            if hh_companies:
-                app_qs = app_qs.exclude(company_id__in=list(hh_companies))
+            hh_companies = list(hh_companies)
     else:
         app_date_list = []
-        app_qs = Application.objects.none()
+        hh_companies = []
 
     # Build chart data dynamically based on configured series
     chart_series_data = []
@@ -1582,30 +1755,91 @@ def dashboard(request):
     user_email = (os.environ.get("USER_EMAIL_ADDRESS") or "").strip()
     if user_email:
         msg_qs = msg_qs.exclude(sender__icontains=user_email)
+    if company_filter_id:
+        msg_qs = msg_qs.filter(company_id=company_filter_id)
 
     for series in plot_series_config:
         ml_label = series["ml_label"]
         # Check if this is an application-based series or message-based series
         if ml_label == "job_application":
             # Applications per day
-            apps_by_day = app_qs.values("sent_date").annotate(count=models.Count("id"))
+            apps_q = (
+                ThreadTracking.objects.filter(sent_date__gte=app_start_date)
+                if app_start_date
+                else ThreadTracking.objects.none()
+            )
+            if hh_companies:
+                apps_q = apps_q.exclude(company_id__in=hh_companies)
+            if company_filter_id:
+                apps_q = apps_q.filter(company_id=company_filter_id)
+            apps_by_day = apps_q.values("sent_date").annotate(count=models.Count("id"))
             apps_map = {r["sent_date"]: r["count"] for r in apps_by_day}
             data = [apps_map.get(d, 0) for d in app_date_list]
         elif ml_label == "rejected":
-            # Rejections per day
-            rejs_by_day = (
-                app_qs.exclude(rejection_date=None)
-                .values("rejection_date")
+            # Rejections per day: combine Application-based and Message-based (fallback) counts
+            # 1) Applications by rejection_date
+            rejs_q = ThreadTracking.objects.filter(rejection_date__isnull=False)
+            if app_start_date:
+                rejs_q = rejs_q.filter(rejection_date__gte=app_start_date)
+            if hh_companies:
+                rejs_q = rejs_q.exclude(company_id__in=hh_companies)
+            if company_filter_id:
+                rejs_q = rejs_q.filter(company_id=company_filter_id)
+            rejs_by_day = rejs_q.values("rejection_date").annotate(
+                count=models.Count("id")
+            )
+            app_rejs_map = {r["rejection_date"]: r["count"] for r in rejs_by_day}
+
+            # 2) Messages labeled rejected/rejection (exclude those whose thread has an Application)
+            from django.db.models.functions import TruncDate
+
+            app_threads = list(
+                ThreadTracking.objects.filter(rejection_date__isnull=False).values_list(
+                    "thread_id", flat=True
+                )
+            )
+            msg_rejs_q = Message.objects.filter(
+                ml_label__in=["rejected", "rejection"],
+            )
+            if app_start_date:
+                msg_rejs_q = msg_rejs_q.filter(timestamp__date__gte=app_start_date)
+            user_email = (os.environ.get("USER_EMAIL_ADDRESS") or "").strip()
+            if user_email:
+                msg_rejs_q = msg_rejs_q.exclude(sender__icontains=user_email)
+            # Exclude headhunter domains for messages
+            if headhunter_domains:
+                msg_hh_q = Q()
+                for d in headhunter_domains:
+                    msg_hh_q |= Q(sender__icontains=f"@{d}")
+                msg_rejs_q = msg_rejs_q.exclude(msg_hh_q)
+            # Exclude messages in threads already represented by Applications
+            if app_threads:
+                msg_rejs_q = msg_rejs_q.exclude(thread_id__in=app_threads)
+            if company_filter_id:
+                msg_rejs_q = msg_rejs_q.filter(company_id=company_filter_id)
+            msg_rejs_by_day = (
+                msg_rejs_q.annotate(day=TruncDate("timestamp"))
+                .values("day")
                 .annotate(count=models.Count("id"))
             )
-            rejs_map = {r["rejection_date"]: r["count"] for r in rejs_by_day}
-            data = [rejs_map.get(d, 0) for d in app_date_list]
+            msg_rejs_map = {r["day"]: r["count"] for r in msg_rejs_by_day}
+
+            # 3) Combine (sum) per date
+            combined = {}
+            for d in app_date_list:
+                combined[d] = app_rejs_map.get(d, 0) + msg_rejs_map.get(d, 0)
+            data = [combined[d] for d in app_date_list]
         elif ml_label == "interview_invite":
             # Interviews per day
-            ints_by_day = (
-                app_qs.exclude(interview_date=None)
-                .values("interview_date")
-                .annotate(count=models.Count("id"))
+            ints_q = ThreadTracking.objects.filter(interview_date__isnull=False)
+            if app_start_date:
+                ints_q = ints_q.filter(interview_date__gte=app_start_date)
+            if hh_companies:
+                ints_q = ints_q.exclude(company_id__in=hh_companies)
+            if company_filter_id:
+                ints_q = ints_q.filter(company_id=company_filter_id)
+            ints_by_day = ints_q.values("interview_date").annotate(
+                count=models.Count("id")
             )
             ints_map = {r["interview_date"]: r["count"] for r in ints_by_day}
             data = [ints_map.get(d, 0) for d in app_date_list]
@@ -1645,20 +1879,9 @@ def dashboard(request):
     # ✅ Company breakdown by status for the selected time period
     # This will be filtered client-side based on the chart's date range
     # Get all applications with their company names and dates
-    rejection_companies_qs = (
-        Application.objects.filter(rejection_date__isnull=False, company__isnull=False)
-        .select_related("company")
-        .values("company_id", "company__name", "rejection_date")
-        .order_by("-rejection_date")
-    )
 
-    application_companies_qs = (
-        Application.objects.filter(sent_date__isnull=False, company__isnull=False)
-        .select_related("company")
-        .values("company_id", "company__name", "sent_date")
-        .order_by("-sent_date")
-    )
-    # Exclude headhunter companies from the Applications-by-company listing
+    # Build headhunter exclusion list first (needed for all queries)
+    hh_company_list = []
     if headhunter_domains:
         hh_company_q = Q()
         for d in headhunter_domains:
@@ -1674,30 +1897,112 @@ def dashboard(request):
             .values_list("id", flat=True)
         )
         if hh_companies:
-            application_companies_qs = application_companies_qs.exclude(
-                company_id__in=list(hh_companies)
-            )
+            hh_company_list = list(hh_companies)
 
-    ghosted_companies_qs = (
-        Application.objects.filter(
-            Q(status="ghosted") | Q(ml_label="ghosted"), company__isnull=False
+    # Rejections: Combine Application-based AND Message-based (for standalone rejection emails)
+    # 1) Application-based rejections
+    rejection_companies_qs = (
+        ThreadTracking.objects.filter(
+            rejection_date__isnull=False, company__isnull=False
         )
+        .exclude(ml_label="noise")  # Exclude noise from metrics
+        .select_related("company")
+        .values("company_id", "company__name", "rejection_date")
+    )
+    if hh_company_list:
+        rejection_companies_qs = rejection_companies_qs.exclude(
+            company_id__in=hh_company_list
+        )
+    if company_filter_id:
+        rejection_companies_qs = rejection_companies_qs.filter(
+            company_id=company_filter_id
+        )
+
+    # 2) Message-based rejections (messages without corresponding Application.rejection_date)
+    msg_rejections_qs = Message.objects.filter(
+        ml_label__in=["rejected", "rejection"], company__isnull=False
+    )
+    if user_email:
+        msg_rejections_qs = msg_rejections_qs.exclude(sender__icontains=user_email)
+    if headhunter_domains:
+        msg_hh_sender_q = Q()
+        for d in headhunter_domains:
+            msg_hh_sender_q |= Q(sender__icontains=f"@{d}")
+        msg_rejections_qs = msg_rejections_qs.exclude(msg_hh_sender_q)
+    if hh_company_list:
+        msg_rejections_qs = msg_rejections_qs.exclude(company_id__in=hh_company_list)
+    if company_filter_id:
+        msg_rejections_qs = msg_rejections_qs.filter(company_id=company_filter_id)
+
+    # Get message-based rejections with company info
+    msg_rejection_data = msg_rejections_qs.select_related("company").values(
+        "company_id", "company__name", "timestamp"
+    )
+
+    # Only count an "Application Sent" if the thread has at least one job_application/application message
+    job_app_exists = Exists(
+        Message.objects.filter(
+            thread_id=OuterRef("thread_id"),
+            ml_label__in=["job_application", "application"],
+        )
+    )
+    application_companies_qs = (
+        ThreadTracking.objects.filter(sent_date__isnull=False, company__isnull=False)
+        .annotate(has_job_app=job_app_exists)
+        .filter(has_job_app=True)
+        .exclude(ml_label="noise")  # Exclude noise from metrics
         .select_related("company")
         .values("company_id", "company__name", "sent_date")
         .order_by("-sent_date")
     )
+    if hh_company_list:
+        application_companies_qs = application_companies_qs.exclude(
+            company_id__in=hh_company_list
+        )
+    if company_filter_id:
+        application_companies_qs = application_companies_qs.filter(
+            company_id=company_filter_id
+        )
+
+    ghosted_companies_qs = (
+        ThreadTracking.objects.filter(
+            Q(status="ghosted") | Q(ml_label="ghosted"), company__isnull=False
+        )
+        .exclude(ml_label="noise")  # Exclude noise from metrics
+        .select_related("company")
+        .values("company_id", "company__name", "sent_date")
+        .order_by("-sent_date")
+    )
+    if hh_company_list:
+        ghosted_companies_qs = ghosted_companies_qs.exclude(
+            company_id__in=hh_company_list
+        )
+    if company_filter_id:
+        ghosted_companies_qs = ghosted_companies_qs.filter(company_id=company_filter_id)
 
     # Convert date objects to strings for JSON serialization
     import json
 
-    rejection_companies = [
-        {
-            "company_id": item["company_id"],
-            "company__name": item["company__name"],
-            "rejection_date": item["rejection_date"].strftime("%Y-%m-%d"),
-        }
-        for item in rejection_companies_qs
-    ]
+    # Combine Application-based and Message-based rejections
+    rejection_companies = []
+    # Add Application-based rejections
+    for item in rejection_companies_qs:
+        rejection_companies.append(
+            {
+                "company_id": item["company_id"],
+                "company__name": item["company__name"],
+                "rejection_date": item["rejection_date"].strftime("%Y-%m-%d"),
+            }
+        )
+    # Add Message-based rejections (using timestamp as rejection_date)
+    for item in msg_rejection_data:
+        rejection_companies.append(
+            {
+                "company_id": item["company_id"],
+                "company__name": item["company__name"],
+                "rejection_date": item["timestamp"].strftime("%Y-%m-%d"),
+            }
+        )
 
     application_companies = [
         {
@@ -1706,6 +2011,39 @@ def dashboard(request):
             "sent_date": item["sent_date"].strftime("%Y-%m-%d"),
         }
         for item in application_companies_qs
+    ]
+
+    # Interviews: Application-based (interview_date)
+    interview_companies_qs = (
+        ThreadTracking.objects.filter(
+            interview_date__isnull=False, company__isnull=False
+        )
+        .exclude(ml_label="noise")  # Exclude noise from metrics
+        .exclude(status="ghosted")  # Exclude ghosted applications
+        .exclude(status="rejected")  # Exclude rejected applications
+        .exclude(
+            rejection_date__isnull=False
+        )  # Also exclude any with rejection_date set
+        .select_related("company")
+        .values("company_id", "company__name", "interview_date")
+        .order_by("-interview_date")
+    )
+    if hh_company_list:
+        interview_companies_qs = interview_companies_qs.exclude(
+            company_id__in=hh_company_list
+        )
+    if company_filter_id:
+        interview_companies_qs = interview_companies_qs.filter(
+            company_id=company_filter_id
+        )
+
+    interview_companies = [
+        {
+            "company_id": item["company_id"],
+            "company__name": item["company__name"],
+            "interview_date": item["interview_date"].strftime("%Y-%m-%d"),
+        }
+        for item in interview_companies_qs
     ]
 
     ghosted_companies = [
@@ -1721,6 +2059,7 @@ def dashboard(request):
     rejection_companies_json = json.dumps(rejection_companies)
     application_companies_json = json.dumps(application_companies)
     ghosted_companies_json = json.dumps(ghosted_companies)
+    interview_companies_json = json.dumps(interview_companies)
 
     # Server-side initial fallback lists (unique by company for full available range)
     def unique_by_company(items, id_key="company_id", name_key="company__name"):
@@ -1739,6 +2078,10 @@ def dashboard(request):
     initial_rejection_companies = unique_by_company(rejection_companies)
     initial_application_companies = unique_by_company(application_companies)
     initial_ghosted_companies = unique_by_company(ghosted_companies)
+    initial_interview_companies = unique_by_company(interview_companies)
+
+    # Cumulative ghosted count (total unique companies currently ghosted)
+    ghosted_count = len(initial_ghosted_companies)
 
     ctx = {
         "companies_list": companies_list,
@@ -1764,9 +2107,14 @@ def dashboard(request):
         "rejection_companies_json": rejection_companies_json,
         "application_companies_json": application_companies_json,
         "ghosted_companies_json": ghosted_companies_json,
+        "interview_companies_json": interview_companies_json,
         "initial_rejection_companies": initial_rejection_companies,
         "initial_application_companies": initial_application_companies,
         "initial_ghosted_companies": initial_ghosted_companies,
+        "initial_interview_companies": initial_interview_companies,
+        "ghosted_count": ghosted_count,
+        "all_companies": all_companies,
+        "selected_company": selected_company,
     }
     return render(request, "tracker/dashboard.html", ctx)
 
@@ -1789,7 +2137,7 @@ def label_applications(request):
             if key.startswith("label_") and value:
                 app_id = int(key.split("_")[1])
                 try:
-                    app = Application.objects.get(pk=app_id)
+                    app = ThreadTracking.objects.get(pk=app_id)
                     app.ml_label = value
                     app.reviewed = True
                     app.save()
@@ -1798,7 +2146,7 @@ def label_applications(request):
 
         return redirect("label_applications")
 
-    apps = Application.objects.filter(reviewed=False).order_by("sent_date")[:50]
+    apps = ThreadTracking.objects.filter(reviewed=False).order_by("sent_date")[:50]
     ctx = {"applications": apps}
     return render(request, "tracker/label_applications.html", ctx)
 
@@ -1834,7 +2182,7 @@ def label_messages(request):
                 # Also update corresponding Application rows by thread_id
                 apps_updated = 0
                 if touched_threads:
-                    apps_updated = Application.objects.filter(
+                    apps_updated = ThreadTracking.objects.filter(
                         thread_id__in=list(touched_threads)
                     ).update(ml_label=bulk_label, reviewed=True)
 
@@ -1985,6 +2333,17 @@ def label_messages(request):
         qs = qs.filter(company__isnull=True)
     elif filter_company == "resolved":
         qs = qs.filter(company__isnull=False)
+    elif (
+        filter_company
+        and filter_company != "all"
+        and filter_company.startswith("company_")
+    ):
+        # Filter by specific company ID
+        try:
+            company_id = int(filter_company.replace("company_", ""))
+            qs = qs.filter(company_id=company_id)
+        except (ValueError, TypeError):
+            pass  # Invalid company ID, ignore filter
 
     # Apply search filter (searches subject, body, and sender)
     if search_query:
@@ -2157,9 +2516,10 @@ def label_messages(request):
     )
 
     # Get all companies for the dropdown (sorted by name)
+    # Exclude headhunter companies from dropdown
     from django.db.models.functions import Lower
 
-    all_companies = Company.objects.order_by(Lower("name"))
+    all_companies = Company.objects.exclude(status="headhunter").order_by(Lower("name"))
 
     ctx = {
         "message_list": messages_page,
@@ -2664,6 +3024,71 @@ def json_file_viewer(request):
                 if ats_list:
                     companies_data["ats_domains"] = sorted(ats_list)
 
+                # Save headhunter domains with validation
+                headhunter_raw = (
+                    request.POST.get("headhunter_domains", "").strip().split("\n")
+                )
+                headhunter_list = []
+
+                for domain in headhunter_raw:
+                    if not domain.strip():
+                        continue
+
+                    # Validate domain format
+                    is_valid, sanitized_domain = validate_domain(domain)
+                    if is_valid:
+                        headhunter_list.append(sanitized_domain)
+                    else:
+                        validation_errors.append(f"Invalid headhunter domain: {domain}")
+
+                if headhunter_list:
+                    companies_data["headhunter_domains"] = sorted(headhunter_list)
+
+                # Save JobSites (Company → Career URL mapping) with validation
+                job_sites = {}
+                job_sites_raw = request.POST.get("job_sites", "").strip().split("\n")
+
+                for line in job_sites_raw:
+                    if not line.strip():
+                        continue
+
+                    if ":" in line:
+                        parts = line.split(":", 1)
+
+                        if len(parts) == 2:
+                            company = parts[0].strip()
+                            url = parts[1].strip()
+
+                            # Validate company name
+                            sanitized_company = sanitize_string(
+                                company, max_length=200, allow_regex=False
+                            )
+
+                            # Validate URL (must be http/https)
+                            if sanitized_company and url:
+                                if url.startswith(("http://", "https://")):
+                                    # Basic URL validation - check for common injection patterns
+                                    if not any(
+                                        char in url
+                                        for char in ["<", ">", '"', "'", "javascript:"]
+                                    ):
+                                        job_sites[sanitized_company] = url
+                                    else:
+                                        validation_errors.append(
+                                            f"Invalid URL for {company}: contains unsafe characters"
+                                        )
+                                else:
+                                    validation_errors.append(
+                                        f"Invalid URL for {company}: must start with http:// or https://"
+                                    )
+                            else:
+                                validation_errors.append(
+                                    f"Invalid job site entry: {company} → {url}"
+                                )
+
+                if job_sites:
+                    companies_data["JobSites"] = job_sites
+
                 # Save aliases with validation
                 aliases = {}
                 aliases_raw = request.POST.get("aliases", "").strip().split("\n")
@@ -2703,6 +3128,8 @@ def json_file_viewer(request):
                     len(known_list)
                     + len(domain_mappings)
                     + len(ats_list)
+                    + len(headhunter_list)
+                    + len(job_sites)
                     + len(aliases)
                 )
 

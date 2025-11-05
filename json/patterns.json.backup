@@ -1,43 +1,89 @@
 {
   "message_labels": {
     "interview": [
-      "schedule",
-      "availability",
-      "next\\ssteps",
-      "interview"
+      "\\bschedule.*interview\\b",
+      "\\binterview.*schedule\\b",
+      "\\bavailability.*interview\\b",
+      "\\binterview.*availability\\b",
+      "\\bplease.*schedule\\b",
+      "\\bselect.*time.*interview\\b",
+      "\\bnext\\ssteps.*schedule\\b",
+      "\\bnext\\ssteps.*interview\\b",
+      "\\bwould\\slike\\sto\\sschedule\\b",
+      "\\binterview\\sconfirmation\\b",
+      "\\bconfirmation\\b.*\\binterview\\b",
+      "\\byour\\sinterview\\sis\\sscheduled\\b",
+      "\\byou'?ve\\sscheduled\\b.*\\binterview\\b",
+      "\\binterview\\sconfirmed\\b"
     ],
     "application": [
+      "acknowledge\\sthes\\sreceipt",
       "for\\sapplying",
       "received\\syour\\sapplication",
-      "Your\\sapplication\\shas\\sbeen\\sreceived",
+      "your\\sapplication\\s.*?has\\sbeen\\sreceived",
+      "application\\s.*?has\\sbeen\\sreceived",
       "thank\\syou\\sfor\\syour\\sapplication",
-      "successfully\\ssubmitted"
+      "thanks\\sfor\\syour\\sapplication\\b",
+      "will\\sbe\\sreviewed",
+      "successfully\\ssubmitted",
+      "\\bthank\\syou\\sfor\\ssubmitting\\b",
+      "\\bapplication\\ssubmitted\\b",
+      "\\bsubmitted\\b.*\\bapplication\\b",
+      "^submitted[:\\s]",
+      "\\bsubmission\\sreceived\\b",
+      "\\bwe\\sreceived\\syour\\ssubmission\\b",
+      "\\bcomplete\\s+(?:your|the)\\s+.*?\\sapplication\\b",
+      "\\bcomplete\\s+your\\s+application\\b",
+      "\\bapplication\\s+is\\s+incomplete\\b",
+      "\\byour\\s+job\\s+application\\s+is\\s+incomplete\\b",
+      "\\bfinish(?:ing)?\\s+your\\s+application\\b",
+      "\\baction\\s+needed\\s+to\\s+complete\\s+(?:your\\s+)?application\\b"
     ],
     "rejection": [
+      "another\\scandidate\\shas\\sbeen\\sselected",
       "we\\sregret",
+      "better\\sfit\\sour\\sneeds",
+      "has\\sbeen\\sclosed",
       "we\\sappreciate\\syour\\sinterest",
-      "other\\scandidates",
+      "\\bother\\scandidates\\b",
       "not\\smoving\\sforward",
-      "position\\sclosed",
-      "no\\slonger\\savailable"
+      "\\bnot\\sto\\smove\\sforward\\b",
+      "\\bnot\\sselected\\b",
+      "\\bposition\\sclosed",
+      "\\bunfortunately\\b",
+      "\\bmove\\sforward\\swith\\sothers\\b",
+      "\\bno\\slonger\\savailable\\b",
+      "\\bhas\\sbeen\\sclosed\\sor\\sfilled\\b",
+      "\\bhas\\s+(?:either\\s+)?been\\s+filled\\s+or\\s+closed\\b",
+      "\\bhas\\s+(?:either\\s+)?been\\s+closed\\s+or\\s+filled\\b",
+      "\\bposition\\b.*\\bhas\\s+(?:either\\s+)?been\\s+(?:filled|closed)\\b",
+      "\\bwe\\s(will\\snot|won'?t|are\\snot)\\s(be\\s)?moving\\sforward\\b",
+      "\\b(unable|not\\sable|cannot|can\\snot)\\s(to\\s)?(move\\sforward|proceed)\\b",
+      "\\bdecided\\snot\\sto\\s(move\\sforward|proceed)\\b",
+      "\\b(chosen|opted)\\snot\\sto\\s(move\\sforward|proceed)\\b",
+      "\\bproceed(?:ing)?\\swith\\s(?:other|another)\\scandidate(?:s)?\\b",
+      "\\bmove\\sforward\\swith\\s(?:other|another)\\scandidate(?:s)?\\b",
+      "\\bposition\\s(?:has\\sbeen\\s)?filled\\b",
+      "\\bno\\slonger\\s(?:considering|moving\\sforward)\\b",
+      "\\bwe\\s(?:are\\s)?pursuing\\s(?:other|another)\\scandidate(?:s)?\\b",
+      "\\bkeep\\syour\\s(?:resume|application)\\son\\sfile\\b"
     ],
-    "offer": [
-      "\\b(offer|compensation|package|extend|congratulations)\\b"
-    ],
+    "offer": ["None"],
     "noise": [
-      "\\bunsubscribe\\b|",
-      "newsletter|",
-      "digest|",
-      "\\bpromotion|",
-      "\\bmarketing\\b|",
-      "\\bsale\\b|",
-      "\\bverification\\scode\\b|",
-      "\\bone-time\\scode\\b|",
-      "\\bpassword\\sverification\\b|",
-      "\\bOTP\\b|",
+      "\\bnewsletter\\b",
+      "\\bpayment\\b",
+      "\\bdigest\\b",
+      "\\bpromotion\\b",
+      "\\bmarketing\\b",
+      "\\bsale\\b",
+      "\\bjob\\salert\\b",
+      "\\bverification\\scode\\b",
+      "\\bone-time\\scode\\b",
+      "\\bpassword\\sverification\\b",
+      "\\bOTP\\b",
       "\\b2FA\\b",
-      "|security\\scode|",
-      "\\blogin\\scode\\b|",
+      "security\\scode",
+      "\\blogin\\scode\\b",
       "\\baccess\\scode\\b"
     ],
     "referral": [
@@ -46,12 +92,6 @@
     "head_hunter": [
       "(seeking|urgent\\sneed|urgent\\shiring|looking\\sfor|came\\sacross|direct\\shire|found\\syour\\sresume|matches\\syour\\sprofile)",
       "\\b(contractual assignment)\\b|(looking for candidates)\\b|\\b(is seeking)\\b"
-    ],
-    "job_alert": [
-      "(job\\salert|job\\salerts|careercenter@computer\\.org|jobs\\smatches)",
-      "\\b(interview|schedule)\\b",
-      "\\b(saved search)\\b",
-      "\\b(search results)\\b"
     ],
     "follow_up": [
       "just\\schecking\\sin",
@@ -65,11 +105,36 @@
       "received\\syour\\sresume",
       "application\\sreceived"
     ],
-    "ghosted": [
-      "None"
-    ],
-    "other": [
-      "None"
+    "ghosted": ["None"],
+    "other": ["None"],
+    "prescreen": ["prescreen", "screening", "pre\\s*screen", "phone\\s*screen"],
+    "rejection_from_me": [
+      "withdrawn\\sby\\sme",
+      "withdrew\\smy\\sapplication",
+      "rejection\\sfrom\\sme"
+    ]
+  },
+  "suppress_labels": ["offer"],
+  "ignore_labels": ["noise", "head_hunter"],
+  "message_label_excludes": {
+    "application": [
+      "refills\\sat",
+      "noreply\\-newsletters",
+      "payment",
+      "booklet",
+      "child",
+      "waiver",
+      "financial\\said",
+      "eeo",
+      "eeoc",
+      "paid",
+      "move\\sforward\\swith\\sother",
+      "unfortunately",
+      "phone\\scall",
+      "prescreen",
+      "olivermattei\\.net",
+      "admissions",
+      "substack.com"
     ]
   },
   "invalid_company_prefixes": [

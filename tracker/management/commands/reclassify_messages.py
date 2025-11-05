@@ -75,10 +75,24 @@ class Command(BaseCommand):
                 if not dry_run:
                     msg.ml_label = new_label
                     msg.confidence = new_conf
-                    msg.save(update_fields=["ml_label", "confidence"])
-                    updated += 1
-
-            if i % 100 == 0:
+                    
+                    # Clear company for reviewed noise messages only
+                    # (allows inspection during model training/testing)
+                    if new_label == "noise" and msg.reviewed:
+                        msg.company = None
+                        msg.company_source = ""
+                        msg.save(
+                            update_fields=[
+                                "ml_label",
+                                "confidence",
+                                "company",
+                                "company_source",
+                            ]
+                        )
+                    else:
+                        msg.save(update_fields=["ml_label", "confidence"])
+                    
+                    updated += 1            if i % 100 == 0:
                 self.stdout.write(f"  Progress: {i}/{total}...")
 
         if dry_run:

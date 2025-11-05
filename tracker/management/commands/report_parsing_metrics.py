@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from tracker.models import Message, Application, Company
+from tracker.models import Message, ThreadTracking, Company
 from collections import Counter
 
 
@@ -8,7 +8,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         total_msgs = Message.objects.count()
-        total_apps = Application.objects.count()
+        total_apps = ThreadTracking.objects.count()
         print(f"Total Messages: {total_msgs}")
         print(f"Total Applications: {total_apps}\n")
 
@@ -59,7 +59,7 @@ class Command(BaseCommand):
         print()
 
         # Applications with unresolved company
-        unresolved_apps = Application.objects.filter(
+        unresolved_apps = ThreadTracking.objects.filter(
             company_source="unresolved"
         ).count()
         print(f"Applications with unresolved company: {unresolved_apps}")
@@ -77,3 +77,4 @@ class Command(BaseCommand):
         print()
 
         print("Done.")
+

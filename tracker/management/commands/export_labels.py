@@ -2,7 +2,7 @@
 
 import csv
 from django.core.management.base import BaseCommand
-from tracker.models import Application, Message   # ✅ include Message
+from tracker.models import ThreadTracking, Message   # ✅ include Message
 
 class Command(BaseCommand):
     help = "Export labeled Applications and Messages for ML training"
@@ -14,7 +14,7 @@ class Command(BaseCommand):
             writer.writerow(["type", "id", "subject", "body", "ml_label"])
 
             # --- Applications ---
-            for app in Application.objects.filter(reviewed=True, ml_label__isnull=False):
+            for app in ThreadTracking.objects.filter(reviewed=True, ml_label__isnull=False):
                 writer.writerow([
                     "application",
                     app.id,

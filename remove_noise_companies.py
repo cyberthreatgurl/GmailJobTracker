@@ -40,11 +40,11 @@ def main():
         if all(m.ml_label == noise_label for m in msgs):
             with transaction.atomic():
                 msg_count = msgs.count()
-                app_count = Application.objects.filter(company=company).count()
+                app_count = ThreadTracking.objects.filter(company=company).count()
                 # Delete messages
                 msgs.delete()
                 # Delete applications
-                Application.objects.filter(company=company).delete()
+                ThreadTracking.objects.filter(company=company).delete()
                 # Delete company
                 company.delete()
                 print(
@@ -61,3 +61,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

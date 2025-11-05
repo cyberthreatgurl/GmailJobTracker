@@ -9,13 +9,13 @@ import django
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dashboard.settings")
 django.setup()
 
-from tracker.models import Application, Message
+from tracker.models import ThreadTracking, Message
 
 
 def backfill_dates():
     # Fix interviews
     interviews_fixed = 0
-    for app in Application.objects.filter(
+    for app in ThreadTracking.objects.filter(
         ml_label="interview_invite", interview_date__isnull=True
     ):
         msg = Message.objects.filter(
@@ -30,7 +30,7 @@ def backfill_dates():
 
     # Fix rejections
     rejections_fixed = 0
-    for app in Application.objects.filter(
+    for app in ThreadTracking.objects.filter(
         ml_label="rejected", rejection_date__isnull=True
     ):
         msg = Message.objects.filter(
@@ -52,10 +52,10 @@ def backfill_dates():
 
     seven_days_ago = datetime.now().date() - timedelta(days=7)
 
-    recent_interviews = Application.objects.filter(
+    recent_interviews = ThreadTracking.objects.filter(
         interview_date__gte=seven_days_ago
     ).count()
-    recent_rejections = Application.objects.filter(
+    recent_rejections = ThreadTracking.objects.filter(
         rejection_date__gte=seven_days_ago
     ).count()
 
@@ -66,3 +66,4 @@ def backfill_dates():
 
 if __name__ == "__main__":
     backfill_dates()
+

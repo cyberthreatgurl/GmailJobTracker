@@ -367,6 +367,23 @@
             </div>
 
             <div class="section">
+              <div class="section-title">Headhunter Domains</div>
+              <div class="form-group">
+                <textarea name="headhunter_domains" placeholder="One domain per line">{{ companies_data.headhunter_domains|join:"&#10;" }}</textarea>
+                <div class="helper-text">Recruiter/headhunter domains to filter out (e.g., dice.com, cybercoders.com)</div>
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">Job Sites (Company Career URLs)</div>
+              <div class="form-group">
+                <textarea name="job_sites" placeholder="CompanyName: https://careers.company.com">{% for company, url in companies_data.JobSites.items %}{{ company }}: {{ url }}
+{% endfor %}</textarea>
+                <div class="helper-text">Format: CompanyName: https://careers-url (one per line)</div>
+              </div>
+            </div>
+
+            <div class="section">
               <div class="section-title">Company Aliases</div>
               <div class="form-group">
                 <textarea name="aliases" placeholder="Alias Name: Canonical Name">{% for alias, canonical in companies_data.aliases.items %}{{ alias }}: {{ canonical }}

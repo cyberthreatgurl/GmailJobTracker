@@ -23,7 +23,7 @@ class Company(models.Model):
             ("follow-up", "Follow-up"),
             ("rejected", "Rejected"),
             ("ghosted", "Ghosted"),
-            ("headhunter", "HeadHunter")
+            ("headhunter", "HeadHunter"),
         ],
         blank=True,
         null=True,
@@ -40,10 +40,25 @@ class Company(models.Model):
         return self.message_set.count()
 
     def application_count(self):
-        return self.application_set.count()
+        return self.threadtracking_set.count()
 
 
-class Application(models.Model):
+class ThreadTracking(models.Model):
+    """
+    Tracks a Gmail thread related to a job application.
+
+    One ThreadTracking record = one email conversation thread about a job.
+    Multiple Message records can belong to the same thread_id.
+
+    This model aggregates thread-level information:
+    - Job metadata (title, job_id parsed from subject)
+    - Status lifecycle (application → interview → ghosted/rejected)
+    - Key milestone dates (sent, interview, rejection)
+
+    Used for dashboard metrics and status tracking.
+    For individual email content, see the Message model.
+    """
+
     thread_id = models.CharField(max_length=255, unique=True)
     company_source = models.CharField(max_length=50, blank=True)
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
@@ -56,6 +71,11 @@ class Application(models.Model):
     ml_label = models.CharField(max_length=50, blank=True, null=True)  # e.g., noise
     ml_confidence = models.FloatField(blank=True, null=True)
     reviewed = models.BooleanField(default=False)
+
+    class Meta:
+        db_table = "tracker_application"  # Keep existing table name to preserve data
+        verbose_name = "Thread Tracking"
+        verbose_name_plural = "Thread Tracking"
 
     def __str__(self):
         return f"{self.company.name} - {self.job_title}"
@@ -96,6 +116,15 @@ class Message(models.Model):
     ml_label = models.CharField(max_length=50, null=True, blank=True)  # NEW
     confidence = models.FloatField(null=True, blank=True)  # ✅ NEW
     reviewed = models.BooleanField(default=False)  # NEW
+
+    def save(self, *args, **kwargs):
+        """Override save to ensure reviewed noise messages have no company."""
+        # Clear company for noise messages only when reviewed
+        # (allows inspection during model training/testing)
+        if self.ml_label == "noise" and self.reviewed:
+            self.company = None
+            self.company_source = ""
+        super().save(*args, **kwargs)
 
     def __str__(self):
         company_name = self.company.name if self.company else "No Company"

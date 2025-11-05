@@ -16,11 +16,5 @@
     "display_name": "Rejected",
     "color": "#ef4444",
     "ml_label": "rejected"
-  },
-  {
-    "label": "ghosted",
-    "display_name": "Ghosted",
-    "color": "#a3a3a3",
-    "ml_label": "ghosted"
   }
 ]

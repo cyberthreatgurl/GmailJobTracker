@@ -38,9 +38,9 @@ print()
 print(f"✅ All messages updated to point to Anthropic (ID {anthropic.id})")
 
 # Check if there are applications pointing to bad company
-from tracker.models import Application
+from tracker.models import ThreadTracking
 
-apps = Application.objects.filter(company=bad_company)
+apps = ThreadTracking.objects.filter(company=bad_company)
 if apps.exists():
     print(
         f'\n⚠️  Also found {apps.count()} applications pointing to company "{bad_company.name}"'
@@ -54,3 +54,4 @@ if apps.exists():
 
 print()
 print("Done! You can now view the messages on the label companies page.")
+

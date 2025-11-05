@@ -1,7 +1,7 @@
 from django.contrib import admin
 from .models import (
     Company,
-    Application,
+    ThreadTracking,
     Message,
     UnresolvedCompany,
     KnownCompany,
@@ -72,7 +72,7 @@ def mark_as_reviewed(modeladmin, request, queryset):
 mark_as_reviewed.short_description = "Mark selected applications as reviewed"
 
 
-class ApplicationAdmin(admin.ModelAdmin):
+class ThreadTrackingAdmin(admin.ModelAdmin):
     list_display = (
         "job_title",
         "company",
@@ -117,7 +117,7 @@ class TicketAdmin(admin.ModelAdmin):
     search_fields = ("title", "description")
 
 
-custom_admin_site.register(Application, ApplicationAdmin)
+custom_admin_site.register(ThreadTracking, ThreadTrackingAdmin)
 custom_admin_site.register(Company, CompanyAdmin)
 custom_admin_site.register(UnresolvedCompany, UnresolvedCompanyAdmin)
 custom_admin_site.register(Ticket, TicketAdmin)

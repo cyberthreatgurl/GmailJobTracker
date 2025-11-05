@@ -6,13 +6,13 @@
       color: #1f2937;
       margin-top: 0.5rem;
       margin-bottom: 0.75rem;
-      font-size: 1.5rem;
+      font-size: 1.1rem;
     }
     h2 {
       color: #1f2937;
       margin-top: 1rem;
       margin-bottom: 0.5rem;
-      font-size: 1.1rem;
+      font-size: 0.95rem;
     }
     .charts-row {
       display: flex;
@@ -25,8 +25,8 @@
       border-radius: 8px;
       box-shadow: 0 1px 3px rgba(0,0,0,0.1);
       flex: 1 1 33%;
-      min-width: 260px;
-      max-width: 33%;
+  min-width: 200px;
+  max-width: 25%;
       transition: max-width 0.3s, min-width 0.3s;
       position: relative;
       display: flex;
@@ -35,7 +35,7 @@
     }
     .chart-card.expanded {
       max-width: 100%;
-      min-width: 600px;
+  min-width: 400px;
       z-index: 2;
     }
     .expand-btn {
@@ -90,18 +90,19 @@
       padding: 0.3rem 0.4rem;
       border: 1px solid #d1d5db;
       border-radius: 4px;
-      font-size: 0.85rem;
+  font-size: 0.75rem;
       color: #111827;
       background: white;
     }
     .date-input-group .sep { color: #6b7280; font-size: 0.85rem; }
+  .date-input-group .sep { color: #6b7280; font-size: 0.75rem; }
     .reset-btn {
       background: #6b7280;
       color: white;
       border: none;
       border-radius: 4px;
       padding: 0.3rem 0.6rem;
-      font-size: 0.75rem;
+  font-size: 0.7rem;
       cursor: pointer;
       transition: background 0.2s;
     }
@@ -114,24 +115,39 @@
       border: none;
       border-radius: 4px;
       padding: 0.25rem 0.5rem;
-      font-size: 0.75rem;
+  font-size: 0.7rem;
       margin-left: 0.5rem;
       cursor: pointer;
     }
     .copy-btn:hover { background: #d1d5db; }
     @media (max-width: 900px) {
       .charts-row { flex-direction: column; }
-      .chart-card { max-width: 100%; min-width: 220px; }
+  .chart-card { max-width: 100%; min-width: 180px; }
     }
   </style>
 {% endblock %}
 
 {% block content %}
+  <!-- Company Filter Dropdown -->
+  <form method="get" class="company-select" style="margin-bottom:1.2rem; display:flex; align-items:center; gap:1rem;">
+    <label for="dashboard_company" style="font-size:0.9rem;">Filter by Company:</label>
+    <select name="company" id="dashboard_company" onchange="this.form.submit()" style="padding:0.3rem 0.5rem; border-radius:4px; border:1px solid #d1d5db; font-size:0.9rem; min-width:180px;">
+      <option value="">-- Select Company --</option>
+      {% for company in all_companies %}
+        <option value="{{ company.id }}" {% if selected_company and company.id == selected_company.id %}selected{% endif %}>{{ company.name }}</option>
+      {% endfor %}
+    </select>
+  </form>
   <h1>📊 Gmail Job Tracker Dashboard</h1>
   <div style="display: flex; gap: 2rem; flex-wrap: wrap; margin-bottom: 1.5rem;">
     <div style="background: #f1f5f9; border-radius: 8px; padding: 1.1rem 1.5rem; min-width: 220px; flex: 0 0 auto; box-shadow: 0 1px 2px rgba(0,0,0,0.04); border-left: 4px solid #2563eb;">
       <div style="font-size: 1.1rem; color: #1e40af; font-weight: 600; margin-bottom: 0.2rem;">Applications This Week</div>
-      <div style="font-size: 2.1rem; font-weight: bold; color: #2563eb;">{{ applications_week }}</div>
+  <div style="font-size: 1.3rem; font-weight: bold; color: #2563eb;">{{ applications_week }}</div>
+    </div>
+    <div style="background: #fef3c7; border-radius: 8px; padding: 1.1rem 1.5rem; min-width: 220px; flex: 0 0 auto; box-shadow: 0 1px 2px rgba(0,0,0,0.04); border-left: 4px solid #f59e0b; cursor: pointer; transition: transform 0.2s;" id="ghostedCard" onclick="toggleGhostedSection()">
+      <div style="font-size: 1.1rem; color: #b45309; font-weight: 600; margin-bottom: 0.2rem;">👻 Companies Ghosted</div>
+  <div style="font-size: 1.3rem; font-weight: bold; color: #d97706;" id="ghostedCardCount">{{ ghosted_count }}</div>
+      <div style="font-size: 0.75rem; color: #92400e; margin-top: 0.3rem; font-style: italic;">Click to view list</div>
     </div>
     <!-- You can add more summary cards here if desired -->
   </div>
@@ -161,9 +177,9 @@
           <div>
             <label for="xAxisType" style="font-size:0.85rem; font-weight:500; color:#374151;">X-Axis:</label>
             <select id="xAxisType" style="margin-left:0.5rem;">
-              <option value="date">Date (default)</option>
+              <option value="date">Date</option>
               <option value="week">Week</option>
-              <option value="month">Month</option>
+              <option value="month" selected>Month</option>
             </select>
           </div>
           <div>
@@ -185,6 +201,25 @@
 
   <!-- Company Breakdown by Status -->
   <div style="margin-top: 2rem;">
+  {% if selected_company %}
+    <div style="margin-bottom:1.5rem;">
+      <h2 style="font-size:1rem; color:#2563eb; margin-bottom:0.5rem;">Messages for {{ selected_company.name }}</h2>
+      <ul style="background:#f9fafb; border-radius:6px; border:1px solid #e5e7eb; padding:1rem; font-size:0.85rem;">
+        {% for msg in messages %}
+          {% if msg.company and msg.company.id == selected_company.id %}
+            <li style="margin-bottom:0.7rem;">
+              <span style="color:#374151; font-weight:600;">{{ msg.timestamp|date:'Y-m-d H:i' }}</span>
+              <span style="color:#6b7280; margin-left:0.5rem;">{{ msg.subject }}</span>
+              <span style="color:#0d9488; margin-left:0.5rem;">[{{ msg.ml_label|default:'unlabeled' }}]</span>
+              <div style="margin-top:0.2rem; color:#525252;">{{ msg.cleaned_body_html|safe }}</div>
+            </li>
+          {% endif %}
+        {% empty %}
+          <li style="color:#9ca3af;">No messages for this company.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
     <h2>Companies by Activity Type (for selected period)</h2>
     <div style="display: flex; gap: 2rem; flex-wrap: wrap; margin-top: 1rem;">
       <!-- Rejections -->
@@ -196,10 +231,10 @@
         <ul id="rejectionList" style="margin: 0; padding-left: 1.25rem; list-style: disc; color: #7f1d1d; font-size: 0.9rem; line-height: 1.6;">
           {% if initial_rejection_companies %}
             {% for c in initial_rejection_companies %}
-              <li><a href="/label_companies/?company={{ c.id }}" style="text-decoration:none; color:inherit;">{{ c.name }}</a></li>
+              <li style="font-size:0.8rem;"><a href="/label_companies/?company={{ c.id }}" style="text-decoration:none; color:inherit;">{{ c.name }}</a></li>
             {% endfor %}
           {% else %}
-            <li style="color: #9ca3af;">No data in selected range</li>
+            <li style="color: #9ca3af; font-size:0.8rem;">No data in selected range</li>
           {% endif %}
         </ul>
       </div>
@@ -213,16 +248,16 @@
         <ul id="applicationList" style="margin: 0; padding-left: 1.25rem; list-style: disc; color: #1e3a8a; font-size: 0.9rem; line-height: 1.6;">
           {% if initial_application_companies %}
             {% for c in initial_application_companies %}
-              <li><a href="/label_companies/?company={{ c.id }}" style="text-decoration:none; color:inherit;">{{ c.name }}</a></li>
+              <li style="font-size:0.8rem;"><a href="/label_companies/?company={{ c.id }}" style="text-decoration:none; color:inherit;">{{ c.name }}</a></li>
             {% endfor %}
           {% else %}
-            <li style="color: #9ca3af;">No data in selected range</li>
+            <li style="color: #9ca3af; font-size:0.8rem;">No data in selected range</li>
           {% endif %}
         </ul>
       </div>
 
-      <!-- Ghosted By -->
-      <div style="flex: 1; min-width: 250px; background: #f5f5f5; padding: 1rem; border-radius: 8px; border-left: 4px solid #737373;">
+      <!-- Ghosted By (Initially Hidden, Toggle via Card Click) -->
+      <div id="ghostedSection" style="flex: 1; min-width: 250px; background: #f5f5f5; padding: 1rem; border-radius: 8px; border-left: 4px solid #737373; display: none;">
         <h3 style="color: #404040; margin: 0 0 0.75rem 0; font-size: 1rem; font-weight: 600; display:flex; align-items:center; gap:0.5rem;">
           <span>👻 Ghosted By (<span id="ghostedCount">{{ initial_ghosted_companies|length }}</span>)</span>
           <button class="copy-btn" onclick="copyCompanyList('ghostedList', this)">Copy</button>
@@ -230,10 +265,26 @@
         <ul id="ghostedList" style="margin: 0; padding-left: 1.25rem; list-style: disc; color: #525252; font-size: 0.9rem; line-height: 1.6;">
           {% if initial_ghosted_companies %}
             {% for c in initial_ghosted_companies %}
-              <li><a href="/label_companies/?company={{ c.id }}" style="text-decoration:none; color:inherit;">{{ c.name }}</a></li>
+              <li style="font-size:0.8rem;"><a href="/label_companies/?company={{ c.id }}" style="text-decoration:none; color:inherit;">{{ c.name }}</a></li>
             {% endfor %}
           {% else %}
-            <li style="color: #9ca3af;">No data in selected range</li>
+            <li style="color: #9ca3af; font-size:0.8rem;">No data in selected range</li>
+          {% endif %}
+        </ul>
+      </div>
+      <!-- Interviews -->
+      <div style="flex: 1; min-width: 250px; background: #e0f7fa; padding: 1rem; border-radius: 8px; border-left: 4px solid #22c55e;">
+        <h3 style="color: #0d9488; margin: 0 0 0.75rem 0; font-size: 1rem; font-weight: 600; display:flex; align-items:center; gap:0.5rem;">
+          <span>🗓️ Interviews With (<span id="interviewCount">{{ initial_interview_companies|length }}</span>)</span>
+          <button class="copy-btn" onclick="copyCompanyList('interviewList', this)">Copy</button>
+        </h3>
+        <ul id="interviewList" style="margin: 0; padding-left: 1.25rem; list-style: disc; color: #0d9488; font-size: 0.9rem; line-height: 1.6;">
+          {% if initial_interview_companies %}
+            {% for c in initial_interview_companies %}
+              <li style="font-size:0.8rem;"><a href="/label_companies/?company={{ c.id }}" style="text-decoration:none; color:inherit;">{{ c.name }}</a></li>
+            {% endfor %}
+          {% else %}
+            <li style="color: #9ca3af; font-size:0.8rem;">No data in selected range</li>
           {% endif %}
         </ul>
       </div>
@@ -248,6 +299,8 @@
     const rejectionCompanies = {{ rejection_companies_json|safe }};
     const applicationCompanies = {{ application_companies_json|safe }};
     const ghostedCompanies = {{ ghosted_companies_json|safe }};
+  const interviewCompanies = {{ interview_companies_json|safe }};
+  console.log('Interview companies:', interviewCompanies);
     console.log('Rejection companies:', rejectionCompanies);
     console.log('Application companies:', applicationCompanies);
     console.log('Ghosted companies:', ghostedCompanies);
@@ -267,20 +320,16 @@
       key: series.key,
       label: series.label,
       data: series.data.map(Number),
+      backgroundColor: series.color + 'cc', // More opaque for bars
       borderColor: series.color,
-      backgroundColor: series.color + '1a', // Add alpha for fill
-      fill: true,
-      tension: 0.3,
-      borderWidth: 1,
-      pointRadius: 0,
-      pointHoverRadius: 4
+      borderWidth: 1
     }));
     
     let activityChart = null;
     try {
       const ctxActivity = document.getElementById('activityChart').getContext('2d');
       activityChart = new Chart(ctxActivity, {
-        type: 'line',
+        type: 'bar',
         data: {
           labels: fullActivityLabels,
           datasets: activityDatasets
@@ -523,6 +572,7 @@
           (rejectionCompanies || []).forEach(i => { if (i && i.rejection_date) dates.push(i.rejection_date); });
           (applicationCompanies || []).forEach(i => { if (i && i.sent_date) dates.push(i.sent_date); });
           (ghostedCompanies || []).forEach(i => { if (i && i.sent_date) dates.push(i.sent_date); });
+          (interviewCompanies || []).forEach(i => { if (i && i.interview_date) dates.push(i.interview_date); });
         } catch (e) {
           console.warn('Could not derive dates for fallback:', e);
         }
@@ -561,18 +611,21 @@
         })
         .map(item => ({ id: item.company_id, name: item.company__name }));
       
-      const ghosted = ghostedCompanies
+      // Ghosted: Always show ALL ghosted companies regardless of date filter (current state)
+      const ghosted = ghostedCompanies.map(item => ({ id: item.company_id, name: item.company__name }));
+      
+      const interviews = interviewCompanies
         .filter(item => {
-          const d = toDayNumber(item.sent_date);
+          const d = toDayNumber(item.interview_date);
           const matched = !isNaN(d) && !isNaN(startNum) && !isNaN(endNum) && d >= startNum && d <= endNum;
-          if (matched) console.log('Ghosted matched:', item.company__name, item.sent_date);
+          if (matched) console.log('Interview matched:', item.company__name, item.interview_date);
           return matched;
         })
         .map(item => ({ id: item.company_id, name: item.company__name }));
 
       console.log('Filtered rejections:', rejections);
       console.log('Filtered applications:', applications);
-      console.log('Filtered ghosted:', ghosted);
+      console.log('All ghosted (no date filter):', ghosted);
 
       // Get unique companies by id (deduplicate)
       function uniqueById(arr) {
@@ -584,17 +637,20 @@
         }
         return Array.from(map.values());
       }
-      const uniqueRejections = uniqueById(rejections);
-      const uniqueApplications = uniqueById(applications);
-      const uniqueGhosted = uniqueById(ghosted);
+  const uniqueRejections = uniqueById(rejections);
+  const uniqueApplications = uniqueById(applications);
+  const uniqueGhosted = uniqueById(ghosted);
+  const uniqueInterviews = uniqueById(interviews);
 
       // Update DOM
-      const rejectionList = document.getElementById('rejectionList');
-      const applicationList = document.getElementById('applicationList');
-      const ghostedList = document.getElementById('ghostedList');
-  const rejectionCount = document.getElementById('rejectionCount');
-  const applicationCount = document.getElementById('applicationCount');
-  const ghostedCount = document.getElementById('ghostedCount');
+    const rejectionList = document.getElementById('rejectionList');
+    const applicationList = document.getElementById('applicationList');
+    const ghostedList = document.getElementById('ghostedList');
+    const interviewList = document.getElementById('interviewList');
+    const rejectionCount = document.getElementById('rejectionCount');
+    const applicationCount = document.getElementById('applicationCount');
+    const ghostedCount = document.getElementById('ghostedCount');
+    const interviewCount = document.getElementById('interviewCount');
 
       // Helper to render list
       function renderList(listEl, companies) {
@@ -608,14 +664,32 @@
         }
       }
 
-      renderList(rejectionList, uniqueRejections);
-      renderList(applicationList, uniqueApplications);
-      renderList(ghostedList, uniqueGhosted);
+  renderList(rejectionList, uniqueRejections);
+  renderList(applicationList, uniqueApplications);
+  renderList(ghostedList, uniqueGhosted);
+  renderList(interviewList, uniqueInterviews);
 
       // Update counts
-      if (rejectionCount) rejectionCount.textContent = String(uniqueRejections.length);
-      if (applicationCount) applicationCount.textContent = String(uniqueApplications.length);
-      if (ghostedCount) ghostedCount.textContent = String(uniqueGhosted.length);
+  if (rejectionCount) rejectionCount.textContent = String(uniqueRejections.length);
+  if (applicationCount) applicationCount.textContent = String(uniqueApplications.length);
+  if (ghostedCount) ghostedCount.textContent = String(uniqueGhosted.length);
+  if (interviewCount) interviewCount.textContent = String(uniqueInterviews.length);
+  
+  // Update ghosted card count in summary bar
+  const ghostedCardCount = document.getElementById('ghostedCardCount');
+  if (ghostedCardCount) ghostedCardCount.textContent = String(uniqueGhosted.length);
+    }
+
+    // Toggle ghosted section visibility
+    function toggleGhostedSection() {
+      const section = document.getElementById('ghostedSection');
+      if (!section) return;
+      
+      if (section.style.display === 'none') {
+        section.style.display = 'block';
+      } else {
+        section.style.display = 'none';
+      }
     }
 
     // Copy helper

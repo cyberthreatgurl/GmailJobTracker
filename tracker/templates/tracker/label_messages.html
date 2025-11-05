@@ -358,6 +358,12 @@
         <option value="all" {% if filter_company == 'all' %}selected{% endif %}>All</option>
         <option value="missing" {% if filter_company == 'missing' %}selected{% endif %}>Missing</option>
         <option value="resolved" {% if filter_company == 'resolved' %}selected{% endif %}>Resolved</option>
+        <option value="" disabled>──────────</option>
+        {% for company in all_companies %}
+          {% with company_value="company_"|add:company.id|stringformat:"s" %}
+          <option value="company_{{ company.id }}" {% if filter_company == company_value %}selected{% endif %}>{{ company.name }}</option>
+          {% endwith %}
+        {% endfor %}
       </select>
     </div>
     <div class="filter-group">

@@ -68,9 +68,12 @@
       "\\bwe\\s(?:are\\s)?pursuing\\s(?:other|another)\\scandidate(?:s)?\\b",
       "\\bkeep\\syour\\s(?:resume|application)\\son\\sfile\\b"
     ],
-    "offer": ["None"],
+    "offer": [
+      "None"
+    ],
     "noise": [
       "\\bnewsletter\\b",
+      "\\bpayment\\b",
       "\\bdigest\\b",
       "\\bpromotion\\b",
       "\\bmarketing\\b",
@@ -81,9 +84,10 @@
       "\\bpassword\\sverification\\b",
       "\\bOTP\\b",
       "\\b2FA\\b",
-      "security\\scode",
+      "\\bsecurity\\scode",
       "\\blogin\\scode\\b",
-      "\\baccess\\scode\\b"
+      "\\baccess\\scode\\b",
+      "\\breset\\syour\\spassword\\s"
     ],
     "referral": [
       "(\\breferral\\b| \\breferred\\b|\\brefer\\b|\\brecommendation\\b|\\brecommended\\b|introduction\\b|\\sconnect\\syou\\swith\\b |\\bconnecting\\syou\\swith\\b)"
@@ -104,36 +108,11 @@
       "received\\syour\\sresume",
       "application\\sreceived"
     ],
-    "ghosted": ["None"],
-    "other": ["None"],
-    "prescreen": ["prescreen", "screening", "pre\\s*screen", "phone\\s*screen"],
-    "rejection_from_me": [
-      "withdrawn\\sby\\sme",
-      "withdrew\\smy\\sapplication",
-      "rejection\\sfrom\\sme"
-    ]
-  },
-  "suppress_labels": ["offer"],
-  "ignore_labels": ["noise", "head_hunter"],
-  "message_label_excludes": {
-    "application": [
-      "refills\\sat",
-      "noreply\\-newsletters",
-      "payment",
-      "booklet",
-      "child",
-      "waiver",
-      "financial\\said",
-      "eeo",
-      "eeoc",
-      "paid",
-      "move\\sforward\\swith\\sother",
-      "unfortunately",
-      "phone\\scall",
-      "prescreen",
-      "olivermattei\\.net",
-      "admissions",
-      "substack.com"
+    "ghosted": [
+      "None"
+    ],
+    "other": [
+      "None"
     ]
   },
   "invalid_company_prefixes": [

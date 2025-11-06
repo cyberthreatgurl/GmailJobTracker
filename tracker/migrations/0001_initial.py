@@ -278,11 +278,7 @@ class Migration(migrations.Migration):
                 ("processed_at", models.DateTimeField(auto_now_add=True)),
             ],
             options={
-                "indexes": [
-                    models.Index(
-                        fields=["gmail_id"], name="tracker_pro_gmail_i_a01db7_idx"
-                    )
-                ],
+                "indexes": [models.Index(fields=["gmail_id"], name="tracker_pro_gmail_i_a01db7_idx")],
             },
         ),
     ]

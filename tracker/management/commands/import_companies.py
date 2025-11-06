@@ -1,7 +1,10 @@
-from django.core.management.base import BaseCommand
-from tracker.models import KnownCompany, ATSDomain, DomainToCompany, CompanyAlias
 import json
 from pathlib import Path
+
+from django.core.management.base import BaseCommand
+
+from tracker.models import ATSDomain, CompanyAlias, DomainToCompany, KnownCompany
+
 
 class Command(BaseCommand):
     help = "Import companies.json into the database"

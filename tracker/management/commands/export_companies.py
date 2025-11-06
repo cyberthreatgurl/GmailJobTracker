@@ -1,7 +1,10 @@
-from django.core.management.base import BaseCommand
-from tracker.models import Company
 import json
 from pathlib import Path
+
+from django.core.management.base import BaseCommand
+
+from tracker.models import Company
+
 
 class Command(BaseCommand):
     help = "Export known companies to companies.json"

@@ -1,11 +1,12 @@
 # ml_subject_classifier.py
 
-import joblib
-import numpy as np
+import json
 import os
 import re
 from pathlib import Path
-import json
+
+import joblib
+import numpy as np
 
 # --- Paths ---
 MODEL_DIR = os.path.join(os.path.dirname(__file__), "model")
@@ -67,11 +68,7 @@ def _decode_label(idx: int) -> str:
             except Exception:
                 pass
         # If label_encoder is a list/sequence and cls is int index
-        if (
-            isinstance(le, (list, tuple))
-            and isinstance(cls, int)
-            and 0 <= cls < len(le)
-        ):
+        if isinstance(le, (list, tuple)) and isinstance(cls, int) and 0 <= cls < len(le):
             return str(le[cls])
         # Fallback
         return str(cls)
@@ -96,9 +93,7 @@ _PATTERNS = _load_patterns()
 _COMPILED_PATTERNS = {}
 if _PATTERNS and "message_labels" in _PATTERNS:
     for label, pattern_list in _PATTERNS["message_labels"].items():
-        _COMPILED_PATTERNS[label] = [
-            re.compile(p, re.IGNORECASE) for p in pattern_list if p and p != "None"
-        ]
+        _COMPILED_PATTERNS[label] = [re.compile(p, re.IGNORECASE) for p in pattern_list if p and p != "None"]
 
 # Labels to suppress (map to 'other'), configurable in patterns.json
 _SUPPRESS_LABELS = set(_PATTERNS.get("suppress_labels", []))
@@ -160,9 +155,7 @@ def _get_rule_label_func():
     return rule_label
 
 
-def predict_subject_type(
-    subject: str, body: str = "", threshold: float = 0.6, sender: str = ""
-):
+def predict_subject_type(subject: str, body: str = "", threshold: float = 0.6, sender: str = ""):
     """Predict message label from subject+body using rules first, then ML.
 
     Returns dict: {label, confidence, ignore, method}
@@ -179,16 +172,17 @@ def predict_subject_type(
     import os
 
     user_email = (os.environ.get("USER_EMAIL_ADDRESS") or "").strip().lower()
-    exclude_user_hh = os.environ.get(
-        "HEADHUNTER_EXCLUDE_USER_SENDER", "false"
-    ).strip().lower() in {"1", "true", "yes", "y"}
+    exclude_user_hh = os.environ.get("HEADHUNTER_EXCLUDE_USER_SENDER", "false").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "y",
+    }
     is_user_message = False
     if user_email and sender:
         is_user_message = user_email in sender.lower()
         if DEBUG and is_user_message and exclude_user_hh:
-            print(
-                f"[DEBUG] Sender is user ({user_email}), will skip head_hunter classification (env gated)"
-            )
+            print(f"[DEBUG] Sender is user ({user_email}), will skip head_hunter classification (env gated)")
 
     # Try rule-based first (use the canonical implementation from parser.py if available)
     rule_fn = _get_rule_label_func()
@@ -199,9 +193,7 @@ def predict_subject_type(
     # Skip head_hunter label for user's own messages (env gated)
     if rule_result == "head_hunter" and is_user_message and exclude_user_hh:
         if DEBUG:
-            print(
-                "[DEBUG] Skipping head_hunter label for user message, treating as 'other'"
-            )
+            print("[DEBUG] Skipping head_hunter label for user message, treating as 'other'")
         rule_result = "other"
 
     if rule_result:
@@ -257,18 +249,14 @@ def predict_subject_type(
     # Skip head_hunter label for user's own messages (env gated)
     if label == "head_hunter" and is_user_message and exclude_user_hh:
         if DEBUG:
-            print(
-                "[DEBUG] Skipping ML head_hunter prediction for user message, using 'other'"
-            )
+            print("[DEBUG] Skipping ML head_hunter prediction for user message, using 'other'")
         label = "other"
 
     # If ML is uncertain, try rules again as backup
     if confidence < threshold:
         rule_result = rule_fn(subject, body)
         if DEBUG:
-            print(
-                f"[DEBUG] ML below threshold; rules-fallback returned: {repr(rule_result)}"
-            )
+            print(f"[DEBUG] ML below threshold; rules-fallback returned: {repr(rule_result)}")
         # Skip head_hunter for user messages in fallback too (env gated)
         if rule_result == "head_hunter" and is_user_message and exclude_user_hh:
             if DEBUG:
@@ -281,11 +269,7 @@ def predict_subject_type(
                 "label": mapped_label,
                 "confidence": confidence,
                 "ignore": mapped_label in ignore_labels,
-                "method": (
-                    "rules_fallback"
-                    if mapped_label == rule_result
-                    else "rules_fallback_suppressed"
-                ),
+                "method": ("rules_fallback" if mapped_label == rule_result else "rules_fallback_suppressed"),
             }
 
     # Use ML prediction

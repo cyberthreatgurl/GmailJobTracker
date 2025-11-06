@@ -1,7 +1,8 @@
 from django.core.management.base import BaseCommand
-from tracker.models import Message
+from django.db.models import Avg, Count, Max, Min
+
 from ml_subject_classifier import predict_subject_type
-from django.db.models import Count, Avg, Min, Max
+from tracker.models import Message
 
 
 class Command(BaseCommand):
@@ -40,17 +41,13 @@ class Command(BaseCommand):
             qs = qs[:limit]
 
         total = qs.count()
-        self.stdout.write(
-            f"{'[DRY RUN] ' if dry_run else ''}Re-classifying {total} messages..."
-        )
+        self.stdout.write(f"{'[DRY RUN] ' if dry_run else ''}Re-classifying {total} messages...")
 
         updated = 0
         changed = 0
 
         for i, msg in enumerate(qs.iterator(), 1):
-            result = predict_subject_type(
-                msg.subject, msg.body or "", sender=msg.sender
-            )
+            result = predict_subject_type(msg.subject, msg.body or "", sender=msg.sender)
 
             old_label = msg.ml_label
             old_conf = msg.confidence
@@ -99,15 +96,9 @@ class Command(BaseCommand):
                     self.stdout.write(f"  Progress: {i}/{total}...")
 
         if dry_run:
-            self.stdout.write(
-                self.style.WARNING(f"[DRY RUN] Would update {changed}/{total} messages")
-            )
+            self.stdout.write(self.style.WARNING(f"[DRY RUN] Would update {changed}/{total} messages"))
         else:
-            self.stdout.write(
-                self.style.SUCCESS(
-                    f"✅ Re-classified {changed}/{total} messages ({updated} saved)"
-                )
-            )
+            self.stdout.write(self.style.SUCCESS(f"✅ Re-classified {changed}/{total} messages ({updated} saved)"))
 
         # Check confidence distribution
         confidence_stats = (
@@ -139,9 +130,5 @@ class Command(BaseCommand):
         if msg:
             self.stdout.write(f"\nSubject: {msg.subject}")
             self.stdout.write(f"Current: {msg.ml_label} ({msg.confidence:.2f})")
-            result = predict_subject_type(
-                msg.subject, msg.body or "", sender=msg.sender
-            )
-            self.stdout.write(
-                f"New prediction: {result['label']} ({result['confidence']:.2f}) [{result['method']}]"
-            )
+            result = predict_subject_type(msg.subject, msg.body or "", sender=msg.sender)
+            self.stdout.write(f"New prediction: {result['label']} ({result['confidence']:.2f}) [{result['method']}]")

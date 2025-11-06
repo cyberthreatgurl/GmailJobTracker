@@ -1,6 +1,7 @@
 import re
 from collections import defaultdict
 
+
 def parse_changelog(path='CHANGELOG.md'):
     with open(path, 'r', encoding='utf-8') as f:
         lines = f.readlines()
@@ -24,7 +25,7 @@ def parse_changelog(path='CHANGELOG.md'):
             current_entry = {
                 'version': version_match.group(1),
                 'date': version_match.group(2),
-                'sections': defaultdict(list)
+                'sections': defaultdict(list),
             }
             current_section = None
             continue

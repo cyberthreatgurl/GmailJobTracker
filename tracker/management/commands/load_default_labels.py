@@ -1,6 +1,8 @@
-from django.core.management.base import BaseCommand
-from tracker.models import MessageLabel
 import json
+
+from django.core.management.base import BaseCommand
+
+from tracker.models import MessageLabel
 
 
 class Command(BaseCommand):
@@ -20,8 +22,4 @@ class Command(BaseCommand):
                 )
                 if created:
                     count += 1
-        self.stdout.write(
-            self.style.SUCCESS(
-                f"Loaded {count} new MessageLabel(s) from plot_series.json."
-            )
-        )
+        self.stdout.write(self.style.SUCCESS(f"Loaded {count} new MessageLabel(s) from plot_series.json."))

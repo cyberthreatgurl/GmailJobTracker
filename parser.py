@@ -1,37 +1,39 @@
 # parser.py
-import os
-import re
-import json
 import base64
 import html
-import joblib
+import json
+import os
 
 # from joblib import load  # not needed here
 import quopri
+import re
+from datetime import datetime, timedelta
+from email.utils import parseaddr, parsedate_to_datetime
+from pathlib import Path
+
 import django
+import joblib
+from bs4 import BeautifulSoup
+from django.db.models import F
 from django.utils import timezone
 from django.utils.timezone import now
-from django.db.models import F
-from pathlib import Path
-from email.utils import parsedate_to_datetime, parseaddr
-from bs4 import BeautifulSoup
+
 from db import (
+    COMPANIES_PATH,
+    PATTERNS_PATH,
     insert_email_text,
     insert_or_update_application,
     is_valid_company,
-    PATTERNS_PATH,
-    COMPANIES_PATH,
 )
-from datetime import datetime, timedelta
-from db_helpers import get_application_by_sender, build_company_job_index
-from ml_subject_classifier import predict_subject_type
+from db_helpers import build_company_job_index, get_application_by_sender
 from ml_entity_extraction import extract_entities
+from ml_subject_classifier import predict_subject_type
 from tracker.models import (
-    ThreadTracking,
-    Message,
+    Company,
     IgnoredMessage,
     IngestionStats,
-    Company,
+    Message,
+    ThreadTracking,
     UnresolvedCompany,
 )
 
@@ -95,10 +97,7 @@ for code_label, json_keys in LABEL_MAP.items():
 
 # Optional per-label negative patterns derived from Gmail's doesNotHaveTheWord
 _MSG_LABEL_EXCLUDES = {
-    k: [
-        re.compile(p, re.I)
-        for p in PATTERNS.get("message_label_excludes", {}).get(k, [])
-    ]
+    k: [re.compile(p, re.I) for p in PATTERNS.get("message_label_excludes", {}).get(k, [])]
     for k in (
         "interview_invite",
         "job_application",
@@ -211,9 +210,7 @@ def extract_body_from_parts(parts):
         mime_type = part.get("mimeType")
         body_data = part.get("body", {}).get("data")
         if mime_type == "text/html" and body_data:
-            decoded = base64.urlsafe_b64decode(body_data).decode(
-                "utf-8", errors="ignore"
-            )
+            decoded = base64.urlsafe_b64decode(body_data).decode("utf-8", errors="ignore")
             if not decoded:
                 decoded = "Empty Body"
                 print("Decoded Body/HTML part is empty.")
@@ -348,9 +345,7 @@ def predict_company(subject, body):
     try:
         X = COMPANY_VECTORIZER.transform([text])
         pred = COMPANY_CLASSIFIER.predict(X)[0]
-        if COMPANY_LABEL_ENCODER is not None and hasattr(
-            COMPANY_LABEL_ENCODER, "inverse_transform"
-        ):
+        if COMPANY_LABEL_ENCODER is not None and hasattr(COMPANY_LABEL_ENCODER, "inverse_transform"):
             try:
                 return COMPANY_LABEL_ENCODER.inverse_transform([pred])[0]
             except Exception:
@@ -371,9 +366,7 @@ def should_ignore(subject, body):
 def extract_metadata(service, msg_id):
     body_html = ""
     """Extract subject, date, thread_id, labels, sender, sender_domain, and body text from a Gmail message."""
-    msg = (
-        service.users().messages().get(userId="me", id=msg_id, format="full").execute()
-    )
+    msg = service.users().messages().get(userId="me", id=msg_id, format="full").execute()
     headers = msg["payload"]["headers"]
 
     subject = next((h["value"] for h in headers if h["name"] == "Subject"), "")
@@ -416,9 +409,7 @@ def extract_metadata(service, msg_id):
         elif mime_type == "text/html" and body != "Empty Body":
             body_html = html.unescape(decoded)
             # also provide a plain-text fallback
-            body = BeautifulSoup(body_html, "html.parser").get_text(
-                separator=" ", strip=True
-            )
+            body = BeautifulSoup(body_html, "html.parser").get_text(separator=" ", strip=True)
 
     # Fallback if no parts
     if not body and "body" in msg["payload"]:
@@ -499,9 +490,7 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
 
     # --- ML classification ---
     # Use ML with rule fallback
-    result = predict_with_fallback(
-        predict_subject_type, subject, body, threshold=0.55, sender=sender
-    )
+    result = predict_with_fallback(predict_subject_type, subject, body, threshold=0.55, sender=sender)
     confidence = _conf(result)
     label = result["label"]
     ignore = bool(result.get("ignore", False))
@@ -512,9 +501,7 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
         print(f"[DEBUG parse_subject] subject='{subject[:80]}'", flush=True)
         print(f"[DEBUG parse_subject] sender='{sender}'", flush=True)
         print(f"[DEBUG parse_subject] sender_domain='{sender_domain}'", flush=True)
-        print(
-            f"[DEBUG parse_subject] label={label}, confidence={confidence}", flush=True
-        )
+        print(f"[DEBUG parse_subject] label={label}, confidence={confidence}", flush=True)
 
     # --- Initialize variables ---
     company = ""
@@ -524,9 +511,7 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
     # --- Continue with original logic for fallback or enrichment ---
     subject_clean = subject.strip()
     # Strip common email reply/forward prefixes that interfere with company extraction
-    subject_clean = re.sub(
-        r"^(Re|RE|Fwd|FW|Fw):\s*", "", subject_clean, flags=re.IGNORECASE
-    ).strip()
+    subject_clean = re.sub(r"^(Re|RE|Fwd|FW|Fw):\s*", "", subject_clean, flags=re.IGNORECASE).strip()
     subj_lower = subject_clean.lower()
     domain_lower = sender_domain.lower() if sender_domain else None
 
@@ -538,9 +523,7 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
         if sender_email and "@" in sender_email:
             sender_prefix = sender_email.split("@")[0].strip().lower()
             # Check if prefix matches an alias
-            aliases_lower = {
-                k.lower(): v for k, v in company_data.get("aliases", {}).items()
-            }
+            aliases_lower = {k.lower(): v for k, v in company_data.get("aliases", {}).items()}
             if sender_prefix in aliases_lower:
                 company = aliases_lower[sender_prefix]
                 if DEBUG:
@@ -587,11 +570,7 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
                         ).strip()
                         # Remove trailing punctuation
                         extracted = extracted.rstrip(".,;:")
-                        if (
-                            extracted
-                            and len(extracted) > 2
-                            and is_valid_company_name(extracted)
-                        ):
+                        if extracted and len(extracted) > 2 and is_valid_company_name(extracted):
                             company = extracted
                             if DEBUG:
                                 print(f"[DEBUG] Indeed employer extraction: {company}")
@@ -689,9 +668,7 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
         ),  # special case
     ]
     # Handle special case: "applying for Field CTO position @ Claroty"
-    special_match = re.search(
-        r"applying for ([\w\s\-]+) position @ ([A-Z][\w\s&\-]+)", subject_clean
-    )
+    special_match = re.search(r"applying for ([\w\s\-]+) position @ ([A-Z][\w\s&\-]+)", subject_clean)
     if special_match:
         job_title = special_match.group(1).strip()
         company = special_match.group(2).strip()
@@ -703,9 +680,7 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
                 company = normalize_company_name(match.group(1).strip())
 
     # 🧼 Sanity check: reject job titles misclassified as companies
-    if company and re.search(
-        r"\b(CTO|Engineer|Manager|Director|Intern|Analyst)\b", company, re.I
-    ):
+    if company and re.search(r"\b(CTO|Engineer|Manager|Director|Intern|Analyst)\b", company, re.I):
         company = ""
 
     # Job title fallback
@@ -718,9 +693,7 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
         job_title = title_match.group(1).strip() if title_match else ""
 
     # Job ID
-    id_match = re.search(
-        r"(?:Job\s*#?|Position\s*#?|jobId=)([\w\-]+)", subject_clean, re.IGNORECASE
-    )
+    id_match = re.search(r"(?:Job\s*#?|Position\s*#?|jobId=)([\w\-]+)", subject_clean, re.IGNORECASE)
     job_id = id_match.group(1).strip() if id_match else ""
 
     # --- Hard-ignore check AFTER company extraction ---
@@ -772,14 +745,10 @@ def ingest_message(service, msg_id):
         # --- PATCH: Skip and log blank/whitespace-only bodies ---
         if not body or not body.strip():
             if DEBUG:
-                print(
-                    f"[BLANK BODY] Skipping message {msg_id}: {metadata.get('subject','(no subject)')}"
-                )
+                print(f"[BLANK BODY] Skipping message {msg_id}: {metadata.get('subject','(no subject)')}")
                 print("Stats: ignored++ (blank body)")
             log_ignored_message(msg_id, metadata, reason="blank_body")
-            IngestionStats.objects.filter(date=stats.date).update(
-                total_ignored=F("total_ignored") + 1
-            )
+            IngestionStats.objects.filter(date=stats.date).update(total_ignored=F("total_ignored") + 1)
             return "ignored"
 
     except Exception as e:
@@ -806,9 +775,7 @@ def ingest_message(service, msg_id):
             metadata,
             reason=parsed_subject.get("ignore_reason", "ml_ignore"),
         )
-        IngestionStats.objects.filter(date=stats.date).update(
-            total_ignored=F("total_ignored") + 1
-        )
+        IngestionStats.objects.filter(date=stats.date).update(total_ignored=F("total_ignored") + 1)
         return "ignored"
 
     status = classify_message(body)
@@ -829,16 +796,10 @@ def ingest_message(service, msg_id):
 
     # Normalize follow_up_dates and labels to strings
     follow_up_raw = status_dates.get("follow_up_dates", [])
-    follow_up_str = (
-        ", ".join(follow_up_raw)
-        if isinstance(follow_up_raw, list)
-        else str(follow_up_raw)
-    )
+    follow_up_str = ", ".join(follow_up_raw) if isinstance(follow_up_raw, list) else str(follow_up_raw)
 
     labels_raw = metadata.get("labels", [])
-    labels_str = (
-        ", ".join(labels_raw) if isinstance(labels_raw, list) else str(labels_raw)
-    )
+    labels_str = ", ".join(labels_raw) if isinstance(labels_raw, list) else str(labels_raw)
 
     if DEBUG:
         print(f"Inserting message: {metadata['subject']}")
@@ -869,12 +830,7 @@ def ingest_message(service, msg_id):
                 print(f"Headhunter domain detected: {sender_domain} → HeadHunter")
 
         # 1. Domain mapping (if not ATS and not headhunter)
-        if (
-            not company
-            and sender_domain
-            and not is_ats
-            and sender_domain in DOMAIN_TO_COMPANY
-        ):
+        if not company and sender_domain and not is_ats and sender_domain in DOMAIN_TO_COMPANY:
             company = DOMAIN_TO_COMPANY[sender_domain]
             company_source = "domain_mapping"
             if DEBUG:
@@ -883,10 +839,7 @@ def ingest_message(service, msg_id):
         # 1.5. Indeed job board special case - extract actual employer from body
         if not company and sender_domain == "indeed.com":
             # Check for Indeed Apply confirmation pattern
-            if (
-                "Indeed Application:" in subject
-                or "indeedapply@indeed.com" in metadata.get("sender", "").lower()
-            ):
+            if "Indeed Application:" in subject or "indeedapply@indeed.com" in metadata.get("sender", "").lower():
                 # Extract plain text body for pattern matching
                 body_plain = body
                 try:
@@ -908,9 +861,7 @@ def ingest_message(service, msg_id):
                     if indeed_pattern:
                         extracted = indeed_pattern.group(1).strip()
                         # Clean up common trailing words
-                        extracted = re.sub(
-                            r"\s+(and|About|Your)$", "", extracted, flags=re.IGNORECASE
-                        ).strip()
+                        extracted = re.sub(r"\s+(and|About|Your)$", "", extracted, flags=re.IGNORECASE).strip()
                         if extracted and is_valid_company_name(extracted):
                             company = normalize_company_name(extracted)
                             company_source = "indeed_body_extraction"
@@ -938,9 +889,7 @@ def ingest_message(service, msg_id):
                     # Extra guard: require presence in subject/body (plain text) to avoid artifacts like 'Font'
                     body_plain = body
                     try:
-                        if body and (
-                            "<html" in body.lower() or "<style" in body.lower()
-                        ):
+                        if body and ("<html" in body.lower() or "<style" in body.lower()):
                             soup = BeautifulSoup(body, "html.parser")
                             for tag in soup(["style", "script"]):
                                 tag.decompose()
@@ -948,17 +897,13 @@ def ingest_message(service, msg_id):
                     except Exception:
                         body_plain = body
 
-                    if predicted.lower() in subject.lower() or (
-                        body_plain and predicted.lower() in body_plain.lower()
-                    ):
+                    if predicted.lower() in subject.lower() or (body_plain and predicted.lower() in body_plain.lower()):
                         company = normalize_company_name(predicted)
                         company_source = "ml_prediction"
                         if DEBUG:
                             print(f"ML prediction used: {predicted}")
                     elif DEBUG:
-                        print(
-                            f"ML prediction discarded (not in subject/body): {predicted}"
-                        )
+                        print(f"ML prediction discarded (not in subject/body): {predicted}")
             except NameError:
                 if DEBUG:
                     print(" ML prediction function not available.")
@@ -1028,9 +973,7 @@ def ingest_message(service, msg_id):
         if company and company.lower() not in subject_lower:
             for known in KNOWN_COMPANIES:
                 if known.lower() in subject_lower and known.lower() != company.lower():
-                    print(
-                        f"Subject mentions different company: {known} vs resolved {company}"
-                    )
+                    print(f"Subject mentions different company: {known} vs resolved {company}")
                     break
 
     confidence = float(result.get("confidence", 0.0)) if result else 0.0
@@ -1098,9 +1041,7 @@ def ingest_message(service, msg_id):
         ml_label = result.get("label") if result else None
         if company_obj and ml_label:
             try:
-                app = ThreadTracking.objects.filter(
-                    thread_id=metadata["thread_id"]
-                ).first()
+                app = ThreadTracking.objects.filter(thread_id=metadata["thread_id"]).first()
                 if DEBUG:
                     print(
                         f"[Re-ingest] Looking for Application with thread_id={metadata['thread_id']}, found: {app is not None}"
@@ -1116,21 +1057,15 @@ def ingest_message(service, msg_id):
                         app.rejection_date = metadata["timestamp"].date()
                         updated = True
                         if DEBUG:
-                            print(
-                                f"✓ Set rejection_date during re-ingest: {app.rejection_date}"
-                            )
+                            print(f"✓ Set rejection_date during re-ingest: {app.rejection_date}")
                     if not app.interview_date and ml_label == "interview_invite":
                         app.interview_date = metadata["timestamp"].date()
                         updated = True
                         if DEBUG:
-                            print(
-                                f"✓ Set interview_date during re-ingest: {app.interview_date}"
-                            )
+                            print(f"✓ Set interview_date during re-ingest: {app.interview_date}")
                     if not app.ml_label or app.ml_label != ml_label:
                         app.ml_label = ml_label
-                        app.ml_confidence = (
-                            float(result.get("confidence", 0.0)) if result else 0.0
-                        )
+                        app.ml_confidence = float(result.get("confidence", 0.0)) if result else 0.0
                         updated = True
                     if updated:
                         app.save()
@@ -1138,18 +1073,12 @@ def ingest_message(service, msg_id):
                             print(f"✓ Updated Application during re-ingest")
                 else:
                     if DEBUG:
-                        print(
-                            f"[Re-ingest] No Application found for thread_id={metadata['thread_id']}"
-                        )
+                        print(f"[Re-ingest] No Application found for thread_id={metadata['thread_id']}")
             except Exception as e:
                 if DEBUG:
-                    print(
-                        f"Warning: Could not update Application during re-ingest: {e}"
-                    )
+                    print(f"Warning: Could not update Application during re-ingest: {e}")
 
-        IngestionStats.objects.filter(date=stats.date).update(
-            total_skipped=F("total_skipped") + 1
-        )
+        IngestionStats.objects.filter(date=stats.date).update(total_skipped=F("total_skipped") + 1)
         return "skipped"
 
     reviewed = (
@@ -1166,8 +1095,8 @@ def ingest_message(service, msg_id):
         )
 
     # ✅ Check for near-duplicate messages (same subject, sender, timestamp within 5 seconds)
-    from django.utils.timezone import make_aware
     import datetime
+
 
     ts = metadata["timestamp"]
     window_start = ts - datetime.timedelta(seconds=5)
@@ -1181,9 +1110,7 @@ def ingest_message(service, msg_id):
     if duplicate_qs.exists():
         # Optionally log or ignore
         if DEBUG:
-            print(
-                f"⚠️ Duplicate message detected: subject='{subject}', sender='{metadata['sender']}', ts={ts}"
-            )
+            print(f"⚠️ Duplicate message detected: subject='{subject}', sender='{metadata['sender']}', ts={ts}")
         # Optionally log to IgnoredMessage
         from tracker.models import IgnoredMessage
 
@@ -1194,11 +1121,7 @@ def ingest_message(service, msg_id):
                 "body": metadata["body"],
                 "company_source": company_source or "",
                 "sender": metadata["sender"],
-                "sender_domain": (
-                    metadata["sender"].split("@")[-1]
-                    if "@" in metadata["sender"]
-                    else ""
-                ),
+                "sender_domain": (metadata["sender"].split("@")[-1] if "@" in metadata["sender"] else ""),
                 "date": ts,
                 "reason": "duplicate_near",
             },
@@ -1218,32 +1141,15 @@ def ingest_message(service, msg_id):
         if proposed_label in blocked_hh_labels:
             sender_domain = (metadata.get("sender_domain") or "").lower()
             is_hh_sender = sender_domain in HEADHUNTER_DOMAINS
-            company_name_norm = (
-                (company_obj.name if company_obj else "").strip().lower()
-            )
-            company_domain_norm = (
-                (getattr(company_obj, "domain", "") or "").strip().lower()
-                if company_obj
-                else ""
-            )
+            company_name_norm = (company_obj.name if company_obj else "").strip().lower()
+            company_domain_norm = (getattr(company_obj, "domain", "") or "").strip().lower() if company_obj else ""
             is_hh_company_domain = (
-                any(company_domain_norm.endswith(d) for d in HEADHUNTER_DOMAINS)
-                if company_domain_norm
-                else False
+                any(company_domain_norm.endswith(d) for d in HEADHUNTER_DOMAINS) if company_domain_norm else False
             )
-            is_hh_company_status = (
-                getattr(company_obj, "status", "") == "headhunter"
-                if company_obj
-                else False
-            )
+            is_hh_company_status = getattr(company_obj, "status", "") == "headhunter" if company_obj else False
             is_hh_company_name = company_name_norm == "headhunter"
 
-            if (
-                is_hh_sender
-                or is_hh_company_domain
-                or is_hh_company_status
-                or is_hh_company_name
-            ):
+            if is_hh_sender or is_hh_company_domain or is_hh_company_status or is_hh_company_name:
                 # Force headhunter label for these cases
                 result["label"] = "head_hunter"
 
@@ -1287,29 +1193,18 @@ def ingest_message(service, msg_id):
             sender_domain = (metadata.get("sender_domain") or "").lower()
             is_hh_sender = sender_domain in HEADHUNTER_DOMAINS
             company_name_norm = (company_obj.name or "").strip().lower()
-            company_domain_norm = (
-                (getattr(company_obj, "domain", "") or "").strip().lower()
-            )
+            company_domain_norm = (getattr(company_obj, "domain", "") or "").strip().lower()
             is_hh_company_domain = (
-                any(company_domain_norm.endswith(d) for d in HEADHUNTER_DOMAINS)
-                if company_domain_norm
-                else False
+                any(company_domain_norm.endswith(d) for d in HEADHUNTER_DOMAINS) if company_domain_norm else False
             )
             is_hh_label = ml_label == "head_hunter"
             is_hh_company_name = company_name_norm == "headhunter"
 
-            skip_application_creation = (
-                is_hh_sender
-                or is_hh_label
-                or is_hh_company_domain
-                or is_hh_company_name
-            )
+            skip_application_creation = is_hh_sender or is_hh_label or is_hh_company_domain or is_hh_company_name
 
             if skip_application_creation:
                 if DEBUG:
-                    print(
-                        "↩️ Skipping Application creation for headhunter source/company"
-                    )
+                    print("↩️ Skipping Application creation for headhunter source/company")
                 # Do not create or update Application for headhunters
             else:
                 # Only create Application rows for actual application confirmations
@@ -1326,9 +1221,7 @@ def ingest_message(service, msg_id):
                             "rejection_date": rejection_date_final,
                             "interview_date": interview_date_final,
                             "ml_label": ml_label,
-                            "ml_confidence": (
-                                float(result.get("confidence", 0.0)) if result else 0.0
-                            ),
+                            "ml_confidence": (float(result.get("confidence", 0.0)) if result else 0.0),
                             "reviewed": reviewed,
                         },
                     )
@@ -1337,84 +1230,52 @@ def ingest_message(service, msg_id):
                     if not created:
                         updated = False
                         # Also update company if it's different (fix company mismatch)
-                        if (
-                            application_obj.company != company_obj
-                            and company_obj is not None
-                        ):
+                        if application_obj.company != company_obj and company_obj is not None:
                             application_obj.company = company_obj
                             application_obj.company_source = company_source
                             updated = True
                             if DEBUG:
-                                print(
-                                    f"✓ Updated application company: {company_obj.name}"
-                                )
-                        if (
-                            not application_obj.rejection_date
-                            and ml_label == "rejected"
-                        ):
+                                print(f"✓ Updated application company: {company_obj.name}")
+                        if not application_obj.rejection_date and ml_label == "rejected":
                             application_obj.rejection_date = rejection_date_final
                             updated = True
-                        if (
-                            not application_obj.interview_date
-                            and ml_label == "interview_invite"
-                        ):
+                        if not application_obj.interview_date and ml_label == "interview_invite":
                             application_obj.interview_date = interview_date_final
                             updated = True
                         if updated:
                             application_obj.save()
                             if DEBUG:
-                                print(
-                                    f"✓ Updated existing application with ML-derived dates"
-                                )
+                                print(f"✓ Updated existing application with ML-derived dates")
                     if created:
                         if DEBUG:
                             print("Stats: inserted++ (new application)")
-                        IngestionStats.objects.filter(date=stats.date).update(
-                            total_inserted=F("total_inserted") + 1
-                        )
+                        IngestionStats.objects.filter(date=stats.date).update(total_inserted=F("total_inserted") + 1)
                     else:
                         if DEBUG:
                             print("Stats: ignored++ (duplicate application)")
-                        IngestionStats.objects.filter(date=stats.date).update(
-                            total_ignored=F("total_ignored") + 1
-                        )
+                        IngestionStats.objects.filter(date=stats.date).update(total_ignored=F("total_ignored") + 1)
                 else:
                     # Not an application email: update existing Application if present, do not create a new one
                     try:
-                        application_obj = ThreadTracking.objects.get(
-                            thread_id=metadata["thread_id"]
-                        )
+                        application_obj = ThreadTracking.objects.get(thread_id=metadata["thread_id"])
                         updated = False
                         # Also update company if it's different (fix company mismatch)
-                        if (
-                            application_obj.company != company_obj
-                            and company_obj is not None
-                        ):
+                        if application_obj.company != company_obj and company_obj is not None:
                             application_obj.company = company_obj
                             application_obj.company_source = company_source
                             updated = True
                             if DEBUG:
-                                print(
-                                    f"✓ Updated application company: {company_obj.name}"
-                                )
-                        if (
-                            not application_obj.rejection_date
-                            and ml_label == "rejected"
-                        ):
+                                print(f"✓ Updated application company: {company_obj.name}")
+                        if not application_obj.rejection_date and ml_label == "rejected":
                             application_obj.rejection_date = rejection_date_final
                             updated = True
-                        if (
-                            not application_obj.interview_date
-                            and ml_label == "interview_invite"
-                        ):
+                        if not application_obj.interview_date and ml_label == "interview_invite":
                             application_obj.interview_date = interview_date_final
                             updated = True
                         if updated:
                             application_obj.save()
                             if DEBUG:
-                                print(
-                                    "✓ Updated existing application (no new creation)"
-                                )
+                                print("✓ Updated existing application (no new creation)")
                     except ThreadTracking.DoesNotExist:
                         if DEBUG:
                             print(
@@ -1423,16 +1284,12 @@ def ingest_message(service, msg_id):
         else:
             if DEBUG:
                 print("Stats: skipped++ (missing company/message)")
-            IngestionStats.objects.filter(date=stats.date).update(
-                total_skipped=F("total_skipped") + 1
-            )
+            IngestionStats.objects.filter(date=stats.date).update(total_skipped=F("total_skipped") + 1)
 
     except Exception as e:
         if DEBUG:
             print(f"Failed to create Application: {e}")
-        IngestionStats.objects.filter(date=stats.date).update(
-            total_skipped=F("total_skipped") + 1
-        )
+        IngestionStats.objects.filter(date=stats.date).update(total_skipped=F("total_skipped") + 1)
 
     # Refresh stats before printing
     if DEBUG:
@@ -1485,9 +1342,7 @@ def ingest_message(service, msg_id):
             print(f"Ignored due to: {reason} -> {metadata['subject']}")
             print("Stats: ignored++ (unclassified)")
         log_ignored_message(msg_id, metadata, reason=reason)
-        IngestionStats.objects.filter(date=stats.date).update(
-            total_ignored=F("total_ignored") + 1
-        )
+        IngestionStats.objects.filter(date=stats.date).update(total_ignored=F("total_ignored") + 1)
         return "ignored"
 
     record["company_job_index"] = build_company_job_index(
@@ -1506,9 +1361,7 @@ def ingest_message(service, msg_id):
             print(f"Ignored by pattern: {metadata['subject']}")
             print("Stats: ignored++ (pattern ignore)")
         log_ignored_message(msg_id, metadata, reason="pattern_ignore")
-        IngestionStats.objects.filter(date=stats.date).update(
-            total_ignored=F("total_ignored") + 1
-        )
+        IngestionStats.objects.filter(date=stats.date).update(total_ignored=F("total_ignored") + 1)
         return "ignored"
 
     insert_or_update_application(record)
@@ -1535,9 +1388,7 @@ if COMPANIES_PATH.exists():
     HEADHUNTER_DOMAINS = [d.lower() for d in company_data.get("headhunter_domains", [])]
     KNOWN_COMPANIES = {c.lower() for c in company_data.get("known", [])}
     KNOWN_COMPANIES_CASED = company_data.get("known", [])  # Keep original casing
-    DOMAIN_TO_COMPANY = {
-        k.lower(): v for k, v in company_data.get("domain_to_company", {}).items()
-    }
+    DOMAIN_TO_COMPANY = {k.lower(): v for k, v in company_data.get("domain_to_company", {}).items()}
     ALIASES = company_data.get("aliases", {})
 else:
     ATS_DOMAINS = []

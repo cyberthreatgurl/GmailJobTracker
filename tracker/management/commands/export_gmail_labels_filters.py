@@ -1,7 +1,9 @@
-from django.core.management.base import BaseCommand
-import os
-import json
 import datetime
+import json
+import os
+
+from django.core.management.base import BaseCommand
+
 from gmail_auth import get_gmail_service
 
 
@@ -18,9 +20,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         service = get_gmail_service()
         if not service:
-            self.stderr.write(
-                "Failed to initialize Gmail service. Check OAuth credentials in json/."
-            )
+            self.stderr.write("Failed to initialize Gmail service. Check OAuth credentials in json/.")
             return
 
         # Get root filter label from environment
@@ -31,9 +31,7 @@ class Command(BaseCommand):
         all_labels = labels_resp.get("labels", [])
 
         # Filter labels by prefix
-        labels = [
-            lab for lab in all_labels if lab.get("name", "").startswith(root_prefix)
-        ]
+        labels = [lab for lab in all_labels if lab.get("name", "").startswith(root_prefix)]
 
         # Build label ID to name mapping (all labels for lookups)
         id_to_name = {lab.get("id"): lab.get("name") for lab in all_labels}
@@ -54,9 +52,7 @@ class Command(BaseCommand):
                 # Only include if any of the addLabelIds match our prefix
                 if any(lid in filtered_label_ids for lid in add_ids):
                     # Enrich with human-readable label names
-                    action["addLabelNames"] = [
-                        id_to_name.get(lid, lid) for lid in add_ids
-                    ]
+                    action["addLabelNames"] = [id_to_name.get(lid, lid) for lid in add_ids]
                     filters.append(filt)
 
         # Compose output
@@ -71,9 +67,7 @@ class Command(BaseCommand):
         )
         with open(out_path, "w", encoding="utf-8") as f:
             json.dump(out, f, indent=2, ensure_ascii=False)
-        self.stdout.write(
-            self.style.SUCCESS(f"Exported Gmail labels and filters to {out_path}")
-        )
+        self.stdout.write(self.style.SUCCESS(f"Exported Gmail labels and filters to {out_path}"))
 
         if options.get("verbose"):
             log_path = os.path.join(

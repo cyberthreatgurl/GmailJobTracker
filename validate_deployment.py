@@ -6,7 +6,6 @@ Runs before Docker build to ensure everything is ready
 
 import os
 import sys
-from pathlib import Path
 
 
 def check_file_exists(filepath, description):
@@ -78,9 +77,7 @@ def main():
     import subprocess
 
     try:
-        result = subprocess.run(
-            ["docker", "--version"], capture_output=True, text=True, timeout=5
-        )
+        result = subprocess.run(["docker", "--version"], capture_output=True, text=True, timeout=5)
         if result.returncode == 0:
             print(f"✅ Docker: {result.stdout.strip()}")
         else:
@@ -91,9 +88,7 @@ def main():
         checks_passed = False
 
     try:
-        result = subprocess.run(
-            ["docker-compose", "--version"], capture_output=True, text=True, timeout=5
-        )
+        result = subprocess.run(["docker-compose", "--version"], capture_output=True, text=True, timeout=5)
         if result.returncode == 0:
             print(f"✅ Docker Compose: {result.stdout.strip()}")
         else:

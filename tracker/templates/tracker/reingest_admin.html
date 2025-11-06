@@ -1,8 +1,14 @@
 {% extends "base.html" %}
-{% block title %}Re-ingest Gmail Messages{% endblock %}
+{% block title %}Ingest New Messages{% endblock %}
 {% block content %}
 <div class="main-content">
-  <h1>Re-ingest Gmail Messages</h1>
+  <h1>📥 Ingest New Messages from Gmail</h1>
+  <p style="color:#6b7280; margin-bottom:0.5rem;">Fetch and process <strong>new</strong> job application emails from your Gmail account.</p>
+  <div style="background:#dbeafe; border-left:4px solid #2563eb; padding:0.75rem; margin-bottom:1.5rem; border-radius:4px;">
+    <p style="margin:0; font-size:0.9rem; color:#1e40af;">
+      ℹ️ <strong>Default behavior:</strong> Only processes messages that haven't been seen before. Already processed/reviewed messages are automatically skipped.
+    </p>
+  </div>
   <form method="post">
     {% csrf_token %}
     <div style="margin-bottom:1rem;">
@@ -14,11 +20,21 @@
       </select>
       <span style="font-size:0.9em;color:#888;">(ALL = since {{ reporting_default_start_date }})</span>
     </div>
-    <div style="margin-bottom:1rem;">
-      <label><input type="checkbox" name="force"> Force (re-process already seen messages)</label><br>
-      <label><input type="checkbox" name="reparse_all"> Re-parse ALL (ignore ProcessedMessage table)</label>
+    <div style="background:#fef3c7; border-left:4px solid #f59e0b; padding:0.75rem; margin-bottom:1rem; border-radius:4px;">
+      <p style="margin:0 0 0.5rem 0; font-weight:600; color:#92400e;">⚠️ Advanced Options (Use with caution)</p>
+      <label style="display:block; margin-bottom:0.25rem; color:#78350f;">
+        <input type="checkbox" name="force" id="force-checkbox"> 
+        <strong>Force:</strong> Re-process already seen messages (does not overwrite manual labels)
+      </label>
+      <label style="display:block; color:#78350f;">
+        <input type="checkbox" name="reparse_all" id="reparse-checkbox"> 
+        <strong>Re-parse ALL:</strong> Completely re-ingest everything (⚠️ may affect reviewed messages)
+      </label>
+      <p style="margin:0.5rem 0 0 0; font-size:0.85rem; color:#92400e;">
+        💡 <em>Tip: Use the "Re-ingest" button on the Label Messages page to selectively re-process specific messages.</em>
+      </p>
     </div>
-    <button class="button" type="submit">Run Ingestion</button>
+    <button class="button" type="submit" style="background:#2563eb; color:white; padding:0.75rem 2rem; font-weight:600; font-size:1rem;">Run Ingestion</button>
   </form>
   <div id="live-output" style="display:none;">
     <h2>Live Ingestion Output</h2>
@@ -47,6 +63,25 @@
     const days = fd.get('days_back');
     const force = fd.get('force') === 'on';
     const reparseAll = fd.get('reparse_all') === 'on';
+    
+    // Confirmation for advanced options
+    if (force || reparseAll) {
+      const optionsUsed = [];
+      if (force) optionsUsed.push('Force re-process');
+      if (reparseAll) optionsUsed.push('Re-parse ALL');
+      
+      const confirmed = confirm(
+        `⚠️ WARNING: You have enabled advanced options:\n\n` +
+        `${optionsUsed.join('\n')}\n\n` +
+        `This may re-process already reviewed messages.\n\n` +
+        `Are you sure you want to continue?`
+      );
+      
+      if (!confirmed) {
+        return; // Cancel submission
+      }
+    }
+    
     if(days) params.set('days_back', days);
     params.set('force', String(force));
     params.set('reparse_all', String(reparseAll));

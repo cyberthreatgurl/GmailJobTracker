@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gmailtracker
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY:-django-insecure-docker-default-key-change-me}
+      - DEBUG=${DEBUG:-False}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS:-localhost,127.0.0.1}
+      - GMAIL_JOBHUNT_LABEL_ID=${GMAIL_JOBHUNT_LABEL_ID}
+      - GMAIL_ROOT_FILTER_LABEL=${GMAIL_ROOT_FILTER_LABEL:-#job-hunt}
+      - DATABASE_PATH=/app/db/job_tracker.db
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - AUTO_REVIEW_CONFIDENCE=${AUTO_REVIEW_CONFIDENCE:-0.85}
+      - ML_CONFIDENCE_THRESHOLD=${ML_CONFIDENCE_THRESHOLD:-0.55}
+      - DEFAULT_DAYS_BACK=${DEFAULT_DAYS_BACK:-7}
+      - MAX_MESSAGES_PER_BATCH=${MAX_MESSAGES_PER_BATCH:-500}
+      - GHOSTED_DAYS_THRESHOLD=${GHOSTED_DAYS_THRESHOLD:-30}
+    volumes:
+      # Persistent data volumes
+      - ./db:/app/db
+      - ./logs:/app/logs
+      - ./model:/app/model
+      - ./json/credentials.json:/app/json/credentials.json:ro
+      - ./json/token.json:/app/json/token.json
+      # Configuration volumes
+      - ./json/patterns.json:/app/json/patterns.json
+      - ./json/companies.json:/app/json/companies.json
+      - ./json/alias_candidates.json:/app/json/alias_candidates.json:ro
+      - ./json/alias_suggestions.json:/app/json/alias_suggestions.json:ro
+    networks:
+      - gmailtracker-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000').read()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  gmailtracker-network:
+    driver: bridge
+
+volumes:
+  db-data:
+  logs-data:
+  model-data:

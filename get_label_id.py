@@ -45,9 +45,7 @@ def list_labels():
 
             # Highlight custom labels (not system labels)
             if label_id.startswith("Label_"):
-                print(
-                    f"\033[1;32m{name:<40}\033[0m {label_id:<40}"
-                )  # Green for custom labels
+                print(f"\033[1;32m{name:<40}\033[0m {label_id:<40}")  # Green for custom labels
             else:
                 print(f"{name:<40} {label_id:<40}")
 
@@ -55,9 +53,7 @@ def list_labels():
         print()
         print("✅ Found", len(labels), "labels")
         print()
-        print(
-            "📝 Look for your job hunting label above (highlighted in green if custom)"
-        )
+        print("📝 Look for your job hunting label above (highlighted in green if custom)")
         print("   Copy the Label ID and add it to your .env file:")
         print()
         print("   GMAIL_JOBHUNT_LABEL_ID=Label_XXXXXXXXXXXXXXXXX")
@@ -68,9 +64,7 @@ def list_labels():
         print()
         print("Troubleshooting:")
         print("1. Make sure json/credentials.json exists")
-        print(
-            "2. If you see an authentication error, delete json/token.json and try again"
-        )
+        print("2. If you see an authentication error, delete json/token.json and try again")
         print("3. Check that Gmail API is enabled in Google Cloud Console")
         sys.exit(1)
 

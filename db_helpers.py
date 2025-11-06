@@ -1,16 +1,17 @@
 # db_helpers.py
 import sqlite3
-from datetime import datetime, timedelta
-import re
-from pathlib import Path
+
 
 def build_company_job_index(company, job_title, job_id):
     import re
+
     def normalize(text):
         if not text:
             return ""
         return re.sub(r'\s+', ' ', text.strip().lower())
+
     return f"{normalize(company)}::{normalize(job_title)}::{normalize(job_id)}"
+
 
 def get_application_by_sender(sender_email, sender_domain):
     """
@@ -22,22 +23,28 @@ def get_application_by_sender(sender_email, sender_domain):
     cur = conn.cursor()
 
     # First try exact email match
-    cur.execute("""
+    cur.execute(
+        """
         SELECT * FROM applications
         WHERE sender = ?
         ORDER BY first_sent DESC
         LIMIT 1
-    """, (sender_email,))
+    """,
+        (sender_email,),
+    )
     row = cur.fetchone()
 
     # If no exact match, try domain match
     if not row:
-        cur.execute("""
+        cur.execute(
+            """
             SELECT * FROM applications
             WHERE sender_domain = ?
             ORDER BY first_sent DESC
             LIMIT 1
-        """, (sender_domain,))
+        """,
+            (sender_domain,),
+        )
         row = cur.fetchone()
 
     conn.close()

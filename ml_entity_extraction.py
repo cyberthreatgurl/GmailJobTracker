@@ -5,6 +5,7 @@ import spacy
 # Load spaCy model (custom or pre-trained)
 nlp = spacy.load("en_core_web_sm")
 
+
 def extract_entities(subject):
     doc = nlp(subject)
     company = ""

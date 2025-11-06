@@ -3,10 +3,9 @@ Database initialization script for GmailJobTracker.
 Creates directories, runs migrations, and sets up initial configuration.
 """
 
-import os
-import sys
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 
 BASE_DIR = Path(__file__).parent.resolve()
@@ -54,9 +53,7 @@ def run_migrations():
     """Run Django migrations."""
     print("\n🗄️  Running database migrations...")
     try:
-        subprocess.run(
-            [sys.executable, "manage.py", "migrate"], check=True, cwd=BASE_DIR
-        )
+        subprocess.run([sys.executable, "manage.py", "migrate"], check=True, cwd=BASE_DIR)
         print("   ✓ Migrations completed successfully")
     except subprocess.CalledProcessError as e:
         print(f"   ❌ Migration failed: {e}")
@@ -70,9 +67,7 @@ def create_superuser():
     print("   (This account is for admin panel access)")
 
     try:
-        subprocess.run(
-            [sys.executable, "manage.py", "createsuperuser"], check=True, cwd=BASE_DIR
-        )
+        subprocess.run([sys.executable, "manage.py", "createsuperuser"], check=True, cwd=BASE_DIR)
         print("   ✓ Superuser created successfully")
     except subprocess.CalledProcessError:
         print("   ⚠️  Superuser creation cancelled or failed")

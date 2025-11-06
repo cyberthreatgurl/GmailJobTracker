@@ -26,9 +26,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "trained_at",
-                    models.DateTimeField(
-                        db_index=True, default=django.utils.timezone.now
-                    ),
+                    models.DateTimeField(db_index=True, default=django.utils.timezone.now),
                 ),
                 ("n_samples", models.IntegerField()),
                 ("n_classes", models.IntegerField()),

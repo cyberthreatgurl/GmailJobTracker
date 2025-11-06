@@ -1,36 +1,38 @@
 # --- Label Rule Debugger ---
 
-import os
-import logging
-from pathlib import Path
 import json
+import logging
+import os
 import re
-from scripts.import_gmail_filters import load_json, sanitize_to_regex_terms
 from parser import extract_metadata
-from django.db.models.functions import Coalesce, Substr, StrIndex
-from django.shortcuts import get_object_or_404, redirect, render
-from django.utils.timezone import now
-from django.views.decorators.csrf import csrf_exempt
+from pathlib import Path
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import models
+from django.db.models.functions import Coalesce, StrIndex, Substr
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils.timezone import now
+from django.views.decorators.csrf import csrf_exempt
+
+from scripts.import_gmail_filters import load_json, sanitize_to_regex_terms
 
 logger = logging.getLogger(__name__)
 from django.db.models import (
-    F,
-    Q,
-    Count,
     Case,
-    When,
-    Value,
-    IntegerField,
     CharField,
-    ExpressionWrapper,
+    Count,
     Exists,
+    ExpressionWrapper,
+    F,
+    IntegerField,
     OuterRef,
+    Q,
+    Value,
+    When,
 )
 from django.db.models.functions import Lower
-from django.http import StreamingHttpResponse, HttpResponse
+from django.http import StreamingHttpResponse
 
 
 @login_required
@@ -72,9 +74,7 @@ def label_rule_debugger(request):
                 try:
                     meta = extract_metadata(msg_obj)
                     # meta may be dict-like per project convention
-                    subject = (
-                        meta.get("subject") if isinstance(meta, dict) else ""
-                    ) or subject
+                    subject = (meta.get("subject") if isinstance(meta, dict) else "") or subject
                     body = (meta.get("body") if isinstance(meta, dict) else "") or body
                 except Exception:
                     # naive fallback: split headers/body for EML-like content
@@ -123,9 +123,7 @@ def label_rule_debugger(request):
                                     clean_alt = alt.strip("()").strip()
                                     if clean_alt:
                                         try:
-                                            alt_pattern = re.compile(
-                                                clean_alt, re.IGNORECASE
-                                            )
+                                            alt_pattern = re.compile(clean_alt, re.IGNORECASE)
                                             alt_match = alt_pattern.search(message_text)
                                             if alt_match:
                                                 highlights_set.add(alt_match.group(0))
@@ -133,9 +131,7 @@ def label_rule_debugger(request):
                                             pass
                         except re.error as e:
                             # Invalid regex pattern - log but continue
-                            print(
-                                f"Invalid regex pattern for {label}: {rule} - Error: {e}"
-                            )
+                            print(f"Invalid regex pattern for {label}: {rule} - Error: {e}")
                             continue
 
                 highlights = sorted(highlights_set, key=lambda s: s.lower())
@@ -179,23 +175,24 @@ def label_rule_debugger(request):
     return render(request, "tracker/label_rule_debugger.html", ctx)
 
 
-from bs4 import BeautifulSoup
-from pathlib import Path
-from collections import defaultdict
+import html
+import json
+import os
+import re
 import subprocess
 import sys
-import os
-import json
-import re
-import html
-import tempfile
-from difflib import HtmlDiff
+from collections import defaultdict
 from datetime import datetime
+from difflib import HtmlDiff
+from pathlib import Path
+
+from bs4 import BeautifulSoup
+
 from gmail_auth import get_gmail_service
 from scripts.import_gmail_filters import (
     load_json,
-    sanitize_to_regex_terms,
     make_or_pattern,
+    sanitize_to_regex_terms,
 )
 
 
@@ -228,14 +225,10 @@ def compare_gmail_filters(request):
     try:
         service = get_gmail_service()
         if not service:
-            raise RuntimeError(
-                "Failed to initialize Gmail service. Check OAuth credentials in json/."
-            )
+            raise RuntimeError("Failed to initialize Gmail service. Check OAuth credentials in json/.")
         prefix = gmail_label_prefix.strip()
         labels_resp = service.users().labels().list(userId="me").execute()
-        id_to_name = {
-            lab.get("id"): lab.get("name") for lab in labels_resp.get("labels", [])
-        }
+        id_to_name = {lab.get("id"): lab.get("name") for lab in labels_resp.get("labels", [])}
         name_to_id = {v: k for k, v in id_to_name.items()}
         filt_resp = service.users().settings().filters().list(userId="me").execute()
         filters_raw = filt_resp.get("filter", []) or []
@@ -292,11 +285,7 @@ def compare_gmail_filters(request):
         if target_label_names:
             print(f"🔍 Filter #{i}: labels={target_label_names}, prefix='{prefix}'")
 
-        matched_names = [
-            nm
-            for nm in target_label_names
-            if isinstance(nm, str) and nm.startswith(prefix)
-        ]
+        matched_names = [nm for nm in target_label_names if isinstance(nm, str) and nm.startswith(prefix)]
         if not matched_names:
             filters_skipped += 1
             continue
@@ -306,11 +295,7 @@ def compare_gmail_filters(request):
             gmail_label = lname
             # Always strip the root prefix for display and mapping
             root_prefix = gmail_label_prefix.rstrip("/") + "/"
-            display_label = (
-                gmail_label[len(root_prefix) :]
-                if gmail_label.startswith(root_prefix)
-                else gmail_label
-            )
+            display_label = gmail_label[len(root_prefix) :] if gmail_label.startswith(root_prefix) else gmail_label
 
             # Debug: show full criteria for this filter
             print(f"   📧 Criteria keys: {list(criteria.keys())}")
@@ -362,17 +347,9 @@ def compare_gmail_filters(request):
             mapping_info = {
                 "gmail_label": gmail_label,
                 "display_label": display_label,
-                "base_key": (
-                    display_label.lower().split("/")[-1]
-                    if not label_map.get(gmail_label)
-                    else "(from map)"
-                ),
+                "base_key": (display_label.lower().split("/")[-1] if not label_map.get(gmail_label) else "(from map)"),
                 "internal": internal or "UNMAPPED",
-                "source": (
-                    "label_map"
-                    if label_map.get(gmail_label)
-                    else "synonym" if internal else "none"
-                ),
+                "source": ("label_map" if label_map.get(gmail_label) else "synonym" if internal else "none"),
             }
             debug_mappings.append(mapping_info)
             if not internal:
@@ -391,9 +368,7 @@ def compare_gmail_filters(request):
 
             print(f"   🔧 Total terms: {len(terms)}")
             gmail_rule = make_or_pattern(terms) or ""
-            print(
-                f"   📋 Gmail rule result: {gmail_rule[:100] if gmail_rule else '(empty)'}"
-            )
+            print(f"   📋 Gmail rule result: {gmail_rule[:100] if gmail_rule else '(empty)'}")
 
             # Installed rule (editable): Only show if label is present in msg_labels
             if internal and internal in msg_labels:
@@ -417,9 +392,7 @@ def compare_gmail_filters(request):
                     "gmail_rule": gmail_rule,
                     "installed_rule": installed_rule,
                     "diff_html": diff_html,
-                    "checked": bool(
-                        internal and gmail_rule and (gmail_rule not in installed_rule)
-                    ),
+                    "checked": bool(internal and gmail_rule and (gmail_rule not in installed_rule)),
                 }
             )
 
@@ -433,10 +406,7 @@ def compare_gmail_filters(request):
     print(f"   - Unmapped labels: {len(unmapped_labels)}")
 
     # 3) Handle POST: apply selected filters
-    if (
-        request.method == "POST"
-        and request.POST.get("action") == "apply_selected_filters"
-    ):
+    if request.method == "POST" and request.POST.get("action") == "apply_selected_filters":
         updated = 0
         for i, f in enumerate(filters):
             if not request.POST.get(f"update_{i}"):
@@ -446,15 +416,11 @@ def compare_gmail_filters(request):
                 continue
             new_rule = request.POST.get(f"installed_pattern_{i}")
             if new_rule:
-                msg_labels[internal] = [
-                    r.strip() for r in new_rule.splitlines() if r.strip()
-                ]
+                msg_labels[internal] = [r.strip() for r in new_rule.splitlines() if r.strip()]
                 updated += 1
         with open(patterns_path, "w", encoding="utf-8") as f:
             json.dump(patterns, f, indent=2, ensure_ascii=False)
-        messages.success(
-            request, f"Imported and updated {updated} filter(s) in patterns.json."
-        )
+        messages.success(request, f"Imported and updated {updated} filter(s) in patterns.json.")
         return redirect("import_gmail_filters_compare")
 
     ctx = {
@@ -467,42 +433,42 @@ def compare_gmail_filters(request):
     return render(request, "tracker/import_gmail_filters_compare.html", ctx)
 
 
+import html
+import json
+import os
+import re
+import subprocess
+import sys
+from collections import defaultdict
+from pathlib import Path
+
+from bs4 import BeautifulSoup
+
 # --- IMPORTS ---
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import models
 from django.db.models import (
-    F,
-    Q,
-    Count,
     Case,
-    When,
-    Value,
-    IntegerField,
     CharField,
+    Count,
     ExpressionWrapper,
+    F,
+    IntegerField,
+    Q,
+    Value,
+    When,
 )
-from django.db.models.functions import Coalesce, Substr, StrIndex
+from django.db.models.functions import Coalesce, StrIndex, Substr
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.timezone import now
 from django.views.decorators.csrf import csrf_exempt
 
-from bs4 import BeautifulSoup
-from pathlib import Path
-from collections import defaultdict
-import subprocess
-import sys
-import os
-import json
-import re
-import html
-import tempfile
-
 from gmail_auth import get_gmail_service
 from scripts.import_gmail_filters import (
     load_json,
-    sanitize_to_regex_terms,
     make_or_pattern,
+    sanitize_to_regex_terms,
 )
 
 # --- END IMPORTS ---
@@ -517,36 +483,36 @@ def gmail_filters_labels_compare(request):
     """
 
 
+import html
+import json
+import os
+import re
+import subprocess
+import sys
+from collections import defaultdict
+from pathlib import Path
+
+from bs4 import BeautifulSoup
+
 # --- IMPORTS ---
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import models
 from django.db.models import (
-    F,
-    Q,
-    Count,
     Case,
-    When,
-    Value,
-    IntegerField,
     CharField,
+    Count,
     ExpressionWrapper,
+    F,
+    IntegerField,
+    Q,
+    Value,
+    When,
 )
-from django.db.models.functions import Coalesce, Substr, StrIndex
+from django.db.models.functions import Coalesce, StrIndex, Substr
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.timezone import now
 from django.views.decorators.csrf import csrf_exempt
-
-from bs4 import BeautifulSoup
-from pathlib import Path
-from collections import defaultdict
-import subprocess
-import sys
-import os
-import json
-import re
-import html
-import tempfile
 
 # --- END IMPORTS ---
 
@@ -562,8 +528,8 @@ def gmail_filters_labels_compare(request):
     from gmail_auth import get_gmail_service
     from scripts.import_gmail_filters import (
         load_json,
-        sanitize_to_regex_terms,
         make_or_pattern,
+        sanitize_to_regex_terms,
     )
 
     error = None
@@ -598,9 +564,7 @@ def gmail_filters_labels_compare(request):
                 updated += 1
         with open(patterns_path, "w", encoding="utf-8") as f:
             json.dump(patterns, f, indent=2, ensure_ascii=False)
-        messages.success(
-            request, f"✅ Updated {updated} label pattern(s) in patterns.json."
-        )
+        messages.success(request, f"✅ Updated {updated} label pattern(s) in patterns.json.")
         return redirect("gmail_filters_labels_compare")
     elif request.method == "POST" and request.POST.get("action") == "fetch":
         # fall through to fetch logic
@@ -611,14 +575,10 @@ def gmail_filters_labels_compare(request):
     try:
         service = get_gmail_service()
         if not service:
-            raise RuntimeError(
-                "Failed to initialize Gmail service. Check OAuth credentials in json/."
-            )
+            raise RuntimeError("Failed to initialize Gmail service. Check OAuth credentials in json/.")
         prefix = gmail_label_prefix.strip()
         labels_resp = service.users().labels().list(userId="me").execute()
-        id_to_name = {
-            lab.get("id"): lab.get("name") for lab in labels_resp.get("labels", [])
-        }
+        id_to_name = {lab.get("id"): lab.get("name") for lab in labels_resp.get("labels", [])}
         name_to_id = {v: k for k, v in id_to_name.items()}
         filt_resp = service.users().settings().filters().list(userId="me").execute()
         filters_raw = filt_resp.get("filter", []) or []
@@ -634,11 +594,7 @@ def gmail_filters_labels_compare(request):
             action = f.get("action", {}) or {}
             add_ids = action.get("addLabelIds", []) or []
             target_label_names = [id_to_name.get(i, "") for i in add_ids]
-            matched_names = [
-                nm
-                for nm in target_label_names
-                if isinstance(nm, str) and nm.startswith(prefix)
-            ]
+            matched_names = [nm for nm in target_label_names if isinstance(nm, str) and nm.startswith(prefix)]
             if not matched_names:
                 continue
             for lname in matched_names:
@@ -698,11 +654,7 @@ def gmail_filters_labels_compare(request):
                         "internal": internal or "",
                         "old_patterns": old_patterns,
                         "new_patterns": new_patterns,
-                        "checked": bool(
-                            internal
-                            and new_patterns
-                            and (set(new_patterns) != set(old_patterns))
-                        ),
+                        "checked": bool(internal and new_patterns and (set(new_patterns) != set(old_patterns))),
                     }
                 )
     except Exception as e:
@@ -715,41 +667,38 @@ def gmail_filters_labels_compare(request):
     return render(request, "tracker/gmail_filters_labels_compare.html", ctx)
 
 
-from django.db.models.functions import Coalesce, Substr, StrIndex
+import html
+import json
+import os
+import re
+import subprocess
+import sys
+from collections import defaultdict
+from pathlib import Path
+
+from bs4 import BeautifulSoup
+from django.db.models.functions import Coalesce, StrIndex, Substr
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.timezone import now
 from django.views.decorators.csrf import csrf_exempt
 
-from bs4 import BeautifulSoup
-from pathlib import Path
-from collections import defaultdict
-import subprocess
-import sys
-import os
-import json
-import re
-import html
-import tempfile
-
 from db import PATTERNS_PATH
-from tracker.models import (
-    Company,
-    ThreadTracking,
-    Message,
-    IngestionStats,
-    UnresolvedCompany,
-    GmailFilterImportLog,
-)
-from tracker.models import DomainToCompany
-from tracker.forms import ApplicationEditForm, ManualEntryForm
-from .forms_company import CompanyEditForm
+from gmail_auth import get_gmail_service
 from scripts.import_gmail_filters import (
     load_json,
-    parse_filters,
-    sanitize_to_regex_terms,
     make_or_pattern,
+    sanitize_to_regex_terms,
 )
-from gmail_auth import get_gmail_service
+from tracker.forms import ApplicationEditForm, ManualEntryForm
+from tracker.models import (
+    Company,
+    IngestionStats,
+    Message,
+    ThreadTracking,
+    UnresolvedCompany,
+)
+
+from .forms_company import CompanyEditForm
 
 
 # --- Delete Company Page ---
@@ -769,9 +718,7 @@ def delete_company(request, company_id):
 
         # Count related data before deletion (including noise messages)
         total_message_count = Message.objects.filter(company=company).count()
-        noise_message_count = Message.objects.filter(
-            company=company, ml_label="noise"
-        ).count()
+        noise_message_count = Message.objects.filter(company=company, ml_label="noise").count()
         non_noise_message_count = total_message_count - noise_message_count
         application_count = ThreadTracking.objects.filter(company=company).count()
 
@@ -805,9 +752,7 @@ def delete_company(request, company_id):
                 check=False,
             )
             if result.returncode == 0:
-                messages.success(
-                    request, "✅ Model retrained successfully. Training data updated."
-                )
+                messages.success(request, "✅ Model retrained successfully. Training data updated.")
             else:
                 messages.warning(
                     request,
@@ -847,14 +792,10 @@ def label_companies(request):
                     },
                 )
                 if created:
-                    messages.success(
-                        request, f"✅ Company '{company_name}' created successfully!"
-                    )
+                    messages.success(request, f"✅ Company '{company_name}' created successfully!")
                     return redirect(f"/label_companies/?company={new_company.id}")
                 else:
-                    messages.info(
-                        request, f"ℹ️ Company '{company_name}' already exists."
-                    )
+                    messages.info(request, f"ℹ️ Company '{company_name}' already exists.")
                     return redirect(f"/label_companies/?company={new_company.id}")
             except Exception as e:
                 messages.error(request, f"❌ Failed to create company: {e}")
@@ -875,19 +816,11 @@ def label_companies(request):
 
     ghosted_days_threshold = 30
     try:
-        db_val = (
-            AppSetting.objects.filter(key="GHOSTED_DAYS_THRESHOLD")
-            .values_list("value", flat=True)
-            .first()
-        )
+        db_val = AppSetting.objects.filter(key="GHOSTED_DAYS_THRESHOLD").values_list("value", flat=True).first()
         if db_val is not None and str(db_val).strip() != "":
             ghosted_days_threshold = int(str(db_val).strip())
         else:
-            env_val = (
-                (os.environ.get("GHOSTED_DAYS_THRESHOLD") or "")
-                .strip()
-                .replace('"', "")
-            )
+            env_val = (os.environ.get("GHOSTED_DAYS_THRESHOLD") or "").strip().replace('"', "")
             if env_val:
                 ghosted_days_threshold = int(env_val)
     except Exception:
@@ -907,9 +840,7 @@ def label_companies(request):
                 if companies_json_path.exists():
                     with open(companies_json_path, "r", encoding="utf-8") as f:
                         companies_json_data = json.load(f)
-                        career_url = companies_json_data.get("JobSites", {}).get(
-                            selected_company.name, ""
-                        )
+                        career_url = companies_json_data.get("JobSites", {}).get(selected_company.name, "")
             except Exception:
                 pass
         except Company.DoesNotExist:
@@ -921,17 +852,12 @@ def label_companies(request):
         if selected_company:
             # Get latest label from messages
             latest_msg = (
-                Message.objects.filter(company=selected_company, ml_label__isnull=False)
-                .order_by("-timestamp")
-                .first()
+                Message.objects.filter(company=selected_company, ml_label__isnull=False).order_by("-timestamp").first()
             )
             latest_label = latest_msg.ml_label if latest_msg else None
             # If the latest message is a rejection, ensure company status reflects that
             try:
-                if (
-                    latest_label in ("rejected", "rejection")
-                    and selected_company.status != "rejected"
-                ):
+                if latest_label in ("rejected", "rejection") and selected_company.status != "rejected":
                     selected_company.status = "rejected"
                     selected_company.save()
                     messages.info(
@@ -943,15 +869,11 @@ def label_companies(request):
 
             # Get message count and (date, subject) list (exclude noise messages)
             messages_qs = (
-                Message.objects.filter(company=selected_company)
-                .exclude(ml_label="noise")
-                .order_by("-timestamp")
+                Message.objects.filter(company=selected_company).exclude(ml_label="noise").order_by("-timestamp")
             )
             message_count = messages_qs.count()
             # Provide (id, timestamp, subject) for deep links to label_messages focus
-            message_info_list = list(
-                messages_qs.values_list("id", "timestamp", "subject")
-            )
+            message_info_list = list(messages_qs.values_list("id", "timestamp", "subject"))
             # Compute days since last message for ghosted assessment
             if message_count > 0:
                 last_message_ts = messages_qs.first().timestamp
@@ -988,21 +910,15 @@ def label_companies(request):
                         try:
                             companies_json_path = Path("json/companies.json")
                             if companies_json_path.exists():
-                                with open(
-                                    companies_json_path, "r", encoding="utf-8"
-                                ) as f:
+                                with open(companies_json_path, "r", encoding="utf-8") as f:
                                     companies_json_data = json.load(f)
 
                                 if "JobSites" not in companies_json_data:
                                     companies_json_data["JobSites"] = {}
 
-                                companies_json_data["JobSites"][
-                                    selected_company.name
-                                ] = career_url_input
+                                companies_json_data["JobSites"][selected_company.name] = career_url_input
 
-                                with open(
-                                    companies_json_path, "w", encoding="utf-8"
-                                ) as f:
+                                with open(companies_json_path, "w", encoding="utf-8") as f:
                                     json.dump(
                                         companies_json_data,
                                         f,
@@ -1017,9 +933,7 @@ def label_companies(request):
                 # If invalid, fall through to render the bound form with errors
             else:
                 # GET request: initialize form with current data and career URL from companies.json
-                form = CompanyEditForm(
-                    instance=selected_company, initial={"career_url": career_url}
-                )
+                form = CompanyEditForm(instance=selected_company, initial={"career_url": career_url})
 
     ctx = build_sidebar_context()
     ctx.update(
@@ -1051,9 +965,7 @@ def merge_companies(request):
             return redirect("label_companies")
 
         if not canonical_id or canonical_id not in company_ids:
-            messages.error(
-                request, "⚠️ Please select which company is the canonical (real) name."
-            )
+            messages.error(request, "⚠️ Please select which company is the canonical (real) name.")
             return redirect("label_companies")
 
         try:
@@ -1062,18 +974,12 @@ def merge_companies(request):
             duplicates = Company.objects.filter(id__in=duplicate_ids)
 
             # Reassign all messages
-            messages_moved = Message.objects.filter(company__in=duplicates).update(
-                company=canonical_company
-            )
+            messages_moved = Message.objects.filter(company__in=duplicates).update(company=canonical_company)
             # Reassign all applications
-            apps_moved = ThreadTracking.objects.filter(company__in=duplicates).update(
-                company=canonical_company
-            )
+            apps_moved = ThreadTracking.objects.filter(company__in=duplicates).update(company=canonical_company)
 
             # Update canonical company timestamps if needed
-            all_messages = Message.objects.filter(company=canonical_company).order_by(
-                "timestamp"
-            )
+            all_messages = Message.objects.filter(company=canonical_company).order_by("timestamp")
             if all_messages.exists():
                 canonical_company.first_contact = all_messages.first().timestamp
                 canonical_company.last_contact = all_messages.last().timestamp
@@ -1109,7 +1015,7 @@ def merge_companies(request):
     return render(request, "tracker/merge_companies.html", ctx)
 
 
-from datetime import timedelta, datetime
+from datetime import datetime, timedelta
 
 python_path = sys.executable
 ALIAS_EXPORT_PATH = Path("json/alias_candidates.json")
@@ -1128,9 +1034,7 @@ def build_sidebar_context():
             with open(companies_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
                 headhunter_domains = [
-                    d.strip().lower()
-                    for d in data.get("headhunter_domains", [])
-                    if d and isinstance(d, str)
+                    d.strip().lower() for d in data.get("headhunter_domains", []) if d and isinstance(d, str)
                 ]
     except Exception:
         headhunter_domains = []
@@ -1159,9 +1063,7 @@ def build_sidebar_context():
 
     # Count all job application confirmation messages (each message = one application submitted)
     # Exclude: user's own replies AND headhunter senders/domains
-    applications_qs = Message.objects.filter(
-        ml_label="job_application", company__isnull=False
-    )
+    applications_qs = Message.objects.filter(ml_label="job_application", company__isnull=False)
     if user_email:
         applications_qs = applications_qs.exclude(sender__icontains=user_email)
     # Exclude headhunters by sender domain or explicit head_hunter label
@@ -1171,9 +1073,7 @@ def build_sidebar_context():
     applications_count = applications_qs.count()
 
     # Applications this week
-    applications_week = applications_qs.filter(
-        timestamp__gte=now() - timedelta(days=7)
-    ).count()
+    applications_week = applications_qs.filter(timestamp__gte=now() - timedelta(days=7)).count()
 
     # Count rejection messages this week (exclude headhunters and user's own replies)
     rejections_qs = Message.objects.filter(
@@ -1235,9 +1135,7 @@ def log_viewer(request):
     log_content = ""
     if selected_log and (logs_dir / selected_log).exists():
         try:
-            with open(
-                logs_dir / selected_log, "r", encoding="utf-8", errors="replace"
-            ) as f:
+            with open(logs_dir / selected_log, "r", encoding="utf-8", errors="replace") as f:
                 # Read last 100KB to avoid memory issues with huge logs
                 log_content = f.read()[-100_000:]
         except Exception as e:
@@ -1254,9 +1152,7 @@ def log_viewer(request):
 def company_threads(request):
     # Get all reviewed companies (at least one reviewed message)
     reviewed_company_ids = (
-        Message.objects.filter(reviewed=True, company__isnull=False)
-        .values_list("company_id", flat=True)
-        .distinct()
+        Message.objects.filter(reviewed=True, company__isnull=False).values_list("company_id", flat=True).distinct()
     )
     companies = Company.objects.filter(id__in=reviewed_company_ids).order_by("name")
 
@@ -1270,18 +1166,13 @@ def company_threads(request):
             selected_company = None
         if selected_company:
             # Group messages by subject for this company, only reviewed
-            msgs = Message.objects.filter(
-                company=selected_company, reviewed=True
-            ).order_by("thread_id", "timestamp")
+            msgs = Message.objects.filter(company=selected_company, reviewed=True).order_by("thread_id", "timestamp")
             # subject -> list of threads (each thread is a list of messages)
             threads = defaultdict(list)
             for msg in msgs:
                 threads[msg.subject].append(msg)
             # Each subject: list of messages (thread)
-            threads_by_subject = [
-                {"subject": subj, "messages": thread}
-                for subj, thread in threads.items()
-            ]
+            threads_by_subject = [{"subject": subj, "messages": thread} for subj, thread in threads.items()]
 
     # Build context and ensure sidebar values come from build_sidebar_context()
     ctx = {
@@ -1367,8 +1258,7 @@ def edit_application(request, pk):
 
 def flagged_applications(request):
     flagged = ThreadTracking.objects.filter(
-        models.Q(company="")
-        | models.Q(company_source__in=["none", "ml_prediction", "sender_name_match"])
+        models.Q(company="") | models.Q(company_source__in=["none", "ml_prediction", "sender_name_match"])
     ).order_by("-first_sent")[:100]
 
     return render(request, "tracker/flagged.html", {"applications": flagged})
@@ -1473,9 +1363,7 @@ def manual_entry(request):
 
     # Show recent manual entries
     recent_entries = (
-        ThreadTracking.objects.filter(company_source="manual")
-        .select_related("company")
-        .order_by("-sent_date")[:20]
+        ThreadTracking.objects.filter(company_source="manual").select_related("company").order_by("-sent_date")[:20]
     )
 
     ctx = {
@@ -1496,9 +1384,7 @@ def dashboard(request):
 
     companies = Company.objects.count()
     companies_list = Company.objects.all()
-    unresolved_companies = UnresolvedCompany.objects.filter(reviewed=False).order_by(
-        "-timestamp"
-    )[:50]
+    unresolved_companies = UnresolvedCompany.objects.filter(reviewed=False).order_by("-timestamp")[:50]
 
     # Handle company filter
     selected_company = None
@@ -1526,9 +1412,7 @@ def dashboard(request):
             with open(companies_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
                 headhunter_domains = [
-                    d.strip().lower()
-                    for d in data.get("headhunter_domains", [])
-                    if d and isinstance(d, str)
+                    d.strip().lower() for d in data.get("headhunter_domains", []) if d and isinstance(d, str)
                 ]
     except Exception:
         headhunter_domains = []
@@ -1543,9 +1427,7 @@ def dashboard(request):
     threads = defaultdict(list)
     seen = set()
 
-    for msg in Message.objects.select_related("company").order_by(
-        "thread_id", "timestamp"
-    ):
+    for msg in Message.objects.select_related("company").order_by("thread_id", "timestamp"):
         if msg.msg_id not in seen:
             threads[msg.thread_id].append(msg)
             seen.add(msg.msg_id)
@@ -1573,18 +1455,9 @@ def dashboard(request):
         stats_qs = IngestionStats.objects.filter(date__gte=start_date).order_by("date")
         stats_map = {s.date: s for s in stats_qs}
         chart_labels = [d.strftime("%Y-%m-%d") for d in date_list]
-        chart_inserted = [
-            stats_map.get(d, None).total_inserted if stats_map.get(d, None) else 0
-            for d in date_list
-        ]
-        chart_skipped = [
-            stats_map.get(d, None).total_skipped if stats_map.get(d, None) else 0
-            for d in date_list
-        ]
-        chart_ignored = [
-            stats_map.get(d, None).total_ignored if stats_map.get(d, None) else 0
-            for d in date_list
-        ]
+        chart_inserted = [stats_map.get(d, None).total_inserted if stats_map.get(d, None) else 0 for d in date_list]
+        chart_skipped = [stats_map.get(d, None).total_skipped if stats_map.get(d, None) else 0 for d in date_list]
+        chart_ignored = [stats_map.get(d, None).total_ignored if stats_map.get(d, None) else 0 for d in date_list]
     else:
         chart_labels = []
         chart_inserted = []
@@ -1625,9 +1498,7 @@ def dashboard(request):
     if env_start_date:
         try:
             # Accept YYYY-MM-DD only
-            reporting_default_start_date = datetime.strptime(
-                env_start_date.strip().replace('"', ""), "%Y-%m-%d"
-            ).date()
+            reporting_default_start_date = datetime.strptime(env_start_date.strip().replace('"', ""), "%Y-%m-%d").date()
         except Exception:
             reporting_default_start_date = None
     # Use the later of the two (env or earliest_app)
@@ -1639,9 +1510,10 @@ def dashboard(request):
 
     # Load plot series config from JSON file and validate
     import json
-    from .models import MessageLabel
-    from django.core.exceptions import ValidationError
     import re
+
+
+    from .models import MessageLabel
 
     def is_valid_color(color):
         # Accept #RRGGBB, #RGB, or valid CSS color names
@@ -1723,9 +1595,7 @@ def dashboard(request):
     if app_start_date:
         app_end_date = now().date()
         app_num_days = (app_end_date - app_start_date).days + 1
-        app_date_list = [
-            app_start_date + timedelta(days=i) for i in range(app_num_days)
-        ]
+        app_date_list = [app_start_date + timedelta(days=i) for i in range(app_num_days)]
         # Determine headhunter companies once (by domain, sender, or explicit label)
         hh_companies = []
         if headhunter_domains:
@@ -1736,9 +1606,7 @@ def dashboard(request):
             for d in headhunter_domains:
                 msg_hh_q |= Q(company__message__sender__icontains=f"@{d}")
             hh_companies = (
-                Company.objects.filter(
-                    hh_company_q | msg_hh_q | Q(message__ml_label="head_hunter")
-                )
+                Company.objects.filter(hh_company_q | msg_hh_q | Q(message__ml_label="head_hunter"))
                 .distinct()
                 .values_list("id", flat=True)
             )
@@ -1749,11 +1617,7 @@ def dashboard(request):
 
     # Build chart data dynamically based on configured series
     chart_series_data = []
-    msg_qs = (
-        Message.objects.filter(timestamp__date__gte=app_start_date)
-        if app_start_date
-        else Message.objects.none()
-    )
+    msg_qs = Message.objects.filter(timestamp__date__gte=app_start_date) if app_start_date else Message.objects.none()
     # Exclude user's own messages from message-based series
     user_email = (os.environ.get("USER_EMAIL_ADDRESS") or "").strip()
     if user_email:
@@ -1788,18 +1652,14 @@ def dashboard(request):
                 rejs_q = rejs_q.exclude(company_id__in=hh_companies)
             if company_filter_id:
                 rejs_q = rejs_q.filter(company_id=company_filter_id)
-            rejs_by_day = rejs_q.values("rejection_date").annotate(
-                count=models.Count("id")
-            )
+            rejs_by_day = rejs_q.values("rejection_date").annotate(count=models.Count("id"))
             app_rejs_map = {r["rejection_date"]: r["count"] for r in rejs_by_day}
 
             # 2) Messages labeled rejected/rejection (exclude those whose thread has an Application)
             from django.db.models.functions import TruncDate
 
             app_threads = list(
-                ThreadTracking.objects.filter(rejection_date__isnull=False).values_list(
-                    "thread_id", flat=True
-                )
+                ThreadTracking.objects.filter(rejection_date__isnull=False).values_list("thread_id", flat=True)
             )
             msg_rejs_q = Message.objects.filter(
                 ml_label__in=["rejected", "rejection"],
@@ -1821,9 +1681,7 @@ def dashboard(request):
             if company_filter_id:
                 msg_rejs_q = msg_rejs_q.filter(company_id=company_filter_id)
             msg_rejs_by_day = (
-                msg_rejs_q.annotate(day=TruncDate("timestamp"))
-                .values("day")
-                .annotate(count=models.Count("id"))
+                msg_rejs_q.annotate(day=TruncDate("timestamp")).values("day").annotate(count=models.Count("id"))
             )
             msg_rejs_map = {r["day"]: r["count"] for r in msg_rejs_by_day}
 
@@ -1841,9 +1699,7 @@ def dashboard(request):
                 ints_q = ints_q.exclude(company_id__in=hh_companies)
             if company_filter_id:
                 ints_q = ints_q.filter(company_id=company_filter_id)
-            ints_by_day = ints_q.values("interview_date").annotate(
-                count=models.Count("id")
-            )
+            ints_by_day = ints_q.values("interview_date").annotate(count=models.Count("id"))
             ints_map = {r["interview_date"]: r["count"] for r in ints_by_day}
             data = [ints_map.get(d, 0) for d in app_date_list]
         else:
@@ -1867,9 +1723,7 @@ def dashboard(request):
         )
 
     # Defensive: ensure all chart arrays exist
-    chart_activity_labels = (
-        [d.strftime("%Y-%m-%d") for d in app_date_list] if app_date_list else []
-    )
+    chart_activity_labels = [d.strftime("%Y-%m-%d") for d in app_date_list] if app_date_list else []
     if not chart_labels:
         chart_labels = []
         chart_inserted = []
@@ -1893,9 +1747,7 @@ def dashboard(request):
         for d in headhunter_domains:
             msg_hh_q |= Q(company__message__sender__icontains=f"@{d}")
         hh_companies = (
-            Company.objects.filter(
-                hh_company_q | msg_hh_q | Q(message__ml_label="head_hunter")
-            )
+            Company.objects.filter(hh_company_q | msg_hh_q | Q(message__ml_label="head_hunter"))
             .distinct()
             .values_list("id", flat=True)
         )
@@ -1905,26 +1757,18 @@ def dashboard(request):
     # Rejections: Combine Application-based AND Message-based (for standalone rejection emails)
     # 1) Application-based rejections
     rejection_companies_qs = (
-        ThreadTracking.objects.filter(
-            rejection_date__isnull=False, company__isnull=False
-        )
+        ThreadTracking.objects.filter(rejection_date__isnull=False, company__isnull=False)
         .exclude(ml_label="noise")  # Exclude noise from metrics
         .select_related("company")
         .values("company_id", "company__name", "rejection_date")
     )
     if hh_company_list:
-        rejection_companies_qs = rejection_companies_qs.exclude(
-            company_id__in=hh_company_list
-        )
+        rejection_companies_qs = rejection_companies_qs.exclude(company_id__in=hh_company_list)
     if company_filter_id:
-        rejection_companies_qs = rejection_companies_qs.filter(
-            company_id=company_filter_id
-        )
+        rejection_companies_qs = rejection_companies_qs.filter(company_id=company_filter_id)
 
     # 2) Message-based rejections (messages without corresponding Application.rejection_date)
-    msg_rejections_qs = Message.objects.filter(
-        ml_label__in=["rejected", "rejection"], company__isnull=False
-    )
+    msg_rejections_qs = Message.objects.filter(ml_label__in=["rejected", "rejection"], company__isnull=False)
     if user_email:
         msg_rejections_qs = msg_rejections_qs.exclude(sender__icontains=user_email)
     if headhunter_domains:
@@ -1938,9 +1782,7 @@ def dashboard(request):
         msg_rejections_qs = msg_rejections_qs.filter(company_id=company_filter_id)
 
     # Get message-based rejections with company info
-    msg_rejection_data = msg_rejections_qs.select_related("company").values(
-        "company_id", "company__name", "timestamp"
-    )
+    msg_rejection_data = msg_rejections_qs.select_related("company").values("company_id", "company__name", "timestamp")
 
     # Only count an "Application Sent" if the thread has at least one job_application/application message
     job_app_exists = Exists(
@@ -1959,27 +1801,19 @@ def dashboard(request):
         .order_by("-sent_date")
     )
     if hh_company_list:
-        application_companies_qs = application_companies_qs.exclude(
-            company_id__in=hh_company_list
-        )
+        application_companies_qs = application_companies_qs.exclude(company_id__in=hh_company_list)
     if company_filter_id:
-        application_companies_qs = application_companies_qs.filter(
-            company_id=company_filter_id
-        )
+        application_companies_qs = application_companies_qs.filter(company_id=company_filter_id)
 
     ghosted_companies_qs = (
-        ThreadTracking.objects.filter(
-            Q(status="ghosted") | Q(ml_label="ghosted"), company__isnull=False
-        )
+        ThreadTracking.objects.filter(Q(status="ghosted") | Q(ml_label="ghosted"), company__isnull=False)
         .exclude(ml_label="noise")  # Exclude noise from metrics
         .select_related("company")
         .values("company_id", "company__name", "sent_date")
         .order_by("-sent_date")
     )
     if hh_company_list:
-        ghosted_companies_qs = ghosted_companies_qs.exclude(
-            company_id__in=hh_company_list
-        )
+        ghosted_companies_qs = ghosted_companies_qs.exclude(company_id__in=hh_company_list)
     if company_filter_id:
         ghosted_companies_qs = ghosted_companies_qs.filter(company_id=company_filter_id)
 
@@ -2018,27 +1852,19 @@ def dashboard(request):
 
     # Interviews: Application-based (interview_date)
     interview_companies_qs = (
-        ThreadTracking.objects.filter(
-            interview_date__isnull=False, company__isnull=False
-        )
+        ThreadTracking.objects.filter(interview_date__isnull=False, company__isnull=False)
         .exclude(ml_label="noise")  # Exclude noise from metrics
         .exclude(status="ghosted")  # Exclude ghosted applications
         .exclude(status="rejected")  # Exclude rejected applications
-        .exclude(
-            rejection_date__isnull=False
-        )  # Also exclude any with rejection_date set
+        .exclude(rejection_date__isnull=False)  # Also exclude any with rejection_date set
         .select_related("company")
         .values("company_id", "company__name", "interview_date")
         .order_by("-interview_date")
     )
     if hh_company_list:
-        interview_companies_qs = interview_companies_qs.exclude(
-            company_id__in=hh_company_list
-        )
+        interview_companies_qs = interview_companies_qs.exclude(company_id__in=hh_company_list)
     if company_filter_id:
-        interview_companies_qs = interview_companies_qs.filter(
-            company_id=company_filter_id
-        )
+        interview_companies_qs = interview_companies_qs.filter(company_id=company_filter_id)
 
     interview_companies = [
         {
@@ -2103,9 +1929,7 @@ def dashboard(request):
         "ignored_today": ignored_today,
         "skipped_today": skipped_today,
         "reporting_default_start_date": (
-            reporting_default_start_date.strftime("%Y-%m-%d")
-            if reporting_default_start_date
-            else ""
+            reporting_default_start_date.strftime("%Y-%m-%d") if reporting_default_start_date else ""
         ),
         "rejection_companies_json": rejection_companies_json,
         "application_companies_json": application_companies_json,
@@ -2185,27 +2009,21 @@ def label_messages(request):
                 # Also update corresponding Application rows by thread_id
                 apps_updated = 0
                 if touched_threads:
-                    apps_updated = ThreadTracking.objects.filter(
-                        thread_id__in=list(touched_threads)
-                    ).update(ml_label=bulk_label, reviewed=True)
+                    apps_updated = ThreadTracking.objects.filter(thread_id__in=list(touched_threads)).update(
+                        ml_label=bulk_label, reviewed=True
+                    )
 
                 messages.success(
                     request,
                     f"✅ Labeled {updated_count} messages as '{bulk_label}'"
-                    + (
-                        f" and updated {apps_updated} application(s)"
-                        if apps_updated
-                        else ""
-                    ),
+                    + (f" and updated {apps_updated} application(s)" if apps_updated else ""),
                 )
 
                 # Trigger model retraining in background whenever messages are labeled
                 messages.info(request, "🔄 Retraining model to update training data...")
                 try:
                     subprocess.Popen([python_path, "train_model.py"])
-                    messages.success(
-                        request, "✅ Model retraining started in background"
-                    )
+                    messages.success(request, "✅ Model retraining started in background")
                 except Exception as e:
                     messages.warning(
                         request,
@@ -2253,9 +2071,7 @@ def label_messages(request):
             page_message_ids = request.POST.getlist("page_message_ids")
 
             if page_message_ids:
-                updated_count = Message.objects.filter(pk__in=page_message_ids).update(
-                    reviewed=True
-                )
+                updated_count = Message.objects.filter(pk__in=page_message_ids).update(reviewed=True)
 
                 messages.success(
                     request,
@@ -2266,9 +2082,7 @@ def label_messages(request):
                 messages.info(request, "🔄 Retraining model to update training data...")
                 try:
                     subprocess.Popen([python_path, "train_model.py"])
-                    messages.success(
-                        request, "✅ Model retraining started in background"
-                    )
+                    messages.success(request, "✅ Model retraining started in background")
                 except Exception as e:
                     messages.warning(
                         request,
@@ -2286,8 +2100,9 @@ def label_messages(request):
 
             if selected_ids:
                 try:
-                    from gmail_auth import get_gmail_service
                     from parser import ingest_message
+
+                    from gmail_auth import get_gmail_service
 
                     service = get_gmail_service()
                     success_count = 0
@@ -2318,9 +2133,7 @@ def label_messages(request):
                             f"✅ Re-ingested {success_count} message(s) from Gmail",
                         )
                     if error_count > 0:
-                        messages.warning(
-                            request, f"⚠️ Failed to re-ingest {error_count} message(s)"
-                        )
+                        messages.warning(request, f"⚠️ Failed to re-ingest {error_count} message(s)")
                 except Exception as e:
                     messages.error(request, f"❌ Re-ingestion failed: {e}")
             else:
@@ -2337,18 +2150,14 @@ def label_messages(request):
     filter_label = request.GET.get("label", "all")
     filter_confidence = request.GET.get("confidence", "all")  # low, medium, high, all
     filter_company = request.GET.get("company", "all")  # all, missing, resolved
-    filter_reviewed = request.GET.get(
-        "reviewed", "unreviewed"
-    )  # unreviewed, reviewed, all
+    filter_reviewed = request.GET.get("reviewed", "unreviewed")  # unreviewed, reviewed, all
     search_query = request.GET.get("search", "").strip()  # text search
     hide_noise = request.GET.get("hide_noise", "false").lower() in (
         "true",
         "1",
         "yes",
     )  # checkbox filter
-    sort = request.GET.get(
-        "sort", ""
-    )  # subject, company, confidence, sender_domain, date
+    sort = request.GET.get("sort", "")  # subject, company, confidence, sender_domain, date
     order = request.GET.get("order", "asc")  # asc, desc
     # Focus support: if linking to a specific message and no sort provided, default to date desc
     focus_msg_id = request.GET.get("focus") or request.GET.get("focus_msg_id")
@@ -2385,11 +2194,7 @@ def label_messages(request):
         qs = qs.filter(company__isnull=True)
     elif filter_company == "resolved":
         qs = qs.filter(company__isnull=False)
-    elif (
-        filter_company
-        and filter_company != "all"
-        and filter_company.startswith("company_")
-    ):
+    elif filter_company and filter_company != "all" and filter_company.startswith("company_"):
         # Filter by specific company ID
         try:
             company_id = int(filter_company.replace("company_", ""))
@@ -2400,9 +2205,7 @@ def label_messages(request):
     # Apply search filter (searches subject, body, and sender)
     if search_query:
         qs = qs.filter(
-            Q(subject__icontains=search_query)
-            | Q(body__icontains=search_query)
-            | Q(sender__icontains=search_query)
+            Q(subject__icontains=search_query) | Q(body__icontains=search_query) | Q(sender__icontains=search_query)
         )
 
     # Apply hide noise filter
@@ -2432,11 +2235,7 @@ def label_messages(request):
 
     if sort == "confidence":
         qs = qs.order_by(
-            (
-                F("confidence").desc(nulls_last=True)
-                if is_desc
-                else F("confidence").asc(nulls_first=True)
-            ),
+            (F("confidence").desc(nulls_last=True) if is_desc else F("confidence").asc(nulls_first=True)),
             "-timestamp" if is_desc else "timestamp",
         )
     elif sort == "company":
@@ -2456,9 +2255,7 @@ def label_messages(request):
         )
     elif sort == "date":
         # Include id as a tiebreaker for deterministic ordering
-        qs = qs.order_by(
-            ("-timestamp" if is_desc else "timestamp"), ("-id" if is_desc else "id")
-        )
+        qs = qs.order_by(("-timestamp" if is_desc else "timestamp"), ("-id" if is_desc else "id"))
     else:
         # Fallback: order by confidence priority similar to previous behavior
         if filter_confidence in ("high", "medium"):
@@ -2477,13 +2274,11 @@ def label_messages(request):
                     if is_desc:
                         # Count items that would appear before the target
                         before_count = qs.filter(
-                            Q(timestamp__gt=target.timestamp)
-                            | (Q(timestamp=target.timestamp) & Q(id__gt=target.id))
+                            Q(timestamp__gt=target.timestamp) | (Q(timestamp=target.timestamp) & Q(id__gt=target.id))
                         ).count()
                     else:
                         before_count = qs.filter(
-                            Q(timestamp__lt=target.timestamp)
-                            | (Q(timestamp=target.timestamp) & Q(id__lt=target.id))
+                            Q(timestamp__lt=target.timestamp) | (Q(timestamp=target.timestamp) & Q(id__lt=target.id))
                         ).count()
                     page = before_count // per_page + 1
         except Exception:
@@ -2529,9 +2324,7 @@ def label_messages(request):
     total_reviewed = Message.objects.filter(reviewed=True).count()
 
     # Get distinct labels for filter (all labels, not just unreviewed)
-    distinct_labels_raw = (
-        Message.objects.all().values_list("ml_label", flat=True).distinct()
-    )
+    distinct_labels_raw = Message.objects.all().values_list("ml_label", flat=True).distinct()
     # Normalize: merge "rejected" into "rejection"
     distinct_labels = []
     seen = set()
@@ -2561,10 +2354,7 @@ def label_messages(request):
 
     # Get label distribution for prioritization
     label_counts = (
-        Message.objects.filter(reviewed=True)
-        .values("ml_label")
-        .annotate(count=Count("ml_label"))
-        .order_by("count")
+        Message.objects.filter(reviewed=True).values("ml_label").annotate(count=Count("ml_label")).order_by("count")
     )
 
     # Get all companies for the dropdown (sorted by name)
@@ -2597,9 +2387,7 @@ def label_messages(request):
         "training_output": training_output,
         "filter_reviewed": filter_reviewed,
         "all_companies": all_companies,
-        "focus_msg_id": (
-            int(focus_msg_id) if str(focus_msg_id or "").isdigit() else None
-        ),
+        "focus_msg_id": (int(focus_msg_id) if str(focus_msg_id or "").isdigit() else None),
     }
     return render(request, "tracker/label_messages.html", ctx)
 
@@ -2635,18 +2423,9 @@ def metrics(request):
         stats_qs = IngestionStats.objects.filter(date__gte=start_date).order_by("date")
         stats_map = {s.date: s for s in stats_qs}
         chart_labels = [d.strftime("%Y-%m-%d") for d in date_list]
-        chart_inserted = [
-            stats_map.get(d, None).total_inserted if stats_map.get(d, None) else 0
-            for d in date_list
-        ]
-        chart_skipped = [
-            stats_map.get(d, None).total_skipped if stats_map.get(d, None) else 0
-            for d in date_list
-        ]
-        chart_ignored = [
-            stats_map.get(d, None).total_ignored if stats_map.get(d, None) else 0
-            for d in date_list
-        ]
+        chart_inserted = [stats_map.get(d, None).total_inserted if stats_map.get(d, None) else 0 for d in date_list]
+        chart_skipped = [stats_map.get(d, None).total_skipped if stats_map.get(d, None) else 0 for d in date_list]
+        chart_ignored = [stats_map.get(d, None).total_ignored if stats_map.get(d, None) else 0 for d in date_list]
     else:
         chart_labels = []
         chart_inserted = []
@@ -2671,12 +2450,8 @@ def metrics(request):
     }
     label_breakdown = None
     if "labels" in metrics and isinstance(metrics["labels"], list):
-        real_labels = [
-            label for label in metrics["labels"] if label.lower() in valid_labels
-        ]
-        extra_labels = [
-            label for label in metrics["labels"] if label.lower() not in valid_labels
-        ]
+        real_labels = [label for label in metrics["labels"] if label.lower() in valid_labels]
+        extra_labels = [label for label in metrics["labels"] if label.lower() not in valid_labels]
         label_breakdown = {
             "real_count": len(real_labels),
             "extra_count": len(extra_labels),
@@ -2721,8 +2496,8 @@ def retrain_model(request):
     return render(request, "tracker/metrics.html", ctx)
 
 
-import re
 import html
+import re
 
 
 def validate_regex_pattern(pattern):
@@ -2889,9 +2664,7 @@ def json_file_viewer(request):
                     "ghosted",
                     "other",
                 ]:
-                    patterns_raw = (
-                        request.POST.get(f"pattern_{label}", "").strip().split("\n")
-                    )
+                    patterns_raw = request.POST.get(f"pattern_{label}", "").strip().split("\n")
                     patterns_list = []
 
                     for pattern in patterns_raw:
@@ -2899,15 +2672,11 @@ def json_file_viewer(request):
                             continue
 
                         # Validate and sanitize regex pattern
-                        sanitized = sanitize_string(
-                            pattern, max_length=500, allow_regex=True
-                        )
+                        sanitized = sanitize_string(pattern, max_length=500, allow_regex=True)
                         if sanitized:
                             patterns_list.append(sanitized)
                         else:
-                            validation_errors.append(
-                                f"Invalid pattern in '{label}': {pattern[:50]}..."
-                            )
+                            validation_errors.append(f"Invalid pattern in '{label}': {pattern[:50]}...")
 
                     if patterns_list:
                         if "message_labels" not in patterns_data:
@@ -2915,9 +2684,7 @@ def json_file_viewer(request):
                         patterns_data["message_labels"][label] = patterns_list
 
                 # Save invalid_company_prefixes with validation
-                invalid_prefixes_raw = (
-                    request.POST.get("invalid_company_prefixes", "").strip().split("\n")
-                )
+                invalid_prefixes_raw = request.POST.get("invalid_company_prefixes", "").strip().split("\n")
                 invalid_prefixes = []
 
                 import re
@@ -2927,22 +2694,16 @@ def json_file_viewer(request):
                         continue
 
                     # Allow regex (including \\s) in invalid_company_prefixes
-                    sanitized = sanitize_string(
-                        prefix, max_length=100, allow_regex=True
-                    )
+                    sanitized = sanitize_string(prefix, max_length=100, allow_regex=True)
                     if sanitized:
                         # Validate regex (warn but allow fallback)
                         try:
                             re.compile(sanitized)
                             invalid_prefixes.append(sanitized)
                         except re.error:
-                            validation_errors.append(
-                                f"Invalid regex in company prefix: {prefix[:50]}..."
-                            )
+                            validation_errors.append(f"Invalid regex in company prefix: {prefix[:50]}...")
                     else:
-                        validation_errors.append(
-                            f"Invalid company prefix: {prefix[:50]}..."
-                        )
+                        validation_errors.append(f"Invalid company prefix: {prefix[:50]}...")
 
                 if invalid_prefixes:
                     patterns_data["invalid_company_prefixes"] = invalid_prefixes
@@ -2956,18 +2717,14 @@ def json_file_viewer(request):
                     "response",
                     "follow_up",
                 ]:
-                    old_patterns_raw = (
-                        request.POST.get(f"old_{key}", "").strip().split("\n")
-                    )
+                    old_patterns_raw = request.POST.get(f"old_{key}", "").strip().split("\n")
                     old_patterns = []
 
                     for pattern in old_patterns_raw:
                         if not pattern.strip():
                             continue
 
-                        sanitized = sanitize_string(
-                            pattern, max_length=500, allow_regex=False
-                        )
+                        sanitized = sanitize_string(pattern, max_length=500, allow_regex=False)
                         if sanitized:
                             old_patterns.append(sanitized)
 
@@ -2976,7 +2733,9 @@ def json_file_viewer(request):
 
                 # Only write if no validation errors
                 if validation_errors:
-                    error_message = f"⚠️ Validation errors: {len(validation_errors)} patterns rejected for security reasons"
+                    error_message = (
+                        f"⚠️ Validation errors: {len(validation_errors)} patterns rejected for security reasons"
+                    )
                 else:
                     # Backup original file before overwriting
                     if patterns_path.exists():
@@ -3004,24 +2763,18 @@ def json_file_viewer(request):
                         continue
 
                     # Validate company name
-                    sanitized = sanitize_string(
-                        company, max_length=200, allow_regex=False
-                    )
+                    sanitized = sanitize_string(company, max_length=200, allow_regex=False)
                     if sanitized:
                         known_list.append(sanitized)
                     else:
-                        validation_errors.append(
-                            f"Invalid company name: {company[:50]}..."
-                        )
+                        validation_errors.append(f"Invalid company name: {company[:50]}...")
 
                 if known_list:
                     companies_data["known"] = sorted(known_list)
 
                 # Save domain mappings with validation
                 domain_mappings = {}
-                domains_raw = (
-                    request.POST.get("domain_mappings", "").strip().split("\n")
-                )
+                domains_raw = request.POST.get("domain_mappings", "").strip().split("\n")
 
                 for line in domains_raw:
                     if not line.strip():
@@ -3038,19 +2791,13 @@ def json_file_viewer(request):
                             # Validate domain format
                             is_valid, sanitized_domain = validate_domain(domain)
                             if not is_valid:
-                                validation_errors.append(
-                                    f"Invalid domain format: {domain}"
-                                )
+                                validation_errors.append(f"Invalid domain format: {domain}")
                                 continue
 
                             # Validate company name
-                            sanitized_company = sanitize_string(
-                                company, max_length=200, allow_regex=False
-                            )
+                            sanitized_company = sanitize_string(company, max_length=200, allow_regex=False)
                             if not sanitized_company:
-                                validation_errors.append(
-                                    f"Invalid company name for domain {domain}"
-                                )
+                                validation_errors.append(f"Invalid company name for domain {domain}")
                                 continue
 
                             domain_mappings[sanitized_domain] = sanitized_company
@@ -3077,9 +2824,7 @@ def json_file_viewer(request):
                     companies_data["ats_domains"] = sorted(ats_list)
 
                 # Save headhunter domains with validation
-                headhunter_raw = (
-                    request.POST.get("headhunter_domains", "").strip().split("\n")
-                )
+                headhunter_raw = request.POST.get("headhunter_domains", "").strip().split("\n")
                 headhunter_list = []
 
                 for domain in headhunter_raw:
@@ -3112,18 +2857,13 @@ def json_file_viewer(request):
                             url = parts[1].strip()
 
                             # Validate company name
-                            sanitized_company = sanitize_string(
-                                company, max_length=200, allow_regex=False
-                            )
+                            sanitized_company = sanitize_string(company, max_length=200, allow_regex=False)
 
                             # Validate URL (must be http/https)
                             if sanitized_company and url:
                                 if url.startswith(("http://", "https://")):
                                     # Basic URL validation - check for common injection patterns
-                                    if not any(
-                                        char in url
-                                        for char in ["<", ">", '"', "'", "javascript:"]
-                                    ):
+                                    if not any(char in url for char in ["<", ">", '"', "'", "javascript:"]):
                                         job_sites[sanitized_company] = url
                                     else:
                                         validation_errors.append(
@@ -3134,9 +2874,7 @@ def json_file_viewer(request):
                                         f"Invalid URL for {company}: must start with http:// or https://"
                                     )
                             else:
-                                validation_errors.append(
-                                    f"Invalid job site entry: {company} → {url}"
-                                )
+                                validation_errors.append(f"Invalid job site entry: {company} → {url}")
 
                 if job_sites:
                     companies_data["JobSites"] = job_sites
@@ -3158,19 +2896,13 @@ def json_file_viewer(request):
                             canonical = parts[1].strip()
 
                             # Validate both alias and canonical names
-                            sanitized_alias = sanitize_string(
-                                alias, max_length=200, allow_regex=False
-                            )
-                            sanitized_canonical = sanitize_string(
-                                canonical, max_length=200, allow_regex=False
-                            )
+                            sanitized_alias = sanitize_string(alias, max_length=200, allow_regex=False)
+                            sanitized_canonical = sanitize_string(canonical, max_length=200, allow_regex=False)
 
                             if sanitized_alias and sanitized_canonical:
                                 aliases[sanitized_alias] = sanitized_canonical
                             else:
-                                validation_errors.append(
-                                    f"Invalid alias: {alias} → {canonical}"
-                                )
+                                validation_errors.append(f"Invalid alias: {alias} → {canonical}")
 
                 if aliases:
                     companies_data["aliases"] = aliases
@@ -3188,7 +2920,9 @@ def json_file_viewer(request):
                 if total_entries > 10000:
                     error_message = "❌ Too many entries (max 10,000 total). Possible DoS attempt blocked."
                 elif validation_errors:
-                    error_message = f"⚠️ Validation errors: {len(validation_errors)} entries rejected for security reasons"
+                    error_message = (
+                        f"⚠️ Validation errors: {len(validation_errors)} entries rejected for security reasons"
+                    )
                 else:
                     # Backup original file before overwriting
                     if companies_path.exists():
@@ -3424,16 +3158,12 @@ def configure_settings(request):
     # Load current values from DB (or defaults)
     current = {}
     for key, spec in settings_spec.items():
-        db_val = (
-            AppSetting.objects.filter(key=key).values_list("value", flat=True).first()
-        )
+        db_val = AppSetting.objects.filter(key=key).values_list("value", flat=True).first()
         if db_val is None or str(db_val).strip() == "":
             current[key] = spec["default"]
         else:
             if spec["type"] == "int":
-                current[key] = clamp_int(
-                    db_val, spec["min"], spec["max"], spec["default"]
-                )
+                current[key] = clamp_int(db_val, spec["min"], spec["max"], spec["default"])
             else:
                 current[key] = db_val
 
@@ -3448,9 +3178,7 @@ def configure_settings(request):
                     val = clamp_int(raw, spec["min"], spec["max"], spec["default"])
                 else:
                     val = (raw or "").strip()
-                AppSetting.objects.update_or_create(
-                    key=key, defaults={"value": str(val)}
-                )
+                AppSetting.objects.update_or_create(key=key, defaults={"value": str(val)})
             messages.success(request, "✅ Settings updated.")
             return redirect("configure_settings")
         elif action in ("gmail_filters_preview", "gmail_filters_apply"):
@@ -3458,26 +3186,17 @@ def configure_settings(request):
             try:
                 service = get_gmail_service()
                 if not service:
-                    raise RuntimeError(
-                        "Failed to initialize Gmail service. Check OAuth credentials in json/."
-                    )
+                    raise RuntimeError("Failed to initialize Gmail service. Check OAuth credentials in json/.")
                 # Label prefix from env (or default)
                 prefix = (
-                    request.POST.get("gmail_label_prefix")
-                    or os.environ.get("JOB_HUNT_LABEL_PREFIX")
-                    or "#job-hunt"
+                    request.POST.get("gmail_label_prefix") or os.environ.get("JOB_HUNT_LABEL_PREFIX") or "#job-hunt"
                 ).strip()
                 # Build label maps
                 labels_resp = service.users().labels().list(userId="me").execute()
-                id_to_name = {
-                    lab.get("id"): lab.get("name")
-                    for lab in labels_resp.get("labels", [])
-                }
+                id_to_name = {lab.get("id"): lab.get("name") for lab in labels_resp.get("labels", [])}
                 name_to_id = {v: k for k, v in id_to_name.items()}
                 # Fetch all filters
-                filt_resp = (
-                    service.users().settings().filters().list(userId="me").execute()
-                )
+                filt_resp = service.users().settings().filters().list(userId="me").execute()
                 filters = filt_resp.get("filter", []) or []
 
                 # Convert to entries compatible with existing import logic
@@ -3488,11 +3207,7 @@ def configure_settings(request):
                     add_ids = action.get("addLabelIds", []) or []
                     target_label_names = [id_to_name.get(i, "") for i in add_ids]
                     # Only include filters where at least one added label starts with prefix
-                    matched_names = [
-                        nm
-                        for nm in target_label_names
-                        if isinstance(nm, str) and nm.startswith(prefix)
-                    ]
+                    matched_names = [nm for nm in target_label_names if isinstance(nm, str) and nm.startswith(prefix)]
                     if not matched_names:
                         continue
                     # For each matched label, produce an entry
@@ -3565,9 +3280,7 @@ def configure_settings(request):
                     pattern = make_or_pattern(terms)
                     if pattern:
                         additions.setdefault(internal, set()).add(pattern)
-                    ex_terms = sanitize_to_regex_terms(
-                        props.get("doesNotHaveTheWord", "")
-                    )
+                    ex_terms = sanitize_to_regex_terms(props.get("doesNotHaveTheWord", ""))
                     ex_pat = make_or_pattern(ex_terms)
                     if ex_pat:
                         exclude_additions.setdefault(internal, set()).add(ex_pat)
@@ -3596,13 +3309,9 @@ def configure_settings(request):
                 else:
                     # Apply and save
                     for label, new in preview["add"].items():
-                        msg_labels[label] = sorted(
-                            set(msg_labels.get(label, [])) | set(new)
-                        )
+                        msg_labels[label] = sorted(set(msg_labels.get(label, [])) | set(new))
                     for label, new in preview["exclude"].items():
-                        msg_excludes[label] = sorted(
-                            set(msg_excludes.get(label, [])) | set(new)
-                        )
+                        msg_excludes[label] = sorted(set(msg_excludes.get(label, [])) | set(new))
                     with open(patterns_path, "w", encoding="utf-8") as f:
                         json.dump(patterns, f, indent=2, ensure_ascii=False)
                     messages.success(

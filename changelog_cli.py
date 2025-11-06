@@ -1,5 +1,7 @@
 import argparse
+
 from changelog_parser import parse_changelog
+
 
 def main():
     parser = argparse.ArgumentParser(description="Audit CHANGELOG.md entries")
@@ -24,6 +26,7 @@ def main():
                 if args.keyword and args.keyword.lower() not in item.lower():
                     continue
                 print(f"    - {item}")
+
 
 if __name__ == '__main__':
     main()

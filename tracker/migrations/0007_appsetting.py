@@ -27,9 +27,7 @@ class Migration(migrations.Migration):
                 ("updated_at", models.DateTimeField(auto_now=True)),
             ],
             options={
-                "indexes": [
-                    models.Index(fields=["key"], name="tracker_app_key_33fe00_idx")
-                ],
+                "indexes": [models.Index(fields=["key"], name="tracker_app_key_33fe00_idx")],
             },
         ),
     ]

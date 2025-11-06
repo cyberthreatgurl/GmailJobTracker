@@ -50,7 +50,7 @@
       "\\bnot\\sto\\smove\\sforward\\b",
       "\\bnot\\sselected\\b",
       "\\bposition\\sclosed",
-      "\\bunfortunately\\b",
+
       "\\bmove\\sforward\\swith\\sothers\\b",
       "\\bno\\slonger\\savailable\\b",
       "\\bhas\\sbeen\\sclosed\\sor\\sfilled\\b",
@@ -68,9 +68,7 @@
       "\\bwe\\s(?:are\\s)?pursuing\\s(?:other|another)\\scandidate(?:s)?\\b",
       "\\bkeep\\syour\\s(?:resume|application)\\son\\sfile\\b"
     ],
-    "offer": [
-      "None"
-    ],
+    "offer": ["None"],
     "noise": [
       "\\bnewsletter\\b",
       "\\bpayment\\b",
@@ -93,7 +91,8 @@
       "(\\breferral\\b| \\breferred\\b|\\brefer\\b|\\brecommendation\\b|\\brecommended\\b|introduction\\b|\\sconnect\\syou\\swith\\b |\\bconnecting\\syou\\swith\\b)"
     ],
     "head_hunter": [
-      "(seeking|urgent\\sneed|urgent\\shiring|looking\\sfor|came\\sacross|direct\\shire|found\\syour\\sresume|matches\\syour\\sprofile)",
+      "\\b(seeking|urgent\\sneed|urgent\\shiring|came\\sacross|direct\\shire|found\\syour\\sresume|matches\\syour\\sprofile)\\b",
+      "\\blooking\\sfor\\s(candidates|someone|a\\s|an\\s)",
       "\\b(contractual assignment)\\b|(looking for candidates)\\b|\\b(is seeking)\\b"
     ],
     "follow_up": [
@@ -108,12 +107,8 @@
       "received\\syour\\sresume",
       "application\\sreceived"
     ],
-    "ghosted": [
-      "None"
-    ],
-    "other": [
-      "None"
-    ]
+    "ghosted": ["None"],
+    "other": ["None"]
   },
   "invalid_company_prefixes": [
     "Cyber\\sProgram,",

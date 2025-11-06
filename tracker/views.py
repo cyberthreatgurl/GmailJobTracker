@@ -1,6 +1,7 @@
 # --- Label Rule Debugger ---
 
 import os
+import logging
 from pathlib import Path
 import json
 import re
@@ -13,6 +14,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import models
+
+logger = logging.getLogger(__name__)
 from django.db.models import (
     F,
     Q,
@@ -2273,6 +2276,55 @@ def label_messages(request):
                     )
             else:
                 messages.warning(request, "⚠️ No messages found on this page")
+
+            # Redirect to refresh the page with current filters
+            return redirect(request.get_full_path())
+
+        elif action == "reingest_selected":
+            # Re-ingest selected messages from Gmail
+            selected_ids = request.POST.getlist("selected_messages")
+
+            if selected_ids:
+                try:
+                    from gmail_auth import get_gmail_service
+                    from parser import ingest_message
+
+                    service = get_gmail_service()
+                    success_count = 0
+                    error_count = 0
+
+                    for db_id in selected_ids:
+                        try:
+                            msg = Message.objects.get(pk=db_id)
+                            gmail_msg_id = msg.msg_id
+
+                            # Re-ingest from Gmail
+                            result = ingest_message(service, gmail_msg_id)
+                            if result:
+                                success_count += 1
+                            else:
+                                error_count += 1
+                        except Message.DoesNotExist:
+                            error_count += 1
+                            continue
+                        except Exception as e:
+                            error_count += 1
+                            logger.error(f"Error re-ingesting message {db_id}: {e}")
+                            continue
+
+                    if success_count > 0:
+                        messages.success(
+                            request,
+                            f"✅ Re-ingested {success_count} message(s) from Gmail",
+                        )
+                    if error_count > 0:
+                        messages.warning(
+                            request, f"⚠️ Failed to re-ingest {error_count} message(s)"
+                        )
+                except Exception as e:
+                    messages.error(request, f"❌ Re-ingestion failed: {e}")
+            else:
+                messages.warning(request, "⚠️ Please select messages to re-ingest")
 
             # Redirect to refresh the page with current filters
             return redirect(request.get_full_path())

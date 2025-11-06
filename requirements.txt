@@ -3,7 +3,7 @@ asgiref==3.10.0
 beautifulsoup4==4.12.3
 black==25.9.0
 blis==0.7.11
-cachetools==5.5.2
+cachetools==6.2.1
 catalogue==2.0.10
 certifi==2025.10.5
 cfgv==3.4.0

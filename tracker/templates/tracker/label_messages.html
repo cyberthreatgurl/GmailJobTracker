@@ -411,6 +411,9 @@
       <button type="submit" class="btn btn-primary" id="company-submit" disabled onclick="return submitCompanyReassign()">
         Reassign Company
       </button>
+      <button type="submit" class="btn btn-secondary" id="reingest-submit" disabled onclick="return submitReingest()" style="background-color: #f59e0b; border-color: #f59e0b;">
+        🔄 Re-ingest from Gmail
+      </button>
       {% if message_list %}
       <button type="submit" class="btn btn-success" id="mark-reviewed-submit" onclick="return submitMarkAllReviewed()" style="margin-left: auto;">
         ✓ Mark All on Page as Reviewed
@@ -548,6 +551,7 @@
       document.getElementById('selected-count').textContent = count;
       document.getElementById('bulk-submit').disabled = count === 0;
       document.getElementById('company-submit').disabled = count === 0;
+      document.getElementById('reingest-submit').disabled = count === 0;
       
       // Update select-all checkbox state
       const selectAll = document.getElementById('select-all');
@@ -604,6 +608,22 @@
       }
       
       document.getElementById('form-action').value = 'mark_all_reviewed';
+      return true;
+    }
+
+    function submitReingest() {
+      const count = document.querySelectorAll('.message-checkbox:checked').length;
+      
+      if (count === 0) {
+        alert('Please select messages to re-ingest');
+        return false;
+      }
+      
+      if (!confirm(`Re-ingest ${count} message(s) from Gmail? This will refresh all data from the original email.`)) {
+        return false;
+      }
+      
+      document.getElementById('form-action').value = 'reingest_selected';
       return true;
     }
     

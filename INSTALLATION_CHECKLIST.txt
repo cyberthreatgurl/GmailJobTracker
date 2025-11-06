@@ -1,0 +1,271 @@
+===============================================================================
+        DOCKER DESKTOP INSTALLATION CHECKLIST
+        GmailJobTracker - Step-by-Step Guide
+===============================================================================
+
+PRE-INSTALLATION CHECKLIST
+═══════════════════════════════════════════════════════════════════════════
+
+□ Docker Desktop installed and running
+  → Check system tray for Docker whale icon
+  → Open Docker Desktop and verify it says "Engine running"
+
+□ PowerShell open in project directory
+  → cd C:\Users\kaver\code\GmailJobTracker
+
+□ Gmail API credentials ready
+  → Have credentials.json file downloaded from Google Cloud Console
+
+
+REQUIRED FILES CHECKLIST
+═══════════════════════════════════════════════════════════════════════════
+
+Files ALREADY in your repository (✅ you have these):
+  ✅ Dockerfile
+  ✅ docker-compose.yml
+  ✅ docker-entrypoint.sh
+  ✅ requirements.txt
+  ✅ manage.py
+  ✅ All application code (dashboard/, tracker/, parser.py, etc.)
+  ✅ json/patterns.json
+  ✅ json/companies.json
+
+Files YOU MUST CREATE/ADD:
+  □ .env (copy from .env.example)
+  □ json/credentials.json (your Gmail OAuth file)
+
+
+INSTALLATION STEPS
+═══════════════════════════════════════════════════════════════════════════
+
+STEP 1: Verify Docker
+──────────────────────────────────────────────────────────────────────────
+□ Run: docker --version
+□ Run: docker-compose --version
+□ Verify both commands work
+
+Commands:
+  docker --version
+  docker-compose --version
+
+
+STEP 2: Create .env File
+──────────────────────────────────────────────────────────────────────────
+□ Copy .env.example to .env
+□ Edit .env and set GMAIL_JOBHUNT_LABEL_ID
+□ Optional: Set DJANGO_SECRET_KEY
+
+Commands:
+  Copy-Item .env.example .env
+  notepad .env
+
+Required in .env:
+  GMAIL_JOBHUNT_LABEL_ID=Label_YOUR_LABEL_ID_HERE
+
+Generate secret key (optional):
+  python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+
+
+STEP 3: Add Gmail Credentials
+──────────────────────────────────────────────────────────────────────────
+□ Copy your credentials.json to json/credentials.json
+□ Verify file exists
+
+Commands:
+  Copy-Item "path\to\your\credentials.json" "json\credentials.json"
+  Test-Path json\credentials.json
+
+
+STEP 4: Validate Setup
+──────────────────────────────────────────────────────────────────────────
+□ Run validation script
+□ Verify all checks pass
+
+Commands:
+  python validate_deployment.py
+
+Expected output:
+  ✅ All critical checks passed!
+  📦 Ready for deployment!
+
+
+STEP 5: Build Docker Image
+──────────────────────────────────────────────────────────────────────────
+□ Build the image (takes 5-10 minutes first time)
+□ Wait for "FINISHED" message
+
+Commands:
+  docker-compose build
+
+Expected output:
+  [+] Building 245.3s (18/18) FINISHED
+
+
+STEP 6: Start Container
+──────────────────────────────────────────────────────────────────────────
+□ Start container in background
+□ Wait for "Started" message
+
+Commands:
+  docker-compose up -d
+
+Expected output:
+  [+] Running 2/2
+   ✔ Network gmailjobtracker_gmailtracker-network  Created
+   ✔ Container gmailtracker                        Started
+
+
+STEP 7: Verify Container Running
+──────────────────────────────────────────────────────────────────────────
+□ Check container status
+□ View logs
+□ Verify no errors
+
+Commands:
+  docker-compose ps
+  docker-compose logs web
+
+Expected status:
+  NAME            STATUS
+  gmailtracker    Up (healthy)
+
+
+STEP 8: Access Application
+──────────────────────────────────────────────────────────────────────────
+□ Open browser to http://localhost:8000
+□ Verify dashboard loads
+□ Access admin panel: http://localhost:8000/admin
+□ Login with: admin / changeme123
+
+Commands:
+  Start-Process http://localhost:8000
+
+
+STEP 9: Change Default Password
+──────────────────────────────────────────────────────────────────────────
+□ Change admin password immediately
+
+Commands:
+  docker-compose exec web python manage.py changepassword admin
+
+
+STEP 10: Initial Gmail Sync
+──────────────────────────────────────────────────────────────────────────
+□ Run first Gmail ingestion
+□ Complete OAuth authentication if prompted
+□ Verify messages are imported
+
+Commands:
+  docker-compose exec web python manage.py ingest_gmail --days-back 7
+
+
+POST-INSTALLATION VERIFICATION
+═══════════════════════════════════════════════════════════════════════════
+
+□ Container shows "Up (healthy)" in docker-compose ps
+□ Can access http://localhost:8000
+□ Can log in to admin panel
+□ Gmail messages are being ingested
+□ Data persists after docker-compose restart
+
+
+QUICK COMMAND REFERENCE
+═══════════════════════════════════════════════════════════════════════════
+
+Using PowerShell Helper (recommended):
+  .\docker.ps1 up          Start application
+  .\docker.ps1 down        Stop application
+  .\docker.ps1 logs        View logs
+  .\docker.ps1 shell       Open shell in container
+  .\docker.ps1 ingest      Ingest Gmail messages
+  .\docker.ps1 backup      Backup database
+  .\docker.ps1 help        Show all commands
+
+Using Docker Compose Directly:
+  docker-compose up -d              Start in background
+  docker-compose down               Stop containers
+  docker-compose ps                 Show status
+  docker-compose logs -f web        Follow logs
+  docker-compose restart            Restart
+  docker-compose exec web bash      Open shell
+
+
+TROUBLESHOOTING
+═══════════════════════════════════════════════════════════════════════════
+
+Container won't start:
+  docker-compose down
+  docker-compose up -d --build
+  docker-compose logs web
+
+Can't access localhost:8000:
+  docker-compose ps                 # Verify running
+  curl http://localhost:8000        # Test connection
+
+Gmail authentication fails:
+  Remove-Item json\token.json
+  docker-compose restart web
+  docker-compose exec web python manage.py ingest_gmail
+
+View detailed logs:
+  docker-compose logs -f web
+
+Access container shell:
+  docker-compose exec web bash
+
+
+DATA LOCATION (PERSISTENT)
+═══════════════════════════════════════════════════════════════════════════
+
+Your data is stored on your computer in these folders:
+  C:\Users\kaver\code\GmailJobTracker\db\          Database
+  C:\Users\kaver\code\GmailJobTracker\logs\        Logs
+  C:\Users\kaver\code\GmailJobTracker\model\       ML models
+  C:\Users\kaver\code\GmailJobTracker\json\        Config & credentials
+
+This data persists even when containers are stopped/restarted.
+
+
+COMMON OPERATIONS
+═══════════════════════════════════════════════════════════════════════════
+
+Ingest emails from last 7 days:
+  docker-compose exec web python manage.py ingest_gmail
+
+Ingest emails from last 30 days:
+  docker-compose exec web python manage.py ingest_gmail --days-back 30
+
+Train ML model (after labeling messages):
+  docker-compose exec web python train_model.py --verbose
+
+Create backup:
+  .\docker.ps1 backup
+
+View application logs:
+  docker-compose logs -f web
+
+Restart application:
+  docker-compose restart
+
+Stop application (keeps data):
+  docker-compose down
+
+Start application:
+  docker-compose up -d
+
+
+HELP & DOCUMENTATION
+═══════════════════════════════════════════════════════════════════════════
+
+Full installation guide:     DOCKER_DESKTOP_GUIDE.md
+Deployment documentation:    DOCKER_DEPLOYMENT.md
+CI/CD information:           CI_CD_DOCUMENTATION.md
+Quick start:                 QUICKSTART.md
+
+Run validation anytime:      python validate_deployment.py
+Show PowerShell commands:    .\docker.ps1 help
+
+
+═══════════════════════════════════════════════════════════════════════════
+                    Installation Complete! 🎉
+═══════════════════════════════════════════════════════════════════════════

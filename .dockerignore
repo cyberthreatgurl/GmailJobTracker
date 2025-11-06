@@ -3,16 +3,19 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
-.Python
 *.so
 *.egg
 *.egg-info/
-dist/
-build/
+.Python
 .venv/
 venv/
 ENV/
 env/
+
+# Git
+.git/
+.gitignore
+.gitattributes
 
 # Django
 *.db
@@ -22,16 +25,17 @@ staticfiles/
 media/
 *.log
 
-# Environment variables
+# Environment
 .env
-.env.local
+.env.*
+!.env.example
 
-# OAuth credentials (sensitive!)
+# OAuth credentials (will be mounted as volumes)
 json/credentials.json
 json/token.json
 token.pickle
 
-# Data directories
+# Data directories (will be mounted as volumes)
 db/
 logs/
 model/*.pkl
@@ -60,27 +64,21 @@ Thumbs.db
 htmlcov/
 .tox/
 .hypothesis/
+tests/
 
-# Security
-.secrets*
-.secrets.baseline
+# CI/CD
+.github/
+.gitlab-ci.yml
 
-# Misc
-*.patch
-*.bak
-*.orig
+# Documentation
+*.md
+!README.md
+markdown/
 
-# Docker
-*.tar.gz
-docker-compose.override.yml
-
-# Backups
-backups/
-
-# Project-specific (keep these for now)
+# Project-specific
 remind/
-scripts/
 update_copilot/
+scripts/
 
-# Allowlist CI validation script inside scripts/
+# Keep validation script
 !scripts/validate_companies.py

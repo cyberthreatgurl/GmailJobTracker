@@ -107,25 +107,26 @@ _SUPPRESS_LABELS = set(_PATTERNS.get("suppress_labels", []))
 def rule_label(subject: str, body: str = "") -> str | None:
     """Apply regex rules from patterns.json before ML prediction.
 
-    Priority order is tuned for specificity:
+    Priority order is tuned for specificity and to reduce false rejections
+    from generic words like "unfortunately" found in newsletters:
       1) offer
-      2) rejected
-      3) interview_invite
-      4) job_application
-      5) referral
-      6) head_hunter
-      7) noise
+      2) head_hunter
+      3) noise          20prioritize over rejected to avoid false positives
+      4) rejected
+      5) interview_invite
+      6) job_application
+      7) referral
     """
     text = f"{subject or ''} {body or ''}".lower()
 
     priority_order = [
         "offer",
+        "head_hunter",
+        "noise",
         "rejected",
         "interview_invite",
         "job_application",
         "referral",
-        "head_hunter",
-        "noise",
     ]
 
     for label in priority_order:
@@ -159,7 +160,9 @@ def _get_rule_label_func():
     return rule_label
 
 
-def predict_subject_type(subject: str, body: str = "", threshold: float = 0.6, sender: str = ""):
+def predict_subject_type(
+    subject: str, body: str = "", threshold: float = 0.6, sender: str = ""
+):
     """Predict message label from subject+body using rules first, then ML.
 
     Returns dict: {label, confidence, ignore, method}
@@ -174,26 +177,33 @@ def predict_subject_type(subject: str, body: str = "", threshold: float = 0.6, s
 
     # Check if sender is the user (skip head_hunter classification for user's own messages)
     import os
+
     user_email = (os.environ.get("USER_EMAIL_ADDRESS") or "").strip().lower()
-    exclude_user_hh = (os.environ.get("HEADHUNTER_EXCLUDE_USER_SENDER", "false").strip().lower() in {"1", "true", "yes", "y"})
+    exclude_user_hh = os.environ.get(
+        "HEADHUNTER_EXCLUDE_USER_SENDER", "false"
+    ).strip().lower() in {"1", "true", "yes", "y"}
     is_user_message = False
     if user_email and sender:
         is_user_message = user_email in sender.lower()
         if DEBUG and is_user_message and exclude_user_hh:
-            print(f"[DEBUG] Sender is user ({user_email}), will skip head_hunter classification (env gated)")
+            print(
+                f"[DEBUG] Sender is user ({user_email}), will skip head_hunter classification (env gated)"
+            )
 
     # Try rule-based first (use the canonical implementation from parser.py if available)
     rule_fn = _get_rule_label_func()
     rule_result = rule_fn(subject, body)
     if DEBUG:
         print(f"[DEBUG] rules-first returned: {repr(rule_result)}")
-    
+
     # Skip head_hunter label for user's own messages (env gated)
     if rule_result == "head_hunter" and is_user_message and exclude_user_hh:
         if DEBUG:
-            print("[DEBUG] Skipping head_hunter label for user message, treating as 'other'")
+            print(
+                "[DEBUG] Skipping head_hunter label for user message, treating as 'other'"
+            )
         rule_result = "other"
-    
+
     if rule_result:
         if DEBUG:
             print("[DEBUG] Using rules-first result")
@@ -247,7 +257,9 @@ def predict_subject_type(subject: str, body: str = "", threshold: float = 0.6, s
     # Skip head_hunter label for user's own messages (env gated)
     if label == "head_hunter" and is_user_message and exclude_user_hh:
         if DEBUG:
-            print("[DEBUG] Skipping ML head_hunter prediction for user message, using 'other'")
+            print(
+                "[DEBUG] Skipping ML head_hunter prediction for user message, using 'other'"
+            )
         label = "other"
 
     # If ML is uncertain, try rules again as backup
@@ -262,7 +274,7 @@ def predict_subject_type(subject: str, body: str = "", threshold: float = 0.6, s
             if DEBUG:
                 print("[DEBUG] Skipping fallback head_hunter for user message")
             rule_result = "other"
-        
+
         if rule_result:
             mapped_label = "other" if rule_result in _SUPPRESS_LABELS else rule_result
             return {

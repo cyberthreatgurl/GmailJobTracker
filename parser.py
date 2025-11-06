@@ -122,12 +122,12 @@ def rule_label(subject: str, body: str = "") -> str | None:
     # Application last: generic catch-all for confirmations
     for label in (
         "offer",  # Most specific: offer, compensation, package
-        "rejected",  # Specific negatives: unfortunately, other candidates
+        "head_hunter",  # Recruiter blasts (prioritize over noise)
+        "noise",  # Newsletters/OTP/promos; prioritize over rejected to avoid false positives from generic words
+        "rejected",  # Specific negatives (move forward/position filled/etc.)
         "interview_invite",  # Action-oriented: schedule, availability, interview
         "job_application",  # Generic: received, thank you, will be reviewed
         "referral",  # Referral/intro messages
-        "head_hunter",  # Recruiter blasts
-        "noise",  # Generic promos, OTPs, newsletters (often matched by body/footer)
         "ghosted",
         "blank",
     ):

@@ -3,13 +3,10 @@
 # Import this in settings.py when running in Docker
 
 import os
-from pathlib import Path
 
 # Security settings
 DEBUG = os.getenv("DEBUG", "False").lower() == "true"
-SECRET_KEY = os.getenv(
-    "DJANGO_SECRET_KEY", "django-insecure-docker-default-key-change-me"
-)
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "django-insecure-docker-default-key-change-me")
 
 # Allowed hosts from environment
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")

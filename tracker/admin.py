@@ -1,19 +1,20 @@
 from django.contrib import admin
+
 from .models import (
-    Company,
-    ThreadTracking,
-    Message,
-    UnresolvedCompany,
-    KnownCompany,
-    ATSDomain,
-    DomainToCompany,
-    CompanyAlias,
-    Ticket,
-    MessageLabel,
-    ModelTrainingRun,
-    ModelTrainingLabelMetric,
-    GmailFilterImportLog,
     AppSetting,
+    ATSDomain,
+    Company,
+    CompanyAlias,
+    DomainToCompany,
+    GmailFilterImportLog,
+    KnownCompany,
+    Message,
+    MessageLabel,
+    ModelTrainingLabelMetric,
+    ModelTrainingRun,
+    ThreadTracking,
+    Ticket,
+    UnresolvedCompany,
 )
 
 list_display = ("name", "message_count", "application_count")

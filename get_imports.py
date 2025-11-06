@@ -1,9 +1,11 @@
-import subprocess
 import os
 import re
+import subprocess
+
 
 def get_repo_root():
     return subprocess.check_output(['git', 'rev-parse', '--show-toplevel']).decode().strip()
+
 
 def extract_imports():
     repo_root = get_repo_root()
@@ -33,5 +35,6 @@ def extract_imports():
         print(f"- {module}")
 
     return imports
+
 
 extract_imports()

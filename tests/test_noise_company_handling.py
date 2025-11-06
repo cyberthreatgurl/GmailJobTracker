@@ -11,8 +11,9 @@ Verifies that noise messages:
 """
 import os
 import sys
-import django
 from datetime import datetime, timezone
+
+import django
 
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -20,7 +21,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dashboard.settings")
 django.setup()
 
-from tracker.models import Message, Company
+from tracker.models import Company, Message
 
 
 def test_noise_message_creation():
@@ -45,9 +46,7 @@ def test_noise_message_creation():
 
     msg.refresh_from_db()
     assert msg.company is None, f"Expected company=None, got {msg.company}"
-    assert (
-        msg.company_source == ""
-    ), f"Expected company_source='', got '{msg.company_source}'"
+    assert msg.company_source == "", f"Expected company_source='', got '{msg.company_source}'"
     print(f"✓ Noise message created with company=None")
     print(f"  msg_id: {msg.msg_id}")
     print(f"  ml_label: {msg.ml_label}")
@@ -99,9 +98,7 @@ def test_noise_message_model_save_override():
     msg.save()
 
     msg.refresh_from_db()
-    assert (
-        msg.company == company
-    ), f"Expected company to remain when not reviewed, got {msg.company}"
+    assert msg.company == company, f"Expected company to remain when not reviewed, got {msg.company}"
     print(f"✓ Unreviewed noise message keeps company: {msg.company.name}")
 
     # Now mark as reviewed - company should be cleared
@@ -109,12 +106,8 @@ def test_noise_message_model_save_override():
     msg.save()
 
     msg.refresh_from_db()
-    assert (
-        msg.company is None
-    ), f"Expected company=None after reviewed noise, got {msg.company}"
-    assert (
-        msg.company_source == ""
-    ), f"Expected company_source='' after reviewed noise, got '{msg.company_source}'"
+    assert msg.company is None, f"Expected company=None after reviewed noise, got {msg.company}"
+    assert msg.company_source == "", f"Expected company_source='' after reviewed noise, got '{msg.company_source}'"
     print(f"✓ After marking reviewed, company was cleared")
     print(f"  company: {msg.company}")
     print(f"  company_source: '{msg.company_source}'")
@@ -132,17 +125,15 @@ def test_existing_noise_messages_cleaned():
     print("=" * 70)
 
     # Check reviewed noise messages
-    reviewed_noise_with_company = Message.objects.filter(
-        ml_label="noise", reviewed=True
-    ).exclude(company__isnull=True)
+    reviewed_noise_with_company = Message.objects.filter(ml_label="noise", reviewed=True).exclude(company__isnull=True)
 
     reviewed_count = reviewed_noise_with_company.count()
     print(f"Reviewed noise messages with companies: {reviewed_count}")
 
     # Check unreviewed noise messages (should be allowed to have companies)
-    unreviewed_noise_with_company = Message.objects.filter(
-        ml_label="noise", reviewed=False
-    ).exclude(company__isnull=True)
+    unreviewed_noise_with_company = Message.objects.filter(ml_label="noise", reviewed=False).exclude(
+        company__isnull=True
+    )
 
     unreviewed_count = unreviewed_noise_with_company.count()
     print(f"Unreviewed noise messages with companies: {unreviewed_count}")

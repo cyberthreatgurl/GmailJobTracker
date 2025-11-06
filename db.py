@@ -1,14 +1,13 @@
 # db.py
 #
-import sqlite3
-import json
-import pandas as pd
-from datetime import datetime, date
-import time
-import re
 import os
+import re
+import sqlite3
 import sys
+import time
+from datetime import date, datetime
 from pathlib import Path
+
 
 DB_PATH = os.getenv("JOB_TRACKER_DB", "db/job_tracker.db")
 PATTERNS_PATH = Path(__file__).parent / "json/patterns.json"
@@ -42,14 +41,10 @@ def get_db_connection(retries=3, delay=2):
         except sqlite3.OperationalError as e:
             error_msg = str(e).lower()
             if "database is locked" in error_msg:
-                print(
-                    f"⚠️ Attempt {attempt+1}: Database is locked. Retrying in {delay} seconds..."
-                )
+                print(f"⚠️ Attempt {attempt+1}: Database is locked. Retrying in {delay} seconds...")
                 time.sleep(delay)
             elif "unable to open database file" in error_msg:
-                print(
-                    "❌ Database file not found or inaccessible. Check DB_PATH and permissions."
-                )
+                print("❌ Database file not found or inaccessible. Check DB_PATH and permissions.")
                 sys.exit(1)
             else:
                 print(f"❌ Unexpected SQLite error: {e}")
@@ -95,9 +90,7 @@ def init_db():
     # Indexes for performance
     c.execute("CREATE INDEX IF NOT EXISTS idx_status ON applications(status)")
     c.execute("CREATE INDEX IF NOT EXISTS idx_company ON applications(company)")
-    c.execute(
-        "CREATE INDEX IF NOT EXISTS idx_company_job_index ON applications(company_job_index)"
-    )
+    c.execute("CREATE INDEX IF NOT EXISTS idx_company_job_index ON applications(company_job_index)")
 
     # Meta table for schema versioning
     c.execute(
@@ -219,9 +212,7 @@ def init_db():
 
     # Ensure today's row exists
     today = date.today().isoformat()
-    c.execute(
-        "INSERT OR IGNORE INTO tracker_ingestionstats (date) VALUES (?)", (today,)
-    )
+    c.execute("INSERT OR IGNORE INTO tracker_ingestionstats (date) VALUES (?)", (today,))
 
     conn.commit()
     conn.close()
@@ -245,8 +236,9 @@ def insert_email_text(message_id, subject, body):
 
 def load_training_data():
     """Load labeled messages from Django Message model."""
-    from tracker.models import Message
     import pandas as pd
+
+    from tracker.models import Message
 
     # Get all messages with manual labels (where reviewed=True and ml_label is set)
     qs = (
@@ -277,16 +269,10 @@ def insert_or_update_application(data):
 
     # Normalize follow_up_dates and labels to strings
     follow_up_raw = data.get("follow_up_dates", [])
-    data["follow_up_dates"] = (
-        ", ".join(follow_up_raw)
-        if isinstance(follow_up_raw, list)
-        else str(follow_up_raw)
-    )
+    data["follow_up_dates"] = ", ".join(follow_up_raw) if isinstance(follow_up_raw, list) else str(follow_up_raw)
 
     labels_raw = data.get("labels", [])
-    data["labels"] = (
-        ", ".join(labels_raw) if isinstance(labels_raw, list) else str(labels_raw)
-    )
+    data["labels"] = ", ".join(labels_raw) if isinstance(labels_raw, list) else str(labels_raw)
 
     c.execute(
         """

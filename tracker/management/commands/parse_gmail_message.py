@@ -1,18 +1,17 @@
-from django.core.management.base import BaseCommand
-import os
 import json
+import os
 from parser import (
     extract_metadata,
     parse_subject,
-    resolve_company,
     predict_subject_type,
+    resolve_company,
 )
+
+from django.core.management.base import BaseCommand
 
 
 class Command(BaseCommand):
-    help = (
-        "Parse a raw Gmail message source and print the extracted fields (no DB write)."
-    )
+    help = "Parse a raw Gmail message source and print the extracted fields (no DB write)."
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -63,6 +62,4 @@ class Command(BaseCommand):
         if options["verbose"]:
             self.stdout.write(json.dumps(result, indent=2, ensure_ascii=False))
         else:
-            self.stdout.write(
-                f"Subject: {subject}\nCompany: {company}\nLabel: {label} ({confidence:.2f})"
-            )
+            self.stdout.write(f"Subject: {subject}\nCompany: {company}\nLabel: {label} ({confidence:.2f})")

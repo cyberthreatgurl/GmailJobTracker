@@ -2,7 +2,7 @@ import csv
 import os
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional, Set, Tuple
+from typing import Dict, List, Optional, Set, Tuple
 
 from django.core.management.base import BaseCommand, CommandError
 
@@ -96,9 +96,7 @@ class Command(BaseCommand):
 
         service = get_gmail_service()
         if service is None:
-            raise CommandError(
-                "Failed to initialize Gmail service. Check credentials in json/ and token."
-            )
+            raise CommandError("Failed to initialize Gmail service. Check credentials in json/ and token.")
 
         id_to_name, name_to_id = self._fetch_label_maps(service)
 
@@ -109,9 +107,7 @@ class Command(BaseCommand):
                 if nm in name_to_id:
                     label_ids.add(name_to_id[nm])
                 else:
-                    self.stdout.write(
-                        self.style.WARNING(f"Label name not found in Gmail: {nm}")
-                    )
+                    self.stdout.write(self.style.WARNING(f"Label name not found in Gmail: {nm}"))
         elif not gmail_query:
             # Default to env var GMAIL_JOBHUNT_LABEL_ID if present
             env_id = os.getenv("GMAIL_JOBHUNT_LABEL_ID")
@@ -126,9 +122,7 @@ class Command(BaseCommand):
 
         if label_ids:
             self.stdout.write(
-                self.style.NOTICE(
-                    f"Using Gmail labels: {', '.join([id_to_name.get(i, i) for i in label_ids])}"
-                )
+                self.style.NOTICE(f"Using Gmail labels: {', '.join([id_to_name.get(i, i) for i in label_ids])}")
             )
         if gmail_query:
             self.stdout.write(self.style.NOTICE(f"Using Gmail query: {gmail_query}"))
@@ -140,15 +134,11 @@ class Command(BaseCommand):
             query=gmail_query,
             limit=options.get("limit"),
         )
-        self.stdout.write(
-            f"Fetched {len(gmail_ids)} Gmail message IDs for specified labels"
-        )
+        self.stdout.write(f"Fetched {len(gmail_ids)} Gmail message IDs for specified labels")
 
         # Build app set: messages with ml_label not in ignore_labels (unless include-ignored)
         ignore_labels = load_ignore_labels()
-        app_qs = Message.objects.all().only(
-            "id", "msg_id", "subject", "ml_label", "reviewed"
-        )
+        app_qs = Message.objects.all().only("id", "msg_id", "subject", "ml_label", "reviewed")
         if not options.get("include_ignored"):
             app_qs = app_qs.exclude(ml_label__in=list(ignore_labels))
         app_labels_req = self._split_csv(options.get("app_labels"))
@@ -172,12 +162,8 @@ class Command(BaseCommand):
         self.stdout.write(f"  Gmail set: {len(gmail_ids)}")
         self.stdout.write(f"  App set:   {len(app_ids)}")
         self.stdout.write(f"  Overlap:   {len(overlap)}")
-        self.stdout.write(
-            self.style.WARNING(f"  Gmail only (missed by app): {len(gmail_only)}")
-        )
-        self.stdout.write(
-            self.style.WARNING(f"  App only (not labeled in Gmail): {len(app_only)}")
-        )
+        self.stdout.write(self.style.WARNING(f"  Gmail only (missed by app): {len(gmail_only)}"))
+        self.stdout.write(self.style.WARNING(f"  App only (not labeled in Gmail): {len(app_only)}"))
 
         if options.get("only_stats"):
             return
@@ -196,23 +182,15 @@ class Command(BaseCommand):
 
         # Show a quick breakdown by ml_label for app_only
         label_counts: Dict[str, int] = {}
-        for lbl in app_qs.filter(msg_id__in=list(app_only)).values_list(
-            "ml_label", flat=True
-        ):
+        for lbl in app_qs.filter(msg_id__in=list(app_only)).values_list("ml_label", flat=True):
             label_counts[lbl or "(none)"] = label_counts.get(lbl or "(none)", 0) + 1
         if label_counts:
             self.stdout.write("\nTop app-only labels:")
-            for lbl, cnt in sorted(
-                label_counts.items(), key=lambda x: x[1], reverse=True
-            ):
+            for lbl, cnt in sorted(label_counts.items(), key=lambda x: x[1], reverse=True):
                 self.stdout.write(f"  {lbl}: {cnt}")
 
         if app_labels_req:
-            self.stdout.write(
-                self.style.NOTICE(
-                    f"Filtering app set by labels: {', '.join(app_labels_req)}"
-                )
-            )
+            self.stdout.write(self.style.NOTICE(f"Filtering app set by labels: {', '.join(app_labels_req)}"))
         if options.get("reviewed_only"):
             self.stdout.write(self.style.NOTICE("Restricting app set to reviewed=True"))
 
@@ -274,17 +252,13 @@ class Command(BaseCommand):
                 break
         return msg_ids
 
-    def _export_csv_gmail_only(
-        self, path: Path, gmail_only_ids: Set[str], id_to_name: Dict[str, str], service
-    ) -> None:
+    def _export_csv_gmail_only(self, path: Path, gmail_only_ids: Set[str], id_to_name: Dict[str, str], service) -> None:
         """Write CSV for Gmail-only messages (present in Gmail or query set but missing from app set).
         Columns: msg_id, thread_id, subject, gmail_labels (names)
         """
         with open(path, "w", newline="", encoding="utf-8") as f:
             w = csv.writer(f)
-            w.writerow(
-                ["msg_id", "thread_id", "subject", "gmail_labels"]
-            )  # include subject for quick review
+            w.writerow(["msg_id", "thread_id", "subject", "gmail_labels"])  # include subject for quick review
             user = "me"
             for mid in gmail_only_ids:
                 try:
@@ -300,9 +274,7 @@ class Command(BaseCommand):
                         .execute()
                     )
                     thread_id = meta.get("threadId", "")
-                    labels = [
-                        id_to_name.get(lid, lid) for lid in meta.get("labelIds", [])
-                    ]
+                    labels = [id_to_name.get(lid, lid) for lid in meta.get("labelIds", [])]
                     # Extract Subject header if present
                     subject = ""
                     for h in meta.get("payload", {}).get("headers", []) or []:
@@ -319,10 +291,6 @@ class Command(BaseCommand):
         """
         with open(path, "w", newline="", encoding="utf-8") as f:
             w = csv.writer(f)
-            w.writerow(
-                ["msg_id", "subject", "ml_label"]
-            )  # minimal fields helpful for rule tweaks
-            for row in app_qs.filter(msg_id__in=list(app_only_ids)).values_list(
-                "msg_id", "subject", "ml_label"
-            ):
+            w.writerow(["msg_id", "subject", "ml_label"])  # minimal fields helpful for rule tweaks
+            for row in app_qs.filter(msg_id__in=list(app_only_ids)).values_list("msg_id", "subject", "ml_label"):
                 w.writerow(list(row))

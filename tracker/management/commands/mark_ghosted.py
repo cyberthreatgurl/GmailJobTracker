@@ -25,14 +25,14 @@ Configuration precedence for threshold days:
 4) Default: 30
 """
 
-from datetime import timedelta
 import os
+from datetime import timedelta
 
 from django.core.management.base import BaseCommand
-from django.db.models import Q, Max
+from django.db.models import Max, Q
 from django.utils.timezone import now
 
-from tracker.models import AppSetting, ThreadTracking, Message, Company
+from tracker.models import AppSetting, Company, Message, ThreadTracking
 
 
 def _get_threshold_days(cli_days: int | None) -> int:
@@ -101,9 +101,7 @@ class Command(BaseCommand):
 
         # Precompute companies that have sent rejections via Application or Message
         rejecting_companies = set(
-            ThreadTracking.objects.filter(rejection_date__isnull=False)
-            .values_list("company_id", flat=True)
-            .distinct()
+            ThreadTracking.objects.filter(rejection_date__isnull=False).values_list("company_id", flat=True).distinct()
         )
         msg_rejecting_companies = set(
             Message.objects.filter(ml_label__in=["rejected", "rejection"])
@@ -120,11 +118,7 @@ class Command(BaseCommand):
         # Precompute last activity per company (latest message timestamp across all threads)
         last_activity_by_company = {
             row["company_id"]: row["last_ts"]
-            for row in (
-                Message.objects.exclude(company=None)
-                .values("company_id")
-                .annotate(last_ts=Max("timestamp"))
-            )
+            for row in (Message.objects.exclude(company=None).values("company_id").annotate(last_ts=Max("timestamp")))
         }
 
         for app in app_candidates:
@@ -135,9 +129,7 @@ class Command(BaseCommand):
             if app.company and app.company.status == "headhunter":
                 continue
             # Thread-level defensive guard: if any rejection exists in this thread, skip
-            if Message.objects.filter(
-                thread_id=app.thread_id, ml_label__in=["rejected", "rejection"]
-            ).exists():
+            if Message.objects.filter(thread_id=app.thread_id, ml_label__in=["rejected", "rejection"]).exists():
                 continue
 
             # Company-level last activity check
@@ -147,16 +139,12 @@ class Command(BaseCommand):
                 last_date = None
                 if app.sent_date:
                     last_date = app.sent_date
-                if app.interview_date and (
-                    not last_date or app.interview_date > last_date
-                ):
+                if app.interview_date and (not last_date or app.interview_date > last_date):
                     last_date = app.interview_date
                 if not last_date:
                     # No basis to evaluate inactivity
                     continue
-                last_ts = now().__class__(
-                    last_date.year, last_date.month, last_date.day, tzinfo=now().tzinfo
-                )
+                last_ts = now().__class__(last_date.year, last_date.month, last_date.day, tzinfo=now().tzinfo)
 
             # If the company has had activity within the threshold, don't ghost
             if last_ts > cutoff_dt:

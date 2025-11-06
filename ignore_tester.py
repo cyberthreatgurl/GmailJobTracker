@@ -1,5 +1,4 @@
 import json
-import re
 from parser import normalize_text, should_ignore
 
 # Load ignore phrases from patterns.json
@@ -15,8 +14,9 @@ TEST_SUBJECTS = [
     "Saved job is expiring soon!",
     "Looking for a new job? Check out these roles",
     "Interview Invitation from Acme Corp",
-    "Application received for Security Analyst"
+    "Application received for Security Analyst",
 ]
+
 
 def test_ignore(subject):
     result = should_ignore(subject, "")
@@ -29,6 +29,7 @@ def test_ignore(subject):
     else:
         print("→ No match found")
     print("-" * 60)
+
 
 if __name__ == "__main__":
     for subj in TEST_SUBJECTS:

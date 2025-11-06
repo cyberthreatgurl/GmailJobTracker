@@ -1,7 +1,7 @@
 """Legacy wrapper — use 'python manage.py ingest_gmail' instead."""
-import sys
-import subprocess
 
+import subprocess
+import sys
 
 if __name__ == "__main__":
     print("main.py is deprecated. Use: python manage.py ingest_gmail")

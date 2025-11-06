@@ -1,7 +1,8 @@
 # tracker/forms.py
 from django import forms
-from tracker.models import ThreadTracking, Company, Message
 from django.utils.timezone import now
+
+from tracker.models import ThreadTracking
 
 
 class ApplicationEditForm(forms.ModelForm):
@@ -91,8 +92,6 @@ class ManualEntryForm(forms.Form):
 
         # Validate interview date is required for interview type
         if entry_type == "interview" and not interview_date:
-            self.add_error(
-                "interview_date", "Interview date is required for interview entries."
-            )
+            self.add_error("interview_date", "Interview date is required for interview entries.")
 
         return cleaned_data

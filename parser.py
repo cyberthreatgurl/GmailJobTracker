@@ -542,7 +542,14 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
     domain_lower = sender_domain.lower() if sender_domain else None
 
     # PRIORITY 1: ATS domain with known sender prefix (most reliable)
-    if not company and domain_lower in ATS_DOMAINS and sender:
+    # Support subdomains of known ATS domains (e.g., talent.icims.com -> icims.com)
+    is_ats_domain = False
+    if domain_lower:
+        for ats_root in ATS_DOMAINS:
+            if domain_lower == ats_root or domain_lower.endswith(f".{ats_root}"):
+                is_ats_domain = True
+                break
+    if not company and is_ats_domain and sender:
         # First try to extract from sender email prefix (e.g., ngc@myworkday.com)
         # Use parseaddr to extract the actual email address from "Display Name <email@domain.com>"
         _, sender_email = parseaddr(sender)
@@ -610,10 +617,12 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
                 display_name,
                 flags=re.I,
             ).strip()
+            # Remove ATS platform suffixes (e.g., "@ icims", "@ Workday", etc.)
+            cleaned = re.sub(r'\s*@\s*(icims|workday|greenhouse|lever|indeed)\s*$', '', cleaned, flags=re.I).strip()
             if cleaned:
                 company = cleaned
                 if DEBUG:
-                    print(f"[DEBUG] ATS display name: {company}")
+                    print(f"[DEBUG] ATS display name: {company} (from sender display name)")
 
     # PRIORITY 2: Domain mapping (direct company domains)
     if not company and domain_lower and domain_lower in DOMAIN_TO_COMPANY:

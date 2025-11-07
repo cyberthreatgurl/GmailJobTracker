@@ -1635,10 +1635,12 @@ def dashboard(request):
         if headhunter_domains:
             hh_company_q = Q()
             for d in headhunter_domains:
-                hh_company_q |= Q(company__domain__iendswith=d)
+                # Company queryset: use direct field name
+                hh_company_q |= Q(domain__iendswith=d)
             msg_hh_q = Q()
             for d in headhunter_domains:
-                msg_hh_q |= Q(company__message__sender__icontains=f"@{d}")
+                # Traverse to related messages via reverse FK 'message'
+                msg_hh_q |= Q(message__sender__icontains=f"@{d}")
             hh_companies = (
                 Company.objects.filter(
                     hh_company_q | msg_hh_q | Q(message__ml_label="head_hunter")
@@ -1792,10 +1794,12 @@ def dashboard(request):
     if headhunter_domains:
         hh_company_q = Q()
         for d in headhunter_domains:
-            hh_company_q |= Q(company__domain__iendswith=d)
+            # Company queryset: use direct field name
+            hh_company_q |= Q(domain__iendswith=d)
         msg_hh_q = Q()
         for d in headhunter_domains:
-            msg_hh_q |= Q(company__message__sender__icontains=f"@{d}")
+            # Traverse to related messages via reverse FK 'message'
+            msg_hh_q |= Q(message__sender__icontains=f"@{d}")
         hh_companies = (
             Company.objects.filter(
                 hh_company_q | msg_hh_q | Q(message__ml_label="head_hunter")
@@ -2252,15 +2256,18 @@ def label_messages(request):
         "1",
         "yes",
     )  # checkbox filter
-    sort = request.GET.get(
-        "sort", ""
-    )  # subject, company, confidence, sender_domain, date
-    order = request.GET.get("order", "asc")  # asc, desc
-    # Focus support: if linking to a specific message and no sort provided, default to date desc
+    # Sorting params (default to date desc when not provided)
+    sort = (request.GET.get("sort") or "").strip()  # subject, company, confidence, sender_domain, date
+    order = (request.GET.get("order") or "").strip()  # asc, desc
+    # Focus support
     focus_msg_id = request.GET.get("focus") or request.GET.get("focus_msg_id")
-    if focus_msg_id and not sort:
+    # Apply default sort only when user didn't specify any sort
+    if not sort:
         sort = "date"
         order = "desc"
+    # If a sort was provided but order wasn't, default to ascending for consistency
+    elif sort and not order:
+        order = "asc"
 
     # Build queryset based on reviewed filter
     if filter_reviewed == "unreviewed":

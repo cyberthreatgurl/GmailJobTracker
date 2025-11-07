@@ -71,6 +71,7 @@
     "offer": ["None"],
     "noise": [
       "\\bnewsletter\\b",
+      "\\bprescription\\b",
       "\\bpayment\\b",
       "\\bdigest\\b",
       "\\bpromotion\\b",

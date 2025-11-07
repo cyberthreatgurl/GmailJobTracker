@@ -13,7 +13,6 @@ from tracker.models import Message
 def load_ignore_labels() -> Set[str]:
     """Load ignore_labels from json/patterns.json, fallback to defaults if missing."""
     import json
-    from pathlib import Path
 
     patterns_path = Path(__file__).resolve().parents[3] / "json" / "patterns.json"
     try:

@@ -1,8 +1,10 @@
+"""Helper functions for database operations and company name resolution."""
 # db_helpers.py
 import sqlite3
 
 
 def build_company_job_index(company, job_title, job_id):
+    """Build a normalized composite key for deduplication of applications."""
     import re
 
     def normalize(text):

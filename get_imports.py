@@ -1,13 +1,16 @@
+"""Utility to extract and analyze Python imports across the codebase."""
 import os
 import re
 import subprocess
 
 
 def get_repo_root():
+    """Get the root directory of the git repository."""
     return subprocess.check_output(['git', 'rev-parse', '--show-toplevel']).decode().strip()
 
 
 def extract_imports():
+    """Extract all import statements from Python files in the last git commit."""
     repo_root = get_repo_root()
     os.chdir(repo_root)
 

@@ -1,3 +1,4 @@
+"""Utilities for preparing training data for machine learning models."""
 # ml_prep.py
 import sqlite3
 
@@ -5,12 +6,14 @@ import pandas as pd
 
 
 def extract_subject_body(message):
+    """Extract subject and body fields from a message dict."""
     subject = message.get("subject", "").strip()
     body = message.get("body", "").strip()
     return subject, body
 
 
 def write_to_sqlite(message_id, subject, body, conn):
+    """Write message text data to SQLite email_text table."""
     cursor = conn.cursor()
     cursor.execute(
         """
@@ -23,6 +26,7 @@ def write_to_sqlite(message_id, subject, body, conn):
 
 
 def ensure_email_text_table(conn):
+    """Create email_text table if it doesn't exist."""
     cursor = conn.cursor()
     cursor.execute(
         """
@@ -37,6 +41,7 @@ def ensure_email_text_table(conn):
 
 
 def load_training_data(db_path):
+    """Load training data from database (email text + labeled companies)."""
     conn = sqlite3.connect(db_path)
     query = """
         SELECT e.message_id, e.subject, e.body, a.company

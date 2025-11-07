@@ -1,3 +1,12 @@
+"""Train the message-type classifier used by GmailJobTracker.
+
+This script loads labeled data from the local database, vectorizes subject and
+body text with TF-IDF, trains a LogisticRegression wrapped in
+CalibratedClassifierCV, evaluates on a held-out split, and saves artifacts to
+`model/` (classifier, vectorizers, label encoder). Metrics are optionally
+persisted to the database for the dashboard.
+"""
+
 import os
 
 import django
@@ -39,9 +48,10 @@ PATTERNS_PATH = Path(__file__).parent / "json" / "patterns.json"
 
 
 def _load_patterns():
+    """Load patterns.json content for weak labeling and config."""
     try:
-        with open(PATTERNS_PATH, "r", encoding="utf-8") as f:
-            return json.load(f)
+        with open(PATTERNS_PATH, "r", encoding="utf-8") as pf:
+            return json.load(pf)
     except Exception:
         return {}
 
@@ -55,7 +65,8 @@ _MSG_LABEL_PATTERNS = {
         "rejected",
         "offer",
         "referral",
-        "response" "ghosted",
+        "response",
+        "ghosted",
         "noise",
         "follow-up",
         "ignore",
@@ -64,6 +75,7 @@ _MSG_LABEL_PATTERNS = {
 
 
 def weak_label(row: pd.Series) -> str | None:
+    """Assign a heuristic label using regex rules when human labels are absent."""
     s = f"{row.get('subject','')} {row.get('body','')}".lower()
     for label in ("interview", "application", "rejection", "offer", "noise"):
         for rx in _MSG_LABEL_PATTERNS.get(label, []):
@@ -161,7 +173,7 @@ print(classification_report(yte, y_pred, zero_division=0))
 if args.verbose:
     # Predicted label distribution on validation set (this is the true "after training" view)
     try:
-        import pandas as _pd  # lazy import for convenience
+        import pandas as _pd  # lazy import for convenience  # pylint: disable=reimported
 
         val_pred_counts = _pd.Series(y_pred).value_counts().sort_values(ascending=False)
         print(f"[Info] Validation predicted label distribution:\n{val_pred_counts}")
@@ -170,8 +182,6 @@ if args.verbose:
 
     # Show effective training weights per class (illustrates balancing effect of class weights)
     try:
-        import pandas as _pd
-
         sw_df = _pd.DataFrame({"label": _pd.Series(ytr).reset_index(drop=True), "weight": sample_weights})
         eff_weights = sw_df.groupby("label")["weight"].sum().sort_values(ascending=False)
         print(f"[Info] Effective training class weights (sum of sample weights):\n{eff_weights}")
@@ -239,7 +249,7 @@ model_info = {
     "total_features": len(all_features),
     "meaningful_features_sample": sorted(meaningful_features),
 }
-with open("model/model_info.json", "w") as f:
+with open("model/model_info.json", "w", encoding="utf-8") as f:
     json.dump(model_info, f, indent=2)
 
 print("Message-level model artifacts saved to /model/")

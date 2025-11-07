@@ -1,8 +1,10 @@
+"""Parser for CHANGELOG.md entries following Keep a Changelog format."""
 import re
 from collections import defaultdict
 
 
 def parse_changelog(path='CHANGELOG.md'):
+    """Parse CHANGELOG.md and return list of entries by version/section."""
     with open(path, 'r', encoding='utf-8') as f:
         lines = f.readlines()
 

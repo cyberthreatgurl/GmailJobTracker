@@ -1,5 +1,5 @@
 {
-  "trained_on": "2025-11-07T13:07:12.059864",
+  "trained_on": "2025-11-07T15:55:14.153227",
   "labels": [
     "head_hunter",
     "interview_invite",
@@ -9,8 +9,8 @@
     "referral",
     "rejected"
   ],
-  "num_samples": 1022,
-  "total_features": 41840,
+  "num_samples": 1039,
+  "total_features": 41871,
   "meaningful_features_sample": [
     "10 more",
     "1074 cyber",
@@ -43,6 +43,7 @@
     "advisory",
     "affordability",
     "after",
+    "against",
     "agent",
     "agentic",
     "agents",
@@ -88,9 +89,11 @@
     "and more",
     "and other",
     "and others",
+    "and power",
     "and response",
     "and security",
     "and stas",
+    "and the",
     "anezus",
     "anezus jump",
     "announcement",
@@ -108,9 +111,6 @@
     "application cyber",
     "application for",
     "application has",
-    "application is",
-    "application received",
-    "application senior",
-    "application status"
+    "application is"
   ]
 }

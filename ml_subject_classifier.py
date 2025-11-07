@@ -1,3 +1,11 @@
+"""Message/company classification utilities for GmailJobTracker.
+
+Loads trained scikit-learn artifacts from the local `model/` directory and
+provides `predict_subject_type` which prioritizes rule-based decisions with ML
+fallback. Also includes pattern loading from `json/patterns.json` and support
+for suppressing labels.
+"""
+
 # ml_subject_classifier.py
 
 import json
@@ -68,7 +76,11 @@ def _decode_label(idx: int) -> str:
             except Exception:
                 pass
         # If label_encoder is a list/sequence and cls is int index
-        if isinstance(le, (list, tuple)) and isinstance(cls, int) and 0 <= cls < len(le):
+        if (
+            isinstance(le, (list, tuple))
+            and isinstance(cls, int)
+            and 0 <= cls < len(le)
+        ):
             return str(le[cls])
         # Fallback
         return str(cls)
@@ -93,7 +105,9 @@ _PATTERNS = _load_patterns()
 _COMPILED_PATTERNS = {}
 if _PATTERNS and "message_labels" in _PATTERNS:
     for label, pattern_list in _PATTERNS["message_labels"].items():
-        _COMPILED_PATTERNS[label] = [re.compile(p, re.IGNORECASE) for p in pattern_list if p and p != "None"]
+        _COMPILED_PATTERNS[label] = [
+            re.compile(p, re.IGNORECASE) for p in pattern_list if p and p != "None"
+        ]
 
 # Labels to suppress (map to 'other'), configurable in patterns.json
 _SUPPRESS_LABELS = set(_PATTERNS.get("suppress_labels", []))
@@ -124,14 +138,14 @@ def rule_label(subject: str, body: str = "") -> str | None:
         "referral",
     ]
 
-    for label in priority_order:
-        patterns = _COMPILED_PATTERNS.get(label, [])
+    for lbl in priority_order:
+        patterns = _COMPILED_PATTERNS.get(lbl, [])
         for pattern in patterns:
             if pattern.search(text):
                 # If label is suppressed, pretend no rule hit so ML or other rules can proceed
-                if label in _SUPPRESS_LABELS:
+                if lbl in _SUPPRESS_LABELS:
                     return "other"
-                return label
+                return lbl
 
     return None
 
@@ -155,7 +169,9 @@ def _get_rule_label_func():
     return rule_label
 
 
-def predict_subject_type(subject: str, body: str = "", threshold: float = 0.6, sender: str = ""):
+def predict_subject_type(
+    subject: str, body: str = "", threshold: float = 0.6, sender: str = ""
+):
     """Predict message label from subject+body using rules first, then ML.
 
     Returns dict: {label, confidence, ignore, method}
@@ -169,10 +185,11 @@ def predict_subject_type(subject: str, body: str = "", threshold: float = 0.6, s
         print(f"[DEBUG] predict_subject_type: subject='{(subject or '')[:80]}'")
 
     # Check if sender is the user (skip head_hunter classification for user's own messages)
-    import os
 
     user_email = (os.environ.get("USER_EMAIL_ADDRESS") or "").strip().lower()
-    exclude_user_hh = os.environ.get("HEADHUNTER_EXCLUDE_USER_SENDER", "false").strip().lower() in {
+    exclude_user_hh = os.environ.get(
+        "HEADHUNTER_EXCLUDE_USER_SENDER", "false"
+    ).strip().lower() in {
         "1",
         "true",
         "yes",
@@ -182,7 +199,9 @@ def predict_subject_type(subject: str, body: str = "", threshold: float = 0.6, s
     if user_email and sender:
         is_user_message = user_email in sender.lower()
         if DEBUG and is_user_message and exclude_user_hh:
-            print(f"[DEBUG] Sender is user ({user_email}), will skip head_hunter classification (env gated)")
+            print(
+                f"[DEBUG] Sender is user ({user_email}), will skip head_hunter classification (env gated)"
+            )
 
     # Try rule-based first (use the canonical implementation from parser.py if available)
     rule_fn = _get_rule_label_func()
@@ -193,7 +212,9 @@ def predict_subject_type(subject: str, body: str = "", threshold: float = 0.6, s
     # Skip head_hunter label for user's own messages (env gated)
     if rule_result == "head_hunter" and is_user_message and exclude_user_hh:
         if DEBUG:
-            print("[DEBUG] Skipping head_hunter label for user message, treating as 'other'")
+            print(
+                "[DEBUG] Skipping head_hunter label for user message, treating as 'other'"
+            )
         rule_result = "other"
 
     if rule_result:
@@ -242,21 +263,25 @@ def predict_subject_type(subject: str, body: str = "", threshold: float = 0.6, s
     proba = model.predict_proba(X)[0]
     idx = int(np.argmax(proba))
     confidence = float(proba[idx])
-    label = _decode_label(idx)
+    predicted_label = _decode_label(idx)
     if DEBUG:
-        print(f"[DEBUG] ML predicted: label={label}, confidence={confidence:.3f}")
+        print(f"[DEBUG] ML predicted: label={predicted_label}, confidence={confidence:.3f}")
 
     # Skip head_hunter label for user's own messages (env gated)
-    if label == "head_hunter" and is_user_message and exclude_user_hh:
+    if predicted_label == "head_hunter" and is_user_message and exclude_user_hh:
         if DEBUG:
-            print("[DEBUG] Skipping ML head_hunter prediction for user message, using 'other'")
-        label = "other"
+            print(
+                "[DEBUG] Skipping ML head_hunter prediction for user message, using 'other'"
+            )
+        predicted_label = "other"
 
     # If ML is uncertain, try rules again as backup
     if confidence < threshold:
         rule_result = rule_fn(subject, body)
         if DEBUG:
-            print(f"[DEBUG] ML below threshold; rules-fallback returned: {repr(rule_result)}")
+            print(
+                f"[DEBUG] ML below threshold; rules-fallback returned: {repr(rule_result)}"
+            )
         # Skip head_hunter for user messages in fallback too (env gated)
         if rule_result == "head_hunter" and is_user_message and exclude_user_hh:
             if DEBUG:
@@ -269,15 +294,19 @@ def predict_subject_type(subject: str, body: str = "", threshold: float = 0.6, s
                 "label": mapped_label,
                 "confidence": confidence,
                 "ignore": mapped_label in ignore_labels,
-                "method": ("rules_fallback" if mapped_label == rule_result else "rules_fallback_suppressed"),
+                "method": (
+                    "rules_fallback"
+                    if mapped_label == rule_result
+                    else "rules_fallback_suppressed"
+                ),
             }
 
     # Use ML prediction
     # Suppress ML-only offers or other configured labels
-    mapped_label = "other" if label in _SUPPRESS_LABELS else label
+    mapped_label = "other" if predicted_label in _SUPPRESS_LABELS else predicted_label
     return {
         "label": mapped_label,
         "confidence": confidence,
         "ignore": mapped_label in ignore_labels,
-        "method": "ml" if mapped_label == label else "ml_suppressed",
+        "method": "ml_only" if mapped_label == predicted_label else "ml_only_suppressed",
     }

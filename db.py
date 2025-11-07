@@ -1,3 +1,4 @@
+"""Database operations and utilities for job tracker SQLite database."""
 # db.py
 #
 import os
@@ -8,7 +9,6 @@ import time
 from datetime import date, datetime
 from pathlib import Path
 
-
 DB_PATH = os.getenv("JOB_TRACKER_DB", "db/job_tracker.db")
 PATTERNS_PATH = Path(__file__).parent / "json/patterns.json"
 COMPANIES_PATH = Path(__file__).parent / "json/companies.json"
@@ -17,6 +17,7 @@ SCHEMA_VERSION = "2.0.0"
 
 # --- Apply is_valid_company() filter globally ---
 def is_valid_company(name):
+    """Check if a company name passes basic validation rules."""
     name = name.strip()
     if not name or len(name.split()) > 8:
         return False
@@ -58,6 +59,7 @@ def get_db_connection(retries=3, delay=2):
 
 
 def init_db():
+    """Initialize the database schema and tables."""
     conn = get_db_connection()
 
     c = conn.cursor()
@@ -219,7 +221,7 @@ def init_db():
 
 
 def insert_email_text(message_id, subject, body):
-
+    """Insert message text into email_texts table for search/analysis."""
     conn = get_db_connection()
 
     c = conn.cursor()
@@ -261,6 +263,7 @@ def load_training_data():
 
 
 def insert_or_update_application(data):
+    """Insert or update a job application record in the database."""
     conn = get_db_connection()
     c = conn.cursor()
 

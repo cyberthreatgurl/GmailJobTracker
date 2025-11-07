@@ -20,6 +20,7 @@ if not os.path.exists(LOG_DIR):
 
 
 def log_console(message):
+    """Write a timestamped message to logs/tracker.log."""
     ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     entry = f"[{ts}] {message}\n"
     with open(LOG_PATH, "a", encoding="utf-8") as f:

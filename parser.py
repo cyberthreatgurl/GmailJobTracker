@@ -1,4 +1,12 @@
-# parser.py
+"""Gmail message parsing and ingestion engine.
+
+This module handles the core email processing pipeline:
+- Extracts metadata (subject, sender, body, timestamps) from Gmail API responses
+- Applies hybrid ML + regex-based classification (interview/rejection/application/noise)
+- Resolves company names via 4-tier fallback (whitelist → domain mapping → ML → regex)
+- Creates/updates Django ORM records (Message, Application, Company)
+- Tracks ingestion statistics and handles duplicate detection
+"""
 import base64
 import html
 import json
@@ -114,6 +122,12 @@ _MSG_LABEL_EXCLUDES = {
 
 
 def rule_label(subject: str, body: str = "") -> str | None:
+    """Return a rule-based label from compiled regex patterns.
+
+    Checks message text against label patterns in a prioritized order to
+    reduce false positives (e.g., prefer noise over rejected for newsletters).
+    Returns one of the known labels or None if no rule matches.
+    """
     s = f"{subject or ''} {body or ''}"
     # Check labels in priority order (most specific → least specific)
     # Rejection before application: catches "received application BUT unfortunately..."
@@ -170,12 +184,17 @@ def predict_with_fallback(
 
 
 def get_stats():
+    """Get or create today's IngestionStats row and return it."""
     today = now().date()
     stats, _ = IngestionStats.objects.get_or_create(date=today)
     return stats
 
 
 def decode_part(data, encoding):
+    """Decode a MIME part body string using the provided encoding.
+
+    Supports base64, quoted-printable, and 7bit. Returns a decoded UTF-8 string.
+    """
     if encoding == "base64":
         return base64.urlsafe_b64decode(data).decode("utf-8", errors="ignore")
     elif encoding == "quoted-printable":
@@ -206,6 +225,11 @@ def decode_part(data, encoding):
 
 
 def extract_body_from_parts(parts):
+    """Extract the first HTML part's body from a Gmail message payload tree.
+
+    Walks nested multipart sections; prefers HTML and returns full HTML string.
+    Returns "Empty Body" or empty string when no body is found.
+    """
     for part in parts:
         mime_type = part.get("mimeType")
         body_data = part.get("body", {}).get("data")
@@ -225,6 +249,7 @@ def extract_body_from_parts(parts):
 
 
 def log_ignored_message(msg_id, metadata, reason):
+    """Upsert IgnoredMessage with reason for auditability and metrics."""
     IgnoredMessage.objects.update_or_create(
         msg_id=msg_id,
         defaults={
@@ -356,7 +381,7 @@ def predict_company(subject, body):
         return None
 
 
-def should_ignore(subject, body):
+def should_ignore(subject, _body):
     """Return True if subject/body matches ignore patterns."""
     subj_lower = subject.lower()
     ignore_patterns = PATTERNS.get("ignore", [])
@@ -364,8 +389,8 @@ def should_ignore(subject, body):
 
 
 def extract_metadata(service, msg_id):
-    body_html = ""
     """Extract subject, date, thread_id, labels, sender, sender_domain, and body text from a Gmail message."""
+    body_html = ""
     msg = service.users().messages().get(userId="me", id=msg_id, format="full").execute()
     headers = msg["payload"]["headers"]
 
@@ -401,12 +426,13 @@ def extract_metadata(service, msg_id):
         # decoded = base64.urlsafe_b64decode(data).decode("utf-8", errors="ignore")
         encoding = part.get("body", {}).get("encoding", "base64").lower()
         data = part.get("body", {}).get("data")
+        decoded = ""
         if data:
             decoded = decode_part(data, encoding)
 
-        if mime_type == "text/plain" and body == "Empty Body":
+        if mime_type == "text/plain" and body == "Empty Body" and decoded:
             body = decoded.strip()
-        elif mime_type == "text/html" and body != "Empty Body":
+        elif mime_type == "text/html" and body != "Empty Body" and decoded:
             body_html = html.unescape(decoded)
             # also provide a plain-text fallback
             body = BeautifulSoup(body_html, "html.parser").get_text(separator=" ", strip=True)
@@ -493,7 +519,7 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
     result = predict_with_fallback(predict_subject_type, subject, body, threshold=0.55, sender=sender)
     confidence = _conf(result)
     label = result["label"]
-    ignore = bool(result.get("ignore", False))
+    bool(result.get("ignore", False))
 
     print("=== PARSE_SUBJECT CALLED ===", flush=True)
     print(f"DEBUG={DEBUG}", flush=True)
@@ -521,7 +547,7 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
         # Use parseaddr to extract the actual email address from "Display Name <email@domain.com>"
         _, sender_email = parseaddr(sender)
         if sender_email and "@" in sender_email:
-            sender_prefix = sender_email.split("@")[0].strip().lower()
+            sender_prefix = sender_email.split("@", maxsplit=1)[0].strip().lower()
             # Check if prefix matches an alias
             aliases_lower = {k.lower(): v for k, v in company_data.get("aliases", {}).items()}
             if sender_prefix in aliases_lower:
@@ -624,7 +650,7 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
     # PRIORITY 6: Regex patterns
     # Note: Patterns use limited word capture (1-3 words max for company names) to avoid over-matching
     # Example: "Proofpoint - We have received your application" should extract "Proofpoint", not the whole phrase
-    patterns = [
+    subject_patterns = [
         # Prefer stopping at separators like " application" or " -" to avoid over-capture
         (
             r"^([A-Z][a-zA-Z]+(?:\s+(?:[A-Z][a-zA-Z]+|&[A-Z]?))*?)(?:\s+application|\s+-)",
@@ -673,7 +699,7 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
         job_title = special_match.group(1).strip()
         company = special_match.group(2).strip()
 
-    for pat, flags in patterns:
+    for pat, flags in subject_patterns:
         if not company:
             match = re.search(pat, subject_clean, flags)
             if match:
@@ -735,6 +761,12 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
 
 
 def ingest_message(service, msg_id):
+    """Ingest a single Gmail message by id into the local database.
+
+    Pipeline: metadata extraction → ML+rules classification → company resolution →
+    Message/Application ORM writes → ingestion stats and dedupe checks.
+    Returns one of: 'inserted' | 'skipped' | 'ignored' | None on failure.
+    """
     stats = get_stats()
 
     try:
@@ -749,6 +781,8 @@ def ingest_message(service, msg_id):
                 print("Stats: ignored++ (blank body)")
             log_ignored_message(msg_id, metadata, reason="blank_body")
             IngestionStats.objects.filter(date=stats.date).update(total_ignored=F("total_ignored") + 1)
+            if hasattr(stats, "total_ignored"):
+                stats.total_ignored += 1
             return "ignored"
 
     except Exception as e:
@@ -776,6 +810,8 @@ def ingest_message(service, msg_id):
             reason=parsed_subject.get("ignore_reason", "ml_ignore"),
         )
         IngestionStats.objects.filter(date=stats.date).update(total_ignored=F("total_ignored") + 1)
+        if hasattr(stats, "total_ignored"):
+            stats.total_ignored += 1
         return "ignored"
 
     status = classify_message(body)
@@ -1079,6 +1115,8 @@ def ingest_message(service, msg_id):
                     print(f"Warning: Could not update Application during re-ingest: {e}")
 
         IngestionStats.objects.filter(date=stats.date).update(total_skipped=F("total_skipped") + 1)
+        if hasattr(stats, "total_skipped"):
+            stats.total_skipped += 1
         return "skipped"
 
     reviewed = (
@@ -1095,12 +1133,9 @@ def ingest_message(service, msg_id):
         )
 
     # ✅ Check for near-duplicate messages (same subject, sender, timestamp within 5 seconds)
-    import datetime
-
-
     ts = metadata["timestamp"]
-    window_start = ts - datetime.timedelta(seconds=5)
-    window_end = ts + datetime.timedelta(seconds=5)
+    window_start = ts - timedelta(seconds=5)
+    window_end = ts + timedelta(seconds=5)
     duplicate_qs = Message.objects.filter(
         subject=subject,
         sender=metadata["sender"],
@@ -1112,8 +1147,6 @@ def ingest_message(service, msg_id):
         if DEBUG:
             print(f"⚠️ Duplicate message detected: subject='{subject}', sender='{metadata['sender']}', ts={ts}")
         # Optionally log to IgnoredMessage
-        from tracker.models import IgnoredMessage
-
         IgnoredMessage.objects.get_or_create(
             msg_id=msg_id,
             defaults={
@@ -1153,21 +1186,22 @@ def ingest_message(service, msg_id):
                 # Force headhunter label for these cases
                 result["label"] = "head_hunter"
 
-    # ✅ Now safe to insert Message with enriched company
-    Message.objects.create(
-        msg_id=msg_id,
-        thread_id=metadata["thread_id"],
-        subject=subject,
-        sender=metadata["sender"],
-        body=metadata["body"],
-        body_html=metadata["body_html"],
-        timestamp=metadata["timestamp"],
-        ml_label=result["label"],
-        confidence=result["confidence"],
-        reviewed=(reviewed),
-        company=company_obj,
-        company_source=company_source,
-    )
+        # ✅ Now safe to insert Message with enriched company
+        # Use safe fallback for body_html because unit tests' mocked metadata may omit it
+        Message.objects.create(
+            msg_id=msg_id,
+            thread_id=metadata["thread_id"],
+            subject=subject,
+            sender=metadata["sender"],
+            body=metadata.get("body", ""),
+            body_html=metadata.get("body_html", metadata.get("body", "")),
+            timestamp=metadata["timestamp"],
+            ml_label=result["label"],
+            confidence=result["confidence"],
+            reviewed=reviewed,
+            company=company_obj,
+            company_source=company_source,
+        )
     # ✅ Create or update Application record using Django ORM
 
     # ✅ Fallback: if pattern-based extraction didn't find rejection/interview dates,
@@ -1250,10 +1284,14 @@ def ingest_message(service, msg_id):
                         if DEBUG:
                             print("Stats: inserted++ (new application)")
                         IngestionStats.objects.filter(date=stats.date).update(total_inserted=F("total_inserted") + 1)
+                        if hasattr(stats, "total_inserted"):
+                            stats.total_inserted += 1
                     else:
                         if DEBUG:
                             print("Stats: ignored++ (duplicate application)")
                         IngestionStats.objects.filter(date=stats.date).update(total_ignored=F("total_ignored") + 1)
+                        if hasattr(stats, "total_ignored"):
+                            stats.total_ignored += 1
                 else:
                     # Not an application email: update existing Application if present, do not create a new one
                     try:
@@ -1285,15 +1323,20 @@ def ingest_message(service, msg_id):
             if DEBUG:
                 print("Stats: skipped++ (missing company/message)")
             IngestionStats.objects.filter(date=stats.date).update(total_skipped=F("total_skipped") + 1)
+            if hasattr(stats, "total_skipped"):
+                stats.total_skipped += 1
 
     except Exception as e:
         if DEBUG:
             print(f"Failed to create Application: {e}")
         IngestionStats.objects.filter(date=stats.date).update(total_skipped=F("total_skipped") + 1)
+        if hasattr(stats, "total_skipped"):
+            stats.total_skipped += 1
 
     # Refresh stats before printing
     if DEBUG:
-        stats.refresh_from_db()
+        if hasattr(stats, "refresh_from_db"):
+            stats.refresh_from_db()
         print(
             f"Stats updated: inserted={stats.total_inserted}, ignored={stats.total_ignored}, skipped={stats.total_skipped}"
         )
@@ -1343,6 +1386,8 @@ def ingest_message(service, msg_id):
             print("Stats: ignored++ (unclassified)")
         log_ignored_message(msg_id, metadata, reason=reason)
         IngestionStats.objects.filter(date=stats.date).update(total_ignored=F("total_ignored") + 1)
+        if hasattr(stats, "total_ignored"):
+            stats.total_ignored += 1
         return "ignored"
 
     record["company_job_index"] = build_company_job_index(
@@ -1362,6 +1407,8 @@ def ingest_message(service, msg_id):
             print("Stats: ignored++ (pattern ignore)")
         log_ignored_message(msg_id, metadata, reason="pattern_ignore")
         IngestionStats.objects.filter(date=stats.date).update(total_ignored=F("total_ignored") + 1)
+        if hasattr(stats, "total_ignored"):
+            stats.total_ignored += 1
         return "ignored"
 
     insert_or_update_application(record)

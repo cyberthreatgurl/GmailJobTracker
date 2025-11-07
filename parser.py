@@ -624,9 +624,14 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
                 if DEBUG:
                     print(f"[DEBUG] ATS display name: {company} (from sender display name)")
 
-    # PRIORITY 2: Domain mapping (direct company domains)
-    if not company and domain_lower and domain_lower in DOMAIN_TO_COMPANY:
-        company = DOMAIN_TO_COMPANY[domain_lower]
+    # PRIORITY 2: Domain mapping (direct company domains) with subdomain support
+    # Skip if domain is (or is under) a known ATS platform; ATS handled separately above.
+    if not company and domain_lower and not _is_ats_domain(domain_lower):
+        mapped = _map_company_by_domain(domain_lower)
+        if mapped:
+            company = mapped
+            if DEBUG:
+                print(f"[DEBUG] Domain mapping (subdomain aware) used: {domain_lower} -> {company}")
 
     # PRIORITY 3: Known companies in subject
     if not company and KNOWN_COMPANIES:
@@ -874,12 +879,14 @@ def ingest_message(service, msg_id):
             if DEBUG:
                 print(f"Headhunter domain detected: {sender_domain} → HeadHunter")
 
-        # 1. Domain mapping (if not ATS and not headhunter)
-        if not company and sender_domain and not is_ats and sender_domain in DOMAIN_TO_COMPANY:
-            company = DOMAIN_TO_COMPANY[sender_domain]
-            company_source = "domain_mapping"
-            if DEBUG:
-                print(f"Domain mapping used: {sender_domain} → {company}")
+        # 1. Domain mapping (if not ATS and not headhunter) with subdomain support
+        if not company and sender_domain and not is_ats:
+            mapped = _map_company_by_domain(sender_domain)
+            if mapped:
+                company = mapped
+                company_source = "domain_mapping"
+                if DEBUG:
+                    print(f"Domain mapping (subdomain aware) used: {sender_domain} → {company}")
 
         # 1.5. Indeed job board special case - extract actual employer from body
         if not company and sender_domain == "indeed.com":
@@ -1462,3 +1469,34 @@ def _conf(res) -> float:
         return float(res.get("confidence", res.get("proba", 0.0)))
     except Exception:
         return 0.0
+
+
+# --- Helpers for domain handling ---
+def _is_ats_domain(domain: str) -> bool:
+    """Return True if domain equals or is a subdomain of any ATS root domain."""
+    if not domain:
+        return False
+    d = domain.lower()
+    for ats in ATS_DOMAINS:
+        if d == ats or d.endswith("." + ats):
+            return True
+    return False
+
+
+def _map_company_by_domain(domain: str) -> str | None:
+    """Resolve company by exact or subdomain match from DOMAIN_TO_COMPANY.
+
+    Example: if mapping contains 'nsa.gov' -> 'National Security Agency', then
+    'uwe.nsa.gov' will also map to that company.
+    """
+    if not domain:
+        return None
+    d = domain.lower()
+    # Exact match first
+    if d in DOMAIN_TO_COMPANY:
+        return DOMAIN_TO_COMPANY[d]
+    # Subdomain suffix match
+    for root, company in DOMAIN_TO_COMPANY.items():
+        if d.endswith("." + root):
+            return company
+    return None

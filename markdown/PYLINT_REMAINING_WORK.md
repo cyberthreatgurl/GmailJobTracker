@@ -14,6 +14,7 @@
 ### 🔴 High Priority (Functional Issues)
 
 #### 1. `reimported` (114 occurrences)
+
 Duplicate imports in the same file. Most are in test files importing multiple fixtures/helpers.
 
 **Action Required**: Manual review to consolidate or remove duplicates  
@@ -21,6 +22,7 @@ Duplicate imports in the same file. Most are in test files importing multiple fi
 **Fix**: Combine into single import statement
 
 #### 2. `no-member` (13 occurrences)
+
 False positives from Django QuerySet methods and dynamic attributes.
 
 **Action Required**: Add `# pylint: disable=no-member` comments or update `.pylintrc` with `generated-members`  

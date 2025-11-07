@@ -128,14 +128,20 @@ def rule_label(subject: str, body: str = "") -> str | None:
     """
     text = f"{subject or ''} {body or ''}".lower()
 
+    # Use keys that exist in patterns.json -> message_labels
+    # and order them to minimize false positives.
     priority_order = [
-        "offer",
-        "head_hunter",
-        "noise",
-        "rejected",
-        "interview_invite",
-        "job_application",
-        "referral",
+        "offer",           # most specific
+        "head_hunter",     # recruiter blasts over noise
+        "noise",           # newsletters, OTP, promos
+        "rejection",       # explicit negatives
+        "interview",       # interview scheduling/confirmation
+        "application",     # generic acknowledgements
+        "referral",        # intros/referrals
+        "response",
+        "follow_up",
+        "ghosted",
+        "other",
     ]
 
     for lbl in priority_order:

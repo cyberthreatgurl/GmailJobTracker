@@ -41,7 +41,7 @@
     ],
     "rejection": [
       "another\\scandidate\\shas\\sbeen\\sselected",
-      "we\\sregret",
+      "\\sregret\\s",
       "better\\sfit\\sour\\sneeds",
       "has\\sbeen\\sclosed",
       "we\\sappreciate\\syour\\sinterest",
@@ -50,7 +50,6 @@
       "\\bnot\\sto\\smove\\sforward\\b",
       "\\bnot\\sselected\\b",
       "\\bposition\\sclosed",
-
       "\\bmove\\sforward\\swith\\sothers\\b",
       "\\bno\\slonger\\savailable\\b",
       "\\bhas\\sbeen\\sclosed\\sor\\sfilled\\b",
@@ -68,10 +67,10 @@
       "\\bwe\\s(?:are\\s)?pursuing\\s(?:other|another)\\scandidate(?:s)?\\b",
       "\\bkeep\\syour\\s(?:resume|application)\\son\\sfile\\b"
     ],
-    "offer": ["None"],
+    "offer": ["\\smake\\syou\\sand\\soffer\\b"],
     "noise": [
       "\\bnewsletter\\b",
-      "\\bprescription\\b",
+      "\\bprescription\\b", 
       "\\bpayment\\b",
       "\\bdigest\\b",
       "\\bpromotion\\b",

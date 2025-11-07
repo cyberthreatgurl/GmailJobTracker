@@ -1,8 +1,9 @@
+"""Test script to validate ignore phrase matching logic."""
 import json
 from parser import normalize_text, should_ignore
 
 # Load ignore phrases from patterns.json
-with open('patterns.json') as f:
+with open('patterns.json', encoding='utf-8') as f:
     PATTERNS = json.load(f)
 IGNORE_PHRASES = [normalize_text(p) for p in PATTERNS.get('ignore', [])]
 
@@ -19,6 +20,7 @@ TEST_SUBJECTS = [
 
 
 def test_ignore(subject):
+    """Test if a given subject line should be ignored based on configured patterns."""
     result = should_ignore(subject, "")
     normalized = normalize_text(subject)
     matched_phrase = next((p for p in IGNORE_PHRASES if p in normalized), None)

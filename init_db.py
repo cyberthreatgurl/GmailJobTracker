@@ -112,7 +112,7 @@ def display_next_steps():
         print("      - Edit .env file")
         print("      - Add GMAIL_JOBHUNT_LABEL_ID (see INSTALL.md)")
     else:
-        with open(env_path) as f:
+        with open(env_path, encoding="utf-8") as f:
             content = f.read()
             if "GMAIL_JOBHUNT_LABEL_ID=" in content and "Label_" not in content:
                 print("\n   2. Configure Gmail label:")
@@ -133,6 +133,7 @@ def display_next_steps():
 
 
 def main():
+    """Initialize database and check configuration for GmailJobTracker."""
     print("🚀 GmailJobTracker - Database Initialization")
     print("=" * 60 + "\n")
 
@@ -143,7 +144,7 @@ def main():
     copy_example_configs()
 
     # Check spaCy model
-    spacy_ok = check_spacy_model()
+    check_spacy_model()
 
     # Run migrations
     migrations_ok = run_migrations()

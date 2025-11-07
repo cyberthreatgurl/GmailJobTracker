@@ -1,3 +1,4 @@
+"""Machine learning-based entity extraction for company and job title identification."""
 # ml_entity_extraction.py
 
 import spacy
@@ -7,6 +8,7 @@ nlp = spacy.load("en_core_web_sm")
 
 
 def extract_entities(subject):
+    """Extract company and job title entities from message subject using spaCy NER."""
     doc = nlp(subject)
     company = ""
     job_title = ""

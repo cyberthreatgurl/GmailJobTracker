@@ -1,9 +1,10 @@
+"""Interactive CLI for updating CHANGELOG.md with new entries."""
 import argparse
-
 from changelog_parser import parse_changelog
 
 
 def main():
+    """Parse and filter CHANGELOG.md entries via CLI."""
     parser = argparse.ArgumentParser(description="Audit CHANGELOG.md entries")
     parser.add_argument('--version', help="Filter by version (e.g., 1.1.0)")
     parser.add_argument('--section', help="Filter by section (e.g., Added, Fixed, Next)")

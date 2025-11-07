@@ -20,6 +20,8 @@ def fake_stats():
         total_ignored = 0
         total_skipped = 0
         total_inserted = 0
+        # Provide date attribute for IngestionStats filter usage
+        date = "2025-09-29"
 
         def save(self):
             pass

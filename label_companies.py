@@ -2,6 +2,7 @@
 # Script to label companies for job applications with missing or generic company names.
 
 
+"""Interactive script for manually labeling company names from messages."""
 import csv
 import sqlite3
 from pathlib import Path
@@ -11,6 +12,7 @@ TRAINING_EXPORT = "labeled_companies.csv"
 
 
 def label_companies():
+    """Interactively label unlabeled messages with company names."""
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
 
@@ -37,7 +39,7 @@ def label_companies():
         if not export_exists:
             writer.writerow(["thread_id", "subject", "sender", "company"])
 
-        for thread_id, subject, body, sender in rows:
+        for thread_id, subject, _body, sender in rows:
             print("\n----------------------------------------")
             print(f"Subject: {subject}")
             print(f"Sender: {sender}")

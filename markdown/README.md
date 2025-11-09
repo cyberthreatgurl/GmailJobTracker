@@ -5,11 +5,6 @@ No data leaves your machine. No external servers. Just clean, private job tracki
 
 ## Features
 
-- Threaded message viewer per company
-- Weekly/monthly rejection/interview stats
-- Upcoming interview calendar
-- Clickable company listing with full message history
-- Requires Gmail OAuth setup and label configuration.
 ## Setup
 
 ```bash
@@ -25,14 +20,21 @@ python check_env.py
 # Visit the admin panel and label messages
 # After labeling, the model will retrain automatically and show training output
 To view environment diagnostics:
-- Visit /admin/environment_status/ (admin login required)
 
 ## Privacy Statement
 
 This tool stores all data locally in db.sqlite3. It does not communicate with any external server.
 
 
-##Features
+The application logs to `logs/tracker.log` for custom ingestion/debug messages and standard Django logging outputs to console (or a file in production). Review this file to analyze ingestion steps and classification decisions.
+Daily log rotation is enabled:
+
+* Custom ingestion/debug messages: `logs/tracker-YYYY-MM-DD.log` (one file per day, created on first write).
+* Django framework logs: `logs/django.log` rotated at midnight retaining recent backups (development) or `/app/logs/django.log` in Docker.
+
+If a legacy `logs/tracker.log` file exists it will stop growing after migration; new entries go to the dated file. You can safely archive or delete the old file.
+
+Retention (production) is controlled via the `DJANGO_LOG_BACKUPS` environment variable (default 30 days). Adjust as needed for disk space and audit requirements.
 
 ```markdown
 - Environment diagnostics via `/admin/environment_status/`

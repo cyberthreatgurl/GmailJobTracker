@@ -194,15 +194,17 @@
           <h2 style="margin-top:0; color:#1e40af; font-size:1.1rem;">Company Data Preview</h2>
           <div style="margin-bottom:1rem;"><strong>Messages in database:</strong> {{ message_count }}</div>
           <div style="max-height: 320px; overflow-y: auto;">
-            <strong>All Email Dates &amp; Subjects:</strong>
-            <ul style="margin:0.5rem 0 0 0; padding-left:1.2rem; font-size:0.97rem;">
-              {% for mid, ts, subj in message_info_list %}
-                <li>
-                  <span style="color:#6b7280;">{{ ts|date:"Y-m-d H:i" }}</span>
-                  —
-                  <a href="{% url 'label_messages' %}?reviewed=all&label=all&sort=date&order=desc&focus={{ mid }}" style="color:#2563eb; text-decoration: none;">
-                    {{ subj|truncatechars:80 }}
-                  </a>
+            <strong>All Email Dates, Labels &amp; Subjects:</strong>
+            <ul style="margin:0.5rem 0 0 0; padding-left:1.2rem; font-size:0.97rem; list-style:none;">
+              {% for mid, ts, subj, label in message_info_list %}
+                <li style="margin-bottom:0.5rem;">
+                  <div style="display:flex; align-items:center; gap:0.5rem;">
+                    <span style="color:#6b7280; white-space:nowrap;">{{ ts|date:"Y-m-d H:i" }}</span>
+                    <span style="background:#e0e7ff; color:#3730a3; border-radius:3px; padding:0.15rem 0.4rem; font-size:0.8rem; font-weight:600; white-space:nowrap;">{{ label|default:"N/A" }}</span>
+                    <a href="{% url 'label_messages' %}?reviewed=all&label=all&sort=date&order=desc&focus={{ mid }}" style="color:#2563eb; text-decoration:none; flex:1;">
+                      {{ subj|truncatechars:70 }}
+                    </a>
+                  </div>
                 </li>
               {% empty %}
                 <li style="color:#9ca3af;">No messages found for this company.</li>

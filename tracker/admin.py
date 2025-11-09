@@ -81,9 +81,12 @@ class ThreadTrackingAdmin(admin.ModelAdmin):
         "ml_confidence",
         "reviewed",
         "sent_date",
+        "interview_date",
+        "interview_completed",
     )
-    list_filter = ("ml_label", "reviewed", "company_source")
+    list_filter = ("ml_label", "reviewed", "company_source", "interview_completed")
     search_fields = ("job_title", "company__name", "thread_id", "ml_label")
+    list_editable = ("interview_completed",)
     actions = [mark_as_reviewed]
 
 

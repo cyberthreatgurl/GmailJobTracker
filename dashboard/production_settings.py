@@ -28,41 +28,43 @@ LOGGING = {
             "format": "{levelname} {asctime} {module} {process:d} {thread:d} {message}",
             "style": "{",
         },
-        "simple": {
-            "format": "{levelname} {message}",
-            "style": "{",
-        },
     },
     "handlers": {
         "console": {
             "class": "logging.StreamHandler",
             "formatter": "verbose",
         },
-        "file": {
-            "class": "logging.handlers.RotatingFileHandler",
+        "daily_file": {
+            "class": "logging.handlers.TimedRotatingFileHandler",
             "filename": "/app/logs/django.log",
-            "maxBytes": 1024 * 1024 * 10,  # 10 MB
-            "backupCount": 5,
+            "when": "midnight",
+            "backupCount": int(os.getenv("DJANGO_LOG_BACKUPS", "30")),
             "formatter": "verbose",
         },
     },
     "root": {
-        "handlers": ["console", "file"],
+        "handlers": ["console", "daily_file"],
         "level": LOG_LEVEL,
     },
     "loggers": {
         "django": {
-            "handlers": ["console", "file"],
+            "handlers": ["console", "daily_file"],
             "level": LOG_LEVEL,
             "propagate": False,
         },
         "tracker": {
-            "handlers": ["console", "file"],
+            "handlers": ["console", "daily_file"],
             "level": LOG_LEVEL,
             "propagate": False,
         },
     },
 }
+
+# Ensure log directory exists in container
+try:
+    os.makedirs("/app/logs", exist_ok=True)
+except Exception:
+    pass
 
 # Security headers (only in production)
 if not DEBUG:

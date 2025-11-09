@@ -128,12 +128,33 @@ def label_rule_debugger(request):
                 patterns_path = Path("json/patterns.json")
                 patterns = load_json(patterns_path, default={"message_labels": {}})
                 msg_labels = patterns.get("message_labels", {})
-                # Find which label and pattern(s) match without duplicates
-                # Uses STANDARD REGEX (Python re module) with case-insensitive matching
-                seen_rules = set()  # (label, rule)
-                matched_labels_set = set()
+                
+                # Match labels in PRIORITY ORDER (same as rule_label function in parser.py)
+                # Stop at the FIRST match to reflect actual ingestion behavior
+                # Note: "interview_invite" in patterns.json is stored as "interview"
+                # and "job_application" as "application"
+                label_priority = [
+                    "offer",
+                    "head_hunter",
+                    "noise",
+                    "rejection",
+                    "interview",  # Maps to interview_invite
+                    "application",  # Maps to job_application
+                    "referral",
+                    "ghosted",
+                    "blank",
+                    "other",
+                ]
+                
                 highlights_set = set()
-                for label, rules in msg_labels.items():
+                matched_labels_set = set()
+                found_match = False
+                
+                for label in label_priority:
+                    if found_match:
+                        break  # Stop after first match
+                    
+                    rules = msg_labels.get(label, [])
                     for rule in rules:
                         if rule == "None":
                             continue
@@ -145,11 +166,11 @@ def label_rule_debugger(request):
                             match = pattern.search(message_text)
 
                             if match:
-                                if (label, rule) not in seen_rules:
-                                    matched_patterns.append(f"{label}: {rule}")
-                                    matched_label = label
-                                    matched_labels_set.add(label)
-                                    seen_rules.add((label, rule))
+                                # Found a match! Record it and stop checking
+                                matched_patterns.append(f"{label}: {rule}")
+                                matched_label = label
+                                matched_labels_set.add(label)
+                                found_match = True
 
                                 # Extract matched text for highlighting
                                 matched_text = match.group(0)
@@ -170,6 +191,8 @@ def label_rule_debugger(request):
                                                 highlights_set.add(alt_match.group(0))
                                         except:
                                             pass
+                                
+                                break  # Stop checking rules for this label
                         except re.error as e:
                             # Invalid regex pattern - log but continue
                             print(
@@ -824,7 +847,7 @@ def label_companies(request):
             # If the latest message is a rejection, ensure company status reflects that
             try:
                 if (
-                    latest_label in ("rejected", "rejection")
+                    latest_label == "rejection"
                     and selected_company.status != "rejected"
                 ):
                     selected_company.status = "rejected"
@@ -836,16 +859,16 @@ def label_companies(request):
             except Exception:
                 pass
 
-            # Get message count and (date, subject) list (exclude noise messages)
+            # Get message count and (date, subject, label) list (exclude noise messages)
             messages_qs = (
                 Message.objects.filter(company=selected_company)
                 .exclude(ml_label="noise")
                 .order_by("-timestamp")
             )
             message_count = messages_qs.count()
-            # Provide (id, timestamp, subject) for deep links to label_messages focus
+            # Provide (id, timestamp, subject, ml_label) for deep links to label_messages focus
             message_info_list = list(
-                messages_qs.values_list("id", "timestamp", "subject")
+                messages_qs.values_list("id", "timestamp", "subject", "ml_label")
             )
             # Compute days since last message for ghosted assessment
             if message_count > 0:
@@ -858,7 +881,7 @@ def label_companies(request):
                 # Quick action: mark as ghosted
                 if request.POST.get("action") == "mark_ghosted":
                     # Do not allow ghosted if last message was a rejection
-                    if latest_label in ("rejected", "rejection"):
+                    if latest_label == "rejection":
                         messages.error(
                             request,
                             "❌ Cannot mark as ghosted: the latest message is a rejection.",
@@ -1101,7 +1124,11 @@ def build_sidebar_context():
 
     # Get upcoming interviews from Application table where interview_date is set
     upcoming_interviews = (
-        ThreadTracking.objects.filter(interview_date__gte=now(), company__isnull=False)
+        ThreadTracking.objects.filter(
+            interview_date__gte=now(),
+            company__isnull=False,
+            interview_completed=False
+        )
         .select_related("company")
         .order_by("interview_date")[:10]  # Limit to next 10
     )
@@ -2159,17 +2186,17 @@ def label_messages(request):
                 messages.warning(request, "⚠️ Please select messages and a company")
 
         elif action == "mark_all_reviewed":
-            # Mark all visible messages on current page as reviewed
-            page_message_ids = request.POST.getlist("page_message_ids")
+            # Updated behavior: only mark explicitly selected (checked) messages
+            selected_ids = request.POST.getlist("selected_messages")
 
-            if page_message_ids:
-                updated_count = Message.objects.filter(pk__in=page_message_ids).update(
-                    reviewed=True
+            if selected_ids:
+                updated_count = (
+                    Message.objects.filter(pk__in=selected_ids).update(reviewed=True)
                 )
 
                 messages.success(
                     request,
-                    f"✅ Marked {updated_count} message(s) on this page as reviewed",
+                    f"✅ Marked {updated_count} selected message(s) as reviewed",
                 )
 
                 # Trigger model retraining in background when messages are marked as reviewed
@@ -2186,9 +2213,11 @@ def label_messages(request):
                         f"⚠️ Could not start retraining: {e}. Please retrain manually from the sidebar.",
                     )
             else:
-                messages.warning(request, "⚠️ No messages found on this page")
+                messages.warning(
+                    request,
+                    "⚠️ Please select one or more messages to mark as reviewed",
+                )
 
-            # Redirect to refresh the page with current filters
             return redirect(request.get_full_path())
 
         elif action == "reingest_selected":

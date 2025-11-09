@@ -14,7 +14,10 @@
       "\\bconfirmation\\b.*\\binterview\\b",
       "\\byour\\sinterview\\sis\\sscheduled\\b",
       "\\byou'?ve\\sscheduled\\b.*\\binterview\\b",
-      "\\binterview\\sconfirmed\\b"
+      "\\binterview\\sconfirmed\\b",
+      "\\bresponse\\srequested\\b",
+      "\\bpress\\sforward\\swith\\b",
+      "\\bdiscuss\\sthe\\sopportunity\\b"
     ],
     "application": [
       "acknowledge\\sthes\\sreceipt",
@@ -30,6 +33,7 @@
       "\\bapplication\\ssubmitted\\b",
       "\\bsubmitted\\b.*\\bapplication\\b",
       "^submitted[:\\s]",
+      "\\sapplication\\shas\\sbeen\\ssubmitted\\b",
       "\\bsubmission\\sreceived\\b",
       "\\bwe\\sreceived\\syour\\ssubmission\\b",
       "\\bcomplete\\s+(?:your|the)\\s+.*?\\sapplication\\b",
@@ -63,11 +67,11 @@
       "\\bproceed(?:ing)?\\swith\\s(?:other|another)\\scandidate(?:s)?\\b",
       "\\bmove\\sforward\\swith\\s(?:other|another)\\scandidate(?:s)?\\b",
       "\\bposition\\s(?:has\\sbeen\\s)?filled\\b",
-      "\\bno\\slonger\\s(?:considering|moving\\sforward)\\b",
+      "\\bno\\slonger\\s(?:considering|moving\\sforward)\\bs",
       "\\bwe\\s(?:are\\s)?pursuing\\s(?:other|another)\\scandidate(?:s)?\\b",
       "\\bkeep\\syour\\s(?:resume|application)\\son\\sfile\\b"
     ],
-    "offer": ["\\smake\\syou\\sand\\soffer\\b"],
+    "offer": ["\\smake\\syou\\san\\soffer\\b"],
     "noise": [
       "\\bnewsletter\\b",
       "\\bprescription\\b", 
@@ -76,6 +80,7 @@
       "\\bpromotion\\b",
       "\\bmarketing\\b",
       "\\bsale\\b",
+      "\\blatest\\sissue\\b",
       "\\bjob\\salert\\b",
       "\\bverification\\scode\\b",
       "\\bone-time\\scode\\b",
@@ -108,7 +113,10 @@
       "application\\sreceived"
     ],
     "ghosted": ["None"],
-    "other": ["None"]
+    "other": [
+      "\\bMicrosoft\\sTeams\\sNeed\\shelp\\b",
+      "\\bThank\\syou\\sfor\\sscheduling\\b"
+    ]
   },
   "invalid_company_prefixes": [
     "Cyber\\sProgram,",

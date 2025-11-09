@@ -136,13 +136,33 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "{levelname} {asctime} {module} {process:d} {thread:d} {message}",
+            "style": "{",
+        },
+    },
     "handlers": {
         "console": {
             "class": "logging.StreamHandler",
+            "formatter": "verbose",
+        },
+        "daily_file": {
+            "class": "logging.handlers.TimedRotatingFileHandler",
+            "filename": str(BASE_DIR / "logs" / "django.log"),
+            "when": "midnight",
+            "backupCount": 14,
+            "formatter": "verbose",
         },
     },
     "root": {
-        "handlers": ["console"],
+        "handlers": ["console", "daily_file"],
         "level": "INFO",
     },
 }
+
+# Ensure logs directory exists for file handler
+try:
+    os.makedirs(BASE_DIR / "logs", exist_ok=True)
+except Exception:  # Explicitly ignore any filesystem errors during settings import
+    pass

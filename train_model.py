@@ -62,7 +62,7 @@ _MSG_LABEL_PATTERNS = {
     for k in (
         "interview_invite",
         "job_application",
-        "rejected",
+        "rejection",
         "offer",
         "referral",
         "response",

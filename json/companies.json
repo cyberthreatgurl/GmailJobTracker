@@ -31,7 +31,8 @@
     "Dragos",
     "ECS",
     "Eclypsium",
-    "Endynamic",
+  "Endynamic",
+  "Endyna",
     "Figure",
     "Freddie Mac",
     "Gartner",
@@ -88,10 +89,14 @@
     "Verizon",
     "Victorops",
     "Virginia Tech",
-    "Westinghouse Nuclear"
+    "Westinghouse Nuclear",
+    "Booz Allen Hamilton",
+    "Millennium Corporation"
   ],
   "domain_to_company": {
     "nsa.gov": "National Security Agency",
+    "bah.com": "Booz Allen Hamilton",
+    "boozallen.com": "Booz Allen Hamilton",
     "amentum.com": "Amentum",
     "appdynamics.com": "Appdynamics",
     "arescorporation.com": "ARES Corporation",
@@ -143,6 +148,7 @@
     "victorops.com": "Victorops",
     "wearemetronome.com": "Metronome",
     "westinghousenuclear.com": "Westinghouse Nuclear"
+  ,"endyna.com": "Endyna"
   },
   "ats_domains": [
     "applicantpro.com",

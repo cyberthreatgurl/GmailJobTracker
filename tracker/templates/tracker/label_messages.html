@@ -384,10 +384,7 @@
   <form method="post" id="bulk-form">
     {% csrf_token %}
     <input type="hidden" name="action" value="bulk_label" id="form-action">
-    <!-- Hidden inputs for all message IDs on current page -->
-    {% for msg in message_list %}
-      <input type="hidden" name="page_message_ids" value="{{ msg.id }}">
-    {% endfor %}
+    <!-- Removed hidden page_message_ids: actions operate on selected checkboxes only -->
     <div class="bulk-actions">
       <div>
         <span class="selected-count" id="selected-count">0</span> messages selected
@@ -416,7 +413,7 @@
       </button>
       {% if message_list %}
       <button type="submit" class="btn btn-success" id="mark-reviewed-submit" onclick="return submitMarkAllReviewed()" style="margin-left: auto;">
-        ✓ Mark All on Page as Reviewed
+        ✓ Mark Selected as Reviewed
       </button>
       {% endif %}
     </div>
@@ -596,17 +593,14 @@
     }
 
     function submitMarkAllReviewed() {
-      const pageCount = {{ message_list|length }};
-      
-      if (pageCount === 0) {
-        alert('No messages on this page');
+      const selectedCount = document.querySelectorAll('.message-checkbox:checked').length;
+      if (selectedCount === 0) {
+        alert('Please select messages to mark as reviewed');
         return false;
       }
-      
-      if (!confirm(`Mark all ${pageCount} message(s) on this page as reviewed?`)) {
+      if (!confirm(`Mark ${selectedCount} selected message(s) as reviewed?`)) {
         return false;
       }
-      
       document.getElementById('form-action').value = 'mark_all_reviewed';
       return true;
     }

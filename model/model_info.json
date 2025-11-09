@@ -1,5 +1,5 @@
 {
-  "trained_on": "2025-11-07T15:55:14.153227",
+  "trained_on": "2025-11-08T21:30:46.897246",
   "labels": [
     "head_hunter",
     "interview_invite",
@@ -7,10 +7,10 @@
     "noise",
     "other",
     "referral",
-    "rejected"
+    "rejection"
   ],
-  "num_samples": 1039,
-  "total_features": 41871,
+  "num_samples": 1049,
+  "total_features": 41885,
   "meaningful_features_sample": [
     "10 more",
     "1074 cyber",
@@ -68,6 +68,7 @@
     "alto networks",
     "amazon",
     "amazon security",
+    "americans",
     "amid",
     "amid the",
     "an open",
@@ -110,7 +111,6 @@
     "application at",
     "application cyber",
     "application for",
-    "application has",
-    "application is"
+    "application has"
   ]
 }

@@ -66,6 +66,7 @@ class ThreadTracking(models.Model):
     sent_date = models.DateField()
     rejection_date = models.DateField(null=True, blank=True)
     interview_date = models.DateField(null=True, blank=True)
+    interview_completed = models.BooleanField(default=False)
     ml_label = models.CharField(max_length=50, blank=True, null=True)  # e.g., noise
     ml_confidence = models.FloatField(blank=True, null=True)
     reviewed = models.BooleanField(default=False)

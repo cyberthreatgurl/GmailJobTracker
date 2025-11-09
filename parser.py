@@ -60,7 +60,7 @@ else:
 LABEL_MAP = {
     "interview_invite": ["interview", "interview_invite"],
     "job_application": ["application", "job_application"],
-    "rejected": ["rejection", "rejected"],
+    "rejection": ["rejection", "rejected"],  # Consolidated: use 'rejection' as canonical
     "offer": ["offer"],
     "noise": ["noise"],
     "ignore": ["ignore"],
@@ -109,7 +109,7 @@ _MSG_LABEL_EXCLUDES = {
     for k in (
         "interview_invite",
         "job_application",
-        "rejected",
+        "rejection",
         "offer",
         "noise",
         "ignore",
@@ -136,8 +136,8 @@ def rule_label(subject: str, body: str = "") -> str | None:
     for label in (
         "offer",  # Most specific: offer, compensation, package
         "head_hunter",  # Recruiter blasts (prioritize over noise)
-        "noise",  # Newsletters/OTP/promos; prioritize over rejected to avoid false positives from generic words
-        "rejected",  # Specific negatives (move forward/position filled/etc.)
+        "noise",  # Newsletters/OTP/promos; prioritize over rejection to avoid false positives from generic words
+        "rejection",  # Specific negatives (move forward/position filled/etc.)
         "interview_invite",  # Action-oriented: schedule, availability, interview
         "job_application",  # Generic: received, thank you, will be reviewed
         "referral",  # Referral/intro messages
@@ -163,14 +163,35 @@ def predict_with_fallback(
 ):
     """
     Wrap ML predictor; if low confidence or empty features, fall back to rules.
+    ALWAYS check high-priority noise patterns (newsletter, digest, OTP) to override ML.
     Expects ML to return dict with keys: label, confidence (or proba).
     """
     ml = predict_subject_type_fn(subject, body, sender=sender)
     conf = float(ml.get("confidence", ml.get("proba", 0.0)) if ml else 0.0)
+    
+    # CRITICAL: Always check for noise patterns FIRST (even if ML has high confidence)
+    # Newsletters, digests, OTPs are definitive noise and should override any ML prediction
+    rl = rule_label(subject, body)
+    if DEBUG:
+        print(f"[DEBUG predict_with_fallback] ML label={ml.get('label')}, confidence={conf}")
+        print(f"[DEBUG predict_with_fallback] rule_label result={rl}")
+        print(f"[DEBUG predict_with_fallback] body length={len(body)}, contains 'newsletter'={('newsletter' in body.lower())}, contains 'digest'={('digest' in body.lower())}")
+        if body:
+            print(f"[DEBUG predict_with_fallback] body first 500 chars: {body[:500]}")
+    
+    if rl in ("noise", "offer", "head_hunter"):
+        # High-priority labels that should ALWAYS override ML
+        if DEBUG:
+            print(f"[DEBUG predict_with_fallback] OVERRIDING ML with rules: {rl}")
+        return {"label": rl, "confidence": 1.0, "fallback": "rules_override"}
+    
+    # If ML confidence is low, use rules as fallback
     if not ml or conf < threshold:
-        rl = rule_label(subject, body)
         if rl:
+            if DEBUG:
+                print(f"[DEBUG predict_with_fallback] Using rules fallback (low confidence): {rl}")
             return {"label": rl, "confidence": conf, "fallback": "rules"}
+    
     if ml and "confidence" not in ml and "proba" in ml:
         ml = {**ml, "confidence": float(ml["proba"])}
     return ml
@@ -312,6 +333,39 @@ def normalize_company_name(name: str) -> str:
     return n
 
 
+def looks_like_person(name: str) -> bool:
+    """Heuristic: return True if the string looks like an individual person's name.
+
+    Criteria (intentionally conservative so we *reject* obvious person names):
+    - 1–3 tokens, each starting with capital then lowercase letters only
+    - No token contains digits, '&', '@', '.', or corporate suffix markers
+    - Contains no common company suffix words (Inc, LLC, Corp, Company, Technologies, Systems)
+    - If exactly two tokens and both are common first/last name shapes (<=12 chars) treat as person
+    """
+    if not name:
+        return False
+    raw = name.strip()
+    if len(raw) > 40:  # Long strings unlikely to be just a person name
+        return False
+    tokens = raw.split()
+    if not (1 <= len(tokens) <= 3):
+        return False
+    corp_markers = {"inc", "llc", "ltd", "co", "corp", "corporation", "company", "technologies", "systems", "group"}
+    if any(t.lower().strip(".,") in corp_markers for t in tokens):
+        return False
+    # Reject if any token has non alpha (besides hyphen) or is ALLCAPS acronym
+    for t in tokens:
+        if not re.match(r"^[A-Z][a-z]+(?:-[A-Z][a-z]+)?$", t):
+            return False
+    # Two-token typical person pattern
+    if len(tokens) == 2 and all(len(t) <= 12 for t in tokens):
+        return True
+    # Single short token like "Kelly" should not be considered a company unless in known companies
+    if len(tokens) == 1 and len(tokens[0]) <= 10:
+        return True
+    return False
+
+
 PARSER_VERSION = "1.0.0"
 
 # --- ML Model Paths ---
@@ -443,6 +497,18 @@ def extract_metadata(service, msg_id):
         if data:
             body = base64.urlsafe_b64decode(data).decode("utf-8", errors="ignore")
 
+    # Append relevant headers to body for better classification
+    # Newsletter-specific headers often contain keywords like "newsletter", "digest", etc.
+    newsletter_headers = ["List-Id", "List-Unsubscribe", "Precedence", "X-Campaign", "X-Mailer", "X-Newsletter"]
+    header_text = []
+    for h in headers:
+        if h["name"] in newsletter_headers:
+            header_text.append(f"{h['name']}: {h['value']}")
+    
+    if header_text:
+        # Prepend header info to body for classification (won't affect display)
+        body = "\n".join(header_text) + "\n\n" + body
+
     return {
         "thread_id": thread_id,
         "subject": subject,
@@ -459,7 +525,12 @@ def extract_metadata(service, msg_id):
 
 
 def extract_status_dates(body, received_date):
-    """Extract key status dates from email body."""
+    """
+    Extract key status dates from email body.
+    
+    For interview invites, sets interview_date to 7 days in the future
+    to mark as "upcoming" (user can manually update with actual date).
+    """
     body_lower = body.lower()
     dates = {
         "response_date": None,
@@ -467,13 +538,21 @@ def extract_status_dates(body, received_date):
         "interview_date": None,
         "follow_up_dates": [],
     }
-    if any(p in body_lower for p in PATTERNS.get("response", [])):
+    
+    # Use compiled patterns from _MSG_LABEL_PATTERNS
+    interview_patterns = _MSG_LABEL_PATTERNS.get("interview_invite", [])
+    rejection_patterns = _MSG_LABEL_PATTERNS.get("rejected", [])
+    response_patterns = _MSG_LABEL_PATTERNS.get("response", [])
+    followup_patterns = _MSG_LABEL_PATTERNS.get("follow_up", [])
+    
+    if any(re.search(p, body_lower) for p in response_patterns):
         dates["response_date"] = received_date
-    if any(p in body_lower for p in PATTERNS.get("rejection", [])):
+    if any(re.search(p, body_lower) for p in rejection_patterns):
         dates["rejection_date"] = received_date
-    if any(p in body_lower for p in PATTERNS.get("interview", [])):
-        dates["interview_date"] = received_date
-    if any(p in body_lower for p in PATTERNS.get("follow_up", [])):
+    if any(re.search(p, body_lower) for p in interview_patterns):
+        # Set to 7 days in future to mark as "upcoming interview"
+        dates["interview_date"] = (received_date + timedelta(days=7)).date()
+    if any(re.search(p, body_lower) for p in followup_patterns):
         dates["follow_up_dates"] = received_date
     return dates
 
@@ -533,6 +612,7 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
     company = ""
     job_title = ""
     job_id = ""
+    ats_display_name_fallback = None  # initialize early to satisfy linters
 
     # --- Continue with original logic for fallback or enrichment ---
     subject_clean = subject.strip()
@@ -540,6 +620,17 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
     subject_clean = re.sub(r"^(Re|RE|Fwd|FW|Fw):\s*", "", subject_clean, flags=re.IGNORECASE).strip()
     subj_lower = subject_clean.lower()
     domain_lower = sender_domain.lower() if sender_domain else None
+
+    # --- Post-ML downgrade: certain calendar/meeting invites should not be interview_invite ---
+    if label == "interview_invite":
+        if (
+            ("meeting with" in subj_lower or "meeting invitation" in subj_lower) and "interview" not in subj_lower
+            and confidence < 0.65
+        ) or (body and re.search(r"microsoft teams|zoom meeting|join.*meeting", body, re.I) and "interview" not in subj_lower and confidence < 0.65):
+            if DEBUG:
+                print("[DEBUG] Downgrading label interview_invite -> other (meeting heuristic)")
+            label = "other"
+            # Keep confidence as-is; we changed semantic label intentionally
 
     # PRIORITY 1: ATS domain with known sender prefix (most reliable)
     # Support subdomains of known ATS domains (e.g., talent.icims.com -> icims.com)
@@ -608,7 +699,8 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
                             if DEBUG:
                                 print(f"[DEBUG] Indeed employer extraction: {company}")
 
-        # Fallback to display name extraction (only if not Indeed or if Indeed extraction failed)
+        # Save display name as a fallback candidate (defer until after subject patterns)
+        ats_display_name_fallback = None
         if not company:
             display_name, _ = parseaddr(sender)
             cleaned = re.sub(
@@ -619,10 +711,10 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
             ).strip()
             # Remove ATS platform suffixes (e.g., "@ icims", "@ Workday", etc.)
             cleaned = re.sub(r'\s*@\s*(icims|workday|greenhouse|lever|indeed)\s*$', '', cleaned, flags=re.I).strip()
-            if cleaned:
-                company = cleaned
+            if cleaned and len(cleaned) > 2:
+                ats_display_name_fallback = cleaned
                 if DEBUG:
-                    print(f"[DEBUG] ATS display name: {company} (from sender display name)")
+                    print(f"[DEBUG] ATS display name candidate: {cleaned} (will use if subject patterns fail)")
 
     # PRIORITY 2: Domain mapping (direct company domains) with subdomain support
     # Skip if domain is (or is under) a known ATS platform; ATS handled separately above.
@@ -647,6 +739,31 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
                 if not company:  # fallback to title case
                     company = known.title()
                 break
+
+    # PRIORITY 3.5: ATS display name (if known company or clearly not a person name)
+    # Use this before generic subject patterns to avoid matching locations like "at Hampton, VA"
+    if not company and 'ats_display_name_fallback' in locals() and ats_display_name_fallback:
+        # Check if it's a known company
+        if ats_display_name_fallback.lower() in {c.lower() for c in KNOWN_COMPANIES}:
+            company = ats_display_name_fallback
+            if DEBUG:
+                print(f"[DEBUG] ATS display name used (known company): {company}")
+        else:
+            # Check if it looks like a company (not a typical person name)
+            words = ats_display_name_fallback.split()
+            # Person names: typically 2-3 short words, all title case
+            # Companies: often contain "Corporation", "LLC", "Inc", or longer names
+            is_likely_company = (
+                len(words) >= 3 or  # 3+ words likely company
+                any(w in ats_display_name_fallback for w in ['Corporation', 'Inc', 'LLC', 'Ltd', 'Group', 'Technologies', 'Systems']) or
+                any(len(w) > 12 for w in words)  # Long words suggest company
+            )
+            if is_likely_company:
+                company = ats_display_name_fallback
+                if DEBUG:
+                    print(f"[DEBUG] ATS display name used (company-like): {company}")
+            elif DEBUG:
+                print(f"[DEBUG] ATS display name deferred (may be person name): {ats_display_name_fallback}")
 
     # PRIORITY 4: Entity extraction (spaCy NER)
     if not company:
@@ -687,6 +804,10 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
             r"-\s*([A-Z][\w&-]+(?:\s+[\w&-]+){0,2}?)\s*-\s*",
             0,
         ),  # Between dashes, max 3 words
+        (
+            r"-\s+([A-Z][\w&-]+(?:\s+[\w&-]+){0,2})$",
+            0,
+        ),  # Trailing company after final dash (e.g., "... - Millennium Corporation")
         # (moved earlier)
         (
             r"(?:your application with|application with|interest in|position at)\s+([A-Z][\w&-]+(?:\s+[\w&-]+){0,2})\b",
@@ -717,11 +838,37 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
         if not company:
             match = re.search(pat, subject_clean, flags)
             if match:
-                company = normalize_company_name(match.group(1).strip())
+                candidate = normalize_company_name(match.group(1).strip())
+                # Person-name safeguard specifically for the generic from/with/at capture or leading patterns
+                if looks_like_person(candidate) and candidate.lower() not in {c.lower() for c in KNOWN_COMPANIES}:
+                    if DEBUG:
+                        print(f"[DEBUG] Rejected candidate company as person name: {candidate}")
+                    continue
+                company = candidate
 
-    # 🧼 Sanity check: reject job titles misclassified as companies
+    # 🧼 Sanity checks
     if company and re.search(r"\b(CTO|Engineer|Manager|Director|Intern|Analyst)\b", company, re.I):
+        if DEBUG:
+            print(f"[DEBUG] Clearing company captured as job title: {company}")
         company = ""
+    if company and looks_like_person(company) and company.lower() not in {c.lower() for c in KNOWN_COMPANIES}:
+        if DEBUG:
+            print(f"[DEBUG] Clearing company captured as person name (post-pass): {company}")
+        company = ""
+
+    # PRIORITY 7: ATS display name fallback (only if subject patterns found nothing)
+    if not company and 'ats_display_name_fallback' in locals() and ats_display_name_fallback:
+        # Additional validation: check if it's a known company or looks like a person name
+        # Person names usually have 2-3 short words (first/last name)
+        words = ats_display_name_fallback.split()
+        is_likely_person = (len(words) == 2 and all(len(w) < 12 for w in words))
+        
+        if not is_likely_person or ats_display_name_fallback.lower() in {c.lower() for c in KNOWN_COMPANIES}:
+            company = ats_display_name_fallback
+            if DEBUG:
+                print(f"[DEBUG] ATS display name fallback applied: {company}")
+        elif DEBUG:
+            print(f"[DEBUG] ATS display name rejected (likely person name): {ats_display_name_fallback}")
 
     # Job title fallback
     if not job_title:
@@ -1232,9 +1379,10 @@ def ingest_message(service, msg_id):
             print(f"✓ Set rejection_date from ML label: {rejection_date_final}")
 
     if not interview_date_final and ml_label == "interview_invite":
-        interview_date_final = metadata["timestamp"].date()
+        # Set to 7 days in future to mark as "upcoming interview"
+        interview_date_final = (metadata["timestamp"] + timedelta(days=7)).date()
         if DEBUG:
-            print(f"✓ Set interview_date from ML label: {interview_date_final}")
+            print(f"✓ Set interview_date from ML label (7 days ahead): {interview_date_final}")
 
     try:
         message_obj = Message.objects.get(msg_id=msg_id)
@@ -1257,8 +1405,8 @@ def ingest_message(service, msg_id):
                     print("↩️ Skipping Application creation for headhunter source/company")
                 # Do not create or update Application for headhunters
             else:
-                # Only create Application rows for actual application confirmations
-                if ml_label == "job_application":
+                # Create ThreadTracking for applications and interview invites
+                if ml_label in ("job_application", "interview_invite"):
                     application_obj, created = ThreadTracking.objects.get_or_create(
                         thread_id=metadata["thread_id"],
                         defaults={

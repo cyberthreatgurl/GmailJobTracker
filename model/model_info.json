@@ -1,5 +1,5 @@
 {
-  "trained_on": "2025-11-08T21:30:46.897246",
+  "trained_on": "2025-11-10T21:50:18.859122",
   "labels": [
     "head_hunter",
     "interview_invite",
@@ -9,8 +9,8 @@
     "referral",
     "rejection"
   ],
-  "num_samples": 1049,
-  "total_features": 41885,
+  "num_samples": 987,
+  "total_features": 41817,
   "meaningful_features_sample": [
     "10 more",
     "1074 cyber",
@@ -31,8 +31,6 @@
     "action officer",
     "added to",
     "administration",
-    "administrator",
-    "administrator dahlgren",
     "adrian",
     "adrian kelly",
     "adrian nice",
@@ -41,7 +39,6 @@
     "adversarial",
     "adversarial ai",
     "advisory",
-    "affordability",
     "after",
     "against",
     "agent",
@@ -52,11 +49,7 @@
     "ai red",
     "ai researcher",
     "ai security",
-    "ai tools",
-    "airports",
-    "airports crush",
     "alert",
-    "alert for",
     "alerts",
     "alerts for",
     "all",
@@ -68,7 +61,7 @@
     "alto networks",
     "amazon",
     "amazon security",
-    "americans",
+    "amentum",
     "amid",
     "amid the",
     "an open",
@@ -81,6 +74,7 @@
     "analyst mantech",
     "analyst mid",
     "analyst position",
+    "analyst senior",
     "analyst team",
     "analytics",
     "and",
@@ -111,6 +105,12 @@
     "application at",
     "application cyber",
     "application for",
-    "application has"
+    "application has",
+    "application is",
+    "application received",
+    "application senior",
+    "application status",
+    "application to",
+    "application update"
   ]
 }

@@ -15,8 +15,10 @@ import os
 # from joblib import load  # not needed here
 import quopri
 import re
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from email.utils import parseaddr, parsedate_to_datetime
+from email import message_from_string as eml_from_string
+from email.header import decode_header as eml_decode_header
 from pathlib import Path
 
 import django
@@ -56,6 +58,14 @@ if PATTERNS_PATH.exists():
     PATTERNS = patterns_data
 else:
     PATTERNS = {}
+
+# Compile application patterns for efficient matching
+APPLICATION_PATTERNS = []
+if "message_labels" in PATTERNS and "application" in PATTERNS["message_labels"]:
+    APPLICATION_PATTERNS = [
+        re.compile(pattern, re.IGNORECASE) 
+        for pattern in PATTERNS["message_labels"]["application"]
+    ]
 # Map from label names used in code to JSON keys
 LABEL_MAP = {
     "interview_invite": ["interview", "interview_invite"],
@@ -69,6 +79,7 @@ LABEL_MAP = {
     "ghosted": ["ghosted"],
     "referral": ["referral"],
     "head_hunter": ["head_hunter"],
+    "other": ["other"],  # Explicitly support 'other' patterns
 }
 
 _MSG_LABEL_PATTERNS = {}
@@ -133,14 +144,42 @@ def rule_label(subject: str, body: str = "") -> str | None:
     # Rejection before application: catches "received application BUT unfortunately..."
     # Interview before application: catches action-oriented "next steps"
     # Application last: generic catch-all for confirmations
+    # Special-case: Indeed application confirmation subjects should never be
+    # treated as interview_invite even if body contains phrasing like
+    # "discuss the opportunity" or other interview-esque phrases present in
+    # generic Indeed templates. These are pure application submission notices.
+    # Broad match (handles stray zero-width or tracking chars before prefix)
+    if subject and ("Indeed Application:" in subject or re.search(r"^\s*Indeed\s+Application:\s*", subject, re.I)):
+        if DEBUG:
+            print("[DEBUG rule_label] Forcing job_application for Indeed Application subject")
+        return "job_application"
+
+    # Special-case: Incomplete application reminders should be classified as "other"
+    # rather than job_application. These are nudges to finish incomplete apps,
+    # not confirmations of submission.
+    # Patterns: "started applying... didn't finish", "Don't forget to finish"
+    if re.search(r"\bstarted\s+applying\b.*\bdidn'?t\s+finish\b", s, re.I | re.DOTALL):
+        if DEBUG:
+            print("[DEBUG rule_label] Forcing 'other' for incomplete application reminder")
+        return "other"
+    if re.search(r"\bdon'?t\s+forget\s+to\s+finish\b.*\bapplication\b", s, re.I | re.DOTALL):
+        if DEBUG:
+            print("[DEBUG rule_label] Forcing 'other' for incomplete application reminder")
+        return "other"
+    if re.search(r"\bpick\s+up\s+where\s+you\s+left\s+off\b", s, re.I):
+        if DEBUG:
+            print("[DEBUG rule_label] Forcing 'other' for incomplete application reminder")
+        return "other"
+
     for label in (
-        "offer",  # Most specific: offer, compensation, package
-        "head_hunter",  # Recruiter blasts (prioritize over noise)
-        "noise",  # Newsletters/OTP/promos; prioritize over rejection to avoid false positives from generic words
-        "rejection",  # Specific negatives (move forward/position filled/etc.)
-        "interview_invite",  # Action-oriented: schedule, availability, interview
-        "job_application",  # Generic: received, thank you, will be reviewed
-        "referral",  # Referral/intro messages
+        "offer",          # Most specific: offer, compensation, package
+        "head_hunter",    # Recruiter blasts
+        "noise",          # Newsletters/OTP/promos
+        "rejection",      # Negative outcomes
+        "job_application", # Application confirmations/status (moved before interview_invite)
+        "interview_invite",  # Scheduling/availability
+        "other",          # Generic catch-all BEFORE job_application so reminders don't get escalated
+        "referral",       # Referrals/intros
         "ghosted",
         "blank",
     ):
@@ -179,11 +218,19 @@ def predict_with_fallback(
         if body:
             print(f"[DEBUG predict_with_fallback] body first 500 chars: {body[:500]}")
     
-    if rl in ("noise", "offer", "head_hunter"):
+    # Allow 'other' to override when ML is trying to force job_application for reminder nudges
+    if rl in ("noise", "offer", "head_hunter", "other"):
         # High-priority labels that should ALWAYS override ML
         if DEBUG:
             print(f"[DEBUG predict_with_fallback] OVERRIDING ML with rules: {rl}")
         return {"label": rl, "confidence": 1.0, "fallback": "rules_override"}
+
+    # Targeted override: Indeed Application confirmations should override ML
+    # even if ML predicts interview_invite with high confidence.
+    if rl == "job_application" and subject and re.search(r"^Indeed\s+Application:\s*", subject, re.I):
+        if DEBUG:
+            print("[DEBUG predict_with_fallback] OVERRIDING ML for Indeed Application confirmation -> job_application")
+        return {"label": "job_application", "confidence": 1.0, "fallback": "rules_override"}
     
     # If ML confidence is low, use rules as fallback
     if not ml or conf < threshold:
@@ -209,6 +256,23 @@ def get_stats():
     today = now().date()
     stats, _ = IngestionStats.objects.get_or_create(date=today)
     return stats
+
+
+def is_application_related(subject, body):
+    """Check if message is application-related using patterns from patterns.json.
+    
+    Args:
+        subject: Email subject line
+        body: Email body text (first 500 chars recommended)
+        
+    Returns:
+        True if any application pattern matches, False otherwise
+    """
+    if not APPLICATION_PATTERNS:
+        return False
+    
+    text = f"{subject} {body}".lower()
+    return any(pattern.search(text) for pattern in APPLICATION_PATTERNS)
 
 
 def decode_part(data, encoding):
@@ -267,6 +331,154 @@ def extract_body_from_parts(parts):
             else:
                 return "Empty Body"
     return ""
+
+
+def _decode_header_value(raw_val: str) -> str:
+    """Decode RFC 2047 encoded header values to unicode.
+
+    Falls back gracefully on decode errors, always returns a str.
+    """
+    if not raw_val:
+        return ""
+    try:
+        parts = eml_decode_header(raw_val)
+        decoded_chunks = []
+        for text, enc in parts:
+            if isinstance(text, bytes):
+                try:
+                    decoded_chunks.append(text.decode(enc or "utf-8", errors="ignore"))
+                except Exception:
+                    decoded_chunks.append(text.decode("utf-8", errors="ignore"))
+            else:
+                decoded_chunks.append(text)
+        return "".join(decoded_chunks)
+    except Exception:
+        return raw_val
+
+
+def parse_raw_message(raw_text: str) -> dict:
+    """Parse a raw EML (RFC 822) message string and return metadata similar to extract_metadata.
+
+    This allows debugging/ingesting messages pasted into the UI or loaded from disk
+    without requiring a live Gmail API service call.
+
+    Returns dict with keys:
+      subject, body, body_html, timestamp, date(str), sender, sender_domain,
+      thread_id(None), labels(""), last_updated, header_hints
+    """
+    if not raw_text:
+        return {
+            "subject": "",
+            "body": "",
+            "body_html": "",
+            "timestamp": now(),
+            "date": now().strftime("%Y-%m-%d %H:%M:%S"),
+            "sender": "",
+            "sender_domain": "",
+            "thread_id": None,
+            "labels": "",
+            "last_updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "header_hints": {},
+        }
+
+    try:
+        eml = eml_from_string(raw_text)
+    except Exception:
+        # Return minimal structure if parsing fails (retain raw text as body)
+        return {
+            "subject": "(parse error)",
+            "body": raw_text,
+            "body_html": "",
+            "timestamp": now(),
+            "date": now().strftime("%Y-%m-%d %H:%M:%S"),
+            "sender": "",
+            "sender_domain": "",
+            "thread_id": None,
+            "labels": "",
+            "last_updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "header_hints": {},
+        }
+
+    subject = _decode_header_value(eml.get("Subject", ""))
+    sender = _decode_header_value(eml.get("From", ""))
+    date_raw = eml.get("Date", "")
+    try:
+        date_obj = parsedate_to_datetime(date_raw)
+        if timezone.is_naive(date_obj):
+            date_obj = timezone.make_aware(date_obj)
+    except Exception:
+        date_obj = now()
+    date_str = date_obj.strftime("%Y-%m-%d %H:%M:%S")
+
+    # Sender domain
+    parsed = parseaddr(sender)
+    email_addr = parsed[1] if len(parsed) == 2 else ""
+    match = re.search(r"@([A-Za-z0-9.-]+)$", email_addr)
+    sender_domain = match.group(1).lower() if match else ""
+
+    # Walk parts for body (prefer HTML) else text/plain
+    body_html = ""
+    body_text = ""
+    if eml.is_multipart():
+        for part in eml.walk():
+            ctype = part.get_content_type()
+            disp = (part.get("Content-Disposition") or "").lower()
+            if "attachment" in disp:
+                continue  # skip attachments
+            try:
+                payload = part.get_payload(decode=True)
+                if payload is None:
+                    continue
+                decoded = payload.decode(part.get_content_charset() or "utf-8", errors="ignore")
+            except Exception:
+                continue
+            if ctype == "text/html" and not body_html:
+                body_html = decoded
+            elif ctype == "text/plain" and not body_text:
+                body_text = decoded
+    else:
+        try:
+            payload = eml.get_payload(decode=True)
+            if payload:
+                body_text = payload.decode(eml.get_content_charset() or "utf-8", errors="ignore")
+        except Exception:
+            body_text = raw_text
+
+    if body_html and not body_text:
+        # Provide plain text fallback from HTML
+        body_text = BeautifulSoup(body_html, "html.parser").get_text(separator=" ", strip=True)
+
+    # Header hints similar to Gmail path (limited set for EML)
+    header_hints = {
+        "is_newsletter": any(h in eml for h in ["List-Id", "List-Unsubscribe", "X-Newsletter"]),
+        "is_bulk": _decode_header_value(eml.get("Precedence", "")).lower() == "bulk",
+        "is_noreply": "noreply" in sender.lower() or "no-reply" in sender.lower(),
+        "reply_to": _decode_header_value(eml.get("Reply-To", "")) or None,
+        "organization": _decode_header_value(eml.get("Organization", "")) or None,
+        "auto_submitted": _decode_header_value(eml.get("Auto-Submitted", "")).lower() not in ("", "no"),
+    }
+
+    # Combine headers for classification like Gmail version
+    header_text = []
+    for h_name, h_val in eml.items():
+        if h_name.lower() in {"list-id", "list-unsubscribe", "precedence", "reply-to", "organization"}:
+            header_text.append(f"{h_name}: {h_val}")
+    body_for_classification = ("\n".join(header_text) + "\n\n" + (body_text or "")).strip()
+
+    return {
+        "thread_id": None,
+        "subject": subject,
+        "body": body_for_classification,
+        "body_html": body_html,
+        "date": date_str,
+        "timestamp": date_obj,
+        "labels": "",
+        "last_updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "sender": sender,
+        "sender_domain": sender_domain,
+        "parser_version": PARSER_VERSION,
+        "header_hints": header_hints,
+    }
 
 
 def log_ignored_message(msg_id, metadata, reason):
@@ -497,16 +709,59 @@ def extract_metadata(service, msg_id):
         if data:
             body = base64.urlsafe_b64decode(data).decode("utf-8", errors="ignore")
 
-    # Append relevant headers to body for better classification
-    # Newsletter-specific headers often contain keywords like "newsletter", "digest", etc.
-    newsletter_headers = ["List-Id", "List-Unsubscribe", "Precedence", "X-Campaign", "X-Mailer", "X-Newsletter"]
+    # Extract and analyze headers for improved classification and metadata
+    header_hints = {
+        "is_newsletter": False,
+        "is_automated": False,
+        "is_bulk": False,
+        "is_noreply": False,
+        "reply_to": None,
+        "organization": None,
+        "auto_submitted": False,
+    }
+    
+    # Classification-relevant headers
+    classification_headers = [
+        "List-Id", "List-Unsubscribe", "Precedence", 
+        "X-Campaign", "X-Mailer", "X-Newsletter",
+        "Auto-Submitted", "X-Auto-Response-Suppress",
+        "Return-Path", "Reply-To", "Organization",
+        "X-Entity-Ref-ID", "X-Sender"
+    ]
+    
     header_text = []
     for h in headers:
-        if h["name"] in newsletter_headers:
-            header_text.append(f"{h['name']}: {h['value']}")
+        h_name = h["name"]
+        h_value = h["value"].lower()
+        
+        # Collect headers for classification
+        if h_name in classification_headers:
+            header_text.append(f"{h_name}: {h['value']}")
+        
+        # Detect newsletter indicators
+        if h_name in ("List-Id", "List-Unsubscribe", "X-Newsletter"):
+            header_hints["is_newsletter"] = True
+        
+        # Detect automated/bulk mail
+        if h_name == "Precedence" and "bulk" in h_value:
+            header_hints["is_bulk"] = True
+        if h_name == "Auto-Submitted" and h_value != "no":
+            header_hints["auto_submitted"] = True
+        
+        # Detect no-reply addresses
+        if h_name == "From" and ("noreply" in h_value or "no-reply" in h_value or "donotreply" in h_value):
+            header_hints["is_noreply"] = True
+        
+        # Extract alternate reply-to for contact info
+        if h_name == "Reply-To":
+            header_hints["reply_to"] = h["value"]
+        
+        # Extract organization for company hints
+        if h_name == "Organization":
+            header_hints["organization"] = h["value"]
     
+    # Prepend header info to body for classification (won't affect database storage)
     if header_text:
-        # Prepend header info to body for classification (won't affect display)
         body = "\n".join(header_text) + "\n\n" + body
 
     return {
@@ -521,6 +776,7 @@ def extract_metadata(service, msg_id):
         "sender": sender,
         "sender_domain": sender_domain,
         "parser_version": PARSER_VERSION,
+        "header_hints": header_hints,  # NEW: Pass header analysis to caller
     }
 
 
@@ -951,6 +1207,40 @@ def ingest_message(service, msg_id):
             print(f"Failed to extract data for {msg_id}: {e}")
         return
 
+    # Use header hints to improve classification
+    header_hints = metadata.get("header_hints", {})
+    
+    # Check if this is a transactional application-related message using patterns.json
+    # (ATS systems add List-Unsubscribe headers even to application confirmations)
+    is_app_related = is_application_related(
+        metadata["subject"], 
+        metadata.get("body", "")[:500]  # Check first 500 chars for performance
+    )
+    
+    if DEBUG:
+        print(f"[HEADER HINTS] is_application_related={is_app_related}, is_newsletter={header_hints.get('is_newsletter')}, is_bulk={header_hints.get('is_bulk')}, is_noreply={header_hints.get('is_noreply')}")
+    
+    # Auto-ignore newsletters and bulk mail ONLY if NOT application-related
+    if not is_app_related:
+        if header_hints.get("is_newsletter") or (header_hints.get("is_bulk") and header_hints.get("is_noreply")):
+            if DEBUG:
+                print(f"[HEADER HINTS] Auto-ignoring newsletter/bulk mail: {metadata['subject']}")
+            
+            # Check if this message already exists in Message table (re-ingestion case)
+            existing = Message.objects.filter(msg_id=msg_id).first()
+            if existing:
+                if DEBUG:
+                    print(f"[RE-INGEST] Deleting existing Message record for newsletter: {msg_id}")
+                existing.delete()
+            
+            log_ignored_message(msg_id, metadata, reason="newsletter_headers")
+            IngestionStats.objects.filter(date=stats.date).update(total_ignored=F("total_ignored") + 1)
+            if hasattr(stats, "total_ignored"):
+                stats.total_ignored += 1
+            return "ignored"
+    elif DEBUG and header_hints.get("is_newsletter"):
+        print(f"[HEADER HINTS] Newsletter header found but application-related (patterns.json), not ignoring: {metadata['subject']}")
+    
     parsed_subject = (
         parse_subject(
             metadata["subject"],
@@ -965,6 +1255,14 @@ def ingest_message(service, msg_id):
         if DEBUG:
             print(f"Ignored by ML: {metadata['subject']}")
             print("Stats: ignored++ (ML ignore)")
+        
+        # Check if this message already exists in Message table (re-ingestion case)
+        existing = Message.objects.filter(msg_id=msg_id).first()
+        if existing:
+            if DEBUG:
+                print(f"[RE-INGEST] Deleting existing Message record for ignored message: {msg_id}")
+            existing.delete()
+        
         log_ignored_message(
             msg_id,
             metadata,
@@ -976,13 +1274,28 @@ def ingest_message(service, msg_id):
         return "ignored"
 
     status = classify_message(body)
-    status_dates = extract_status_dates(body, metadata["date"])
+    # Pass actual datetime object for date arithmetic (fixes timedelta concat on str)
+    status_dates = extract_status_dates(body, metadata["timestamp"])  # was metadata['date'] (string)
 
     def to_date(value):
-        try:
-            return datetime.strptime(value, "%Y-%m-%d %H:%M:%S").date()
-        except Exception:
-            return None
+        """Normalize mixed date inputs to date objects.
+
+        Accepts:
+          - datetime/date objects (returned directly as date)
+          - string timestamps in common formats
+        Returns None on failure.
+        """
+        if isinstance(value, datetime):
+            return value.date()
+        if isinstance(value, date):  # already a date
+            return value
+        if isinstance(value, str) and value.strip():
+            for fmt in ("%Y-%m-%d %H:%M:%S", "%Y-%m-%d", "%m/%d/%Y"):
+                try:
+                    return datetime.strptime(value.strip(), fmt).date()
+                except Exception:
+                    continue
+        return None
 
     status_dates = {
         "response_date": to_date(status_dates.get("response_date")),
@@ -1014,6 +1327,16 @@ def ingest_message(service, msg_id):
     company = ""
     company_source = ""
     company_obj = None
+    
+    # Use Organization header as company fallback if needed
+    org_fallback = None
+    if header_hints.get("organization"):
+        org = header_hints["organization"]
+        if not looks_like_person(org):
+            org_fallback = org
+            if DEBUG:
+                print(f"[HEADER HINTS] Organization header available: {org}")
+    
     if not skip_company_assignment:
         sender_domain = metadata.get("sender_domain", "").lower()
         is_ats = any(d in sender_domain for d in ATS_DOMAINS)
@@ -1157,7 +1480,14 @@ def ingest_message(service, msg_id):
                         print(f" Sender name match: {sender_name} → {company}")
                     break
 
-        # 6. Final fallback
+        # 6. Organization header fallback
+        if not company and org_fallback:
+            company = org_fallback
+            company_source = "organization_header"
+            if DEBUG:
+                print(f"[HEADER HINTS] Using Organization header: {company}")
+        
+        # 7. Final fallback
         if not company:
             company_source = "unresolved"
 
@@ -1386,6 +1716,21 @@ def ingest_message(service, msg_id):
 
     try:
         message_obj = Message.objects.get(msg_id=msg_id)
+        
+        # Guard: If company_obj is missing but message was created, log it
+        if not company_obj:
+            if DEBUG:
+                print(f"⚠️  Warning: Message created without company_obj for {msg_id}")
+                print(f"   Subject: {metadata.get('subject', '')[:60]}")
+                print(f"   ML Label: {ml_label}")
+                print(f"   ThreadTracking creation will be skipped")
+        
+        # Guard: If message_obj lookup failed, log it
+        if not message_obj:
+            if DEBUG:
+                print(f"⚠️  Warning: Could not retrieve Message object for {msg_id}")
+                print(f"   ThreadTracking creation will be skipped")
+        
         if company_obj and message_obj:
             # Headhunter guard: do NOT create Application records for headhunters
             sender_domain = (metadata.get("sender_domain") or "").lower()
@@ -1402,7 +1747,7 @@ def ingest_message(service, msg_id):
 
             if skip_application_creation:
                 if DEBUG:
-                    print("↩️ Skipping Application creation for headhunter source/company")
+                    print("↩️ Skipping ThreadTracking creation for headhunter source/company")
                 # Do not create or update Application for headhunters
             else:
                 # Create ThreadTracking for applications and interview invites
@@ -1484,6 +1829,44 @@ def ingest_message(service, msg_id):
                                 "ℹ️ No existing ThreadTracking for this thread; not creating because this is not a job_application email"
                             )
         else:
+            # Missing company_obj or message_obj - try fallback ThreadTracking creation if applicable
+            if ml_label in ("job_application", "interview_invite") and not company_obj:
+                if DEBUG:
+                    print(f"⚠️  job_application/interview_invite without company - attempting fallback")
+                # Try to extract company from Message if it was created
+                try:
+                    fallback_msg = Message.objects.get(msg_id=msg_id)
+                    if fallback_msg.company:
+                        company_obj = fallback_msg.company
+                        company_source = fallback_msg.company_source
+                        if DEBUG:
+                            print(f"✓ Retrieved company from Message: {company_obj.name}")
+                        # Retry ThreadTracking creation with recovered company
+                        application_obj, created = ThreadTracking.objects.get_or_create(
+                            thread_id=metadata["thread_id"],
+                            defaults={
+                                "company": company_obj,
+                                "company_source": company_source,
+                                "job_title": parsed_subject.get("job_title", ""),
+                                "job_id": parsed_subject.get("job_id", ""),
+                                "status": status,
+                                "sent_date": metadata["timestamp"].date(),
+                                "rejection_date": rejection_date_final,
+                                "interview_date": interview_date_final,
+                                "ml_label": ml_label,
+                                "ml_confidence": (float(result.get("confidence", 0.0)) if result else 0.0),
+                                "reviewed": reviewed,
+                            },
+                        )
+                        if created and DEBUG:
+                            print(f"✓ Created ThreadTracking via fallback for {company_obj.name}")
+                    else:
+                        if DEBUG:
+                            print("⚠️  Message exists but also has no company - cannot create ThreadTracking")
+                except Message.DoesNotExist:
+                    if DEBUG:
+                        print("⚠️  Fallback failed: Message not found")
+            
             if DEBUG:
                 print("Stats: skipped++ (missing company/message)")
             IngestionStats.objects.filter(date=stats.date).update(total_skipped=F("total_skipped") + 1)
@@ -1492,7 +1875,9 @@ def ingest_message(service, msg_id):
 
     except Exception as e:
         if DEBUG:
-            print(f"Failed to create Application: {e}")
+            print(f"❌ Failed to create ThreadTracking: {e}")
+            import traceback
+            traceback.print_exc()
         IngestionStats.objects.filter(date=stats.date).update(total_skipped=F("total_skipped") + 1)
         if hasattr(stats, "total_skipped"):
             stats.total_skipped += 1

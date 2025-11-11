@@ -81,7 +81,7 @@ spacy-legacy==3.0.12
 spacy-loggers==1.0.5
 sqlparse==0.4.4
 srsly==2.5.1
-thinc==8.2.5
+thinc==9.1.1
 threadpoolctl==3.6.0
 tomlkit==0.13.3
 tqdm==4.67.1

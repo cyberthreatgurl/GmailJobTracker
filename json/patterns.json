@@ -20,6 +20,7 @@
       "\\bdiscuss\\sthe\\sopportunity\\b"
     ],
     "application": [
+  "^Indeed\\sApplication:\\s*",
       "acknowledge\\sthes\\sreceipt",
       "for\\sapplying",
       "received\\syour\\sapplication",
@@ -41,7 +42,24 @@
       "\\bapplication\\s+is\\s+incomplete\\b",
       "\\byour\\s+job\\s+application\\s+is\\s+incomplete\\b",
       "\\bfinish(?:ing)?\\s+your\\s+application\\b",
-      "\\baction\\s+needed\\s+to\\s+complete\\s+(?:your\\s+)?application\\b"
+      "\\baction\\s+needed\\s+to\\s+complete\\s+(?:your\\s+)?application\\b",
+      "\\byour\\sapplication\\s(?:to|for|at)\\b",
+      "\\bapplication\\supdate\\b",
+      "\\bapplication\\sstatus\\b",
+  "\\bprofile\\sconfirmation\\b",
+  "\\bapplication\\sreceived\\b",
+      "\\breceived.*\\bapplication\\b",
+      "\\bjob\\sapplication\\sconfirmation\\b",
+      "\\bjob\\sapplication.*\\breceived\\b",
+      "\\bwe'?ve\\sreceived\\syour.*\\bapplication\\b",
+      "\\bevaluate\\syour.*\\bapplication\\b",
+      "\\bthank\\syou\\sfor\\s(?:your\\s)?interest\\b",
+      "\\btalent\\spool\\b",
+      "\\bcareer\\sopportunity\\b",
+  "\\binterview\\savailability\\b",
+  "\\byour.*\\sjob\\sapplication\\b",
+  "\\bjob\\sapplication\\sfor\\b",
+  "\\bthank\\syou\\sfrom\\b"
     ],
     "rejection": [
       "another\\scandidate\\shas\\sbeen\\sselected",
@@ -69,7 +87,10 @@
       "\\bposition\\s(?:has\\sbeen\\s)?filled\\b",
       "\\bno\\slonger\\s(?:considering|moving\\sforward)\\bs",
       "\\bwe\\s(?:are\\s)?pursuing\\s(?:other|another)\\scandidate(?:s)?\\b",
-      "\\bkeep\\syour\\s(?:resume|application)\\son\\sfile\\b"
+      "\\bkeep\\syour\\s(?:resume|application)\\son\\sfile\\b",
+      "\\bdecided\\snot\\sto\\smove\\sforward\\swith\\syour\\sapplication\\b",
+      "\\bnot\\sadvance\\b",
+      "\\bonly\\sadvance\\sa\\sfew\\b"
     ],
     "offer": ["\\smake\\syou\\san\\soffer\\b"],
     "noise": [
@@ -114,8 +135,24 @@
     ],
     "ghosted": ["None"],
     "other": [
-      "\\bMicrosoft\\sTeams\\sNeed\\shelp\\b",
-      "\\bThank\\syou\\sfor\\sscheduling\\b"
+      "\\bMicrosoft\\sTeams\\sNeed\\shelp",
+      "\\bthank\\syou\\sfor\\sscheduling\\b",
+      "\\bscheduled\\sa\\sconversation\\b",
+      "\\blook\\sforward\\sto\\s(?:speaking|discussing)\\b",
+      "\\bfinish\\syour\\sapplication",
+      "\\bhelp\\syou\\sget\\sstarted",
+      "\\bDon'?t\\sforget\\sto\\sfinish\\syour\\sapplication\\b",
+      "\\bcomplete\\syour\\sapplication\\b",
+      "\\bresume\\syour\\sapplication\\b",
+      "\\bpick\\sup\\swhere\\syou\\sleft\\soff\\b",
+      "\\baction\\s+needed\\s+.*?\\s+application\\b",
+      "\\bstarted\\sapplying\\b.*\\bdidn'?t\\sfinish\\b",
+      "\\bdidn'?t\\sfinish\\b.*\\bapplication\\b",
+      "\\bincomplete\\sapplication\\b",
+      "\\bapplication\\sincomplete\\b",
+      "\\bwe\\snoticed\\syou\\sstarted\\b",
+      "\\bhelp\\syou\\sget\\sstarted\\b",
+      "\\bIndeed\\sApplication:\\b"
     ]
   },
   "invalid_company_prefixes": [

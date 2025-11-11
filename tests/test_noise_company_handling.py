@@ -22,8 +22,10 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dashboard.settings")
 django.setup()
 
 from tracker.models import Company, Message
+import pytest
 
 
+@pytest.mark.django_db
 def test_noise_message_creation():
     """Test that noise messages are created without companies."""
     print("\n" + "=" * 70)
@@ -56,6 +58,7 @@ def test_noise_message_creation():
     msg.delete()
 
 
+@pytest.mark.django_db
 def test_noise_message_model_save_override():
     """Test that Message.save() clears company for REVIEWED noise messages."""
     print("\n" + "=" * 70)
@@ -118,6 +121,7 @@ def test_noise_message_model_save_override():
         company.delete()
 
 
+@pytest.mark.django_db
 def test_existing_noise_messages_cleaned():
     """Test that only reviewed noise messages have companies cleared."""
     print("\n" + "=" * 70)

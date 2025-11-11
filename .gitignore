@@ -13,7 +13,7 @@ build/
 venv/
 ENV/
 env/
-
+tests/email/
 # Django
 *.db
 *.sqlite3

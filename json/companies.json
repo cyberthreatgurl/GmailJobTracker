@@ -31,8 +31,8 @@
     "Dragos",
     "ECS",
     "Eclypsium",
-  "Endynamic",
-  "Endyna",
+    "Endynamic",
+    "Endyna",
     "Figure",
     "Freddie Mac",
     "Gartner",
@@ -91,7 +91,9 @@
     "Virginia Tech",
     "Westinghouse Nuclear",
     "Booz Allen Hamilton",
-    "Millennium Corporation"
+    "Millennium Corporation",
+    "Sail Point Technologies",
+    "sail"
   ],
   "domain_to_company": {
     "nsa.gov": "National Security Agency",
@@ -147,8 +149,8 @@
     "venturegloballng.com": "Venture Global LNG",
     "victorops.com": "Victorops",
     "wearemetronome.com": "Metronome",
-    "westinghousenuclear.com": "Westinghouse Nuclear"
-  ,"endyna.com": "Endyna"
+    "westinghousenuclear.com": "Westinghouse Nuclear",
+    "endyna.com": "Endyna"
   },
   "ats_domains": [
     "applicantpro.com",
@@ -233,7 +235,8 @@
     "Starbucks": "https://careers.starbucks.com/",
     "TMC Technologies": "https://tmctechnologies.com/careers/",
     "Trellix": "https://careers.trellix.com/",
-    "Coalfire Federal": "https://coalfirefederal.com/careers/"
+    "Coalfire Federal": "https://coalfirefederal.com/careers/",
+    "The Tatitlek Corporation": "https://tatitlek.com/careers-page/"
   },
   "aliases": {
     "ARC": "Analysis and Resilience Center for Systemic Risk",

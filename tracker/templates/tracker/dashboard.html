@@ -199,7 +199,7 @@
     </div>
   </div>
 
-  <!-- Company Breakdown by Status -->
+  <!-- Company Breakdown by Status (defaults to last 7 days; adjust with date picker above) -->
   <div style="margin-top: 2rem;">
   {% if selected_company %}
     <div style="margin-bottom:1.5rem;">
@@ -220,7 +220,7 @@
       </ul>
     </div>
   {% endif %}
-    <h2>Companies by Activity Type (for selected period)</h2>
+  <h2>Companies by Activity Type (filtered entirely by the date range above)</h2>
     <div style="display: flex; gap: 2rem; flex-wrap: wrap; margin-top: 1rem;">
       <!-- Rejections -->
       <div style="flex: 1; min-width: 250px; background: #fef2f2; padding: 1rem; border-radius: 8px; border-left: 4px solid #ef4444;">
@@ -242,7 +242,7 @@
       <!-- Applications Sent -->
       <div style="flex: 1; min-width: 250px; background: #eff6ff; padding: 1rem; border-radius: 8px; border-left: 4px solid #2563eb;">
         <h3 style="color: #1e40af; margin: 0 0 0.75rem 0; font-size: 1rem; font-weight: 600; display:flex; align-items:center; gap:0.5rem;">
-          <span>📤 Applications Sent to (<span id="applicationCount">{{ initial_application_companies|length }}</span>)</span>
+          <span>📤 Applications Sent to (distinct companies) (<span id="applicationCount">{{ initial_application_companies|length }}</span>)</span>
           <button class="copy-btn" onclick="copyCompanyList('applicationList', this)">Copy</button>
         </h3>
         <ul id="applicationList" style="margin: 0; padding-left: 1.25rem; list-style: disc; color: #1e3a8a; font-size: 0.9rem; line-height: 1.6;">
@@ -275,7 +275,7 @@
       <!-- Interviews -->
       <div style="flex: 1; min-width: 250px; background: #e0f7fa; padding: 1rem; border-radius: 8px; border-left: 4px solid #22c55e;">
         <h3 style="color: #0d9488; margin: 0 0 0.75rem 0; font-size: 1rem; font-weight: 600; display:flex; align-items:center; gap:0.5rem;">
-          <span>🗓️ Interviews With (<span id="interviewCount">{{ initial_interview_companies|length }}</span>)</span>
+          <span>🗓️ Interviews With (includes upcoming) (<span id="interviewCount">{{ initial_interview_companies|length }}</span>)</span>
           <button class="copy-btn" onclick="copyCompanyList('interviewList', this)">Copy</button>
         </h3>
         <ul id="interviewList" style="margin: 0; padding-left: 1.25rem; list-style: disc; color: #0d9488; font-size: 0.9rem; line-height: 1.6;">
@@ -653,21 +653,40 @@
     const interviewCount = document.getElementById('interviewCount');
 
       // Helper to render list
-      function renderList(listEl, companies) {
+      function renderList(listEl, companies, countsMap, annotateCounts=true) {
         if (companies.length === 0) {
           listEl.innerHTML = '<li style="color: #9ca3af;">No data in selected range</li>';
-        } else {
-          const sorted = companies.slice().sort((a,b) => a.name.localeCompare(b.name));
-          listEl.innerHTML = sorted
-            .map(item => `<li><a href="/label_companies/?company=${item.id}" style="text-decoration:none; color:inherit;">${item.name}</a></li>`)
-            .join('');
+          return;
         }
+        const sorted = companies.slice().sort((a,b) => a.name.localeCompare(b.name));
+        listEl.innerHTML = sorted
+          .map(item => {
+            const c = countsMap.get(item.id) || 1;
+            const suffix = annotateCounts && c > 1 ? ` (${c})` : '';
+            return `<li><a href="/label_companies/?company=${item.id}" style="text-decoration:none; color:inherit;">${item.name}${suffix}</a></li>`;
+          })
+          .join('');
       }
 
-  renderList(rejectionList, uniqueRejections);
-  renderList(applicationList, uniqueApplications);
-  renderList(ghostedList, uniqueGhosted);
-  renderList(interviewList, uniqueInterviews);
+      // Build frequency maps for each category (exclude ghosted per requirement unless future request)
+      function buildCounts(arr) {
+        const m = new Map();
+        arr.forEach(e => {
+          if (!e || e.id == null) return;
+          m.set(e.id, (m.get(e.id) || 0) + 1);
+        });
+        return m;
+      }
+
+      const rejectionCounts = buildCounts(rejections);
+      const applicationCounts = buildCounts(applications);
+      const interviewCounts = buildCounts(interviews);
+      const ghostedCounts = buildCounts(ghosted); // not annotated (spec only asked for rejections/interviews/applications)
+
+      renderList(rejectionList, uniqueRejections, rejectionCounts);
+      renderList(applicationList, uniqueApplications, applicationCounts);
+      renderList(ghostedList, uniqueGhosted, ghostedCounts, false);
+      renderList(interviewList, uniqueInterviews, interviewCounts);
 
       // Update counts
   if (rejectionCount) rejectionCount.textContent = String(uniqueRejections.length);

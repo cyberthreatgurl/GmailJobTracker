@@ -16,7 +16,7 @@ import json
 import logging
 import os
 import re
-from parser import extract_metadata
+from parser import extract_metadata, parse_raw_message
 from pathlib import Path
 
 from django.contrib import messages
@@ -105,16 +105,17 @@ def label_rule_debugger(request):
                     msg_obj = json.loads(raw_text)
                 except Exception:
                     msg_obj = raw_text
-                # Extract metadata with fallback
+                # Extract metadata robustly for raw EML or pasted content
                 subject = ""
                 body = ""
                 try:
-                    meta = extract_metadata(msg_obj)
-                    # meta may be dict-like per project convention
-                    subject = (
-                        meta.get("subject") if isinstance(meta, dict) else ""
-                    ) or subject
-                    body = (meta.get("body") if isinstance(meta, dict) else "") or body
+                    if isinstance(msg_obj, str):
+                        meta = parse_raw_message(msg_obj)
+                    else:
+                        # If JSON provided, we don't have Gmail service here; fallback to EML path
+                        meta = parse_raw_message(raw_text)
+                    subject = meta.get("subject", "")
+                    body = meta.get("body", "")
                 except Exception:
                     # naive fallback: split headers/body for EML-like content
                     parts = raw_text.split("\n\n", 1)
@@ -1077,23 +1078,32 @@ def build_sidebar_context():
         .count()
     )
 
-    # Count all job application confirmation messages (each message = one application submitted)
-    # Exclude: user's own replies AND headhunter senders/domains
-    applications_qs = Message.objects.filter(
+    # Authoritative application source: ThreadTracking rows for job applications
+    # (created during ingestion for ml_label in ['job_application']).
+    tt_app_qs = ThreadTracking.objects.filter(
         ml_label="job_application", company__isnull=False
     )
-    if user_email:
-        applications_qs = applications_qs.exclude(sender__icontains=user_email)
-    # Exclude headhunters by sender domain or explicit head_hunter label
-    if headhunter_domains:
-        applications_qs = applications_qs.exclude(msg_hh_sender_q)
-    applications_qs = applications_qs.exclude(ml_label="head_hunter")
-    applications_count = applications_qs.count()
+    # Exclude headhunters by company status and domain (join through messages if needed)
+    tt_app_qs = tt_app_qs.exclude(company__status="headhunter")
+    applications_count = tt_app_qs.count()
 
-    # Applications this week
-    applications_week = applications_qs.filter(
-        timestamp__gte=now() - timedelta(days=7)
-    ).count()
+    # Weekly application count: Use Message model directly (more reliable than ThreadTracking)
+    # because not all job_application messages have corresponding ThreadTracking rows
+    week_cutoff = now() - timedelta(days=7)
+    applications_week_qs = Message.objects.filter(
+        ml_label__in=["job_application", "application"],
+        timestamp__gte=week_cutoff,
+        company__isnull=False,
+    )
+    # Exclude user's own messages
+    if user_email:
+        applications_week_qs = applications_week_qs.exclude(sender__icontains=user_email)
+    # Exclude headhunter companies and domains
+    applications_week_qs = applications_week_qs.exclude(company__status="headhunter")
+    if headhunter_domains:
+        applications_week_qs = applications_week_qs.exclude(msg_hh_sender_q)
+    # Count distinct companies
+    applications_week = applications_week_qs.values("company_id").distinct().count()
 
     # Count rejection messages this week (exclude headhunters and user's own replies)
     rejections_qs = Message.objects.filter(
@@ -1122,15 +1132,18 @@ def build_sidebar_context():
         interviews_qs = interviews_qs.exclude(msg_hh_sender_q)
     interviews_week = interviews_qs.count()
 
-    # Get upcoming interviews from Application table where interview_date is set
+    # Upcoming interviews: unify filters with interview list logic (exclude rejected/ghosted)
     upcoming_interviews = (
         ThreadTracking.objects.filter(
             interview_date__gte=now(),
             company__isnull=False,
-            interview_completed=False
+            interview_completed=False,
         )
+        .exclude(status="ghosted")
+        .exclude(status="rejected")
+        .exclude(rejection_date__isnull=False)
         .select_related("company")
-        .order_by("interview_date")[:10]  # Limit to next 10
+        .order_by("interview_date")[:10]
     )
 
     latest_stats = IngestionStats.objects.order_by("-date").first()
@@ -1884,11 +1897,16 @@ def dashboard(request):
             ml_label__in=["job_application", "application"],
         )
     )
+    # Removed the implicit 7-day default range for company breakdown lists.
+    # Provide full historical data; client-side date picker (JS) will filter range.
     application_companies_qs = (
-        ThreadTracking.objects.filter(sent_date__isnull=False, company__isnull=False)
+        ThreadTracking.objects.filter(
+            sent_date__isnull=False,
+            company__isnull=False,
+        )
         .annotate(has_job_app=job_app_exists)
         .filter(has_job_app=True)
-        .exclude(ml_label="noise")  # Exclude noise from metrics
+        .exclude(ml_label="noise")
         .select_related("company")
         .values("company_id", "company__name", "sent_date")
         .order_by("-sent_date")
@@ -1953,14 +1971,13 @@ def dashboard(request):
     # Interviews: Application-based (interview_date)
     interview_companies_qs = (
         ThreadTracking.objects.filter(
-            interview_date__isnull=False, company__isnull=False
+            interview_date__isnull=False,
+            company__isnull=False,
         )
-        .exclude(ml_label="noise")  # Exclude noise from metrics
-        .exclude(status="ghosted")  # Exclude ghosted applications
-        .exclude(status="rejected")  # Exclude rejected applications
-        .exclude(
-            rejection_date__isnull=False
-        )  # Also exclude any with rejection_date set
+        .exclude(ml_label="noise")
+        .exclude(status="ghosted")
+        .exclude(status="rejected")
+        .exclude(rejection_date__isnull=False)
         .select_related("company")
         .values("company_id", "company__name", "interview_date")
         .order_by("-interview_date")
@@ -2053,6 +2070,8 @@ def dashboard(request):
         "all_companies": all_companies,
         "selected_company": selected_company,
     }
+    # Ensure single source of truth for sidebar cards like Applications This Week
+    ctx.update(build_sidebar_context())
     return render(request, "tracker/dashboard.html", ctx)
 
 
@@ -2098,6 +2117,84 @@ def label_messages(request):
     # Handle POST - Bulk label selected messages
     if request.method == "POST":
         action = request.POST.get("action")
+
+        if action == "update_company_registry":
+            # Add or update entries in json/companies.json from quick-add form
+            company_name = (request.POST.get("company_name") or "").strip()
+            company_domain = (request.POST.get("company_domain") or "").strip()
+            ats_domain = (request.POST.get("ats_domain") or "").strip()
+            careers_url = (request.POST.get("careers_url") or "").strip()
+
+            if not any([company_name, company_domain, ats_domain, careers_url]):
+                messages.warning(request, "⚠️ Please provide at least one field to add/update.")
+                return redirect(request.get_full_path())
+
+            cfg_path = Path("json/companies.json")
+            try:
+                with open(cfg_path, "r", encoding="utf-8") as f:
+                    companies_cfg = json.load(f)
+            except Exception as e:  # pylint: disable=broad-except
+                messages.error(request, f"❌ Failed to read companies.json: {e}")
+                return redirect(request.get_full_path())
+
+            added = []
+            updated = []
+
+            # Ensure top-level keys exist
+            companies_cfg.setdefault("known", [])
+            companies_cfg.setdefault("domain_to_company", {})
+            companies_cfg.setdefault("ats_domains", [])
+            companies_cfg.setdefault("JobSites", {})
+
+            # Add company name to known list
+            if company_name:
+                if company_name not in companies_cfg["known"]:
+                    companies_cfg["known"].append(company_name)
+                    added.append(f"known: {company_name}")
+
+            # Map company domain to company name
+            if company_domain:
+                domain_key = company_domain.lower()
+                existing = companies_cfg["domain_to_company"].get(domain_key)
+                if not existing:
+                    companies_cfg["domain_to_company"][domain_key] = company_name or existing or ""
+                    added.append(f"domain_to_company: {domain_key} → {companies_cfg['domain_to_company'][domain_key]}")
+                elif company_name and existing != company_name:
+                    companies_cfg["domain_to_company"][domain_key] = company_name
+                    updated.append(f"domain_to_company: {domain_key} → {company_name}")
+
+            # Add ATS domain
+            if ats_domain:
+                ats_key = ats_domain.lower()
+                if ats_key not in companies_cfg["ats_domains"]:
+                    companies_cfg["ats_domains"].append(ats_key)
+                    added.append(f"ats_domains: {ats_key}")
+
+            # Add or update careers URL under JobSites
+            if careers_url and company_name:
+                existing_url = companies_cfg["JobSites"].get(company_name)
+                if not existing_url:
+                    companies_cfg["JobSites"][company_name] = careers_url
+                    added.append(f"JobSites: {company_name}")
+                elif existing_url != careers_url:
+                    companies_cfg["JobSites"][company_name] = careers_url
+                    updated.append(f"JobSites: {company_name}")
+
+            # Persist changes if any
+            try:
+                if added or updated:
+                    with open(cfg_path, "w", encoding="utf-8") as f:
+                        json.dump(companies_cfg, f, ensure_ascii=False, indent=2)
+                    if added:
+                        messages.success(request, "✅ Added entries: " + "; ".join(added))
+                    if updated:
+                        messages.info(request, "ℹ️ Updated entries: " + "; ".join(updated))
+                else:
+                    messages.info(request, "No changes needed; companies.json already up to date.")
+            except Exception as e:  # pylint: disable=broad-except
+                messages.error(request, f"❌ Failed to write companies.json: {e}")
+
+            return redirect(request.get_full_path())
 
         if action == "bulk_label":
             selected_ids = request.POST.getlist("selected_messages")

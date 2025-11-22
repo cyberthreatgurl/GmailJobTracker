@@ -59,11 +59,21 @@ if PATTERNS_PATH.exists():
 else:
     PATTERNS = {}
 
+# --- Load personal_domains.json ---
+PERSONAL_DOMAINS_PATH = Path(__file__).parent / "json" / "personal_domains.json"
+if PERSONAL_DOMAINS_PATH.exists():
+    with open(PERSONAL_DOMAINS_PATH, "r", encoding="utf-8") as f:
+        personal_domains_data = json.load(f)
+    PERSONAL_DOMAINS = set(personal_domains_data.get("domains", []))
+else:
+    # Fallback to default list if file doesn't exist
+    PERSONAL_DOMAINS = {'gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'aol.com', 'icloud.com'}
+
 # Compile application patterns for efficient matching
 APPLICATION_PATTERNS = []
 if "message_labels" in PATTERNS and "application" in PATTERNS["message_labels"]:
     APPLICATION_PATTERNS = [
-        re.compile(pattern, re.IGNORECASE) 
+        re.compile(pattern, re.IGNORECASE)
         for pattern in PATTERNS["message_labels"]["application"]
     ]
 # Map from label names used in code to JSON keys
@@ -676,6 +686,9 @@ def extract_metadata(service, msg_id):
     match = re.search(r"@([A-Za-z0-9.-]+)$", email_addr)
     sender_domain = match.group(1).lower() if match else ""
 
+    # Extract "To" header for user-sent message company mapping
+    to_header = next((h["value"] for h in headers if h["name"].lower() == "to"), "")
+    
     thread_id = msg["threadId"]
     label_ids = msg.get("labelIds", [])
     labels = ",".join(label_ids)  # raw IDs unless you re-add get_label_map()
@@ -775,6 +788,7 @@ def extract_metadata(service, msg_id):
         "last_updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "sender": sender,
         "sender_domain": sender_domain,
+        "to": to_header,  # For user-sent message company mapping
         "parser_version": PARSER_VERSION,
         "header_hints": header_hints,  # NEW: Pass header analysis to caller
     }
@@ -877,16 +891,48 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
     subj_lower = subject_clean.lower()
     domain_lower = sender_domain.lower() if sender_domain else None
 
-    # --- Post-ML downgrade: certain calendar/meeting invites should not be interview_invite ---
+    # --- Post-ML downgrade: certain subjects should not be interview_invite ---
     if label == "interview_invite":
-        if (
-            ("meeting with" in subj_lower or "meeting invitation" in subj_lower) and "interview" not in subj_lower
-            and confidence < 0.65
-        ) or (body and re.search(r"microsoft teams|zoom meeting|join.*meeting", body, re.I) and "interview" not in subj_lower and confidence < 0.65):
+        # Offer-related subjects (not interviews)
+        offer_patterns = [
+            r"\boffer\b",
+            r"\bcompensation\b",
+            r"\bsalary\b",
+            r"\brate\b",
+            r"\bnegotiat",
+        ]
+        is_offer_related = any(re.search(pattern, subj_lower) for pattern in offer_patterns)
+        
+        if is_offer_related:
             if DEBUG:
-                print("[DEBUG] Downgrading label interview_invite -> other (meeting heuristic)")
+                print("[DEBUG] Downgrading label interview_invite -> other (offer-related subject)")
             label = "other"
-            # Keep confidence as-is; we changed semantic label intentionally
+        # Meeting invites without "interview" keyword - only downgrade generic low-confidence meetings
+        # Keep high-confidence ones as they're likely actual interview invites
+        elif (
+            ("meeting with" in subj_lower or "meeting invitation" in subj_lower) 
+            and "interview" not in subj_lower
+            and confidence < 0.65
+            and not (body and re.search(r"meeting id|passcode|join.*meeting", body, re.I))
+        ):
+            if DEBUG:
+                print("[DEBUG] Downgrading label interview_invite -> other (generic meeting, low confidence)")
+            label = "other"
+    
+    # Upgrade: Calendar meeting invites with meeting details should be interview_invite
+    # if they're from a company domain and have meeting/interview/call language
+    if label in ("other", "response"):
+        has_meeting_details = bool(re.search(r"meeting id|passcode|join.*meeting|zoom\.us|meet\.google|teams\.microsoft", body, re.I))
+        has_interview_language = bool(re.search(r"\b(interview|meeting|call|discussion|screen|chat)\b", subj_lower))
+        
+        # Check if sender is from a company domain (not personal)
+        is_company_domain = domain_lower and domain_lower not in ["gmail.com", "yahoo.com", "outlook.com", "hotmail.com", "icloud.com"]
+        
+        if has_meeting_details and has_interview_language and is_company_domain:
+            if DEBUG:
+                print(f"[DEBUG] Upgrading {label} -> interview_invite (meeting invite with details)")
+            label = "interview_invite"
+            confidence = max(0.85, confidence)  # Boost confidence
 
     # PRIORITY 1: ATS domain with known sender prefix (most reliable)
     # Support subdomains of known ATS domains (e.g., talent.icims.com -> icims.com)
@@ -1241,6 +1287,65 @@ def ingest_message(service, msg_id):
     elif DEBUG and header_hints.get("is_newsletter"):
         print(f"[HEADER HINTS] Newsletter header found but application-related (patterns.json), not ignoring: {metadata['subject']}")
     
+    # --- PATCH: User-sent message to company domain ---
+    user_email = (os.environ.get("USER_EMAIL_ADDRESS") or "").strip().lower()
+    sender_email = metadata.get("sender", "").lower()
+    # Robust recipient extraction: try 'to', else parse from body for forwarded messages
+    recipient_email = ""
+    if metadata.get("to"):
+        recipient_email = metadata.get("to", "").lower()
+    else:
+        # Try to extract 'To:' from body for forwarded messages
+        body = metadata.get("body", "")
+        m = re.search(r"^To:\s*([\w.\-+]+@[\w.\-]+)", body, re.MULTILINE)
+        if m:
+            recipient_email = m.group(1).strip().lower()
+    recipient_domain = recipient_email.split("@")[-1] if "@" in recipient_email else ""
+    company = ""
+    company_source = ""
+    # Determine if this is a user-sent message and its context
+    subject = metadata.get("subject", "")
+    is_reply_or_forward = subject.lower().startswith(("re:", "fwd:", "fw:"))
+    
+    # Check ML classification to detect noise BEFORE overriding
+    ml_predicted_label = result.get("label") if result else None
+    ml_confidence = float(result.get("confidence", 0)) if result else 0
+    
+    # Only force 'other' for user-INITIATED messages that are NOT noise
+    # Allow ML to classify user replies/forwards, and even user-initiated noise (personal emails)
+    if user_email and sender_email.startswith(user_email):
+        # If ML classifies as noise with reasonable confidence, trust it
+        if ml_predicted_label == "noise" and ml_confidence > 0.5:
+            if DEBUG:
+                print(f"[PATCH] User message classified as noise by ML (confidence={ml_confidence:.2f}), keeping noise label.")
+            # Don't override - let it stay as noise
+        # Check if this is a reply/forward to a personal domain → classify as noise
+        elif is_reply_or_forward and recipient_domain in PERSONAL_DOMAINS:
+            if result:
+                result["label"] = "noise"
+                result["confidence"] = 0.85  # High confidence for personal conversation
+            if DEBUG:
+                print(f"[PATCH] User reply to personal domain ({recipient_domain}), classified as noise.")
+        elif not is_reply_or_forward:
+            # User-INITIATED, non-noise message → likely job application outreach
+            mapped_company = None
+            if recipient_domain:
+                mapped_company = _map_company_by_domain(recipient_domain)
+                if mapped_company:
+                    company = mapped_company
+                    company_source = "user_sent_to_company"
+            # Force label to 'other' for user-INITIATED job outreach
+            if result:
+                result["label"] = "other"
+                if mapped_company:
+                    result["company"] = mapped_company
+                    result["predicted_company"] = mapped_company
+            if DEBUG:
+                print(f"[PATCH] User-initiated message: label set to 'other', company set to {mapped_company if mapped_company else 'N/A'}.")
+        else:
+            # User reply/forward to job-related domains → use ML classification
+            if DEBUG:
+                print(f"[PATCH] User reply/forward to job domain, using ML classification: {ml_predicted_label}")
     parsed_subject = (
         parse_subject(
             metadata["subject"],
@@ -1250,6 +1355,17 @@ def ingest_message(service, msg_id):
         )
         or {}
     )
+    # If user-sent logic matched, override company and force label 'other' in result
+    if company and company_source == "user_sent_to_company":
+        parsed_subject["company"] = company
+        parsed_subject["predicted_company"] = company
+        # Patch: override result label and company before persistence
+        if result:
+            result["label"] = "other"
+            result["company"] = company
+            result["predicted_company"] = company
+        if DEBUG:
+            print(f"[PATCH] Overriding label to 'other' and company to {company} for user-sent message.")
 
     if parsed_subject.get("ignore"):
         if DEBUG:
@@ -1320,13 +1436,74 @@ def ingest_message(service, msg_id):
     sender = metadata.get("sender", "")
     result = predict_subject_type(subject, body, sender=sender)
 
+    # Apply downgrade/upgrade logic for consistency with parse_subject
+    subject_clean = re.sub(r"^(Re|RE|Fwd|FW|Fw):\s*", "", subject, flags=re.IGNORECASE).strip()
+    subj_lower = subject_clean.lower()
+    
+    if result and result.get("label") == "interview_invite":
+        # Offer-related subjects should not be interview_invite
+        offer_patterns = [
+            r"\boffer\b",
+            r"\bcompensation\b",
+            r"\bsalary\b",
+            r"\brate\b",
+            r"\bnegotiat",
+        ]
+        if any(re.search(pattern, subj_lower) for pattern in offer_patterns):
+            if DEBUG:
+                print(f"[RE-INGEST] Downgrading interview_invite -> other (offer-related: {subject})")
+            result["label"] = "other"
+    
+    # Upgrade: Calendar meeting invites with meeting details should be interview_invite
+    # if they're from a company and have meeting/interview/call language
+    if result and result.get("label") in ("other", "response"):
+        has_meeting_details = bool(re.search(r"meeting id|passcode|join.*meeting|zoom\.us|meet\.google|teams\.microsoft", body, re.I))
+        has_interview_language = bool(re.search(r"\b(interview|meeting|call|discussion|screen|chat)\b", subj_lower))
+        
+        # Check if sender is from a company domain (not personal)
+        sender_domain = metadata.get("sender_domain", "").lower()
+        is_company_domain = sender_domain and sender_domain not in ["gmail.com", "yahoo.com", "outlook.com", "hotmail.com", "icloud.com"]
+        
+        if has_meeting_details and has_interview_language and is_company_domain:
+            if DEBUG:
+                print(f"[RE-INGEST] Upgrading {result['label']} -> interview_invite (meeting invite with details: {subject})")
+            result["label"] = "interview_invite"
+            result["confidence"] = max(0.85, result.get("confidence", 0.85))  # Boost confidence
+
     # --- NEW LOGIC: Robust company extraction order ---
     # Add guard: skip company assignment for noise label
     label_guard = result.get("label") if result else None
     skip_company_assignment = label_guard == "noise"
-    company = ""
-    company_source = ""
     company_obj = None
+    # For user-sent messages, use recipient-mapped company if available
+    if user_email and sender_email.startswith(user_email):
+        mapped_company = None
+        if recipient_domain:
+            mapped_company = _map_company_by_domain(recipient_domain)
+        if mapped_company:
+            company = mapped_company
+            company_source = "user_sent_to_company"
+        else:
+            company = ""
+            company_source = "user_sent_to_company"
+        # Always force label to 'other'
+        if result:
+            result["label"] = "other"
+            if mapped_company:
+                result["company"] = mapped_company
+                result["predicted_company"] = mapped_company
+        if company:
+            company_obj, _ = Company.objects.get_or_create(
+                name=company,
+                defaults={
+                    "first_contact": metadata["timestamp"],
+                    "last_contact": metadata["timestamp"],
+                    "confidence": float(result.get("confidence", 0.0)) if result else 0.0,
+                },
+            )
+            if company_obj and not company_obj.domain and recipient_domain:
+                company_obj.domain = recipient_domain
+                company_obj.save()
     
     # Use Organization header as company fallback if needed
     org_fallback = None
@@ -1358,7 +1535,35 @@ def ingest_message(service, msg_id):
                 if DEBUG:
                     print(f"Domain mapping (subdomain aware) used: {sender_domain} → {company}")
 
-        # 1.5. Indeed job board special case - extract actual employer from body
+        # 1.5. USAStaffing.gov job board special case - extract agency/organization from body
+        if not company and sender_domain == "usastaffing.gov":
+            # Extract plain text body for pattern matching
+            body_plain = body
+            try:
+                if body and ("<html" in body.lower() or "<style" in body.lower()):
+                    soup = BeautifulSoup(body, "html.parser")
+                    for tag in soup(["style", "script"]):
+                        tag.decompose()
+                    body_plain = soup.get_text(separator=" ", strip=True)
+            except Exception:
+                body_plain = body
+
+            # Look for "at the ORGANIZATION, in the Department of" pattern
+            if body_plain:
+                usastaffing_pattern = re.search(
+                    r"at the\s+([A-Z][A-Za-z0-9\s&.,'-]+?),\s+in the Department of",
+                    body_plain,
+                    re.IGNORECASE,
+                )
+                if usastaffing_pattern:
+                    extracted = usastaffing_pattern.group(1).strip()
+                    if extracted and is_valid_company_name(extracted):
+                        company = normalize_company_name(extracted)
+                        company_source = "usastaffing_body_extraction"
+                        if DEBUG:
+                            print(f"USAStaffing organization extraction: {company}")
+
+        # 1.6. Indeed job board special case - extract actual employer from body
         if not company and sender_domain == "indeed.com":
             # Check for Indeed Apply confirmation pattern
             if "Indeed Application:" in subject or "indeedapply@indeed.com" in metadata.get("sender", "").lower():
@@ -1507,24 +1712,53 @@ def ingest_message(service, msg_id):
 
     confidence = float(result.get("confidence", 0.0)) if result else 0.0
 
-    if company:
-        # Final normalization before persistence
-        company = normalize_company_name(company)
-        company_obj, _ = Company.objects.get_or_create(
-            name=company,
-            defaults={
-                "first_contact": metadata["timestamp"],
-                "last_contact": metadata["timestamp"],
-                "confidence": confidence,
-            },
-        )
-        if company_obj and not company_obj.domain:
-            sender_domain = metadata.get("sender_domain", "").lower()
-            if sender_domain:
-                company_obj.domain = sender_domain
+    # For user-sent messages, guarantee company_obj and label 'other' are set using recipient domain
+    if user_email and sender_email.startswith(user_email):
+        mapped_company = None
+        if recipient_domain:
+            mapped_company = _map_company_by_domain(recipient_domain)
+        if mapped_company:
+            company = normalize_company_name(mapped_company)
+            company_obj, _ = Company.objects.get_or_create(
+                name=company,
+                defaults={
+                    "first_contact": metadata["timestamp"],
+                    "last_contact": metadata["timestamp"],
+                    "confidence": confidence,
+                },
+            )
+            if company_obj and not company_obj.domain:
+                company_obj.domain = recipient_domain
                 company_obj.save()
                 if DEBUG:
-                    print(f"Set domain for {company}: {sender_domain}")
+                    print(f"Set domain for {company}: {recipient_domain}")
+        else:
+            company_obj = None
+        # Always force label to 'other'
+        if result:
+            result["label"] = "other"
+            if mapped_company:
+                result["company"] = mapped_company
+                result["predicted_company"] = mapped_company
+    else:
+        if company:
+            # Final normalization before persistence
+            company = normalize_company_name(company)
+            company_obj, _ = Company.objects.get_or_create(
+                name=company,
+                defaults={
+                    "first_contact": metadata["timestamp"],
+                    "last_contact": metadata["timestamp"],
+                    "confidence": confidence,
+                },
+            )
+            if company_obj and not company_obj.domain:
+                sender_domain = metadata.get("sender_domain", "").lower()
+                if sender_domain:
+                    company_obj.domain = sender_domain
+                    company_obj.save()
+                    if DEBUG:
+                        print(f"Set domain for {company}: {sender_domain}")
 
     if DEBUG:
         confidence = result.get("confidence", 0.0) if result else 0.0
@@ -1543,8 +1777,84 @@ def ingest_message(service, msg_id):
             print(f"Updating existing message: {msg_id}")
             print(f"Stats: skipped++ (re-ingest)")
 
+        # Special handling for user-sent messages during re-ingestion
+        # ONLY apply 'other' label to user-INITIATED messages (not replies/forwards)
+        user_email = (os.environ.get("USER_EMAIL_ADDRESS") or "").strip().lower()
+        sender_full = (metadata.get("sender") or "").lower()
+        # Extract email address from "Name <email@domain.com>" format
+        sender_email = sender_full
+        if "<" in sender_full and ">" in sender_full:
+            sender_email = sender_full[sender_full.index("<")+1:sender_full.index(">")]
+        
+        subject = metadata.get("subject", "")
+        is_reply_or_forward = subject.lower().startswith(("re:", "fwd:", "fw:"))
+        
+        # CRITICAL: Only override label for user-initiated messages, NOT replies/forwards
+        if user_email and sender_email.startswith(user_email) and not is_reply_or_forward:
+            # Force label to 'other' and map company from recipient domain
+            recipient_email = metadata.get("to", "").lower()
+            # Fallback: try to extract recipient from body for forwarded messages
+            if not recipient_email:
+                body = metadata.get("body", "")
+                m = re.search(r"^To:\s*([\w.\-+]+@[\w.\-]+)", body, re.MULTILINE | re.IGNORECASE)
+                if m:
+                    recipient_email = m.group(1).strip().lower()
+            
+            recipient_domain = recipient_email.split("@")[-1] if "@" in recipient_email else ""
+            
+            # Check ML classification first - if it's noise, keep it as noise
+            ml_predicted_label = result.get("label") if result else None
+            ml_confidence = float(result.get("confidence", 0)) if result else 0
+            
+            if ml_predicted_label == "noise" and ml_confidence > 0.5:
+                # Trust ML noise classification for user-sent messages (personal emails)
+                existing.ml_label = "noise"
+                existing.confidence = ml_confidence
+                if DEBUG:
+                    print(f"[RE-INGEST] User-initiated message classified as noise by ML (confidence={ml_confidence:.2f})")
+            else:
+                # Non-noise user-initiated message → job outreach
+                if recipient_domain:
+                    mapped_company = _map_company_by_domain(recipient_domain)
+                    if mapped_company:
+                        company_obj, _ = Company.objects.get_or_create(
+                            name=normalize_company_name(mapped_company),
+                            defaults={
+                                "first_contact": metadata["timestamp"],
+                                "last_contact": metadata["timestamp"],
+                            },
+                        )
+                        existing.company = company_obj
+                        existing.company_source = "user_sent_to_company"
+                existing.ml_label = "other"
+                existing.confidence = 1.0
+                if DEBUG:
+                    print(f"[RE-INGEST] User-initiated message: label='other', company={company_obj.name if company_obj else 'None'}")
+        elif user_email and sender_email.startswith(user_email) and is_reply_or_forward:
+            # Check if reply is to personal domain → classify as noise
+            if recipient_domain in PERSONAL_DOMAINS:
+                existing.ml_label = "noise"
+                existing.confidence = 0.85
+                existing.company = None
+                existing.company_source = ""
+                if DEBUG:
+                    print(f"[RE-INGEST] User reply to personal domain ({recipient_domain}), classified as noise")
+            else:
+                # User replies/forwards to job domains: update with ML classification results
+                if result:
+                    existing.ml_label = result["label"]
+                    existing.confidence = result["confidence"]
+                # Update company normally
+                if skip_company_assignment and existing.reviewed:
+                    existing.company = None
+                    existing.company_source = ""
+                elif company_obj:
+                    existing.company = company_obj
+                    existing.company_source = company_source
+                if DEBUG:
+                    print(f"[RE-INGEST] User reply/forward to job domain updated: label={result['label'] if result else 'N/A'}, company={company_obj.name if company_obj else 'None'}")
         # Update company (including clearing it for reviewed noise messages)
-        if skip_company_assignment and existing.reviewed:
+        elif skip_company_assignment and existing.reviewed:
             # Reviewed noise messages should have no company
             existing.company = None
             existing.company_source = ""
@@ -1553,10 +1863,41 @@ def ingest_message(service, msg_id):
             existing.company = company_obj
             existing.company_source = company_source
 
+        # Headhunter enforcement for re-ingestion: ALL headhunter messages should be head_hunter
         if result:
+            sender_domain = (metadata.get("sender_domain") or "").lower()
+            is_hh_sender = sender_domain in HEADHUNTER_DOMAINS
+            company_name_norm = (company_obj.name if company_obj else "").strip().lower()
+            company_domain_norm = (getattr(company_obj, "domain", "") or "").strip().lower() if company_obj else ""
+            is_hh_company_domain = (
+                any(company_domain_norm.endswith(d) for d in HEADHUNTER_DOMAINS) if company_domain_norm else False
+            )
+            is_hh_company_status = getattr(company_obj, "status", "") == "headhunter" if company_obj else False
+            is_hh_company_name = company_name_norm == "headhunter"
+
+            if is_hh_sender or is_hh_company_domain or is_hh_company_status or is_hh_company_name:
+                if DEBUG:
+                    print(f"[RE-INGEST HEADHUNTER] Forcing label to head_hunter (was: {result.get('label')})")
+                result["label"] = "head_hunter"
+        
+        # Forwarded message detection for re-ingestion: override label to "other"
+        subject_for_check = metadata.get("subject", "").strip()
+        if re.match(r"^(Fwd|FW|Fw):\s*", subject_for_check, re.IGNORECASE) and company_obj:
+            if DEBUG:
+                print(f"[RE-INGEST FORWARD] Subject starts with Fwd/FW and company resolved: {company_obj.name}")
+                print(f"[RE-INGEST FORWARD] Original label: {result.get('label') if result else 'N/A'}, overriding to 'other'")
+            if result:
+                result["label"] = "other"
+                result["confidence"] = 0.95
+        
+        # Update label/confidence for non-user messages
+        if result and not (user_email and sender_email.startswith(user_email)):
             existing.ml_label = result["label"]
             existing.confidence = result["confidence"]
-        if (
+        
+        # Only auto-mark as reviewed if not already reviewed AND meets high-confidence criteria
+        # This preserves manual review status during re-ingestion
+        if not existing.reviewed and (
             result
             and result.get("confidence", 0.0) >= 0.85
             and result.get("label") != "noise"
@@ -1654,47 +1995,79 @@ def ingest_message(service, msg_id):
         )
         return  # Skip duplicate
 
-    # Headhunter enforcement: prevent misleading labels on HH sources/companies
+    # Headhunter enforcement: ALL messages from headhunter domains/companies should be labeled head_hunter
     if result:
-        blocked_hh_labels = {
-            "job_application",
-            "application",
-            "interview_invite",
-            "rejected",
-            "rejection",
-        }
-        proposed_label = result.get("label")
-        if proposed_label in blocked_hh_labels:
-            sender_domain = (metadata.get("sender_domain") or "").lower()
-            is_hh_sender = sender_domain in HEADHUNTER_DOMAINS
-            company_name_norm = (company_obj.name if company_obj else "").strip().lower()
-            company_domain_norm = (getattr(company_obj, "domain", "") or "").strip().lower() if company_obj else ""
-            is_hh_company_domain = (
-                any(company_domain_norm.endswith(d) for d in HEADHUNTER_DOMAINS) if company_domain_norm else False
-            )
-            is_hh_company_status = getattr(company_obj, "status", "") == "headhunter" if company_obj else False
-            is_hh_company_name = company_name_norm == "headhunter"
+        sender_domain = (metadata.get("sender_domain") or "").lower()
+        is_hh_sender = sender_domain in HEADHUNTER_DOMAINS
+        company_name_norm = (company_obj.name if company_obj else "").strip().lower()
+        company_domain_norm = (getattr(company_obj, "domain", "") or "").strip().lower() if company_obj else ""
+        is_hh_company_domain = (
+            any(company_domain_norm.endswith(d) for d in HEADHUNTER_DOMAINS) if company_domain_norm else False
+        )
+        is_hh_company_status = getattr(company_obj, "status", "") == "headhunter" if company_obj else False
+        is_hh_company_name = company_name_norm == "headhunter"
 
-            if is_hh_sender or is_hh_company_domain or is_hh_company_status or is_hh_company_name:
-                # Force headhunter label for these cases
-                result["label"] = "head_hunter"
+        # Force head_hunter label if from headhunter domain or company (regardless of ML classification)
+        if is_hh_sender or is_hh_company_domain or is_hh_company_status or is_hh_company_name:
+            if DEBUG:
+                print(f"[HEADHUNTER ENFORCEMENT] Forcing label to head_hunter (was: {result.get('label')})")
+            result["label"] = "head_hunter"
+        
+        # Forwarded message detection: if subject starts with "Fwd:" or "FW:" and company is resolved,
+        # automatically label as "other" to prevent counting forwards as actual interview invites/applications
+        subject_for_check = metadata.get("subject", "").strip()
+        if re.match(r"^(Fwd|FW|Fw):\s*", subject_for_check, re.IGNORECASE) and company_obj:
+            if DEBUG:
+                print(f"[FORWARD DETECTION] Subject starts with Fwd/FW and company resolved: {company_obj.name}")
+                print(f"[FORWARD DETECTION] Original label: {result.get('label')}, overriding to 'other'")
+            result["label"] = "other"
+            result["confidence"] = 0.95  # High confidence for forward detection
 
         # ✅ Now safe to insert Message with enriched company
         # Use safe fallback for body_html because unit tests' mocked metadata may omit it
-        Message.objects.create(
-            msg_id=msg_id,
-            thread_id=metadata["thread_id"],
-            subject=subject,
-            sender=metadata["sender"],
-            body=metadata.get("body", ""),
-            body_html=metadata.get("body_html", metadata.get("body", "")),
-            timestamp=metadata["timestamp"],
-            ml_label=result["label"],
-            confidence=result["confidence"],
-            reviewed=reviewed,
-            company=company_obj,
-            company_source=company_source,
-        )
+        # For user-INITIATED messages (not replies/forwards), use company_obj from recipient domain and label 'other'
+        if user_email and sender_email.startswith(user_email) and not is_reply_or_forward:
+            mapped_company = None
+            if recipient_domain:
+                mapped_company = _map_company_by_domain(recipient_domain)
+            if mapped_company:
+                company_obj, _ = Company.objects.get_or_create(
+                    name=normalize_company_name(mapped_company),
+                    defaults={
+                        "first_contact": metadata["timestamp"],
+                        "last_contact": metadata["timestamp"],
+                        "confidence": float(result.get("confidence", 0.0)) if result else 0.0,
+                    },
+                )
+            Message.objects.create(
+                msg_id=msg_id,
+                thread_id=metadata["thread_id"],
+                subject=subject,
+                sender=metadata["sender"],
+                body=metadata.get("body", ""),
+                body_html=metadata.get("body_html", metadata.get("body", "")),
+                timestamp=metadata["timestamp"],
+                ml_label="other",
+                confidence=result["confidence"] if result else 0.0,
+                reviewed=reviewed,
+                company=company_obj if mapped_company else None,
+                company_source="user_sent_to_company",
+            )
+        else:
+            Message.objects.create(
+                msg_id=msg_id,
+                thread_id=metadata["thread_id"],
+                subject=subject,
+                sender=metadata["sender"],
+                body=metadata.get("body", ""),
+                body_html=metadata.get("body_html", metadata.get("body", "")),
+                timestamp=metadata["timestamp"],
+                ml_label=result["label"],
+                confidence=result["confidence"],
+                reviewed=reviewed,
+                company=company_obj,
+                company_source=company_source,
+            )
     # ✅ Create or update Application record using Django ORM
 
     # ✅ Fallback: if pattern-based extraction didn't find rejection/interview dates,

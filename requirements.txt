@@ -53,6 +53,7 @@ pre_commit==4.3.0
 preshed==3.0.10
 proto-plus==1.26.1
 protobuf==6.32.1
+psutil==6.1.1
 pyasn1==0.6.1
 pyasn1_modules==0.4.2
 pydantic==2.12.0

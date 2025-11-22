@@ -6,6 +6,28 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ---
 
+## [2025-11-22] - Removed Gmail Label Dependencies
+
+### Changed
+
+- **BREAKING**: Removed Gmail label-based filtering from `ingest_gmail` command
+- Now searches entire Gmail account by default (no label setup required)
+- Simplified ingestion to eliminate manual label management overhead
+- Users can still use `--query` parameter for custom Gmail search queries
+
+### Removed
+
+- `GMAIL_JOBHUNT_LABEL_ID` environment variable (no longer needed)
+- `MAIL_ROOT_FILTER_LABEL` environment variable (no longer needed)
+- `get_jobhunt_label_ids()` function from ingest_gmail.py
+
+### Fixed
+
+- Re-ingestion now preserves manually reviewed status instead of resetting it
+- Bulk-marked old messages (>30 days) as reviewed to restore correct counts
+
+---
+
 ### 🔹 3. **Update `CHANGELOG.md`**
 
 Add an entry like:

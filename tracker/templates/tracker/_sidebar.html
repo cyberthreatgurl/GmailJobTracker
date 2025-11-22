@@ -6,8 +6,11 @@
   </div>
 
   <!-- Ingest New Messages - Prominent Action -->
-  <div style="margin-bottom:1.2rem;">
+  <div style="margin-bottom:1.2rem; position:relative;">
     <a href="{% url 'reingest_admin' %}" class="button" style="display:block; width:100%; background:#059669; color:white; font-weight:600; border-radius:6px; padding:0.7rem 0; text-align:center; font-size:1rem;">📥 Ingest New Messages</a>
+    <div id="ingestion-indicator" style="display:none; position:absolute; top:-8px; right:-8px; background:#ef4444; color:white; border-radius:50%; width:16px; height:16px; animation:pulse 2s infinite;">
+      <span style="display:block; width:100%; height:100%; border-radius:50%; background:#ef4444; animation:ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;"></span>
+    </div>
   </div>
 
   <!-- Upcoming Interviews at the top -->
@@ -77,6 +80,7 @@
       <a href="{% url 'company_threads' %}" class="button" style="width:100%; background:#2563eb; color:white; font-weight:600; border-radius:6px; padding:0.6rem 0; text-align:center;">Company Threads</a>
       <a href="{% url 'json_file_viewer' %}" class="button" style="width:100%; background:#2563eb; color:white; font-weight:600; border-radius:6px; padding:0.6rem 0; text-align:center;">JSON File Viewer</a>
       <a href="{% url 'configure_settings' %}" class="button" style="width:100%; background:#2563eb; color:white; font-weight:600; border-radius:6px; padding:0.6rem 0; text-align:center;">Configure Settings</a>
+      <a href="{% url 'manage_domains' %}" class="button" style="width:100%; background:#7c3aed; color:white; font-weight:600; border-radius:6px; padding:0.6rem 0; text-align:center;">🌐 Domain Management</a>
   <a href="{% url 'compare_gmail_filters' %}" class="button" style="width:100%; background:#2563eb; color:white; font-weight:600; border-radius:6px; padding:0.6rem 0; text-align:center;">Import Gmail Filters</a>
   <a href="{% url 'label_rule_debugger' %}" class="button" style="width:100%; background:#059669; color:white; font-weight:600; border-radius:6px; padding:0.6rem 0; text-align:center; margin-top:0.5em;">Label Rule Debugger</a>
   <a href="{% url 'log_viewer' %}" class="button" style="width:100%; background:#a16207; color:white; font-weight:600; border-radius:6px; padding:0.6rem 0; text-align:center;">Log Viewer</a>
@@ -87,3 +91,61 @@
     </div>
   </div>
 </div>
+
+<style>
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+  @keyframes ping {
+    75%, 100% {
+      transform: scale(2);
+      opacity: 0;
+    }
+  }
+  #ingestion-status-text {
+    font-size: 0.75rem;
+    padding: 0.5rem;
+    background: #fef3c7;
+    border-radius: 6px;
+    margin-bottom: 0.5rem;
+    text-align: center;
+    font-weight: 600;
+    color: #92400e;
+  }
+</style>
+
+<script>
+  // Poll ingestion status every 5 seconds
+  function checkIngestionStatus() {
+    fetch('/tracker/api/ingestion_status/')
+      .then(response => response.json())
+      .then(data => {
+        const indicator = document.getElementById('ingestion-indicator');
+        const statusText = document.getElementById('ingestion-status-text');
+        
+        if (data.is_running) {
+          indicator.style.display = 'block';
+          if (!statusText) {
+            // Create status text if it doesn't exist
+            const textDiv = document.createElement('div');
+            textDiv.id = 'ingestion-status-text';
+            textDiv.textContent = '⚡ Ingestion in progress...';
+            document.querySelector('.sidebar').insertBefore(textDiv, document.querySelector('.sidebar').firstChild);
+          }
+        } else {
+          indicator.style.display = 'none';
+          if (statusText) {
+            statusText.remove();
+          }
+        }
+      })
+      .catch(error => {
+        console.error('Error checking ingestion status:', error);
+      });
+  }
+  
+  // Check immediately and then every 5 seconds
+  checkIngestionStatus();
+  setInterval(checkIngestionStatus, 5000);
+</script>

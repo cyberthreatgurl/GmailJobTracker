@@ -108,17 +108,19 @@ cp json/patterns.json.example json/patterns.json
 cp json/companies.json.example json/companies.json
 ```
 
-**Edit `.env` file:**
+**Edit `.env` file (optional):**
 ```bash
-# Required: Gmail label ID for job hunting emails
-GMAIL_JOBHUNT_LABEL_ID=Label_123456789
-
 # Optional: Django secret key (will auto-generate if missing)
 DJANGO_SECRET_KEY=your-secret-key-here
 
 # Optional: Debug mode (default: True for development)
 DEBUG=True
+
+# Optional: Your email to exclude your replies from statistics
+USER_EMAIL_ADDRESS=your-email@gmail.com
 ```
+
+> **Note:** As of November 2025, Gmail labels are no longer required! The system now searches your entire Gmail account automatically.
 
 ### 4. Gmail OAuth Setup
 
@@ -137,12 +139,8 @@ DEBUG=True
    - Application type: Desktop app
    - Download `credentials.json`
 6. Place `credentials.json` in `json/` directory
-7. Create Gmail label for job emails (e.g., "JobHunt")
-8. Get label ID:
-   ```bash
-   python -c "from gmail_auth import get_gmail_service; svc = get_gmail_service(); labels = svc.users().labels().list(userId='me').execute(); print([l for l in labels['labels'] if 'JobHunt' in l['name']])"
-   ```
-9. Copy `Label_XXXXXXXXX` ID to `.env` file
+
+That's it! No need to create or configure Gmail labels.
 
 **First-time OAuth flow:**
 

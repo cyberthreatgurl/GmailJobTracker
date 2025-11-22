@@ -48,7 +48,7 @@ from django.db.models import (
     When,
 )
 from django.db.models.functions import Lower
-from django.http import StreamingHttpResponse
+from django.http import JsonResponse, StreamingHttpResponse
 
 # Consolidated shared imports for the entire module to avoid reimports
 import html
@@ -257,9 +257,7 @@ def compare_gmail_filters(request):
     gmail_label_prefix = (
         request.POST.get("gmail_label_prefix")
         or request.GET.get("gmail_label_prefix")
-        or os.environ.get("GMAIL_ROOT_FILTER_LABEL")
-        or os.environ.get("JOB_HUNT_LABEL_PREFIX")
-        or "#job-hunt"
+        or "#job-hunt"  # Default fallback for compare filters utility
     )
     patterns_path = Path("json/patterns.json")
     label_map_path = Path("json/gmail_label_map.json")
@@ -1968,16 +1966,14 @@ def dashboard(request):
         for item in application_companies_qs
     ]
 
-    # Interviews: Application-based (interview_date)
+    # Interviews: combine Application-based (interview_date) AND Message-based (interview_invite)
+    # 1) Application-based interviews (scheduled interview_date)
     interview_companies_qs = (
         ThreadTracking.objects.filter(
             interview_date__isnull=False,
             company__isnull=False,
         )
         .exclude(ml_label="noise")
-        .exclude(status="ghosted")
-        .exclude(status="rejected")
-        .exclude(rejection_date__isnull=False)
         .select_related("company")
         .values("company_id", "company__name", "interview_date")
         .order_by("-interview_date")
@@ -1999,6 +1995,47 @@ def dashboard(request):
         }
         for item in interview_companies_qs
     ]
+
+    # 2) Message-based interview invites (only for threads WITHOUT an interview_date in ThreadTracking for the same company)
+    # This prevents double-counting: if user set interview_date in ThreadTracking for a company, don't count the message too
+    # Build a set of (thread_id, company_id) tuples that have interview_date in ThreadTracking
+    tt_with_interview = ThreadTracking.objects.filter(
+        interview_date__isnull=False,
+        company__isnull=False
+    ).values('thread_id', 'company_id')
+    
+    # Create a set for fast lookup: {(thread_id, company_id), ...}
+    tracked_thread_companies = {(item['thread_id'], item['company_id']) for item in tt_with_interview}
+    
+    # Get all interview_invite messages
+    msg_interviews_qs = Message.objects.filter(
+        ml_label="interview_invite", company__isnull=False
+    ).select_related('company')
+    
+    if user_email:
+        msg_interviews_qs = msg_interviews_qs.exclude(sender__icontains=user_email)
+    if headhunter_domains:
+        msg_hh_sender_q = Q()
+        for d in headhunter_domains:
+            msg_hh_sender_q |= Q(sender__icontains=f"@{d}")
+        msg_interviews_qs = msg_interviews_qs.exclude(msg_hh_sender_q)
+    if hh_company_list:
+        msg_interviews_qs = msg_interviews_qs.exclude(company_id__in=hh_company_list)
+    if company_filter_id:
+        msg_interviews_qs = msg_interviews_qs.filter(company_id=company_filter_id)
+
+    # Filter out messages that already have ThreadTracking with interview_date for the same company
+    # Use message timestamp as the interview_date surrogate for display and client-side filtering
+    for msg in msg_interviews_qs:
+        # Skip if this (thread_id, company_id) combination already has a ThreadTracking interview_date
+        if (msg.thread_id, msg.company_id) not in tracked_thread_companies:
+            interview_companies.append(
+                {
+                    "company_id": msg.company_id,
+                    "company__name": msg.company.name,
+                    "interview_date": msg.timestamp.strftime("%Y-%m-%d"),
+                }
+            )
 
     ghosted_companies = [
         {
@@ -3375,6 +3412,27 @@ def reingest_stream(request):
     return StreamingHttpResponse(generate(), content_type="text/plain; charset=utf-8")
 
 
+def ingestion_status_api(request):
+    """API endpoint to check if Gmail ingestion is currently running."""
+    import psutil
+    
+    # Check if any process is running ingest_gmail
+    is_running = False
+    for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+        try:
+            cmdline = proc.info.get('cmdline') or []
+            if cmdline and any('ingest_gmail' in str(arg) for arg in cmdline):
+                is_running = True
+                break
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            pass
+    
+    return JsonResponse({
+        'is_running': is_running,
+        'timestamp': datetime.now().isoformat()
+    })
+
+
 def _parse_pasted_gmail_spec(text: str):
     """Yield dicts like parse_filters() from pasted Gmail spec blocks.
 
@@ -3654,3 +3712,489 @@ def configure_settings(request):
         "gmail_filters_preview": json.dumps(preview, indent=2) if preview else None,
     }
     return render(request, "tracker/configure_settings.html", ctx)
+
+
+@login_required
+def manage_domains(request):
+    """
+    Domain management page for classifying email domains as personal, company, ATS, or headhunter.
+    Extracts domains from ingested messages and allows bulk labeling.
+    """
+    from collections import Counter
+    
+    # Paths to JSON files
+    companies_path = Path(__file__).parent.parent / "json" / "companies.json"
+    personal_domains_path = Path(__file__).parent.parent / "json" / "personal_domains.json"
+    
+    # Load existing classifications
+    companies_data = {}
+    if companies_path.exists():
+        with open(companies_path, "r", encoding="utf-8") as f:
+            companies_data = json.load(f)
+    
+    personal_domains_data = {}
+    if personal_domains_path.exists():
+        with open(personal_domains_path, "r", encoding="utf-8") as f:
+            personal_domains_data = json.load(f)
+    
+    domain_to_company = companies_data.get("domain_to_company", {})
+    ats_domains = set(companies_data.get("ats_domains", []))
+    headhunter_domains = set(companies_data.get("headhunter_domains", []))
+    job_boards = set(companies_data.get("job_boards", []))
+    personal_domains = set(personal_domains_data.get("domains", []))
+    
+    # Handle POST requests for labeling
+    reingest_summary = None
+    if request.method == "POST":
+        action = request.POST.get("action")
+        label_type = request.POST.get("label_type")
+        
+        if action == "reingest_domains":
+            # Re-ingest messages from specific domains
+            reingest_filter = request.POST.get("reingest_filter", "personal")
+            selected_domains = request.POST.getlist("domains")
+            
+            # Determine which domains to re-ingest
+            domains_to_reingest = set()
+            if reingest_filter == "personal":
+                domains_to_reingest = personal_domains.copy()
+            elif reingest_filter == "selected":
+                domains_to_reingest = set(selected_domains)
+            elif reingest_filter == "all_labeled":
+                domains_to_reingest = personal_domains | ats_domains | headhunter_domains | job_boards | set(domain_to_company.keys())
+            
+            if not domains_to_reingest:
+                messages.warning(request, "⚠️ No domains selected for re-ingestion.")
+            else:
+                try:
+                    from gmail_auth import get_gmail_service
+                    from parser import ingest_message
+                    
+                    service = get_gmail_service()
+                    if not service:
+                        messages.error(request, "❌ Failed to initialize Gmail service.")
+                    else:
+                        # Find all messages from these domains
+                        messages_to_reingest = []
+                        for msg in Message.objects.all().values('msg_id', 'sender', 'subject', 'ml_label'):
+                            sender = msg['sender']
+                            if '@' in sender:
+                                email = sender
+                                if '<' in sender and '>' in sender:
+                                    email = sender[sender.index('<')+1:sender.index('>')]
+                                domain = email.split('@')[-1].lower()
+                                
+                                if domain in domains_to_reingest:
+                                    messages_to_reingest.append({
+                                        'msg_id': msg['msg_id'],
+                                        'subject': msg['subject'],
+                                        'domain': domain,
+                                        'old_label': msg['ml_label']
+                                    })
+                        
+                        # Re-ingest messages
+                        processed = 0
+                        updated_to_noise = 0
+                        kept_as_other = 0
+                        errors = 0
+                        sample_updates = []
+                        
+                        for msg_info in messages_to_reingest[:1000]:  # Limit to 1000 to avoid timeout
+                            try:
+                                old_label = msg_info['old_label']
+                                ingest_message(service, msg_info['msg_id'])
+                                
+                                # Check new label
+                                updated_msg = Message.objects.get(msg_id=msg_info['msg_id'])
+                                new_label = updated_msg.ml_label
+                                
+                                processed += 1
+                                
+                                if new_label == 'noise' and old_label != 'noise':
+                                    updated_to_noise += 1
+                                    if len(sample_updates) < 5:
+                                        sample_updates.append(
+                                            f"{msg_info['subject'][:50]} ({msg_info['domain']}) → noise"
+                                        )
+                                elif new_label == 'other':
+                                    kept_as_other += 1
+                            except Exception as e:
+                                errors += 1
+                                logger.error(f"Error re-ingesting {msg_info['msg_id']}: {e}")
+                        
+                        reingest_summary = {
+                            "domains_processed": len(domains_to_reingest),
+                            "messages_processed": processed,
+                            "updated_to_noise": updated_to_noise,
+                            "kept_as_other": kept_as_other,
+                            "errors": errors,
+                            "sample_updates": sample_updates
+                        }
+                        
+                        messages.success(
+                            request,
+                            f"✅ Re-ingested {processed} messages from {len(domains_to_reingest)} domain(s). "
+                            f"{updated_to_noise} updated to noise."
+                        )
+                except Exception as e:
+                    messages.error(request, f"⚠️ Error during re-ingestion: {e}")
+                    logger.exception("Re-ingestion error")
+        
+        elif action == "bulk_label":
+            domains = request.POST.getlist("domains")
+            if not domains:
+                messages.error(request, "⚠️ No domains selected.")
+            elif not label_type:
+                messages.error(request, "⚠️ No label type specified.")
+            else:
+                try:
+                    # Remove from all categories first
+                    for domain in domains:
+                        personal_domains.discard(domain)
+                        ats_domains.discard(domain)
+                        headhunter_domains.discard(domain)
+                        job_boards.discard(domain)
+                        if domain in domain_to_company:
+                            del domain_to_company[domain]
+                    
+                    # Add to selected category
+                    if label_type == "personal":
+                        personal_domains.update(domains)
+                    elif label_type == "ats":
+                        ats_domains.update(domains)
+                    elif label_type == "headhunter":
+                        headhunter_domains.update(domains)
+                    elif label_type == "job_boards":
+                        job_boards.update(domains)
+                    elif label_type == "company":
+                        # Extract company from existing Message records for this domain
+                        import re
+                        from email.utils import parseaddr
+                        
+                        for domain in domains:
+                            if domain not in domain_to_company:
+                                company_name = None
+                                
+                                # Check if this is an ATS domain (e.g., otp.workday.com)
+                                # ATS domains serve multiple companies and should not be labeled as "company"
+                                is_ats = False
+                                domain_lower = domain.lower()
+                                for ats_root in ats_domains:
+                                    if domain_lower == ats_root or domain_lower.endswith(f".{ats_root}"):
+                                        is_ats = True
+                                        break
+                                
+                                if is_ats:
+                                    # Don't label ATS domains as company - warn the user
+                                    messages.warning(
+                                        request,
+                                        f"⚠️ {domain} appears to be an ATS domain (serves multiple companies). "
+                                        f"Consider labeling it as 'ATS' instead."
+                                    )
+                                    continue
+                                
+                                # First, check if messages from this domain already have a company assigned
+                                domain_messages = Message.objects.filter(
+                                    sender__icontains=f"@{domain}",
+                                    company__isnull=False
+                                ).select_related('company')[:5]
+                                
+                                if domain_messages:
+                                    # Check if multiple companies use this domain
+                                    from collections import Counter
+                                    companies = [msg.company.name for msg in domain_messages if msg.company]
+                                    if companies:
+                                        company_counts = Counter(companies)
+                                        # If more than one company with significant representation, it's likely an ATS
+                                        if len(company_counts) > 1 and company_counts.most_common(2)[1][1] > 1:
+                                            messages.warning(
+                                                request,
+                                                f"⚠️ {domain} is used by multiple companies ({', '.join(company_counts.keys())}). "
+                                                f"This may be an ATS domain. Consider labeling it as 'ATS' instead."
+                                            )
+                                            continue
+                                        company_name = company_counts.most_common(1)[0][0]
+                                
+                                # Fallback: Parse from sender display name
+                                if not company_name:
+                                    sender_messages = Message.objects.filter(sender__icontains=f"@{domain}").values('sender')[:5]
+                                    for msg in sender_messages:
+                                        sender = msg['sender']
+                                        # Extract display name from "Display Name <email@domain.com>"
+                                        display_name, _ = parseaddr(sender)
+                                        if display_name:
+                                            # Clean up common suffixes
+                                            cleaned = re.sub(
+                                                r'\s*(Talent|Careers?|Jobs?|Recruiting|HR|Notifications?|Team|Hiring|Acquisition)\s*$',
+                                                '',
+                                                display_name,
+                                                flags=re.IGNORECASE
+                                            ).strip()
+                                            if cleaned and len(cleaned) > 2:
+                                                company_name = cleaned
+                                                break
+                                
+                                # Final fallback: use the main domain name (not subdomain)
+                                if not company_name:
+                                    parts = domain.split('.')
+                                    if len(parts) >= 2:
+                                        # Use the second-to-last part (e.g., "brassring" from "trm.brassring.com")
+                                        company_name = parts[-2].title()
+                                    else:
+                                        company_name = parts[0].title()
+                                
+                                domain_to_company[domain] = company_name
+                    
+                    # Save to JSON files
+                    personal_domains_data["domains"] = sorted(personal_domains)
+                    with open(personal_domains_path, "w", encoding="utf-8") as f:
+                        json.dump(personal_domains_data, f, indent=2, ensure_ascii=False)
+                    
+                    companies_data["domain_to_company"] = dict(sorted(domain_to_company.items()))
+                    companies_data["ats_domains"] = sorted(ats_domains)
+                    companies_data["headhunter_domains"] = sorted(headhunter_domains)
+                    with open(companies_path, "w", encoding="utf-8") as f:
+                        json.dump(companies_data, f, indent=2, ensure_ascii=False)
+                    
+                    messages.success(request, f"✅ Labeled {len(domains)} domain(s) as {label_type}.")
+                    return redirect("manage_domains")
+                except Exception as e:
+                    messages.error(request, f"⚠️ Error saving domain labels: {e}")
+        
+        elif action == "label_single":
+            domain = request.POST.get("domain")
+            if domain and label_type:
+                try:
+                    # Remove from all categories first
+                    personal_domains.discard(domain)
+                    ats_domains.discard(domain)
+                    headhunter_domains.discard(domain)
+                    job_boards.discard(domain)
+                    if domain in domain_to_company:
+                        del domain_to_company[domain]
+                    
+                    # Add to selected category
+                    if label_type == "personal":
+                        personal_domains.add(domain)
+                    elif label_type == "ats":
+                        ats_domains.add(domain)
+                    elif label_type == "headhunter":
+                        headhunter_domains.add(domain)
+                    elif label_type == "job_boards":
+                        job_boards.add(domain)
+                    elif label_type == "company":
+                        # Extract company from existing Message records for this domain
+                        import re
+                        from email.utils import parseaddr
+                        
+                        company_name = None
+                        
+                        # Check if this is an ATS domain (e.g., otp.workday.com)
+                        # ATS domains serve multiple companies and should not be labeled as "company"
+                        is_ats = False
+                        domain_lower = domain.lower()
+                        for ats_root in ats_domains:
+                            if domain_lower == ats_root or domain_lower.endswith(f".{ats_root}"):
+                                is_ats = True
+                                break
+                        
+                        if is_ats:
+                            # Don't label ATS domains as company - warn the user
+                            messages.warning(
+                                request,
+                                f"⚠️ {domain} appears to be an ATS domain (serves multiple companies). "
+                                f"Consider labeling it as 'ATS' instead."
+                            )
+                            return redirect(f"{request.path}?filter={request.GET.get('filter', 'unlabeled')}")
+                        
+                        # First, check if messages from this domain already have a company assigned
+                        domain_messages = Message.objects.filter(
+                            sender__icontains=f"@{domain}",
+                            company__isnull=False
+                        ).select_related('company')[:5]
+                        
+                        if domain_messages:
+                            # Check if multiple companies use this domain
+                            from collections import Counter
+                            companies = [msg.company.name for msg in domain_messages if msg.company]
+                            if companies:
+                                company_counts = Counter(companies)
+                                # If more than one company with significant representation, it's likely an ATS
+                                if len(company_counts) > 1 and company_counts.most_common(2)[1][1] > 1:
+                                    messages.warning(
+                                        request,
+                                        f"⚠️ {domain} is used by multiple companies ({', '.join(company_counts.keys())}). "
+                                        f"This may be an ATS domain. Consider labeling it as 'ATS' instead."
+                                    )
+                                    return redirect(f"{request.path}?filter={request.GET.get('filter', 'unlabeled')}")
+                                company_name = company_counts.most_common(1)[0][0]
+                        
+                        # Fallback: Parse from sender display name
+                        if not company_name:
+                            sender_messages = Message.objects.filter(sender__icontains=f"@{domain}").values('sender')[:5]
+                            for msg in sender_messages:
+                                sender = msg['sender']
+                                # Extract display name from "Display Name <email@domain.com>"
+                                display_name, _ = parseaddr(sender)
+                                if display_name:
+                                    # Clean up common suffixes
+                                    cleaned = re.sub(
+                                        r'\s*(Talent|Careers?|Jobs?|Recruiting|HR|Notifications?|Team|Hiring|Acquisition)\s*$',
+                                        '',
+                                        display_name,
+                                        flags=re.IGNORECASE
+                                    ).strip()
+                                    if cleaned and len(cleaned) > 2:
+                                        company_name = cleaned
+                                        break
+                        
+                        # Final fallback: use the main domain name (not subdomain)
+                        if not company_name:
+                            parts = domain.split('.')
+                            if len(parts) >= 2:
+                                # Use the second-to-last part (e.g., "brassring" from "trm.brassring.com")
+                                company_name = parts[-2].title()
+                            else:
+                                company_name = parts[0].title()
+                        
+                        domain_to_company[domain] = company_name
+                    
+                    # Save to JSON files
+                    personal_domains_data["domains"] = sorted(personal_domains)
+                    with open(personal_domains_path, "w", encoding="utf-8") as f:
+                        json.dump(personal_domains_data, f, indent=2, ensure_ascii=False)
+                    
+                    companies_data["domain_to_company"] = dict(sorted(domain_to_company.items()))
+                    companies_data["ats_domains"] = sorted(ats_domains)
+                    companies_data["headhunter_domains"] = sorted(headhunter_domains)
+                    companies_data["job_boards"] = sorted(job_boards)
+                    with open(companies_path, "w", encoding="utf-8") as f:
+                        json.dump(companies_data, f, indent=2, ensure_ascii=False)
+                    
+                    messages.success(request, f"✅ Labeled {domain} as {label_type}.")
+                    return redirect(f"{request.path}?filter={request.GET.get('filter', 'unlabeled')}")
+                except Exception as e:
+                    messages.error(request, f"⚠️ Error saving domain label: {e}")
+    
+    # Reload JSON data to ensure we have the latest classifications
+    # (Important after POST operations that modify the files)
+    if companies_path.exists():
+        with open(companies_path, "r", encoding="utf-8") as f:
+            companies_data = json.load(f)
+    if personal_domains_path.exists():
+        with open(personal_domains_path, "r", encoding="utf-8") as f:
+            personal_domains_data = json.load(f)
+    
+    domain_to_company = companies_data.get("domain_to_company", {})
+    ats_domains = set(companies_data.get("ats_domains", []))
+    headhunter_domains = set(companies_data.get("headhunter_domains", []))
+    job_boards = set(companies_data.get("job_boards", []))
+    personal_domains = set(personal_domains_data.get("domains", []))
+    
+    # Extract all sender domains from messages
+    messages_qs = Message.objects.all()
+    domain_counter = Counter()
+    domain_senders = defaultdict(list)
+    
+    for msg in messages_qs.values('sender'):
+        sender = msg['sender']
+        if '@' in sender:
+            # Parse email from "Name <email@domain.com>" or "email@domain.com"
+            email = sender
+            if '<' in sender and '>' in sender:
+                # Find the last <...> that contains an @ symbol
+                import re
+                email_matches = re.findall(r'<([^>]+@[^>]+)>', sender)
+                if email_matches:
+                    email = email_matches[-1]  # Use the last match
+                else:
+                    # Fallback to original logic if regex fails
+                    email = sender[sender.rindex('<')+1:sender.rindex('>')]
+            
+            # Only process if email contains @
+            if '@' in email:
+                domain = email.split('@')[-1].lower()
+                
+                # Skip placeholder domains from manual entries
+                if domain == "manual" or domain.startswith("manual_"):
+                    continue
+                
+                domain_counter[domain] += 1
+                
+                # Store sample senders (limit to 3)
+                if len(domain_senders[domain]) < 3:
+                    domain_senders[domain].append(sender[:50])
+    
+    # Build domain info list
+    domains_info = []
+    for domain, count in domain_counter.items():
+        # Determine current label
+        label = None
+        company_name = None
+        
+        if domain in personal_domains:
+            label = "personal"
+        elif domain in ats_domains:
+            label = "ats"
+        elif domain in headhunter_domains:
+            label = "headhunter"
+        elif domain in job_boards:
+            label = "job_boards"
+        elif domain in domain_to_company:
+            label = "company"
+            company_name = domain_to_company[domain]
+        
+        domains_info.append({
+            "domain": domain,
+            "count": count,
+            "label": label,
+            "company_name": company_name,
+            "sample_senders": domain_senders[domain]
+        })
+    
+    # Sort alphabetically with base domains before subdomains
+    # e.g., "example.com" before "a.example.com" before "info.example.com"
+    def domain_sort_key(d):
+        domain = d["domain"]
+        parts = domain.split('.')
+        # Reverse the parts so "com.example.a" sorts correctly
+        # Then append original domain for stable sort of same base
+        return tuple(reversed(parts)) + (domain,)
+    
+    domains_info.sort(key=domain_sort_key)
+    
+    # Filter based on query parameter
+    current_filter = request.GET.get("filter", "unlabeled")
+    if current_filter == "unlabeled":
+        domains_info = [d for d in domains_info if d["label"] is None]
+    elif current_filter == "personal":
+        domains_info = [d for d in domains_info if d["label"] == "personal"]
+    elif current_filter == "company":
+        domains_info = [d for d in domains_info if d["label"] == "company"]
+    elif current_filter == "ats":
+        domains_info = [d for d in domains_info if d["label"] == "ats"]
+    elif current_filter == "headhunter":
+        domains_info = [d for d in domains_info if d["label"] == "headhunter"]
+    elif current_filter == "job_boards":
+        domains_info = [d for d in domains_info if d["label"] == "job_boards"]
+    # "all" shows everything
+    
+    # Calculate stats
+    all_domains = list(domain_counter.keys())
+    stats = {
+        "total": len(all_domains),
+        "unlabeled": sum(1 for d in all_domains if d not in personal_domains and d not in ats_domains and d not in headhunter_domains and d not in job_boards and d not in domain_to_company),
+        "personal": len(personal_domains),
+        "company": len(domain_to_company),
+        "ats": len(ats_domains),
+        "headhunter": len(headhunter_domains),
+        "job_boards": len(job_boards),
+    }
+    
+    ctx = {
+        "domains": domains_info,
+        "current_filter": current_filter,
+        "stats": stats,
+        "reingest_summary": reingest_summary,
+    }
+    return render(request, "tracker/manage_domains.html", ctx)

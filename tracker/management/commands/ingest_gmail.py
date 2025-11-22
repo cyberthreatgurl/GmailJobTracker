@@ -11,34 +11,20 @@ from tracker.models import IngestionStats, ProcessedMessage
 from tracker_logger import log_console
 
 
-def get_jobhunt_label_ids(service, root_label_name):
-    """Get all label IDs for the root label and its children (e.g., #job-hunt and #job-hunt/*)."""
-    labels_resp = service.users().labels().list(userId="me").execute()
-    all_labels = labels_resp.get("labels", [])
-
-    # Find all labels that match the root or are children
-    jobhunt_label_ids = []
-    for label in all_labels:
-        name = label.get("name", "")
-        # Match exact root label or any child label
-        if name == root_label_name or name.startswith(f"{root_label_name}/"):
-            jobhunt_label_ids.append(label["id"])
-
-    return jobhunt_label_ids
-
-
-def fetch_all_messages(service, label_ids, max_results=500, after_date=None):
-    """Fetch all pages of messages for given label IDs, optionally filtered by date."""
+def fetch_all_messages(service, max_results=500, after_date=None, custom_query=None):
+    """Fetch all pages of messages from entire Gmail account, optionally filtered by date and/or custom query."""
     all_msgs = []
     next_token = None
 
-    # Build query with date filter
+    # Build query with date filter and optional custom query
     query_parts = []
     if after_date:
         query_parts.append(f"after:{after_date.strftime('%Y/%m/%d')}")
+    if custom_query:
+        query_parts.append(custom_query)
 
     while True:
-        kwargs = dict(userId="me", labelIds=label_ids, maxResults=max_results)
+        kwargs = dict(userId="me", maxResults=max_results)
         if query_parts:
             kwargs["q"] = " ".join(query_parts)
         if next_token:
@@ -110,37 +96,17 @@ class Command(BaseCommand):
             # Calculate date range
             days_back = options.get("days_back", 7)
             after_date = datetime.now() - timedelta(days=days_back)
+            custom_query = options.get("query")
 
             log_console(f"Fetching Gmail messages from last {days_back} days...")
+            if custom_query:
+                log_console(f"Using custom query: {custom_query}")
 
-            # Fetch from INBOX
-            inbox_msgs = fetch_all_messages(service, ["INBOX"], after_date=after_date)
-
-            # Fetch from ALL #job-hunt labels (parent + children)
-            root_label_name = os.getenv("GMAIL_ROOT_FILTER_LABEL", "#job-hunt")
-            jobhunt_label_ids = get_jobhunt_label_ids(service, root_label_name)
-
-            if jobhunt_label_ids:
-                log_console(f"Found {len(jobhunt_label_ids)} job-hunt labels: {root_label_name} and sublabels")
-
-                # Fetch messages from each label individually (Gmail uses AND logic for multiple labels)
-                jobhunt_msgs = []
-                for label_id in jobhunt_label_ids:
-                    msgs = fetch_all_messages(service, [label_id], after_date=after_date)
-                    jobhunt_msgs.extend(msgs)
-
-                # Remove duplicates (a message might have multiple job-hunt labels)
-                unique_jobhunt_msgs = {msg["id"]: msg for msg in jobhunt_msgs}.values()
-                jobhunt_msgs = list(unique_jobhunt_msgs)
-
-                log_console(f"Fetched {len(jobhunt_msgs)} messages from job-hunt labels")
-            else:
-                log_console(f"WARNING: No labels found matching '{root_label_name}'")
-                jobhunt_msgs = []
-
-            log_console(f"Fetched {len(inbox_msgs)} messages from INBOX")
-            all_msgs_by_id = {m["id"]: m for m in (inbox_msgs + jobhunt_msgs)}
-            log_console(f"Total unique messages: {len(all_msgs_by_id)}")
+            # Fetch all messages from entire Gmail account (no label filtering)
+            all_msgs = fetch_all_messages(service, after_date=after_date, custom_query=custom_query)
+            
+            all_msgs_by_id = {m["id"]: m for m in all_msgs}
+            log_console(f"Total messages fetched: {len(all_msgs_by_id)}")
 
             # If --reparse-all, skip ProcessedMessage filtering and reprocess everything
             if options.get("reparse_all"):

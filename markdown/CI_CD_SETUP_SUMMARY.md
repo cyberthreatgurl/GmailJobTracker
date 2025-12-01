@@ -7,6 +7,7 @@ This document summarizes the CI/CD infrastructure that has been set up for Gmail
 ### 📁 Files Created
 
 #### Docker Configuration
+
 - **`Dockerfile`** - Multi-stage Docker build configuration
   - Stage 1: Build dependencies (Python packages)
   - Stage 2: Runtime environment (minimal, non-root user)
@@ -31,6 +32,7 @@ This document summarizes the CI/CD infrastructure that has been set up for Gmail
   - Environment validation
 
 #### CI/CD Workflows (GitHub Actions)
+
 - **`.github/workflows/ci-cd.yml`** - Main CI/CD pipeline
   - Lint & code quality checks
   - Automated testing with coverage
@@ -52,6 +54,7 @@ This document summarizes the CI/CD infrastructure that has been set up for Gmail
   - Weekly schedule
 
 #### Management Tools
+
 - **`Makefile`** - Linux/macOS management commands
   - 30+ commands for common operations
   - Build, deploy, test, backup, etc.
@@ -63,6 +66,7 @@ This document summarizes the CI/CD infrastructure that has been set up for Gmail
   - Color-coded output
 
 #### Configuration
+
 - **`dashboard/production_settings.py`** - Production settings
   - Environment-based configuration
   - Security headers
@@ -75,6 +79,7 @@ This document summarizes the CI/CD infrastructure that has been set up for Gmail
   - Production-ready
 
 #### Documentation
+
 - **`DOCKER_DEPLOYMENT.md`** - Complete deployment guide (420 lines)
   - Quick start
   - Configuration reference
@@ -101,6 +106,7 @@ This document summarizes the CI/CD infrastructure that has been set up for Gmail
   - Next steps
 
 #### Utility Scripts
+
 - **`setup-permissions.sh`** - Permission setup script
   - Makes entrypoint executable
   - Linux/macOS compatibility
@@ -108,11 +114,13 @@ This document summarizes the CI/CD infrastructure that has been set up for Gmail
 ### 🔧 Configuration Updates
 
 #### `.gitignore`
+
 - Added Docker-specific ignores
 - Added backup directory
 - Added build artifacts
 
 #### `dashboard/settings.py`
+
 - Added environment variable support
 - Made Docker-compatible
 - Production-ready configuration
@@ -120,6 +128,7 @@ This document summarizes the CI/CD infrastructure that has been set up for Gmail
 ### 🎯 Pipeline Features
 
 #### Automated Testing
+
 - ✅ Code formatting (Black)
 - ✅ Linting (Flake8)
 - ✅ Security scanning (detect-secrets)
@@ -127,6 +136,7 @@ This document summarizes the CI/CD infrastructure that has been set up for Gmail
 - ✅ Coverage reporting (Codecov)
 
 #### Docker Building
+
 - ✅ Multi-stage builds (optimized size)
 - ✅ Multi-platform (amd64, arm64)
 - ✅ Layer caching (fast rebuilds)
@@ -134,12 +144,14 @@ This document summarizes the CI/CD infrastructure that has been set up for Gmail
 - ✅ Health checks
 
 #### Deployment
+
 - ✅ GitHub Container Registry (GHCR)
 - ✅ Automated tagging (semantic versioning)
 - ✅ Deployment artifacts
 - ✅ Release automation
 
 #### Security
+
 - ✅ Dependency scanning
 - ✅ Code security analysis
 - ✅ Container vulnerability scanning
@@ -149,16 +161,19 @@ This document summarizes the CI/CD infrastructure that has been set up for Gmail
 ### 📊 Deployment Options
 
 #### 1. Docker Compose (Recommended for Self-Hosting)
+
 ```bash
 docker-compose up -d
 ```
 
 #### 2. Pre-built Images (GitHub Registry)
+
 ```bash
 docker pull ghcr.io/cyberthreatgurl/gmailjobtracker:latest
 ```
 
 #### 3. Manual Docker Build
+
 ```bash
 docker build -t gmailtracker:latest .
 ```
@@ -166,20 +181,25 @@ docker build -t gmailtracker:latest .
 ### 🚀 CI/CD Workflow
 
 #### On Push to Main
+
 1. Lint code → Test → Build Docker image → Push to registry → Create deployment artifact
 
 #### On Pull Request
+
 1. Lint code → Test → Build Docker image (no push) → Comment on PR
 
 #### On Release
+
 1. Full pipeline → Build multi-platform images → Tag with version → Create release notes
 
 #### Weekly (Scheduled)
+
 1. Security scans → Dependency updates (Dependabot)
 
 ### 📈 Metrics & Monitoring
 
 #### Automated Tracking
+
 - Build success/failure rate
 - Test coverage percentage
 - Docker image size
@@ -187,6 +207,7 @@ docker build -t gmailtracker:latest .
 - Deployment artifact size
 
 #### GitHub Actions Dashboard
+
 - View at: `https://github.com/cyberthreatgurl/GmailJobTracker/actions`
 - Status badges available
 - Email notifications configurable
@@ -194,18 +215,21 @@ docker build -t gmailtracker:latest .
 ### 🔐 Security Features
 
 #### Container Security
+
 - Non-root user execution
 - Minimal base image (Python slim)
 - Health checks
 - Secret management via environment variables
 
 #### Code Security
+
 - Pre-commit hooks (detect-secrets)
 - Automated security scanning
 - Dependency vulnerability tracking
 - Container CVE scanning
 
 #### Production Best Practices
+
 - HTTPS support (reverse proxy ready)
 - Security headers
 - CSRF protection
@@ -214,6 +238,7 @@ docker build -t gmailtracker:latest .
 ### 🛠️ Developer Experience
 
 #### Local Development
+
 ```bash
 # Quick start
 make install
@@ -226,6 +251,7 @@ make shell
 ```
 
 #### Windows Development
+
 ```powershell
 # Quick start
 .\docker.ps1 install
@@ -238,6 +264,7 @@ make shell
 ```
 
 #### Testing CI Locally
+
 ```bash
 # Install act
 brew install act  # macOS
@@ -251,6 +278,7 @@ act -j test
 ### 📦 What Gets Deployed
 
 #### Production Container Includes
+
 - ✅ Python 3.11 runtime
 - ✅ Django application
 - ✅ ML models (spaCy)
@@ -259,12 +287,14 @@ act -j test
 - ✅ Logging configuration
 
 #### Volume Mounts (Persistent Data)
+
 - `/app/db` - SQLite database
 - `/app/logs` - Application logs
 - `/app/model` - ML model artifacts
 - `/app/json` - Configuration files
 
 #### Environment Configuration
+
 - All settings via environment variables
 - Secrets managed externally
 - Production-ready defaults
@@ -272,6 +302,7 @@ act -j test
 ### ✅ Implementation Status
 
 #### Completed ✅
+
 - [x] Dockerfile (multi-stage, optimized)
 - [x] Docker Compose configuration
 - [x] CI/CD pipeline (GitHub Actions)
@@ -283,6 +314,7 @@ act -j test
 - [x] Quick start guide
 
 #### Tested ✅
+
 - [x] Docker build process
 - [x] Environment variable configuration
 - [x] Volume mounts
@@ -290,6 +322,7 @@ act -j test
 - [x] Multi-stage builds
 
 #### Ready for Use ✅
+
 - [x] Self-hosting deployment
 - [x] CI/CD automation
 - [x] Security scanning
@@ -299,7 +332,9 @@ act -j test
 ### 🎯 Next Steps for User
 
 #### Immediate Actions
+
 1. **Push to GitHub** to trigger first pipeline run
+
    ```bash
    git add .
    git commit -m "feat: Add CI/CD pipeline and Docker deployment"
@@ -312,10 +347,11 @@ act -j test
    - Configure branch protection rules
 
 3. **Test Local Deployment**
+
    ```bash
    # Windows
    .\docker.ps1 install
-   
+
    # Linux/macOS
    make install
    ```
@@ -326,6 +362,7 @@ act -j test
    - Verify Docker image in registry
 
 #### Optional Enhancements
+
 - [ ] Set up staging environment
 - [ ] Configure production server
 - [ ] Add monitoring (Prometheus, Grafana)
@@ -335,6 +372,7 @@ act -j test
 - [ ] Set up log aggregation
 
 #### Documentation Review
+
 - [ ] Read DOCKER_DEPLOYMENT.md
 - [ ] Read CI_CD_DOCUMENTATION.md
 - [ ] Review QUICKSTART.md
@@ -343,29 +381,34 @@ act -j test
 ### 🆘 Getting Help
 
 #### Resources
+
 - **Documentation**: See markdown files in repository
-- **GitHub Issues**: https://github.com/cyberthreatgurl/GmailJobTracker/issues
-- **GitHub Actions Docs**: https://docs.github.com/en/actions
-- **Docker Docs**: https://docs.docker.com
+- **GitHub Issues**: <https://github.com/cyberthreatgurl/GmailJobTracker/issues>
+- **GitHub Actions Docs**: <https://docs.github.com/en/actions>
+- **Docker Docs**: <https://docs.docker.com>
 
 #### Common Questions
 
 **Q: How do I update the application?**
+
 ```bash
 make update  # or .\docker.ps1 update on Windows
 ```
 
 **Q: How do I backup my data?**
+
 ```bash
 make backup  # or .\docker.ps1 backup on Windows
 ```
 
 **Q: How do I view logs?**
+
 ```bash
 make logs  # or .\docker.ps1 logs on Windows
 ```
 
 **Q: How do I run tests?**
+
 ```bash
 make test  # or .\docker.ps1 test on Windows
 ```
@@ -373,6 +416,7 @@ make test  # or .\docker.ps1 test on Windows
 ### 📝 Summary
 
 You now have a complete CI/CD pipeline with:
+
 - ✅ Automated testing and linting
 - ✅ Docker containerization
 - ✅ Multi-platform image builds

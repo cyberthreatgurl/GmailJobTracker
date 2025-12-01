@@ -118,7 +118,7 @@
 <script>
   // Poll ingestion status every 5 seconds
   function checkIngestionStatus() {
-    fetch('/tracker/api/ingestion_status/')
+    fetch('/api/ingestion_status/')
       .then(response => response.json())
       .then(data => {
         const indicator = document.getElementById('ingestion-indicator');

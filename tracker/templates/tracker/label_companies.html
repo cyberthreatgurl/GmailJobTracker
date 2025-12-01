@@ -131,6 +131,11 @@
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
           <h2 style="margin:0; color:#1e40af; font-size:1.1rem;">Company Metrics</h2>
           <div style="display:flex; gap:0.5rem;">
+            <form method="post" style="margin:0;">
+              {% csrf_token %}
+              <input type="hidden" name="company" value="{{ selected_company.id }}" />
+              <button type="submit" name="action" value="reingest_company" style="background:#ca8a04; color:white; font-weight:600; border-radius:6px; padding:0.45rem 1rem; border:none; cursor:pointer;" title="Re-ingest all messages from this company">🔄 Re-ingest</button>
+            </form>
             {# Save is handled by the main edit form below; no separate POST here #}
             {% if latest_label != 'rejection' and latest_label != 'rejected' %}
             <form method="post" style="margin:0;">

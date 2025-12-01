@@ -26,66 +26,60 @@
     </div>
     {% endif %}
 
+
+
     <div class="row mb-3">
-        <div class="col-12">
-            <div class="card bg-light">
-                <div class="card-body">
-                    <h5 class="card-title">🔄 Re-ingest Messages</h5>
-                    <p class="card-text">
-                        After labeling domains, re-ingest messages from those domains to apply the new classifications.
-                        This will update message labels based on the new domain settings.
-                    </p>
-                    <form method="post" action="{% url 'manage_domains' %}" class="d-inline">
-                        {% csrf_token %}
-                        <input type="hidden" name="action" value="reingest_domains">
-                        <div class="row align-items-end">
-                            <div class="col-md-4">
-                                <label for="reingest_filter" class="form-label">Re-ingest messages from:</label>
-                                <select name="reingest_filter" id="reingest_filter" class="form-select">
-                                    <option value="personal">Personal domains only</option>
-                                    <option value="selected">Selected domains below</option>
-                                    <option value="all_labeled">All labeled domains</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <button type="submit" class="btn btn-warning">
-                                    🔄 Re-ingest Messages
-                                </button>
-                            </div>
-                            <div class="col-md-5">
-                                <small class="text-muted">
-                                    <strong>Note:</strong> This may take several minutes for large datasets.
-                                </small>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
+        <div class="col-md-6">
+            <form method="get" class="d-flex gap-2">
+                <input type="hidden" name="filter" value="{{ current_filter }}">
+                <input type="hidden" name="sort" value="{{ sort_by }}">
+                <input type="hidden" name="order" value="{{ sort_order }}">
+                <input type="search" name="search" class="form-control" 
+                       placeholder="Search domains..." value="{{ search_query }}">
+                <button type="submit" class="btn btn-primary">🔍 Search</button>
+                {% if search_query %}
+                    <a href="?filter={{ current_filter }}&sort={{ sort_by }}&order={{ sort_order }}" 
+                       class="btn btn-outline-secondary">Clear</a>
+                {% endif %}
+            </form>
+        </div>
+        <div class="col-md-6 text-end">
+            <small class="text-muted">
+                Showing {{ domains|length }} domain(s)
+                {% if search_query %}matching "{{ search_query }}"{% endif %}
+            </small>
         </div>
     </div>
 
     <div class="row mb-3">
         <div class="col-12">
             <div class="btn-group" role="group">
-                <a href="?filter=unlabeled" class="btn btn-outline-primary {% if current_filter == 'unlabeled' %}active{% endif %}">
+                <a href="?filter=unlabeled{% if search_query %}&search={{ search_query }}{% endif %}&sort={{ sort_by }}&order={{ sort_order }}" 
+                   class="btn btn-outline-primary {% if current_filter == 'unlabeled' %}active{% endif %}">
                     Unlabeled ({{ stats.unlabeled }})
                 </a>
-                <a href="?filter=personal" class="btn btn-outline-secondary {% if current_filter == 'personal' %}active{% endif %}">
+                <a href="?filter=personal{% if search_query %}&search={{ search_query }}{% endif %}&sort={{ sort_by }}&order={{ sort_order }}" 
+                   class="btn btn-outline-secondary {% if current_filter == 'personal' %}active{% endif %}">
                     Personal ({{ stats.personal }})
                 </a>
-                <a href="?filter=company" class="btn btn-outline-info {% if current_filter == 'company' %}active{% endif %}">
+                <a href="?filter=company{% if search_query %}&search={{ search_query }}{% endif %}&sort={{ sort_by }}&order={{ sort_order }}" 
+                   class="btn btn-outline-info {% if current_filter == 'company' %}active{% endif %}">
                     Company ({{ stats.company }})
                 </a>
-                <a href="?filter=ats" class="btn btn-outline-success {% if current_filter == 'ats' %}active{% endif %}">
+                <a href="?filter=ats{% if search_query %}&search={{ search_query }}{% endif %}&sort={{ sort_by }}&order={{ sort_order }}" 
+                   class="btn btn-outline-success {% if current_filter == 'ats' %}active{% endif %}">
                     ATS ({{ stats.ats }})
                 </a>
-                <a href="?filter=headhunter" class="btn btn-outline-warning {% if current_filter == 'headhunter' %}active{% endif %}">
+                <a href="?filter=headhunter{% if search_query %}&search={{ search_query }}{% endif %}&sort={{ sort_by }}&order={{ sort_order }}" 
+                   class="btn btn-outline-warning {% if current_filter == 'headhunter' %}active{% endif %}">
                     Headhunter ({{ stats.headhunter }})
                 </a>
-                <a href="?filter=job_boards" class="btn btn-outline-danger {% if current_filter == 'job_boards' %}active{% endif %}">
+                <a href="?filter=job_boards{% if search_query %}&search={{ search_query }}{% endif %}&sort={{ sort_by }}&order={{ sort_order }}" 
+                   class="btn btn-outline-danger {% if current_filter == 'job_boards' %}active{% endif %}">
                     Job Boards ({{ stats.job_boards }})
                 </a>
-                <a href="?filter=all" class="btn btn-outline-dark {% if current_filter == 'all' %}active{% endif %}">
+                <a href="?filter=all{% if search_query %}&search={{ search_query }}{% endif %}&sort={{ sort_by }}&order={{ sort_order }}" 
+                   class="btn btn-outline-dark {% if current_filter == 'all' %}active{% endif %}">
                     All ({{ stats.total }})
                 </a>
             </div>
@@ -94,23 +88,58 @@
 
     <form method="post" action="{% url 'manage_domains' %}">
         {% csrf_token %}
-        <input type="hidden" name="action" value="bulk_label">
+        <input type="hidden" name="current_filter" value="{{ current_filter }}">
+        <input type="hidden" name="search_query" value="{{ search_query }}">
         
         <div class="row mb-3">
             <div class="col-12">
-                <button type="submit" name="label_type" value="personal" class="btn btn-secondary">
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <h5 class="card-title">🔄 Re-ingest Messages</h5>
+                        <p class="card-text mb-2">
+                            After labeling domains, re-ingest messages to apply the new classifications.
+                        </p>
+                        <div class="row align-items-end">
+                            <div class="col-md-4">
+                                <label for="reingest_filter" class="form-label">Re-ingest messages from:</label>
+                                <select name="reingest_filter" id="reingest_filter" class="form-select">
+                                    <option value="current_filter">Current filter ({{ domains|length }} domain(s))</option>
+                                    <option value="personal">Personal domains only</option>
+                                    <option value="selected">Selected domains below</option>
+                                    <option value="all_labeled">All labeled domains</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <button type="submit" name="action" value="reingest_domains" class="btn btn-warning">
+                                    🔄 Re-ingest Messages
+                                </button>
+                            </div>
+                            <div class="col-md-5">
+                                <small class="text-muted">
+                                    <strong>Note:</strong> May take several minutes for large datasets.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-12">
+                <button type="submit" name="action" value="bulk_label" data-label-type="personal" class="btn btn-secondary label-btn">
                     Mark Selected as Personal
                 </button>
-                <button type="submit" name="label_type" value="company" class="btn btn-info">
+                <button type="submit" name="action" value="bulk_label" data-label-type="company" class="btn btn-info label-btn">
                     Mark Selected as Company
                 </button>
-                <button type="submit" name="label_type" value="ats" class="btn btn-success">
+                <button type="submit" name="action" value="bulk_label" data-label-type="ats" class="btn btn-success label-btn">
                     Mark Selected as ATS
                 </button>
-                <button type="submit" name="label_type" value="headhunter" class="btn btn-warning">
+                <button type="submit" name="action" value="bulk_label" data-label-type="headhunter" class="btn btn-warning label-btn">
                     Mark Selected as Headhunter
                 </button>
-                <button type="submit" name="label_type" value="job_boards" class="btn btn-danger">
+                <button type="submit" name="action" value="bulk_label" data-label-type="job_boards" class="btn btn-danger label-btn">
                     Mark Selected as Job Board
                 </button>
                 <span class="mx-2">|</span>
@@ -130,9 +159,33 @@
                         <th style="width: 50px;">
                             <input type="checkbox" id="select-all-checkbox">
                         </th>
-                        <th>Domain</th>
-                        <th>Message Count</th>
-                        <th>Current Label</th>
+                        <th>
+                            <a href="?filter={{ current_filter }}{% if search_query %}&search={{ search_query }}{% endif %}&sort=domain&order={% if sort_by == 'domain' and sort_order == 'asc' %}desc{% else %}asc{% endif %}" 
+                               class="text-decoration-none text-dark">
+                                Domain 
+                                {% if sort_by == 'domain' %}
+                                    {% if sort_order == 'asc' %}↑{% else %}↓{% endif %}
+                                {% endif %}
+                            </a>
+                        </th>
+                        <th>
+                            <a href="?filter={{ current_filter }}{% if search_query %}&search={{ search_query }}{% endif %}&sort=count&order={% if sort_by == 'count' and sort_order == 'asc' %}desc{% else %}asc{% endif %}" 
+                               class="text-decoration-none text-dark">
+                                Message Count 
+                                {% if sort_by == 'count' %}
+                                    {% if sort_order == 'asc' %}↑{% else %}↓{% endif %}
+                                {% endif %}
+                            </a>
+                        </th>
+                        <th>
+                            <a href="?filter={{ current_filter }}{% if search_query %}&search={{ search_query }}{% endif %}&sort=label&order={% if sort_by == 'label' and sort_order == 'asc' %}desc{% else %}asc{% endif %}" 
+                               class="text-decoration-none text-dark">
+                                Current Label 
+                                {% if sort_by == 'label' %}
+                                    {% if sort_order == 'asc' %}↑{% else %}↓{% endif %}
+                                {% endif %}
+                            </a>
+                        </th>
                         <th>Sample Senders</th>
                         <th>Actions</th>
                     </tr>
@@ -317,6 +370,26 @@ document.querySelectorAll('.quick-label').forEach(button => {
         document.getElementById('quick-domain').value = domain;
         document.getElementById('quick-label-type').value = labelType;
         document.getElementById('quick-label-form').submit();
+    });
+});
+
+// Handle bulk label buttons - add label_type as hidden input when clicked
+document.querySelectorAll('.label-btn').forEach(button => {
+    button.addEventListener('click', function(e) {
+        const labelType = this.dataset.labelType;
+        
+        // Remove any existing label_type input
+        const existingInput = document.querySelector('input[name="label_type"]');
+        if (existingInput) {
+            existingInput.remove();
+        }
+        
+        // Add new label_type input
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'label_type';
+        input.value = labelType;
+        this.form.appendChild(input);
     });
 });
 </script>

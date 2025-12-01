@@ -25,14 +25,15 @@ nano .env  # or vim, code, etc.
 ```
 
 **Required environment variables:**
+
 ```bash
-GMAIL_JOBHUNT_LABEL_ID=your_label_id_here
 DJANGO_SECRET_KEY=$(python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())")
 ```
 
 ### 2. Prepare Gmail Credentials
 
 Place your Gmail OAuth credentials file:
+
 ```bash
 # Ensure json directory exists
 mkdir -p json
@@ -69,8 +70,8 @@ exit
 
 ### 5. Access the Application
 
-- **Dashboard:** http://localhost:8000
-- **Admin Panel:** http://localhost:8000/admin
+- **Dashboard:** <http://localhost:8000>
+- **Admin Panel:** <http://localhost:8000/admin>
 - **Default Credentials:** admin / changeme123 (⚠️ **Change immediately!**)
 
 ## 📦 Building from Source
@@ -122,6 +123,7 @@ The following directories are mounted as volumes for data persistence:
 ### Custom Port
 
 Edit `docker-compose.yml`:
+
 ```yaml
 ports:
   - "3000:8000"  # Change left side to your desired port
@@ -178,6 +180,7 @@ docker-compose logs --tail=100 web
 ### Application Logs
 
 Logs are stored in the `logs/` directory (mounted volume):
+
 ```bash
 tail -f logs/django.log
 tail -f logs/ingestion.log
@@ -236,11 +239,13 @@ docker-compose exec web python manage.py changepassword admin
 ### 2. Use Strong Secret Key
 
 Generate a new secret key:
+
 ```bash
 python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
 ```
 
 Add to `.env`:
+
 ```bash
 DJANGO_SECRET_KEY=your-generated-secret-key
 ```
@@ -265,6 +270,7 @@ chmod 600 .env
 ### 5. Use HTTPS (Reverse Proxy)
 
 Example with Nginx:
+
 ```nginx
 server {
     listen 443 ssl;
@@ -350,6 +356,7 @@ docker-compose exec web chown -R gmailtracker:gmailtracker /app/db /app/logs
 ### Increase Memory Limit
 
 Edit `docker-compose.yml`:
+
 ```yaml
 services:
   web:
@@ -372,6 +379,7 @@ docker-compose exec web gunicorn dashboard.wsgi:application --bind 0.0.0.0:8000 
 ```
 
 Or update `docker-compose.yml` command:
+
 ```yaml
 command: gunicorn dashboard.wsgi:application --bind 0.0.0.0:8000 --workers 4
 ```
@@ -417,6 +425,6 @@ docker-compose up -d
 
 ## 🆘 Getting Help
 
-- **Issues:** https://github.com/cyberthreatgurl/GmailJobTracker/issues
-- **Discussions:** https://github.com/cyberthreatgurl/GmailJobTracker/discussions
-- **Email:** support@yourdomain.com
+- **Issues:** <https://github.com/cyberthreatgurl/GmailJobTracker/issues>
+- **Discussions:** <https://github.com/cyberthreatgurl/GmailJobTracker/discussions>
+- **Email:** <support@yourdomain.com>

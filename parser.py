@@ -1314,18 +1314,27 @@ def ingest_message(service, msg_id):
     # Only force 'other' for user-INITIATED messages that are NOT noise
     # Allow ML to classify user replies/forwards, and even user-initiated noise (personal emails)
     if user_email and sender_email.startswith(user_email):
+        # IGNORE user messages to/from personal domains (personal emails, not job-related)
+        if recipient_domain in PERSONAL_DOMAINS or (is_reply_or_forward and recipient_domain in PERSONAL_DOMAINS):
+            if DEBUG:
+                print(f"[USER EMAIL] Ignoring user message to personal domain: {recipient_domain}")
+            
+            # Delete if re-ingesting
+            existing = Message.objects.filter(msg_id=msg_id).first()
+            if existing:
+                existing.delete()
+            
+            log_ignored_message(msg_id, metadata, reason="user_personal_email")
+            IngestionStats.objects.filter(date=stats.date).update(total_ignored=F("total_ignored") + 1)
+            if hasattr(stats, "total_ignored"):
+                stats.total_ignored += 1
+            return "ignored"
+        
         # If ML classifies as noise with reasonable confidence, trust it
         if ml_predicted_label == "noise" and ml_confidence > 0.5:
             if DEBUG:
                 print(f"[PATCH] User message classified as noise by ML (confidence={ml_confidence:.2f}), keeping noise label.")
             # Don't override - let it stay as noise
-        # Check if this is a reply/forward to a personal domain → classify as noise
-        elif is_reply_or_forward and recipient_domain in PERSONAL_DOMAINS:
-            if result:
-                result["label"] = "noise"
-                result["confidence"] = 0.85  # High confidence for personal conversation
-            if DEBUG:
-                print(f"[PATCH] User reply to personal domain ({recipient_domain}), classified as noise.")
         elif not is_reply_or_forward:
             # User-INITIATED, non-noise message → likely job application outreach
             mapped_company = None
@@ -1518,6 +1527,26 @@ def ingest_message(service, msg_id):
         sender_domain = metadata.get("sender_domain", "").lower()
         is_ats = any(d in sender_domain for d in ATS_DOMAINS)
         is_headhunter = sender_domain in HEADHUNTER_DOMAINS
+        is_personal = sender_domain in PERSONAL_DOMAINS
+        
+        # Personal domain check - completely ignore these messages
+        if is_personal:
+            if DEBUG:
+                print(f"[PERSONAL DOMAIN] Ignoring message from personal domain: {sender_domain}")
+            
+            # Delete existing message if re-ingesting
+            existing = Message.objects.filter(msg_id=msg_id).first()
+            if existing:
+                if DEBUG:
+                    print(f"[PERSONAL DOMAIN] Deleting existing message: {msg_id}")
+                existing.delete()
+            
+            # Log as ignored
+            log_ignored_message(msg_id, metadata, reason="personal_domain")
+            IngestionStats.objects.filter(date=stats.date).update(total_ignored=F("total_ignored") + 1)
+            if hasattr(stats, "total_ignored"):
+                stats.total_ignored += 1
+            return "ignored"
 
         # 0. Headhunter domain check (highest priority)
         if is_headhunter:

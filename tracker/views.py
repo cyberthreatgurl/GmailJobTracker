@@ -877,6 +877,71 @@ def label_companies(request):
                 except Exception:
                     days_since_last_message = None
             if request.method == "POST":
+                # Re-ingest messages for selected company
+                if request.POST.get("action") == "reingest_company":
+                    try:
+                        from gmail_auth import get_gmail_service
+                        from parser import ingest_message
+                        
+                        service = get_gmail_service()
+                        if not service:
+                            messages.error(request, "❌ Failed to initialize Gmail service.")
+                        else:
+                            # Find all message IDs for this company
+                            # Include messages currently assigned to this company
+                            company_messages_query = Message.objects.filter(company=selected_company)
+                            
+                            # Also include messages from company's domain or ATS domain
+                            domains_to_check = []
+                            if selected_company.domain:
+                                domains_to_check.append(selected_company.domain)
+                            if selected_company.ats:
+                                domains_to_check.append(selected_company.ats)
+                            
+                            # Build query to include sender domains
+                            if domains_to_check:
+                                from django.db.models import Q
+                                domain_query = Q()
+                                for domain in domains_to_check:
+                                    domain_query |= Q(sender__icontains=f"@{domain}")
+                                
+                                # Combine: messages assigned to company OR from company domains
+                                company_messages_query = Message.objects.filter(
+                                    Q(company=selected_company) | domain_query
+                                ).distinct()
+                            
+                            company_messages = company_messages_query.values('msg_id', 'subject', 'ml_label')
+                            
+                            processed = 0
+                            updated_labels = 0
+                            errors = 0
+                            
+                            for msg_info in company_messages[:1000]:  # Limit to avoid timeout
+                                try:
+                                    old_label = msg_info['ml_label']
+                                    ingest_message(service, msg_info['msg_id'])
+                                    
+                                    # Check if label changed
+                                    updated_msg = Message.objects.get(msg_id=msg_info['msg_id'])
+                                    if updated_msg.ml_label != old_label:
+                                        updated_labels += 1
+                                    
+                                    processed += 1
+                                except Exception as e:
+                                    errors += 1
+                                    logger.error(f"Error re-ingesting {msg_info['msg_id']}: {e}")
+                            
+                            messages.success(
+                                request,
+                                f"✅ Re-ingested {processed} messages for {selected_company.name}. "
+                                f"{updated_labels} labels updated. {errors} errors."
+                            )
+                    except Exception as e:
+                        messages.error(request, f"⚠️ Error during re-ingestion: {e}")
+                        logger.exception("Re-ingestion error")
+                    
+                    return redirect(f"/label_companies/?company={selected_company.id}")
+                
                 # Quick action: mark as ghosted
                 if request.POST.get("action") == "mark_ghosted":
                     # Do not allow ghosted if last message was a rejection
@@ -3720,7 +3785,7 @@ def manage_domains(request):
     Domain management page for classifying email domains as personal, company, ATS, or headhunter.
     Extracts domains from ingested messages and allows bulk labeling.
     """
-    from collections import Counter
+    from collections import Counter, defaultdict
     
     # Paths to JSON files
     companies_path = Path(__file__).parent.parent / "json" / "companies.json"
@@ -3760,6 +3825,55 @@ def manage_domains(request):
                 domains_to_reingest = personal_domains.copy()
             elif reingest_filter == "selected":
                 domains_to_reingest = set(selected_domains)
+            elif reingest_filter == "current_filter":
+                # Re-ingest domains from the current filter view
+                current_filter_param = request.POST.get("current_filter", "unlabeled")
+                search_param = request.POST.get("search_query", "").strip().lower()
+                
+                # Get all domains from messages
+                messages_qs = Message.objects.all()
+                domain_counter = Counter()
+                for msg in messages_qs.values('sender'):
+                    sender = msg['sender']
+                    if '@' in sender:
+                        email = sender
+                        if '<' in sender and '>' in sender:
+                            import re
+                            email_matches = re.findall(r'<([^>]+@[^>]+)>', sender)
+                            if email_matches:
+                                email = email_matches[-1]
+                        if '@' in email:
+                            domain = email.split('@')[-1].lower()
+                            if domain != "manual" and not domain.startswith("manual_"):
+                                domain_counter[domain] += 1
+                
+                # Apply filter
+                all_domain_list = list(domain_counter.keys())
+                filtered_domains = []
+                
+                for domain in all_domain_list:
+                    # Apply search filter
+                    if search_param and search_param not in domain.lower():
+                        continue
+                    
+                    # Apply category filter
+                    if current_filter_param == "unlabeled":
+                        if domain not in personal_domains and domain not in ats_domains and domain not in headhunter_domains and domain not in job_boards and domain not in domain_to_company:
+                            filtered_domains.append(domain)
+                    elif current_filter_param == "personal" and domain in personal_domains:
+                        filtered_domains.append(domain)
+                    elif current_filter_param == "company" and domain in domain_to_company:
+                        filtered_domains.append(domain)
+                    elif current_filter_param == "ats" and domain in ats_domains:
+                        filtered_domains.append(domain)
+                    elif current_filter_param == "headhunter" and domain in headhunter_domains:
+                        filtered_domains.append(domain)
+                    elif current_filter_param == "job_boards" and domain in job_boards:
+                        filtered_domains.append(domain)
+                    elif current_filter_param == "all":
+                        filtered_domains.append(domain)
+                
+                domains_to_reingest = set(filtered_domains)
             elif reingest_filter == "all_labeled":
                 domains_to_reingest = personal_domains | ats_domains | headhunter_domains | job_boards | set(domain_to_company.keys())
             
@@ -4152,19 +4266,17 @@ def manage_domains(request):
             "sample_senders": domain_senders[domain]
         })
     
-    # Sort alphabetically with base domains before subdomains
-    # e.g., "example.com" before "a.example.com" before "info.example.com"
-    def domain_sort_key(d):
-        domain = d["domain"]
-        parts = domain.split('.')
-        # Reverse the parts so "com.example.a" sorts correctly
-        # Then append original domain for stable sort of same base
-        return tuple(reversed(parts)) + (domain,)
-    
-    domains_info.sort(key=domain_sort_key)
-    
     # Filter based on query parameter
     current_filter = request.GET.get("filter", "unlabeled")
+    search_query = request.GET.get("search", "").strip().lower()
+    sort_by = request.GET.get("sort", "domain")  # domain, count, label
+    sort_order = request.GET.get("order", "asc")  # asc, desc
+    
+    # Apply search filter
+    if search_query:
+        domains_info = [d for d in domains_info if search_query in d["domain"].lower()]
+    
+    # Apply category filter
     if current_filter == "unlabeled":
         domains_info = [d for d in domains_info if d["label"] is None]
     elif current_filter == "personal":
@@ -4178,6 +4290,23 @@ def manage_domains(request):
     elif current_filter == "job_boards":
         domains_info = [d for d in domains_info if d["label"] == "job_boards"]
     # "all" shows everything
+    
+    # Apply sorting
+    if sort_by == "count":
+        domains_info.sort(key=lambda d: d["count"], reverse=(sort_order == "desc"))
+    elif sort_by == "label":
+        def label_sort_key(d):
+            label = d["label"] or "zzz_unlabeled"  # Push unlabeled to end
+            return label
+        domains_info.sort(key=label_sort_key, reverse=(sort_order == "desc"))
+    else:  # sort_by == "domain" (default)
+        # Sort alphabetically with base domains before subdomains
+        def domain_sort_key(d):
+            domain = d["domain"]
+            parts = domain.split('.')
+            # Reverse the parts so "com.example.a" sorts correctly
+            return tuple(reversed(parts)) + (domain,)
+        domains_info.sort(key=domain_sort_key, reverse=(sort_order == "desc"))
     
     # Calculate stats
     all_domains = list(domain_counter.keys())
@@ -4196,5 +4325,8 @@ def manage_domains(request):
         "current_filter": current_filter,
         "stats": stats,
         "reingest_summary": reingest_summary,
+        "search_query": search_query,
+        "sort_by": sort_by,
+        "sort_order": sort_order,
     }
     return render(request, "tracker/manage_domains.html", ctx)

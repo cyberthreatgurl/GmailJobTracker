@@ -36,3 +36,7 @@ git commit -m "docs: update changelog for v2.2.2"
 git tag -a v2.2.2 -m "Release v2.2.2: job title extraction improvements"
 git push origin main --force
 git push origin v2.2.2
+
+
+# Kill all python prodcessess on PowerShell
+Get-Process python -ErrorAction SilentlyContinue | Stop-Process -Force

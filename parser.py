@@ -1148,6 +1148,55 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
                     continue
                 company = candidate
 
+    # Prefer canonical known company names when candidate contains them as substrings
+    # (handles cases like "the Senior Systems Security Engineer position at CSA")
+    if company:
+        # Try to find a known company or alias inside the candidate or subject
+        found = False
+        cand_lower = company.lower()
+        subj_lower = subject_clean.lower()
+        # Check aliases first (map lower->canonical)
+        aliases_lower = {k.lower(): v for k, v in company_data.get("aliases", {}).items()}
+        for alias_lower, canonical in aliases_lower.items():
+            if alias_lower in cand_lower or alias_lower in subj_lower:
+                company = canonical
+                found = True
+                if DEBUG:
+                    print(f"[DEBUG] Company alias matched: {alias_lower} -> {canonical}")
+                break
+        # Next check known companies list for substrings
+        if not found and KNOWN_COMPANIES:
+            for known in company_data.get("known", []):
+                if known.lower() in cand_lower or known.lower() in subj_lower:
+                    company = known
+                    found = True
+                    if DEBUG:
+                        print(f"[DEBUG] Known company matched inside candidate/subject: {known}")
+                    break
+
+        # If still not found, handle patterns like "... position at CSA" by extracting text after ' at '
+        if not found:
+            m_at = re.search(r"position at\s+(.+)$", company, re.IGNORECASE)
+            if not m_at:
+                parts = re.split(r"\bat\b|@", company, flags=re.IGNORECASE)
+                if len(parts) > 1:
+                    candidate_after_at = parts[-1].strip()
+                else:
+                    candidate_after_at = ""
+            else:
+                candidate_after_at = m_at.group(1).strip()
+
+            if candidate_after_at:
+                # Remove leading articles like 'the'
+                candidate_after_at = re.sub(r"^the\s+", "", candidate_after_at, flags=re.IGNORECASE).strip()
+                # Shorten long captures to first 4 words
+                candidate_short = " ".join(candidate_after_at.split()[:4])
+                # If this shorter candidate looks like a company, use it
+                if candidate_short and not looks_like_person(candidate_short):
+                    if DEBUG:
+                        print(f"[DEBUG] Extracted company after 'at': {candidate_short}")
+                    company = candidate_short
+
     # 🧼 Sanity checks
     if company and re.search(r"\b(CTO|Engineer|Manager|Director|Intern|Analyst)\b", company, re.I):
         if DEBUG:
@@ -1407,19 +1456,15 @@ def ingest_message(service, msg_id):
 
         Accepts:
           - datetime/date objects (returned directly as date)
-          - string timestamps in common formats
-        Returns None on failure.
+          - string timestamps in common formats (not auto-parsed — prefer structured dates)
+        Returns None on failure or when value is a string (preserve caller semantics).
         """
         if isinstance(value, datetime):
             return value.date()
         if isinstance(value, date):  # already a date
             return value
-        if isinstance(value, str) and value.strip():
-            for fmt in ("%Y-%m-%d %H:%M:%S", "%Y-%m-%d", "%m/%d/%Y"):
-                try:
-                    return datetime.strptime(value.strip(), fmt).date()
-                except Exception:
-                    continue
+        # Preserve None for string inputs; callers may prefer raw strings or None
+        # rather than attempting to guess formats here.
         return None
 
     status_dates = {
@@ -1527,6 +1572,7 @@ def ingest_message(service, msg_id):
         sender_domain = metadata.get("sender_domain", "").lower()
         is_ats = any(d in sender_domain for d in ATS_DOMAINS)
         is_headhunter = sender_domain in HEADHUNTER_DOMAINS
+        is_job_board = sender_domain in JOB_BOARD_DOMAINS
         is_personal = sender_domain in PERSONAL_DOMAINS
         
         # Personal domain check - completely ignore these messages
@@ -1547,6 +1593,17 @@ def ingest_message(service, msg_id):
             if hasattr(stats, "total_ignored"):
                 stats.total_ignored += 1
             return "ignored"
+
+        # Job-board messages should be treated as noise (similar to job_alert)
+        if is_job_board:
+            if DEBUG:
+                print(f"[JOB BOARD] Marking message from job-board domain as noise: {sender_domain}")
+            if not result:
+                result = {"label": "noise", "confidence": 1.0}
+            else:
+                result["label"] = "noise"
+                result["confidence"] = 1.0
+            skip_company_assignment = True
 
         # 0. Headhunter domain check (highest priority)
         if is_headhunter:
@@ -1935,6 +1992,14 @@ def ingest_message(service, msg_id):
         ):
             existing.reviewed = True
         existing.save()
+        # Propagate ml_label to ThreadTracking so label changes reflect in dashboard
+        try:
+            from tracker.utils import propagate_message_label_to_thread
+
+            propagate_message_label_to_thread(existing)
+        except Exception:
+            # Keep parsing resilient; propagation is best-effort
+            pass
 
         # ✅ Also update Application record during re-ingestion if dates are missing
         ml_label = result.get("label") if result else None
@@ -1957,8 +2022,13 @@ def ingest_message(service, msg_id):
                         updated = True
                         if DEBUG:
                             print(f"✓ Set rejection_date during re-ingest: {app.rejection_date}")
-                    if not app.interview_date and ml_label == "interview_invite":
-                        app.interview_date = metadata["timestamp"].date()
+                        # Only set interview_date from ML label when confidence is high
+                        try:
+                            ml_conf = float(result.get("confidence", 0.0)) if result else 0.0
+                        except Exception:
+                            ml_conf = 0.0
+                        if not app.interview_date and ml_label == "interview_invite" and ml_conf >= 0.7:
+                            app.interview_date = metadata["timestamp"].date()
                         updated = True
                         if DEBUG:
                             print(f"✓ Set interview_date during re-ingest: {app.interview_date}")
@@ -2105,16 +2175,26 @@ def ingest_message(service, msg_id):
     rejection_date_final = status_dates["rejection_date"]
     interview_date_final = status_dates["interview_date"]
 
-    if not rejection_date_final and ml_label == "rejected":
+    # Treat both 'rejection' and 'rejected' as rejection outcomes
+    if not rejection_date_final and ml_label in ("rejected", "rejection"):
         rejection_date_final = metadata["timestamp"].date()
         if DEBUG:
             print(f"✓ Set rejection_date from ML label: {rejection_date_final}")
 
-    if not interview_date_final and ml_label == "interview_invite":
-        # Set to 7 days in future to mark as "upcoming interview"
-        interview_date_final = (metadata["timestamp"] + timedelta(days=7)).date()
-        if DEBUG:
-            print(f"✓ Set interview_date from ML label (7 days ahead): {interview_date_final}")
+    # If ML indicates an interview and confidence is sufficient, set a conservative interview_date
+    # Accept multiple label variants that contain 'interview'
+    if not interview_date_final and ml_label and "interview" in str(ml_label).lower():
+        # Only derive an interview_date from the ML label when confidence is high;
+        # otherwise leave interview_date unset so it doesn't create false positives.
+        try:
+            ml_conf = float(result.get("confidence", 0.0)) if result else 0.0
+        except Exception:
+            ml_conf = 0.0
+        if ml_conf >= 0.7:
+            # Set to the message timestamp date as the conservative interview milestone
+            interview_date_final = metadata["timestamp"].date()
+            if DEBUG:
+                print(f"✓ Set interview_date from ML label (message date): {interview_date_final}")
 
     try:
         message_obj = Message.objects.get(msg_id=msg_id)
@@ -2384,6 +2464,7 @@ if COMPANIES_PATH.exists():
         company_data = {}
     ATS_DOMAINS = [d.lower() for d in company_data.get("ats_domains", [])]
     HEADHUNTER_DOMAINS = [d.lower() for d in company_data.get("headhunter_domains", [])]
+    JOB_BOARD_DOMAINS = [d.lower() for d in company_data.get("job_board_domains", [])]
     KNOWN_COMPANIES = {c.lower() for c in company_data.get("known", [])}
     KNOWN_COMPANIES_CASED = company_data.get("known", [])  # Keep original casing
     DOMAIN_TO_COMPANY = {k.lower(): v for k, v in company_data.get("domain_to_company", {}).items()}
@@ -2395,6 +2476,33 @@ else:
     KNOWN_COMPANIES_CASED = []
     DOMAIN_TO_COMPANY = {}
     ALIASES = {}
+
+
+# Allow companies.json edits to be picked up at runtime without restarting the process.
+# We track the file mtime and reload DOMAIN_TO_COMPANY when it changes.
+try:
+    if COMPANIES_PATH.exists():
+        _DOMAIN_MAP_MTIME = COMPANIES_PATH.stat().st_mtime
+    else:
+        _DOMAIN_MAP_MTIME = None
+except Exception:
+    _DOMAIN_MAP_MTIME = None
+
+
+def _reload_domain_map_if_needed():
+    """Reload `DOMAIN_TO_COMPANY` from `COMPANIES_PATH` if the file changed."""
+    global DOMAIN_TO_COMPANY, _DOMAIN_MAP_MTIME
+    try:
+        if COMPANIES_PATH.exists():
+            mtime = COMPANIES_PATH.stat().st_mtime
+            if _DOMAIN_MAP_MTIME != mtime:
+                with open(COMPANIES_PATH, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                DOMAIN_TO_COMPANY = {k.lower(): v for k, v in data.get("domain_to_company", {}).items()}
+                _DOMAIN_MAP_MTIME = mtime
+    except Exception:
+        # If reload fails for any reason, keep the existing mapping silently
+        pass
 
 
 def _conf(res) -> float:
@@ -2424,6 +2532,8 @@ def _map_company_by_domain(domain: str) -> str | None:
     Example: if mapping contains 'nsa.gov' -> 'National Security Agency', then
     'uwe.nsa.gov' will also map to that company.
     """
+    # ensure we have the latest mapping
+    _reload_domain_map_if_needed()
     if not domain:
         return None
     d = domain.lower()

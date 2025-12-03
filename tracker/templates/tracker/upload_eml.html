@@ -1,0 +1,18 @@
+{% extends 'tracker/base.html' %}
+{% block content %}
+  <h2>Upload .eml</h2>
+  {% if error %}
+    <div class="alert alert-danger">{{ error }}</div>
+  {% endif %}
+  {% if result %}
+    <div class="alert alert-success">
+      <strong>Ingest result:</strong> {{ result.message }}
+      <pre>{{ result.details|safe }}</pre>
+    </div>
+  {% endif %}
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button class="btn btn-primary" type="submit">Upload & Ingest</button>
+  </form>
+{% endblock %}

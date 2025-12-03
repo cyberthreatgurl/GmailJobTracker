@@ -114,6 +114,53 @@ class MessageAdmin(admin.ModelAdmin):
     search_fields = ["subject", "sender", "body"]
     readonly_fields = ["msg_id", "thread_id", "timestamp", "sender"]
 
+    def save_model(self, request, obj, form, change):
+        """When a Message's ml_label is changed manually in admin, keep ThreadTracking in sync.
+
+        - If label becomes an application/interview and a ThreadTracking doesn't exist, create one (only when company present).
+        - If ThreadTracking exists, update its ml_label and ml_confidence to reflect the manual change.
+        """
+        old_label = None
+        try:
+            if change and obj.pk:
+                old = Message.objects.get(pk=obj.pk)
+                old_label = old.ml_label
+        except Message.DoesNotExist:
+            old_label = None
+
+        super().save_model(request, obj, form, change)
+
+        # If label changed, propagate to ThreadTracking
+        try:
+            new_label = obj.ml_label
+            if old_label != new_label and obj.thread_id:
+                tt = ThreadTracking.objects.filter(thread_id=obj.thread_id).first()
+                if tt:
+                    tt.ml_label = new_label
+                    tt.ml_confidence = obj.confidence or tt.ml_confidence
+                    tt.save()
+                else:
+                    # Create ThreadTracking for application-like labels when company is available
+                    if new_label in ("job_application", "interview_invite") and obj.company:
+                        try:
+                            ThreadTracking.objects.create(
+                                thread_id=obj.thread_id,
+                                company=obj.company,
+                                company_source=obj.company_source or "manual",
+                                job_title="",
+                                job_id="",
+                                status="application",
+                                sent_date=(obj.timestamp.date() if obj.timestamp else None),
+                                ml_label=new_label,
+                                ml_confidence=(obj.confidence or 0.0),
+                            )
+                        except Exception:
+                            # Soft-fail; admin save should not error due to ThreadTracking creation issues
+                            pass
+        except Exception:
+            # Never crash admin save due to propagation errors
+            pass
+
 
 class TicketAdmin(admin.ModelAdmin):
     list_display = ("title", "category", "status", "updated_at")

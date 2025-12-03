@@ -179,6 +179,13 @@ class Command(BaseCommand):
                     trigger.ml_label = "ghosted"
                     trigger.reviewed = True
                     trigger.save(update_fields=["ml_label", "reviewed"])
+                    # Propagate label change to ThreadTracking
+                    try:
+                        from tracker.utils import propagate_message_label_to_thread
+
+                        propagate_message_label_to_thread(trigger)
+                    except Exception:
+                        pass
                 total_msgs_marked += 1
 
             self.stdout.write(

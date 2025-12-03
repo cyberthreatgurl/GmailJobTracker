@@ -20,7 +20,7 @@
       "\\bdiscuss\\sthe\\sopportunity\\b"
     ],
     "application": [
-  "^Indeed\\sApplication:\\s*",
+      "^Indeed\\sApplication:\\s*",
       "acknowledge\\sthes\\sreceipt",
       "for\\sapplying",
       "received\\syour\\sapplication",
@@ -46,8 +46,8 @@
       "\\byour\\sapplication\\s(?:to|for|at)\\b",
       "\\bapplication\\supdate\\b",
       "\\bapplication\\sstatus\\b",
-  "\\bprofile\\sconfirmation\\b",
-  "\\bapplication\\sreceived\\b",
+      "\\bprofile\\sconfirmation\\b",
+      "\\bapplication\\sreceived\\b",
       "\\breceived.*\\bapplication\\b",
       "\\bjob\\sapplication\\sconfirmation\\b",
       "\\bjob\\sapplication.*\\breceived\\b",
@@ -56,10 +56,10 @@
       "\\bthank\\syou\\sfor\\s(?:your\\s)?interest\\b",
       "\\btalent\\spool\\b",
       "\\bcareer\\sopportunity\\b",
-  "\\binterview\\savailability\\b",
-  "\\byour.*\\sjob\\sapplication\\b",
-  "\\bjob\\sapplication\\sfor\\b",
-  "\\bthank\\syou\\sfrom\\b"
+      "\\binterview\\savailability\\b",
+      "\\byour.*\\sjob\\sapplication\\b",
+      "\\bjob\\sapplication\\sfor\\b",
+      "\\bthank\\syou\\sfrom\\b"
     ],
     "rejection": [
       "another\\scandidate\\shas\\sbeen\\sselected",
@@ -92,10 +92,12 @@
       "\\bnot\\sadvance\\b",
       "\\bonly\\sadvance\\sa\\sfew\\b"
     ],
-    "offer": ["\\smake\\syou\\san\\soffer\\b"],
+    "offer": [
+      "\\smake\\syou\\san\\soffer\\b"
+    ],
     "noise": [
       "\\bnewsletter\\b",
-      "\\bprescription\\b", 
+      "\\bprescription\\b",
       "\\bpayment\\b",
       "\\bdigest\\b",
       "\\bpromotion\\b",
@@ -133,7 +135,9 @@
       "received\\syour\\sresume",
       "application\\sreceived"
     ],
-    "ghosted": ["None"],
+    "ghosted": [
+      "None"
+    ],
     "other": [
       "\\bMicrosoft\\sTeams\\sNeed\\shelp",
       "\\bthank\\syou\\sfor\\sscheduling\\b",

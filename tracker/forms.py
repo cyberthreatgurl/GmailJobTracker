@@ -95,3 +95,9 @@ class ManualEntryForm(forms.Form):
             self.add_error("interview_date", "Interview date is required for interview entries.")
 
         return cleaned_data
+
+
+class UploadEmlForm(forms.Form):
+    eml_file = forms.FileField(label=".eml file", help_text="Upload complete .eml file including headers")
+    thread_id = forms.CharField(max_length=255, required=False, label="Thread ID override", help_text="Optional: force thread_id to use for this message")
+    no_tt = forms.BooleanField(required=False, initial=False, label="Do not create ThreadTracking", help_text="When checked, do not auto-create a ThreadTracking record")

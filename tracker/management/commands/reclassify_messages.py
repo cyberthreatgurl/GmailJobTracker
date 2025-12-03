@@ -26,22 +26,38 @@ class Command(BaseCommand):
             action="store_true",
             help="Show what would change without saving",
         )
+        parser.add_argument(
+            "--overwrite-reviewed",
+            action="store_true",
+            help="Allow overwriting messages that have been manually reviewed/labeled",
+        )
 
     def handle(self, *args, **options):
         min_conf = options["min_confidence"]
         limit = options["limit"]
         dry_run = options["dry_run"]
+        overwrite_reviewed = bool(options.get("overwrite_reviewed", False))
 
         # Get messages to re-classify
         qs = Message.objects.all()
         if min_conf > 0:
             qs = qs.filter(confidence__lt=min_conf)
 
+        if not overwrite_reviewed:
+            # Exclude manually reviewed messages by default
+            skipped_reviewed = Message.objects.filter(reviewed=True).count()
+            qs = qs.exclude(reviewed=True)
+        else:
+            skipped_reviewed = 0
+
         if limit:
             qs = qs[:limit]
 
         total = qs.count()
-        self.stdout.write(f"{'[DRY RUN] ' if dry_run else ''}Re-classifying {total} messages...")
+        self.stdout.write(
+            f"{('[DRY RUN] ' if dry_run else '')}Re-classifying {total} messages..."
+            + (f" (skipped {skipped_reviewed} reviewed)" if skipped_reviewed else "")
+        )
 
         updated = 0
         changed = 0
@@ -50,14 +66,14 @@ class Command(BaseCommand):
             result = predict_subject_type(msg.subject, msg.body or "", sender=msg.sender)
 
             old_label = msg.ml_label
-            old_conf = msg.confidence
+            old_conf = msg.confidence or 0.0
 
             new_label = result["label"]
             new_conf = result.get("confidence", 0.0)
 
             # Check if anything changed significantly
             label_changed = old_label != new_label
-            conf_changed = abs(old_conf - new_conf) > 0.05
+            conf_changed = abs((old_conf or 0.0) - new_conf) > 0.05
 
             if label_changed or conf_changed:
                 changed += 1
@@ -70,24 +86,28 @@ class Command(BaseCommand):
                 )
 
                 if not dry_run:
-                    msg.ml_label = new_label
-                    msg.confidence = new_conf
+                    try:
+                        from tracker.label_helpers import label_message_and_propagate
+                    except Exception:
+                        label_message_and_propagate = None
 
-                    # Clear company for reviewed noise messages only
-                    # (allows inspection during model training/testing)
+                    # Preserve previous logic: if marking reviewed message as noise, clear company
                     if new_label == "noise" and msg.reviewed:
                         msg.company = None
                         msg.company_source = ""
-                        msg.save(
-                            update_fields=[
-                                "ml_label",
-                                "confidence",
-                                "company",
-                                "company_source",
-                            ]
-                        )
+                        if label_message_and_propagate:
+                            label_message_and_propagate(msg, new_label, float(new_conf))
+                        else:
+                            msg.ml_label = new_label
+                            msg.confidence = new_conf
+                            msg.save(update_fields=["ml_label", "confidence", "company", "company_source"])
                     else:
-                        msg.save(update_fields=["ml_label", "confidence"])
+                        if label_message_and_propagate:
+                            label_message_and_propagate(msg, new_label, float(new_conf))
+                        else:
+                            msg.ml_label = new_label
+                            msg.confidence = new_conf
+                            msg.save(update_fields=["ml_label", "confidence"]) 
 
                     updated += 1
 

@@ -232,6 +232,69 @@ def test_ingest_skipped(monkeypatch, fake_stats, fake_message_model):
     assert fake_stats.total_skipped == 1
 
 
+def test_thank_you_message_does_not_set_interview_date(monkeypatch, fake_stats, fake_message_model):
+    """Regression test: a simple 'thank you for applying' message should not create an interview_date.
+
+    This prevents false positives where automated acknowledgement/rejection emails are interpreted
+    as scheduled interviews.
+    """
+    queryset, manager = fake_message_model
+    captured_record = {}
+
+    monkeypatch.setattr(
+        "parser.insert_or_update_application",
+        lambda record: captured_record.update(record),
+    )
+
+    # Simulate a typical 'thank you for applying' message
+    monkeypatch.setattr(
+        "parser.extract_metadata",
+        lambda s, m: {
+            "subject": "Thank you for applying to ExampleCo",
+            "body": "Thank you for your application. Our recruiting team will review your submission.",
+            "date": "2025-10-01",
+            "thread_id": "t_thanks",
+            "sender": "ExampleCo Recruiting <no-reply@exampleco.com>",
+            "sender_domain": "exampleco.com",
+            "timestamp": timestamp,
+            "labels": [],
+            "last_updated": "now",
+        },
+    )
+
+    # No status dates extracted from body
+    monkeypatch.setattr(
+        "parser.extract_status_dates",
+        lambda b, d: {
+            "response_date": None,
+            "follow_up_dates": [],
+            "rejection_date": None,
+            "interview_date": None,
+        },
+    )
+
+    # Simulate ML subject classifier with low confidence (should not set interview_date)
+    monkeypatch.setattr(
+        "parser.predict_subject_type",
+        lambda *a, **k: {"label": "job_application", "confidence": 0.25},
+    )
+
+    # Minimal subject parsing result to allow application creation
+    monkeypatch.setattr(
+        "parser.parse_subject",
+        lambda *a, **k: {"company": "ExampleCo", "job_title": "Engineer", "job_id": "", "predicted_company": "ExampleCo"},
+    )
+
+    monkeypatch.setattr("parser.insert_email_text", lambda *a, **k: None)
+    monkeypatch.setattr("parser.classify_message", lambda b: None)
+    monkeypatch.setattr("parser.get_stats", lambda: fake_stats)
+
+    result = ingest_message(None, "m_thanks")
+    assert result == "inserted"
+    # Regression: ensure interview_date is not set from this acknowledgement message
+    assert captured_record.get("interview_date") is None
+
+
 def test_ingest_domain_mapping(monkeypatch, fake_stats, fake_message_model):
     queryset, manager = fake_message_model
     captured_record = {}

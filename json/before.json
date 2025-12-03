@@ -1,0 +1,4210 @@
+{
+  "timestamp": null,
+  "dead_code": {
+    "db.py": [
+      [
+        "init_db",
+        61
+      ]
+    ],
+    "db_helpers.py": [
+      [
+        "normalize",
+        10
+      ]
+    ],
+    "label_companies.py": [
+      [
+        "label_companies",
+        14
+      ]
+    ],
+    "manage.py": [
+      [
+        "main",
+        14
+      ]
+    ],
+    "scripts\\analyze_code_quality.py": [
+      [
+        "main",
+        378
+      ],
+      [
+        "visit_FunctionDef",
+        30
+      ],
+      [
+        "visit_ClassDef",
+        38
+      ],
+      [
+        "visit_Import",
+        42
+      ],
+      [
+        "visit_ImportFrom",
+        46
+      ],
+      [
+        "visit_Name",
+        51
+      ],
+      [
+        "visit_Attribute",
+        55
+      ],
+      [
+        "analyze_file",
+        61
+      ],
+      [
+        "find_dead_code",
+        75
+      ],
+      [
+        "find_duplicate_code",
+        140
+      ],
+      [
+        "analyze_file_complexity",
+        212
+      ],
+      [
+        "find_unused_imports",
+        253
+      ],
+      [
+        "generate_report",
+        299
+      ],
+      [
+        "CodeAnalyzer",
+        19
+      ]
+    ],
+    "scripts\\changelog_cli.py": [
+      [
+        "main",
+        6
+      ]
+    ],
+    "scripts\\cleanup_empty_companies.py": [
+      [
+        "main",
+        102
+      ],
+      [
+        "cleanup_empty_companies",
+        25
+      ]
+    ],
+    "scripts\\clean_imports.py": [
+      [
+        "main",
+        171
+      ],
+      [
+        "extract_imports",
+        16
+      ],
+      [
+        "find_unused_imports",
+        78
+      ],
+      [
+        "is_import_used",
+        45
+      ],
+      [
+        "remove_unused_imports",
+        98
+      ],
+      [
+        "clean_project_imports",
+        139
+      ]
+    ],
+    "scripts\\consolidate_rejection_labels.py": [
+      [
+        "main",
+        20
+      ]
+    ],
+    "scripts\\extract_companies_from_url.py": [
+      [
+        "main",
+        39
+      ],
+      [
+        "get_domain",
+        13
+      ],
+      [
+        "guess_company",
+        22
+      ],
+      [
+        "process_url",
+        26
+      ]
+    ],
+    "scripts\\fix_import_company.py": [
+      [
+        "main",
+        40
+      ]
+    ],
+    "scripts\\fix_patterns_simple.py": [
+      [
+        "main",
+        247
+      ],
+      [
+        "backup_file",
+        30
+      ],
+      [
+        "validate_regex",
+        41
+      ],
+      [
+        "fix_pattern",
+        50
+      ],
+      [
+        "fix_patterns_file",
+        77
+      ],
+      [
+        "process_pattern_section",
+        92
+      ]
+    ],
+    "scripts\\fix_pylint_errors.py": [
+      [
+        "main",
+        248
+      ],
+      [
+        "fix_missing_final_newline",
+        46
+      ],
+      [
+        "fix_trailing_whitespace",
+        66
+      ],
+      [
+        "fix_unused_imports",
+        95
+      ],
+      [
+        "generate_import_fix_commands",
+        109
+      ],
+      [
+        "add_module_docstrings",
+        130
+      ],
+      [
+        "fix_broad_exceptions",
+        160
+      ],
+      [
+        "show_import_errors",
+        175
+      ],
+      [
+        "show_summary",
+        189
+      ],
+      [
+        "run_formatting_fixes",
+        206
+      ],
+      [
+        "run_docstring_fixes",
+        217
+      ],
+      [
+        "run_all_automated_fixes",
+        227
+      ],
+      [
+        "PylintFixer",
+        22
+      ]
+    ],
+    "scripts\\import_gmail_filters.py": [
+      [
+        "main",
+        84
+      ],
+      [
+        "parse_filters",
+        67
+      ]
+    ],
+    "scripts\\init_db.py": [
+      [
+        "main",
+        135
+      ],
+      [
+        "create_directories",
+        14
+      ],
+      [
+        "copy_example_configs",
+        29
+      ],
+      [
+        "run_migrations",
+        52
+      ],
+      [
+        "create_superuser",
+        64
+      ],
+      [
+        "check_spacy_model",
+        78
+      ],
+      [
+        "display_next_steps",
+        93
+      ]
+    ],
+    "scripts\\migrate_patterns_to_regex.py": [
+      [
+        "main",
+        251
+      ],
+      [
+        "backup_file",
+        26
+      ],
+      [
+        "validate_regex",
+        37
+      ],
+      [
+        "escape_literal_text",
+        46
+      ],
+      [
+        "convert_plain_text_to_regex",
+        72
+      ],
+      [
+        "consolidate_simple_patterns",
+        117
+      ],
+      [
+        "migrate_patterns",
+        177
+      ]
+    ],
+    "scripts\\reclassify_meeting_invites.py": [
+      [
+        "main",
+        25
+      ]
+    ],
+    "scripts\\reclassify_nsa_processing_update.py": [
+      [
+        "main",
+        68
+      ],
+      [
+        "find_candidate_messages",
+        34
+      ],
+      [
+        "find_ignored_candidates",
+        41
+      ],
+      [
+        "reingest",
+        48
+      ]
+    ],
+    "scripts\\reingest_messages.py": [
+      [
+        "main",
+        210
+      ],
+      [
+        "get_messages_to_process",
+        62
+      ],
+      [
+        "show_message_preview",
+        97
+      ],
+      [
+        "reingest_messages",
+        110
+      ],
+      [
+        "print_summary",
+        171
+      ]
+    ],
+    "scripts\\run_all_checks.py": [
+      [
+        "main",
+        38
+      ],
+      [
+        "run_command",
+        17
+      ]
+    ],
+    "scripts\\suggest_refactoring.py": [
+      [
+        "main",
+        280
+      ],
+      [
+        "visit_FunctionDef",
+        36
+      ],
+      [
+        "visit_Import",
+        25
+      ],
+      [
+        "visit_ImportFrom",
+        30
+      ],
+      [
+        "visit_Call",
+        59
+      ],
+      [
+        "visit_Return",
+        81
+      ],
+      [
+        "analyze_large_file",
+        92
+      ],
+      [
+        "suggest_file_split",
+        150
+      ],
+      [
+        "generate_refactor_plan",
+        222
+      ],
+      [
+        "FunctionAnalyzer",
+        17
+      ]
+    ],
+    "scripts\\validate_companies.py": [
+      [
+        "main",
+        480
+      ],
+      [
+        "print_summary",
+        402
+      ],
+      [
+        "debug",
+        57
+      ],
+      [
+        "check_orphaned_threadtracking",
+        62
+      ],
+      [
+        "check_orphaned_messages",
+        93
+      ],
+      [
+        "check_duplicate_companies",
+        135
+      ],
+      [
+        "check_empty_companies",
+        197
+      ],
+      [
+        "check_data_consistency",
+        236
+      ],
+      [
+        "check_company_source_mismatches",
+        288
+      ],
+      [
+        "gather_stats",
+        341
+      ],
+      [
+        "fix_orphaned_threads",
+        357
+      ],
+      [
+        "fix_orphaned_messages",
+        377
+      ],
+      [
+        "run_validation",
+        453
+      ],
+      [
+        "CompanyValidator",
+        35
+      ]
+    ],
+    "scripts\\validate_deployment.py": [
+      [
+        "main",
+        32
+      ],
+      [
+        "check_file_exists",
+        11
+      ],
+      [
+        "check_env_variable",
+        21
+      ]
+    ],
+    "scripts\\debug\\check_env.py": [
+      [
+        "main",
+        103
+      ],
+      [
+        "check_json_syntax",
+        24
+      ],
+      [
+        "check_file",
+        45
+      ],
+      [
+        "check_django_migrations",
+        52
+      ],
+      [
+        "check_oauth_credentials",
+        66
+      ],
+      [
+        "check_directory_permissions",
+        73
+      ],
+      [
+        "check_git_status",
+        83
+      ],
+      [
+        "check_detect_secrets",
+        123
+      ]
+    ],
+    "scripts\\fixers\\remove_noise_companies.py": [
+      [
+        "main",
+        25
+      ]
+    ],
+    "ml_prep.py": [
+      [
+        "extract_subject_body",
+        8
+      ],
+      [
+        "write_to_sqlite",
+        15
+      ],
+      [
+        "ensure_email_text_table",
+        28
+      ]
+    ],
+    "parser.py": [
+      [
+        "get_stats",
+        264
+      ],
+      [
+        "decode_part",
+        288
+      ],
+      [
+        "extract_body_from_parts",
+        322
+      ],
+      [
+        "log_ignored_message",
+        494
+      ],
+      [
+        "is_valid_company_name",
+        509
+      ],
+      [
+        "normalize_company_name",
+        527
+      ],
+      [
+        "looks_like_person",
+        558
+      ],
+      [
+        "is_correlated_message",
+        622
+      ],
+      [
+        "predict_company",
+        640
+      ],
+      [
+        "classify_message",
+        830
+      ],
+      [
+        "to_date",
+        1405
+      ]
+    ],
+    "train_model.py": [
+      [
+        "weak_label",
+        77
+      ],
+      [
+        "is_meaningful_feature",
+        205
+      ]
+    ],
+    "dashboard\\context_processors.py": [
+      [
+        "sidebar_context",
+        4
+      ]
+    ],
+    "remind\\remind-Copilot.py": [
+      [
+        "get_repo_root",
+        7
+      ],
+      [
+        "extract_imports",
+        10
+      ]
+    ],
+    "scripts\\get_imports.py": [
+      [
+        "get_repo_root",
+        7
+      ],
+      [
+        "extract_imports",
+        12
+      ]
+    ],
+    "scripts\\cleanup_icims_sender_company.py": [
+      [
+        "is_ats_subdomain",
+        46
+      ],
+      [
+        "clean_sender_display_name",
+        56
+      ],
+      [
+        "get_or_create_company",
+        69
+      ]
+    ],
+    "scripts\\cleanup_newsletters.py": [
+      [
+        "is_likely_newsletter",
+        67
+      ],
+      [
+        "find_likely_newsletters",
+        104
+      ]
+    ],
+    "scripts\\find_companies.py": [
+      [
+        "run_full_scan",
+        4
+      ]
+    ],
+    "scripts\\fix_personal_replies.py": [
+      [
+        "fix_personal_replies",
+        19
+      ]
+    ],
+    "scripts\\get_label_id.py": [
+      [
+        "list_labels",
+        21
+      ]
+    ],
+    "scripts\\ignore_tester.py": [
+      [
+        "test_ignore",
+        22
+      ]
+    ],
+    "scripts\\reingest_user_messages.py": [
+      [
+        "fetch_and_reingest_user_messages",
+        31
+      ]
+    ],
+    "scripts\\reset_tracker.py": [
+      [
+        "delete_db",
+        17
+      ],
+      [
+        "clean_migrations",
+        30
+      ],
+      [
+        "preserve_models",
+        45
+      ],
+      [
+        "rebuild",
+        53
+      ],
+      [
+        "show_help",
+        57
+      ]
+    ],
+    "scripts\\restore_noise_labels.py": [
+      [
+        "restore_noise_labels",
+        20
+      ]
+    ],
+    "scripts\\restore_reply_labels.py": [
+      [
+        "restore_reply_labels",
+        30
+      ]
+    ],
+    "scripts\\scrape_companies.py": [
+      [
+        "scrape_and_update",
+        8
+      ]
+    ],
+    "scripts\\test_company_deletion.py": [
+      [
+        "test_deletion_scenario",
+        26
+      ],
+      [
+        "check_actual_db_state",
+        91
+      ]
+    ],
+    "scripts\\test_reingest_deletion.py": [
+      [
+        "test_reingest_deletion",
+        23
+      ]
+    ],
+    "scripts\\trace_hampton.py": [
+      [
+        "traced_parse_subject",
+        15
+      ]
+    ],
+    "tests\\test_eml_parsing.py": [
+      [
+        "test_amentum_reminder_is_other",
+        29
+      ],
+      [
+        "test_newsletter_is_noise",
+        35
+      ],
+      [
+        "test_prescription_is_noise",
+        41
+      ],
+      [
+        "test_application_confirmation_is_job_application",
+        47
+      ],
+      [
+        "test_response_requested_is_interview",
+        53
+      ],
+      [
+        "test_mantech_scheduling_confirmation_is_other",
+        59
+      ],
+      [
+        "test_leidos_position_closed_is_rejection",
+        65
+      ],
+      [
+        "test_anthropic_follow_up_rejection",
+        71
+      ],
+      [
+        "test_smoke_all_fixtures_do_not_crash",
+        88
+      ]
+    ],
+    "tests\\test_indeed_application_label.py": [
+      [
+        "fake_ml_predict",
+        9
+      ],
+      [
+        "test_indeed_application_override",
+        14
+      ]
+    ],
+    "tests\\test_noise_company_handling.py": [
+      [
+        "test_noise_message_creation",
+        29
+      ],
+      [
+        "test_noise_message_model_save_override",
+        62
+      ],
+      [
+        "test_existing_noise_messages_cleaned",
+        125
+      ],
+      [
+        "run_all_tests",
+        158
+      ]
+    ],
+    "tracker\\admin.py": [
+      [
+        "mark_as_reviewed",
+        69
+      ],
+      [
+        "each_context",
+        60
+      ]
+    ],
+    "tracker\\apps.py": [
+      [
+        "ready",
+        8
+      ]
+    ],
+    "tracker\\forms.py": [
+      [
+        "clean_company_name",
+        83
+      ]
+    ],
+    "tracker\\models.py": [
+      [
+        "save",
+        111
+      ]
+    ],
+    "tracker\\tests\\conftest.py": [
+      [
+        "save",
+        26
+      ],
+      [
+        "fake_stats",
+        18
+      ],
+      [
+        "FakeMessage",
+        10
+      ],
+      [
+        "Stats",
+        19
+      ]
+    ],
+    "tracker\\tests\\test_helpers.py": [
+      [
+        "save",
+        12
+      ],
+      [
+        "first",
+        20
+      ],
+      [
+        "set_first",
+        23
+      ],
+      [
+        "filter",
+        37
+      ],
+      [
+        "create",
+        40
+      ],
+      [
+        "get",
+        48
+      ],
+      [
+        "FakeQuerySet",
+        16
+      ]
+    ],
+    "tracker\\tests\\test_ingest_message.py": [
+      [
+        "save",
+        152
+      ],
+      [
+        "fake_stats",
+        144
+      ],
+      [
+        "Stats",
+        145
+      ],
+      [
+        "test_subject_with_job_title_at_company",
+        14
+      ],
+      [
+        "test_ingest_ignored_reason_logging",
+        75
+      ],
+      [
+        "test_ingest_ignored",
+        158
+      ],
+      [
+        "test_ingest_skipped",
+        194
+      ],
+      [
+        "test_ingest_domain_mapping",
+        235
+      ],
+      [
+        "test_ingest_subject_parse",
+        293
+      ],
+      [
+        "test_ingest_sender_name_match",
+        361
+      ],
+      [
+        "test_ingest_company_rejection",
+        426
+      ],
+      [
+        "test_ingest_ml_fallback",
+        519
+      ],
+      [
+        "test_ingest_record_shape",
+        586
+      ]
+    ],
+    "tracker\\signals.py": [
+      [
+        "export_companies",
+        14
+      ],
+      [
+        "sync_domain_to_company_on_company_save",
+        34
+      ]
+    ],
+    "tracker\\views.py": [
+      [
+        "highlight_text",
+        211
+      ],
+      [
+        "edit_application",
+        1361
+      ],
+      [
+        "flagged_applications",
+        1374
+      ],
+      [
+        "is_valid_color",
+        1652
+      ],
+      [
+        "unique_by_company",
+        2121
+      ],
+      [
+        "extract_body_content",
+        2180
+      ],
+      [
+        "label_applications",
+        2193
+      ],
+      [
+        "validate_regex_pattern",
+        2866
+      ],
+      [
+        "sanitize_string",
+        2905
+      ],
+      [
+        "validate_domain",
+        2963
+      ],
+      [
+        "generate",
+        3459
+      ],
+      [
+        "ingestion_status_api",
+        3480
+      ],
+      [
+        "clamp_int",
+        3562
+      ],
+      [
+        "label_sort_key",
+        4298
+      ],
+      [
+        "domain_sort_key",
+        4304
+      ]
+    ],
+    "scripts\\verification\\verify_plot_series.py": [
+      [
+        "is_valid_color",
+        15
+      ]
+    ],
+    "scripts\\analysis\\alias_candidates.py": [
+      [
+        "load_raw_companies",
+        22
+      ],
+      [
+        "is_clean_company",
+        38
+      ],
+      [
+        "similar",
+        49
+      ],
+      [
+        "is_personal_name_candidate",
+        58
+      ],
+      [
+        "token_set_overlap",
+        79
+      ],
+      [
+        "cleaned_candidate",
+        86
+      ],
+      [
+        "likely_noise",
+        108
+      ],
+      [
+        "best_canonical_by_overlap",
+        128
+      ]
+    ],
+    "scripts\\analysis\\analyze_pattern_overlap.py": [
+      [
+        "count_words",
+        64
+      ]
+    ],
+    "scripts\\debug\\check_netflix_email.py": [
+      [
+        "check_netflix_email",
+        15
+      ]
+    ],
+    "scripts\\fixers\\backfill_dates.py": [
+      [
+        "backfill_dates",
+        16
+      ]
+    ],
+    "scripts\\testing\\test_interview_date_parsing.py": [
+      [
+        "test_interview_date_parsing",
+        17
+      ]
+    ],
+    "scripts\\testing\\test_interview_future_date.py": [
+      [
+        "test_interview_date_future",
+        17
+      ]
+    ],
+    "tracker\\templatetags\\custom_filters.py": [
+      [
+        "label_display",
+        7
+      ],
+      [
+        "split",
+        15
+      ],
+      [
+        "get_item",
+        23
+      ],
+      [
+        "as_percentage",
+        31
+      ]
+    ],
+    "tracker\\tests\\test_applications_week.py": [
+      [
+        "test_applications_week_distinct_company_count",
+        9
+      ]
+    ],
+    "tracker\\tests\\test_company_registry_update.py": [
+      [
+        "test_quick_add_company_updates_json",
+        8
+      ]
+    ],
+    "tracker\\management\\commands\\audit_false_positive_rejections.py": [
+      [
+        "load_patterns_with_legacy_rejection",
+        12
+      ],
+      [
+        "compile_patterns",
+        23
+      ],
+      [
+        "legacy_rule_label",
+        37
+      ],
+      [
+        "add_arguments",
+        68
+      ],
+      [
+        "handle",
+        79
+      ],
+      [
+        "Command",
+        65
+      ]
+    ],
+    "tracker\\management\\commands\\audit_labels.py": [
+      [
+        "add_arguments",
+        17
+      ],
+      [
+        "handle",
+        35
+      ],
+      [
+        "Command",
+        10
+      ]
+    ],
+    "tracker\\management\\commands\\check_threadtracking_health.py": [
+      [
+        "add_arguments",
+        30
+      ],
+      [
+        "handle",
+        43
+      ],
+      [
+        "Command",
+        27
+      ]
+    ],
+    "tracker\\management\\commands\\cleanup_newsletters.py": [
+      [
+        "add_arguments",
+        16
+      ],
+      [
+        "handle",
+        35
+      ],
+      [
+        "Command",
+        13
+      ]
+    ],
+    "tracker\\management\\commands\\compare_gmail_labels.py": [
+      [
+        "add_arguments",
+        33
+      ],
+      [
+        "handle",
+        86
+      ],
+      [
+        "Command",
+        27
+      ],
+      [
+        "load_ignore_labels",
+        13
+      ]
+    ],
+    "tracker\\management\\commands\\enforce_headhunter_labels.py": [
+      [
+        "add_arguments",
+        21
+      ],
+      [
+        "handle",
+        30
+      ],
+      [
+        "Command",
+        18
+      ]
+    ],
+    "tracker\\management\\commands\\export_gmail_labels_filters.py": [
+      [
+        "add_arguments",
+        13
+      ],
+      [
+        "handle",
+        20
+      ],
+      [
+        "Command",
+        10
+      ]
+    ],
+    "tracker\\management\\commands\\ingest_gmail.py": [
+      [
+        "add_arguments",
+        44
+      ],
+      [
+        "handle",
+        70
+      ],
+      [
+        "Command",
+        41
+      ],
+      [
+        "fetch_all_messages",
+        14
+      ]
+    ],
+    "tracker\\management\\commands\\ingest_raw_eml.py": [
+      [
+        "add_arguments",
+        10
+      ],
+      [
+        "handle",
+        15
+      ],
+      [
+        "Command",
+        7
+      ]
+    ],
+    "tracker\\management\\commands\\mark_ghosted.py": [
+      [
+        "add_arguments",
+        65
+      ],
+      [
+        "handle",
+        78
+      ],
+      [
+        "Command",
+        62
+      ]
+    ],
+    "tracker\\management\\commands\\mark_newsletters_ignored.py": [
+      [
+        "add_arguments",
+        15
+      ],
+      [
+        "handle",
+        39
+      ],
+      [
+        "Command",
+        12
+      ]
+    ],
+    "tracker\\management\\commands\\parse_gmail_message.py": [
+      [
+        "add_arguments",
+        14
+      ],
+      [
+        "handle",
+        27
+      ],
+      [
+        "Command",
+        11
+      ]
+    ],
+    "tracker\\management\\commands\\purge_headhunter_applications.py": [
+      [
+        "add_arguments",
+        15
+      ],
+      [
+        "handle",
+        28
+      ],
+      [
+        "Command",
+        12
+      ],
+      [
+        "triggers_for_app",
+        133
+      ],
+      [
+        "is_safe_triggers_for_app",
+        150
+      ],
+      [
+        "print_triggers_for_app",
+        211
+      ]
+    ],
+    "tracker\\management\\commands\\reclassify_messages.py": [
+      [
+        "add_arguments",
+        11
+      ],
+      [
+        "handle",
+        30
+      ],
+      [
+        "Command",
+        8
+      ]
+    ],
+    "tracker\\management\\commands\\remove_job_alert_label.py": [
+      [
+        "add_arguments",
+        14
+      ],
+      [
+        "handle",
+        26
+      ],
+      [
+        "Command",
+        7
+      ]
+    ],
+    "tracker\\management\\commands\\export_companies.py": [
+      [
+        "handle",
+        12
+      ],
+      [
+        "Command",
+        9
+      ]
+    ],
+    "tracker\\management\\commands\\export_labels.py": [
+      [
+        "handle",
+        13
+      ],
+      [
+        "Command",
+        10
+      ]
+    ],
+    "tracker\\management\\commands\\import_companies.py": [
+      [
+        "handle",
+        12
+      ],
+      [
+        "Command",
+        9
+      ]
+    ],
+    "tracker\\management\\commands\\load_default_labels.py": [
+      [
+        "handle",
+        11
+      ],
+      [
+        "Command",
+        8
+      ]
+    ],
+    "tracker\\management\\commands\\report_parsing_metrics.py": [
+      [
+        "handle",
+        11
+      ],
+      [
+        "Command",
+        8
+      ]
+    ]
+  },
+  "duplicates": [
+    {
+      "count": 2,
+      "locations": [
+        [
+          "scripts\\fix_patterns_simple.py",
+          "backup_file",
+          30
+        ],
+        [
+          "scripts\\migrate_patterns_to_regex.py",
+          "backup_file",
+          26
+        ]
+      ],
+      "line_count": 11
+    },
+    {
+      "count": 2,
+      "locations": [
+        [
+          "scripts\\fix_patterns_simple.py",
+          "validate_regex",
+          41
+        ],
+        [
+          "scripts\\migrate_patterns_to_regex.py",
+          "validate_regex",
+          37
+        ]
+      ],
+      "line_count": 9
+    },
+    {
+      "count": 2,
+      "locations": [
+        [
+          "scripts\\audit_false_positive_rejections.py",
+          "compile_patterns",
+          29
+        ],
+        [
+          "tracker\\management\\commands\\audit_false_positive_rejections.py",
+          "compile_patterns",
+          23
+        ]
+      ],
+      "line_count": 7
+    }
+  ],
+  "file_complexity": [
+    {
+      "file": "tracker\\views.py",
+      "total_lines": 4332,
+      "code_lines": 3471,
+      "functions": 38,
+      "classes": 0,
+      "imports": 65,
+      "avg_lines_per_function": 91
+    },
+    {
+      "file": "parser.py",
+      "total_lines": 2437,
+      "code_lines": 1908,
+      "functions": 24,
+      "classes": 0,
+      "imports": 36,
+      "avg_lines_per_function": 79
+    },
+    {
+      "file": "tracker\\tests\\test_ingest_message.py",
+      "total_lines": 657,
+      "code_lines": 545,
+      "functions": 12,
+      "classes": 1,
+      "imports": 6,
+      "avg_lines_per_function": 45
+    },
+    {
+      "file": "scripts\\validate_companies.py",
+      "total_lines": 507,
+      "code_lines": 403,
+      "functions": 15,
+      "classes": 1,
+      "imports": 13,
+      "avg_lines_per_function": 26
+    },
+    {
+      "file": "scripts\\analyze_code_quality.py",
+      "total_lines": 391,
+      "code_lines": 290,
+      "functions": 14,
+      "classes": 1,
+      "imports": 11,
+      "avg_lines_per_function": 20
+    },
+    {
+      "file": "scripts\\migrate_patterns_to_regex.py",
+      "total_lines": 335,
+      "code_lines": 238,
+      "functions": 7,
+      "classes": 0,
+      "imports": 6,
+      "avg_lines_per_function": 34
+    },
+    {
+      "file": "ml_subject_classifier.py",
+      "total_lines": 318,
+      "code_lines": 238,
+      "functions": 5,
+      "classes": 0,
+      "imports": 8,
+      "avg_lines_per_function": 47
+    },
+    {
+      "file": "db.py",
+      "total_lines": 311,
+      "code_lines": 254,
+      "functions": 6,
+      "classes": 0,
+      "imports": 10,
+      "avg_lines_per_function": 42
+    },
+    {
+      "file": "scripts\\suggest_refactoring.py",
+      "total_lines": 309,
+      "code_lines": 240,
+      "functions": 10,
+      "classes": 1,
+      "imports": 8,
+      "avg_lines_per_function": 24
+    },
+    {
+      "file": "train_model.py",
+      "total_lines": 306,
+      "code_lines": 229,
+      "functions": 3,
+      "classes": 0,
+      "imports": 19,
+      "avg_lines_per_function": 76
+    },
+    {
+      "file": "tracker\\management\\commands\\compare_gmail_labels.py",
+      "total_lines": 295,
+      "code_lines": 254,
+      "functions": 9,
+      "classes": 1,
+      "imports": 14,
+      "avg_lines_per_function": 28
+    },
+    {
+      "file": "tracker\\management\\commands\\purge_headhunter_applications.py",
+      "total_lines": 293,
+      "code_lines": 232,
+      "functions": 9,
+      "classes": 1,
+      "imports": 11,
+      "avg_lines_per_function": 25
+    },
+    {
+      "file": "scripts\\fix_pylint_errors.py",
+      "total_lines": 289,
+      "code_lines": 231,
+      "functions": 15,
+      "classes": 1,
+      "imports": 6,
+      "avg_lines_per_function": 15
+    },
+    {
+      "file": "scripts\\reingest_messages.py",
+      "total_lines": 286,
+      "code_lines": 207,
+      "functions": 5,
+      "classes": 0,
+      "imports": 9,
+      "avg_lines_per_function": 41
+    },
+    {
+      "file": "tracker\\migrations\\0001_initial.py",
+      "total_lines": 284,
+      "code_lines": 277,
+      "functions": 0,
+      "classes": 1,
+      "imports": 3,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\analysis\\alias_candidates.py",
+      "total_lines": 283,
+      "code_lines": 200,
+      "functions": 8,
+      "classes": 0,
+      "imports": 11,
+      "avg_lines_per_function": 25
+    },
+    {
+      "file": "tracker\\models.py",
+      "total_lines": 274,
+      "code_lines": 203,
+      "functions": 4,
+      "classes": 18,
+      "imports": 2,
+      "avg_lines_per_function": 50
+    },
+    {
+      "file": "scripts\\fix_patterns_simple.py",
+      "total_lines": 265,
+      "code_lines": 195,
+      "functions": 6,
+      "classes": 0,
+      "imports": 6,
+      "avg_lines_per_function": 32
+    },
+    {
+      "file": "scripts\\cleanup_newsletters.py",
+      "total_lines": 228,
+      "code_lines": 169,
+      "functions": 2,
+      "classes": 0,
+      "imports": 8,
+      "avg_lines_per_function": 84
+    },
+    {
+      "file": "scripts\\fix_import_company.py",
+      "total_lines": 210,
+      "code_lines": 164,
+      "functions": 1,
+      "classes": 0,
+      "imports": 8,
+      "avg_lines_per_function": 164
+    },
+    {
+      "file": "tracker\\management\\commands\\check_threadtracking_health.py",
+      "total_lines": 202,
+      "code_lines": 165,
+      "functions": 6,
+      "classes": 1,
+      "imports": 13,
+      "avg_lines_per_function": 27
+    },
+    {
+      "file": "tracker\\management\\commands\\cleanup_newsletters.py",
+      "total_lines": 202,
+      "code_lines": 159,
+      "functions": 2,
+      "classes": 1,
+      "imports": 6,
+      "avg_lines_per_function": 79
+    },
+    {
+      "file": "tracker\\management\\commands\\ingest_gmail.py",
+      "total_lines": 201,
+      "code_lines": 152,
+      "functions": 3,
+      "classes": 1,
+      "imports": 11,
+      "avg_lines_per_function": 50
+    },
+    {
+      "file": "tracker\\views_manage_domains.py",
+      "total_lines": 200,
+      "code_lines": 152,
+      "functions": 1,
+      "classes": 0,
+      "imports": 2,
+      "avg_lines_per_function": 152
+    },
+    {
+      "file": "tracker\\management\\commands\\mark_newsletters_ignored.py",
+      "total_lines": 199,
+      "code_lines": 156,
+      "functions": 2,
+      "classes": 1,
+      "imports": 7,
+      "avg_lines_per_function": 78
+    },
+    {
+      "file": "scripts\\clean_imports.py",
+      "total_lines": 193,
+      "code_lines": 133,
+      "functions": 6,
+      "classes": 0,
+      "imports": 7,
+      "avg_lines_per_function": 22
+    },
+    {
+      "file": "tracker\\management\\commands\\mark_ghosted.py",
+      "total_lines": 192,
+      "code_lines": 149,
+      "functions": 3,
+      "classes": 1,
+      "imports": 10,
+      "avg_lines_per_function": 49
+    },
+    {
+      "file": "tests\\test_noise_company_handling.py",
+      "total_lines": 190,
+      "code_lines": 145,
+      "functions": 4,
+      "classes": 0,
+      "imports": 9,
+      "avg_lines_per_function": 36
+    },
+    {
+      "file": "scripts\\debug_dashboard_stats.py",
+      "total_lines": 174,
+      "code_lines": 141,
+      "functions": 0,
+      "classes": 0,
+      "imports": 12,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "dashboard\\settings.py",
+      "total_lines": 168,
+      "code_lines": 113,
+      "functions": 0,
+      "classes": 0,
+      "imports": 3,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\import_gmail_filters.py",
+      "total_lines": 168,
+      "code_lines": 136,
+      "functions": 5,
+      "classes": 0,
+      "imports": 6,
+      "avg_lines_per_function": 27
+    },
+    {
+      "file": "scripts\\init_db.py",
+      "total_lines": 168,
+      "code_lines": 122,
+      "functions": 7,
+      "classes": 0,
+      "imports": 5,
+      "avg_lines_per_function": 17
+    },
+    {
+      "file": "tracker\\tests\\test_applications_week.py",
+      "total_lines": 160,
+      "code_lines": 141,
+      "functions": 1,
+      "classes": 0,
+      "imports": 9,
+      "avg_lines_per_function": 141
+    },
+    {
+      "file": "scripts\\debug\\check_env.py",
+      "total_lines": 155,
+      "code_lines": 138,
+      "functions": 8,
+      "classes": 0,
+      "imports": 4,
+      "avg_lines_per_function": 17
+    },
+    {
+      "file": "scripts\\analysis\\analyze_pattern_overlap.py",
+      "total_lines": 154,
+      "code_lines": 121,
+      "functions": 1,
+      "classes": 0,
+      "imports": 1,
+      "avg_lines_per_function": 121
+    },
+    {
+      "file": "scripts\\analysis\\analyze_application_necessity.py",
+      "total_lines": 151,
+      "code_lines": 129,
+      "functions": 0,
+      "classes": 0,
+      "imports": 5,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\audit_false_positive_rejections.py",
+      "total_lines": 148,
+      "code_lines": 120,
+      "functions": 0,
+      "classes": 0,
+      "imports": 0,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "tracker\\management\\commands\\audit_false_positive_rejections.py",
+      "total_lines": 148,
+      "code_lines": 119,
+      "functions": 6,
+      "classes": 1,
+      "imports": 8,
+      "avg_lines_per_function": 19
+    },
+    {
+      "file": "scripts\\README.py",
+      "total_lines": 145,
+      "code_lines": 99,
+      "functions": 0,
+      "classes": 0,
+      "imports": 0,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\test_company_deletion.py",
+      "total_lines": 141,
+      "code_lines": 107,
+      "functions": 2,
+      "classes": 0,
+      "imports": 7,
+      "avg_lines_per_function": 53
+    },
+    {
+      "file": "tracker\\management\\commands\\audit_labels.py",
+      "total_lines": 141,
+      "code_lines": 119,
+      "functions": 5,
+      "classes": 1,
+      "imports": 6,
+      "avg_lines_per_function": 23
+    },
+    {
+      "file": "scripts\\run_all_checks.py",
+      "total_lines": 140,
+      "code_lines": 108,
+      "functions": 2,
+      "classes": 0,
+      "imports": 6,
+      "avg_lines_per_function": 54
+    },
+    {
+      "file": "tracker\\admin.py",
+      "total_lines": 140,
+      "code_lines": 113,
+      "functions": 2,
+      "classes": 6,
+      "imports": 15,
+      "avg_lines_per_function": 56
+    },
+    {
+      "file": "tracker\\management\\commands\\reclassify_messages.py",
+      "total_lines": 134,
+      "code_lines": 102,
+      "functions": 2,
+      "classes": 1,
+      "imports": 7,
+      "avg_lines_per_function": 51
+    },
+    {
+      "file": "scripts\\cleanup_empty_companies.py",
+      "total_lines": 133,
+      "code_lines": 104,
+      "functions": 2,
+      "classes": 0,
+      "imports": 11,
+      "avg_lines_per_function": 52
+    },
+    {
+      "file": "scripts\\validate_deployment.py",
+      "total_lines": 128,
+      "code_lines": 98,
+      "functions": 3,
+      "classes": 0,
+      "imports": 3,
+      "avg_lines_per_function": 32
+    },
+    {
+      "file": "scripts\\cleanup_icims_sender_company.py",
+      "total_lines": 127,
+      "code_lines": 97,
+      "functions": 3,
+      "classes": 0,
+      "imports": 7,
+      "avg_lines_per_function": 32
+    },
+    {
+      "file": "scripts\\reingest_user_messages.py",
+      "total_lines": 125,
+      "code_lines": 89,
+      "functions": 1,
+      "classes": 0,
+      "imports": 7,
+      "avg_lines_per_function": 89
+    },
+    {
+      "file": "scripts\\debug\\investigate_headhunter.py",
+      "total_lines": 121,
+      "code_lines": 91,
+      "functions": 0,
+      "classes": 0,
+      "imports": 6,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\restore_noise_labels.py",
+      "total_lines": 119,
+      "code_lines": 88,
+      "functions": 1,
+      "classes": 0,
+      "imports": 6,
+      "avg_lines_per_function": 88
+    },
+    {
+      "file": "scripts\\reclassify_nsa_processing_update.py",
+      "total_lines": 109,
+      "code_lines": 78,
+      "functions": 4,
+      "classes": 0,
+      "imports": 10,
+      "avg_lines_per_function": 19
+    },
+    {
+      "file": "scripts\\reclassify_meeting_invites.py",
+      "total_lines": 108,
+      "code_lines": 77,
+      "functions": 1,
+      "classes": 0,
+      "imports": 6,
+      "avg_lines_per_function": 77
+    },
+    {
+      "file": "scripts\\fix_personal_replies.py",
+      "total_lines": 107,
+      "code_lines": 74,
+      "functions": 1,
+      "classes": 0,
+      "imports": 6,
+      "avg_lines_per_function": 74
+    },
+    {
+      "file": "scripts\\fix_interview_labels.py",
+      "total_lines": 105,
+      "code_lines": 78,
+      "functions": 0,
+      "classes": 0,
+      "imports": 6,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\fixers\\fix_booz_allen_threadtracking.py",
+      "total_lines": 103,
+      "code_lines": 76,
+      "functions": 0,
+      "classes": 0,
+      "imports": 6,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "tests\\test_eml_parsing.py",
+      "total_lines": 100,
+      "code_lines": 71,
+      "functions": 10,
+      "classes": 0,
+      "imports": 4,
+      "avg_lines_per_function": 7
+    },
+    {
+      "file": "scripts\\testing\\test_interview_date_parsing.py",
+      "total_lines": 100,
+      "code_lines": 65,
+      "functions": 1,
+      "classes": 0,
+      "imports": 5,
+      "avg_lines_per_function": 65
+    },
+    {
+      "file": "scripts\\restore_reply_labels.py",
+      "total_lines": 99,
+      "code_lines": 69,
+      "functions": 1,
+      "classes": 0,
+      "imports": 7,
+      "avg_lines_per_function": 69
+    },
+    {
+      "file": "tracker\\forms.py",
+      "total_lines": 97,
+      "code_lines": 73,
+      "functions": 2,
+      "classes": 3,
+      "imports": 3,
+      "avg_lines_per_function": 36
+    },
+    {
+      "file": "scripts\\backfill_threadtracking.py",
+      "total_lines": 92,
+      "code_lines": 70,
+      "functions": 0,
+      "classes": 0,
+      "imports": 7,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\check_new_logic.py",
+      "total_lines": 92,
+      "code_lines": 69,
+      "functions": 0,
+      "classes": 0,
+      "imports": 9,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\debug\\debug_booz_allen_dashboard.py",
+      "total_lines": 91,
+      "code_lines": 68,
+      "functions": 0,
+      "classes": 0,
+      "imports": 7,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "tracker\\management\\commands\\parse_gmail_message.py",
+      "total_lines": 91,
+      "code_lines": 77,
+      "functions": 2,
+      "classes": 1,
+      "imports": 6,
+      "avg_lines_per_function": 38
+    },
+    {
+      "file": "scripts\\debug_endyna_dashboard.py",
+      "total_lines": 88,
+      "code_lines": 72,
+      "functions": 0,
+      "classes": 0,
+      "imports": 7,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\scrape_companies.py",
+      "total_lines": 88,
+      "code_lines": 58,
+      "functions": 1,
+      "classes": 0,
+      "imports": 4,
+      "avg_lines_per_function": 58
+    },
+    {
+      "file": "scripts\\debug\\debug_ghosted_trace.py",
+      "total_lines": 87,
+      "code_lines": 67,
+      "functions": 0,
+      "classes": 0,
+      "imports": 5,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "dashboard\\production_settings.py",
+      "total_lines": 86,
+      "code_lines": 65,
+      "functions": 0,
+      "classes": 0,
+      "imports": 1,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "tracker\\management\\commands\\enforce_headhunter_labels.py",
+      "total_lines": 86,
+      "code_lines": 67,
+      "functions": 2,
+      "classes": 1,
+      "imports": 6,
+      "avg_lines_per_function": 33
+    },
+    {
+      "file": "scripts\\test_reingest_deletion.py",
+      "total_lines": 85,
+      "code_lines": 59,
+      "functions": 1,
+      "classes": 0,
+      "imports": 8,
+      "avg_lines_per_function": 59
+    },
+    {
+      "file": "scripts\\reset_tracker.py",
+      "total_lines": 84,
+      "code_lines": 73,
+      "functions": 6,
+      "classes": 0,
+      "imports": 4,
+      "avg_lines_per_function": 12
+    },
+    {
+      "file": "tracker\\management\\commands\\export_gmail_labels_filters.py",
+      "total_lines": 84,
+      "code_lines": 59,
+      "functions": 2,
+      "classes": 1,
+      "imports": 5,
+      "avg_lines_per_function": 29
+    },
+    {
+      "file": "scripts\\fixers\\fix_company_mismatch.py",
+      "total_lines": 83,
+      "code_lines": 55,
+      "functions": 0,
+      "classes": 0,
+      "imports": 7,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\testing\\test_classification_order.py",
+      "total_lines": 83,
+      "code_lines": 71,
+      "functions": 0,
+      "classes": 0,
+      "imports": 3,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\consolidate_rejection_labels.py",
+      "total_lines": 82,
+      "code_lines": 58,
+      "functions": 1,
+      "classes": 0,
+      "imports": 5,
+      "avg_lines_per_function": 58
+    },
+    {
+      "file": "scripts\\verification\\verify_plot_series.py",
+      "total_lines": 82,
+      "code_lines": 71,
+      "functions": 1,
+      "classes": 0,
+      "imports": 4,
+      "avg_lines_per_function": 71
+    },
+    {
+      "file": "scripts\\debug\\debug_detailed.py",
+      "total_lines": 81,
+      "code_lines": 63,
+      "functions": 0,
+      "classes": 0,
+      "imports": 6,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\get_label_id.py",
+      "total_lines": 79,
+      "code_lines": 59,
+      "functions": 1,
+      "classes": 0,
+      "imports": 3,
+      "avg_lines_per_function": 59
+    },
+    {
+      "file": "scripts\\debug\\debug_guidehouse.py",
+      "total_lines": 79,
+      "code_lines": 61,
+      "functions": 0,
+      "classes": 0,
+      "imports": 5,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\relabel_prescription_messages.py",
+      "total_lines": 78,
+      "code_lines": 61,
+      "functions": 0,
+      "classes": 0,
+      "imports": 6,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\debug\\debug_endyna.py",
+      "total_lines": 77,
+      "code_lines": 58,
+      "functions": 0,
+      "classes": 0,
+      "imports": 6,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\testing\\test_interview_logic.py",
+      "total_lines": 77,
+      "code_lines": 64,
+      "functions": 0,
+      "classes": 0,
+      "imports": 5,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\debug\\check_company_mismatch.py",
+      "total_lines": 76,
+      "code_lines": 55,
+      "functions": 0,
+      "classes": 0,
+      "imports": 5,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\test_prescription_rule.py",
+      "total_lines": 75,
+      "code_lines": 58,
+      "functions": 0,
+      "classes": 0,
+      "imports": 7,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\find_5th_interview.py",
+      "total_lines": 74,
+      "code_lines": 57,
+      "functions": 0,
+      "classes": 0,
+      "imports": 5,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\extract_companies_from_url.py",
+      "total_lines": 73,
+      "code_lines": 61,
+      "functions": 4,
+      "classes": 0,
+      "imports": 6,
+      "avg_lines_per_function": 15
+    },
+    {
+      "file": "tracker\\management\\commands\\report_parsing_metrics.py",
+      "total_lines": 73,
+      "code_lines": 56,
+      "functions": 1,
+      "classes": 1,
+      "imports": 4,
+      "avg_lines_per_function": 56
+    },
+    {
+      "file": "scripts\\debug\\check_netflix_email.py",
+      "total_lines": 72,
+      "code_lines": 46,
+      "functions": 1,
+      "classes": 0,
+      "imports": 4,
+      "avg_lines_per_function": 46
+    },
+    {
+      "file": "scripts\\fix_millennium_threads.py",
+      "total_lines": 71,
+      "code_lines": 53,
+      "functions": 0,
+      "classes": 0,
+      "imports": 6,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "tracker\\migrations\\0005_modeltrainingrun_modeltraininglabelmetric.py",
+      "total_lines": 71,
+      "code_lines": 65,
+      "functions": 0,
+      "classes": 1,
+      "imports": 4,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\fixers\\backfill_dates.py",
+      "total_lines": 70,
+      "code_lines": 52,
+      "functions": 1,
+      "classes": 0,
+      "imports": 6,
+      "avg_lines_per_function": 52
+    },
+    {
+      "file": "scripts\\check_app_week.py",
+      "total_lines": 69,
+      "code_lines": 47,
+      "functions": 0,
+      "classes": 0,
+      "imports": 11,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\debug\\find_bad_companies.py",
+      "total_lines": 69,
+      "code_lines": 55,
+      "functions": 0,
+      "classes": 0,
+      "imports": 6,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\fixers\\fix_carefirst_message.py",
+      "total_lines": 69,
+      "code_lines": 49,
+      "functions": 0,
+      "classes": 0,
+      "imports": 4,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\find_prescription_message.py",
+      "total_lines": 68,
+      "code_lines": 52,
+      "functions": 0,
+      "classes": 0,
+      "imports": 5,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\debug\\debug_ghosted_filter.py",
+      "total_lines": 68,
+      "code_lines": 51,
+      "functions": 0,
+      "classes": 0,
+      "imports": 6,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\debug\\debug_predict.py",
+      "total_lines": 68,
+      "code_lines": 50,
+      "functions": 0,
+      "classes": 0,
+      "imports": 7,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "label_companies.py",
+      "total_lines": 67,
+      "code_lines": 49,
+      "functions": 1,
+      "classes": 0,
+      "imports": 3,
+      "avg_lines_per_function": 49
+    },
+    {
+      "file": "scripts\\check_meeting_invites.py",
+      "total_lines": 67,
+      "code_lines": 55,
+      "functions": 0,
+      "classes": 0,
+      "imports": 4,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\fixers\\fix_dragos_message.py",
+      "total_lines": 67,
+      "code_lines": 49,
+      "functions": 0,
+      "classes": 0,
+      "imports": 4,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\find_high_confidence_errors.py",
+      "total_lines": 66,
+      "code_lines": 53,
+      "functions": 0,
+      "classes": 0,
+      "imports": 4,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\testing\\test_northrop_extraction.py",
+      "total_lines": 66,
+      "code_lines": 56,
+      "functions": 0,
+      "classes": 0,
+      "imports": 3,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\fixers\\remove_noise_companies.py",
+      "total_lines": 65,
+      "code_lines": 44,
+      "functions": 1,
+      "classes": 0,
+      "imports": 5,
+      "avg_lines_per_function": 44
+    },
+    {
+      "file": "tracker\\management\\commands\\remove_job_alert_label.py",
+      "total_lines": 65,
+      "code_lines": 53,
+      "functions": 2,
+      "classes": 1,
+      "imports": 4,
+      "avg_lines_per_function": 26
+    },
+    {
+      "file": "scripts\\analysis\\analyze_guidehouse_apps.py",
+      "total_lines": 64,
+      "code_lines": 50,
+      "functions": 0,
+      "classes": 0,
+      "imports": 5,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\debug\\debug_ats_check.py",
+      "total_lines": 63,
+      "code_lines": 48,
+      "functions": 0,
+      "classes": 0,
+      "imports": 6,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "tracker\\tests\\test_helpers.py",
+      "total_lines": 63,
+      "code_lines": 46,
+      "functions": 8,
+      "classes": 3,
+      "imports": 1,
+      "avg_lines_per_function": 5
+    },
+    {
+      "file": "scripts\\fixers\\fix_netflix_label.py",
+      "total_lines": 59,
+      "code_lines": 40,
+      "functions": 0,
+      "classes": 0,
+      "imports": 6,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\check_hampton_email.py",
+      "total_lines": 58,
+      "code_lines": 45,
+      "functions": 0,
+      "classes": 0,
+      "imports": 3,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\fixers\\fix_anthropic_messages.py",
+      "total_lines": 58,
+      "code_lines": 40,
+      "functions": 0,
+      "classes": 0,
+      "imports": 5,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\testing\\test_booz_allen.py",
+      "total_lines": 58,
+      "code_lines": 40,
+      "functions": 0,
+      "classes": 0,
+      "imports": 4,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "tracker\\migrations\\0009_alter_threadtracking_options_alter_company_status_and_more.py",
+      "total_lines": 58,
+      "code_lines": 50,
+      "functions": 0,
+      "classes": 1,
+      "imports": 2,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\test_hampton_parsing.py",
+      "total_lines": 57,
+      "code_lines": 40,
+      "functions": 0,
+      "classes": 0,
+      "imports": 5,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\verification\\verify_interview_fix.py",
+      "total_lines": 57,
+      "code_lines": 43,
+      "functions": 0,
+      "classes": 0,
+      "imports": 4,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\testing\\test_usastaffing_extraction.py",
+      "total_lines": 56,
+      "code_lines": 45,
+      "functions": 0,
+      "classes": 0,
+      "imports": 2,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\check_messages.py",
+      "total_lines": 55,
+      "code_lines": 41,
+      "functions": 0,
+      "classes": 0,
+      "imports": 7,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "tracker\\signals.py",
+      "total_lines": 55,
+      "code_lines": 43,
+      "functions": 2,
+      "classes": 0,
+      "imports": 10,
+      "avg_lines_per_function": 21
+    },
+    {
+      "file": "scripts\\testing\\test_rule_classification.py",
+      "total_lines": 55,
+      "code_lines": 38,
+      "functions": 0,
+      "classes": 0,
+      "imports": 5,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "ml_prep.py",
+      "total_lines": 54,
+      "code_lines": 44,
+      "functions": 4,
+      "classes": 0,
+      "imports": 2,
+      "avg_lines_per_function": 11
+    },
+    {
+      "file": "tracker\\management\\commands\\ingest_raw_eml.py",
+      "total_lines": 54,
+      "code_lines": 50,
+      "functions": 2,
+      "classes": 1,
+      "imports": 7,
+      "avg_lines_per_function": 25
+    },
+    {
+      "file": "db_helpers.py",
+      "total_lines": 53,
+      "code_lines": 41,
+      "functions": 3,
+      "classes": 0,
+      "imports": 2,
+      "avg_lines_per_function": 13
+    },
+    {
+      "file": "scripts\\show_unreviewed_noise.py",
+      "total_lines": 53,
+      "code_lines": 39,
+      "functions": 0,
+      "classes": 0,
+      "imports": 4,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\fixers\\normalize_carefirst.py",
+      "total_lines": 52,
+      "code_lines": 37,
+      "functions": 0,
+      "classes": 0,
+      "imports": 4,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\testing\\test_interview_future_date.py",
+      "total_lines": 52,
+      "code_lines": 34,
+      "functions": 1,
+      "classes": 0,
+      "imports": 6,
+      "avg_lines_per_function": 34
+    },
+    {
+      "file": "gmail_auth.py",
+      "total_lines": 51,
+      "code_lines": 41,
+      "functions": 1,
+      "classes": 0,
+      "imports": 4,
+      "avg_lines_per_function": 41
+    },
+    {
+      "file": "scripts\\check_millennium.py",
+      "total_lines": 51,
+      "code_lines": 41,
+      "functions": 0,
+      "classes": 0,
+      "imports": 5,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\testing\\test_actual_ng_email.py",
+      "total_lines": 51,
+      "code_lines": 34,
+      "functions": 0,
+      "classes": 0,
+      "imports": 3,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\testing\\test_millennium_interview.py",
+      "total_lines": 51,
+      "code_lines": 33,
+      "functions": 0,
+      "classes": 0,
+      "imports": 7,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\check_missing_tt.py",
+      "total_lines": 50,
+      "code_lines": 40,
+      "functions": 0,
+      "classes": 0,
+      "imports": 5,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\testing\\test_indeed_application.py",
+      "total_lines": 50,
+      "code_lines": 34,
+      "functions": 0,
+      "classes": 0,
+      "imports": 5,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\find_companies.py",
+      "total_lines": 49,
+      "code_lines": 24,
+      "functions": 1,
+      "classes": 0,
+      "imports": 1,
+      "avg_lines_per_function": 24
+    },
+    {
+      "file": "scripts\\fix_mislabeled_millennium.py",
+      "total_lines": 49,
+      "code_lines": 35,
+      "functions": 0,
+      "classes": 0,
+      "imports": 5,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\check_ingestion_time.py",
+      "total_lines": 48,
+      "code_lines": 36,
+      "functions": 0,
+      "classes": 0,
+      "imports": 6,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "tracker\\migrations\\0006_gmailfilterimportlog.py",
+      "total_lines": 47,
+      "code_lines": 41,
+      "functions": 0,
+      "classes": 1,
+      "imports": 4,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "remind\\remind-Copilot.py",
+      "total_lines": 46,
+      "code_lines": 35,
+      "functions": 2,
+      "classes": 0,
+      "imports": 4,
+      "avg_lines_per_function": 17
+    },
+    {
+      "file": "scripts\\.pylintrc.py",
+      "total_lines": 46,
+      "code_lines": 23,
+      "functions": 0,
+      "classes": 0,
+      "imports": 0,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\changelog_parser.py",
+      "total_lines": 46,
+      "code_lines": 36,
+      "functions": 1,
+      "classes": 0,
+      "imports": 2,
+      "avg_lines_per_function": 36
+    },
+    {
+      "file": "scripts\\testing\\test_patterns.py",
+      "total_lines": 46,
+      "code_lines": 42,
+      "functions": 0,
+      "classes": 0,
+      "imports": 1,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\verification\\verify_company_links.py",
+      "total_lines": 45,
+      "code_lines": 35,
+      "functions": 0,
+      "classes": 0,
+      "imports": 4,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "tracker\\migrations\\0002_company_contact_email_company_contact_name_and_more.py",
+      "total_lines": 45,
+      "code_lines": 39,
+      "functions": 0,
+      "classes": 1,
+      "imports": 2,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\cleanup_noise_companies.py",
+      "total_lines": 44,
+      "code_lines": 29,
+      "functions": 0,
+      "classes": 0,
+      "imports": 4,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\trace_hampton.py",
+      "total_lines": 44,
+      "code_lines": 29,
+      "functions": 1,
+      "classes": 0,
+      "imports": 4,
+      "avg_lines_per_function": 29
+    },
+    {
+      "file": "scripts\\debug\\check_both_endyna_msgs.py",
+      "total_lines": 44,
+      "code_lines": 33,
+      "functions": 0,
+      "classes": 0,
+      "imports": 4,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\verification\\verify_ghosted_count.py",
+      "total_lines": 44,
+      "code_lines": 31,
+      "functions": 0,
+      "classes": 0,
+      "imports": 4,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\get_imports.py",
+      "total_lines": 43,
+      "code_lines": 31,
+      "functions": 2,
+      "classes": 0,
+      "imports": 3,
+      "avg_lines_per_function": 15
+    },
+    {
+      "file": "scripts\\debug\\debug_home_depot.py",
+      "total_lines": 43,
+      "code_lines": 30,
+      "functions": 0,
+      "classes": 0,
+      "imports": 5,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\debug\\debug_netflix.py",
+      "total_lines": 42,
+      "code_lines": 27,
+      "functions": 0,
+      "classes": 0,
+      "imports": 8,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\fixers\\fix_endyna_interview.py",
+      "total_lines": 42,
+      "code_lines": 32,
+      "functions": 0,
+      "classes": 0,
+      "imports": 4,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "tracker_logger.py",
+      "total_lines": 41,
+      "code_lines": 23,
+      "functions": 1,
+      "classes": 0,
+      "imports": 2,
+      "avg_lines_per_function": 23
+    },
+    {
+      "file": "tracker\\urls.py",
+      "total_lines": 40,
+      "code_lines": 36,
+      "functions": 0,
+      "classes": 0,
+      "imports": 2,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "tracker\\migrations\\0008_add_interview_completed.py",
+      "total_lines": 40,
+      "code_lines": 31,
+      "functions": 0,
+      "classes": 1,
+      "imports": 2,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "tracker\\tests\\test_company_registry_update.py",
+      "total_lines": 40,
+      "code_lines": 35,
+      "functions": 1,
+      "classes": 0,
+      "imports": 5,
+      "avg_lines_per_function": 35
+    },
+    {
+      "file": "scripts\\debug\\debug_alias.py",
+      "total_lines": 39,
+      "code_lines": 26,
+      "functions": 0,
+      "classes": 0,
+      "imports": 4,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\testing\\test_hampton_application.py",
+      "total_lines": 39,
+      "code_lines": 27,
+      "functions": 0,
+      "classes": 0,
+      "imports": 4,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\testing\\test_order.py",
+      "total_lines": 39,
+      "code_lines": 27,
+      "functions": 0,
+      "classes": 0,
+      "imports": 3,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\check_email_body.py",
+      "total_lines": 38,
+      "code_lines": 33,
+      "functions": 0,
+      "classes": 0,
+      "imports": 3,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\ignore_tester.py",
+      "total_lines": 38,
+      "code_lines": 30,
+      "functions": 1,
+      "classes": 0,
+      "imports": 3,
+      "avg_lines_per_function": 30
+    },
+    {
+      "file": "tracker\\templatetags\\custom_filters.py",
+      "total_lines": 38,
+      "code_lines": 29,
+      "functions": 4,
+      "classes": 0,
+      "imports": 1,
+      "avg_lines_per_function": 7
+    },
+    {
+      "file": "scripts\\check_endyna_detailed.py",
+      "total_lines": 37,
+      "code_lines": 31,
+      "functions": 0,
+      "classes": 0,
+      "imports": 5,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\debug\\check_noise_companies.py",
+      "total_lines": 37,
+      "code_lines": 27,
+      "functions": 0,
+      "classes": 0,
+      "imports": 3,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\testing\\test_noise_filter.py",
+      "total_lines": 37,
+      "code_lines": 27,
+      "functions": 0,
+      "classes": 0,
+      "imports": 3,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\test_predict_fallback.py",
+      "total_lines": 36,
+      "code_lines": 27,
+      "functions": 0,
+      "classes": 0,
+      "imports": 5,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\test_rule_label.py",
+      "total_lines": 36,
+      "code_lines": 27,
+      "functions": 0,
+      "classes": 0,
+      "imports": 5,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\debug\\check_bad_company.py",
+      "total_lines": 35,
+      "code_lines": 23,
+      "functions": 0,
+      "classes": 0,
+      "imports": 4,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\debug\\check_endyna_messages.py",
+      "total_lines": 34,
+      "code_lines": 24,
+      "functions": 0,
+      "classes": 0,
+      "imports": 4,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\debug\\debug_patterns.py",
+      "total_lines": 34,
+      "code_lines": 23,
+      "functions": 0,
+      "classes": 0,
+      "imports": 3,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\testing\\test_netflix_classification.py",
+      "total_lines": 34,
+      "code_lines": 23,
+      "functions": 0,
+      "classes": 0,
+      "imports": 3,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\changelog_cli.py",
+      "total_lines": 33,
+      "code_lines": 26,
+      "functions": 1,
+      "classes": 0,
+      "imports": 2,
+      "avg_lines_per_function": 26
+    },
+    {
+      "file": "tracker\\migrations\\0007_appsetting.py",
+      "total_lines": 33,
+      "code_lines": 27,
+      "functions": 0,
+      "classes": 1,
+      "imports": 2,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "tracker\\management\\commands\\export_labels.py",
+      "total_lines": 33,
+      "code_lines": 21,
+      "functions": 1,
+      "classes": 1,
+      "imports": 4,
+      "avg_lines_per_function": 21
+    },
+    {
+      "file": "tracker\\management\\commands\\import_companies.py",
+      "total_lines": 33,
+      "code_lines": 22,
+      "functions": 1,
+      "classes": 1,
+      "imports": 7,
+      "avg_lines_per_function": 22
+    },
+    {
+      "file": "scripts\\check_thread_0455.py",
+      "total_lines": 32,
+      "code_lines": 26,
+      "functions": 0,
+      "classes": 0,
+      "imports": 5,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\check_thread_0b14.py",
+      "total_lines": 32,
+      "code_lines": 26,
+      "functions": 0,
+      "classes": 0,
+      "imports": 4,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\reset_test_interviews.py",
+      "total_lines": 32,
+      "code_lines": 23,
+      "functions": 0,
+      "classes": 0,
+      "imports": 5,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\debug\\debug_excludes.py",
+      "total_lines": 32,
+      "code_lines": 21,
+      "functions": 0,
+      "classes": 0,
+      "imports": 3,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\debug\\debug_northrop.py",
+      "total_lines": 32,
+      "code_lines": 23,
+      "functions": 0,
+      "classes": 0,
+      "imports": 5,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\testing\\test_proofpoint.py",
+      "total_lines": 32,
+      "code_lines": 22,
+      "functions": 0,
+      "classes": 0,
+      "imports": 3,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\check_endyna.py",
+      "total_lines": 31,
+      "code_lines": 25,
+      "functions": 0,
+      "classes": 0,
+      "imports": 5,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\reingest_viasat.py",
+      "total_lines": 31,
+      "code_lines": 24,
+      "functions": 0,
+      "classes": 0,
+      "imports": 2,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\testing\\test_fresh.py",
+      "total_lines": 31,
+      "code_lines": 20,
+      "functions": 0,
+      "classes": 0,
+      "imports": 5,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\testing\\test_reload.py",
+      "total_lines": 30,
+      "code_lines": 18,
+      "functions": 0,
+      "classes": 0,
+      "imports": 5,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "tracker\\migrations\\0004_messagelabel.py",
+      "total_lines": 30,
+      "code_lines": 24,
+      "functions": 0,
+      "classes": 1,
+      "imports": 2,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "manage.py",
+      "total_lines": 29,
+      "code_lines": 21,
+      "functions": 1,
+      "classes": 0,
+      "imports": 4,
+      "avg_lines_per_function": 21
+    },
+    {
+      "file": "tracker\\tests\\conftest.py",
+      "total_lines": 29,
+      "code_lines": 19,
+      "functions": 3,
+      "classes": 2,
+      "imports": 2,
+      "avg_lines_per_function": 6
+    },
+    {
+      "file": "dashboard\\urls.py",
+      "total_lines": 28,
+      "code_lines": 23,
+      "functions": 0,
+      "classes": 0,
+      "imports": 4,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\show_upcoming_interviews.py",
+      "total_lines": 28,
+      "code_lines": 23,
+      "functions": 0,
+      "classes": 0,
+      "imports": 4,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\test_patterns.py",
+      "total_lines": 28,
+      "code_lines": 23,
+      "functions": 0,
+      "classes": 0,
+      "imports": 3,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "tests\\test_indeed_application_label.py",
+      "total_lines": 28,
+      "code_lines": 19,
+      "functions": 2,
+      "classes": 0,
+      "imports": 2,
+      "avg_lines_per_function": 9
+    },
+    {
+      "file": "scripts\\debug\\debug_ghosted_query.py",
+      "total_lines": 28,
+      "code_lines": 20,
+      "functions": 0,
+      "classes": 0,
+      "imports": 3,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "ml_entity_extraction.py",
+      "total_lines": 26,
+      "code_lines": 18,
+      "functions": 1,
+      "classes": 0,
+      "imports": 1,
+      "avg_lines_per_function": 18
+    },
+    {
+      "file": "scripts\\check_meeting_message.py",
+      "total_lines": 26,
+      "code_lines": 21,
+      "functions": 0,
+      "classes": 0,
+      "imports": 4,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\check_zoom_interviews.py",
+      "total_lines": 26,
+      "code_lines": 20,
+      "functions": 0,
+      "classes": 0,
+      "imports": 3,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\testing\\test_parser_loading.py",
+      "total_lines": 26,
+      "code_lines": 17,
+      "functions": 0,
+      "classes": 0,
+      "imports": 3,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\check_viasat.py",
+      "total_lines": 25,
+      "code_lines": 19,
+      "functions": 0,
+      "classes": 0,
+      "imports": 3,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "tracker\\management\\commands\\load_default_labels.py",
+      "total_lines": 25,
+      "code_lines": 20,
+      "functions": 1,
+      "classes": 1,
+      "imports": 3,
+      "avg_lines_per_function": 20
+    },
+    {
+      "file": "tracker\\forms_company.py",
+      "total_lines": 24,
+      "code_lines": 20,
+      "functions": 0,
+      "classes": 2,
+      "imports": 2,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\debug\\check_labels.py",
+      "total_lines": 21,
+      "code_lines": 14,
+      "functions": 0,
+      "classes": 0,
+      "imports": 3,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\check_all_interview_invites.py",
+      "total_lines": 19,
+      "code_lines": 14,
+      "functions": 0,
+      "classes": 0,
+      "imports": 4,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\test_nsa_processing_update.py",
+      "total_lines": 19,
+      "code_lines": 13,
+      "functions": 0,
+      "classes": 0,
+      "imports": 4,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\test_subdomain_mapping.py",
+      "total_lines": 19,
+      "code_lines": 13,
+      "functions": 0,
+      "classes": 0,
+      "imports": 3,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\reingest-by-messageID.py",
+      "total_lines": 18,
+      "code_lines": 12,
+      "functions": 0,
+      "classes": 0,
+      "imports": 2,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\testing\\test_company_pattern.py",
+      "total_lines": 18,
+      "code_lines": 14,
+      "functions": 0,
+      "classes": 0,
+      "imports": 1,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\testing\\test_exec.py",
+      "total_lines": 18,
+      "code_lines": 12,
+      "functions": 0,
+      "classes": 0,
+      "imports": 3,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "tracker\\migrations\\0003_company_ats.py",
+      "total_lines": 18,
+      "code_lines": 12,
+      "functions": 0,
+      "classes": 1,
+      "imports": 2,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "tracker\\management\\commands\\export_companies.py",
+      "total_lines": 18,
+      "code_lines": 13,
+      "functions": 1,
+      "classes": 1,
+      "imports": 4,
+      "avg_lines_per_function": 13
+    },
+    {
+      "file": "dashboard\\context_processors.py",
+      "total_lines": 17,
+      "code_lines": 11,
+      "functions": 1,
+      "classes": 0,
+      "imports": 2,
+      "avg_lines_per_function": 11
+    },
+    {
+      "file": "dashboard\\asgi.py",
+      "total_lines": 16,
+      "code_lines": 10,
+      "functions": 0,
+      "classes": 0,
+      "imports": 2,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "dashboard\\wsgi.py",
+      "total_lines": 16,
+      "code_lines": 10,
+      "functions": 0,
+      "classes": 0,
+      "imports": 2,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\debug\\check_noise_ghosted.py",
+      "total_lines": 16,
+      "code_lines": 9,
+      "functions": 0,
+      "classes": 0,
+      "imports": 2,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "tracker\\apps.py",
+      "total_lines": 14,
+      "code_lines": 9,
+      "functions": 1,
+      "classes": 1,
+      "imports": 2,
+      "avg_lines_per_function": 9
+    },
+    {
+      "file": "conftest.py",
+      "total_lines": 11,
+      "code_lines": 7,
+      "functions": 0,
+      "classes": 0,
+      "imports": 2,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "main.py",
+      "total_lines": 10,
+      "code_lines": 7,
+      "functions": 0,
+      "classes": 0,
+      "imports": 2,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "scripts\\re_enrich_missing_companies.py",
+      "total_lines": 9,
+      "code_lines": 7,
+      "functions": 0,
+      "classes": 0,
+      "imports": 2,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "tracker\\templatetags\\__init__.py",
+      "total_lines": 1,
+      "code_lines": 0,
+      "functions": 0,
+      "classes": 0,
+      "imports": 0,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "__init__.py",
+      "total_lines": 0,
+      "code_lines": 0,
+      "functions": 0,
+      "classes": 0,
+      "imports": 0,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "dashboard\\__init__.py",
+      "total_lines": 0,
+      "code_lines": 0,
+      "functions": 0,
+      "classes": 0,
+      "imports": 0,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "tracker\\migrations\\__init__.py",
+      "total_lines": 0,
+      "code_lines": 0,
+      "functions": 0,
+      "classes": 0,
+      "imports": 0,
+      "avg_lines_per_function": 0
+    },
+    {
+      "file": "tracker\\tests\\__init__.py",
+      "total_lines": 0,
+      "code_lines": 0,
+      "functions": 0,
+      "classes": 0,
+      "imports": 0,
+      "avg_lines_per_function": 0
+    }
+  ],
+  "unused_imports": {
+    "conftest.py": [
+      "os\nimport sys\n\nROOT"
+    ],
+    "db.py": [
+      "os\nimport re\nimport sqlite3\nimport sys\nimport time\nfrom datetime import date",
+      "datetime\nfrom pathlib import Path\n\nDB_PATH"
+    ],
+    "db_helpers.py": [
+      "sqlite3\n\n\ndef build_company_job_index"
+    ],
+    "gmail_auth.py": [
+      "os\nimport pickle\n\nfrom google_auth_oauthlib",
+      "build\n\nSCOPES"
+    ],
+    "label_companies.py": [
+      "csv\nimport sqlite3\nfrom pathlib import Path\n\nDB_PATH"
+    ],
+    "main.py": [
+      "subprocess\nimport sys\n\nif __name__"
+    ],
+    "manage.py": [
+      "os\nimport sys\n\nfrom dotenv import load_dotenv\n\nload_dotenv"
+    ],
+    "ml_prep.py": [
+      "sqlite3\n\nimport pandas"
+    ],
+    "ml_subject_classifier.py": [
+      "json\nimport os\nimport re\nfrom pathlib import Path\n\nimport joblib\nimport numpy"
+    ],
+    "parser.py": [
+      "base64\nimport html\nimport json\nimport os",
+      "quopri\nimport re\nfrom datetime import datetime",
+      "date\nfrom email",
+      "message_from_string",
+      "Path\n\nimport django\nimport joblib\nfrom bs4 import BeautifulSoup\nfrom django",
+      "timezone\nfrom django",
+      "get_application_by_sender\nfrom ml_entity_extraction import extract_entities\nfrom ml_subject_classifier import predict_subject_type\nfrom tracker"
+    ],
+    "tracker_logger.py": [
+      "os\nfrom datetime import datetime\n\nLOG_DIR"
+    ],
+    "train_model.py": [
+      "os\n\nimport django",
+      "argparse\nimport json\nimport re\nfrom datetime import datetime\nfrom pathlib import Path\n\nimport joblib\nimport pandas",
+      "CalibratedClassifierCV\nfrom sklearn",
+      "LogisticRegression\nfrom sklearn",
+      "train_test_split\nfrom sklearn"
+    ],
+    "dashboard\\asgi.py": [
+      "os\n\nfrom django"
+    ],
+    "dashboard\\context_processors.py": [
+      "Dict\n\n\ndef sidebar_context"
+    ],
+    "dashboard\\settings.py": [
+      "os\nfrom pathlib import Path\n\nfrom db import DB_PATH"
+    ],
+    "dashboard\\urls.py": [
+      "custom_admin_site\n\nurlpatterns"
+    ],
+    "dashboard\\wsgi.py": [
+      "os\n\nfrom django"
+    ],
+    "remind\\remind-Copilot.py": [
+      "argparse\nimport os\nimport re\nimport subprocess\n\n\ndef get_repo_root"
+    ],
+    "scripts\\analyze_code_quality.py": [
+      "ast\nimport json\nimport os\nimport re\nfrom collections import defaultdict\nfrom pathlib import Path\nfrom typing import Dict",
+      "Tuple\n\n\nclass CodeAnalyzer"
+    ],
+    "scripts\\audit_false_positive_rejections.py": [
+      "re\nfrom collections import Counter",
+      "defaultdict\nfrom pathlib import Path\n\nfrom django",
+      "Message\n\n\ndef load_patterns_with_legacy_rejection"
+    ],
+    "scripts\\backfill_threadtracking.py": [
+      "os\nimport sys\n\nsys",
+      "django\ndjango",
+      "Company\nfrom datetime import timedelta\n\nprint"
+    ],
+    "scripts\\changelog_cli.py": [
+      "argparse\nfrom changelog_parser import parse_changelog\n\n\ndef main"
+    ],
+    "scripts\\changelog_parser.py": [
+      "re\nfrom collections import defaultdict\n\n\ndef parse_changelog"
+    ],
+    "scripts\\check_all_interview_invites.py": [
+      "os\nimport django\n\nos",
+      "Company\n\nc"
+    ],
+    "scripts\\check_app_week.py": [
+      "os\nimport sys",
+      "django\ndjango",
+      "Company\nfrom django",
+      "Q\nfrom datetime import timedelta\n\nweek_cutoff"
+    ],
+    "scripts\\check_email_body.py": [
+      "sys\nimport email\nfrom pathlib import Path\n\neml_path"
+    ],
+    "scripts\\check_endyna.py": [
+      "os\nimport django\n\nos",
+      "Company\n\nc"
+    ],
+    "scripts\\check_endyna_detailed.py": [
+      "os\nimport django\n\nos",
+      "Company\n\nc"
+    ],
+    "scripts\\check_hampton_email.py": [
+      "os\nimport django\n\nos"
+    ],
+    "scripts\\check_ingestion_time.py": [
+      "os\nimport sys\n\nsys",
+      "django\ndjango",
+      "IngestionStats\nfrom datetime import datetime\n\nprint"
+    ],
+    "scripts\\check_meeting_invites.py": [
+      "os\nimport django\n\nos",
+      "Message\nimport re\n\nprint"
+    ],
+    "scripts\\check_meeting_message.py": [
+      "os\nimport django\n\nos",
+      "Company\n\nc"
+    ],
+    "scripts\\check_messages.py": [
+      "os\nimport sys\n\nsys",
+      "django\ndjango",
+      "ThreadTracking\nfrom django",
+      "timedelta\n\nweek_cutoff"
+    ],
+    "scripts\\check_millennium.py": [
+      "os\nimport sys\nimport django\n\nsys"
+    ],
+    "scripts\\check_missing_tt.py": [
+      "os\nimport sys\n\nsys",
+      "django\ndjango",
+      "ThreadTracking\n\nprint"
+    ],
+    "scripts\\check_new_logic.py": [
+      "os\nimport sys\n\nsys",
+      "django\ndjango",
+      "Message\nfrom django",
+      "Q\nfrom datetime import timedelta\n\nweek_cutoff",
+      "json\nfrom pathlib import Path\nheadhunter_domains"
+    ],
+    "scripts\\check_thread_0455.py": [
+      "os\nimport django\n\nos",
+      "Company\n\nc"
+    ],
+    "scripts\\check_thread_0b14.py": [
+      "os\nimport django\n\nos",
+      "ThreadTracking\n\nthread_id"
+    ],
+    "scripts\\check_viasat.py": [
+      "os\nimport django\n\nos"
+    ],
+    "scripts\\check_zoom_interviews.py": [
+      "os\nimport django\n\nos",
+      "Message\n\nprint"
+    ],
+    "scripts\\cleanup_empty_companies.py": [
+      "os\nimport sys\nimport argparse\nfrom datetime import datetime",
+      "django\n\ndjango",
+      "transaction\nfrom django",
+      "ThreadTracking\n\n\ndef cleanup_empty_companies"
+    ],
+    "scripts\\cleanup_icims_sender_company.py": [
+      "os\nimport re\nfrom email",
+      "django\nos",
+      "Q\nfrom tracker"
+    ],
+    "scripts\\cleanup_newsletters.py": [
+      "os\nimport sys\nimport django",
+      "IgnoredMessage\nfrom parser import ingest_message\nfrom gmail_auth import get_gmail_service\nimport re"
+    ],
+    "scripts\\cleanup_noise_companies.py": [
+      "os\nimport sys\n\nimport django"
+    ],
+    "scripts\\clean_imports.py": [
+      "ast\nimport re\nfrom pathlib import Path\nfrom typing import List",
+      "Set",
+      "Tuple\n\n\ndef extract_imports"
+    ],
+    "scripts\\consolidate_rejection_labels.py": [
+      "os\nimport sys",
+      "django\n\nos",
+      "ThreadTracking\n\n\ndef main"
+    ],
+    "scripts\\debug_dashboard_stats.py": [
+      "os\nimport sys\nimport django\nfrom datetime import timedelta",
+      "Count\nfrom django"
+    ],
+    "scripts\\debug_endyna_dashboard.py": [
+      "os\nimport django\n\nos",
+      "Company\nfrom datetime import datetime",
+      "timedelta\n\nc"
+    ],
+    "scripts\\extract_companies_from_url.py": [
+      "argparse\nimport json\nimport os\nimport sys\nfrom urllib",
+      "requests\n\nREPO_ROOT"
+    ],
+    "scripts\\find_5th_interview.py": [
+      "os\nimport django\n\nos",
+      "Company\n\nc"
+    ],
+    "scripts\\find_companies.py": [
+      "pandas"
+    ],
+    "scripts\\find_high_confidence_errors.py": [
+      "os\n\nimport django\n\nos",
+      "pandas"
+    ],
+    "scripts\\find_prescription_message.py": [
+      "os\nimport sys\nimport django",
+      "Message\nfrom django"
+    ],
+    "scripts\\fix_import_company.py": [
+      "os\nimport sys\n\nimport django",
+      "argparse\nfrom parser import ingest_message\n\nfrom gmail_auth import get_gmail_service\nfrom tracker"
+    ],
+    "scripts\\fix_interview_labels.py": [
+      "os\nimport sys\nimport django",
+      "now\nfrom datetime import timedelta\nfrom tracker"
+    ],
+    "scripts\\fix_millennium_threads.py": [
+      "os\nimport sys\nimport django\nfrom datetime import timedelta\n\nsys"
+    ],
+    "scripts\\fix_mislabeled_millennium.py": [
+      "os\nimport sys\nimport django\n\nsys"
+    ],
+    "scripts\\fix_patterns_simple.py": [
+      "argparse\nimport json\nimport re\nimport shutil\nfrom datetime import datetime\nfrom pathlib import Path\n\n\ndef backup_file"
+    ],
+    "scripts\\fix_personal_replies.py": [
+      "os\nimport sys\nimport django",
+      "Message\nfrom gmail_auth import get_gmail_service\nfrom parser import ingest_message\n\ndef fix_personal_replies"
+    ],
+    "scripts\\fix_pylint_errors.py": [
+      "argparse\nimport json\nfrom collections import defaultdict\nfrom pathlib import Path\nfrom typing import Dict",
+      "List\n\n\nclass PylintFixer"
+    ],
+    "scripts\\get_imports.py": [
+      "os\nimport re\nimport subprocess\n\n\ndef get_repo_root"
+    ],
+    "scripts\\get_label_id.py": [
+      "sys\nfrom pathlib import Path"
+    ],
+    "scripts\\ignore_tester.py": [
+      "json\nfrom parser import normalize_text"
+    ],
+    "scripts\\import_gmail_filters.py": [
+      "argparse\nimport json\nimport re\nimport sys\nimport xml",
+      "Path\n\n\ndef load_json"
+    ],
+    "scripts\\init_db.py": [
+      "shutil\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nBASE_DIR"
+    ],
+    "scripts\\migrate_patterns_to_regex.py": [
+      "argparse\nimport json\nimport re\nimport shutil\nfrom datetime import datetime\nfrom pathlib import Path\n\n\ndef backup_file"
+    ],
+    "scripts\\reclassify_meeting_invites.py": [
+      "os\nimport re\nimport sys",
+      "django\n\nos",
+      "ThreadTracking\n\n\ndef main"
+    ],
+    "scripts\\reclassify_nsa_processing_update.py": [
+      "os\nimport sys\nimport argparse\nfrom pathlib import Path\nfrom typing import List"
+    ],
+    "scripts\\reingest-by-messageID.py": [
+      "ingest_message\n\nfrom gmail_auth import get_gmail_service"
+    ],
+    "scripts\\reingest_messages.py": [
+      "os\nimport sys\n\nimport django",
+      "argparse\nfrom parser import ingest_message\nfrom typing import List\n\nfrom gmail_auth import get_gmail_service\nfrom tracker"
+    ],
+    "scripts\\reingest_user_messages.py": [
+      "os\nimport sys\nfrom pathlib import Path",
+      "django\nos",
+      "get_gmail_service\nfrom parser import ingest_message\nfrom tracker"
+    ],
+    "scripts\\reingest_viasat.py": [
+      "ingest_message\nfrom gmail_auth import get_gmail_service\n\nservice"
+    ],
+    "scripts\\relabel_prescription_messages.py": [
+      "os\nimport sys\nimport django\n\nos",
+      "Message\nfrom django",
+      "predict_subject_type\n\nprint"
+    ],
+    "scripts\\reset_test_interviews.py": [
+      "os\nimport sys\nimport django\nfrom datetime import date\n\nsys"
+    ],
+    "scripts\\reset_tracker.py": [
+      "argparse\nimport shutil\nimport subprocess\nfrom pathlib import Path\n\nBASE_DIR"
+    ],
+    "scripts\\restore_noise_labels.py": [
+      "os\nimport sys\nimport django",
+      "Message\nfrom gmail_auth import get_gmail_service\nfrom parser import ingest_message\n\ndef restore_noise_labels"
+    ],
+    "scripts\\restore_reply_labels.py": [
+      "os\nimport sys\nfrom pathlib import Path",
+      "django\nos",
+      "get_gmail_service\nfrom parser import ingest_message\nfrom tracker"
+    ],
+    "scripts\\re_enrich_missing_companies.py": [
+      "enrich_company\nfrom tracker"
+    ],
+    "scripts\\run_all_checks.py": [
+      "json\nimport subprocess\nimport sys\nfrom datetime import datetime\nfrom pathlib import Path\n\n\ndef run_command"
+    ],
+    "scripts\\scrape_companies.py": [
+      "json\nfrom urllib",
+      "requests\nfrom bs4 import BeautifulSoup\n\n\ndef scrape_and_update"
+    ],
+    "scripts\\show_unreviewed_noise.py": [
+      "os\nimport sys\n\nimport django"
+    ],
+    "scripts\\show_upcoming_interviews.py": [
+      "os\nimport sys\nimport django\n\nsys",
+      "ThreadTracking\n\nupcoming"
+    ],
+    "scripts\\suggest_refactoring.py": [
+      "ast\nimport re\nfrom collections import defaultdict\nfrom pathlib import Path\nfrom typing import Dict",
+      "List",
+      "Set\n\n\nclass FunctionAnalyzer"
+    ],
+    "scripts\\test_company_deletion.py": [
+      "django\n\ndjango",
+      "ThreadTracking\nfrom django"
+    ],
+    "scripts\\test_hampton_parsing.py": [
+      "os\nos",
+      "django\ndjango",
+      "parse_subject\nimport re",
+      "parseaddr\n\ndisplay_name"
+    ],
+    "scripts\\test_nsa_processing_update.py": [
+      "os\nos",
+      "django\n\ndjango",
+      "predict_subject_type\nfrom parser import rule_label\n\nsubject"
+    ],
+    "scripts\\test_patterns.py": [
+      "os\nimport django\n\nos",
+      "is_application_related\n\ntest_subjects"
+    ],
+    "scripts\\test_predict_fallback.py": [
+      "sys\nimport os\nsys",
+      "django\nos",
+      "predict_with_fallback\nfrom ml_subject_classifier import predict_subject_type\n\nsubject"
+    ],
+    "scripts\\test_prescription_rule.py": [
+      "os\nos",
+      "django\ndjango",
+      "rule_label\nimport json\nfrom pathlib import Path",
+      "re\ntext"
+    ],
+    "scripts\\test_reingest_deletion.py": [
+      "os\nimport sys\nimport django",
+      "IgnoredMessage\nfrom parser import ingest_message\nimport pytest\nfrom datetime import datetime"
+    ],
+    "scripts\\test_rule_label.py": [
+      "sys\nimport os\nsys",
+      "django\nos",
+      "rule_label\nimport re\n\nsubject"
+    ],
+    "scripts\\test_subdomain_mapping.py": [
+      "os\nos",
+      "django\n\ndjango",
+      "parse_subject\n\nsubject"
+    ],
+    "scripts\\trace_hampton.py": [
+      "os\nos",
+      "django\ndjango",
+      "parse_subject\n\nsubject"
+    ],
+    "scripts\\validate_companies.py": [
+      "os\nimport sys\nimport argparse\nfrom pathlib import Path\nfrom collections import defaultdict\nfrom datetime import datetime",
+      "django\n\ndjango",
+      "transaction\nfrom django",
+      "ThreadTracking\n\n\nclass CompanyValidator"
+    ],
+    "scripts\\validate_deployment.py": [
+      "os\nimport sys\n\n\ndef check_file_exists"
+    ],
+    "tests\\test_eml_parsing.py": [
+      "os\nfrom pathlib import Path"
+    ],
+    "tests\\test_indeed_application_label.py": [
+      "rule_label\n\n\ndef fake_ml_predict"
+    ],
+    "tests\\test_noise_company_handling.py": [
+      "os\nimport sys\nfrom datetime import datetime",
+      "timezone\n\nimport django",
+      "Message\nimport pytest"
+    ],
+    "tracker\\admin.py": [
+      "admin\n\nfrom"
+    ],
+    "tracker\\apps.py": [
+      "AppConfig\n\n\nclass TrackerConfig"
+    ],
+    "tracker\\forms.py": [
+      "forms\nfrom django",
+      "ThreadTracking\n\n\nclass ApplicationEditForm"
+    ],
+    "tracker\\forms_company.py": [
+      "forms\n\nfrom"
+    ],
+    "tracker\\models.py": [
+      "models\nfrom django"
+    ],
+    "tracker\\signals.py": [
+      "json\nfrom pathlib import Path\n\nfrom django",
+      "receiver\n\nfrom"
+    ],
+    "tracker\\urls.py": [
+      "path\n\nfrom tracker",
+      "views\n\nurlpatterns"
+    ],
+    "tracker\\views.py": [
+      "json\nimport logging\nimport os\nimport re\nfrom parser import extract_metadata",
+      "parse_raw_message\nfrom pathlib import Path\n\nfrom django",
+      "login_required\nfrom django",
+      "Substr\nfrom django",
+      "now\nfrom django",
+      "Lower\nfrom django",
+      "html\nimport subprocess\nimport sys\nfrom collections import defaultdict\n\nfrom difflib import HtmlDiff\n\nfrom bs4 import BeautifulSoup\nfrom gmail_auth import get_gmail_service\nfrom db import PATTERNS_PATH\nfrom tracker",
+      "timedelta\n\npython_path"
+    ],
+    "scripts\\analysis\\alias_candidates.py": [
+      "argparse\nimport csv\nimport json\nimport re\nfrom datetime import datetime\nfrom difflib import SequenceMatcher\n\nimport pandas",
+      "is_valid_company\n\nparser"
+    ],
+    "scripts\\analysis\\analyze_application_necessity.py": [
+      "os\nimport sys\n\nimport django\n\nsys",
+      "ThreadTracking\n\nprint"
+    ],
+    "scripts\\analysis\\analyze_guidehouse_apps.py": [
+      "os\nimport sys\n\nimport django\n\nsys",
+      "ThreadTracking\n\nprint"
+    ],
+    "scripts\\analysis\\analyze_pattern_overlap.py": [
+      "json\n\nwith open"
+    ],
+    "scripts\\debug\\check_bad_company.py": [
+      "os\n\nimport django\n\nos"
+    ],
+    "scripts\\debug\\check_both_endyna_msgs.py": [
+      "os\n\nimport django\n\nos"
+    ],
+    "scripts\\debug\\check_company_mismatch.py": [
+      "os\nimport sys\n\nimport django\n\nsys",
+      "ThreadTracking\n\nprint"
+    ],
+    "scripts\\debug\\check_endyna_messages.py": [
+      "os\n\nimport django\n\nos"
+    ],
+    "scripts\\debug\\check_env.py": [
+      "json\nimport os\nimport subprocess\nfrom pathlib import Path\n\nBASE_DIR"
+    ],
+    "scripts\\debug\\check_labels.py": [
+      "os\n\nimport django\n\nos"
+    ],
+    "scripts\\debug\\check_netflix_email.py": [
+      "os\n\nimport django\n\nos",
+      "get_gmail_service\n\n\ndef check_netflix_email"
+    ],
+    "scripts\\debug\\check_noise_companies.py": [
+      "os\n\nimport django\n\nos"
+    ],
+    "scripts\\debug\\check_noise_ghosted.py": [
+      "django\n\ndjango"
+    ],
+    "scripts\\debug\\debug_alias.py": [
+      "os\n\nimport django\n\nos",
+      "company_data\n\nsender"
+    ],
+    "scripts\\debug\\debug_ats_check.py": [
+      "os\nimport re\n\nimport django\n\nos",
+      "parseaddr\nfrom parser import ATS_DOMAINS",
+      "company_data\n\nsubject"
+    ],
+    "scripts\\debug\\debug_booz_allen_dashboard.py": [
+      "os\n\nimport django\n\nos",
+      "OuterRef\n\nfrom tracker"
+    ],
+    "scripts\\debug\\debug_detailed.py": [
+      "os\nimport re\n\nimport django\n\nos",
+      "company_data\n\nsubject"
+    ],
+    "scripts\\debug\\debug_endyna.py": [
+      "os\n\nimport django\n\nos",
+      "Q\n\ninterview_query"
+    ],
+    "scripts\\debug\\debug_excludes.py": [
+      "os\n\nimport django\n\nos",
+      "_MSG_LABEL_EXCLUDES\n\nsubject"
+    ],
+    "scripts\\debug\\debug_ghosted_filter.py": [
+      "django\n\ndjango",
+      "timedelta\n\nfrom django",
+      "now\n\nfrom tracker",
+      "Max\n\nlast_activity_by_company"
+    ],
+    "scripts\\debug\\debug_ghosted_query.py": [
+      "django\n\ndjango",
+      "Q\n\nfrom tracker"
+    ],
+    "scripts\\debug\\debug_ghosted_trace.py": [
+      "django\n\ndjango",
+      "timedelta\n\nfrom django",
+      "now\n\nfrom tracker"
+    ],
+    "scripts\\debug\\debug_guidehouse.py": [
+      "os\nimport sys\n\nimport django\n\nsys"
+    ],
+    "scripts\\debug\\debug_home_depot.py": [
+      "django\n\ndjango",
+      "timedelta\n\nfrom django",
+      "Message\n\nc"
+    ],
+    "scripts\\debug\\debug_netflix.py": [
+      "os\n\nimport django\n\nos",
+      "re\nfrom parser import predict_with_fallback",
+      "should_ignore\n\nfrom ml_subject_classifier import predict_subject_type\n\nsubject",
+      "RESUME_NOISE_PATTERNS\n\nmatches"
+    ],
+    "scripts\\debug\\debug_northrop.py": [
+      "os\n\nimport django\n\nos",
+      "parse_subject\n\nprint"
+    ],
+    "scripts\\debug\\debug_patterns.py": [
+      "os\n\nimport django\n\nos",
+      "_MSG_LABEL_PATTERNS\n\nsubject"
+    ],
+    "scripts\\debug\\debug_predict.py": [
+      "os\n\nimport django",
+      "rule_label\n\nfrom ml_subject_classifier import"
+    ],
+    "scripts\\debug\\find_bad_companies.py": [
+      "json\nimport os\n\nimport django\n\nos",
+      "Path\n\nfrom tracker"
+    ],
+    "scripts\\debug\\investigate_headhunter.py": [
+      "os\n\nimport django",
+      "json\n\nfrom tracker",
+      "re\n\npatterns_to_test",
+      "predict_subject_type\n\ntest_cases"
+    ],
+    "scripts\\fixers\\backfill_dates.py": [
+      "os\n\nimport django\n\nos",
+      "ThreadTracking\n\n\ndef backfill_dates"
+    ],
+    "scripts\\fixers\\fix_anthropic_messages.py": [
+      "os\n\nimport django\n\nos",
+      "ThreadTracking\n\napps"
+    ],
+    "scripts\\fixers\\fix_booz_allen_threadtracking.py": [
+      "os\n\nimport django\n\nos",
+      "ThreadTracking\n\nprint",
+      "OuterRef\n\njob_app_exists"
+    ],
+    "scripts\\fixers\\fix_carefirst_message.py": [
+      "os\n\nimport django\n\nos"
+    ],
+    "scripts\\fixers\\fix_company_mismatch.py": [
+      "os\nimport sys\n\nimport django\n\nsys",
+      "Counter\n\nfrom tracker"
+    ],
+    "scripts\\fixers\\fix_dragos_message.py": [
+      "os\n\nimport django\n\nos"
+    ],
+    "scripts\\fixers\\fix_endyna_interview.py": [
+      "os\n\nimport django\n\nos"
+    ],
+    "scripts\\fixers\\fix_netflix_label.py": [
+      "os\n\nimport django\n\nos",
+      "rule_label\n\nfrom ml_subject_classifier import predict_subject_type\nfrom tracker"
+    ],
+    "scripts\\fixers\\normalize_carefirst.py": [
+      "os\n\nimport django\n\nos"
+    ],
+    "scripts\\fixers\\remove_noise_companies.py": [
+      "os\n\nimport django",
+      "transaction\n\nfrom tracker"
+    ],
+    "scripts\\testing\\test_actual_ng_email.py": [
+      "os\n\nimport django\n\nos"
+    ],
+    "scripts\\testing\\test_booz_allen.py": [
+      "os\nimport sys\n\nimport django",
+      "parse_subject\n\nsubject"
+    ],
+    "scripts\\testing\\test_classification_order.py": [
+      "os\n\nimport django\n\nos",
+      "rule_label\n\ntest_cases"
+    ],
+    "scripts\\testing\\test_company_pattern.py": [
+      "re\n\ntests"
+    ],
+    "scripts\\testing\\test_exec.py": [
+      "os\n\nimport django"
+    ],
+    "scripts\\testing\\test_fresh.py": [
+      "os\nimport sys\n\nimport django",
+      "parse_subject\n\nprint"
+    ],
+    "scripts\\testing\\test_hampton_application.py": [
+      "os\nimport sys",
+      "django\ndjango"
+    ],
+    "scripts\\testing\\test_indeed_application.py": [
+      "os\nimport sys",
+      "django\ndjango"
+    ],
+    "scripts\\testing\\test_interview_date_parsing.py": [
+      "os\nimport sys\nimport django\nfrom datetime import datetime"
+    ],
+    "scripts\\testing\\test_interview_future_date.py": [
+      "os\nimport sys\nimport django\nfrom datetime import datetime",
+      "parser"
+    ],
+    "scripts\\testing\\test_interview_logic.py": [
+      "os\nimport django\n\nos",
+      "Company\n\nc"
+    ],
+    "scripts\\testing\\test_millennium_interview.py": [
+      "os\nimport sys",
+      "django\ndjango",
+      "predict_with_fallback\nfrom ml_subject_classifier import predict_subject_type"
+    ],
+    "scripts\\testing\\test_netflix_classification.py": [
+      "os\n\nimport django\n\nos",
+      "parse_subject\n\nsubject"
+    ],
+    "scripts\\testing\\test_noise_filter.py": [
+      "django\n\ndjango",
+      "Q\n\nfrom tracker"
+    ],
+    "scripts\\testing\\test_northrop_extraction.py": [
+      "os\n\nimport django\n\nos"
+    ],
+    "scripts\\testing\\test_order.py": [
+      "os\n\nimport django\n\nos",
+      "_MSG_LABEL_PATTERNS\n\nsubject"
+    ],
+    "scripts\\testing\\test_parser_loading.py": [
+      "os\n\nimport django",
+      "parser\n\nprint"
+    ],
+    "scripts\\testing\\test_patterns.py": [
+      "re\n\nsubject"
+    ],
+    "scripts\\testing\\test_proofpoint.py": [
+      "os\n\nimport django\n\nos"
+    ],
+    "scripts\\testing\\test_reload.py": [
+      "django\n\ndjango",
+      "importlib\nimport parser",
+      "parse_subject\n\nprint"
+    ],
+    "scripts\\testing\\test_rule_classification.py": [
+      "os\n\nimport django\n\nos",
+      "rule_label\n\nfrom ml_subject_classifier import predict_subject_type\n\nsubject",
+      "Message\n\nmsg"
+    ],
+    "scripts\\testing\\test_usastaffing_extraction.py": [
+      "re\nfrom bs4 import BeautifulSoup"
+    ],
+    "scripts\\verification\\verify_company_links.py": [
+      "os\n\nimport django\n\nos",
+      "Message\n\nprint"
+    ],
+    "scripts\\verification\\verify_ghosted_count.py": [
+      "os\n\nimport django\n\nos",
+      "Q\n\nfrom tracker"
+    ],
+    "scripts\\verification\\verify_interview_fix.py": [
+      "os\nimport sys\n\nimport django\n\nsys",
+      "ThreadTracking\n\nprint"
+    ],
+    "scripts\\verification\\verify_plot_series.py": [
+      "json\nimport os\n\nimport django\n\nos"
+    ],
+    "tracker\\migrations\\0001_initial.py": [
+      "models\n\n\nclass Migration"
+    ],
+    "tracker\\migrations\\0002_company_contact_email_company_contact_name_and_more.py": [
+      "models\n\n\nclass Migration"
+    ],
+    "tracker\\migrations\\0003_company_ats.py": [
+      "models\n\n\nclass Migration"
+    ],
+    "tracker\\migrations\\0004_messagelabel.py": [
+      "models\n\n\nclass Migration"
+    ],
+    "tracker\\migrations\\0005_modeltrainingrun_modeltraininglabelmetric.py": [
+      "models\n\n\nclass Migration"
+    ],
+    "tracker\\migrations\\0006_gmailfilterimportlog.py": [
+      "settings\nfrom django"
+    ],
+    "tracker\\migrations\\0007_appsetting.py": [
+      "models\n\n\nclass Migration"
+    ],
+    "tracker\\migrations\\0008_add_interview_completed.py": [
+      "models\n\n\nclass Migration"
+    ],
+    "tracker\\migrations\\0009_alter_threadtracking_options_alter_company_status_and_more.py": [
+      "models\n\n\nclass Migration"
+    ],
+    "tracker\\templatetags\\custom_filters.py": [
+      "template\n\nregister"
+    ],
+    "tracker\\tests\\conftest.py": [
+      "pytest\n\nfrom tracker"
+    ],
+    "tracker\\tests\\test_applications_week.py": [
+      "pytest\nfrom django",
+      "Exists",
+      "OuterRef\nfrom datetime import timedelta\nfrom tracker"
+    ],
+    "tracker\\tests\\test_company_registry_update.py": [
+      "json\nfrom pathlib import Path\nimport shutil\nimport pytest\nfrom django"
+    ],
+    "tracker\\tests\\test_ingest_message.py": [
+      "datetime\nfrom parser import ingest_message",
+      "parse_subject\n\nimport pytest\nfrom django",
+      "FakeMessageRecord\n\npytestmark"
+    ],
+    "tracker\\management\\commands\\audit_false_positive_rejections.py": [
+      "json\nimport re\nfrom collections import Counter",
+      "defaultdict\nfrom pathlib import Path\n\nfrom bs4 import BeautifulSoup\nfrom django",
+      "Message\n\n\ndef load_patterns_with_legacy_rejection"
+    ],
+    "tracker\\management\\commands\\audit_labels.py": [
+      "csv\nfrom collections import Counter\n\nfrom django",
+      "Count\n\nfrom tracker"
+    ],
+    "tracker\\management\\commands\\check_threadtracking_health.py": [
+      "annotations\n\nimport json\nimport os\nfrom pathlib import Path\nfrom typing import List\n\nfrom django",
+      "Q\nfrom django",
+      "ThreadTracking\n\n\nclass Command"
+    ],
+    "tracker\\management\\commands\\cleanup_newsletters.py": [
+      "BaseCommand\nfrom django",
+      "ThreadTracking\nfrom parser import extract_metadata\nfrom gmail_auth import get_gmail_service\n\n\nclass Command"
+    ],
+    "tracker\\management\\commands\\compare_gmail_labels.py": [
+      "csv\nimport os\nfrom datetime import datetime\nfrom pathlib import Path\nfrom typing import Dict",
+      "Tuple\n\nfrom django",
+      "get_gmail_service\nfrom tracker"
+    ],
+    "tracker\\management\\commands\\enforce_headhunter_labels.py": [
+      "json\nfrom pathlib import Path\n\nfrom django",
+      "Q\n\nfrom tracker"
+    ],
+    "tracker\\management\\commands\\export_companies.py": [
+      "json\nfrom pathlib import Path\n\nfrom django",
+      "Company\n\n\nclass Command"
+    ],
+    "tracker\\management\\commands\\export_gmail_labels_filters.py": [
+      "datetime\nimport json\nimport os\n\nfrom django",
+      "get_gmail_service\n\n\nclass Command"
+    ],
+    "tracker\\management\\commands\\export_labels.py": [
+      "csv\n\nfrom django"
+    ],
+    "tracker\\management\\commands\\import_companies.py": [
+      "json\nfrom pathlib import Path\n\nfrom django",
+      "KnownCompany\n\n\nclass Command"
+    ],
+    "tracker\\management\\commands\\ingest_gmail.py": [
+      "os\nfrom datetime import datetime",
+      "timedelta\nfrom parser import ingest_message\n\nfrom django",
+      "ProcessedMessage\nfrom tracker_logger import log_console\n\n\ndef fetch_all_messages"
+    ],
+    "tracker\\management\\commands\\ingest_raw_eml.py": [
+      "json\nimport os\nimport hashlib\nfrom django",
+      "predict_subject_type\n\nclass Command"
+    ],
+    "tracker\\management\\commands\\load_default_labels.py": [
+      "json\n\nfrom django",
+      "MessageLabel\n\n\nclass Command"
+    ],
+    "tracker\\management\\commands\\mark_ghosted.py": [
+      "os\nfrom datetime import timedelta\n\nfrom django",
+      "Q\nfrom django",
+      "ThreadTracking\n\n\ndef _get_threshold_days"
+    ],
+    "tracker\\management\\commands\\mark_newsletters_ignored.py": [
+      "BaseCommand\nfrom tracker",
+      "is_application_related\nfrom gmail_auth import get_gmail_service\n\n\nclass Command"
+    ],
+    "tracker\\management\\commands\\parse_gmail_message.py": [
+      "json\nimport os\nfrom django"
+    ],
+    "tracker\\management\\commands\\purge_headhunter_applications.py": [
+      "json\nimport os\nfrom email",
+      "Path\n\nfrom django",
+      "Q\n\nfrom tracker"
+    ],
+    "tracker\\management\\commands\\reclassify_messages.py": [
+      "BaseCommand\nfrom django",
+      "predict_subject_type\nfrom tracker"
+    ],
+    "tracker\\management\\commands\\remove_job_alert_label.py": [
+      "BaseCommand\nfrom django",
+      "MessageLabel\n\n\nclass Command"
+    ],
+    "tracker\\management\\commands\\report_parsing_metrics.py": [
+      "Counter\n\nfrom django",
+      "ThreadTracking\n\n\nclass Command"
+    ]
+  }
+}

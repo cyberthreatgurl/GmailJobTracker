@@ -78,9 +78,21 @@ class Command(BaseCommand):
             return
 
         updated = 0
+        try:
+            from tracker.label_helpers import label_message_and_propagate
+        except Exception:
+            label_message_and_propagate = None
+
         for m in qs.iterator():
-            m.ml_label = "head_hunter"
-            m.reviewed = True
-            m.save(update_fields=["ml_label", "reviewed"])
-            updated += 1
+            try:
+                m.reviewed = True
+                if label_message_and_propagate:
+                    label_message_and_propagate(m, "head_hunter", confidence=1.0)
+                else:
+                    m.ml_label = "head_hunter"
+                    m.save(update_fields=["ml_label", "reviewed"])
+                updated += 1
+            except Exception:
+                # continue on individual failure
+                continue
         self.stdout.write(self.style.SUCCESS(f"Updated {updated} messages to head_hunter."))

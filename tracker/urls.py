@@ -37,4 +37,5 @@ urlpatterns = [
         name="gmail_filters_labels_compare",
     ),
     path("debug/label_rule/", views.label_rule_debugger, name="label_rule_debugger"),
+    path("upload_eml/", views.upload_eml, name="upload_eml"),
 ]

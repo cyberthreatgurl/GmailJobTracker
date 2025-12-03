@@ -26,6 +26,9 @@ from django.db.models.functions import Coalesce, StrIndex, Substr
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.timezone import now
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.admin.views.decorators import staff_member_required
+from tracker.forms import UploadEmlForm
+from scripts.ingest_eml import ingest_eml_bytes
 
 from scripts.import_gmail_filters import (
     load_json,
@@ -240,6 +243,32 @@ def label_rule_debugger(request):
         "no_matches": no_matches,
     }
     return render(request, "tracker/label_rule_debugger.html", ctx)
+
+
+@staff_member_required
+def upload_eml(request):
+    """Admin/dashboard upload endpoint to ingest a local .eml file via UI."""
+    result = None
+    error = None
+    if request.method == "POST":
+        form = UploadEmlForm(request.POST, request.FILES)
+        if form.is_valid():
+            uploaded = request.FILES['eml_file']
+            raw = uploaded.read()
+            thread_override = form.cleaned_data.get('thread_id') or None
+            no_tt = form.cleaned_data.get('no_tt')
+            # Call ingest helper with apply=True
+            resp = ingest_eml_bytes(raw, apply=True, create_tt=(not no_tt), thread_id_override=thread_override)
+            if resp.get('success'):
+                result = resp
+            else:
+                error = resp.get('message')
+        else:
+            error = 'Invalid form submission'
+    else:
+        form = UploadEmlForm()
+
+    return render(request, 'tracker/upload_eml.html', {'form': form, 'result': result, 'error': error})
 
 
 @login_required
@@ -1841,7 +1870,7 @@ def dashboard(request):
             for d in app_date_list:
                 combined[d] = app_rejs_map.get(d, 0) + msg_rejs_map.get(d, 0)
             data = [combined[d] for d in app_date_list]
-        elif ml_label == "interview_invite":
+        elif ml_label in ("interview_invite", "interview"):
             # Interviews per day
             ints_q = ThreadTracking.objects.filter(interview_date__isnull=False)
             if app_start_date:
@@ -2072,9 +2101,9 @@ def dashboard(request):
     # Create a set for fast lookup: {(thread_id, company_id), ...}
     tracked_thread_companies = {(item['thread_id'], item['company_id']) for item in tt_with_interview}
     
-    # Get all interview_invite messages
+    # Get all interview messages (support both 'interview_invite' and 'interview')
     msg_interviews_qs = Message.objects.filter(
-        ml_label="interview_invite", company__isnull=False
+        ml_label__in=["interview_invite", "interview"], company__isnull=False
     ).select_related('company')
     
     if user_email:
@@ -2305,12 +2334,13 @@ def label_messages(request):
             if selected_ids and bulk_label:
                 updated_count = 0
                 touched_threads = set()
+                from tracker.label_helpers import label_message_and_propagate
+
                 for msg_id in selected_ids:
                     try:
                         msg = Message.objects.get(pk=msg_id)
-                        msg.ml_label = bulk_label
-                        msg.reviewed = True
-                        msg.save()
+                        # Use centralized helper to save+propagate label changes
+                        label_message_and_propagate(msg, bulk_label, confidence=1.0)
                         if msg.thread_id:
                             touched_threads.add(msg.thread_id)
                         updated_count += 1

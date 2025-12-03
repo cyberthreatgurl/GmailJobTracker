@@ -44,6 +44,7 @@
     "Hitachi",
     "Hitachi Digital Services",
     "IBM",
+    "ICF",
     "JRC Integrated Systems",
     "Kodiak",
     "Leidos",
@@ -58,6 +59,7 @@
     "Northrop Grumman",
     "Northwestern Mutual",
     "Nozomi",
+    "DHS Cybersecurity Service",
     "PCAOB",
     "Palantir",
     "Palo Alto Networks",
@@ -94,11 +96,13 @@
     "Victorops",
     "Virginia Tech",
     "Westinghouse Nuclear",
-    "sail"
+    "sail",
+    "supervisory",
+    "deltadental"
   ],
   "domain_to_company": {
     "adp.com": "ARES Corporation",
-    "afs.com": "Afs",
+    "afs.com": "Accenture Federal Services",
     "amentum.com": "Amentum",
     "amentum.mail.clinchtalent.com": "Amentum",
     "appdynamics.com": "Appdynamics",
@@ -145,7 +149,7 @@
     "hirebridgemail.com": "JRC Integrated Systems",
     "hitachi.com": "Hitachi",
     "hitachids.com": "Hitachi Digital Services",
-    "icf.com": "Icf",
+    "icf.com": "ICF",
     "jobalerts.freddiemac.com": "Freddie Mac",
     "jobs.microsoft.com": "Jobs",
     "jobs.netflix.com": "Netflix",
@@ -161,6 +165,7 @@
     "northropgrumman.careers": "Northropgrumman",
     "northropgrumman.com": "Northrop Grumman",
     "nozominetworks.com": "Nozomi",
+    "usastaffing.gov": "DHS Cybersecurity Service",
     "nsa.gov": "National Security Agency",
     "pageuppeople.com": "Virginia Tech",
     "palantir.com": "Palantir",
@@ -258,7 +263,6 @@
     "zolontech.com"
   ],
   "JobSites": {
-    "amazon": "https://www.amazon.jobs/en/",
     "Amazon": "https://www.amazon.jobs/en/",
     "Amentum": "https://www.amentumcareers.com/jobs/",
     "Anthropic": "https://www.anthropic.com/careers",
@@ -298,7 +302,19 @@
     "Coalfire Federal": "https://coalfirefederal.com/careers/",
     "The Tatitlek Corporation": "https://tatitlek.com/careers-page/"
   },
+  "job_board_domains": [
+    "angel.co",
+    "careerbuilder.com",
+    "clearedjobs.net",
+    "dice.com",
+    "glassdoor.com",
+    "indeed.com",
+    "linkedin.com",
+    "simplyhired.com",
+    "usajobs.gov"
+  ],
   "aliases": {
+    "AFS": "Accenture Federal Services",
     "ARC": "Analysis and Resilience Center for Systemic Risk",
     "cmu": "Carnegie Mellon University",
     "cmu-workday": "Carnegie Mellon University",
@@ -306,7 +322,9 @@
     "constellationenergy": "Constellation Energy",
     "CrowdStrike Job": "CrowdStrike",
     "Coalfire": "Coalfire Federal",
+    "NAVSURFWARCENDLDIV": "NSWC Dahlgren Division",
     "CSA": "CSA Associates",
+    "CSA Global LLC": "CSA Associates",
     "CVS Health has been received": "CVS Health",
     "DeeDee Price from Palo Alto Networks": "Palo Alto Networks",
     "donotreply_Leidos_HR": "Leidos",

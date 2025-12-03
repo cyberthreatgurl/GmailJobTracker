@@ -1,5 +1,5 @@
 {
-  "trained_on": "2025-11-22T17:06:06.330676",
+  "trained_on": "2025-12-02T21:38:35.061691",
   "labels": [
     "head_hunter",
     "interview_invite",
@@ -9,8 +9,8 @@
     "referral",
     "rejection"
   ],
-  "num_samples": 6323,
-  "total_features": 45974,
+  "num_samples": 6330,
+  "total_features": 45978,
   "meaningful_features_sample": [
     "06may19",
     "06may19 ref",
@@ -106,11 +106,11 @@
     "acknowledgement requested",
     "acm",
     "acm technews",
-    "acquisition",
     "act",
     "act as",
     "action",
     "action officer",
-    "action requested"
+    "action requested",
+    "action required"
   ]
 }

@@ -490,7 +490,7 @@
           {% for msg in message_list %}
             <tr id="msg-{{ msg.id }}" class="{% if not msg.reviewed %}row-unreviewed{% elif msg.reviewed %}row-reviewed-high{% endif %}">
               <td class="checkbox-cell">
-                <input type="checkbox" name="selected_messages" value="{{ msg.id }}" class="message-checkbox" onchange="updateSelection()" data-company="{% if msg.company %}{{ msg.company.name }}{% else %}{% endif %}" data-domain="{{ msg.sender_domain|default:'' }}">
+                <input type="checkbox" name="selected_messages" value="{{ msg.id }}" class="message-checkbox" onchange="updateSelection()" data-company="{% if msg.company %}{{ msg.company.name }}{% else %}{% endif %}" data-domain="{{ msg.sender_domain|default:''|cut:'>' }}">
               </td>
               <td class="subject-cell">{{ msg.display_subject }}</td>
               <td>
@@ -522,8 +522,8 @@
                   <span style="color: #9ca3af;">N/A</span>
                 {% endif %}
               </td>
-              <td style="font-size: 0.75rem; color: #6b7280;">{{ msg.sender_domain }}</td>
-              <td style="font-size: 0.75rem; color: #6b7280;">{{ msg.timestamp|date:"M d" }}</td>
+              <td style="font-size: 0.75rem; color: #6b7280;">{{ msg.sender_domain|default:''|cut:'>' }}</td>
+              <td style="font-size: 0.75rem; color: #6b7280;">{{ msg.timestamp|date:"m/d/Y" }}</td>
               <td class="snippet-cell" title="{{ msg.body_snippet }}">{{ msg.body_snippet|truncatechars:100 }}</td>
             </tr>
           {% empty %}

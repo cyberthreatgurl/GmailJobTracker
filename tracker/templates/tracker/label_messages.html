@@ -443,6 +443,11 @@
         ✓ Mark Selected as Reviewed
       </button>
       {% endif %}
+      {% if message_list %}
+      <button type="submit" class="btn" id="clear-reviewed-submit" onclick="return submitClearReviewed()" style="margin-left:0.5rem; background:#ef4444; color:white;">
+        ⤺ Clear Reviewed
+      </button>
+      {% endif %}
     </div>
     <!-- Message Table -->
     <div class="message-table">
@@ -652,6 +657,19 @@
         return false;
       }
       document.getElementById('form-action').value = 'mark_all_reviewed';
+      return true;
+    }
+
+    function submitClearReviewed() {
+      const selectedCount = document.querySelectorAll('.message-checkbox:checked').length;
+      if (selectedCount === 0) {
+        alert('Please select messages to clear reviewed state');
+        return false;
+      }
+      if (!confirm(`Clear reviewed flag for ${selectedCount} selected message(s)? This will allow them to be re-ingested.`)) {
+        return false;
+      }
+      document.getElementById('form-action').value = 'clear_reviewed';
       return true;
     }
 

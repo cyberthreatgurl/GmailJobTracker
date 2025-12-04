@@ -65,6 +65,22 @@ class Command(BaseCommand):
         log_dir = os.path.join(os.getcwd(), "logs")
         os.makedirs(log_dir, exist_ok=True)
         audit_path = os.path.join(log_dir, "clear_reviewed_audit.log")
+        # Collect detailed context about affected messages
+        details = []
+        try:
+            for m in qs[:1000]:
+                details.append(
+                    {
+                        "msg_id": m.msg_id,
+                        "db_id": m.pk,
+                        "thread_id": m.thread_id,
+                        "company_id": m.company.id if getattr(m, "company", None) else None,
+                    }
+                )
+        except Exception:
+            # If iteration fails, fall back to minimal lists
+            details = None
+
         entry = {
             "timestamp": datetime.utcnow().isoformat() + "Z",
             "user": os.environ.get("USERNAME") or os.environ.get("USER") or "unknown",
@@ -73,11 +89,47 @@ class Command(BaseCommand):
             "matched": matched,
             "updated": updated,
             "apps_updated": apps_updated,
+            "details": details,
+            "pid": os.getpid(),
         }
         try:
             with open(audit_path, "a", encoding="utf-8") as fh:
                 fh.write(json.dumps(entry, ensure_ascii=False) + "\n")
+            # Also persist to DB for easier querying
+            try:
+                from tracker.models import AuditEvent
+
+                AuditEvent.objects.create(
+                    user=entry.get("user"),
+                    action="clear_reviewed",
+                    source="management_command",
+                    details=json.dumps(entry, ensure_ascii=False),
+                    pid=entry.get("pid"),
+                )
+            except Exception:
+                # Do not fail the command if DB write fails; log to stderr
+                try:
+                    import traceback
+
+                    with open(audit_path, "a", encoding="utf-8") as fh:
+                        fh.write(json.dumps({"ts": datetime.utcnow().isoformat(), "error": "DB write failed", "trace": traceback.format_exc()}, ensure_ascii=False) + "\n")
+                except Exception:
+                    pass
         except Exception as e:
-            self.stderr.write(f"Failed to write audit log: {e}")
+            # Attempt to write fallback audit with trace
+            try:
+                import traceback
+
+                fallback = {
+                    "timestamp": datetime.utcnow().isoformat() + "Z",
+                    "user": os.environ.get("USERNAME") or os.environ.get("USER") or "unknown",
+                    "error": str(e),
+                    "trace": traceback.format_exc(),
+                    "pid": os.getpid(),
+                }
+                with open(audit_path, "a", encoding="utf-8") as fh:
+                    fh.write(json.dumps(fallback, ensure_ascii=False) + "\n")
+            except Exception:
+                self.stderr.write(f"Failed to write audit log: {e}")
 
         self.stdout.write(f"Cleared reviewed for {updated} messages (matched={matched}). apps_updated={apps_updated}")

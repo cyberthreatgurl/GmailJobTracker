@@ -8,6 +8,7 @@ from .models import (
     DomainToCompany,
     GmailFilterImportLog,
     KnownCompany,
+    AuditEvent,
     Message,
     MessageLabel,
     ModelTrainingLabelMetric,
@@ -175,6 +176,38 @@ custom_admin_site.register(Ticket, TicketAdmin)
 custom_admin_site.register(ModelTrainingRun)
 custom_admin_site.register(ModelTrainingLabelMetric)
 custom_admin_site.register(GmailFilterImportLog)
+
+
+class AuditEventAdmin(admin.ModelAdmin):
+    """Read-only admin for AuditEvent rows."""
+
+    list_display = (
+        "created_at",
+        "action",
+        "user",
+        "msg_id",
+        "db_id",
+        "thread_id",
+        "company_id",
+        "pid",
+    )
+    search_fields = ("action", "user", "msg_id", "thread_id")
+    list_filter = ("action", "user")
+    readonly_fields = [f.name for f in AuditEvent._meta.fields]
+    ordering = ("-created_at",)
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+custom_admin_site.register(AuditEvent, AuditEventAdmin)
+admin.site.register(AuditEvent, AuditEventAdmin)
 
 admin.site.register(KnownCompany)
 admin.site.register(ATSDomain)

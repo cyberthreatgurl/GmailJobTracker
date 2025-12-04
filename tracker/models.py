@@ -272,3 +272,34 @@ class AppSetting(models.Model):
 
     def __str__(self):
         return f"{self.key}={self.value}"
+
+
+class AuditEvent(models.Model):
+    """Audit events for actions that change message review state or re-ingest.
+
+    Stored as structured rows to allow querying and retention policies.
+    """
+
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    user = models.CharField(max_length=150, blank=True, null=True)
+    action = models.CharField(max_length=80)
+    source = models.CharField(max_length=80, blank=True, null=True)
+
+    # Optional message/thread identifiers
+    msg_id = models.CharField(max_length=255, blank=True, null=True)
+    db_id = models.IntegerField(blank=True, null=True)
+    thread_id = models.CharField(max_length=255, blank=True, null=True)
+    company_id = models.IntegerField(blank=True, null=True)
+
+    # Free-form JSON details (stored as text) and error/trace fields
+    details = models.TextField(blank=True, null=True)
+    error = models.TextField(blank=True, null=True)
+    trace = models.TextField(blank=True, null=True)
+
+    pid = models.IntegerField(blank=True, null=True)
+
+    class Meta:
+        indexes = [models.Index(fields=["created_at"])]
+
+    def __str__(self):
+        return f"AuditEvent {self.action} {self.msg_id or self.db_id or ''} @ {self.created_at:%Y-%m-%d %H:%M:%S}"

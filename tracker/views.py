@@ -71,6 +71,7 @@ from tracker.models import (
     Message,
     ThreadTracking,
     UnresolvedCompany,
+    AuditEvent,
 )
 from .forms_company import CompanyEditForm
 
@@ -972,11 +973,61 @@ def label_companies(request):
                                             "source": "reingest_company",
                                             "msg_id": msg_info["msg_id"],
                                             "company": selected_company.name if selected_company else None,
+                                            "company_id": selected_company.id if selected_company else None,
+                                            "thread_id": msg_info.get("thread_id"),
+                                            "db_id": msg_info.get("id"),
+                                            "pid": os.getpid(),
                                         }
                                         with open(audit_path, "a", encoding="utf-8") as af:
-                                            af.write(json.dumps(entry) + "\n")
-                                    except Exception:
+                                            af.write(json.dumps(entry, ensure_ascii=False) + "\n")
+                                        # Also persist to DB for easier querying
+                                        try:
+                                            AuditEvent.objects.create(
+                                                user=entry.get("user"),
+                                                action=entry.get("action"),
+                                                source=entry.get("source"),
+                                                msg_id=entry.get("msg_id"),
+                                                db_id=entry.get("db_id"),
+                                                thread_id=entry.get("thread_id"),
+                                                company_id=entry.get("company_id"),
+                                                details=json.dumps(entry, ensure_ascii=False),
+                                                pid=entry.get("pid"),
+                                            )
+                                        except Exception:
+                                            logger.exception("Failed to write AuditEvent DB record for ui_reingest_clear")
+                                    except Exception as e:
+                                        # Include stack trace in logger; also write a minimal audit entry with error
                                         logger.exception("Failed to write audit log for UI reingest clear")
+                                        try:
+                                            import traceback
+
+                                            audit_path = Path("logs") / "clear_reviewed_audit.log"
+                                            audit_path.parent.mkdir(parents=True, exist_ok=True)
+                                            entry = {
+                                                "ts": now().isoformat(),
+                                                "user": request.user.username if hasattr(request, "user") else "unknown",
+                                                "action": "ui_reingest_clear",
+                                                "source": "reingest_company",
+                                                "msg_id": msg_info["msg_id"],
+                                                "error": str(e),
+                                                "trace": traceback.format_exc(),
+                                            }
+                                            with open(audit_path, "a", encoding="utf-8") as af:
+                                                af.write(json.dumps(entry, ensure_ascii=False) + "\n")
+                                            try:
+                                                AuditEvent.objects.create(
+                                                    user=entry.get("user"),
+                                                    action=entry.get("action"),
+                                                    source=entry.get("source"),
+                                                    msg_id=entry.get("msg_id"),
+                                                    details=json.dumps(entry, ensure_ascii=False),
+                                                    error=entry.get("error"),
+                                                    trace=entry.get("trace"),
+                                                )
+                                            except Exception:
+                                                logger.exception("Failed to write fallback AuditEvent DB record for ui_reingest_clear")
+                                        except Exception:
+                                            logger.exception("Also failed to write error audit for UI reingest clear")
 
                                     # Suppress auto-mark-reviewed during this UI-initiated re-ingest
                                     try:
@@ -2525,11 +2576,48 @@ def label_messages(request):
                                     "source": "reingest_selected",
                                     "db_id": db_id,
                                     "msg_id": gmail_msg_id,
+                                    "thread_id": msg.thread_id if msg else None,
+                                    "company_id": msg.company.id if getattr(msg, "company", None) else None,
+                                    "pid": os.getpid(),
                                 }
                                 with open(audit_path, "a", encoding="utf-8") as af:
-                                    af.write(json.dumps(entry) + "\n")
-                            except Exception:
+                                    af.write(json.dumps(entry, ensure_ascii=False) + "\n")
+                                # Also persist to DB for easier querying
+                                try:
+                                    AuditEvent.objects.create(
+                                        user=entry.get("user"),
+                                        action=entry.get("action"),
+                                        source=entry.get("source"),
+                                        msg_id=entry.get("msg_id"),
+                                        db_id=entry.get("db_id"),
+                                        thread_id=entry.get("thread_id"),
+                                        company_id=entry.get("company_id"),
+                                        details=json.dumps(entry, ensure_ascii=False),
+                                        pid=entry.get("pid"),
+                                    )
+                                except Exception:
+                                    logger.exception("Failed to write AuditEvent DB record for ui_reingest_clear (selected)")
+                            except Exception as e:
                                 logger.exception("Failed to write audit log for UI reingest clear (selected)")
+                                try:
+                                    import traceback
+
+                                    audit_path = Path("logs") / "clear_reviewed_audit.log"
+                                    audit_path.parent.mkdir(parents=True, exist_ok=True)
+                                    entry = {
+                                        "ts": now().isoformat(),
+                                        "user": request.user.username if hasattr(request, "user") else "unknown",
+                                        "action": "ui_reingest_clear",
+                                        "source": "reingest_selected",
+                                        "db_id": db_id,
+                                        "msg_id": gmail_msg_id,
+                                        "error": str(e),
+                                        "trace": traceback.format_exc(),
+                                    }
+                                    with open(audit_path, "a", encoding="utf-8") as af:
+                                        af.write(json.dumps(entry, ensure_ascii=False) + "\n")
+                                except Exception:
+                                    logger.exception("Also failed to write error audit for UI reingest clear (selected)")
 
                             # Suppress auto-mark-reviewed during this UI-initiated re-ingest
                             try:

@@ -344,6 +344,25 @@ def predict_with_fallback(
         if body:
             print(f"[DEBUG predict_with_fallback] body first 500 chars: {body[:500]}")
 
+    # Safety override: If ML strongly predicts a head_hunter/referral but the
+    # sender domain maps to a known company, this is likely a company job-alert
+    # or mailing (not a recruiter outreach). Treat these as 'noise' instead of
+    # head_hunter/referral to reduce false positives (e.g., career mailers).
+    try:
+        ml_label = (ml.get("label") if isinstance(ml, dict) else None)
+    except Exception:
+        ml_label = None
+    if ml_label in ("head_hunter", "referral"):
+        d = (sender_domain or "").lower()
+        try:
+            if d and _map_company_by_domain(d):
+                if DEBUG:
+                    print(f"[DEBUG predict_with_fallback] Overriding ML '{ml_label}' -> 'noise' because domain maps to known company: {d}")
+                return {"label": "noise", "confidence": 1.0, "fallback": "ml_domain_company_override"}
+        except Exception:
+            # If domain-mapping fails for any reason, fall through to normal logic
+            pass
+
     # (scheduling-language authoritative override removed — revert to earlier behavior)
 
     # If no rule matched but the sender/domain or body contains ATS/company

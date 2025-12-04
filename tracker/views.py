@@ -948,7 +948,45 @@ def label_companies(request):
                             for msg_info in company_messages[:1000]:  # Limit to avoid timeout
                                 try:
                                     old_label = msg_info['ml_label']
-                                    ingest_message(service, msg_info['msg_id'])
+                                    # Clear reviewed flag for messages reingested from the UI
+                                    try:
+                                        mobj = Message.objects.filter(msg_id=msg_info['msg_id']).first()
+                                        if mobj:
+                                            mobj.reviewed = False
+                                            mobj.save(update_fields=['reviewed'])
+                                            # Also clear ThreadTracking reviewed state for the thread
+                                            if mobj.thread_id:
+                                                ThreadTracking.objects.filter(thread_id=mobj.thread_id).update(reviewed=False)
+                                    except Exception:
+                                        # Best-effort: continue even if clearing fails
+                                        logger.exception(f"Failed to clear reviewed for {msg_info['msg_id']}")
+
+                                    # Audit: record UI-initiated clear for traceability (batch/company reingest)
+                                    try:
+                                        audit_path = Path("logs") / "clear_reviewed_audit.log"
+                                        audit_path.parent.mkdir(parents=True, exist_ok=True)
+                                        entry = {
+                                            "ts": now().isoformat(),
+                                            "user": request.user.username if hasattr(request, "user") else "unknown",
+                                            "action": "ui_reingest_clear",
+                                            "source": "reingest_company",
+                                            "msg_id": msg_info["msg_id"],
+                                            "company": selected_company.name if selected_company else None,
+                                        }
+                                        with open(audit_path, "a", encoding="utf-8") as af:
+                                            af.write(json.dumps(entry) + "\n")
+                                    except Exception:
+                                        logger.exception("Failed to write audit log for UI reingest clear")
+
+                                    # Suppress auto-mark-reviewed during this UI-initiated re-ingest
+                                    try:
+                                        os.environ["SUPPRESS_AUTO_REVIEW"] = "1"
+                                        ingest_message(service, msg_info['msg_id'])
+                                    finally:
+                                        try:
+                                            del os.environ["SUPPRESS_AUTO_REVIEW"]
+                                        except Exception:
+                                            pass
                                     
                                     # Check if label changed
                                     updated_msg = Message.objects.get(msg_id=msg_info['msg_id'])
@@ -2340,7 +2378,8 @@ def label_messages(request):
                     try:
                         msg = Message.objects.get(pk=msg_id)
                         # Use centralized helper to save+propagate label changes
-                        label_message_and_propagate(msg, bulk_label, confidence=1.0)
+                        # This is a manual/admin action — allow overwriting reviewed flags
+                        label_message_and_propagate(msg, bulk_label, confidence=1.0, overwrite_reviewed=True)
                         if msg.thread_id:
                             touched_threads.add(msg.thread_id)
                         updated_count += 1
@@ -2466,8 +2505,41 @@ def label_messages(request):
                             msg = Message.objects.get(pk=db_id)
                             gmail_msg_id = msg.msg_id
 
-                            # Re-ingest from Gmail
-                            result = ingest_message(service, gmail_msg_id)
+                            # Clear reviewed flag when re-ingesting from the Label Messages UI
+                            try:
+                                msg.reviewed = False
+                                msg.save(update_fields=["reviewed"])
+                                if msg.thread_id:
+                                    ThreadTracking.objects.filter(thread_id=msg.thread_id).update(reviewed=False)
+                            except Exception:
+                                logger.exception(f"Failed to clear reviewed for db id {db_id}")
+
+                            # Audit: record UI-initiated clear for traceability (selected reingest)
+                            try:
+                                audit_path = Path("logs") / "clear_reviewed_audit.log"
+                                audit_path.parent.mkdir(parents=True, exist_ok=True)
+                                entry = {
+                                    "ts": now().isoformat(),
+                                    "user": request.user.username if hasattr(request, "user") else "unknown",
+                                    "action": "ui_reingest_clear",
+                                    "source": "reingest_selected",
+                                    "db_id": db_id,
+                                    "msg_id": gmail_msg_id,
+                                }
+                                with open(audit_path, "a", encoding="utf-8") as af:
+                                    af.write(json.dumps(entry) + "\n")
+                            except Exception:
+                                logger.exception("Failed to write audit log for UI reingest clear (selected)")
+
+                            # Suppress auto-mark-reviewed during this UI-initiated re-ingest
+                            try:
+                                os.environ["SUPPRESS_AUTO_REVIEW"] = "1"
+                                result = ingest_message(service, gmail_msg_id)
+                            finally:
+                                try:
+                                    del os.environ["SUPPRESS_AUTO_REVIEW"]
+                                except Exception:
+                                    pass
                             if result:
                                 success_count += 1
                             else:
@@ -2495,6 +2567,35 @@ def label_messages(request):
                 messages.warning(request, "⚠️ Please select messages to re-ingest")
 
             # Redirect to refresh the page with current filters
+            return redirect(request.get_full_path())
+
+        elif action == "clear_reviewed":
+            # Clear the reviewed flag for selected messages so they can be re-ingested
+            selected_ids = request.POST.getlist("selected_messages")
+
+            if selected_ids:
+                # Update Message.reviewed=False
+                updated_count = Message.objects.filter(pk__in=selected_ids).update(reviewed=False)
+
+                # Also clear ThreadTracking.reviewed for affected threads
+                thread_ids = (
+                    Message.objects.filter(pk__in=selected_ids)
+                    .exclude(thread_id__isnull=True)
+                    .values_list("thread_id", flat=True)
+                )
+                if thread_ids:
+                    apps_updated = ThreadTracking.objects.filter(thread_id__in=list(thread_ids)).update(reviewed=False)
+                else:
+                    apps_updated = 0
+
+                messages.success(
+                    request,
+                    f"✅ Cleared reviewed flag for {updated_count} message(s)"
+                    + (f" and {apps_updated} application(s)" if apps_updated else ""),
+                )
+            else:
+                messages.warning(request, "⚠️ Please select one or more messages to clear review state")
+
             return redirect(request.get_full_path())
 
     # Get pagination parameters

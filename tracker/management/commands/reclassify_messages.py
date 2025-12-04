@@ -96,14 +96,15 @@ class Command(BaseCommand):
                         msg.company = None
                         msg.company_source = ""
                         if label_message_and_propagate:
-                            label_message_and_propagate(msg, new_label, float(new_conf))
+                            # Respect the CLI flag --overwrite-reviewed when applying labels
+                            label_message_and_propagate(msg, new_label, float(new_conf), overwrite_reviewed=overwrite_reviewed)
                         else:
                             msg.ml_label = new_label
                             msg.confidence = new_conf
                             msg.save(update_fields=["ml_label", "confidence", "company", "company_source"])
                     else:
                         if label_message_and_propagate:
-                            label_message_and_propagate(msg, new_label, float(new_conf))
+                            label_message_and_propagate(msg, new_label, float(new_conf), overwrite_reviewed=overwrite_reviewed)
                         else:
                             msg.ml_label = new_label
                             msg.confidence = new_conf

@@ -57,6 +57,7 @@ class Command(BaseCommand):
             writer.writerow([
                 "message_id",
                 "thread_id",
+                "timestamp",
                 "reviewed",
                 "subject",
                 "old_label",
@@ -72,16 +73,40 @@ class Command(BaseCommand):
                 new_conf = result.get("confidence", 0.0)
                 method = result.get("method", "unknown")
 
+                # Trim/normalize values before writing to CSV
+                subject_val = (msg.subject or "").strip()
+                old_label_val = (msg.ml_label or "").strip()
+                old_conf_val = f"{(msg.confidence or 0.0):.2f}"
+                new_label_val = (new_label or "").strip()
+                new_conf_val = f"{new_conf:.2f}"
+                method_val = (method or "").strip()
+                # thread_id may be a string or derived from related thread
+                thread_id_val = ""
+                if hasattr(msg, "thread_id") and msg.thread_id is not None:
+                    thread_id_val = str(msg.thread_id).strip()
+                else:
+                    thread_obj = getattr(msg, "thread", None)
+                    if thread_obj is not None:
+                        thread_id_val = str(getattr(thread_obj, "id", "")).strip()
+
+                # timestamp (ISO format)
+                ts_val = ""
+                try:
+                    ts_val = msg.timestamp.isoformat().strip() if getattr(msg, "timestamp", None) is not None else ""
+                except Exception:
+                    ts_val = str(getattr(msg, "timestamp", "")).strip()
+
                 writer.writerow([
                     msg.id,
-                    msg.thread_id if hasattr(msg, "thread_id") else getattr(msg, "thread", None) and msg.thread.id,
-                    bool(msg.reviewed),
-                    msg.subject,
-                    msg.ml_label or "",
-                    f"{(msg.confidence or 0.0):.2f}",
-                    new_label,
-                    f"{new_conf:.2f}",
-                    method,
+                    thread_id_val,
+                    ts_val,
+                    str(bool(msg.reviewed)),
+                    subject_val,
+                    old_label_val,
+                    old_conf_val,
+                    new_label_val,
+                    new_conf_val,
+                    method_val,
                 ])
 
                 if i % 200 == 0:

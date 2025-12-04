@@ -87,7 +87,8 @@ class Command(BaseCommand):
             try:
                 m.reviewed = True
                 if label_message_and_propagate:
-                    label_message_and_propagate(m, "head_hunter", confidence=1.0)
+                    # We're setting reviewed and the label together; force the update
+                    label_message_and_propagate(m, "head_hunter", confidence=1.0, overwrite_reviewed=True)
                 else:
                     m.ml_label = "head_hunter"
                     m.save(update_fields=["ml_label", "reviewed"])

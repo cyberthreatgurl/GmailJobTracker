@@ -40,6 +40,8 @@ class Command(BaseCommand):
             "parsed": parsed,
             "ml_label": ml_label,
             "ml_confidence": ml_conf,
+            # Final_label is the parser's effective label after ML+rules fallback
+            "final_label": parsed.get("label"),
             "header_hints": header_hints,
             "body_preview": body[:800] + ("..." if len(body) > 800 else ""),
         }

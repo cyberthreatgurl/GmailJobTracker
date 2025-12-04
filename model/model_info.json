@@ -1,5 +1,5 @@
 {
-  "trained_on": "2025-12-02T21:38:35.061691",
+  "trained_on": "2025-12-04T00:49:55.681751",
   "labels": [
     "head_hunter",
     "interview_invite",
@@ -9,8 +9,8 @@
     "referral",
     "rejection"
   ],
-  "num_samples": 6330,
-  "total_features": 45978,
+  "num_samples": 6338,
+  "total_features": 45985,
   "meaningful_features_sample": [
     "06may19",
     "06may19 ref",

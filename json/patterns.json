@@ -14,22 +14,7 @@
       "\\bconfirmation\\b.*\\binterview\\b",
       "\\byour\\sinterview\\sis\\sscheduled\\b",
       "\\byou'?ve\\sscheduled\\b.*\\binterview\\b",
-      "\\binterview\\sconfirmed\\b",
-      "\\bresponse\\srequested\\b",
-      "\\bpress\\sforward\\swith\\b",
-      "\\bdiscuss\\sthe\\sopportunity\\b"
-    ],
-    "application": [
-      "^Indeed\\sApplication:\\s*",
-      "acknowledge\\sthes\\sreceipt",
-      "for\\sapplying",
-      "received\\syour\\sapplication",
-      "your\\sapplication\\s.*?has\\sbeen\\sreceived",
-      "application\\s.*?has\\sbeen\\sreceived",
-      "thank\\syou\\sfor\\syour\\sapplication",
-      "thanks\\sfor\\syour\\sapplication\\b",
-      "will\\sbe\\sreviewed",
-      "successfully\\ssubmitted",
+      
       "\\bthank\\syou\\sfor\\ssubmitting\\b",
       "\\bapplication\\ssubmitted\\b",
       "\\bsubmitted\\b.*\\bapplication\\b",
@@ -60,7 +45,15 @@
       "\\byour.*\\sjob\\sapplication\\b",
       "\\bjob\\sapplication\\sfor\\b",
       "\\bthank\\syou\\sfrom\\b"
-    ],
+        ,
+        "\\bwould\\s+like\\s+to\\s+discuss\\b",
+        "\\blet\\s+me\\s+know\\s+when\\s+you\\s+(?:would\\s+)?(?:be\\s+)?available\\b",
+        "\\blet\\s+me\\s+know\\s+when\\s+you('?re|are)\\s+available\\b",
+        "\\bavailable\\s+for\\s+(?:a\\s+)?(?:call|phone\\s+call|conversation)\\b",
+        "\\bschedule\\s+(?:a\\s+)?(?:call|time|conversation)\\b",
+        "\\bwould\\s+like\\s+to\\s+discuss\\s+the\\s+position\\b",
+        "\\bi\\s+would\\s+like\\s+to\\s+discuss\\b"
+      ],
     "rejection": [
       "another\\scandidate\\shas\\sbeen\\sselected",
       "\\sregret\\s",
@@ -114,22 +107,107 @@
       "\\blogin\\scode\\b",
       "\\baccess\\scode\\b",
       "\\breset\\syour\\spassword\\s"
-    ],
+        ,
+        "\\bList-?Unsubscribe\\b",
+        "\\blist-?id\\b",
+        "substack\\.com"
+      ],
     "referral": [
-      "(\\breferral\\b| \\breferred\\b|\\brefer\\b|\\brecommendation\\b|\\brecommended\\b|introduction\\b|\\sconnect\\syou\\swith\\b |\\bconnecting\\syou\\swith\\b)"
+      "(\\breferral\\b| \\breferred\\b|\\brefer\\b|\\brecommendation\\b|\\brecommended\\b|introduction\\b|\\sconnect\\syou\\swith\\b|\\bconnecting\\syou\\swith\\b)",
+      "\\breferral\\b.*\\bbonus\\b",
+      "(\\brefer\\b|\\breferred\\b)(?s:.*?)(?:\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}\\b|\\b\\d{3}[-.\\s]\\d{3}[-.\\s]\\d{4}\\b)",
+      "\\b(referred to you by|referred by|referral from|Referral from)\\b"
     ],
     "head_hunter": [
-      "\\b(seeking|urgent\\sneed|urgent\\shiring|came\\sacross|direct\\shire|found\\syour\\sresume|matches\\syour\\sprofile)\\b",
-      "\\blooking\\sfor\\s(candidates|someone|a\\s|an\\s)",
-      "\\b(contractual assignment)\\b|(looking for candidates)\\b|\\b(is seeking)\\b"
+        "(?i)\\b(?:recruiter|recruiting|recruitment(?: team| consultant| agency)?|head[- ]hunter|talent acquisition|talent-acquisition|sourcing)\\b",
+      "(?i)\\b(?:found your (?:resume|profile)|saw your (?:resume|profile) on LinkedIn|via LinkedIn message|I\\s+found\\s+your\\s+profile)\\b",
+      "(?i)\\b(?:opportunity|role|position|opening)\\b.*\\b(?:recruiter|talent acquisition|headhunter|sourcing)\\b",
+      "(?i)\\blooking\\sfor\\s(?:candidates|someone|a\\s|an\\s)\\b",
+      "(?i)\\brecruit(ment|er|ing|ment\\sexecutive)?\\b",
+      "(?i)\\b(?:sr\\s+recruit|recruitment\\s+executive|integrated\\s+resources)\\b",
+      "(?i)\\b(?:recruiter|recruiting|talent acquisition|headhunter|sourcing)\\b(?s:.*?)(?:\\b\\d{3}[-.\\s]\\d{3}[-.\\s]\\d{4}\\b|mailto:|\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}\\b|LinkedIn|via LinkedIn)"
     ],
-    "follow_up": [
-      "just\\schecking\\sin",
-      "following\\sup",
-      "wanted\\sto\\sfollow",
-      "any\\supdate\\son\\smy\\sapplication",
-      "reaching\\sout\\sagain"
-    ],
+      
+    "message_label_excludes": {
+      "head_hunter": [
+        "\\bnewsletter\\b",
+        "\\bdigest\\b",
+        "\\bunsubscribe\\b",
+        "\\bweekly\\b",
+        "\\bdaily\\b",
+        "\\breport\\b",
+        "\\breceipt\\b",
+        "\\bnew\\s+sign-?in\\b",
+        "\\blatest\\s+issue\\b",
+        "\\bpromo\\b",
+        "\\bsubscription\\b",
+        "\\bbreaking\\b",
+        "\\bnews:|\\bNEWS:\b",
+        "^\\s*(re:|fwd:|fw:)\\s*$",
+        "\\b(ticket|receipt|registration|invoice|payment|appointment|televisit|insurance|coverage)\\b",
+        "\\busa?jobs\\b","Daily Saved Search","Saved Search Results",
+        "\\bwe\\s+have\\s+received\\s+your\\s+application\\b",
+        "\\bwe('?ve| have)\\s+received\\s+your\\s+application\\b",
+        "\\bthank\\s+you\\s+for\\s+applying\\b",
+        "\\byour\\s+application\\s+(?:has\\s+been\\s+received|has\\s+been\\s+submitted|was\\s+received)\\b",
+        "\\bthis\\s+is\\s+an\\s+automated\\s+email\\b",
+        "\\bdo\\s+not\\s+reply\\b",
+        "\\bworkday\\b",
+        "\\bmyworkday\\b",
+        "\\btalent\\.icims\\b",
+        "\\bindeed\\b",
+        "\\b(list-|List-)Unsubscribe\\b",
+        "\\bOne-Click\\b"
+      ],
+      "referral": [
+        "\\bnewsletter\\b",
+        "\\bdigest\\b",
+        "\\bunsubscribe\\b",
+        "\\bweekly\\b",
+        "\\bdaily\\b",
+        "\\breport\\b",
+        "\\breceipt\\b",
+        "\\b(mediation|case|v\\.|hearing|OPM|brunson v\\.|shaw v\\.|court|complaint|formal complaint)\\b",
+        "\\b(ticket|receipt|registration|invoice|payment|appointment|televisit|insurance|coverage)\\b",
+        "^\\s*(re:|fwd:|fw:)\\s*[A-Z][a-z]{1,20}\\s*$"
+      ],
+      "rejection": [
+        "\\bList-?Unsubscribe\\b",
+        "\\bOne-Click\\b",
+        "\\bworkday\\b",
+        "\\bmyworkday\\b",
+        "\\b(talent\\.|talent@|talent\\.)icims\\b",
+        "\\b(icims\\.|talent\\.|talent)\\b",
+        "\\bthis\\s+is\\s+an\\s+automated\\s+email\\b",
+        "\\bdo\\s+not\\s+reply\\b",
+        "\\bwe\\s+have\\s+received\\s+your\\s+application\\b",
+        "\\bwe\\s+will\\s+review\\s+your\\s+application\\b",
+        "\\bwe\\s+will\\s+contact\\b",
+        "\\bwe\\s+will\\s+be\\s+in\\s+touch\\b",
+        "\\bthis\\s+email\\s+was\\s+intended\\s+for\\b",
+        "\\bthis\\s+is\\s+an\\s+automated\\s+response\\b",
+        "\\breply-?to:\\s*\\S*workday\\b",
+        "\\bthank\\s+you\\s+for\\s+applying\\b"
+      ],
+      "interview_invite": [
+        "\\bList-?Unsubscribe\\b",
+        "\\bOne-Click\\b",
+        "\\bworkday\\b",
+        "\\bmyworkday\\b",
+        "\\btalent\\.icims\\b",
+        "\\bthis\\s+is\\s+an\\s+automated\\s+email\\b",
+        "\\bthis\\s+is\\s+an\\s+automated\\s+response\\b",
+        "\\bdo\\s+not\\s+reply\\b",
+        "\\bwe\\s+have\\s+received\\s+your\\s+application\\b",
+        "\\bwe\\s+will\\s+review\\s+your\\s+application\\b",
+        "\\bwe\\s+will\\s+contact\\b",
+        "\\bwe\\s+will\\s+be\\s+in\\s+touch\\b",
+        "\\bthis\\s+email\\s+was\\s+intended\\s+for\\b",
+        "\\breply-?to:\\s*\\S*workday\\b",
+        "\\bthank\\s+you\\s+for\\s+applying\\b"
+      ]
+    },
+    
     "response": [
       "thank\\syou\\sfor\\sapplying",
       "received\\syour\\sresume",

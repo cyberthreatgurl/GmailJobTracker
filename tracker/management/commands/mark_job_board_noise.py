@@ -62,7 +62,8 @@ class Command(BaseCommand):
         for m, dom in to_change:
             try:
                 # Use central helper to save and propagate label change
-                label_message_and_propagate(m, "noise", confidence=0.99)
+                # This is an administrative bulk operation — allow overwriting reviewed messages
+                label_message_and_propagate(m, "noise", confidence=0.99, overwrite_reviewed=True)
                 updated_msgs += 1
                 # propagate helper will update existing ThreadTracking; count if present
                 if m.thread_id:

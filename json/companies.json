@@ -223,7 +223,21 @@
     "smartrecruiters.com",
     "successfactors.com",
     "talent.icims.com",
-    "ultipro.com"
+    "ultipro.com",
+    "workday.com",
+    "donotreply.workday.com",
+    "paylocity.com",
+    "mail.paylocity.com"
+  ],
+  "ats_domains_added_recently": [
+    "proofpoint.com",
+    "bah.com"
+  ],
+  "additional_ats_domains_added": [
+    "workday.com",
+    "donotreply.workday.com",
+    "paylocity.com",
+    "mail.paylocity.com"
   ],
   "headhunter_domains": [
     "agreeya.com",
@@ -345,6 +359,7 @@
     "pcaobus": "PCAOB",
     "Security Architect at Tyler Technologies": "Tyler Technologies",
     "SEI Application Update": "SEI",
+    "Sentinel One": "SentinelOne",
     "verizon": "Verizon",
     "viasat": "Viasat",
     "wearemetronome": "Metronome"

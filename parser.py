@@ -1,5 +1,8 @@
 """Gmail message parsing and ingestion engine.
 
+    # Respect caller's intention to suppress auto-review (e.g., re-ingest from UI)
+    if os.environ.get("SUPPRESS_AUTO_REVIEW", "").lower() in ("1", "true", "yes"):
+        reviewed = False
 This module handles the core email processing pipeline:
 - Extracts metadata (subject, sender, body, timestamps) from Gmail API responses
 - Applies hybrid ML + regex-based classification (interview/rejection/application/noise)
@@ -142,7 +145,7 @@ _MSG_LABEL_EXCLUDES = {
 }
 
 
-def rule_label(subject: str, body: str = "") -> str | None:
+def rule_label(subject: str, body: str = "", sender_domain: str | None = None) -> str | None:
     """Return a rule-based label from compiled regex patterns.
 
     Checks message text against label patterns in a prioritized order to
@@ -181,14 +184,44 @@ def rule_label(subject: str, body: str = "") -> str | None:
             print("[DEBUG rule_label] Forcing 'other' for incomplete application reminder")
         return "other"
 
+    # Early scheduling-language detection: if the message contains explicit
+    # scheduling/call-availability phrases, prefer `interview_invite` because
+    # many recruiter/company messages that ask to set a time are true interview
+    # invites even if they also include application-confirmation wording.
+    scheduling_rx_early = re.compile(
+        r"(?:please\s+)?(?:let\s+me\s+know\s+when\s+you(?:\s+would|(?:'re|\s+are))?\s+available)|"
+        r"available\s+for\s+(?:a\s+)?(?:call|phone\s+call|conversation|interview)|"
+        r"would\s+like\s+to\s+discuss\s+(?:the\s+position|this\s+role|the\s+opportunity)|"
+        r"schedule\s+(?:a\s+)?(?:call|time|conversation|interview)|"
+        r"would\s+you\s+be\s+available",
+        re.I | re.DOTALL,
+    )
+    if scheduling_rx_early.search(s):
+        if DEBUG:
+            print("[DEBUG rule_label] Early scheduling-language match -> interview_invite")
+        return "interview_invite"
+
+    # Explicit application-confirmation signals should be classified as job_application
+    # before we evaluate interview-like phrasing. This prevents ATS confirmation
+    # templates (which sometimes include ambiguous language) from being labeled
+    # as interview invites.
+    if re.search(
+        r"\b(we\s+have\s+received\s+your\s+application|we('?ve| have)\s+received\s+your\s+application|thank\s+you\s+for\s+applying|application\s+received|your\s+application\s+has\s+been\s+received|your\s+application\s+has\s+been\s+submitted|your\s+application\s+was\s+sent)\b",
+        s,
+        re.I | re.DOTALL,
+    ):
+        if DEBUG:
+            print("[DEBUG rule_label] Matched application-confirmation -> job_application")
+        return "job_application"
+
     for label in (
         "offer",          # Most specific: offer, compensation, package
         "head_hunter",    # Recruiter blasts
         "noise",          # Newsletters/OTP/promos
         "rejection",      # Negative outcomes
-        "job_application", # Application confirmations/status (moved before interview_invite)
+        "job_application", # Application confirmations/status (prefer application confirmations over generic interview phrasing)
         "interview_invite",  # Scheduling/availability
-        "other",          # Generic catch-all BEFORE job_application so reminders don't get escalated
+        "other",          # Generic catch-all
         "referral",       # Referrals/intros
         "ghosted",
         "blank",
@@ -199,7 +232,79 @@ def rule_label(subject: str, body: str = "") -> str | None:
                 excludes = _MSG_LABEL_EXCLUDES.get(label, [])
                 if any(ex.search(s) for ex in excludes):
                     continue
-                return label
+
+                # Conservative handling for head_hunter / referral labels.
+                # - For `head_hunter` require either a known headhunter sender domain
+                #   (from `companies.json`) OR explicit recruiter-contact evidence in
+                #   the message (email address, phone number, LinkedIn URL, or a
+                #   signature-like closing with a name). This reduces false
+                #   positives from job-board digests and automated postings.
+                # - For both labels: skip if sender domain appears to be an ATS,
+                #   job-board, or maps to a known company domain.
+                if label in ("head_hunter", "referral"):
+                    d = (sender_domain or "").lower()
+
+                    # Allow immediate return if domain is configured as headhunter
+                    try:
+                        if d and d in HEADHUNTER_DOMAINS:
+                            return label
+                    except Exception:
+                        # HEADHUNTER_DOMAINS may not be loaded yet at import-time;
+                        # fall through to conservative checks.
+                        pass
+
+                    # If domain maps to a company, or is an ATS/job-board, skip headhunter/referral
+                    try:
+                        if d and (_is_ats_domain(d) or d in JOB_BOARD_DOMAINS or _map_company_by_domain(d)):
+                            # treat as no match for head_hunter/referral here
+                            continue
+                    except Exception:
+                        pass
+
+                    # Additional strictness for `head_hunter`: require explicit
+                    # recruiter-contact evidence in the message when the sender
+                    # domain is not in the HEADHUNTER_DOMAINS list.
+                    if label == "head_hunter":
+                        contact_patterns = [
+                            r"[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}",
+                            r"\+?\d{1,2}[-.\s]?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}",
+                            r"linkedin\.com/(?:in|pub)/[A-Za-z0-9_\-]+",
+                        ]
+                        # simple signature cue: 'Regards/Best/Sincerely/Thanks' followed by a name
+                        signature_rx = re.compile(r"(?:Regards|Best regards|Sincerely|Best|Thanks|Thank you)[\s,]*[\r\n]+[A-Z][a-z]+", re.I)
+
+                        has_contact = any(re.search(p, s, re.I) for p in contact_patterns) or signature_rx.search(s)
+                        if not has_contact:
+                            # No contact evidence + not a known headhunter domain => skip
+                            continue
+                    else:
+                        # For `referral` we keep the previous conservative approach:
+                        # require explicit recruiter/referral language when sender domain
+                        # is not available or not in headhunter list.
+                        if not d:
+                            if not re.search(r"\b(referred|referral|referred by|referrer)\b", s, re.I):
+                                continue
+
+                    # Special case: if this match is a job_application but the
+                    # message contains scheduling language (call/availability/etc.),
+                    # prefer `interview_invite` because many ATS-confirmations are
+                    # purely submission notices while recruiter/company messages
+                    # that ask to schedule are effectively interview invites.
+                    if label == "job_application":
+                        scheduling_rx = re.compile(
+                            r"(?:please\s+)?(?:let\s+me\s+know\s+when\s+you(?:\s+would|(?:'re|\s+are))?\s+available)|"
+                            r"available\s+for\s+(?:a\s+)?(?:call|phone\s+call|conversation|interview)|"
+                            r"would\s+like\s+to\s+discuss\s+(?:the\s+position|this\s+role|the\s+opportunity)|"
+                            r"schedule\s+(?:a\s+)?(?:call|time|conversation|interview)|"
+                            r"would\s+you\s+be\s+available",
+                            re.I | re.DOTALL,
+                        )
+                        if scheduling_rx.search(s):
+                            if DEBUG:
+                                print("[DEBUG rule_label] Matched scheduling language -> returning interview_invite")
+                            return "interview_invite"
+
+                    return label
     return None
 
 
@@ -220,17 +325,94 @@ def predict_with_fallback(
     
     # CRITICAL: Always check for noise patterns FIRST (even if ML has high confidence)
     # Newsletters, digests, OTPs are definitive noise and should override any ML prediction
-    rl = rule_label(subject, body)
+    # Extract sender domain (if provided) and pass to rule-based checks
+    sender_domain = ""
+    if sender:
+        try:
+            parsed = parseaddr(sender)
+            email_addr = parsed[1] if len(parsed) == 2 else ""
+            m = re.search(r"@([A-Za-z0-9.-]+)$", email_addr)
+            sender_domain = m.group(1).lower() if m else ""
+        except Exception:
+            sender_domain = ""
+
+    rl = rule_label(subject, body, sender_domain)
     if DEBUG:
         print(f"[DEBUG predict_with_fallback] ML label={ml.get('label')}, confidence={conf}")
         print(f"[DEBUG predict_with_fallback] rule_label result={rl}")
         print(f"[DEBUG predict_with_fallback] body length={len(body)}, contains 'newsletter'={('newsletter' in body.lower())}, contains 'digest'={('digest' in body.lower())}")
         if body:
             print(f"[DEBUG predict_with_fallback] body first 500 chars: {body[:500]}")
+
+    # (scheduling-language authoritative override removed — revert to earlier behavior)
+
+    # If no rule matched but the sender/domain or body contains ATS/company
+    # cues AND the content appears application-related, treat as job_application.
+    # This allows ATS-generated confirmations to be authoritative even when
+    # no explicit application regex matched earlier.
+    if rl is None:
+        d = (sender_domain or "").lower()
+        body_lower = (body or "").lower()
+        try:
+            is_ats_or_company = bool(d and (_is_ats_domain(d) or d in globals().get('JOB_BOARD_DOMAINS', []) or _map_company_by_domain(d)))
+        except Exception:
+            is_ats_or_company = False
+
+        ats_markers = ["workday", "myworkday", "taleo", "icims", "indeed", "list-unsubscribe", "one-click", "reply-to"]
+        has_ats_marker = any(m in body_lower for m in ats_markers)
+
+        if (is_ats_or_company or has_ats_marker) and is_application_related(subject, body):
+            if DEBUG:
+                print("[DEBUG predict_with_fallback] OVERRIDING ML -> job_application because ATS/company cues + application patterns present (rl was None)")
+            return {"label": "job_application", "confidence": 1.0, "fallback": "rules_override"}
+
+    # Targeted override: If rules detect a job_application and sender/domain or
+    # body contain ATS/company cues (Workday, iCIMS, Indeed, List-Unsubscribe, etc.),
+    # treat the rule as authoritative and override ML. This is conservative and
+    # avoids letting ML label ATS-generated confirmations as head_hunter.
+    if rl == "job_application":
+        d = (sender_domain or "").lower()
+        body_lower = (body or "").lower()
+        try:
+            is_ats_or_company = bool(d and (_is_ats_domain(d) or d in globals().get('JOB_BOARD_DOMAINS', []) or _map_company_by_domain(d)))
+        except Exception:
+            is_ats_or_company = False
+
+        ats_markers = ["workday", "myworkday", "taleo", "icims", "indeed", "list-unsubscribe", "one-click", "reply-to"]
+        has_ats_marker = any(m in body_lower for m in ats_markers)
+
+        if is_ats_or_company or has_ats_marker:
+            if DEBUG:
+                print("[DEBUG predict_with_fallback] OVERRIDING ML for job_application due to ATS/company cues")
+            return {"label": "job_application", "confidence": 1.0, "fallback": "rules_override"}
+
+    # Targeted rule: If rules detected a rejection or an interview-invite
+    # coming from an ATS/company (or body contains ATS markers) AND the
+    # content is application-related, treat that rule as authoritative and
+    # override ML. This preserves the distinction between application
+    # lifecycle events (submission/rejection/interview) and recruiter
+    # outreach (head_hunter).
+    if rl in ("rejection", "interview_invite"):
+        d = (sender_domain or "").lower()
+        body_lower = (body or "").lower()
+        try:
+            is_ats_or_company = bool(d and (_is_ats_domain(d) or d in globals().get('JOB_BOARD_DOMAINS', []) or _map_company_by_domain(d)))
+        except Exception:
+            is_ats_or_company = False
+
+        ats_markers = ["workday", "myworkday", "taleo", "icims", "indeed", "list-unsubscribe", "one-click", "reply-to", "talent.icims"]
+        has_ats_marker = any(m in body_lower for m in ats_markers)
+
+        if (is_ats_or_company or has_ats_marker) and is_application_related(subject, body):
+            if DEBUG:
+                print(f"[DEBUG predict_with_fallback] OVERRIDING ML with rule {rl} because ATS cues + application patterns present")
+            return {"label": rl, "confidence": 1.0, "fallback": "rules_override"}
     
     # Allow 'other' to override when ML is trying to force job_application for reminder nudges
-    if rl in ("noise", "offer", "head_hunter", "other"):
-        # High-priority labels that should ALWAYS override ML
+    # Treat certain rule labels as high-priority authoritative signals
+    # These should override ML predictions even when ML confidence is high
+    # because regex-based patterns for these labels are intentionally conservative.
+    if rl in ("noise", "offer", "head_hunter", "other", "job_application", "rejection"):
         if DEBUG:
             print(f"[DEBUG predict_with_fallback] OVERRIDING ML with rules: {rl}")
         return {"label": rl, "confidence": 1.0, "fallback": "rules_override"}
@@ -1488,7 +1670,11 @@ def ingest_message(service, msg_id):
 
     subject = metadata["subject"]
     sender = metadata.get("sender", "")
-    result = predict_subject_type(subject, body, sender=sender)
+    # Use the rule-aware wrapper so authoritative regex rules take precedence
+    # over the raw ML prediction during ingestion/re-ingestion. This ensures
+    # that matches from `rule_label` (via `predict_with_fallback`) are
+    # respected when deciding final labels stored in the DB.
+    result = predict_with_fallback(predict_subject_type, subject, body, threshold=0.55, sender=sender)
 
     # Apply downgrade/upgrade logic for consistency with parse_subject
     subject_clean = re.sub(r"^(Re|RE|Fwd|FW|Fw):\s*", "", subject, flags=re.IGNORECASE).strip()
@@ -1859,6 +2045,16 @@ def ingest_message(service, msg_id):
     #  Skip logic (now safe to run after enrichment)
     existing = Message.objects.filter(msg_id=msg_id).first()
     if existing:
+        # Snapshot original fields so we can avoid overwriting reviewed messages
+        _ORIG_ML_LABEL = existing.ml_label
+        _ORIG_CONFIDENCE = getattr(existing, "confidence", None)
+        _ORIG_COMPANY = getattr(existing, "company", None)
+        _ORIG_COMPANY_SOURCE = getattr(existing, "company_source", None)
+        # Preserve the original reviewed state so we only restore originals
+        # when the message was actually reviewed before re-ingest.
+        _ORIG_REVIEWED = getattr(existing, "reviewed", False)
+        # Allow an explicit override via environment variable for batch jobs
+        OVERWRITE_REVIEWED = os.environ.get("OVERWRITE_REVIEWED", "").lower() in ("1", "true", "yes")
         if DEBUG:
             print(f"Updating existing message: {msg_id}")
             print(f"Stats: skipped++ (re-ingest)")
@@ -1990,7 +2186,20 @@ def ingest_message(service, msg_id):
             and company_obj is not None
             and is_valid_company(company)
         ):
-            existing.reviewed = True
+            # Allow callers to suppress auto-review (e.g., re-ingest from Label Messages UI)
+            if os.environ.get("SUPPRESS_AUTO_REVIEW", "").lower() not in ("1", "true", "yes"):
+                existing.reviewed = True
+        # If the message was manually reviewed and overwrite is not requested,
+        # restore original label/confidence/company to avoid accidental ML overwrites.
+        # Only restore original label/confidence/company if the message was
+        # already reviewed before re-ingest and overwrite is not requested.
+        if _ORIG_REVIEWED and not OVERWRITE_REVIEWED:
+            existing.ml_label = _ORIG_ML_LABEL
+            if _ORIG_CONFIDENCE is not None:
+                existing.confidence = _ORIG_CONFIDENCE
+            existing.company = _ORIG_COMPANY
+            existing.company_source = _ORIG_COMPANY_SOURCE
+
         existing.save()
         # Propagate ml_label to ThreadTracking so label changes reflect in dashboard
         try:

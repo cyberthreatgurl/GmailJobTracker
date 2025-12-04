@@ -60,6 +60,7 @@ Thumbs.db
 htmlcov/
 .tox/
 .hypothesis/
+review_reports/
 
 # Security
 .secrets*

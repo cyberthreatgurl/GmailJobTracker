@@ -1,0 +1,38 @@
+{
+  "ts": "20251203-005054",
+  "rows": [
+    {
+      "id": 317,
+      "thread_id": "199e99d47d1a101f",
+      "company_id": 321,
+      "company_name": "Google",
+      "sent_date": "2025-10-15",
+      "rejection_date": null,
+      "interview_date": "2025-10-15",
+      "ml_label": "noise",
+      "ml_confidence": 0.95
+    },
+    {
+      "id": 456,
+      "thread_id": "199725f708f5ae65",
+      "company_id": 321,
+      "company_name": "Google",
+      "sent_date": "2025-09-22",
+      "rejection_date": null,
+      "interview_date": "2025-09-22",
+      "ml_label": "noise",
+      "ml_confidence": 0.95
+    },
+    {
+      "id": 992,
+      "thread_id": "19a8299f83e19bc3",
+      "company_id": 321,
+      "company_name": "Google",
+      "sent_date": "2025-11-17",
+      "rejection_date": null,
+      "interview_date": "2025-11-24",
+      "ml_label": "noise",
+      "ml_confidence": 0.8961550004592279
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+    "urls": [
+        "https://cybermagazine.com/top10/top-10-cybersecurity-companies-to-watch"
+    ],
+    "domains_to_companies": {
+        "checkpoint.com": "Check Point",
+        "microsoft.com": "Microsoft"
+    }
+}

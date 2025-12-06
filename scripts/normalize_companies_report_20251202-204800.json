@@ -1,0 +1,16 @@
+{
+  "timestamp": "2025-12-02T20:48:00.239005Z",
+  "groups": [
+    {
+      "key": "icf",
+      "canonical": {
+        "id": 134,
+        "name": "ICF"
+      },
+      "others": [
+        {
+          "id": 645,
+          "name": "Icf",
+          "messages": 2,
+          "threadtracking": 0,
+          "preserve": 

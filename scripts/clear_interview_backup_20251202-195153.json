@@ -1,0 +1,98 @@
+[
+  {
+    "company_search": "Bowhead",
+    "company_id": 11,
+    "company_name": "Bowhead",
+    "threadtracking": {
+      "id": 15,
+      "thread_id": "1997b2a75c9c3396",
+      "sent_date": "2025-09-24",
+      "interview_date": "2025-09-24",
+      "ml_label": "rejection",
+      "ml_confidence": 0.95,
+      "status": "rejection",
+      "company_source": "subject_parse"
+    },
+    "messages": [
+      {
+        "id": 16,
+        "msg_id": "1997b2a75c9c3396",
+        "timestamp": "2025-09-24 10:00:02+00:00",
+        "ml_label": "rejection",
+        "subject": "Thank you for your application with UIC & the Bowhead Family of Companies"
+      }
+    ]
+  },
+  {
+    "company_search": "OpenAI",
+    "company_id": 150,
+    "company_name": "OpenAI",
+    "threadtracking": {
+      "id": 260,
+      "thread_id": "197a853b22c225d7",
+      "sent_date": "2025-06-25",
+      "interview_date": "2025-06-25",
+      "ml_label": "job_application",
+      "ml_confidence": 0.95,
+      "status": "ghosted",
+      "company_source": "body_regex"
+    },
+    "messages": [
+      {
+        "id": 327,
+        "msg_id": "197a853b22c225d7",
+        "timestamp": "2025-06-25 18:22:26+00:00",
+        "ml_label": "job_application",
+        "subject": "Thank you for applying to OpenAI"
+      }
+    ]
+  },
+  {
+    "company_search": "Rapid7",
+    "company_id": 8,
+    "company_name": "Rapid7",
+    "threadtracking": {
+      "id": 267,
+      "thread_id": "19746a2b0abbe2ee",
+      "sent_date": "2025-06-06",
+      "interview_date": "2025-06-06",
+      "ml_label": "rejection",
+      "ml_confidence": 0.95,
+      "status": "rejection",
+      "company_source": "subject_parse"
+    },
+    "messages": [
+      {
+        "id": 335,
+        "msg_id": "19746a2b0abbe2ee",
+        "timestamp": "2025-06-06 19:05:56+00:00",
+        "ml_label": "rejection",
+        "subject": "Thanks for applying to Rapid7! Here are the next steps..."
+      }
+    ]
+  },
+  {
+    "company_search": "Booz Allen Hamilton",
+    "company_id": 520,
+    "company_name": "Booz Allen Hamilton",
+    "threadtracking": {
+      "id": 280,
+      "thread_id": "1963cd26770895f4",
+      "sent_date": "2025-04-16",
+      "interview_date": "2025-04-16",
+      "ml_label": "job_application",
+      "ml_confidence": 0.95,
+      "status": "interview",
+      "company_source": "fix_mismatch"
+    },
+    "messages": [
+      {
+        "id": 353,
+        "msg_id": "1963cd26770895f4",
+        "timestamp": "2025-04-16 04:19:03+00:00",
+        "ml_label": "job_application",
+        "subject": "Thank you for applying to SentinelOne!"
+      }
+    ]
+  }
+]

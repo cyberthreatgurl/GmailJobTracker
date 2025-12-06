@@ -1,0 +1,122 @@
+[
+  {
+    "id": 4,
+    "thread_id": "199b9b7acdbe008d",
+    "company": "Radgov",
+    "ml_label": "head_hunter",
+    "ml_confidence": 0.95,
+    "interview_date": "2025-10-06"
+  },
+  {
+    "id": 125,
+    "thread_id": "199ba4a70421300e",
+    "company": "Infostride",
+    "ml_label": "head_hunter",
+    "ml_confidence": 0.95,
+    "interview_date": "2025-10-06"
+  },
+  {
+    "id": 139,
+    "thread_id": "199969b778b2e64b",
+    "company": "Peraton",
+    "ml_label": "head_hunter",
+    "ml_confidence": 0.95,
+    "interview_date": "2025-09-29"
+  },
+  {
+    "id": 231,
+    "thread_id": "199a56cdeb5a2178",
+    "company": "peoplentech.com",
+    "ml_label": "head_hunter",
+    "ml_confidence": 0.95,
+    "interview_date": "2025-10-02"
+  },
+  {
+    "id": 238,
+    "thread_id": "1992f6b9e6713aa6",
+    "company": "Mantech",
+    "ml_label": "other",
+    "ml_confidence": 0.95,
+    "interview_date": "2025-09-09"
+  },
+  {
+    "id": 255,
+    "thread_id": "198ae9a4b9423773",
+    "company": "Sentinel One",
+    "ml_label": "job_application",
+    "ml_confidence": 0.95,
+    "interview_date": "2025-08-15"
+  },
+  {
+    "id": 286,
+    "thread_id": "19584ffc083e2171",
+    "company": "Google",
+    "ml_label": "rejection",
+    "ml_confidence": 0.95,
+    "interview_date": "2025-03-11"
+  },
+  {
+    "id": 626,
+    "thread_id": "19562783c0921e01",
+    "company": "Google",
+    "ml_label": "job_application",
+    "ml_confidence": 0.95,
+    "interview_date": "2025-03-05"
+  },
+  {
+    "id": 627,
+    "thread_id": "195675a63b064ee8",
+    "company": "Google",
+    "ml_label": "referral",
+    "ml_confidence": 0.95,
+    "interview_date": "2025-03-05"
+  },
+  {
+    "id": 674,
+    "thread_id": "1997ca51e4e96433",
+    "company": "VARITE",
+    "ml_label": "head_hunter",
+    "ml_confidence": 0.95,
+    "interview_date": "2025-09-24"
+  },
+  {
+    "id": 809,
+    "thread_id": "1951ebbe374b83e2",
+    "company": "Nozomi",
+    "ml_label": "ghosted",
+    "ml_confidence": 0.95,
+    "interview_date": "2025-02-19"
+  },
+  {
+    "id": 922,
+    "thread_id": "19a697805f150455",
+    "company": "Endyna",
+    "ml_label": "rejection",
+    "ml_confidence": 0.6804328175874051,
+    "interview_date": "2025-11-18"
+  },
+  {
+    "id": 934,
+    "thread_id": "18348dcc34a25c66",
+    "company": "Google",
+    "ml_label": "job_application",
+    "ml_confidence": 0.95,
+    "interview_date": "2022-09-23"
+  },
+  {
+    "id": 936,
+    "thread_id": "18296bdad3897580",
+    "company": "Google",
+    "ml_label": "job_application",
+    "ml_confidence": 0.95,
+    "interview_date": "2022-08-22"
+  },
+  {
+    "id": 956,
+    "thread_id": "163d539128444d9e",
+    "company": "Google",
+    "ml_label": "job_application",
+    "ml_confidence": 0.95,
+    "interview_date": "2018-06-13"
+  }
+]

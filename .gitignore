@@ -80,8 +80,5 @@ backups/
 
 # Project-specific (keep these for now)
 remind/
-scripts/
 update_copilot/
 
-# Allowlist CI validation script inside scripts/
-!scripts/validate_companies.py

@@ -1,0 +1,594 @@
+[
+  {
+    "id": 4,
+    "thread_id": "199b9b7acdbe008d",
+    "company": "Radgov",
+    "interview_date": "2025-10-06",
+    "ml_label": "head_hunter",
+    "ml_confidence": 0.95
+  },
+  {
+    "id": 39,
+    "thread_id": "198c2bc2e3aef117",
+    "company": "Google",
+    "interview_date": "2025-08-28",
+    "ml_label": "other",
+    "ml_confidence": 0.5560629393587796
+  },
+  {
+    "id": 56,
+    "thread_id": "1980a2920decbec7",
+    "company": "Corelight",
+    "interview_date": "2025-07-14",
+    "ml_label": "ghosted",
+    "ml_confidence": 0.2821864696736886
+  },
+  {
+    "id": 64,
+    "thread_id": "19765a96d9affc7b",
+    "company": "Google",
+    "interview_date": "2025-06-13",
+    "ml_label": "interview_invite",
+    "ml_confidence": 0.4567961313226429
+  },
+  {
+    "id": 71,
+    "thread_id": "19721a9442bbf9e3",
+    "company": "Partner Forces",
+    "interview_date": "2025-05-30",
+    "ml_label": "other",
+    "ml_confidence": 0.40481344271471176
+  },
+  {
+    "id": 72,
+    "thread_id": "1972158319575408",
+    "company": "Google",
+    "interview_date": "2025-05-30",
+    "ml_label": "job_application",
+    "ml_confidence": 0.95
+  },
+  {
+    "id": 83,
+    "thread_id": "19681aacba3db87f",
+    "company": "Venture Global LNG",
+    "interview_date": "2025-04-29",
+    "ml_label": "other",
+    "ml_confidence": 0.2399672620335438
+  },
+  {
+    "id": 86,
+    "thread_id": "1967e0d712990fcf",
+    "company": "Google",
+    "interview_date": "2025-04-28",
+    "ml_label": "job_application",
+    "ml_confidence": 0.95
+  },
+  {
+    "id": 99,
+    "thread_id": "19595fce4940cd42",
+    "company": "Claroty",
+    "interview_date": "2025-03-14",
+    "ml_label": "job_application",
+    "ml_confidence": 0.26755858215304723
+  },
+  {
+    "id": 125,
+    "thread_id": "199ba4a70421300e",
+    "company": "Infostride",
+    "interview_date": "2025-10-06",
+    "ml_label": "head_hunter",
+    "ml_confidence": 0.95
+  },
+  {
+    "id": 139,
+    "thread_id": "199969b778b2e64b",
+    "company": "Peraton",
+    "interview_date": "2025-09-29",
+    "ml_label": "head_hunter",
+    "ml_confidence": 0.95
+  },
+  {
+    "id": 231,
+    "thread_id": "199a56cdeb5a2178",
+    "company": "peoplentech.com",
+    "interview_date": "2025-10-02",
+    "ml_label": "head_hunter",
+    "ml_confidence": 0.95
+  },
+  {
+    "id": 235,
+    "thread_id": "1992ef9753c078ca",
+    "company": "Mantech",
+    "interview_date": "2025-09-10",
+    "ml_label": "interview_invite",
+    "ml_confidence": 0.95
+  },
+  {
+    "id": 238,
+    "thread_id": "1992f6b9e6713aa6",
+    "company": "Mantech",
+    "interview_date": "2025-09-09",
+    "ml_label": "other",
+    "ml_confidence": 0.95
+  },
+  {
+    "id": 255,
+    "thread_id": "198ae9a4b9423773",
+    "company": "Sentinel One",
+    "interview_date": "2025-08-15",
+    "ml_label": "job_application",
+    "ml_confidence": 0.95
+  },
+  {
+    "id": 258,
+    "thread_id": "197ec2514902877e",
+    "company": "Google",
+    "interview_date": "2025-07-08",
+    "ml_label": "interview_invite",
+    "ml_confidence": 0.95
+  },
+  {
+    "id": 286,
+    "thread_id": "19584ffc083e2171",
+    "company": "Google",
+    "interview_date": "2025-03-11",
+    "ml_label": "rejection",
+    "ml_confidence": 0.95
+  },
+  {
+    "id": 317,
+    "thread_id": "199e99d47d1a101f",
+    "company": "Google",
+    "interview_date": "2025-10-15",
+    "ml_label": "noise",
+    "ml_confidence": 0.95
+  },
+  {
+    "id": 456,
+    "thread_id": "199725f708f5ae65",
+    "company": "Google",
+    "interview_date": "2025-09-22",
+    "ml_label": "noise",
+    "ml_confidence": 0.95
+  },
+  {
+    "id": 517,
+    "thread_id": "1995e8ca7c4de94c",
+    "company": "Google",
+    "interview_date": "2025-09-18",
+    "ml_label": "job_alert",
+    "ml_confidence": 0.95
+  },
+  {
+    "id": 602,
+    "thread_id": "19930fc2df097aad",
+    "company": "Google",
+    "interview_date": "2025-09-09",
+    "ml_label": "head_hunter",
+    "ml_confidence": 0.95
+  },
+  {
+    "id": 611,
+    "thread_id": "197144426b33118c",
+    "company": "Google",
+    "interview_date": "2025-05-28",
+    "ml_label": "interview_invite",
+    "ml_confidence": 0.6350461233529442
+  },
+  {
+    "id": 613,
+    "thread_id": "1962033106788cd5",
+    "company": "Google",
+    "interview_date": "2025-04-30",
+    "ml_label": "interview_invite",
+    "ml_confidence": 0.95
+  },
+  {
+    "id": 616,
+    "thread_id": "195aa2ac9dde6c3b",
+    "company": "Google",
+    "interview_date": "2025-04-04",
+    "ml_label": "job_application",
+    "ml_confidence": 0.95
+  },
+  {
+    "id": 618,
+    "thread_id": "195ba1c9bdca3862",
+    "company": "RAND",
+    "interview_date": "2025-03-21",
+    "ml_label": "other",
+    "ml_confidence": 0.95
+  },
+  {
+    "id": 622,
+    "thread_id": "1958113a72abdb8d",
+    "company": "Google",
+    "interview_date": "2025-03-13",
+    "ml_label": "interview_invite",
+    "ml_confidence": 0.6278864592862846
+  },
+  {
+    "id": 626,
+    "thread_id": "19562783c0921e01",
+    "company": "Google",
+    "interview_date": "2025-03-05",
+    "ml_label": "job_application",
+    "ml_confidence": 0.95
+  },
+  {
+    "id": 627,
+    "thread_id": "195675a63b064ee8",
+    "company": "Google",
+    "interview_date": "2025-03-05",
+    "ml_label": "referral",
+    "ml_confidence": 0.95
+  },
+  {
+    "id": 674,
+    "thread_id": "1997ca51e4e96433",
+    "company": "VARITE",
+    "interview_date": "2025-09-24",
+    "ml_label": "head_hunter",
+    "ml_confidence": 0.95
+  },
+  {
+    "id": 721,
+    "thread_id": "197565973ba1a9f8",
+    "company": "Google",
+    "interview_date": "2025-11-15",
+    "ml_label": "interview_invite",
+    "ml_confidence": 0.95
+  },
+  {
+    "id": 809,
+    "thread_id": "1951ebbe374b83e2",
+    "company": "Nozomi",
+    "interview_date": "2025-02-19",
+    "ml_label": "ghosted",
+    "ml_confidence": 0.95
+  },
+  {
+    "id": 838,
+    "thread_id": "19a173c6b0b6b52d",
+    "company": "Endyna",
+    "interview_date": "2025-10-24",
+    "ml_label": "interview_invite",
+    "ml_confidence": 0.95
+  },
+  {
+    "id": 893,
+    "thread_id": "19a46c30ea5d0b14",
+    "company": "Endyna",
+    "interview_date": "2025-11-15",
+    "ml_label": "job_application",
+    "ml_confidence": 0.95
+  },
+  {
+    "id": 897,
+    "thread_id": "19a5a28581712048",
+    "company": "Google",
+    "interview_date": "2025-11-13",
+    "ml_label": "interview_invite",
+    "ml_confidence": 0.95
+  },
+  {
+    "id": 922,
+    "thread_id": "19a697805f150455",
+    "company": "Endyna",
+    "interview_date": "2025-11-18",
+    "ml_label": "rejection",
+    "ml_confidence": 0.6804328175874051
+  },
+  {
+    "id": 923,
+    "thread_id": "19a73fc45d0d0f76",
+    "company": "Endyna",
+    "interview_date": "2025-11-18",
+    "ml_label": "interview_invite",
+    "ml_confidence": 0.3884871356070578
+  },
+  {
+    "id": 924,
+    "thread_id": "192f8bd40d68a549",
+    "company": "Google",
+    "interview_date": "2024-11-11",
+    "ml_label": "interview_invite",
+    "ml_confidence": 0.95
+  },
+  {
+    "id": 925,
+    "thread_id": "191ed574316a4cbb",
+    "company": "Google",
+    "interview_date": "2024-09-23",
+    "ml_label": "interview_invite",
+    "ml_confidence": 0.95
+  },
+  {
+    "id": 926,
+    "thread_id": "191284dcd606823b",
+    "company": "Google",
+    "interview_date": "2024-08-13",
+    "ml_label": "interview_invite",
+    "ml_confidence": 0.95
+  },
+  {
+    "id": 928,
+    "thread_id": "18eafa42fcb5095d",
+    "company": "Google",
+    "interview_date": "2024-04-12",
+    "ml_label": "interview_invite",
+    "ml_confidence": 0.95
+  },
+  {
+    "id": 929,
+    "thread_id": "18ba52995648e5f0",
+    "company": "Google",
+    "interview_date": "2023-11-14",
+    "ml_label": "other",
+    "ml_confidence": 0.7191711903707296
+  },
+  {
+    "id": 930,
+    "thread_id": "188b547d44c1a04e",
+    "company": "Google",
+    "interview_date": "2023-08-08",
+    "ml_label": "other",
+    "ml_confidence": 0.5839173285761562
+  },
+  {
+    "id": 931,
+    "thread_id": "1876c0a90e1c83e6",
+    "company": "Google",
+    "interview_date": "2023-06-09",
+    "ml_label": "other",
+    "ml_confidence": 0.826208738355969
+  },
+  {
+    "id": 934,
+    "thread_id": "18348dcc34a25c66",
+    "company": "Google",
+    "interview_date": "2022-09-23",
+    "ml_label": "job_application",
+    "ml_confidence": 0.95
+  },
+  {
+    "id": 935,
+    "thread_id": "182fed2af7f647de",
+    "company": "Google",
+    "interview_date": "2022-09-09",
+    "ml_label": "interview_invite",
+    "ml_confidence": 0.95
+  },
+  {
+    "id": 936,
+    "thread_id": "18296bdad3897580",
+    "company": "Google",
+    "interview_date": "2022-08-22",
+    "ml_label": "job_application",
+    "ml_confidence": 0.95
+  },
+  {
+    "id": 937,
+    "thread_id": "1822ea29b56d7e6a",
+    "company": "Google",
+    "interview_date": "2022-07-31",
+    "ml_label": "interview_invite",
+    "ml_confidence": 0.95
+  },
+  {
+    "id": 939,
+    "thread_id": "181904055209ad3d",
+    "company": "Google",
+    "interview_date": "2022-06-30",
+    "ml_label": "interview_invite",
+    "ml_confidence": 0.95
+  },
+  {
+    "id": 942,
+    "thread_id": "179a394332071fb2",
+    "company": "Google",
+    "interview_date": "2021-06-03",
+    "ml_label": "other",
+    "ml_confidence": 0.8130701005433622
+  },
+  {
+    "id": 943,
+    "thread_id": "177d08c4b80bac37",
+    "company": "Google",
+    "interview_date": "2021-03-02",
+    "ml_label": "interview_invite",
+    "ml_confidence": 0.95
+  },
+  {
+    "id": 944,
+    "thread_id": "177646c42a111370",
+    "company": "Google",
+    "interview_date": "2021-02-09",
+    "ml_label": "interview_invite",
+    "ml_confidence": 0.95
+  },
+  {
+    "id": 945,
+    "thread_id": "176d2beb9e5f0eaf",
+    "company": "Google",
+    "interview_date": "2021-01-15",
+    "ml_label": "interview_invite",
+    "ml_confidence": 0.95
+  },
+  {
+    "id": 946,
+    "thread_id": "1754c00fb300d5ba",
+    "company": "Google",
+    "interview_date": "2021-01-06",
+    "ml_label": "interview_invite",
+    "ml_confidence": 0.95
+  },
+  {
+    "id": 947,
+    "thread_id": "173d878be24cff8b",
+    "company": "Google",
+    "interview_date": "2020-08-17",
+    "ml_label": "interview_invite",
+    "ml_confidence": 0.95
+  },
+  {
+    "id": 950,
+    "thread_id": "170408a1fa52e758",
+    "company": "Google",
+    "interview_date": "2020-02-21",
+    "ml_label": "other",
+    "ml_confidence": 0.3983247730079458
+  },
+  {
+    "id": 951,
+    "thread_id": "16b89e330e25cc0c",
+    "company": "Google",
+    "interview_date": "2019-08-07",
+    "ml_label": "other",
+    "ml_confidence": 0.5479556293153888
+  },
+  {
+    "id": 952,
+    "thread_id": "16a697fc426f3d62",
+    "company": "Google",
+    "interview_date": "2019-07-17",
+    "ml_label": "other",
+    "ml_confidence": 0.7605835375547579
+  },
+  {
+    "id": 953,
+    "thread_id": "16bd8271200d31de",
+    "company": "Google",
+    "interview_date": "2019-07-17",
+    "ml_label": "interview_invite",
+    "ml_confidence": 0.95
+  },
+  {
+    "id": 955,
+    "thread_id": "164cc54250b807b3",
+    "company": "Google",
+    "interview_date": "2018-08-27",
+    "ml_label": "other",
+    "ml_confidence": 0.6607428577314063
+  },
+  {
+    "id": 956,
+    "thread_id": "163d539128444d9e",
+    "company": "Google",
+    "interview_date": "2018-06-13",
+    "ml_label": "job_application",
+    "ml_confidence": 0.95
+  },
+  {
+    "id": 957,
+    "thread_id": "1616d1a3efe6a93e",
+    "company": "Google",
+    "interview_date": "2018-02-14",
+    "ml_label": "interview_invite",
+    "ml_confidence": 0.95
+  },
+  {
+    "id": 959,
+    "thread_id": "15849b7d7696f4b8",
+    "company": "Google",
+    "interview_date": "2016-11-16",
+    "ml_label": "interview_invite",
+    "ml_confidence": 0.95
+  },
+  {
+    "id": 960,
+    "thread_id": "157bbab3f18f0d20",
+    "company": "Google",
+    "interview_date": "2016-10-20",
+    "ml_label": "interview_invite",
+    "ml_confidence": 0.95
+  },
+  {
+    "id": 961,
+    "thread_id": "15787d5241b1c3bb",
+    "company": "Google",
+    "interview_date": "2016-10-11",
+    "ml_label": "interview_invite",
+    "ml_confidence": 0.95
+  },
+  {
+    "id": 963,
+    "thread_id": "1535d977ed6dee4b",
+    "company": "Google",
+    "interview_date": "2016-03-16",
+    "ml_label": "interview_invite",
+    "ml_confidence": 0.95
+  },
+  {
+    "id": 964,
+    "thread_id": "151884db6238edb9",
+    "company": "Google",
+    "interview_date": "2015-12-17",
+    "ml_label": "interview_invite",
+    "ml_confidence": 0.95
+  },
+  {
+    "id": 967,
+    "thread_id": "14808885f9593b53",
+    "company": "Google",
+    "interview_date": "2014-08-31",
+    "ml_label": "interview_invite",
+    "ml_confidence": 0.95
+  },
+  {
+    "id": 968,
+    "thread_id": "14808b4470a45007",
+    "company": "Google",
+    "interview_date": "2014-08-31",
+    "ml_label": "interview_invite",
+    "ml_confidence": 0.95
+  },
+  {
+    "id": 970,
+    "thread_id": "14038a5b33ac9292",
+    "company": "Google",
+    "interview_date": "2013-08-08",
+    "ml_label": "interview_invite",
+    "ml_confidence": 0.95
+  },
+  {
+    "id": 971,
+    "thread_id": "13ef30a8728cd463",
+    "company": "Google",
+    "interview_date": "2013-06-19",
+    "ml_label": "interview_invite",
+    "ml_confidence": 0.95
+  },
+  {
+    "id": 976,
+    "thread_id": "12ba1204347306b7",
+    "company": "Google",
+    "interview_date": "2010-10-19",
+    "ml_label": "interview_invite",
+    "ml_confidence": 0.95
+  },
+  {
+    "id": 978,
+    "thread_id": "117141db1f6ca48f",
+    "company": "Google",
+    "interview_date": "2008-06-21",
+    "ml_label": "interview_invite",
+    "ml_confidence": 0.95
+  },
+  {
+    "id": 992,
+    "thread_id": "19a8299f83e19bc3",
+    "company": "Google",
+    "interview_date": "2025-11-24",
+    "ml_label": "interview_invite",
+    "ml_confidence": 0.8961550004592279
+  },
+  {
+    "id": 993,
+    "thread_id": "19ab7944937e30f6",
+    "company": "Endyna",
+    "interview_date": "2025-12-01",
+    "ml_label": "interview_invite",
+    "ml_confidence": 0.95
+  }
+]

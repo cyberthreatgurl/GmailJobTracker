@@ -1,0 +1,47 @@
+{
+  "timestamp": "20251202-202616",
+  "threshold": 0.7,
+  "total_with_interview_date": 61,
+  "flagged_count": 2,
+  "flagged": [
+    {
+      "id": 809,
+      "thread_id": "1951ebbe374b83e2",
+      "company_id": 457,
+      "company_name": "Nozomi",
+      "sent_date": "2025-02-19",
+      "interview_date": "2025-02-19",
+      "ml_label": "ghosted",
+      "ml_confidence": 0.95,
+      "status": "ghosted",
+      "messages_count": 1,
+      "message_labels": [
+        "head_hunter"
+      ],
+      "keep_reasons": [],
+      "flagged": true
+    },
+    {
+      "id": 922,
+      "thread_id": "19a697805f150455",
+      "company_id": 493,
+      "company_name": "Endyna",
+      "sent_date": "2025-11-11",
+      "interview_date": "2025-11-18",
+      "ml_label": "rejection",
+      "ml_confidence": 0.6804328175874051,
+      "status": "",
+      "messages_count": 6,
+      "message_labels": [
+        "rejection",
+        "other",
+        "other",
+        "other",
+        "other",
+        "other"
+      ],
+      "keep_reasons": [],
+      "flagged": true
+    }
+  ]
+}

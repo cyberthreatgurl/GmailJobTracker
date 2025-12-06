@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Ghosted Date Filter Independence</title>
+</head>
+<body>
+    <h1>Ghosted Count Test</h1>
+    <p>This simulates the dashboard behavior to verify ghosted count is independent of date filter.</p>
+    
+    <div>
+        <label>Date Range Filter:</label>
+        <input type="date" id="startDate" value="2025-10-01">
+        <input type="date" id="endDate" value="2025-11-05">
+        <button onclick="applyFilter()">Apply Filter</button>
+    </div>
+    
+    <div style="margin-top: 20px;">
+        <h3>Results:</h3>
+        <p>Applications (date-filtered): <span id="appCount">0</span></p>
+        <p>Rejections (date-filtered): <span id="rejCount">0</span></p>
+        <p><strong>Ghosted (ALWAYS ALL): <span id="ghostedCount">0</span></strong></p>
+    </div>
+
+    <script>
+        // Sample data
+        const applicationCompanies = [
+            { company_id: 1, company__name: "Company A", sent_date: "2025-10-15" },
+            { company_id: 2, company__name: "Company B", sent_date: "2025-09-15" },
+            { company_id: 3, company__name: "Company C", sent_date: "2025-11-01" }
+        ];
+
+        const rejectionCompanies = [
+            { company_id: 4, company__name: "Company D", rejection_date: "2025-10-20" },
+            { company_id: 5, company__name: "Company E", rejection_date: "2025-09-10" }
+        ];
+
+        const ghostedCompanies = [
+            { company_id: 6, company__name: "Ghosted F", sent_date: "2025-08-01" },
+            { company_id: 7, company__name: "Ghosted G", sent_date: "2025-07-01" },
+            { company_id: 8, company__name: "Ghosted H", sent_date: "2025-10-15" },
+            { company_id: 9, company__name: "Ghosted I", sent_date: "2025-11-01" }
+        ];
+
+        function toDayNumber(dateStr) {
+            if (!dateStr) return NaN;
+            const d = new Date(dateStr);
+            return isNaN(d.getTime()) ? NaN : Math.floor(d.getTime() / 86400000);
+        }
+
+        function applyFilter() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            const startNum = toDayNumber(startDate);
+            const endNum = toDayNumber(endDate);
+
+            // Filter applications by date
+            const applications = applicationCompanies.filter(item => {
+                const d = toDayNumber(item.sent_date);
+                return !isNaN(d) && !isNaN(startNum) && !isNaN(endNum) && d >= startNum && d <= endNum;
+            });
+
+            // Filter rejections by date
+            const rejections = rejectionCompanies.filter(item => {
+                const d = toDayNumber(item.rejection_date);
+                return !isNaN(d) && !isNaN(startNum) && !isNaN(endNum) && d >= startNum && d <= endNum;
+            });
+
+            // Ghosted: ALWAYS ALL (no date filter)
+            const ghosted = ghostedCompanies;
+
+            // Update display
+            document.getElementById('appCount').textContent = applications.length;
+            document.getElementById('rejCount').textContent = rejections.length;
+            document.getElementById('ghostedCount').textContent = ghosted.length;
+
+            console.log('Applications:', applications);
+            console.log('Rejections:', rejections);
+            console.log('Ghosted (all):', ghosted);
+        }
+
+        // Initialize
+        applyFilter();
+    </script>
+</body>
+</html>

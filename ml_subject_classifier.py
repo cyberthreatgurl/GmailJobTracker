@@ -28,27 +28,35 @@ COMPANY_VECTORIZER_PATH = os.path.join(MODEL_DIR, "vectorizer.pkl")
 COMPANY_LABEL_ENCODER_PATH = os.path.join(MODEL_DIR, "label_encoder.pkl")
 
 # --- Load whichever model is available ---
-if os.path.exists(MESSAGE_MODEL_PATH):
-    model = joblib.load(MESSAGE_MODEL_PATH)
-    subject_vectorizer = joblib.load(MESSAGE_SUBJECT_VECTORIZER_PATH)
-    body_vectorizer = joblib.load(MESSAGE_BODY_VECTORIZER_PATH)
-    label_encoder = joblib.load(MESSAGE_LABEL_ENCODER_PATH)
-    mode = "message"
-    print("🤖 Loaded message-level classifier.")
-elif os.path.exists(COMPANY_MODEL_PATH):
-    model = joblib.load(COMPANY_MODEL_PATH)
-    subject_vectorizer = joblib.load(COMPANY_VECTORIZER_PATH)
-    body_vectorizer = None  # company mode doesn't use separate body vec
-    label_encoder = joblib.load(COMPANY_LABEL_ENCODER_PATH)
-    mode = "company"
-    print("🤖 Loaded company-level classifier.")
-else:
+try:
+    if os.path.exists(MESSAGE_MODEL_PATH):
+        model = joblib.load(MESSAGE_MODEL_PATH)
+        subject_vectorizer = joblib.load(MESSAGE_SUBJECT_VECTORIZER_PATH)
+        body_vectorizer = joblib.load(MESSAGE_BODY_VECTORIZER_PATH)
+        label_encoder = joblib.load(MESSAGE_LABEL_ENCODER_PATH)
+        mode = "message"
+        print("🤖 Loaded message-level classifier.")
+    elif os.path.exists(COMPANY_MODEL_PATH):
+        model = joblib.load(COMPANY_MODEL_PATH)
+        subject_vectorizer = joblib.load(COMPANY_VECTORIZER_PATH)
+        body_vectorizer = None  # company mode doesn't use separate body vec
+        label_encoder = joblib.load(COMPANY_LABEL_ENCODER_PATH)
+        mode = "company"
+        print("🤖 Loaded company-level classifier.")
+    else:
+        model = None
+        subject_vectorizer = None
+        body_vectorizer = None
+        label_encoder = None
+        mode = None
+        print("No classifier found. Predictions will be skipped.")
+except (FileNotFoundError, EOFError, ValueError) as error:
     model = None
     subject_vectorizer = None
     body_vectorizer = None
     label_encoder = None
     mode = None
-    print("No classifier found. Predictions will be skipped.")
+    print(f"⚠️ Error loading classifier: {error}. Predictions will be skipped.")
 
 # Optional aliases
 _MODEL = model

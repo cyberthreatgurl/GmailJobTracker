@@ -65,8 +65,9 @@ python -m venv .venv
 pip install -r requirements.txt
 python -m spacy download en_core_web_sm
 
-# 3. Initialize database (Django models)
+# 3. Initialize database (Django models + legacy tables)
 python manage.py migrate
+python manage.py init_legacy_db
 
 # (Optional) Create an admin user for the dashboard
 python manage.py createsuperuser

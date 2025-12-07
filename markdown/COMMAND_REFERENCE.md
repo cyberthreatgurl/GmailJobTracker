@@ -11,6 +11,7 @@ All commands are run with: `python manage.py <command> [options]`
 ### 📧 Ingestion Commands
 
 #### `ingest_gmail`
+
 Fetch and process emails from Gmail API.
 
 ```bash
@@ -25,11 +26,13 @@ DEBUG=1 python manage.py ingest_gmail --days 7
 ```
 
 **Options**:
+
 - `--days N`: Number of days to fetch (default: 7)
 - `--message-id ID`: Re-ingest specific message by Gmail message ID
 - Environment variable `DEBUG=1`: Enable verbose logging
 
 **Output**:
+
 - Creates/updates `Message` and `ThreadTracking` records
 - Auto-creates `Company` records
 - Logs ignored messages to `IgnoredMessage`
@@ -38,6 +41,7 @@ DEBUG=1 python manage.py ingest_gmail --days 7
 ---
 
 #### `mark_ghosted`
+
 Mark applications as "ghosted" when no response after 14+ days.
 
 ```bash
@@ -45,6 +49,7 @@ python manage.py mark_ghosted
 ```
 
 **Logic**:
+
 - Finds `ThreadTracking` with label="application"
 - Checks `last_message_date` > 14 days ago
 - Updates label to "ghosted"
@@ -55,6 +60,7 @@ python manage.py mark_ghosted
 ### 🧹 Cleanup Commands
 
 #### `mark_newsletters_ignored` ⭐ **RECOMMENDED**
+
 Re-ingest messages using header analysis to identify and mark newsletters/bulk mail as ignored.
 
 ```bash
@@ -75,12 +81,14 @@ python manage.py mark_newsletters_ignored --batch-size 25
 ```
 
 **Options**:
+
 - `--dry-run`: Preview without making changes
 - `--delete-marked`: Delete from Message table after marking ignored
 - `--limit N`: Only check N most recent messages
 - `--batch-size N`: Process N messages per batch (default: 50)
 
 **Logic**:
+
 - Fetches full message with headers from Gmail API
 - Extracts `header_hints` (is_newsletter, is_bulk, is_noreply)
 - Re-ingests through `ingest_message()` which auto-ignores if newsletter/bulk
@@ -88,6 +96,7 @@ python manage.py mark_newsletters_ignored --batch-size 25
 - Optionally deletes from `Message` table
 
 **Output**:
+
 - Shows progress per batch
 - Reports: checked count, already ignored, newly ignored, deleted, errors
 - Safe to run multiple times (skips already ignored)
@@ -95,6 +104,7 @@ python manage.py mark_newsletters_ignored --batch-size 25
 ---
 
 #### `cleanup_newsletters`
+
 Direct deletion of newsletter/bulk messages (bypasses IgnoredMessage tracking).
 
 ```bash
@@ -112,11 +122,13 @@ python manage.py cleanup_newsletters --batch-size 100
 ```
 
 **Options**:
+
 - `--dry-run`: Preview without deleting
 - `--limit N`: Only check N most recent messages
 - `--batch-size N`: Gmail API batch size (default: 100)
 
 **Logic**:
+
 - Fetches headers from Gmail API
 - Identifies newsletters via `header_hints`
 - Directly deletes from `Message` and `ThreadTracking` tables
@@ -127,6 +139,7 @@ python manage.py cleanup_newsletters --batch-size 100
 ---
 
 #### `reclassify_messages`
+
 Re-run classification on existing messages using updated rules/ML.
 
 ```bash
@@ -134,6 +147,7 @@ python manage.py reclassify_messages
 ```
 
 **Logic**:
+
 - Iterates all `Message` records
 - Re-runs `predict_subject_type()` with current ML model
 - Re-runs `rule_label()` with current patterns
@@ -141,6 +155,7 @@ python manage.py reclassify_messages
 - Updates `ThreadTracking` labels
 
 **Use Cases**:
+
 - After updating classification rules
 - After retraining ML model
 - After adding new known companies
@@ -151,6 +166,7 @@ python manage.py reclassify_messages
 ### 🏢 Company Management Commands
 
 #### `export_companies`
+
 Export all companies to JSON file.
 
 ```bash
@@ -158,6 +174,7 @@ python manage.py export_companies
 ```
 
 **Output**: `json/companies.json` with structure:
+
 ```json
 {
   "known_companies": ["Microsoft", "Google", ...],
@@ -172,6 +189,7 @@ python manage.py export_companies
 ---
 
 #### `import_companies`
+
 Import companies from JSON file.
 
 ```bash
@@ -179,6 +197,7 @@ python manage.py import_companies json/companies.json
 ```
 
 **Logic**:
+
 - Merges with existing companies (no duplicates)
 - Updates domain mappings
 - Creates `Company` records if missing
@@ -186,6 +205,7 @@ python manage.py import_companies json/companies.json
 ---
 
 #### `export_labels`
+
 Export labeled messages for model training review.
 
 ```bash
@@ -193,6 +213,7 @@ python manage.py export_labels
 ```
 
 **Output**: CSV with columns:
+
 - `subject`, `body`, `sender`, `ml_label`, `confidence`, `reviewed`
 
 ---
@@ -202,6 +223,7 @@ python manage.py export_labels
 Located in project root or `scripts/` directory.
 
 ### `label_companies.py`
+
 Interactive label debugger and company management tool.
 
 ```bash
@@ -209,6 +231,7 @@ python label_companies.py
 ```
 
 **Features**:
+
 - View all companies with message counts
 - Test rule_label() with custom subjects
 - See which rule pattern matched (in priority order)
@@ -220,6 +243,7 @@ python label_companies.py
 ---
 
 ### `check_env.py`
+
 Verify environment setup and dependencies.
 
 ```bash
@@ -227,6 +251,7 @@ python check_env.py
 ```
 
 **Checks**:
+
 - Python version
 - Required packages installed
 - Gmail credentials file exists
@@ -237,6 +262,7 @@ python check_env.py
 ---
 
 ### `scripts/reingest-by-messageID.py`
+
 Re-ingest specific messages by Gmail message ID.
 
 ```bash
@@ -244,6 +270,7 @@ python scripts/reingest-by-messageID.py <message_id_1> <message_id_2> ...
 ```
 
 **Use Cases**:
+
 - Test classification changes on specific messages
 - Fix incorrectly ingested messages
 - Debug parsing issues
@@ -251,6 +278,7 @@ python scripts/reingest-by-messageID.py <message_id_1> <message_id_2> ...
 ---
 
 ### `scripts/reclassify_meeting_invites.py`
+
 Find and reclassify meeting invites that were mislabeled as interviews.
 
 ```bash
@@ -258,6 +286,7 @@ python scripts/reclassify_meeting_invites.py
 ```
 
 **Logic**:
+
 - Finds `label="interview_invite"` messages
 - Checks for Teams/Zoom links + "meeting with" (not "interview")
 - Updates label to "other"
@@ -266,6 +295,7 @@ python scripts/reclassify_meeting_invites.py
 ---
 
 ### `scripts/consolidate_rejection_labels.py`
+
 Merge duplicate labels (e.g., "rejected" → "rejection").
 
 ```bash
@@ -273,6 +303,7 @@ python scripts/consolidate_rejection_labels.py
 ```
 
 **Logic**:
+
 - Updates `Message.ml_label` and `ThreadTracking.label`
 - Updates code constants (`LABEL_MAP`, `_MSG_LABEL_EXCLUDES`)
 - Reports total records updated
@@ -280,6 +311,7 @@ python scripts/consolidate_rejection_labels.py
 ---
 
 ### `scripts/test_rule_label.py`
+
 Test rule-based classification on sample subjects.
 
 ```bash
@@ -287,6 +319,7 @@ python scripts/test_rule_label.py
 ```
 
 **Tests**:
+
 - Newsletter keywords → "noise"
 - Digest/recommendation → "noise"
 - Priority order (offer > rejection > noise)
@@ -294,6 +327,7 @@ python scripts/test_rule_label.py
 ---
 
 ### `scripts/test_predict_fallback.py`
+
 Test ML override logic with rule patterns.
 
 ```bash
@@ -301,12 +335,14 @@ python scripts/test_predict_fallback.py
 ```
 
 **Tests**:
+
 - ML predicts "referral" but body has newsletter keyword → "noise"
 - ML confidence < 0.85 with noise pattern → "noise" with confidence 1.0
 
 ---
 
 ### `scripts/check_email_body.py`
+
 Inspect raw email content for debugging.
 
 ```bash
@@ -314,6 +350,7 @@ python scripts/check_email_body.py <message_id>
 ```
 
 **Output**:
+
 - Raw body content
 - Parsed plain text
 - Header extraction results
@@ -321,6 +358,7 @@ python scripts/check_email_body.py <message_id>
 ---
 
 ### `scripts/re_enrich_missing_companies.py`
+
 Re-process messages with `company_source="unresolved"`.
 
 ```bash
@@ -328,6 +366,7 @@ python scripts/re_enrich_missing_companies.py
 ```
 
 **Logic**:
+
 - Finds messages with no company
 - Re-runs company extraction with current logic
 - Updates `company` and `company_source`
@@ -335,6 +374,7 @@ python scripts/re_enrich_missing_companies.py
 ---
 
 ### `scripts/reset_tracker.py`
+
 ⚠️ **DESTRUCTIVE**: Reset database for development.
 
 ```bash
@@ -342,6 +382,7 @@ python scripts/reset_tracker.py
 ```
 
 **Actions**:
+
 - Deletes all `Message`, `ThreadTracking`, `Company`, `IgnoredMessage` records
 - Resets `IngestionStats`
 - ⚠️ **No undo** - use only in development
@@ -349,6 +390,7 @@ python scripts/reset_tracker.py
 ---
 
 ### `scripts/scrape_companies.py`
+
 Scrape company information from public sources.
 
 ```bash
@@ -362,6 +404,7 @@ python scripts/scrape_companies.py
 ## Environment Variables
 
 ### `DEBUG`
+
 Enable verbose logging in parser.py.
 
 ```bash
@@ -376,6 +419,7 @@ set DEBUG=1
 ```
 
 **Output**:
+
 - Classification decisions
 - Company extraction steps
 - Header analysis results
@@ -384,6 +428,7 @@ set DEBUG=1
 ---
 
 ### `DJANGO_LOG_BACKUPS`
+
 Number of days to retain rotated log files (default: 30).
 
 ```bash
@@ -395,28 +440,35 @@ export DJANGO_LOG_BACKUPS=60
 ## Web Interface Routes
 
 ### Dashboard
+
 ```
 http://localhost:8000/
 ```
+
 Overview of applications and statistics.
 
 ---
 
 ### Admin Panel
+
 ```
 http://localhost:8000/admin/
 ```
+
 Django admin interface for all models.
 
 ---
 
 ### Label Companies
+
 ```
 http://localhost:8000/label-companies/
 ```
+
 Interactive company labeling with rule debugger.
 
 **Features**:
+
 - View all companies with unlabeled messages
 - Test rule patterns with custom subjects
 - See priority-order matching
@@ -425,17 +477,21 @@ Interactive company labeling with rule debugger.
 ---
 
 ### Company Detail
+
 ```
 http://localhost:8000/company/<id>/
 ```
+
 All messages for a specific company.
 
 ---
 
 ### Environment Status
+
 ```
 http://localhost:8000/admin/environment_status/
 ```
+
 System diagnostics (admin-only).
 
 ---
@@ -443,6 +499,7 @@ System diagnostics (admin-only).
 ## Quick Reference
 
 ### Daily Workflow
+
 ```bash
 # 1. Ingest new emails
 python manage.py ingest_gmail --days 1
@@ -457,6 +514,7 @@ python manage.py mark_ghosted
 ---
 
 ### Initial Setup
+
 ```bash
 # 1. Install dependencies
 pip install -r requirements.txt
@@ -480,6 +538,7 @@ python manage.py runserver
 ---
 
 ### Cleanup After Rule Changes
+
 ```bash
 # 1. Test new rules
 python scripts/test_rule_label.py
@@ -495,6 +554,7 @@ python manage.py mark_newsletters_ignored --delete-marked
 ---
 
 ### Debugging Classification Issues
+
 ```bash
 # 1. Enable debug mode
 export DEBUG=1
@@ -515,30 +575,39 @@ python label_companies.py
 ## Common Issues
 
 ### Newsletter Still Classified as Referral
+
 **Solution**: Re-ingest to use new header extraction
+
 ```bash
 python manage.py ingest_gmail --message-id <msg_id>
 ```
 
 ### Meeting Invite Labeled as Interview
+
 **Solution**: Run meeting reclassification script
+
 ```bash
 python scripts/reclassify_meeting_invites.py
 ```
 
 ### Person Name Captured as Company
+
 **Solution**: Add to person-name heuristic or known companies blacklist
 Edit `parser.py` → `looks_like_person()` function
 
 ### Company Not Extracted
+
 **Solutions**:
+
 1. Add to `json/companies.json` domain mapping
 2. Add Organization header fallback
 3. Check `company_source` field to see which extraction failed
 4. Re-run enrichment: `python scripts/re_enrich_missing_companies.py`
 
 ### Duplicate Labels (rejected/rejection)
+
 **Solution**: Run consolidation script
+
 ```bash
 python scripts/consolidate_rejection_labels.py
 ```
@@ -548,19 +617,25 @@ python scripts/consolidate_rejection_labels.py
 ## Performance Tips
 
 ### Batch Processing
+
 Use `--batch-size` for large ingestions:
+
 ```bash
 python manage.py mark_newsletters_ignored --batch-size 25
 ```
 
 ### Limit Scope
+
 Process recent messages first:
+
 ```bash
 python manage.py mark_newsletters_ignored --limit 1000
 ```
 
 ### Enable Pagination
+
 For large queries, process in chunks:
+
 ```python
 # In custom scripts
 messages = Message.objects.all().iterator(chunk_size=100)
@@ -571,6 +646,7 @@ messages = Message.objects.all().iterator(chunk_size=100)
 ## Backup & Recovery
 
 ### Backup Database
+
 ```bash
 # SQLite
 cp job_tracker.db job_tracker.db.backup
@@ -580,6 +656,7 @@ python manage.py dumpdata > backup.json
 ```
 
 ### Restore Database
+
 ```bash
 # SQLite
 cp job_tracker.db.backup job_tracker.db
@@ -589,6 +666,7 @@ python manage.py loaddata backup.json
 ```
 
 ### Export for Migration
+
 ```bash
 python manage.py export_companies
 python manage.py export_labels

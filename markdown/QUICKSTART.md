@@ -5,6 +5,7 @@ This is a quick reference for deploying GmailJobTracker with Docker. For detaile
 ## 🚀 5-Minute Setup
 
 ### Prerequisites
+
 - Docker & Docker Compose installed
 - Gmail API credentials file
 
@@ -13,11 +14,13 @@ This is a quick reference for deploying GmailJobTracker with Docker. For detaile
 Before starting, you need two important values:
 
 **1. DJANGO_SECRET_KEY** - Generate with:
+
 ```powershell
 python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
 ```
 
 **2. GMAIL_JOBHUNT_LABEL_ID** - Get your Gmail label ID:
+
 - Open Gmail → Settings → Labels
 - Note your job hunting label name (or create one)
 - Run: `python -c "from gmail_auth import get_gmail_service; service = get_gmail_service(); labels = service.users().labels().list(userId='me').execute(); [print(f'{l['name']}: {l['id']}') for l in labels['labels']]"`
@@ -103,6 +106,7 @@ make help                # Show all commands
 ## 📚 Next Steps
 
 1. **Change admin password:**
+
    ```bash
    docker-compose exec web python manage.py changepassword admin
    ```
@@ -124,17 +128,20 @@ make help                # Show all commands
 ## 🆘 Troubleshooting
 
 **Container won't start:**
+
 ```bash
 docker-compose logs web
 ```
 
 **Database issues:**
+
 ```bash
 docker-compose down -v
 docker-compose up -d --build
 ```
 
 **Gmail authentication:**
+
 ```bash
 rm json/token.json
 docker-compose restart web

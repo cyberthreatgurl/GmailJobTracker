@@ -1,0 +1,135 @@
+Delivered-To: kaver68@gmail.com
+Received: by 2002:a05:7108:9d0d:b0:497:b881:99c6 with SMTP id gu13csp1120725gdb;
+        Wed, 8 Oct 2025 11:40:10 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IEfxap4AbEx8pDqL0gHpaH5W89rvAn6wpFOx5KR9LaXTZsVPMdDdO23dlNBApSr1Oc0tSXP
+X-Received: by 2002:a05:620a:31aa:b0:837:575:480b with SMTP id af79cd13be357-88355a54f15mr692002485a.86.1759948810516;
+        Wed, 08 Oct 2025 11:40:10 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1759948810; cv=none;
+        d=google.com; s=arc-20240605;
+        b=ij2VGYs7Sl9rcT911IxXOun0Std+oRYaZB/C2fiAsluFt+bZWVrufrE7Kk13XAdX/8
+         e/F9fcN3my+yPStf4JHQe2poQ203bs+JEor4wWZ7CFjxphNGDOR4M/sMA2bp0ABeNZBG
+         J67Pv3WyTXSAD+x9a+NrhJOjDgT8M5gy9F97eMow5swvgXtuyD1yEGWH1WkYADDCzlzQ
+         BZkozNPf2o3vKoG243E0bgbr+sB2UmtnNFBKJuixOjcH/vUYX7IXO1iGnDnSHs1rq+g4
+         FyZsEsPl2JPnSmUXSKLUbFGwxsLBrqmrmRqZ4fwYF+SoLpZJkYMNKmrIVUDs5Yp8hS5W
+         I3aw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=mime-version:subject:to:reply-to:from:date:dkim-signature
+         :message-id;
+        bh=9ZERhaUF5XBsOyxQsyAzYD8QSe6GcnMR8UJW6bumwjE=;
+        fh=G/VLhrQnXiN6LciSgCgIU9VM0fr+1O2AyqFGWpHCjzw=;
+        b=Lft8S9RZLyW8EM4ek4nAtiwzQbOtf6cZvKa5Rx1dwbAQkrEN/WOxW1MwaS6kuFwqmL
+         gY38sPckqhm9qwFIxmUXnP42kvHY1NiEY0WRuUQK+GoMrd4xpnslRy7pE/v/miBGCFbF
+         eU6v+rY+JdF+Mh+t2jigZE1Fcb9oAuu5F2FfTd1j5Phbkpuwi6Y+m4kITsqoE9rssYhZ
+         uECO/3hbydMOse/QXKvB0aZENCbeUbSITeNMcg8eHKhKMEHq6ISbYVVgLbRt/IVskhvu
+         3n0TZa+lrKi8YQHxuGaB1G6/ogs5kzeWrLUffFeF6E41jjWd+z4pr+Wxcr2PRJGrL2cA
+         RZ8g==;
+        dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@adp.com header.s=2020-07 header.b=ASkcsU4Y;
+       spf=pass (google.com: domain of communication_hub_prod@adp.com designates 170.146.220.176 as permitted sender) smtp.mailfrom=Communication_hub_prod@adp.com;
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=adp.com
+Return-Path: <Communication_hub_prod@adp.com>
+Received: from mail10-6.adp.com (mail10-6.adp.com. [170.146.220.176])
+        by mx.google.com with ESMTPS id af79cd13be357-884a18c5acdsi24518685a.1094.2025.10.08.11.40.10
+        for <kaver68@gmail.com>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 08 Oct 2025 11:40:10 -0700 (PDT)
+Received-SPF: pass (google.com: domain of communication_hub_prod@adp.com designates 170.146.220.176 as permitted sender) client-ip=170.146.220.176;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@adp.com header.s=2020-07 header.b=ASkcsU4Y;
+       spf=pass (google.com: domain of communication_hub_prod@adp.com designates 170.146.220.176 as permitted sender) smtp.mailfrom=Communication_hub_prod@adp.com;
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=adp.com
+Message-ID: <68e6b00a.050a0220.1c1580.3d7eSMTPIN_ADDED_BROKEN@mx.google.com>
+X-Google-Original-Message-ID: fc562041-cdba-4594-9602-4217a219b851,b1f40b37-7f30-4fdc-abd4-1b64da87b083
+Received: from pps.filterd (dc1praimrelay6.esdmz.adp.com [127.0.0.1])
+	by dc1praimrelay6.esdmz.adp.com (8.18.1.2/8.18.1.2) with ESMTP id 598IQl1N020219
+	for <kaver68@gmail.com>; Wed, 8 Oct 2025 14:40:10 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=adp.com; h=content-type : date :
+ from : message-id : mime-version : reply-to : subject : to; s=2020-07;
+ bh=9ZERhaUF5XBsOyxQsyAzYD8QSe6GcnMR8UJW6bumwjE=;
+ b=ASkcsU4YLH2to85wNppGfnuf0UZD4PcgaCdSGbWiswRQzJFvHhj7SdXS/Ta3ndMFliHs
+ Mkvs7r4xnmq0nYs9RmdnPh6y0ti62yCUYRpGiSbhd3mVnpYPlIr7OsXBA3xs5hewwrxq
+ 27CcQBQsra3RJ3CD1YvhF4YfCGsVfLSIYXZ1ukgS4NwdTI9KjJP7ZCgq3+gy03/bXd15
+ xAVFalUCrIE40dp81sbTrCRbMFG1nuQqm/OpQkeTLCFJUZDaFWdx6Y9+GjmPOwL7yeBB
+ 0YXbBuHvLk5AV315dMZE9kX0rxBu8fE+9yvwShe5CoX2+CyllDsIU4qOo2v8MsRzWF9H 8A== 
+Received: from communicationhub-consumer-email-regular-adp-prod-dc2-7ddf9xxdl4 ([10.234.73.251])
+	by dc1praimrelay6.esdmz.adp.com (PPS) with ESMTP id 49nv4gra6y-1
+	for <kaver68@gmail.com>; Wed, 08 Oct 2025 14:40:10 -0400
+Date: Wed, 8 Oct 2025 18:40:09 +0000 (GMT)
+From:  <ARESCorporation.hr@adp.com>
+Reply-To: hr@arescorporation.com
+To: kaver68@gmail.com
+Subject: Your application for the position Cybersecurity Program Manager at
+ ARES Corporation has been received
+MIME-Version: 1.0
+Content-Type: multipart/mixed; 
+	boundary="----=_Part_2150285_1238684893.1759948809873"
+
+------=_Part_2150285_1238684893.1759948809873
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+<html><head><style type=3D"text/css">p {margin-block-start: 0 !important; m=
+argin-block-end: 0 !important; margin: 0px !important;}</style></head><body=
+><div style=3D'background-color: #ffff00;padding: 5px 10px 5px 10px;width:1=
+00%;text-align: center'>Disclaimer: This email has been sent by the HR team=
+ at ARES Corporation using ADP services. </div><br/><br/><p><link href=3D"h=
+ttps://cdn.jsdelivr.net/npm/froala-editor@3.1.0/css/froala_editor.pkgd.min.=
+css" rel=3D"stylesheet" type=3D"text/css"><link href=3D"https://cdn.jsdeliv=
+r.net/npm/froala-editor@3.1.0/css/froala_style.min.css" rel=3D"stylesheet" =
+type=3D"text/css"></p><div class=3D"fr-view"><p><span style=3D"font-family:=
+ Arial, Helvetica, sans-serif;">Dear <span comboservice=3D"undefined" conte=
+nteditable=3D"false" datatype=3D"Text" label=3D"Applicant First Name" oid=
+=3D"SYS:NOTIF:101" class=3D"fr-deletable">Kelly</span> <span comboservice=
+=3D"undefined" contenteditable=3D"false" datatype=3D"Text" label=3D"Applica=
+nt Last Name" oid=3D"SYS:NOTIF:102" class=3D"fr-deletable">Shaw</span>,</sp=
+an></p><p><span>Thank you for taking the time to submit your application fo=
+r the <span comboservice=3D"undefined" contenteditable=3D"false" datatype=
+=3D"Text" label=3D"Posting Name" oid=3D"SYS:NOTIF:103" class=3D"fr-deletabl=
+e">Cybersecurity Program Manager</span> position. We are glad that you are =
+interested in a career at <span comboservice=3D"undefined" contenteditable=
+=3D"false" datatype=3D"Text" label=3D"Company Name" oid=3D"SYS:NOTIF:104" c=
+lass=3D"fr-deletable">ARES Corporation</span> and we're here to help your f=
+ind your perfect fit.</span></p><p><span>We are currently reviewing your ap=
+plication. Should it be a good fit, we will contact you about next steps.</=
+span></p><p><span>You may also notice that we may consider your application=
+ for other positions. This may happen a few times and it is part of our rec=
+ruitment process.</span></p><p><span><br></span></p><p><span><strong>Is you=
+r profile telling your story?</strong></span></p><p><span>A key part of rev=
+iew process is to evaluate your <span comboservice=3D"undefined" contentedi=
+table=3D"false" datatype=3D"Text" label=3D"Candidate Profile URL" oid=3D"SY=
+S:NOTIF:110" class=3D"fr-deletable"><a target=3D'_blank' title=3D'Candidate=
+ Profile' href=3D'https://workforcenow.adp.com/mascsr/default/mdf/recruitme=
+nt/recruitment.html?cid=3D5c86c854-26b4-4d63-afc8-7cd746a5b057&lang=3Den_US=
+&ccId=3D19000101_000001&deepLink=3Dtrue&jobId=3D9200874784976%401&source=3D=
+IN&context=3DMyProfile&OTP_login=3Dtrue'>Candidate Profile</a></span> with =
+job requirements, so please make sure your profile is accurate and extensiv=
+e - its our first step in getting to know you! You can build your profile b=
+y importing information from your resume or manually updating it.</span></p=
+><p><span>We encourage you to visit our career center, <span comboservice=
+=3D"undefined" contenteditable=3D"false" datatype=3D"Text" label=3D"Career =
+Center URL" oid=3D"SYS:NOTIF:109" class=3D"fr-deletable"><a target=3D'_blan=
+k' title=3D'Career Center' href=3D'https://workforcenow.adp.com/mascsr/defa=
+ult/mdf/recruitment/recruitment.html?cid=3D5c86c854-26b4-4d63-afc8-7cd746a5=
+b057&ccId=3D19000101_000001&lang=3Den_US&source=3DIN&'>Career Center</a></s=
+pan> frequently and continue to look for opportunities that may match your =
+interests.</span></p><p><span>To view your application updates, follow this=
+ link: <span comboservice=3D"undefined" contenteditable=3D"false" datatype=
+=3D"Text" label=3D"View My Applications URL" oid=3D"SYS:NOTIF:106" class=3D=
+"fr-deletable"><a target=3D'_blank' title=3D'My Applications' href=3D'https=
+://workforcenow.adp.com/mascsr/default/mdf/recruitment/recruitment.html?cid=
+=3D5c86c854-26b4-4d63-afc8-7cd746a5b057&lang=3Den_US&ccId=3D19000101_000001=
+&deepLink=3Dtrue&jobId=3D9200874784976%401&source=3DIN&context=3DMyApplicat=
+ions&OTP_login=3Dtrue'>My Applications</a></span></span></p><p><span><br></=
+span></p><p><span>Thank you,</span></p><p>ARES Human Resources</p><p><br></=
+p></div><style>p {margin-block-start: 0em !important; margin-block-end: 0em=
+ !important;}</style><br/><br/>Note: You must use the same email you used t=
+o log in to the career center when applying for jobs.<img style=3D"display:=
+none !important;border-style:none !important;"  alt=3D"" width=3D"1" height=
+=3D"1" src=3D"https://netsecure.adp.com/communication-ui/event/id/453rlx584=
+8wka46c.jpg?eventDetails=3Dczz_48t3dy7PCz4sjgMXEX4vY1vO_3o27L6rlXXbhYVjI0Pj=
+WKtbdD3EnSfkJBCD_4CBtoGWk9mdsjiZRR6aAAmNtNKX0HLJkCKJH_0uYFAXASacOPF_vytxoVJ=
+g0zfCSG4zSgnpacijOTa3xfY3oGRDOPvaIvZzflOXm2SVsxlZabimgA41WffrerfYYJxgysotj5=
+79HWkfOlEP7t7mpBej-zlElORtowf3r8LEubWRPD1mYWcNkFlsILV7qRGn" /></body></html=
+>
+------=_Part_2150285_1238684893.1759948809873--

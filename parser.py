@@ -1378,7 +1378,9 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
         # Check aliases first (map lower->canonical)
         aliases_lower = {k.lower(): v for k, v in company_data.get("aliases", {}).items()}
         for alias_lower, canonical in aliases_lower.items():
-            if alias_lower in cand_lower or alias_lower in subj_lower:
+            # Use word boundary matching to avoid false matches like "arc" in "research"
+            alias_pattern = r'\b' + re.escape(alias_lower) + r'\b'
+            if re.search(alias_pattern, cand_lower) or re.search(alias_pattern, subj_lower):
                 company = canonical
                 found = True
                 if DEBUG:
@@ -1569,6 +1571,11 @@ def ingest_message(service, msg_id):
         m = re.search(r"^To:\s*([\w.\-+]+@[\w.\-]+)", body, re.MULTILINE)
         if m:
             recipient_email = m.group(1).strip().lower()
+    # Extract just the email address from "Display Name <email@domain.com>" format
+    if '<' in recipient_email and '>' in recipient_email:
+        match = re.search(r'<([^>]+)>', recipient_email)
+        if match:
+            recipient_email = match.group(1).strip().lower()
     recipient_domain = recipient_email.split("@")[-1] if "@" in recipient_email else ""
     company = ""
     company_source = ""
@@ -1754,7 +1761,13 @@ def ingest_message(service, msg_id):
     skip_company_assignment = label_guard == "noise"
     company_obj = None
     # For user-sent messages, use recipient-mapped company if available
-    if user_email and sender_email.startswith(user_email):
+    # Extract just the email address from "Display Name <email@domain.com>" format
+    sender_email_only = sender_email
+    if '<' in sender_email and '>' in sender_email:
+        match = re.search(r'<([^>]+)>', sender_email)
+        if match:
+            sender_email_only = match.group(1).strip().lower()
+    if user_email and sender_email_only.startswith(user_email):
         mapped_company = None
         if recipient_domain:
             mapped_company = _map_company_by_domain(recipient_domain)
@@ -1782,6 +1795,8 @@ def ingest_message(service, msg_id):
             if company_obj and not company_obj.domain and recipient_domain:
                 company_obj.domain = recipient_domain
                 company_obj.save()
+        # Skip normal company extraction for user-sent messages
+        skip_company_assignment = True
     
     # Use Organization header as company fallback if needed
     org_fallback = None
@@ -1799,8 +1814,16 @@ def ingest_message(service, msg_id):
         is_job_board = sender_domain in JOB_BOARD_DOMAINS
         is_personal = sender_domain in PERSONAL_DOMAINS
         
-        # Personal domain check - completely ignore these messages
-        if is_personal:
+        # Personal domain check - completely ignore these messages UNLESS they're user-sent
+        # (User-sent messages from personal domains like gmail.com going to recruiters are legitimate)
+        # Extract just the email address from "Display Name <email@domain.com>" format
+        sender_email_only = sender_email
+        if '<' in sender_email and '>' in sender_email:
+            match = re.search(r'<([^>]+)>', sender_email)
+            if match:
+                sender_email_only = match.group(1).strip().lower()
+        is_user_sent = user_email and sender_email_only.startswith(user_email)
+        if is_personal and not is_user_sent:
             if DEBUG:
                 print(f"[PERSONAL DOMAIN] Ignoring message from personal domain: {sender_domain}")
             

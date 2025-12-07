@@ -244,6 +244,12 @@ def ingest_eml_bytes(raw_bytes: bytes, apply: bool = False, create_tt: bool = Tr
             if ml and isinstance(ml, dict):
                 ml_label = ml.get('label')
                 ml_conf = float(ml.get('confidence', 0.0) or 0.0)
+                
+                # If classified as noise, clear company assignment
+                if ml_label == "noise":
+                    msg_rec.company = None
+                    msg_rec.company_source = ""
+                
                 # Persist to Message
                 msg_rec.ml_label = ml_label
                 msg_rec.confidence = ml_conf

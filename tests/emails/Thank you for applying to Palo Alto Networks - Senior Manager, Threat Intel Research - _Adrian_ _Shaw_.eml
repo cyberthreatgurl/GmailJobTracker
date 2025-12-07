@@ -1,0 +1,214 @@
+Delivered-To: kaver68@gmail.com
+Received: by 2002:a05:7108:cf25:b0:40f:9ec9:a547 with SMTP id cq37csp831172gdc;
+        Tue, 13 May 2025 12:32:54 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IE8UYNTbl8j/s/MmBAJ5r1jwSRSj/iRvKuBLPOEZg4B5x9MZbma31QZ09uX09PRf3g9MrNl
+X-Received: by 2002:a05:651c:2221:b0:326:cf8a:7f30 with SMTP id 38308e7fff4ca-327ed1d7cdfmr1797711fa.32.1747164774259;
+        Tue, 13 May 2025 12:32:54 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1747164774; cv=none;
+        d=google.com; s=arc-20240605;
+        b=CXXzTVXb+fbL3c9qNGwmA+rJvwRP05ptnzvlRprg9BTzfUJbrGrNopVwVqIefiOGNd
+         pPxIl4twfc1inuDtVOuciscIpCLkj+XgQnIyTRPQWfIyFniYqi17mBf39r4pFbInahjM
+         QTeZLbHMfaNAj+Jkd5u+ZfMYeBGshqC6LIfcpP72TtRduVrNV+4KYF5kFjqDd4fiIAeb
+         Izy3WwgnEWKovnI+z13Waal3jfUTa/+tanIbhl90WP1D+K2H3d8mx4uQERgyixYWrPB5
+         WjZhmhsjOTXA2FaJG4QcCLkgRM5OmxLe8bjP8B2LuuXaE4yn3OmLN9vmXN/3b8EXG8ht
+         JRvA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=message-id:sender:to:from:subject:mime-version:date:dkim-signature
+         :dkim-signature;
+        bh=D5Nn6Sjlde9QF+5WvOx0QkypU8aHsTGQgfWW3suXoU8=;
+        fh=G/VLhrQnXiN6LciSgCgIU9VM0fr+1O2AyqFGWpHCjzw=;
+        b=HQ77jNo5GXNNaoEarW6OKW9zSG9rAcYI8O8sWAuPGURapUEw7ZuEEI+sHUUA/a6vom
+         EwkO45NetAU/NSU5kaJo1XlgdwnqyjiPyQNIP4LoIypfOaRY1sM8Aq5Q48zLKhtW3o1c
+         zBTaUFIe+1dHY3I8Q01DYbcEC3ED4UGnRfoLXbyKSZ0GRikYucH8AH2qIfMwpLf20G2E
+         +dup0CjYg62vT5HH4Sv7AAU71AxJZWFyNaq+wRufkM+kHb4FXi/cXpxFjInE6+7qI8sL
+         EX+QV5eCGpR4saq9O3/J+wd9yla+ibZ3lhz0C8u22pVIuK3QknE0WMdun9hh9wwzzvfK
+         nITA==;
+        dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@smartrecruiters.com header.s=mta header.b=NqoNJbd1;
+       dkim=pass header.i=@eu.mailgun.org header.s=krs2 header.b=MH9kekjJ;
+       spf=pass (google.com: domain of bounce+0f5513.408a5-kaver68=gmail.com@smartrecruiters.com designates 161.38.207.9 as permitted sender) smtp.mailfrom="bounce+0f5513.408a5-kaver68=gmail.com@smartrecruiters.com";
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=smartrecruiters.com
+Return-Path: <bounce+0f5513.408a5-kaver68=gmail.com@smartrecruiters.com>
+Received: from o1.mailgun.smartrecruiters.com (o1.mailgun.smartrecruiters.com. [161.38.207.9])
+        by mx.google.com with UTF8SMTPS id 38308e7fff4ca-326e89f9a88si16424661fa.181.2025.05.13.12.32.54
+        for <kaver68@gmail.com>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 13 May 2025 12:32:54 -0700 (PDT)
+Received-SPF: pass (google.com: domain of bounce+0f5513.408a5-kaver68=gmail.com@smartrecruiters.com designates 161.38.207.9 as permitted sender) client-ip=161.38.207.9;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@smartrecruiters.com header.s=mta header.b=NqoNJbd1;
+       dkim=pass header.i=@eu.mailgun.org header.s=krs2 header.b=MH9kekjJ;
+       spf=pass (google.com: domain of bounce+0f5513.408a5-kaver68=gmail.com@smartrecruiters.com designates 161.38.207.9 as permitted sender) smtp.mailfrom="bounce+0f5513.408a5-kaver68=gmail.com@smartrecruiters.com";
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=smartrecruiters.com
+DKIM-Signature: a=rsa-sha256; v=1; c=relaxed/relaxed; d=smartrecruiters.com; q=dns/txt; s=mta; t=1747164773; x=1747171973;
+ h=Message-Id: sender: sender: To: To: From: From: Subject: Subject: Content-Type: Mime-Version: Date: X-Feedback-Id;
+ bh=D5Nn6Sjlde9QF+5WvOx0QkypU8aHsTGQgfWW3suXoU8=;
+ b=NqoNJbd1X3m4aukvbBYCvKqJt3Lw2zyYwjR1SxeXOIojCF8S1sfOupQjrILMwNTS6Eg/7VIKgpwMi5Gz9kKah2j4tqZZUQuSNlXkY8SHe0i/ftCylcV0I4zOZwglBc+bqWY7unhRX0Dr9vAB5h7/h9NsAetzhQKE6p30rGHHrNI=
+DKIM-Signature: a=rsa-sha256; v=1; c=relaxed/relaxed; d=eu.mailgun.org; q=dns/txt; s=krs2; t=1747164773; x=1747171973;
+ h=Message-Id: sender: sender: To: To: From: From: Subject: Subject: Content-Type: Mime-Version: Date: X-Feedback-Id;
+ bh=D5Nn6Sjlde9QF+5WvOx0QkypU8aHsTGQgfWW3suXoU8=;
+ b=MH9kekjJst0AxkmiIPlxPSTmeQZ9wcPJbDAVLeNdd0lNVR1BPTY/GK3Fk4JiEwJpQ0uIGLIDtFBiYoTaYmrNZ0SLjwQ32Q1TfwvDFijClF/vaRvf4mlL1fyPQE4zWNAf7bPG9UsHR1f12VBhyuZypr8GrCJBu6qbZ7XVuyfz5wM=
+X-Feedback-Id: notification@smartrecruiters.com:CANDIDATE_AUTO_REPLY:6155cb1ee9e61d462980baef:mailgun
+X-Mailgun-Sending-Ip: 161.38.207.9
+X-Mailgun-Sending-Ip-Pool-Name: Transactional Emails IPs
+X-Mailgun-Sending-Ip-Pool: 61499fb8717102d51bf62d51
+X-Mailgun-Sid: WyJjODlmMCIsImthdmVyNjhAZ21haWwuY29tIiwiNDA4YTUiXQ==
+Received: by 0af5e3dcb265 with HTTP id 68239e65023222404d22bf0e; Tue, 13 May 2025
+ 19:32:53 GMT
+Date: Tue, 13 May 2025 19:32:53 +0000
+Mime-Version: 1.0
+Content-Type: multipart/alternative;
+ boundary="429101e8e6c5b5ba411bfe3b33484225bf35cb2ee18e8fa738b2222b3271"
+Subject: =?UTF-8?q?Thank_you_for_applying_to_Palo_Alto_Networks_-_Senior_Manager,_?=
+ =?UTF-8?q?Threat_Intel_Research_-_=E2=80=8BAdrian=E2=80=8B_=E2=80=8BShaw?=
+ =?UTF-8?q?=E2=80=8B?=
+From: Palo Alto Networks <notification@smartrecruiters.com>
+To: kaver68@gmail.com
+X-Mailgun-Tag: CANDIDATE_AUTO_REPLY
+sender: notification@smartrecruiters.com
+X-Mailgun-Variables: {"companyId": "5f0bfc5b150d9a317eac65ea", "emailHistoryId":
+ "68239e659076e4332ad10470", "emailType": "CANDIDATE_AUTO_REPLY", "messageId":
+ "6a5b3178-329b-4dca-ab06-67fd229cb7cc", "originEnvironment": "fran"}
+Message-Id: <20250513193253.42997e645935ac58@smartrecruiters.com>
+
+--429101e8e6c5b5ba411bfe3b33484225bf35cb2ee18e8fa738b2222b3271
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+
+
+Dear Adrian,&nbsp;
+Thank you so much for submitting your application for the position of Senio=
+r Manager, Threat Intel Research. You might be wondering what now? Hang tig=
+ht - our Recruiting team&nbsp;will be reviewing your application and get ba=
+ck to you.
+
+You can access your SmartRecruiters Candidate Portal to manage your applica=
+tion, view your application status, and communicate directly with the recru=
+iting team.&nbsp;
+For more information check out our Company About Us Page&nbsp;and check our=
+&nbsp;Career Site&nbsp;regularly for new opportunities.&nbsp;
+
+Best regards,
+Palo Alto Networks Hiring Team
+&nbsp;&nbsp;&nbsp; &nbsp; &nbsp;
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;
+Privacy Notice
+
+Access My Application: https://eulink.smartrecruiters.com/c/eJxskM2O0zAURp8=
+m2aWyff278CKijRgJDSNUFqyqm2unYyaJI8cU9e1RYUn35_ukcygvG673l-DVxMaJ1MgVCw6Bm4=
+ikVcQ2eMksqjZ6bqThWhoDbVwwzZ_TXnN5jLUV4KJWjhkdJYDAwJk07B93vm_Rf-pfjy_H_ny69=
+N_PXy_fTm9ffrTvnk_BTcQYhFFwrqzTJJRAQ2BHzhVrkxdMKKY4cAdCwUEK50zUUjlQSMo2ku0L=
+lloilV-pxrIfKC_t7N9r3fYG-kYMjRh-5nE_PAEbMSz3DrdtToQ15XVvxPCGc-7nml9j_Z3Lxy4=
+aMZCzYGGCzigZOqktdagCdY5ZBOA6GKIGhkDlQqmB438f7RL3Ha_x0QvVCNzYDoQbOxkIOxyZ7r=
+SZghCORkPU5pKuaT2tt1TyusS1-qng2hb_gbdY9EP8-sj7V7c-D3zz4k8AAAD___ARlZ0
+
+Please do not share or forward this email, as it pertains to your specific =
+job application
+
+--429101e8e6c5b5ba411bfe3b33484225bf35cb2ee18e8fa738b2222b3271
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+<p><img alt=3D"" height=3D"124" src=3D"https://c.smartrecruiters.com/sr-com=
+pany-images-prod-dc5/5f0bfc5b150d9a317eac65ea/e61ec17e-45ef-4923-8a1f-2489d=
+cfd8d84/original?r=3Ds3-eu-central-1" width=3D"498" /></p><p>Dear Adrian,&n=
+bsp;</p><p>Thank you so much for submitting your application for the positi=
+on of Senior Manager, Threat Intel Research. You might be wondering what no=
+w? Hang tight - our Recruiting team&nbsp;will be reviewing your application=
+ and get back to you.<br />
+<br />
+You can access your SmartRecruiters Candidate Portal to manage your applica=
+tion, view your application status, and communicate directly with the recru=
+iting team.&nbsp;</p><p>For more information check out our Company <a href=
+=3D"https://eulink.smartrecruiters.com/c/eJxskD3L2zAURn-NtTno60rWoMH0TegLpS=
+0lHTqFa-k6MbEtIysx-ffF6dr9PHDOE9K04Pz6jB563vUBOgE8OlTCEgYDhCx6zRsERl5YbYXR1=
+ipGEw7j12EtKe9j00jlyIDj1pBWSmIUXFv-jzu_FvJf2u8fnx_t-Xhpf59_XH4df377w24-9obH=
+GKGJRqMmUA2HSCFqcA4V9WzwkkvgIJRwSoI6aOmcJaPBKcAATaX5OmEumUJ-DIXyeghpYqO_lbK=
+slWorearkadu2w4JjwrGkmcqW8v0NVvKEXXqU-rGyidYVr7QHIXRK2KZW0nW1jgFr7Lipje2jlC=
+50NgSW8nAd5uP8HHKaJ5qL7zPOLPs7Pimb3ey69799yv8feHr5NwAA__8Vxnhg">About Us Pa=
+ge</a>&nbsp;and check our&nbsp;<a href=3D"https://eulink.smartrecruiters.co=
+m/c/eJxsz7GO1DAQxvGnibus7LHHjgsXEbcrTkKA0FJQncbOZC9cEkeOWXRvj7K013-f9P-lvGy=
+0vj8PAUcZx4RRoRw8aeWYkkUmMQQjO0LBQTnjlDXOacELTfPnaa-5HGfbgfZs0Utn2WgNNChpnP=
+y_u75vHD71X5-en_rr-aX_ef328uP8_csv8RqGOFoXuyTBkI2kdQI2BtF58owAYgogASUqrbwG1=
+CcD3ju2Br1GStg1Ru4LlVo4lT9T5bKfUl7EHF5r3fZG9w1cGrj8znE_bTRnmmteuf7N5e2xbOAi=
+Ft53uvEhIYxaua7V4GNrhkQtRWlb68YBwKfoUhK5TLdpPa_3qeR14bWGsdAqSnijOxd7JN0O-CO=
+kfky_B_gXAAD___VrdNk" target=3D"_blank">Career Site</a>&nbsp;regularly for =
+new opportunities.&nbsp;</p><p><br />
+Best regards,<br />
+Palo Alto Networks Hiring Team</p><p>&nbsp;&nbsp;<img alt=3D"" height=3D"10=
+0" src=3D"https://c.smartrecruiters.com/sr-company-images-prod-dc5/5f0bfc5b=
+150d9a317eac65ea/a50d1976-8b43-4017-b1e2-d62f1152db42/original?r=3Ds3-eu-ce=
+ntral-1" width=3D"150" />&nbsp; &nbsp; &nbsp;<img alt=3D"" height=3D"100" s=
+rc=3D"https://c.smartrecruiters.com/sr-company-images-prod-dc5/5f0bfc5b150d=
+9a317eac65ea/ca5acec7-cba0-4398-89ad-5a4982ce549a/original?r=3Ds3-eu-centra=
+l-1" width=3D"150" /></p><p><a href=3D"https://eulink.smartrecruiters.com/c=
+/eJxsz7-O1DAQx_GnibtE_j9x4SLi9sRJCBBaCqrT2J7shUviyDEb3dujsC39d0a_T8zLhuvHS_=
+Jm5GGMJgjDk0MlgDBaQ8iS17xHw8gL0CCsBlCMFpzmz9NeczmPbS-VI2scB0taKYlJcA380V0_N=
+vKfhq9PL0_D9fI6_Lx-e_1x-f7lF3vzACMJrSgBguJidGhhdCFhL5WFoNnkJZeGG6GEU9KoTkvn=
+gKw2ThmMpm803xcstVAsf6ZKZe9iXtjs32rdGjU08rmRz8dxdL9z2LsN54xzzSvVI5f3R7zQvuO=
+NTgmaoAT0rZIutDpFbDFw21oYk5QuBoiR5TLdpvWy3qeS14XW6seCKyv-He9U7DnpdsL__a7_p9=
+-9_BsAAP__N251bA"><img alt=3D"" height=3D"48" src=3D"https://c.smartrecruit=
+ers.com/sr-company-images-prod-dc5/5f0bfc5b150d9a317eac65ea/5de0feab-2d3a-4=
+12c-8a1a-234b42459fbb/original?r=3Ds3-eu-central-1" width=3D"150" /></a>&nb=
+sp; &nbsp;<a href=3D"https://eulink.smartrecruiters.com/c/eJxskM2K2zAURp_G2=
+jlIV7qStdAidGI6UNpS0kVXw9WPMyK2HGQ1IW9f3HY5---Dc05YlxuV52t0OHE_BfQCebQkhUkU=
+NCZi0Sk-ELLkhFFGaGWMZGmhPH_OW1vrftYDSJs0Wm50UlICRcGV4f925-ctuU_Hry-vL8fz6e3=
+48_zt7cfp-5df7N0RlxMChikOyK1XRk1gkUQkHxSCZ9kBB-QopLASUB4UWGuSVmglUsChU3xbqL=
+aaQv2dW6rbIawLm917a7etk8cOxg7Gx-NxmHO5ppjLPuhg_C_fwXijee1pbmtfUnus9bp1MLIlb=
+Rtd0u5H6KUwQy_B-l7FQD15rnttpghggzchsLXmSy6ncs91LUsqzU2VCqvuSvdU9Q562XP8xWsf=
+B7k7-BMAAP__qGx8kg"><img alt=3D"" height=3D"58" src=3D"https://c.smartrecru=
+iters.com/sr-company-images-prod-dc5/5f0bfc5b150d9a317eac65ea/aff59464-fea9=
+-4cba-8708-d7917f84170b/original?r=3Ds3-eu-central-1" width=3D"31" /></a>&n=
+bsp; &nbsp;<a href=3D"https://eulink.smartrecruiters.com/c/eJxskM1qGzEURp9m=
+tLPR75W00GJobBoIaSjuoqtwpblyhD0jo1Ft8vZl2m3254PznVTnGy6fz1MwmcecTBSGTx6VsIQ=
+JDCGbguYODaMgrLYCtLWK0Yzl-r2svbZtDE4qT2A8t0BaKYmT4Nry_9zp80bh2_j69Pw0ng7v46=
+_Tj_efh7eX3-wjECTtMkScrOIZMAF4EM6RstJpC6wEyaXhRijhlTRqr6X3lkAbrwwm4wbN1xlbb=
+5Tan9KprftUZ3YNH73f1kGNgzwO8vh4PPYZE8VaLxswyONLyYT9Da91vPb6Sv1R22Ud5JHNtK54=
+pu0ZmqiEdTslfdzpKeEOI4cd2DxJ6VO0KbHayrksh-VeWl1mWnrIDRfWwgXv1GBTPG8h_on1r1P=
+cg_wbAAD__1Qlehk"><img alt=3D"" height=3D"58" src=3D"https://c.smartrecruit=
+ers.com/sr-company-images-prod-dc5/5f0bfc5b150d9a317eac65ea/827427ce-1225-4=
+b90-8525-0222d7954762/original?r=3Ds3-eu-central-1" width=3D"31" /></a>&nbs=
+p; &nbsp;<a href=3D"https://eulink.smartrecruiters.com/c/eJxsz02P2jAQxvFPE9=
+-C_D7xwYeogIpUUVTRQ09o7EzAIi_IcUF8-1V2r3ueeaT_L87jA6f3ofOm56GPJgjDO4dKAGG0h=
+pB1XvMGDSMvQIOwGkAxGjENP9NS5ryObSOVI2scB0taKYmd4Br419_5_SD_oz1uD9v2vLu0f8-_=
+L392p1__2M2HCDYI05igmgBS9Sh6iCHwIBodHbDkJZeGG6GEU9KojZbOAVltnDIYTVNpvoyYS6a=
+Y_6dCednEeWSDv5XyWCrVVnJfyX15pVIor7dK7k84zO1Q5mN53Rc20rLglVYImqAENLWSLtS6i1=
+hj4La20HdSuhggRjbndE3TbnqmPE8jTcX3GSeW_R2flO1adF3dnx3le_nTy48AAAD__5AOdJo">=
+<img alt=3D"" height=3D"58" src=3D"https://c.smartrecruiters.com/sr-company=
+-images-prod-dc5/5f0bfc5b150d9a317eac65ea/eb986984-2433-44cc-aa49-735ac153c=
+014/original?r=3Ds3-eu-central-1" width=3D"31" /></a></p><p><a href=3D"http=
+s://eulink.smartrecruiters.com/c/eJxskE2L2zAQQH-NdXOQRl_WQYfQTehCaUtJDz0tY2=
+mciLUlI6sJ-fclaaGXvQ3MG3jzQllWzPfX6PXExynoUWgeHUphCYPRhCx6xQfUjLywygqjrJWMF=
+kzz57S1Uh_HZgDpyGjHrSElJWAUXFn-lzvdV_Kf9l9fXl_2p8Pb_ufp29uPw_cvv9jFCxAiKjUI=
+KcIwAQyRW4xGiagnF0Gw5IGD5lpI4SRouVPgnCWjtJMagx46xbcFa6sU6u_UqG67UBY2-0tr69b=
+JfQfHDo6322234lxwbiVTu5X6_gQ7OM50xrnPpaVAWwfHtaYrhvv_6d9ud2nLzBbaNjzT42vUox=
+R26CW4sVcxYI8jN72xUwRwYbQhsFLTOeVDvqZa8kK5-aliZtW_45WqeeifH5Ge0u3jTFcPfwIAA=
+P__-teE5A" target=3D"_blank">Privacy Notice</a></p>
+
+
+<br/>
+<a href=3D"https://eulink.smartrecruiters.com/c/eJxskM2O0zAURp8m2aWyff278CK=
+ijRgJDSNUFqyqm2unYyaJI8cU9e1RYUn35_ukcygvG673l-DVxMaJ1MgVCw6Bm4ikVcQ2eMksqj=
+Z6bqThWhoDbVwwzZ_TXnN5jLUV4KJWjhkdJYDAwJk07B93vm_Rf-pfjy_H_ny69N_PXy_fTm9ff=
+rTvnk_BTcQYhFFwrqzTJJRAQ2BHzhVrkxdMKKY4cAdCwUEK50zUUjlQSMo2ku0LlloilV-pxrIf=
+KC_t7N9r3fYG-kYMjRh-5nE_PAEbMSz3DrdtToQ15XVvxPCGc-7nml9j_Z3Lxy4aMZCzYGGCzig=
+ZOqktdagCdY5ZBOA6GKIGhkDlQqmB438f7RL3Ha_x0QvVCNzYDoQbOxkIOxyZ7rSZghCORkPU5p=
+KuaT2tt1TyusS1-qng2hb_gbdY9EP8-sj7V7c-D3zz4k8AAAD___ARlZ0" style=3D"display=
+: inline-block; background-color: #FA582D; border: 1px solid #FA582D; borde=
+r-radius: 3px; padding: 10px 50px; font-family:Helvetica,Arial,sans-serif; =
+font-size:14px; font-weight:normal; color: #FFFFFF; text-decoration: none;"=
+ target=3D"_blank">
+    Access My Application
+</a>
+<div style=3D"color: #777;font-size: 0.8rem;padding-top: .8rem;">Please do =
+not share or forward this email, as it pertains to your specific job applic=
+ation</div>
+<img width=3D"1" height=3D"1" alt=3D"" src=3D"https://eulink.smartrecruiter=
+s.com/o/eJxsj01LAzEQhn-NuW3J12SSQw7FFiyIitSDpzKbTGrQ3S3ZtdB_L6tX7-_H86RpuNB=
+4O-QIRfYlQa9A5kBGIVNywCRytNITCI4KLSpnEY3ggerXQ52Xqa1l57UJ7CBIdGyN0ZSVtCj_cs=
+fbheP99ml32G2P-9P27fh8et2_PL6Lj-jJYjY6KMiyoC0YuEjtjWfngy1K1KilBgnKqGA0mI3VI=
+SA7C8EAJfB3Vs4DtaVxat914TZv0jSIgeeZzrzCEfRGoe-MDn1nc6KOeuk6hyVrHVKPKYmp1XMd=
+9-O1tmkceFxiaTSKFj_pys2tL-fV5Xd7-d_mGvVPAAAA___oVGTT">
+--429101e8e6c5b5ba411bfe3b33484225bf35cb2ee18e8fa738b2222b3271--

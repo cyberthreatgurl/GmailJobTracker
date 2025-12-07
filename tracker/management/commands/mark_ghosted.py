@@ -113,7 +113,6 @@ class Command(BaseCommand):
 
         # We'll also consider message-based triggers in those threads
         total_apps_marked = 0
-        total_msgs_marked = 0
 
         # Precompute last activity per company (latest message timestamp across all threads)
         last_activity_by_company = {
@@ -164,29 +163,9 @@ class Command(BaseCommand):
                 if not dry_run:
                     Company.objects.filter(id=app.company_id).update(status="ghosted")
 
-            # Optionally mark the most recent pre-cutoff relevant message for charts
-            trigger = (
-                Message.objects.filter(
-                    company_id=app.company_id,
-                    timestamp__lte=cutoff_dt,
-                    ml_label__in=["job_application", "interview_invite", "follow_up"],
-                )
-                .order_by("-timestamp")
-                .first()
-            )
-            if trigger and trigger.ml_label != "ghosted":
-                if not dry_run:
-                    trigger.ml_label = "ghosted"
-                    trigger.reviewed = True
-                    trigger.save(update_fields=["ml_label", "reviewed"])
-                    # Propagate label change to ThreadTracking
-                    try:
-                        from tracker.utils import propagate_message_label_to_thread
-
-                        propagate_message_label_to_thread(trigger)
-                    except Exception:
-                        pass
-                total_msgs_marked += 1
+            # Message labels are NOT changed to preserve original classifications
+            # (interview_invite, job_application, etc.). Ghosted status is tracked
+            # via ThreadTracking.status and ThreadTracking.ml_label fields instead.
 
             self.stdout.write(
                 f"👻 Ghosted: {app.company.name} – {app.job_title} (last activity {last_ts.date()}, {days}d)"
@@ -194,6 +173,6 @@ class Command(BaseCommand):
 
         self.stdout.write(
             self.style.SUCCESS(
-                f"✅ Marked ghosted: applications={total_apps_marked}, messages={total_msgs_marked} (threshold={days}d, dry_run={dry_run})"
+                f"✅ Marked ghosted: applications={total_apps_marked} (threshold={days}d, dry_run={dry_run})"
             )
         )

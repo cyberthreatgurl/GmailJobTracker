@@ -1082,9 +1082,14 @@ def label_companies(request):
                     return redirect(f"/label_companies/?company={selected_company.id}")
                 form = CompanyEditForm(request.POST, instance=selected_company)
                 if form.is_valid():
-                    # Save career URL to companies.json JobSites
+                    # Get cleaned data before saving
                     career_url_input = form.cleaned_data.get("career_url", "").strip()
-                    if career_url_input and selected_company.name:
+                    domain_input = form.cleaned_data.get("domain", "").strip()
+                    ats_input = form.cleaned_data.get("ats", "").strip()
+                    company_name = selected_company.name
+                    
+                    # Save to companies.json
+                    if company_name:
                         try:
                             companies_json_path = Path("json/companies.json")
                             if companies_json_path.exists():
@@ -1093,12 +1098,24 @@ def label_companies(request):
                                 ) as f:
                                     companies_json_data = json.load(f)
 
-                                if "JobSites" not in companies_json_data:
-                                    companies_json_data["JobSites"] = {}
-
-                                companies_json_data["JobSites"][
-                                    selected_company.name
-                                ] = career_url_input
+                                # Save career URL to JobSites
+                                if career_url_input:
+                                    if "JobSites" not in companies_json_data:
+                                        companies_json_data["JobSites"] = {}
+                                    companies_json_data["JobSites"][company_name] = career_url_input
+                                
+                                # Save domain to domain_to_company
+                                if domain_input:
+                                    if "domain_to_company" not in companies_json_data:
+                                        companies_json_data["domain_to_company"] = {}
+                                    companies_json_data["domain_to_company"][domain_input] = company_name
+                                
+                                # Save ATS domain to ats_domains if not already present
+                                if ats_input:
+                                    if "ats_domains" not in companies_json_data:
+                                        companies_json_data["ats_domains"] = []
+                                    if ats_input not in companies_json_data["ats_domains"]:
+                                        companies_json_data["ats_domains"].append(ats_input)
 
                                 with open(
                                     companies_json_path, "w", encoding="utf-8"
@@ -1110,7 +1127,7 @@ def label_companies(request):
                                         ensure_ascii=False,
                                     )
                         except Exception as e:
-                            print(f"⚠️ Failed to save career URL: {e}")
+                            messages.warning(request, f"⚠️ Failed to save to companies.json: {e}")
                     form.save()
                     messages.success(request, "✅ Company details saved.")
                     return redirect(f"/label_companies/?company={selected_company.id}")
@@ -4033,7 +4050,78 @@ def manage_domains(request):
         action = request.POST.get("action")
         label_type = request.POST.get("label_type")
         
-        if action == "reingest_domains":
+        if action == "sync_db_to_json":
+            # Sync Company domains from database to companies.json
+            try:
+                synced_domains = 0
+                synced_ats = 0
+                skipped = 0
+                
+                # Get all companies with domains from database
+                companies_with_domains = Company.objects.filter(
+                    domain__isnull=False
+                ).exclude(domain='').select_related()
+                
+                # Define domains to skip (personal, receipts, etc.)
+                skip_domains = {
+                    'redditmail.com', 'dropbox.com', 'slack.com', 'stripe.com',
+                    'clover.com', 'toasttab.com', 'invalidemail.com', 'indeed.com',
+                    'ereceipt.usps.gov', 'govdelivery.dmv.virginia.gov',
+                    'marketing.carmaxautofinance.com', 'info.wifionboard.com',
+                    'estatement.apria.com', 'email.alaskaair.com', 'ops.sense.com',
+                    'oracleheartva.com', 'osc.gov', 'peoplentech.com', 'rachelsfba.com',
+                    'rmcweb.com', 'rokland.com', 'txn.getjobber.com', 'topsidefcu.org',
+                    'virustotal.com', 'vec.virginia.gov', 'katorparks.com', 'jamhoff.com',
+                    'app.slicelife.com', 'docusign.net'
+                }
+                
+                for company in companies_with_domains:
+                    domain = company.domain.strip().lower()
+                    
+                    # Skip if already in companies.json or in skip list
+                    if domain in domain_to_company or domain in skip_domains:
+                        continue
+                    
+                    # Skip if it's already an ATS domain
+                    if domain in ats_domains:
+                        continue
+                    
+                    # Check if company is a headhunter
+                    if company.status == 'headhunter':
+                        if domain not in headhunter_domains:
+                            headhunter_domains.add(domain)
+                            synced_domains += 1
+                    else:
+                        # Add to domain_to_company
+                        domain_to_company[domain] = company.name
+                        synced_domains += 1
+                    
+                    # Also sync ATS domain if present
+                    if company.ats and company.ats.strip():
+                        ats_domain = company.ats.strip().lower()
+                        if ats_domain not in ats_domains:
+                            ats_domains.add(ats_domain)
+                            synced_ats += 1
+                
+                # Save updated companies.json
+                companies_data["domain_to_company"] = dict(sorted(domain_to_company.items()))
+                companies_data["ats_domains"] = sorted(ats_domains)
+                companies_data["headhunter_domains"] = sorted(headhunter_domains)
+                
+                with open(companies_path, "w", encoding="utf-8") as f:
+                    json.dump(companies_data, f, indent=2, ensure_ascii=False)
+                
+                messages.success(
+                    request,
+                    f"✅ Synced {synced_domains} company domain(s) and {synced_ats} ATS domain(s) from database to companies.json"
+                )
+                return redirect("manage_domains")
+                
+            except Exception as e:
+                messages.error(request, f"❌ Error syncing domains: {e}")
+                logger.exception("Domain sync error")
+        
+        elif action == "reingest_domains":
             # Re-ingest messages from specific domains
             reingest_filter = request.POST.get("reingest_filter", "personal")
             selected_domains = request.POST.getlist("domains")

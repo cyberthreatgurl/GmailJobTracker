@@ -1,0 +1,116 @@
+Delivered-To: kaver68@gmail.com
+Received: by 2002:a05:7108:508:b0:45e:2301:89ff with SMTP id co8csp99382gdb;
+        Wed, 28 May 2025 16:35:22 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IHH5Y6jK+mnulZfyajd1C4gFew+HwtedgIAuqBJHPPDj48GV0asindkPws82g4tGbYYectC
+X-Received: by 2002:a05:6a21:4a4c:b0:1f3:2e85:c052 with SMTP id adf61e73a8af0-2188c3b0d71mr32239274637.35.1748475322539;
+        Wed, 28 May 2025 16:35:22 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1748475322; cv=none;
+        d=google.com; s=arc-20240605;
+        b=dzLSCwTYlvM2j5C0CfQ2ShP/3XPrT4fTYQoNmbWwfooG7dYZ5g2G+eSjoAiG+asQ3S
+         rm/fWtFCcJp1Yd0v8OU9imOSvzucbCdt+vI2fnhTA2lx9GgN35EWbQuK+TbxmpWyZQgN
+         QR4Sf1mcGK7KSzrcaEdIb2vqg5e8ITtmGc3ejrIWmiNUuo/swlhGMF2OVSp3SiWF9hjZ
+         iINvQ5mLw8n2SVlSDKBClgVFiPW1PrfCjrEPVG6P1MglgoQJNmB5PZXSNId3muhgkggL
+         cvE8oV6+egyRv3tsa+bJNfoM7hgRMdg1NnF2q/vhhSTmCmbi44JrjtBlOQVwFFIqOAIU
+         sh8Q==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=feedback-id:date:message-id:to:from:subject:mime-version
+         :dkim-signature:dkim-signature;
+        bh=9rwb+FmGWIfYKz4yZRRX8Wv+4bt8bIqdujiIRIMh6c0=;
+        fh=G/VLhrQnXiN6LciSgCgIU9VM0fr+1O2AyqFGWpHCjzw=;
+        b=N7s1Kcm5MhK+zpS3qug3wcrPPWJSyztpEjvYptLeeNjbs0kllEint2n/G5QxkEZbe/
+         eOLT0DjiXGgJtklTLyE5qRXlCuM7RgTzh14ifwCYcMzFbVyS9Ki6848SBPEhybGiG/8/
+         I5oNoe5oBTOIJGfnqZzCqb5rx3bxZrr2pwwori+dQxcQ2iFdDBKSVN+3Pd/S3c4/shIo
+         s1sIjBx0deP+GZIlZK4+0CFvPVcRcXA6mtiiJrqmIXxiaqr9LiHzOrqsNMnjoIkN5HxU
+         OjD0HZdHZH+DqjoBus4aZiuU3GM41e91Xe3fZE3u1fjM8xquueMzus90y8E5vzcbIz2J
+         2cKg==;
+        dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@gem.com header.s=e4kmi5whfb6v5hm7vhzpyf5yvnpuw4as header.b="g/WfoB4i";
+       dkim=pass header.i=@amazonses.com header.s=gdwg2y3kokkkj5a55z2ilkup5wp5hhxx header.b=bCv8qi12;
+       spf=pass (google.com: domain of 0101019719401f2d-68978e41-2250-4da2-8036-328e179117bd-000000@us-west-2.amazonses.com designates 54.240.27.123 as permitted sender) smtp.mailfrom=0101019719401f2d-68978e41-2250-4da2-8036-328e179117bd-000000@us-west-2.amazonses.com;
+       dmarc=pass (p=NONE sp=NONE dis=NONE) header.from=gem.com
+Return-Path: <0101019719401f2d-68978e41-2250-4da2-8036-328e179117bd-000000@us-west-2.amazonses.com>
+Received: from a27-123.smtp-out.us-west-2.amazonses.com (a27-123.smtp-out.us-west-2.amazonses.com. [54.240.27.123])
+        by mx.google.com with ESMTPS id d2e1a72fcca58-747afe22cdesi431328b3a.122.2025.05.28.16.35.22
+        for <kaver68@gmail.com>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 28 May 2025 16:35:22 -0700 (PDT)
+Received-SPF: pass (google.com: domain of 0101019719401f2d-68978e41-2250-4da2-8036-328e179117bd-000000@us-west-2.amazonses.com designates 54.240.27.123 as permitted sender) client-ip=54.240.27.123;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@gem.com header.s=e4kmi5whfb6v5hm7vhzpyf5yvnpuw4as header.b="g/WfoB4i";
+       dkim=pass header.i=@amazonses.com header.s=gdwg2y3kokkkj5a55z2ilkup5wp5hhxx header.b=bCv8qi12;
+       spf=pass (google.com: domain of 0101019719401f2d-68978e41-2250-4da2-8036-328e179117bd-000000@us-west-2.amazonses.com designates 54.240.27.123 as permitted sender) smtp.mailfrom=0101019719401f2d-68978e41-2250-4da2-8036-328e179117bd-000000@us-west-2.amazonses.com;
+       dmarc=pass (p=NONE sp=NONE dis=NONE) header.from=gem.com
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
+	s=e4kmi5whfb6v5hm7vhzpyf5yvnpuw4as; d=gem.com; t=1748475322;
+	i=@appreview.gem.com;
+	h=Content-Type:MIME-Version:Subject:From:To:Message-ID:Date;
+	bh=9rwb+FmGWIfYKz4yZRRX8Wv+4bt8bIqdujiIRIMh6c0=;
+	b=g/WfoB4idm1s9us0O+nWLv+qCDKn4yZqwMkMzQVu5rigFCuR6d19CaqspAG4qQFs
+	QoC8wgl7ACEv8/Oq3qczT1Jz3kHtTurAYu86JTUxutQ9MUjJ4Eo38m0I32JY5TRMhIS
+	/TxJ4D+pwxb/uXT+4q4hA7inIkNEFPQJNhMYMw0s=
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
+	s=gdwg2y3kokkkj5a55z2ilkup5wp5hhxx; d=amazonses.com; t=1748475322;
+	h=Content-Type:MIME-Version:Subject:From:To:Message-ID:Date:Feedback-ID;
+	bh=9rwb+FmGWIfYKz4yZRRX8Wv+4bt8bIqdujiIRIMh6c0=;
+	b=bCv8qi12IZY3a7inWkHzzYZnPGnz1fwa6dzUW0U6ZpGO1GASIS/JlA3KpbRSliZD
+	FCc/LNaxN+VfIxHbqpxpnUFhMkIPjPzwdc61mI0qhwlBexQbVXbhhw9V322OLv8qTgL
+	1PHPvnKV2rTvG/l5aN88J1TthGVpG1JJTlsSeCNo=
+Content-Type: multipart/mixed; boundary="===============5690395069979725884=="
+MIME-Version: 1.0
+Subject: Anthropic Follow-Up for Security Engineer: Detection and Response |
+ Adrian Shaw
+From: Anthropic Recruiting <no-reply@appreview.gem.com>
+To: kaver68@gmail.com
+Message-ID: <0101019719401f2d-68978e41-2250-4da2-8036-328e179117bd-000000@us-west-2.amazonses.com>
+Date: Wed, 28 May 2025 23:35:22 +0000
+Feedback-ID: ::1.us-west-2.Y+gfrb11/yrXCG9mSLTgAWnv9afJlO/iL+CT+8TuzIo=:AmazonSES
+X-SES-Outgoing: 2025.05.28-54.240.27.123
+
+--===============5690395069979725884==
+Content-Type: multipart/alternative;
+ boundary="===============3790756896453708489=="
+MIME-Version: 1.0
+
+--===============3790756896453708489==
+Content-Type: multipart/related;
+ boundary="===============1543951391943400290=="
+MIME-Version: 1.0
+
+--===============1543951391943400290==
+Content-Type: text/html; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+
+PGRpdj5IaSBBZHJpYW4sPC9kaXY+PGRpdj48YnI+PC9kaXY+PGRpdj5UaGFuayB5b3Ugc28gbXVj
+aCBmb3IgeW91ciBpbnRlcmVzdCBpbiBBbnRocm9waWMgYW5kIGZvciB0aGUgdGltZSBhbmQgZWZm
+b3J0IHlvdSBoYXZlIGludmVzdGVkIGluIG91ciBwcm9jZXNzIHNvIGZhci48L2Rpdj48ZGl2Pjxi
+cj48L2Rpdj48ZGl2PkFmdGVyIGNvbnNpZGVyYXRpb24sIHdlIGhhdmUgZGVjaWRlZCBub3QgdG8g
+bW92ZSBmb3J3YXJkIHdpdGggeW91ciBhcHBsaWNhdGlvbiBmb3IgdGhlIFNlY3VyaXR5IEVuZ2lu
+ZWVyOiBEZXRlY3Rpb24gYW5kIFJlc3BvbnNlIHJvbGUuIDxzdHJvbmc+V2Ugd2FudCB0byBiZSBj
+bGVhciB0aGF0IHRoaXMgaXMgPGVtPm9ubHkmbmJzcDs8L2VtPmFuIHVwZGF0ZSBmb3IgdGhlIFNl
+Y3VyaXR5IEVuZ2luZWVyOiBEZXRlY3Rpb24gYW5kIFJlc3BvbnNlIHJvbGU8L3N0cm9uZz4sIGFu
+ZCBpZiB5b3UgYXBwbGllZCB0byBvdGhlciByb2xlcyBhdCBBbnRocm9waWMsIHlvdSBtYXkgc3Rp
+bGwgaGVhciBiYWNrIGZyb20gdXMgaWYgd2Ugc2VlIHN0cm9uZyBhbGlnbm1lbnQgd2l0aCBvdXIg
+bmVlZHMuPC9kaXY+PGRpdj48YnI+PC9kaXY+PGRpdj5XZSByZWNlaXZlIG1hbnkgYXBwbGljYXRp
+b25zIGZvciBvdXIgcm9sZXMgYW5kIG9ubHkgYWR2YW5jZSBhIGZldyB0byBvdXIgaW50ZXJ2aWV3
+IHN0YWdlcy4gV2XigJlyZSBzdGlsbCBhIHJlbGF0aXZlbHkgc21hbGwgY29tcGFueSBhbmQgYXJl
+IGxvb2tpbmcgZm9yIGEgc3BlY2lmaWMgc2V0IG9mIHNraWxscyDigJQgdW5mb3J0dW5hdGVseSwg
+d2UgY2Fubm90IHByb3ZpZGUgbW9yZSBkZXRhaWxlZCBmZWVkYmFjaywgYnV0IHRoZSBtb3N0IGNv
+bW1vbiByZWFzb24gd2UgZG8gbm90IG1vdmUgZm9yd2FyZCB3aXRoIGEgY2FuZGlkYXRlIGlzIG5v
+dCBzZWVpbmcgZW5vdWdoIGV4cGVyaWVuY2UgdGhhdCBhcHBlYXJzIHJlbGV2YW50IHRvIG91ciBu
+ZWVkcy4gT2YgY291cnNlLCByZXZpZXdpbmcgYXBwbGljYXRpb25zIGlzIG5vdCBhIHBlcmZlY3Qg
+cHJvY2VzcywgYW5kIHdlIG1heSBzb21ldGltZXMgcGFzcyBvbiBjYW5kaWRhdGVzIHdobyB3b3Vs
+ZCBoYXZlIGJlZW4gYSBncmVhdCBmaXQhPC9kaXY+PGRpdj4mbmJzcDs8L2Rpdj48ZGl2PldlIGFy
+ZSBhIGdyb3dpbmcgdGVhbSBhbmQgbmV3IHJvbGVzIG9wZW4gdXAgYWxsIHRoZSB0aW1lLCBzbyBp
+ZiB5b3UncmUgc3RpbGwgaW50ZXJlc3RlZCBpbiBhIHJvbGUgd2l0aCBBbnRocm9waWMsIGtlZXAg
+YW4gZXllIG9uIG91ciBqb2JzIHBhZ2UuJm5ic3A7PC9kaXY+PGRpdj4mbmJzcDs8L2Rpdj48ZGl2
+PldlIHJlYWxseSBhcHByZWNpYXRlIHRoZSB0aW1lIHlvdSB0b29rIHRvIGFwcGx5IGFuZCB3aXNo
+IHlvdSB0aGUgYmVzdCBpbiB5b3VyIGpvYiBzZWFyY2ghPC9kaXY+PGRpdj48YnI+PC9kaXY+PGRp
+dj5BbnRocm9waWM8L2Rpdj4=
+
+--===============1543951391943400290==--
+
+--===============3790756896453708489==--
+
+--===============5690395069979725884==--

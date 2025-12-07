@@ -205,8 +205,9 @@ def rule_label(subject: str, body: str = "", sender_domain: str | None = None) -
     # before we evaluate interview-like phrasing. This prevents ATS confirmation
     # templates (which sometimes include ambiguous language) from being labeled
     # as interview invites.
+    # Note: Use [''\u2019] to match both straight and curly apostrophes
     if re.search(
-        r"\b(we\s+have\s+received\s+your\s+application|we('?ve| have)\s+received\s+your\s+application|thank\s+you\s+for\s+applying|application\s+received|your\s+application\s+has\s+been\s+received|your\s+application\s+has\s+been\s+submitted|your\s+application\s+was\s+sent)\b",
+        r"\b(we\s+have\s+received\s+your\s+application|we[''\u2019]?ve\s+received\s+your\s+application|we\s+have\s+received\s+your\s+application|thank\s+you\s+for\s+applying|application\s+received|your\s+application\s+has\s+been\s+received|your\s+application\s+has\s+been\s+submitted|your\s+application\s+was\s+sent)\b",
         s,
         re.I | re.DOTALL,
     ):
@@ -216,9 +217,9 @@ def rule_label(subject: str, body: str = "", sender_domain: str | None = None) -
 
     for label in (
         "offer",          # Most specific: offer, compensation, package
+        "rejection",      # Negative outcomes - CHECK BEFORE NOISE to avoid false negatives
         "head_hunter",    # Recruiter blasts
         "noise",          # Newsletters/OTP/promos
-        "rejection",      # Negative outcomes
         "job_application", # Application confirmations/status (prefer application confirmations over generic interview phrasing)
         "interview_invite",  # Scheduling/availability
         "other",          # Generic catch-all
@@ -226,11 +227,22 @@ def rule_label(subject: str, body: str = "", sender_domain: str | None = None) -
         "ghosted",
         "blank",
     ):
+        if DEBUG and label == "rejection":
+            print(f"[DEBUG rule_label] Checking '{label}' patterns...")
         for rx in _MSG_LABEL_PATTERNS.get(label, []):
-            if rx.search(s):
+            match = rx.search(s)
+            if match:
+                if DEBUG and label == "rejection":
+                    print(f"[DEBUG rule_label] Pattern MATCHED: {rx.pattern[:60]}")
+                    print(f"  Matched text: '{match.group()}'")
                 # If any exclude pattern matches, skip this label
                 excludes = _MSG_LABEL_EXCLUDES.get(label, [])
-                if any(ex.search(s) for ex in excludes):
+                matched_excludes = [ex for ex in excludes if ex.search(s)]
+                if matched_excludes:
+                    if DEBUG:
+                        print(f"[DEBUG rule_label] Label '{label}' pattern matched but EXCLUDED by:")
+                        for ex in matched_excludes:
+                            print(f"  - {ex.pattern}")
                     continue
 
                 # Conservative handling for head_hunter / referral labels.
@@ -304,7 +316,9 @@ def rule_label(subject: str, body: str = "", sender_domain: str | None = None) -
                                 print("[DEBUG rule_label] Matched scheduling language -> returning interview_invite")
                             return "interview_invite"
 
-                    return label
+                if DEBUG and label == "rejection":
+                    print(f"[DEBUG rule_label] About to return '{label}'")
+                return label
     return None
 
 
@@ -344,6 +358,12 @@ def predict_with_fallback(
         if body:
             print(f"[DEBUG predict_with_fallback] body first 500 chars: {body[:500]}")
 
+    # If rule_label returned a result, use it authoritatively (skip ML overrides)
+    if rl is not None:
+        if DEBUG:
+            print(f"[DEBUG predict_with_fallback] Using rule-based label '{rl}' authoritatively")
+        return {"label": rl, "confidence": 1.0, "fallback": "rule"}
+
     # Safety override: If ML strongly predicts a head_hunter/referral but the
     # sender domain maps to a known company, this is likely a company job-alert
     # or mailing (not a recruiter outreach). Treat these as 'noise' instead of
@@ -369,7 +389,6 @@ def predict_with_fallback(
     # cues AND the content appears application-related, treat as job_application.
     # This allows ATS-generated confirmations to be authoritative even when
     # no explicit application regex matched earlier.
-    if rl is None:
         d = (sender_domain or "").lower()
         body_lower = (body or "").lower()
         try:
@@ -2032,7 +2051,8 @@ def ingest_message(service, msg_id):
                 result["company"] = mapped_company
                 result["predicted_company"] = mapped_company
     else:
-        if company:
+        # Skip company assignment if message is labeled as noise
+        if company and not skip_company_assignment:
             # Final normalization before persistence
             company = normalize_company_name(company)
             company_obj, _ = Company.objects.get_or_create(
@@ -2050,6 +2070,8 @@ def ingest_message(service, msg_id):
                     company_obj.save()
                     if DEBUG:
                         print(f"Set domain for {company}: {sender_domain}")
+        elif skip_company_assignment and DEBUG:
+            print(f"Skipping company assignment for noise message")
 
     if DEBUG:
         confidence = result.get("confidence", 0.0) if result else 0.0

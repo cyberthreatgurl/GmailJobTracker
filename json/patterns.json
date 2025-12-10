@@ -2,6 +2,7 @@
   "message_labels": {
     "interview": [
       "\\bschedule.*interview\\b",
+      "\\bsset\\sup\\sand\\sinterview\\b",
       "\\binterview.*schedule\\b",
       "\\bavailability.*interview\\b",
       "\\binterview.*availability\\b",
@@ -10,6 +11,8 @@
       "\\bnext\\ssteps.*schedule\\b",
       "\\bnext\\ssteps.*interview\\b",
       "\\bwould\\slike\\sto\\sschedule\\b",
+      "\\bwould\\slike\\sto\\sset\\sup\\b",
+      "\\bset\\sup\\s+(?:a\\s+)?(?:call|time|meeting|interview|conversation)\\b",
       "\\binterview\\sconfirmation\\b",
       "\\bconfirmation\\b.*\\binterview\\b",
       "\\byour\\sinterview\\sis\\sscheduled\\b",
@@ -67,6 +70,7 @@
     "rejection": [
       "another\\scandidate\\shas\\sbeen\\sselected",
       "\\bnot\\sbeen\\sreferred\\b",
+      "\\bcancelled\\b",
       "\\bineligible\\b",
       "\\bdo\\s+not\\s+meet\\s+(?:the\\s+)?(?:requirements|qualifications)\\b",
       "\\sregret\\s",
@@ -130,6 +134,7 @@
       "substack\\.com"
       ],
     "referral": [
+      "\\blike\\sto\\sintroduce\\b",
       "(\\breferral\\b| \\breferred\\b|\\brefer\\b|\\brecommendation\\b|\\brecommended\\b|introduction\\b|\\sconnect\\syou\\swith\\b|\\bconnecting\\syou\\swith\\b)",
       "\\breferral\\b.*\\bbonus\\b",
       "(\\brefer\\b|\\breferred\\b)(?s:.*?)(?:\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}\\b|\\b\\d{3}[-.\\s]\\d{3}[-.\\s]\\d{4}\\b)",
@@ -143,7 +148,7 @@
       "(?i)\\brecruit(ment|er|ing|ment\\sexecutive)?\\b",
       "(?i)\\b(?:recruiter|recruiting|talent acquisition|headhunter|sourcing)\\b(?s:.*?)(?:\\b\\d{3}[-.\\s]\\d{3}[-.\\s]\\d{4}\\b|mailto:|\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}\\b|LinkedIn|via LinkedIn)"
     ],
-      
+
     "response": [
       "thank\\syou\\sfor\\sapplying",
       "received\\syour\\sresume",
@@ -154,6 +159,8 @@
     ],
     "other": [
       "\\bthank\\syou\\sfor\\sscheduling\\b",
+      "\\bcontinue\\sto\\sapply\\b",
+      "\\blog\\sback\\sinto\\syour\\scandidate\\shome\\saccount\\sand\\scomplete\\b",
       "\\bscheduled\\sa\\sconversation\\b",
       "\\blook\\sforward\\sto\\s(?:speaking|discussing)\\b",
       "\\bfinish\\syour\\sapplication",

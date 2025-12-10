@@ -1,0 +1,97 @@
+Delivered-To: kaver68@gmail.com
+Received: by 2002:a05:7108:4a05:b0:45e:2301:89ff with SMTP id dt5csp1631919gdb;
+        Sat, 28 Jun 2025 11:15:12 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IHTi2ItdcG59fKkMLa7Q7dsL4wKEPwZNDEAi6TJogZ5zNtlV5/Y4qK8sRUJ5rj6dccHl+yV
+X-Received: by 2002:a05:620a:2683:b0:7d4:4e40:2fc5 with SMTP id af79cd13be357-7d44e403051mr409587285a.52.1751134512315;
+        Sat, 28 Jun 2025 11:15:12 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1751134512; cv=none;
+        d=google.com; s=arc-20240605;
+        b=QpILhwwN6hteQg0xk4Dgm5dP1UzxWNikX/sTBCV74cRqi3gXq4lOGCDkQUmFRLfAjo
+         ceBHcR39zHs9o0cTof1TZ66bT9E7J2PmFt9cfk2+ka0AiMN4oiaBjHiHFSp6hhMqtR+L
+         3UlTPoSI2qYnuLZqibFdTENppmZejBs0D/D/RLyEBE/6q2WrKZnFGCet5Sc+TqZxbvNi
+         otwWO98QvERztVMp1IE0A3WOrgFOEXhC3N1ob5I0c3vGlQby4ueTBTQzl82M+20gvg0O
+         JF73sPRj8oU95kuVfrNItvdNYnaF5TPfDtHBOCWZP43CcHnnuXHoFnJ6B0PjICdKeyTt
+         Cj5A==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=content-transfer-encoding:mime-version:subject:message-id:to:from
+         :date:dkim-signature:dkim-signature;
+        bh=dwcIkb0h+GGyo65iePsRorP5iNXZl2N9qizMaI6MYv4=;
+        fh=G/VLhrQnXiN6LciSgCgIU9VM0fr+1O2AyqFGWpHCjzw=;
+        b=IsFGVpvhd7ZTgmKZTXrbLPxeAOJJypy4LrGm7HzRcuf33a1omUSlVRhzP0Vvyo/jfc
+         umTNoHNvWtJA876EZ2qvoubumbJcegjIuQFxMGuCkBZdzEih+TdU+Nx6yLY9JFEfDDzD
+         dP4+TkzfNPE1erpNi1zwbKrdpkOIKN5ygHCl7hy0/LCDwI6Ruj30Dunzl8ZRGuB2vBiN
+         lUDyoYBz3MPoGcKilO+NRdGfyUYz7daifrZKU3ZTGkfqSQYnSqYJa93BYHaWhoIcFvxV
+         TFsHLr7NuBMeJyqmt6J6TsQCWlq/ocNKmSymsq4vWk4r4qeQVe/pZEQbNyMwd2cnPm76
+         trrw==;
+        dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@adp.com header.s=2020-07 header.b=LhyX4I++;
+       dkim=pass header.i=@candidatecare.com header.s=2015-04 header.b=fPBFzBg0;
+       spf=pass (google.com: domain of prvs=42741d08ed=do-not-reply@candidatecare.com designates 170.146.220.100 as permitted sender) smtp.mailfrom="prvs=42741d08ed=do-not-reply@candidatecare.com";
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=candidatecare.com
+Return-Path: <prvs=42741d08ed=do-not-reply@candidatecare.com>
+Received: from mail3-1.adp.com (mail3-1.adp.com. [170.146.220.100])
+        by mx.google.com with ESMTPS id af79cd13be357-7d443280b76si478637585a.496.2025.06.28.11.15.12
+        for <kaver68@gmail.com>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Sat, 28 Jun 2025 11:15:12 -0700 (PDT)
+Received-SPF: pass (google.com: domain of prvs=42741d08ed=do-not-reply@candidatecare.com designates 170.146.220.100 as permitted sender) client-ip=170.146.220.100;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@adp.com header.s=2020-07 header.b=LhyX4I++;
+       dkim=pass header.i=@candidatecare.com header.s=2015-04 header.b=fPBFzBg0;
+       spf=pass (google.com: domain of prvs=42741d08ed=do-not-reply@candidatecare.com designates 170.146.220.100 as permitted sender) smtp.mailfrom="prvs=42741d08ed=do-not-reply@candidatecare.com";
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=candidatecare.com
+Received: from pps.filterd (dc1prppedgevm01.ga.adp.com [127.0.0.1])
+	by dc1prppedgevm01.ga.adp.com (8.18.1.2/8.18.1.2) with ESMTP id 55SDXll9006876
+	for <kaver68@gmail.com>; Sat, 28 Jun 2025 14:15:11 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=adp.com;
+ h=content-transfer-encoding : content-type : date : from : message-id :
+ mime-version : subject : to; s=2020-07;
+ bh=dwcIkb0h+GGyo65iePsRorP5iNXZl2N9qizMaI6MYv4=;
+ b=LhyX4I++W3o+XesKsD1hdvdn03qCb3HeVjoALy5D6TDnLE3XgMhz2ZdaCCGs0BwmiYbf
+ ZGcszVYxvVQJnehNtn319oqEwT7dHI3DdOx2UgPKZJtLLEx4AR1l0VSFAF5liZ/TgxQZ
+ uNDqI5wkQJ3q4PCFUegRxeRthp9yDKL3Bt1ftG7FRDKW5dOZeMZPY47zhjqQp1J3Gf+a
+ n+FVoNX2ocz7RQHYWtTKY2/sEzZIQuCS4BtIkOoCFCX+Ui3r34V/XGa11NHJEB2v9wBl
+ B63mwgMf9zQs+tqMX/Ok+zhTBi78VN7irdwhC71DtyfnHWd9Hh2t7aA6DdkrJTAh8B/U gQ== 
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=candidatecare.com;
+ h=content-transfer-encoding : content-type : date : from : message-id :
+ mime-version : subject : to; s=2015-04;
+ bh=dwcIkb0h+GGyo65iePsRorP5iNXZl2N9qizMaI6MYv4=;
+ b=fPBFzBg0W/P095+v+SplRgulynZPbtqMFpxwLFWP22syy5h7cC+yA4Grqz6dMFY49abA
+ qxFMD1CAHVSfVHNHpYR/feJMrBacB4XG3CikgTOn7e+TC5MiiSxe2wIjHIafTv+wd6Wc
+ j/c2dWuVsuR1wA2R2aGbuDZQvJNWE1klhK+Si3tlv225yUHLtLD2MC0lAX/wwCLGS180
+ OhGR2lmMCDDTrivCWQCuU4x6tu6S0PFcjcVOrY+aJyTuuDhz7thIylyjr2fQDKAtHRje
+ lKIaQw6fjg5dInX9ryKgzw50EXSV+FWk7+o5pkGmufz9QegdtioJ3jdtTsO0p3jxv5n8 Tw== 
+Received: from dc1prppmr07.es.ad.adp.com (dc1prppmr07.es.ad.adp.com [11.6.80.146])
+	by dc1prppedgevm01.ga.adp.com (PPS) with ESMTP id 47jbqxhsfb-1
+	for <kaver68@gmail.com>; Sat, 28 Jun 2025 14:15:11 -0400
+Received: from pps.filterd (dc1prppmr07.es.ad.adp.com [127.0.0.1])
+	by dc1prppmr07.es.ad.adp.com (8.18.1.2/8.18.1.2) with ESMTP id 55SAo2Yt025984
+	for <kaver68@gmail.com>; Sat, 28 Jun 2025 14:15:11 -0400
+Received: from dc1pod4superuser (dc1prrmp4ap0036.dcapl.adp.com [11.1.101.224])
+	by dc1prppmr07.es.ad.adp.com (PPS) with ESMTP id 47j9u7c6rd-1
+	for <kaver68@gmail.com>; Sat, 28 Jun 2025 14:15:11 -0400
+Date: Sat, 28 Jun 2025 14:15:11 -0400 (EDT)
+From: "ECS Federal, LLC Talent Acquisition" <do-not-reply@candidatecare.com>
+To: kaver68@gmail.com
+Message-ID: <1164223978.24182.1751134511784.JavaMail.tomcat@dc1pod4superuser>
+Subject: ECS Federal, LLC -1136-ARPA-H AI & Cybersecurity Expert has been
+ cancelled
+MIME-Version: 1.0
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1099,Hydra:6.1.7,FMLib:17.12.80.40
+ definitions=2025-06-27_05,2025-06-27_01,2025-03-28_01
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+
+<P><img border=0 align=absmiddle src='https://recruiting.adp.com/portal-upload/RMPOD4WebDocument/2024/9/clientdata_2201039/10/1650/9f1db18c-2224-44ad-ad32-1d3fbcd78356.jpg'></P>
+<P>Re:&nbsp; 1136-ARPA-H AI & Cybersecurity Expert</P>
+<P>Dear Adrian:</P>
+<P>We wanted to update you on the status of the&nbsp;ARPA-H AI & Cybersecurity Expert&nbsp;position that you applied for.&nbsp; We have cancelled the position and will no longer be&nbsp;seeking candidates&nbsp;to fill it.</P>
+<P>Thank you for your interest in employment at ECS Federal, LLC.&nbsp; We encourage&nbsp;you to visit our career center for other employment opportunities that you may be interested in.</P>
+<P>Sincerely,<BR>Talent Acquisition</P>
+<DIV>&nbsp;</DIV><img style="display:none" border=0 height=1 width=1 alt="" src="https://recruiting.adp.com/src/public/email.trkr?_uid=5052123583606&_c=2201039"/><DIV style="text-align: right;"><HR>ECS Federal, LLC</DIV>
+<DIV style="text-align: right;">Remote-TC</DIV>
+<DIV style="text-align: right;">Works from home,&nbsp;VA&nbsp;22031</DIV>
+
+<HR>This message and any attachments are intended only for the use of the addressee and may contain information that is privileged and confidential. If the reader of the message is not the intended recipient or an authorized representative of the intended recipient, you are hereby notified that any dissemination of this communication is strictly prohibited. If you have received this communication in error, notify the sender immediately by return email and delete the message and any attachments from your system.<BR>

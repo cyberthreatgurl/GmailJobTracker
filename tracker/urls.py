@@ -22,11 +22,7 @@ urlpatterns = [
     path("company_threads/", views.company_threads, name="company_threads"),
     path("json_viewer/", views.json_file_viewer, name="json_file_viewer"),
     # removed orphaned import_gmail_filters_view URL
-    path(
-        "filters/compare_gmail_filters/",
-        views.compare_gmail_filters,
-        name="compare_gmail_filters",
-    ),
+
     path("settings/", views.configure_settings, name="configure_settings"),
     path("settings/domains/", views.manage_domains, name="manage_domains"),
     path("api/ingestion_status/", views.ingestion_status_api, name="ingestion_status_api"),

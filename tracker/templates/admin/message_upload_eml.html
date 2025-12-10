@@ -1,0 +1,35 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block content %}
+<div id="content-main">
+    <h1>{{ title }}</h1>
+    
+    <div class="module">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div class="form-row">
+                {{ form.as_p }}
+            </div>
+            
+            <div class="submit-row">
+                <input type="submit" value="Upload and Ingest" class="default" />
+                <a href="{% url 'admin:tracker_message_changelist' %}" class="button cancel-link">Cancel</a>
+            </div>
+        </form>
+    </div>
+    
+    <div class="module" style="margin-top: 20px;">
+        <h2>Instructions</h2>
+        <p>This tool allows you to upload email messages in .eml format directly into the job tracker database.</p>
+        <ul>
+            <li>Select an .eml file from your computer</li>
+            <li>The system will automatically extract the subject, sender, date, and body</li>
+            <li>Company identification and ML classification will be applied</li>
+            <li>The message will be stored in the database if it doesn't already exist</li>
+        </ul>
+        <p><strong>Note:</strong> .eml files are raw email files that can be saved from most email clients (Gmail, Outlook, etc.)</p>
+    </div>
+</div>
+{% endblock %}

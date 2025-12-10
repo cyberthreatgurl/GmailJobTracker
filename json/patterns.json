@@ -21,7 +21,15 @@
       "\\bavailable\\s+for\\s+(?:a\\s+)?(?:call|phone\\s+call|conversation)\\b",
       "\\bschedule\\s+(?:a\\s+)?(?:call|time|conversation)\\b",
       "\\bwould\\s+like\\s+to\\s+discuss\\s+the\\s+position\\b",
-      "\\bi\\s+would\\s+like\\s+to\\s+discuss\\b"
+      "\\bi\\s+would\\s+like\\s+to\\s+discuss\\b",
+      "\\bMicrosoft\\s+Teams\\s+Meeting\\b",
+      "\\bJoin\\s+the\\s+meeting\\s+now\\b",
+      "\\bMeeting\\s+ID:\\s+\\d",
+      "\\bPasscode:\\s+\\w",
+      "\\bzoom\\.us/j/",
+      "\\bteams\\.microsoft\\.com/l/meetup-join",
+      "\\bBEGIN:VCALENDAR\\b",
+      "\\bMETHOD:REQUEST\\b"
     ],
     "application": [
       "\\bthank\\syou\\sfor\\ssubmitting\\b",
@@ -58,6 +66,9 @@
     ],
     "rejection": [
       "another\\scandidate\\shas\\sbeen\\sselected",
+      "\\bnot\\sbeen\\sreferred\\b",
+      "\\bineligible\\b",
+      "\\bdo\\s+not\\s+meet\\s+(?:the\\s+)?(?:requirements|qualifications)\\b",
       "\\sregret\\s",
       "better\\sfit\\sour\\sneeds",
       "has\\sbeen\\sclosed",
@@ -74,6 +85,7 @@
       "\\bposition\\b.*\\bhas\\s+(?:either\\s+)?been\\s+(?:filled|closed)\\b",
       "\\bwe\\s(will\\snot|won'?t|are\\snot)\\s(be\\s)?moving\\sforward\\b",
       "\\b(unable|not\\sable|cannot|can\\snot)\\s(to\\s)?(move\\sforward|proceed)\\b",
+      "\\bwe\\s+will\\s+not\\s+be\\s+able\\s+to\\s+move\\s+forward\\b",
       "\\bdecided\\snot\\sto\\smove\\sforward\\b",
       "\\bhave\\sdecided\\snot\\sto\\smove\\sforward\\b",
       "\\b(chosen|opted)\\snot\\sto\\s(move\\sforward|proceed)\\b",
@@ -82,6 +94,7 @@
       "\\bposition\\s(?:has\\sbeen\\s)?filled\\b",
       "\\bno\\slonger\\s(?:considering|moving\\sforward)\\bs",
       "\\bwe\\s(?:are\\s)?pursuing\\s(?:other|another)\\scandidate(?:s)?\\b",
+      "\\bdecided\\s+to\\s+pursue\\s+(?:other|another)\\s+candidate(?:s)?\\b",
       "\\bkeep\\syour\\s(?:resume|application)\\son\\sfile\\b",
       "\\bdecided\\snot\\sto\\smove\\sforward\\swith\\syour\\sapplication\\b",
       "\\bnot\\sadvance\\b",
@@ -137,7 +150,6 @@
       "None"
     ],
     "other": [
-      "\\bMicrosoft\\sTeams\\sNeed\\shelp",
       "\\bthank\\syou\\sfor\\sscheduling\\b",
       "\\bscheduled\\sa\\sconversation\\b",
       "\\blook\\sforward\\sto\\s(?:speaking|discussing)\\b",
@@ -150,11 +162,15 @@
       "\\baction\\s+needed\\s+.*?\\s+application\\b",
       "\\bstarted\\sapplying\\b.*\\bdidn'?t\\sfinish\\b",
       "\\bdidn'?t\\sfinish\\b.*\\bapplication\\b",
+      "\\bcongratulations.*\\bpassed\\b",
+      "\\byou\\s+passed\\s+the\\b",
+      "\\bpassed\\s+the\\s+.*?\\s(?:assessment|test)\\b",
       "\\bincomplete\\sapplication\\b",
       "\\bapplication\\sincomplete\\b",
       "\\bwe\\snoticed\\syou\\sstarted\\b",
       "\\bhelp\\syou\\sget\\sstarted\\b",
-      "\\bIndeed\\sApplication:\\b"
+      "\\bIndeed\\sApplication:\\b",
+      "\\bpre-?screen(?:ing)?\\b"
     ]
   },
   "message_label_excludes": {

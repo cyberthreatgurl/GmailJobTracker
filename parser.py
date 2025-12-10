@@ -207,7 +207,7 @@ def rule_label(subject: str, body: str = "", sender_domain: str | None = None) -
     # as interview invites.
     # Note: Use [''\u2019] to match both straight and curly apostrophes
     if re.search(
-        r"\b(we\s+have\s+received\s+your\s+application|we[''\u2019]?ve\s+received\s+your\s+application|we\s+have\s+received\s+your\s+application|thank\s+you\s+for\s+applying|application\s+received|your\s+application\s+has\s+been\s+received|your\s+application\s+has\s+been\s+submitted|your\s+application\s+was\s+sent)\b",
+        r"\b(we\s+have\s+received\s+your\s+application|we[''\u2019]?ve\s+received\s+your\s+application|we\s+have\s+received\s+your\s+application|thanks?\s+(?:you\s+)?for\s+applying|application\s+received|your\s+application\s+has\s+been\s+received|your\s+application\s+has\s+been\s+submitted|your\s+application\s+was\s+sent)\b",
         s,
         re.I | re.DOTALL,
     ):
@@ -1064,6 +1064,52 @@ def classify_message(body):
     return ""
 
 
+def extract_organizer_from_icalendar(body):
+    """
+    Extract organizer email from iCalendar data in message body.
+    
+    Teams/Zoom meeting invites often contain BASE64 encoded iCalendar data
+    with ORGANIZER field containing the sender's email address.
+    
+    Returns: (organizer_email, organizer_domain) or (None, None)
+    """
+    if not body:
+        return None, None
+    
+    # Look for BASE64 encoded iCalendar data
+    # Pattern: continuous BASE64 string (common in calendar invites)
+    base64_pattern = r'(?:[A-Za-z0-9+/]{60,}\n?)+'
+    matches = re.findall(base64_pattern, body)
+    
+    for match in matches:
+        try:
+            # Remove newlines and decode
+            base64_data = match.replace('\n', '').replace('\r', '')
+            decoded = base64.b64decode(base64_data).decode('utf-8', errors='ignore')
+            
+            # Check if this is iCalendar data
+            if 'BEGIN:VCALENDAR' in decoded or 'ORGANIZER' in decoded:
+                # Extract ORGANIZER email
+                # Format: ORGANIZER;CN=Name:mailto:email@domain.com
+                organizer_match = re.search(
+                    r'ORGANIZER[^:]*:mailto:([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})',
+                    decoded,
+                    re.IGNORECASE
+                )
+                if organizer_match:
+                    email = organizer_match.group(1).lower()
+                    domain = email.split('@')[-1] if '@' in email else None
+                    if DEBUG:
+                        print(f"[DEBUG] Extracted organizer from iCalendar: {email} (domain: {domain})")
+                    return email, domain
+        except Exception as e:
+            if DEBUG:
+                print(f"[DEBUG] Failed to decode/parse iCalendar data: {e}")
+            continue
+    
+    return None, None
+
+
 def parse_subject(subject, body="", sender=None, sender_domain=None):
     """Extract company, job title, and job ID from subject line, sender, and optionally sender domain."""
 
@@ -1072,6 +1118,7 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
         print(f"[DEBUG]   subject={subject[:60]}...")
         print(f"[DEBUG]   sender={sender}")
         print(f"[DEBUG]   sender_domain={sender_domain}")
+        print(f"[DEBUG]   body_length={len(body) if body else 0}")
 
     RESUME_NOISE_PATTERNS = [
         r"\bresume\b",
@@ -1110,6 +1157,21 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
     subject_clean = re.sub(r"^(Re|RE|Fwd|FW|Fw):\s*", "", subject_clean, flags=re.IGNORECASE).strip()
     subj_lower = subject_clean.lower()
     domain_lower = sender_domain.lower() if sender_domain else None
+
+    # --- Check for Teams/Zoom meeting invites with iCalendar data ---
+    # Extract organizer email from iCalendar ORGANIZER field (more reliable than sender for calendar invites)
+    organizer_email, organizer_domain = extract_organizer_from_icalendar(body)
+    if organizer_domain and not domain_lower:
+        # Use organizer domain if sender domain not available
+        domain_lower = organizer_domain
+        if DEBUG:
+            print(f"[DEBUG] Using organizer domain from iCalendar: {organizer_domain}")
+    elif organizer_domain and organizer_domain != domain_lower:
+        # Prefer organizer domain for meeting invites (more accurate than relay servers)
+        if re.search(r"meeting id|passcode|join.*meeting|zoom\.us|teams\.microsoft", body, re.I):
+            domain_lower = organizer_domain
+            if DEBUG:
+                print(f"[DEBUG] Overriding sender domain with organizer domain for meeting invite: {organizer_domain}")
 
     # --- Post-ML downgrade: certain subjects should not be interview_invite ---
     if label == "interview_invite":
@@ -1175,64 +1237,140 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
                 if DEBUG:
                     print(f"[DEBUG] ATS alias match: {sender_prefix} -> {company}")
 
-        # Special case: Indeed Apply emails - extract actual employer from body
-        if not company and domain_lower == "indeed.com" and body:
-            if "indeedapply" in sender_email:
-                # Extract plain text body for pattern matching
+    # Job board application confirmations - extract actual employer from body
+    # Works for Indeed, LinkedIn, Dice, etc. - any job board where subject contains "Application"
+    if not company and body and subject and re.search(r'\bapplication\b', subject, re.IGNORECASE):
+        # Need to get sender_email if not already extracted above
+        if 'sender_email' not in locals() and sender:
+            _, sender_email = parseaddr(sender)
+        else:
+            sender_email = ""
+        
+        if DEBUG:
+            print(f"[DEBUG] Checking for job board application confirmation in subject: {subject[:50]}...")
+        
+        # Check if this is a job board domain or generic confirmation email
+        is_job_board_confirmation = (
+            domain_lower in JOB_BOARD_DOMAINS or
+            "indeedapply" in sender_email or
+            "application" in subject.lower()
+        )
+        
+        if is_job_board_confirmation:
+            if DEBUG:
+                print(f"[DEBUG] Job board confirmation detected, attempting body extraction")
+                print(f"[DEBUG] Body length: {len(body) if body else 0} chars")
+            
+            # Extract plain text body for pattern matching
+            body_plain = body
+            try:
+                if body and ("<html" in body.lower() or "<style" in body.lower()):
+                    soup = BeautifulSoup(body, "html.parser")
+                    for tag in soup(["style", "script"]):
+                        tag.decompose()
+                    body_plain = soup.get_text(separator=" ", strip=True)
+                    if DEBUG:
+                        print(f"[DEBUG] Extracted plain text, length: {len(body_plain)} chars")
+            except Exception as e:
                 body_plain = body
-                try:
-                    if body and ("<html" in body.lower() or "<style" in body.lower()):
-                        soup = BeautifulSoup(body, "html.parser")
-                        for tag in soup(["style", "script"]):
-                            tag.decompose()
-                        body_plain = soup.get_text(separator=" ", strip=True)
-                except Exception:
-                    body_plain = body
+                if DEBUG:
+                    print(f"[DEBUG] HTML parsing failed: {e}, using raw body")
 
-                # Look for "The following items were sent to COMPANY" or "about your application" patterns
-                if body_plain:
-                    # Try pattern 1: "sent to COMPANY"
-                    indeed_pattern = re.search(
-                        r"(?:the following items were sent to|sent to)\s+([A-Z][A-Za-z0-9\s&.,'-]+?)\s*[.\n]",
-                        body_plain,
-                        re.IGNORECASE,
+            # Look for "The following items were sent to COMPANY" or "about your application" patterns
+            if body_plain:
+                # Try pattern 1: "sent to COMPANY"
+                job_board_pattern = re.search(
+                    r"(?:the following items were sent to|sent to)\s+([A-Z][A-Za-z0-9\s&.,'-]+?)\s*[.\n]",
+                    body_plain,
+                    re.IGNORECASE,
+                )
+                if job_board_pattern:
+                    if DEBUG:
+                        print(f"[DEBUG] Pattern 1 matched: 'sent to COMPANY'")
+                else:
+                    if DEBUG:
+                        print(f"[DEBUG] Pattern 1 did not match, trying pattern 2")
+                    # Try pattern 2: "about your application" with company name before it
+                    job_board_pattern = re.search(
+                        r"<strong>\s*<a[^>]+>([A-Z][A-Za-z0-9\s&.,'-]+?)</a>\s*</strong>.*?about your application",
+                        body,
+                        re.IGNORECASE | re.DOTALL,
                     )
-                    if not indeed_pattern:
-                        # Try pattern 2: "about your application" with company name before it
-                        indeed_pattern = re.search(
-                            r"<strong>\s*<a[^>]+>([A-Z][A-Za-z0-9\s&.,'-]+?)</a>\s*</strong>.*?about your application",
-                            body,
-                            re.IGNORECASE | re.DOTALL,
-                        )
+                    if job_board_pattern and DEBUG:
+                        print(f"[DEBUG] Pattern 2 matched")
 
-                    if indeed_pattern:
-                        extracted = indeed_pattern.group(1).strip()
-                        # Clean up common trailing words
-                        extracted = re.sub(
-                            r"\s+(and|About|Your|Application|Details)$",
-                            "",
-                            extracted,
-                            flags=re.IGNORECASE,
-                        ).strip()
-                        # Remove trailing punctuation
-                        extracted = extracted.rstrip(".,;:")
-                        if extracted and len(extracted) > 2 and is_valid_company_name(extracted):
-                            company = extracted
-                            if DEBUG:
-                                print(f"[DEBUG] Indeed employer extraction: {company}")
+                if job_board_pattern:
+                    extracted = job_board_pattern.group(1).strip()
+                    if DEBUG:
+                        print(f"[DEBUG] Raw extracted company: '{extracted}'")
+                    # Clean up common trailing words
+                    extracted = re.sub(
+                        r"\s+(and|About|Your|Application|Details)$",
+                        "",
+                        extracted,
+                        flags=re.IGNORECASE,
+                    ).strip()
+                    # Remove trailing punctuation
+                    extracted = extracted.rstrip(".,;:")
+                    if extracted and len(extracted) > 2 and is_valid_company_name(extracted):
+                        company = extracted
+                        if DEBUG:
+                            print(f"[DEBUG] Job board employer extraction SUCCESS: {company}")
+                    elif DEBUG:
+                        print(f"[DEBUG] Extracted company failed validation: '{extracted}'")
+                elif DEBUG:
+                    print(f"[DEBUG] No job board pattern matched in body")
+                    # Show a snippet of the body to help debug
+                    snippet_idx = body_plain.lower().find("sent to") if "sent to" in body_plain.lower() else 0
+                    if snippet_idx >= 0:
+                        print(f"[DEBUG] Body snippet around 'sent to': ...{body_plain[snippet_idx:snippet_idx+150]}...")
+            else:
+                if DEBUG:
+                    print(f"[DEBUG] Body plain is empty, cannot extract company")
+
+        # Special case: IntelligenceCareers.gov (NSA ATS) - extract agency from body
+        if not company and domain_lower == "intelligencecareers.gov" and body:
+            # Extract plain text body for pattern matching
+            body_plain = body
+            try:
+                if body and ("<html" in body.lower() or "<style" in body.lower()):
+                    soup = BeautifulSoup(body, "html.parser")
+                    for tag in soup(["style", "script"]):
+                        tag.decompose()
+                    body_plain = soup.get_text(separator=" ", strip=True)
+            except Exception:
+                body_plain = body
+
+            # Look for "application to the AGENCY" or "application to AGENCY" pattern
+            if body_plain:
+                intcareers_pattern = re.search(
+                    r"application to (?:the\s+)?([A-Z][A-Za-z0-9\s&.,'-]+?)(?:\s+\(|\!|\.|$)",
+                    body_plain,
+                    re.IGNORECASE,
+                )
+                if intcareers_pattern:
+                    extracted = intcareers_pattern.group(1).strip()
+                    # Clean up common suffixes
+                    extracted = re.sub(r'\s+\(.*?\)\s*$', '', extracted).strip()
+                    if extracted and is_valid_company_name(extracted):
+                        company = normalize_company_name(extracted)
+                        if DEBUG:
+                            print(f"[DEBUG] IntelligenceCareers.gov agency extraction: {company}")
 
         # Save display name as a fallback candidate (defer until after subject patterns)
         ats_display_name_fallback = None
         if not company:
             display_name, _ = parseaddr(sender)
             cleaned = re.sub(
-                r"\b(Workday|Recruiting Team|Careers|Talent Acquisition Team|HR|Hiring)\b",
+                r"\b(Workday|Recruiting Team|Careers|Talent Acquisition Team|HR|Hiring|Notification|Notifications|Team|Portal)\b",
                 "",
                 display_name,
                 flags=re.I,
             ).strip()
             # Remove ATS platform suffixes (e.g., "@ icims", "@ Workday", etc.)
             cleaned = re.sub(r'\s*@\s*(icims|workday|greenhouse|lever|indeed)\s*$', '', cleaned, flags=re.I).strip()
+            # Clean up multiple spaces
+            cleaned = re.sub(r'\s+', ' ', cleaned).strip()
             if cleaned and len(cleaned) > 2:
                 ats_display_name_fallback = cleaned
                 if DEBUG:
@@ -1240,10 +1378,12 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
 
     # PRIORITY 2: Domain mapping (direct company domains) with subdomain support
     # Skip if domain is (or is under) a known ATS platform; ATS handled separately above.
+    company_from_domain = False
     if not company and domain_lower and not _is_ats_domain(domain_lower):
         mapped = _map_company_by_domain(domain_lower)
         if mapped:
             company = mapped
+            company_from_domain = True  # Mark that we have a reliable domain-based company
             if DEBUG:
                 print(f"[DEBUG] Domain mapping (subdomain aware) used: {domain_lower} -> {company}")
 
@@ -1356,17 +1496,20 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
         job_title = special_match.group(1).strip()
         company = special_match.group(2).strip()
 
-    for pat, flags in subject_patterns:
-        if not company:
-            match = re.search(pat, subject_clean, flags)
-            if match:
-                candidate = normalize_company_name(match.group(1).strip())
-                # Person-name safeguard specifically for the generic from/with/at capture or leading patterns
-                if looks_like_person(candidate) and candidate.lower() not in {c.lower() for c in KNOWN_COMPANIES}:
-                    if DEBUG:
-                        print(f"[DEBUG] Rejected candidate company as person name: {candidate}")
-                    continue
-                company = candidate
+    # Skip subject pattern matching if we already have a reliable domain-mapped company
+    # (prevents subject patterns from overwriting domain mappings with false positives)
+    if not company_from_domain:
+        for pat, flags in subject_patterns:
+            if not company:
+                match = re.search(pat, subject_clean, flags)
+                if match:
+                    candidate = normalize_company_name(match.group(1).strip())
+                    # Person-name safeguard specifically for the generic from/with/at capture or leading patterns
+                    if looks_like_person(candidate) and candidate.lower() not in {c.lower() for c in KNOWN_COMPANIES}:
+                        if DEBUG:
+                            print(f"[DEBUG] Rejected candidate company as person name: {candidate}")
+                        continue
+                    company = candidate
 
     # Prefer canonical known company names when candidate contains them as substrings
     # (handles cases like "the Senior Systems Security Engineer position at CSA")
@@ -1501,6 +1644,9 @@ def ingest_message(service, msg_id):
     Message/Application ORM writes → ingestion stats and dedupe checks.
     Returns one of: 'inserted' | 'skipped' | 'ignored' | None on failure.
     """
+    # Reload company data if companies.json has been modified
+    _reload_domain_map_if_needed()
+    
     stats = get_stats()
 
     try:
@@ -1842,15 +1988,27 @@ def ingest_message(service, msg_id):
             return "ignored"
 
         # Job-board messages should be treated as noise (similar to job_alert)
+        # EXCEPT application confirmations where user applied through the job board
         if is_job_board:
-            if DEBUG:
-                print(f"[JOB BOARD] Marking message from job-board domain as noise: {sender_domain}")
-            if not result:
-                result = {"label": "noise", "confidence": 1.0}
+            # Check if this is an application confirmation (subject contains "Application")
+            is_application_confirmation = (
+                subject and re.search(r'\bapplication\b', subject, re.IGNORECASE)
+            )
+            
+            if not is_application_confirmation:
+                if DEBUG:
+                    print(f"[JOB BOARD] Marking message from job-board domain as noise: {sender_domain}")
+                if not result:
+                    result = {"label": "noise", "confidence": 1.0}
+                else:
+                    result["label"] = "noise"
+                    result["confidence"] = 1.0
+                skip_company_assignment = True
             else:
-                result["label"] = "noise"
-                result["confidence"] = 1.0
-            skip_company_assignment = True
+                if DEBUG:
+                    print(f"[JOB BOARD] Application confirmation detected, will extract company from body")
+                # Don't skip company assignment for application confirmations
+                skip_company_assignment = False
 
         # 0. Headhunter domain check (highest priority)
         if is_headhunter:
@@ -2737,7 +2895,7 @@ if COMPANIES_PATH.exists():
         company_data = {}
     ATS_DOMAINS = [d.lower() for d in company_data.get("ats_domains", [])]
     HEADHUNTER_DOMAINS = [d.lower() for d in company_data.get("headhunter_domains", [])]
-    JOB_BOARD_DOMAINS = [d.lower() for d in company_data.get("job_board_domains", [])]
+    JOB_BOARD_DOMAINS = [d.lower() for d in company_data.get("job_boards", [])]
     KNOWN_COMPANIES = {c.lower() for c in company_data.get("known", [])}
     KNOWN_COMPANIES_CASED = company_data.get("known", [])  # Keep original casing
     DOMAIN_TO_COMPANY = {k.lower(): v for k, v in company_data.get("domain_to_company", {}).items()}
@@ -2745,6 +2903,7 @@ if COMPANIES_PATH.exists():
 else:
     ATS_DOMAINS = []
     HEADHUNTER_DOMAINS = []
+    JOB_BOARD_DOMAINS = []
     KNOWN_COMPANIES = set()
     KNOWN_COMPANIES_CASED = []
     DOMAIN_TO_COMPANY = {}
@@ -2763,19 +2922,283 @@ except Exception:
 
 
 def _reload_domain_map_if_needed():
-    """Reload `DOMAIN_TO_COMPANY` from `COMPANIES_PATH` if the file changed."""
-    global DOMAIN_TO_COMPANY, _DOMAIN_MAP_MTIME
+    """Reload all company data from `COMPANIES_PATH` if the file changed."""
+    global DOMAIN_TO_COMPANY, ATS_DOMAINS, HEADHUNTER_DOMAINS, JOB_BOARD_DOMAINS
+    global KNOWN_COMPANIES, KNOWN_COMPANIES_CASED, ALIASES, company_data, _DOMAIN_MAP_MTIME
     try:
         if COMPANIES_PATH.exists():
             mtime = COMPANIES_PATH.stat().st_mtime
             if _DOMAIN_MAP_MTIME != mtime:
                 with open(COMPANIES_PATH, "r", encoding="utf-8") as f:
                     data = json.load(f)
+                # Reload all company configuration data
+                company_data = data
+                ATS_DOMAINS = [d.lower() for d in data.get("ats_domains", [])]
+                HEADHUNTER_DOMAINS = [d.lower() for d in data.get("headhunter_domains", [])]
+                JOB_BOARD_DOMAINS = [d.lower() for d in data.get("job_boards", [])]
+                KNOWN_COMPANIES = {c.lower() for c in data.get("known", [])}
+                KNOWN_COMPANIES_CASED = data.get("known", [])
                 DOMAIN_TO_COMPANY = {k.lower(): v for k, v in data.get("domain_to_company", {}).items()}
+                ALIASES = data.get("aliases", {})
                 _DOMAIN_MAP_MTIME = mtime
-    except Exception:
+                if DEBUG:
+                    print(f"[INFO] Reloaded companies.json (mtime changed)")
+    except Exception as e:
         # If reload fails for any reason, keep the existing mapping silently
+        if DEBUG:
+            print(f"[WARNING] Failed to reload companies.json: {e}")
         pass
+
+
+def ingest_message_from_eml(eml_content: str, fake_msg_id: str = None):
+    """Ingest a message directly from .eml file content.
+    
+    Args:
+        eml_content: Raw .eml file content as string
+        fake_msg_id: Optional message ID to use (defaults to hash of subject+date)
+    
+    Returns:
+        Same as ingest_message: 'inserted' | 'skipped' | 'ignored' | None
+    """
+    from email import message_from_string
+    from email.utils import parseaddr, parsedate_to_datetime
+    import hashlib
+    
+    # Reload company data if companies.json has been modified
+    _reload_domain_map_if_needed()
+    
+    stats = get_stats()
+    
+    try:
+        # Parse the .eml file
+        msg = message_from_string(eml_content)
+        
+        # Extract headers
+        subject = msg.get("Subject", "")
+        date_raw = msg.get("Date", "")
+        sender = msg.get("From", "")
+        to_header = msg.get("To", "")
+        
+        # Decode subject if needed
+        if subject:
+            decoded_parts = eml_decode_header(subject)
+            subject = " ".join(
+                part.decode(encoding or 'utf-8') if isinstance(part, bytes) else part
+                for part, encoding in decoded_parts
+            )
+        
+        # Parse date
+        try:
+            date_obj = parsedate_to_datetime(date_raw)
+            if timezone.is_naive(date_obj):
+                date_obj = timezone.make_aware(date_obj)
+        except Exception:
+            date_obj = timezone.now()
+        
+        # Extract sender domain
+        parsed = parseaddr(sender)
+        email_addr = parsed[1] if len(parsed) == 2 else ""
+        match = re.search(r"@([A-Za-z0-9.-]+)$", email_addr)
+        sender_domain = match.group(1).lower() if match else ""
+        
+        # Generate message ID if not provided
+        if not fake_msg_id:
+            hash_input = f"{subject}{date_obj.isoformat()}{sender}".encode('utf-8')
+            fake_msg_id = f"eml_{hashlib.md5(hash_input).hexdigest()}"
+        
+        # Extract body
+        body = ""
+        body_html = ""
+        
+        if msg.is_multipart():
+            for part in msg.walk():
+                content_type = part.get_content_type()
+                content_disposition = str(part.get("Content-Disposition", ""))
+                
+                # Skip attachments
+                if "attachment" in content_disposition:
+                    continue
+                
+                try:
+                    payload = part.get_payload(decode=True)
+                    if payload is None:
+                        continue
+                    
+                    charset = part.get_content_charset() or 'utf-8'
+                    decoded = payload.decode(charset, errors='ignore')
+                    
+                    if content_type == "text/plain" and not body:
+                        body = decoded.strip()
+                    elif content_type == "text/html":
+                        body_html = html.unescape(decoded)
+                        # Extract text from HTML
+                        soup = BeautifulSoup(body_html, "html.parser")
+                        body = soup.get_text(separator=" ", strip=True)
+                except Exception as e:
+                    if DEBUG:
+                        print(f"[EML] Error decoding part: {e}")
+                    continue
+        else:
+            # Not multipart
+            try:
+                payload = msg.get_payload(decode=True)
+                if payload:
+                    charset = msg.get_content_charset() or 'utf-8'
+                    body = payload.decode(charset, errors='ignore').strip()
+            except Exception as e:
+                if DEBUG:
+                    print(f"[EML] Error decoding body: {e}")
+        
+        # Prepare metadata dictionary matching extract_metadata format
+        metadata = {
+            "subject": subject,
+            "date": date_obj,  # Store as datetime object, not string
+            "sender": sender,
+            "sender_domain": sender_domain,
+            "to": to_header,
+            "body": body or "Empty Body",
+            "thread_id": fake_msg_id,  # Use message ID as thread ID
+            "labels": "",  # No labels from .eml files
+            "header_hints": {
+                "is_newsletter": False,
+                "is_automated": False,
+                "is_bulk": False,
+                "is_noreply": "noreply" in sender.lower() or "no-reply" in sender.lower(),
+            }
+        }
+        
+        if DEBUG:
+            print(f"[EML] Parsed message:")
+            print(f"  Subject: {subject}")
+            print(f"  From: {sender}")
+            print(f"  Date: {date_obj}")
+            print(f"  Sender domain: {sender_domain}")
+            print(f"  Body length: {len(body)} chars")
+        
+    except Exception as e:
+        if DEBUG:
+            print(f"[EML] Failed to parse .eml content: {e}")
+        return None
+    
+    # Now follow the same pipeline as ingest_message
+    body = metadata["body"]
+    
+    # Skip blank bodies
+    if not body or not body.strip():
+        if DEBUG:
+            print(f"[EML BLANK BODY] Skipping message: {metadata.get('subject','(no subject)')}")
+        log_ignored_message(fake_msg_id, metadata, reason="blank_body")
+        IngestionStats.objects.filter(date=stats.date).update(total_ignored=F("total_ignored") + 1)
+        return "ignored"
+    
+    # Check if application-related
+    header_hints = metadata.get("header_hints", {})
+    is_app_related = is_application_related(
+        metadata["subject"], 
+        metadata.get("body", "")[:500]
+    )
+    
+    if DEBUG:
+        print(f"[EML HEADER HINTS] is_application_related={is_app_related}, is_newsletter={header_hints.get('is_newsletter')}, is_bulk={header_hints.get('is_bulk')}, is_noreply={header_hints.get('is_noreply')}")
+    
+    # Auto-ignore newsletters and bulk mail ONLY if NOT application-related
+    if not is_app_related:
+        if header_hints.get("is_newsletter") or (header_hints.get("is_bulk") and header_hints.get("is_noreply")):
+            if DEBUG:
+                print(f"[EML HEADER HINTS] Auto-ignoring newsletter/bulk mail: {metadata['subject']}")
+            log_ignored_message(fake_msg_id, metadata, reason="newsletter_headers")
+            IngestionStats.objects.filter(date=stats.date).update(total_ignored=F("total_ignored") + 1)
+            return "ignored"
+    
+    # Continue with classification and company resolution
+    # (Using the same logic as ingest_message but without Gmail service dependency)
+    
+    # Run ML classification first
+    result = predict_with_fallback(
+        predict_subject_type,
+        metadata["subject"],
+        body,
+        sender=metadata["sender"]
+    )
+    ml_label = result.get("label", "noise")
+    ml_confidence = result.get("confidence", 0.0)
+    
+    # Parse company from subject/body
+    parse_result = parse_subject(
+        metadata["subject"],
+        body,
+        metadata["sender"],
+        metadata["sender_domain"]
+    )
+    
+    # Extract company name from parse result
+    company = None
+    if isinstance(parse_result, dict):
+        company = parse_result.get("company") or parse_result.get("predicted_company")
+    elif isinstance(parse_result, str):
+        company = parse_result
+    
+    if DEBUG:
+        print(f"[EML] Parsed company: {company}")
+        print(f"[EML] ML label: {ml_label}, confidence: {ml_confidence}")
+    
+    # Get or create company object
+    company_obj = None
+    if company and company.strip():
+        company_obj, created = Company.objects.get_or_create(
+            name=company,
+            defaults={
+                "first_contact": date_obj,
+                "last_contact": date_obj,
+            }
+        )
+    
+    # Check for duplicates
+    existing = Message.objects.filter(msg_id=fake_msg_id).first()
+    if existing:
+        if DEBUG:
+            print(f"[EML] Message already exists (msg_id={fake_msg_id}), updating...")
+        # Update existing message
+        existing.subject = metadata["subject"]
+        existing.sender = metadata["sender"]
+        existing.timestamp = metadata["date"]
+        existing.company = company_obj
+        existing.ml_label = ml_label
+        existing.confidence = ml_confidence
+        existing.save()
+        return "skipped"
+    
+    # Create new message
+    try:
+        msg_obj = Message.objects.create(
+            msg_id=fake_msg_id,
+            thread_id=metadata["thread_id"],
+            subject=metadata["subject"],
+            sender=metadata["sender"],
+            timestamp=metadata["date"],
+            company=company_obj,
+            ml_label=ml_label,
+            confidence=ml_confidence,
+            body=body,
+            body_html=body_html,
+            reviewed=False
+        )
+        
+        # Store body text in separate search table
+        insert_email_text(fake_msg_id, metadata["subject"], body)
+        
+        # Update stats
+        IngestionStats.objects.filter(date=stats.date).update(total_inserted=F("total_inserted") + 1)
+        
+        if DEBUG:
+            print(f"[EML] Successfully ingested message (ID={msg_obj.id})")
+        
+        return "inserted"
+        
+    except Exception as e:
+        if DEBUG:
+            print(f"[EML] Failed to create message: {e}")
+        return None
 
 
 def _conf(res) -> float:

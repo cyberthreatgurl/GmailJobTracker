@@ -24,9 +24,9 @@ class Command(BaseCommand):
             self.stdout.write(self.style.ERROR("json/companies.json not found"))
             return
         data = json.loads(p.read_text(encoding="utf-8"))
-        job_board_domains = [d.lower() for d in data.get("job_board_domains", []) if isinstance(d, str) and d]
+        job_board_domains = [d.lower() for d in data.get("job_boards", []) if isinstance(d, str) and d]
         if not job_board_domains:
-            self.stdout.write(self.style.WARNING("No job_board_domains configured in companies.json"))
+            self.stdout.write(self.style.WARNING("No job_boards configured in companies.json"))
             return
 
         self.stdout.write(f"Found {len(job_board_domains)} job board domains to check")

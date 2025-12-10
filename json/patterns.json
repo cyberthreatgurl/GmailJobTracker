@@ -174,6 +174,23 @@
     ]
   },
   "message_label_excludes": {
+      "noise": [
+        "\\bjob\\s+application\\s+(?:has\\s+been\\s+)?received\\b",
+        "\\bjob\\s+application\\s+(?:has\\s+been\\s+)?submitted\\b",
+        "\\byour\\s+(?:[A-Z][a-z]+\\s+)?(?:job\\s+)?application\\b",
+        "\\bapplication\\s+(?:received|submitted|confirmation|has\\s+been\\s+received)\\b",
+        "\\bresume\\s+has\\s+been\\s+(?:successfully\\s+)?submitted\\b",
+        "\\bthank\\s+you\\s+for\\s+(?:applying|submitting|your\\s+application)\\b",
+        "\\bwe\\s+(?:have\\s+)?received\\s+your\\s+(?:application|resume|submission)\\b",
+        "\\byour\\s+(?:application|resume)\\s+(?:was|has\\s+been)\\s+(?:received|submitted)\\b",
+        "\\breceived.*application\\b",
+        "\\bsubmitted.*(?:application|resume)\\b",
+        "\\binterview\\b",
+        "\\brejection\\b",
+        "\\brejected\\b",
+        "\\bnot\\s+(?:moving\\s+forward|selected)\\b",
+        "\\bposition\\s+(?:filled|closed)\\b"
+      ],
       "head_hunter": [
         "\\bnewsletter\\b",
         "\\bdigest\\b",

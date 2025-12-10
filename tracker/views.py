@@ -2602,7 +2602,7 @@ def label_messages(request):
 
             if selected_ids:
                 try:
-                    from parser import ingest_message
+                    from parser import ingest_message, parse_subject, predict_with_fallback, predict_subject_type
 
                     service = get_gmail_service()
                     success_count = 0
@@ -2679,7 +2679,46 @@ def label_messages(request):
                             # Suppress auto-mark-reviewed during this UI-initiated re-ingest
                             try:
                                 os.environ["SUPPRESS_AUTO_REVIEW"] = "1"
-                                result = ingest_message(service, gmail_msg_id)
+                                # Check if this is an uploaded .eml file (ID starts with eml_)
+                                if gmail_msg_id.startswith("eml_"):
+                                    # Re-classify from stored body text
+                                    # Re-run classification
+                                    result_dict = predict_with_fallback(
+                                        predict_subject_type,
+                                        msg.subject,
+                                        msg.body or "",
+                                        sender=msg.sender
+                                    )
+                                    ml_label = result_dict.get("label", "noise")
+                                    ml_confidence = result_dict.get("confidence", 0.0)
+                                    
+                                    # Re-parse company
+                                    sender_domain = msg.sender.split("@")[-1].split(">")[0] if "@" in msg.sender else ""
+                                    parse_result = parse_subject(
+                                        msg.subject,
+                                        msg.body or "",
+                                        msg.sender,
+                                        sender_domain
+                                    )
+                                    
+                                    # Extract company
+                                    company = None
+                                    if isinstance(parse_result, dict):
+                                        company = parse_result.get("company") or parse_result.get("predicted_company")
+                                    elif isinstance(parse_result, str):
+                                        company = parse_result
+                                    
+                                    # Update message
+                                    msg.ml_label = ml_label
+                                    msg.confidence = ml_confidence
+                                    if company:
+                                        company_obj, _ = Company.objects.get_or_create(name=company)
+                                        msg.company = company_obj
+                                    msg.save()
+                                    result = "skipped"  # Mark as processed
+                                else:
+                                    # Regular Gmail message - fetch from API
+                                    result = ingest_message(service, gmail_msg_id)
                             finally:
                                 try:
                                     del os.environ["SUPPRESS_AUTO_REVIEW"]

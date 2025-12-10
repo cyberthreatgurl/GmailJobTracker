@@ -3,6 +3,10 @@
     "AFS": "Accenture Federal Services",
     "ARC": "Analysis and Resilience Center for Systemic Risk",
     "ARES": "ARES Corporation",
+    "capitalone": "Capital One",
+    "BAE": "BAE Systems",
+    "CapitalOne": "Capital One",
+    "CapitalOneHRWorkday": "Capital One",
     "cmu": "Carnegie Mellon University",
     "cmu-workday": "Carnegie Mellon University",
     "Coalfire": "Coalfire Federal",
@@ -46,9 +50,11 @@
   },
   "ats_domains": [
     "app.bamboohr.com",
+    "applicantstack.com",
     "applicantpro.com",
     "ashbyhq.com",
     "bamboohr.com",
+    "brassring.com",
     "dayforcehcm.com",
     "donotreply.workday.com",
     "greenhouse-mail.io",
@@ -80,11 +86,14 @@
     "workday.com"
   ],
   "domain_to_company": {
+    "baesystems.com": "BAE Systems",
+    "tech-wizards.com": "Tech Wizards Inc.",
     "SailPoint Technologies": "Sail Point Technologies",
     "adp.com": "ARES Corporation",
     "afs.com": "Accenture Federal Services",
     "altamiracorp.com": "Altamira Technologies Corp.",
     "amentum.com": "Amentum",
+    "capitalone.com": "Capital One",
     "amentum.mail.clinchtalent.com": "Amentum",
     "appdynamics.com": "Appdynamics",
     "applicantstack.com": "Applicantstack",
@@ -255,6 +264,7 @@
   ],
   "JobSites": {
     "Amazon": "https://www.amazon.jobs/en/",
+    "Tech Wizards": "https://tech-wizards.applicantstack.com/x/openings",
     "Amentum": "https://www.amentumcareers.com/jobs/",
     "Anthropic": "https://www.anthropic.com/careers",
     "ARES Corporation": "https://workforcenow.adp.com/mascsr/default/mdf/recruitment/recruitment.html?cid=arescorporation&ccId=19000101_000001&type=MP&lang=en_US",
@@ -300,7 +310,9 @@
     "The TJX Companies": "https://www.tjx.com/careers",
     "Guidehouse Federal": "https://guidehouse.com/careers",
     "Guidehouse": "https://guidehouse.com/careers",
-    "Northrop Grumman": "https://www.northropgrumman.com/careers/experienced-professionals"
+    "Northrop Grumman": "https://www.northropgrumman.com/careers/experienced-professionals",
+    "Parsons": "https://jobs.parsons.com/",
+    "Tech Wizards Inc.": "https://tech-wizards.applicantstack.com/x/openings"
   },
   "known": [
     "ARES Corporation",
@@ -315,6 +327,7 @@
     "Banduri",
     "Booz Allen Hamilton",
     "CACI",
+    "Capital One",
     "CSA Associates",
     "CVS Health",
     "Carnegie Mellon University",
@@ -329,6 +342,7 @@
     "Constellation Energy",
     "Core4ce",
     "Corelight",
+    "BAE",
     "CrowdStrike",
     "Delta Dental",
     "DirectViz Solutions",

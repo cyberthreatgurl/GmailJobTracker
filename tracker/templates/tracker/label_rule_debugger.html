@@ -30,6 +30,14 @@
         <span style="color:#2563eb; font-weight:600;">{{ matched_label }}</span>
       {% endif %}
     </div>
+    <div style="margin-top:0.5rem;"><b>Extracted Company:</b>
+      {% if result.extracted_company %}
+        <span style="color:#059669; font-weight:600;">{{ result.extracted_company }}</span>
+        <span style="color:#6b7280; font-size:0.9em;">(confidence: {{ result.company_confidence|floatformat:2 }})</span>
+      {% else %}
+        <span style="color:#9ca3af; font-style:italic;">None detected</span>
+      {% endif %}
+    </div>
     <details style="margin-top:0.5rem;">
       <summary style="cursor:pointer;">Show matched patterns</summary>
       <div><b>Matched Patterns:</b>

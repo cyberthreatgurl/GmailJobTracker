@@ -1,0 +1,85 @@
+Delivered-To: kaver68@gmail.com
+Received: by 2002:a05:6a06:3f16:b0:759:c014:44a5 with SMTP id gl22csp300611pib;
+        Wed, 5 Nov 2025 16:38:19 -0800 (PST)
+X-Google-Smtp-Source: AGHT+IGP1nOwd61NlUtmtIOMUjr0KbVBfnpkbVdJJBInH18P6Xqan9GfmHIIU7aKcWX0ptxTTeRk
+X-Received: by 2002:a05:690c:9416:20b0:787:7689:e2 with SMTP id 00721157ae682-78776890ec6mr26343197b3.31.1762389498791;
+        Wed, 05 Nov 2025 16:38:18 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1762389498; cv=none;
+        d=google.com; s=arc-20240605;
+        b=VCAX0sS0D71xIc/MpNZIPBz++pxRpOYhmVhv7U2JUfFgGNI9O6bWvII8RAp++Fo6PU
+         4QcBogdqi1Kduedq/quM1evlwiG9wYcclKwmLNSI437XMTYIyByAxhBwVVzSr1FLgfsx
+         a7m3nogqu5h9YfwsqkeX6YGJh2/km1TrxzI+YQ6JxpXnwBCriTX7ex4RFkF3xvMcZL9F
+         oEBmKzsmz/mwcLE+yUgff2jqO6K4aucyGqEQE8EKggo4BwO98uKh3mD4zGz+faNPtGQJ
+         AuSG86OiXXDnGRT9qS9U5yLFblFeLr1FNKM3pIGCe3TigVaD+Pf/pZzaQvFtLYDFszfT
+         kYZA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=list-unsubscribe:mime-version:subject:message-id:to:reply-to:from
+         :date:dkim-signature;
+        bh=XDxy0+hzcitz3yXbdYlU1B8F3eEuwX1u4wrc4JjzSaM=;
+        fh=G/VLhrQnXiN6LciSgCgIU9VM0fr+1O2AyqFGWpHCjzw=;
+        b=jfDMH9psMKLE54e3n4ZYisPNVW++k3HghYB6iJZzCH24gFmll2GTyJWsvsP2CFaS3d
+         w6BmIaRX8p5mLXteghaoFPd1cRmZjKD59lRdshWuE9tUFlxAKLltSo7yN60kRLspfIOv
+         XakVKfN9kW0GBI/UlA/T8+6+TlUWviF9VDSvuEwslm0AdoC1qXzuK4r53quLQAvfqEPW
+         IiauwxtDC4hkJpMqIy/eqqcLe9N/w5XQm/9wnpzUTCIhXzs99V0hS3CRZQSTiHwiv1BY
+         8zdN3yH3kv1+5qHuw1T0qRu5IO2YXajpC+SelX3IH9o2ui48wsU1gsHLgDp7cTJLDHx4
+         IRtA==;
+        dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@talent.icims.com header.s=scph1117 header.b=da6sS+ft;
+       spf=pass (google.com: domain of msprvs1=20405uo4h0rfw=bounces-131558-1943@bounces.icims.com designates 162.247.166.171 as permitted sender) smtp.mailfrom="msprvs1=20405uo4h0rfw=bounces-131558-1943@bounces.icims.com";
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=talent.icims.com
+Return-Path: <msprvs1=20405uo4h0rfw=bounces-131558-1943@bounces.icims.com>
+Received: from icims-talentplatform-166171.email.icims.tools (icims-talentplatform-166171.email.icims.tools. [162.247.166.171])
+        by mx.google.com with ESMTPS id 00721157ae682-787b16063d2si5320267b3.558.2025.11.05.16.38.18
+        for <kaver68@gmail.com>
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 05 Nov 2025 16:38:18 -0800 (PST)
+Received-SPF: pass (google.com: domain of msprvs1=20405uo4h0rfw=bounces-131558-1943@bounces.icims.com designates 162.247.166.171 as permitted sender) client-ip=162.247.166.171;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@talent.icims.com header.s=scph1117 header.b=da6sS+ft;
+       spf=pass (google.com: domain of msprvs1=20405uo4h0rfw=bounces-131558-1943@bounces.icims.com designates 162.247.166.171 as permitted sender) smtp.mailfrom="msprvs1=20405uo4h0rfw=bounces-131558-1943@bounces.icims.com";
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=talent.icims.com
+Return-Path: <msprvs1=20405uo4h0rfw=bounces-131558-1943@bounces.icims.com>
+X-MSFBL: dN9mYrEg7Eb9TodXHladl0f8qgRYipCd18Sv3qK6cB0=|eyJjdXN0b21lcl9pZCI
+	6IjEzMTU1OCIsInRlbmFudF9pZCI6InNwYyIsInN1YmFjY291bnRfaWQiOiIxOTQ
+	zIiwibWVzc2FnZV9pZCI6IjY5MDlmOWVkMGI2OTEyMDg2ZWQ2IiwiciI6ImthdmV
+	yNjhAZ21haWwuY29tIn0=
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=talent.icims.com;
+	s=scph1117; t=1762389497; i=@talent.icims.com;
+	bh=XDxy0+hzcitz3yXbdYlU1B8F3eEuwX1u4wrc4JjzSaM=;
+	h=Date:From:To:Message-ID:Subject:Content-Type:List-Unsubscribe:
+	 X-CSA-Complaints:From:To:Cc:Subject;
+	b=da6sS+ft5EpAo2H1Z2ql7HlLGxJKnGnNDu3IMk7ZQWp/z5vZMqu1H/BCR2rmhdznV
+	 uxaO33Px7tzi1m7SE5ZarDgXBdNVWt0w3kr9yUh96QTovxKWK+gzxjJGOA3XC+X0O7
+	 GBME0uv7z+r29wZomg8jI9IRklGSPox6FheqBs40=
+Received: from [10.90.25.107] ([10.90.25.107])
+	by i-083488de72b6480b3.mta1vrest.sd.prd.sparkpost (ecelerity 5.1.0.74659 r(msys-ecelerity:tags/5.1.0.17)) with REST
+	id 6D/E6-56296-9FDEB096; Thu, 06 Nov 2025 00:38:17 +0000
+Date: Wed, 5 Nov 2025 19:38:17 -0500 (EST)
+From: 
+	"Millennium Corporation @ icims" <millgroupinc+autoreply@talent.icims.com>
+Reply-To: 
+	"Millennium Corporation @ icims" <millgroupinc+autoreply@talent.icims.com>
+To: kaver68@gmail.com
+Message-ID: <1201224520.12447.1762389497343@ip-10-47-161-182.ec2.internal>
+Subject: Thank You for Applying at Hampton, VA
+MIME-Version: 1.0
+Content-Type: multipart/alternative; 
+	boundary="----=_Part_12445_845971120.1762389497341"
+List-Unsubscribe: <mailto:millgroupinc+autoreply+26DD40742@talent.icims.com?subject=unsubscribe&contactId=176927>, <https://millgroupinc.icims.com/icims2/?r=26DD40742&contactId=176927&pid=17&process=1>
+X-iRecruiter-Type: SN
+X-iCIMS-Type: SN
+X-iCIMS-Priority: Auto
+X-iRecruiter-Source: millgroupinc
+X-iCIMS-Message-Id: 176927.gQEHdXvo1zBJD5EjdKjRBNBeQtPHOYALwUXqxspEQJ4=
+X-CSA-Complaints: csa-complaints@eco.de
+X-MSYS-API: { "options" : { "open_tracking" : true, "click_tracking" : true, "transactional":  true, "ip_pool": "prd_us_transactional" } }
+
+------=_Part_12445_845971120.1762389497341
+Content-Transfer-Encoding: 7bit
+Content-Type: text/html; charset="UTF-8"
+
+Dear Kelly,<br/><br/>Thank you very much for your recent application to Millennium Corporation.  Your submission will be reviewed by our recruiting staff, and we will contact you soon, should we feel that your background meets our current needs. <br/><br/>Sincerely, <br/><br/>Millennium Corporation<br/><br/><em>This is an automated email response. Please do not reply.</em><br><br><center> &#169; Millennium Corporation; 1400 Crystal Dr Ste 400; Arlington, VA 22202-4156; USA</center>
+<img border="0" width="1" height="1" alt="" src="https://tracking.icims.com/q/JTLl3fynsVLv3sdabkngLA~~/AAIB5hA~/weUKG17VhlC_oJWxQLg4i18nKNO8BHqLymFLxNHSFwHjnOCbOd_HIAmk8q_gRNvLCkYmvK7D8voZsSDYFn_kdA~~">
+
+------=_Part_12445_845971120.1762389497341--

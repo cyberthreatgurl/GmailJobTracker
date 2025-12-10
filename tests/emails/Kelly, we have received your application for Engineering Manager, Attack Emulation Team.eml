@@ -1,0 +1,93 @@
+Delivered-To: kaver68@gmail.com
+Received: by 2002:a05:6a06:771b:b0:755:92d0:ee3f with SMTP id lk27csp3000418pib;
+        Tue, 21 Oct 2025 17:49:12 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IG6baLB9Aewetm6l9osXA4XfY1CDASIEY3dnCbfgDJjaNL2pxUULAQCdg+Gdl++BwaeM6w2
+X-Received: by 2002:a05:6a21:3391:b0:2d5:e559:d230 with SMTP id adf61e73a8af0-334a864aa2cmr24908802637.57.1761094152631;
+        Tue, 21 Oct 2025 17:49:12 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1761094152; cv=none;
+        d=google.com; s=arc-20240605;
+        b=M3Ijs33lojE7yxpprW2Z4riF9/US4DbMmvQNf6Ne+YUKcJM15vzDuqpMErd23jIths
+         2HVLISSB0tIUG1ADalHgIfQMJZyaFHYp/Ewk7cIItV3lBUsQvNFwM2zRwDZX/6SCNRIX
+         THN7Z1r5CxuUC1IsbvEGUNjw1E+uDtRSOVXd2XTAvoeTAK5Qi7PtpE5+ocrb2e+dI135
+         d6x7yp6ZeQSNraHulrEBhHzM3H8zyR/GW2gL4NxL3cmFeOzJvGoClgUzwBXHpTM3Ux8E
+         eg0L8a8emDI3bDA5Ml7T6WTMrcsMlYUWQ+t3GCgJRfqg8QF66U7JTj9FT5aO2b4ybIK4
+         qcAQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=feedback-id:date:message-id:content-transfer-encoding:mime-version
+         :subject:to:reply-to:from:dkim-signature:dkim-signature;
+        bh=cnQ3uPbOJPSGRVcIErHy+2m1o7ojDFiLUps8QNXXT78=;
+        fh=G/VLhrQnXiN6LciSgCgIU9VM0fr+1O2AyqFGWpHCjzw=;
+        b=bsfcYvUTALV5iZgRY9IDbuCpgLe2ZGYukj9cp0nb3dBNS+4hc4XISQukO8vukS2VVm
+         rTsC31AcXsQfIHQw4UygfiqERzzceD7N5BvtIxagVcjEJ+QWTtnFp4VXpjIsDNEppVL4
+         S7LZtQX0LSFY//LzgmdXiGy8PtJtSITB4+7sjQygXw2k6kfP6p7ky5STVYIbQjNZNhsm
+         9uEMHtbCY/Yo5EEUQjDPvDkGhWNceuQQIkHI3jwEf+h0SqWVoYdqYbSuIW/VNWtde8H6
+         DXfzJY90gH4QVt89QwllmyAIUW/7qQ2U7WKEbsNiRu1W2fX+x0g1NRtnkDHa5cBxb0mE
+         3eJA==;
+        dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@jobs.netflix.com header.s=fsrzhtcw6ea6aziooo3y7wstopr2kr4y header.b=WvKpuX+l;
+       dkim=pass header.i=@amazonses.com header.s=gdwg2y3kokkkj5a55z2ilkup5wp5hhxx header.b=fCcH+Fa4;
+       spf=pass (google.com: domain of 0101019a096430ad-f94440ec-1e8d-4603-a29b-a5cbd9a77678-000000@mail.jobs.netflix.com designates 54.240.57.61 as permitted sender) smtp.mailfrom=0101019a096430ad-f94440ec-1e8d-4603-a29b-a5cbd9a77678-000000@mail.jobs.netflix.com;
+       dmarc=pass (p=NONE sp=NONE dis=NONE) header.from=jobs.netflix.com
+Return-Path: <0101019a096430ad-f94440ec-1e8d-4603-a29b-a5cbd9a77678-000000@mail.jobs.netflix.com>
+Received: from a57-61.smtp-out.us-west-2.amazonses.com (a57-61.smtp-out.us-west-2.amazonses.com. [54.240.57.61])
+        by mx.google.com with ESMTPS id 41be03b00d2f7-b6a76b3ada3si6186492a12.683.2025.10.21.17.49.12
+        for <kaver68@gmail.com>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 21 Oct 2025 17:49:12 -0700 (PDT)
+Received-SPF: pass (google.com: domain of 0101019a096430ad-f94440ec-1e8d-4603-a29b-a5cbd9a77678-000000@mail.jobs.netflix.com designates 54.240.57.61 as permitted sender) client-ip=54.240.57.61;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@jobs.netflix.com header.s=fsrzhtcw6ea6aziooo3y7wstopr2kr4y header.b=WvKpuX+l;
+       dkim=pass header.i=@amazonses.com header.s=gdwg2y3kokkkj5a55z2ilkup5wp5hhxx header.b=fCcH+Fa4;
+       spf=pass (google.com: domain of 0101019a096430ad-f94440ec-1e8d-4603-a29b-a5cbd9a77678-000000@mail.jobs.netflix.com designates 54.240.57.61 as permitted sender) smtp.mailfrom=0101019a096430ad-f94440ec-1e8d-4603-a29b-a5cbd9a77678-000000@mail.jobs.netflix.com;
+       dmarc=pass (p=NONE sp=NONE dis=NONE) header.from=jobs.netflix.com
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
+	s=fsrzhtcw6ea6aziooo3y7wstopr2kr4y; d=jobs.netflix.com;
+	t=1761094152;
+	h=From:Reply-To:To:Subject:MIME-Version:Content-Type:Content-Transfer-Encoding:Message-ID:Date;
+	bh=cnQ3uPbOJPSGRVcIErHy+2m1o7ojDFiLUps8QNXXT78=;
+	b=WvKpuX+l9ebdeUZhEqaLrO04zRV3tc8IYaZOvUJYYmhP2nbhG13lRJJuA1kchG7x
+	RKxoj90TGt1lIXSKuCNyojUuXxQBqf2JXn4FbYWKia1+m6Nz84HecoqIQHy5C8vU/Sg
+	7WWKENXi7fM/CKFJ9BjwqjFPglikvS0tB+sFzlzIjX1HnyyEJvKbV53kf1zLYAD2+iR
+	rpx9OL86vgqn1uMIrnd0NtwvpbIvPV6Uh9K7jwvnNbc41Exa8wM7fhREyN873MqArYQ
+	1gt7ScgW4kEQBRTAD0kMnBmAcUcaPjEBto3rN2dOucPWABtHqbyokwhPjcF64BF0Sej
+	j8G/pIsW4Q==
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
+	s=gdwg2y3kokkkj5a55z2ilkup5wp5hhxx; d=amazonses.com; t=1761094152;
+	h=From:Reply-To:To:Subject:MIME-Version:Content-Type:Content-Transfer-Encoding:Message-ID:Date:Feedback-ID;
+	bh=cnQ3uPbOJPSGRVcIErHy+2m1o7ojDFiLUps8QNXXT78=;
+	b=fCcH+Fa4rLsZ2lx15FSNUfOZbmmrkgnDzsTQYIgEz+IK3Gs9TNB3FPp1Y4ZBVjgj
+	fK7uiLrcZNTY0jeRNKcVaapd9nqmDF0v1yaoST03JZAWxllwLYfCFKFg8WxmsUBASBB
+	DtoMxAGq/WIUpMv6ARwtxrZ5lVrFAKj/BjHpzsYY=
+From: Careers Netflix <careers@jobs.netflix.com>
+Reply-To: Careers Netflix <careers@netflix.com>
+To: kaver68@gmail.com
+Subject: Kelly, we have received your application for Engineering Manager,
+ Attack Emulation Team
+MIME-Version: 1.0
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+Message-ID: <0101019a096430ad-f94440ec-1e8d-4603-a29b-a5cbd9a77678-000000@us-west-2.amazonses.com>
+Date: Wed, 22 Oct 2025 00:49:12 +0000
+Feedback-ID: ::1.us-west-2.sfSzxGXUr5RBCHrkxUGBRJ/75G/8j5XWmRk5twQzHqM=:AmazonSES
+X-SES-Outgoing: 2025.10.22-54.240.57.61
+
+<div><span style=3D"color: rgb(0, 0, 0); background-color: rgb(255, 255, 25=
+5);">Dear Kelly, </span></div><div><br></div><div><span style=3D"color: rgb=
+(0, 0, 0); background-color: rgb(255, 255, 255);">Thank you for applying fo=
+r the role of Engineering Manager, Attack Emulation Team at </span>Netflix<=
+span style=3D"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);">!=
+ It's exciting to see your interest in joining the Dream Team and contribut=
+ing to our mission to entertain the world. Your qualifications and experien=
+ces will be reviewed to determine if there's a mutual fit. </span></div><di=
+v><br></div><div><span style=3D"color: rgb(0, 0, 0); background-color: rgb(=
+255, 255, 255);">What's next? If there's interest in discussing the positio=
+n further, you will be contacted about potential next steps. Thank you agai=
+n for your time and enthusiasm. Expect to hear from us soon. </span></div><=
+div><br></div><div><span style=3D"color: rgb(0, 0, 0); background-color: rg=
+b(255, 255, 255);">Sincerely, </span></div><div><span style=3D"color: rgb(0=
+, 0, 0); background-color: rgb(255, 255, 255);">The </span>Netflix<span sty=
+le=3D"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);"> Talent A=
+cquisition Team</span></div><img src=3D"https://netflix.eightfold.ai/vsimp?=
+d=3DeyJtc2dfaWQiOjc5MDgzNzcxMTI5NSwiZW1haWwiOiJrYXZlcjY4QGdtYWlsLmNvbSJ9.Ej=
+yn-eOtsFEjsMaRAO2g1c5Pn18" style=3D"display: none;"/>

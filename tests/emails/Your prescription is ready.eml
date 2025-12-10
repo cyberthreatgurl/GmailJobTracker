@@ -1,0 +1,1858 @@
+Delivered-To: kaver68@gmail.com
+Received: by 2002:ac4:8d07:0:b0:759:c52c:7988 with SMTP id ff7csp591122pib;
+        Thu, 6 Nov 2025 13:44:47 -0800 (PST)
+X-Google-Smtp-Source: AGHT+IExRjSJ0MW/SCiIcUzBkSGmnG11SU4dHrd6vtfSmLaLSqBaRa4igfWRFB2yhDKgAL4Q/AKb
+X-Received: by 2002:a05:6214:e82:b0:87c:2967:fd52 with SMTP id 6a1803df08f44-88167b0cfc3mr16579576d6.17.1762465487041;
+        Thu, 06 Nov 2025 13:44:47 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1762465487; cv=none;
+        d=google.com; s=arc-20240605;
+        b=lVjULLb81FBv0dy4pWXL3AS3LV3PUtZ8YjRzCpLAkfPsbm4yKPeMji8MTYzlC3tbzH
+         +B3Vp4k0+kmTsXG1aQZz1YqPDbsSGM5D+KqZSdO9EFjMhASUgrnuHxdefPBKym3ncI1v
+         8IzX3SC62xQDwLUNnhgJQCLz7G565w6skk8lzEijEPwd+UL7Jkfd5YxaJ6X0RJ/cetKI
+         cecdB0JWydUL8yDi2jL9Yy2j4ZcMI94vZxqHnRnVY532leaPa3hJOR4tyBLV3jS1Cce4
+         +6rW1uFSaVu/h9oVrTGCog6lZd3b2NiVuPGlDEee5fhwP/8BMrXLEtWm8eZpz+ASk05n
+         M75A==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=content-transfer-encoding:message-id:sender:reply-to:bimi-selector
+         :to:from:subject:mime-version:date:dkim-signature:dkim-signature;
+        bh=33UrF2ZYPD+ZiOgT0gSkBw1tzyGKLI9XNf2RSHhMRVE=;
+        fh=G/VLhrQnXiN6LciSgCgIU9VM0fr+1O2AyqFGWpHCjzw=;
+        b=ar4p0+zuh4P+nW6T+Ux1lTBi6C6ggao9LwPSXOX5IFFRBH0vR9KgHc3K3DT9QprYv1
+         WdRjT3trEwoHtsgK66pE0ejxEaXhAAmAXUbL40ba5GfGCTsPJhW06ilavSF7AQYtsQRF
+         3oaG96BEzU67ss8h6NS84wFKC2pTnnAzb6ad+Ber4mclqauCh7XAfD6vle93CKF5hCs4
+         RXZP5mXPTA+4Uk8edpqwgKuTpqAt48tsp/748tclLb22Zw9F7VY5zaCiDhmNi+an2ifv
+         5NspSijCwgEVwdErZKIpdvzBqx8nWpOPYiTjyEsN4iQOWhlLec70iKBRNcnh0FjjB4j8
+         3tCg==;
+        dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@prod.walmart.com header.s=prodmg header.b=aV72e7+L;
+       dkim=pass header.i=@mailgun.org header.s=mg header.b="dyjz/Hms";
+       spf=pass (google.com: domain of bounce+012586.6f8df2-kaver68=gmail.com@prod.walmart.com designates 198.244.53.160 as permitted sender) smtp.mailfrom="bounce+012586.6f8df2-kaver68=gmail.com@prod.walmart.com";
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=walmart.com
+Return-Path: <bounce+012586.6f8df2-kaver68=gmail.com@prod.walmart.com>
+Received: from 160.ptr.prod.walmart.com (160.ptr.prod.walmart.com. [198.244.53.160])
+        by mx.google.com with UTF8SMTPS id 6a1803df08f44-88082b63c97si10977976d6.1084.2025.11.06.13.44.46
+        for <kaver68@gmail.com>
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Thu, 06 Nov 2025 13:44:47 -0800 (PST)
+Received-SPF: pass (google.com: domain of bounce+012586.6f8df2-kaver68=gmail.com@prod.walmart.com designates 198.244.53.160 as permitted sender) client-ip=198.244.53.160;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@prod.walmart.com header.s=prodmg header.b=aV72e7+L;
+       dkim=pass header.i=@mailgun.org header.s=mg header.b="dyjz/Hms";
+       spf=pass (google.com: domain of bounce+012586.6f8df2-kaver68=gmail.com@prod.walmart.com designates 198.244.53.160 as permitted sender) smtp.mailfrom="bounce+012586.6f8df2-kaver68=gmail.com@prod.walmart.com";
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=walmart.com
+DKIM-Signature: a=rsa-sha256; v=1; c=relaxed/relaxed; d=prod.walmart.com; q=dns/txt; s=prodmg; t=1762465486; x=1762472686;
+ h=Content-Transfer-Encoding: Content-Type: Message-Id: Sender: Sender: Reply-To: To: To: From: From: Subject: Subject: Mime-Version: Date: X-Feedback-Id;
+ bh=33UrF2ZYPD+ZiOgT0gSkBw1tzyGKLI9XNf2RSHhMRVE=;
+ b=aV72e7+L0UuR14vZzmO4yT1r0JJ17zFixtp1qS7TEFfAAbExtPMhjT6O71F/q4GzlkVYanzv2GmNhcBvQTOvnFkGC+R4lBUOOB4TqKHCTHuGsSSYNltXB7DTr4tekEF+bux9vEQLg46qFMr3EDRg5gBDYgxf1Dc5biKm7Qw6FjY=
+DKIM-Signature: a=rsa-sha256; v=1; c=relaxed/relaxed; d=mailgun.org; q=dns/txt; s=mg; t=1762465486; x=1762472686;
+ h=Content-Transfer-Encoding: Content-Type: Message-Id: Sender: Sender: Reply-To: To: To: From: From: Subject: Subject: Mime-Version: Date: X-Feedback-Id;
+ bh=33UrF2ZYPD+ZiOgT0gSkBw1tzyGKLI9XNf2RSHhMRVE=;
+ b=dyjz/HmslwRo6G1gu+sxSYMeSRyW1Rzp4Zn66N2M8liJjyAzXR9QtaFctkV73xPBWC3aFKdU7C3PBVdlfk9MdO+8kSdHekn68lfC3Zp3fCvJJzDEoOpPke46KOTBuXzPS0Gpb14v78k+eEBYhYJgghsxy34eJy1kHia1PQlnP+w=
+X-Mailgun-Sid: WyI5ZTM3NiIsImthdmVyNjhAZ21haWwuY29tIiwiNmY4ZGYyIl0=
+X-Feedback-Id: postmaster@prod.walmart.com::64e72d3f16266e632e63d37e:mailgun
+Received: by 94c93921cb179c99b24c8fceee115fa10d9466aa7bc97368757dd879d07ab0ae with HTTP
+ id 690d16ceb918fef241349945; Thu, 06 Nov 2025 21:44:46 GMT
+X-Mailgun-Sending-Ip-Pool-Name: prodRampingPool-66fea115d722cdb2a9558a2a
+X-Mailgun-Sending-Ip-Pool: 66fea115d722cdb2a9558a2a
+X-Mailgun-Sending-Ip: 198.244.53.160
+Date: Thu, 06 Nov 2025 21:44:46 +0000
+Mime-Version: 1.0
+Subject: Your prescription is ready
+From: Walmart.com <help@walmart.com>
+To: kaver68@gmail.com
+X-Mailgun-Drop-Message: false
+Bimi-Selector: v=BIMI1; s=spark;
+Reply-To: help@walmart.com
+Sender: help@walmart.com
+X-Clientmsgid: a8a305f9a3293b2f2f43b0448b73a7e2acc6fecc083ee5e1a4e1e63f0f745e4c
+X-Mailgun-Variables: {"command": "DEFAULT", "platformVersion": "HERMES", "requestId":
+ "0~50~hw~a8a305f9a3293b2f2f43b0448b73a7e2acc6fecc083ee5e1a4e1e63f0f745e4c",
+ "sessionToken": "1546:42#525136641#5=105716832", "template":
+ "t-662780912317063301da71ff", "testFlag": "false"}
+Message-Id: <20251106214446.f8368f62334aeccc@prod.walmart.com>
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+
+<!doctype html>
+<html lang=3D"en" xmlns=3D"http://www.w3.org/1999/xhtml" xmlns:v=3D"urn:sch=
+emas-microsoft-com:vml" xmlns:o=3D"urn:schemas-microsoft-com:office:office"=
+>
+
+<head>
+  <title>  </title>
+  <!--[if !mso]><!-->
+  <meta http-equiv=3D"X-UA-Compatible" content=3D"IE=3Dedge">
+  <!--<![endif]-->
+  <meta http-equiv=3D"Content-Type" content=3D"text/html; charset=3DUTF-8">
+  <meta name=3D"viewport" content=3D"width=3Ddevice-width, initial-scale=3D=
+1">
+  <style type=3D"text/css">
+    #outlook a {
+      padding: 0;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      -webkit-text-size-adjust: 100%;
+      -ms-text-size-adjust: 100%;
+    }
+
+    table,
+    td {
+      border-collapse: collapse;
+      mso-table-lspace: 0pt;
+      mso-table-rspace: 0pt;
+    }
+
+    img {
+      border: 0;
+      height: auto;
+      line-height: 100%;
+      outline: none;
+      text-decoration: none;
+      -ms-interpolation-mode: bicubic;
+    }
+
+    p {
+      display: block;
+      margin: 13px 0;
+    }
+
+  </style>
+  <!--[if mso]>
+    <noscript>
+    <xml>
+    <o:OfficeDocumentSettings>
+      <o:AllowPNG/>
+      <o:PixelsPerInch>96</o:PixelsPerInch>
+    </o:OfficeDocumentSettings>
+    </xml>
+    </noscript>
+    <![endif]-->
+  <!--[if lte mso 11]>
+    <style type=3D"text/css">
+      .mj-outlook-group-fix { width:100% !important; }
+    </style>
+    <![endif]-->
+   =20
+    <style type=3D"text/css">
+@media only screen and (min-width:480px) {
+=2Emj-column-per-100 {
+width: 100% !important;
+max-width: 100%;
+}
+
+=2Emj-column-per-50 {
+width: 50% !important;
+max-width: 50%;
+}
+
+=2Emj-column-per-20 {
+width: 20% !important;
+max-width: 20%;
+}
+
+=2Emj-column-per-75 {
+width: 75% !important;
+max-width: 75%;
+}
+}
+
+</style>
+<style media=3D"screen and (min-width:480px)">
+=2Emoz-text-html .mj-column-per-100 {
+width: 100% !important;
+max-width: 100%;
+}
+
+=2Emoz-text-html .mj-column-per-50 {
+width: 50% !important;
+max-width: 50%;
+}
+
+=2Emoz-text-html .mj-column-per-20 {
+width: 20% !important;
+max-width: 20%;
+}
+
+=2Emoz-text-html .mj-column-per-75 {
+width: 75% !important;
+max-width: 75%;
+}
+
+</style>
+    <style type=3D"text/css">
+@media only screen and (max-width:480px) {
+table.mj-full-width-mobile {
+width: 100% !important;
+}
+
+td.mj-full-width-mobile {
+width: auto !important;
+}
+}
+
+</style>
+    <style type=3D"text/css">
+
+                @-moz-document url-prefix() {
+                  A:focus {
+                    outline-style: dotted;
+                    outline-color: grey;
+                    outline-width: 1px;
+                  }
+                }
+                @media only screen and (max-width:480px) {
+                  .wrapper {
+                    border: 8px solid #e5f1fc !important
+                  }
+                  .section-wrapper {
+                    padding-right: 18px !important;
+                    padding-left: 18px !important;
+                  }
+                }
+                .imgWidth-0-3236875-1 {
+  width: 91% !important;
+}
+=2EwplusImgWidth-0-3236875-2 {
+  width: 97% !important;
+}@media only screen and (max-width:480px) {
+  .mjImage-0-3236875-3 {
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
+  }
+}@media only screen and (max-width:480px) {
+  .label-0-3236875-4 h1 {
+    font-size: 32px !important;
+  }
+}.mjColumn-0-3236875-5 {
+  border: none;
+  border-radius: 0px 0px 0px 0px !important;
+  box-sizing: border-box;
+}.mjSection-0-3236875-6 {
+  border: none;
+  border-radius: 0px 0px 0px 0px !important;
+  box-sizing: border-box;
+}.mjColumn-0-3236875-7 {
+  border: none;
+  border-radius: 0px 0px 0px 0px !important;
+  box-sizing: border-box;
+}.mjSection-0-3236875-8 {
+  border: none;
+  border-radius: 0px 0px 0px 0px !important;
+  box-sizing: border-box;
+}.patientDetails-0-3236875-9 {
+  color: #74767C;
+  font-size: 20px !important;
+}
+=2EdrugDetails-0-3236875-10 {
+  color: #000000;
+  font-size: 16px !important;
+}
+=2EdelayDetails-0-3236875-11 {
+  color: #74767C;
+  font-size: 12px !important;
+}
+=2EtotalLabel-0-3236875-12 {
+  color: #000000 !important;
+  fontsize: 12px;
+  font-weight: 700;
+}
+=2Ecolumns-0-3236875-13 {
+  margin-top: 10px !important;
+  margin-right: 15px !important;
+}
+=2Eheading-0-3236875-14 {
+  margin-bottom: 32px !important;
+}
+=2EinnerRow-0-3236875-15 {
+  margin: 16px 0 0 0 !important;
+  margin-bottom: 48px !important;
+}
+=2EinnerRow-0-3236875-15 span {
+  font-family: Bogle !important;
+}
+=2EinnerRow-0-3236875-15 div {
+  font-family: Bogle !important;
+}
+=2EprescriptionItem-0-3236875-16 {
+  background-color: #E6F1FC;
+  padding: 4px 8px;
+  margin: 0 0 8px 0;
+  border-radius: 2px;
+  font-family: Bogle !important;
+}
+@media only screen and (max-width:600px) {
+  .columns-0-3236875-13 table {
+    max-width: 272px !important;
+  }
+}@media only screen and (max-width:480px) {
+  .mjImage-0-3236875-17 {
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
+  }
+}@media only screen and (max-width:480px) {
+  .mjImage-0-3236875-18 {
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
+  }
+}.mjColumn-0-3236875-19 {
+  border: none;
+  border-radius: 0px 0px 0px 0px !important;
+  box-sizing: border-box;
+}.mjSection-0-3236875-20 {
+  border: none;
+  border-radius: 0px 0px 0px 0px !important;
+  box-sizing: border-box;
+}.marginLeftAuto-0-3236875-21 td > table {
+  margin-left: auto;
+}
+=2EcustomMargin-0-3236875-22 {
+  margin: 0px 0px !important;
+}.socialLinks-0-3236875-23 {
+  padding-right: 24px !important;
+}
+@media only screen and (max-width:600px) {
+  .footerTitle-0-3236875-24 div {
+    text-align: center !important;
+  }
+  .socialLinks-0-3236875-23 {
+    padding-right: 18px !important;
+  }
+  .footerColumn-0-3236875-25 {
+    width: 100% !important;
+    max-width: 100%;
+  }
+  .footerIcons-0-3236875-26 table {
+    max-width: 272px !important;
+  }
+}
+@media only screen and (min-width:600px) and (max-width:700px) {
+  .socialLinks-0-3236875-23 {
+    padding-right: 16px !important;
+  }
+}
+            </style>
+
+  <style>
+    @font-face {
+    font-family: 'Gibson';
+    src: url('https://use.typekit.net/af/b67c91/00000000000000003b9b387d/27=
+/l?primer=3D7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a919=
+1&fvd=3Di4&v=3D3') format('woff2'),
+        url('https://use.typekit.net/af/b67c91/00000000000000003b9b387d/27/=
+d?primer=3D7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191=
+&fvd=3Di4&v=3D3') format('woff'),
+        url('https://use.typekit.net/af/b67c91/00000000000000003b9b387d/27/=
+a?primer=3D7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191=
+&fvd=3Di4&v=3D3') format('opentype');
+    font-display: auto;
+    font-style: italic;
+    font-weight: 400;
+}
+
+    @font-face {
+        font-family: 'Gibson';
+        src: url('https://use.typekit.net/af/7557c8/00000000000000003b9b387=
+8/27/l?primer=3D7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257=
+a9191&fvd=3Dn2&v=3D3') format('woff2'),
+            url('https://use.typekit.net/af/7557c8/00000000000000003b9b3878=
+/27/d?primer=3D7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a=
+9191&fvd=3Dn2&v=3D3') format('woff'),
+            url('https://use.typekit.net/af/7557c8/00000000000000003b9b3878=
+/27/a?primer=3D7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a=
+9191&fvd=3Dn2&v=3D3') format('opentype');
+        font-display: auto;
+        font-style: normal;
+        font-weight: 200;
+    }
+
+    @font-face {
+        font-family: 'Gibson';
+        src: url('https://use.typekit.net/af/ef2129/00000000000000003b9b387=
+c/27/l?primer=3D7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257=
+a9191&fvd=3Dn4&v=3D3') format('woff2'),
+            url('https://use.typekit.net/af/ef2129/00000000000000003b9b387c=
+/27/d?primer=3D7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a=
+9191&fvd=3Dn4&v=3D3') format('woff'),
+            url('https://use.typekit.net/af/ef2129/00000000000000003b9b387c=
+/27/a?primer=3D7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a=
+9191&fvd=3Dn4&v=3D3') format('opentype');
+        font-display: auto;
+        font-style: normal;
+        font-weight: 400;
+    }
+
+    @font-face {
+        font-family: 'Gibson';
+        src: url('https://use.typekit.net/af/403911/00000000000000003b9b388=
+0/27/l?primer=3D7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257=
+a9191&fvd=3Dn6&v=3D3') format('woff2'),
+            url('https://use.typekit.net/af/403911/00000000000000003b9b3880=
+/27/d?primer=3D7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a=
+9191&fvd=3Dn6&v=3D3') format('woff'),
+            url('https://use.typekit.net/af/403911/00000000000000003b9b3880=
+/27/a?primer=3D7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a=
+9191&fvd=3Dn6&v=3D3') format('opentype');
+        font-display: auto;
+        font-style: normal;
+        font-weight: 600;
+    }
+
+    @font-face {
+        font-family: 'Gibson';
+        src: url('https://use.typekit.net/af/28537c/00000000000000003b9b388=
+1/27/l?primer=3D7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257=
+a9191&fvd=3Di6&v=3D3') format('woff2'),
+            url('https://use.typekit.net/af/28537c/00000000000000003b9b3881=
+/27/d?primer=3D7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a=
+9191&fvd=3Di6&v=3D3') format('woff'),
+            url('https://use.typekit.net/af/28537c/00000000000000003b9b3881=
+/27/a?primer=3D7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a=
+9191&fvd=3Di6&v=3D3') format('opentype');
+        font-display: auto;
+        font-style: italic;
+        font-weight: 600;
+    }
+
+    @font-face {
+        font-family: 'Gibson';
+        src: url('https://use.typekit.net/af/aee0aa/00000000000000003b9b3f0=
+3/27/l?primer=3D7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257=
+a9191&fvd=3Dn5&v=3D3') format('woff2'),
+            url('https://use.typekit.net/af/aee0aa/00000000000000003b9b3f03=
+/27/d?primer=3D7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a=
+9191&fvd=3Dn5&v=3D3') format('woff'),
+            url('https://use.typekit.net/af/aee0aa/00000000000000003b9b3f03=
+/27/a?primer=3D7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a=
+9191&fvd=3Dn5&v=3D3') format('opentype');
+        font-display: auto;
+        font-style: normal;
+        font-weight: 500;
+    }
+</style></head>
+  <body style=3D"word-spacing:normal;"><img width=3D"1" height=3D"1" alt=3D=
+"" src=3D"https://email.prod.walmart.com/o/eJwcjj1v2zAQQH-NuNW4Lx6pgUOAOGiB=
+dmnT7ifqmBiRLFdS7c2_vXC2NzzgvbrMs53H8nx8efr9_TWMRVseGwUvmJREo2QN7yWBo2FyG_p=
+-9BEGU44KmLK0Jj2HUyGgiAhKKCJ6aJk1NyVmMa-1dgKXdRkPN5tmW_dDXeZwmWxvyzr_8XU7Le=
+fy9fjzx_FXWMuHXX3V3Am8zXaaPuXV__7zbf82FrhHuL_f7paNIbbemHoeqFETHkAkD4ktOVmt2=
+rxWyOweHU0cXblBSxJdath8e3Rflw8_F4yiHT8JdcSRIrKq4IM7fkaICTUzhd3nx7WX_YsqpQw9=
+EmMCZQYcLWFrYfdtf5nsrTSbNg_XQv8DAAD__7UxacA">
+   <table id=3D"preheader">
+      <tr>
+         <td>
+            <div style=3D"display: none; max-height: 0px; overflow: hidden;=
+">Schedule for delivery or pick it up</div>
+            <div style=3D"display: none; max-height: 0px; overflow: hidden;=
+"> &nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;=
+&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nb=
+sp;&zwnj;&nbsp;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;=
+&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nb=
+sp;&zwnj;&nbsp;&zwnj;&nbsp;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;=
+&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nb=
+sp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;=
+&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nb=
+sp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&nbsp;&zwnj;&nbsp;&zwnj;=
+&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nb=
+sp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&nbsp;&zwnj;=
+&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nb=
+sp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;=
+&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nb=
+sp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;=
+&zwnj;&nbsp;
+            </div>
+         </td>
+      </tr>
+   </table>
+          <img src=3D"https://w-mt.co/rptrcks/comm-smart-app/services/track=
+ing/openTracker?redirectTo=3D9wgbVVXQHTEs5BAhG4zmZEySzqCqoHqsNcRlOxZgv5x%2B=
+%2F%2FRma8%2F64PanCGHECf61dqMvzj%2BgjB7BGqLefBczl0mo6pcD4tEurpi482CFeSYsfsq=
+eambH4TUYmOlbjhSlzOO36h2DAXEEowZaks%2BTM9b%2FWUx0KJGOROqbCqXW3xllEjfYhYMrHl=
+pykXhLjf83wPdeUnMyQNGDOZKy16R%2FdDgyGyHA6VHos1sOknSKaDd2wUxdNjZo9RwRFy6uG85=
+0EktzsRkPP9C6NPRmO86OMZWFfn81eyPtLT40UnbtfvXvIElWBBc1pG6p10mtevWW%2B4xD96Cz=
+7Q2Wpt%2FN6Z4KiR7ppqm76mLVJMgOpNQcepFchwg4agiImdfnSfqyNmQe&meta=3DdWdrf7i7m=
+KH9LrtAiZ0pSMPGVLpPQi2dOLNUI9FrMEsG97HH02F4l9AzIO7%2BYCj33HgOtnt0nRnUkgnmYO=
+0EZRKsiA288If4ezAkQVVjB1p1IC1pf5Yz3HqutCm%2B4pQ0k9J0Z9DoXPtp01hV8wIiDNZ%2Fd=
+yPNIO2EsyH%2FQxeUlFCEWxQ9q0rZgQmjxQXEdo16T6wWw2Aabf5LY0dcmL6hLw%3D%3D&iv=3D=
+moluYybRXZMAZqmTu1Ll1A%3D%3D" style=3D"display:none !important;" height=3D"=
+0" width=3D"0" alt=3D"&nbsp;">
+      =20
+          <img src=3D"https://w-mt.co/rptrcks/comm-smart-app/services/track=
+ing/openTracker?redirectTo=3D9wgbVVXQHTEs5BAhG4zmZEySzqCqoHqsNcRlOxZgv5x%2B=
+%2F%2FRma8%2F64PanCGHECf61dqMvzj%2BgjB7BGqLefBczl0mo6pcD4tEurpi482CFeSYsfsq=
+eambH4TUYmOlbjhSlzOO36h2DAXEEowZaks%2BTM9b%2FWUx0KJGOROqbCqXW3xllEjfYhYMrHl=
+pykXhLjf83wPdeUnMyQNGDOZKy16R%2FdDgyGyHA6VHos1sOknSKaDd2wUxdNjZo9RwRFy6uG85=
+0EktzsRkPP9C6NPRmO86OMZWFfn81eyPtLT40UnbtfvXvIElWBBc1pG6p10mtevWW%2B4xD96Cz=
+7Q2Wpt%2FN6Z4KiR7ppqm76mLVJMgOpNQcepFchwg4agiImdfnSfqyNmQe&meta=3DdWdrf7i7m=
+KH9LrtAiZ0pSMPGVLpPQi2dOLNUI9FrMEsG97HH02F4l9AzIO7%2BYCj33HgOtnt0nRnUkgnmYO=
+0EZRKsiA288If4ezAkQVVjB1p1IC1pf5Yz3HqutCm%2B4pQ0k9J0Z9DoXPtp01hV8wIiDNZ%2Fd=
+yPNIO2EsyH%2FQxeUlFCEWxQ9q0rZgQmjxQXEdo16T6wWw2Aabf5LY0dcmL6hLw%3D%3D&iv=3D=
+moluYybRXZMAZqmTu1Ll1A%3D%3D" style=3D"display:none !important;" height=3D"=
+0" width=3D"0" alt=3D"&nbsp;">
+      =20
+  =20
+<!--[if mso | IE]><table align=3D"center" border=3D"0" cellpadding=3D"0" ce=
+llspacing=3D"0" class=3D"body-outlook" width=3D"NaN" ><tr><td style=3D"line=
+-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]--><div c=
+lass=3D"body" style=3D"margin:0px auto;max-width:700px;">
+<table align=3D"center" border=3D"0" cellspacing=3D"0" cellpadding=3D"0" ro=
+le=3D"presentation" style=3D"width:100%;"><tbody><tr><td class=3D"wrapper" =
+style=3D"border:16px solid #e5f1fc;direction:ltr;font-size:0px;padding:20px=
+ 0;padding-bottom:32px;padding-top:16px;text-align:center;"><!--[if mso | I=
+E]><table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presenta=
+tion"><tr>
+<td>
+<table align=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" ro=
+le=3D"presentation" width=3D"700" style=3D"width:700px;"><tr><td style=3D"f=
+ont-size:0px;line-height:0px;mso-line-height-rule:exactly;"><![endif]-->
+<div style=3D"border-radius:false;margin:0px auto;max-width:700px;">
+<table align=3D"center" automation-id=3D"header" border=3D"0" cellpadding=
+=3D"0" cellspacing=3D"0" role=3D"presentation" style=3D"width:100%;">
+<tbody>
+<tr>
+<td style=3D"direction:ltr;font-size:0px;padding:0px;padding-bottom:24px;pa=
+dding-left:0px;padding-right:0px;padding-top:24px;text-align:center;">
+<!--[if mso | IE]><table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" r=
+ole=3D"presentation"><tr><td width=3D"700px"><table align=3D"center" border=
+=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentation" width=3D"7=
+00" style=3D"width:700px;"><tr><td style=3D"font-size:0px;line-height:0px;m=
+so-line-height-rule:exactly;"><![endif]-->
+<div style=3D"margin:0px auto;max-width:700px;">
+<table align=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" ro=
+le=3D"presentation" style=3D"width:100%;">
+<tbody>
+<tr>
+<td class=3D"section-wrapper" style=3D"direction:ltr;font-size:0px;padding:=
+0px 32px;text-align:center;">
+<!--[if mso | IE]><table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" r=
+ole=3D"presentation"><tr><td style=3D"vertical-align:top;width:636px;"><![e=
+ndif]-->
+<div class=3D"mj-column-per-100 mj-outlook-group-fix" style=3D"direction:lt=
+r;display:inline-block;font-size:0px;text-align:left;vertical-align:top;wid=
+th:100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" width=3D"100%" style=3D"vertical-align:top;">
+<tbody>
+<tr>
+<td align=3D"center" class=3D"mjImage-0-3236875-3" style=3D"font-size:0px;p=
+adding:0px;word-break:break-word;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"border-collapse:collapse;border-spacing:0px;">
+<tbody>
+<tr>
+<td style=3D"width:180px;">
+<a href=3D"https://w-mt.co/rptrcks/comm-smart-app/services/tracking/clickTr=
+acker?redirectTo=3DuzjKrEiXybAAz99rJW8TIYBYo6Cv9qoJ5ezsmPGS01z3IB5%2B6DH5v5=
+qEpO3dEUjRwk4y2ixbaQGOfDvQjfiJa1mnazwaBYA7GEe5WN%2F1Cgsi526JXjkA1J3HqvnvadJ=
+t%2Bsg7E2dNH8Wsc74LuL51Z7iu7by7wE6pTh4FZjWrDtkKDzQSqdoClojqOkkw2CFt6Wa2YThy=
+L5DcXGQYVnY13K6Wzbnt%2FAqcDjly5ETFIgujsNSNv7bC00jsAW0%2F05O3%2B99zFDXqi51oC=
+6113ddO8dzFM7TuLcHeQ21wc48KLuvcZqojw%2BREQo8VrXkwfW9pyu0ejHzbtcAZooOGHmn3Jb=
+hRKFWN7p%2FcP09giFxW2SLgkqwfZ2z0B7OsbvYOL%2B4wTuDPWkz%2FdsHF9usRbfY%2BYJ5CZ=
+f80vH1p2WFO1JWs%2BULmrilaigJc2Ob7dIpmiYkoeRt7CizGOEDEWvGV3yOUHhBoJI0xN0KF6L=
+NE39KtgpWD7KLjX91uN1Dtjy9vP8eyfA%2FXoaJ%2BEpQjpGL6PiDWHSR7OrdKEsxOjjBd0YbP9=
+HZNnO1jEpAh7eg9k1OXUBuV&meta=3DSEtFqRPYlvhjkrj6PZW2DrNhH%2FQrLbTSY7Vg5fDRDN=
+2Ow0VqbHAe3UChJDhaXwneecTsvguNtbx6rUe9NJRYpdllNE2er1nAAjtAGNxa4Lp2sf6GoF0jl=
+RbXlUznpU%2FkNSjMynDZFeRNGXLnVRMk2zneSFJl2OnmQDGRXBx9x3t3dek24i%2FXFU34dJ7n=
+mNlZV8sOB2UVg2CrsuRNbyVCAA%3D%3D&iv=3DfGLmQE3Ip5I%2FgV1JvaHhMg%3D%3D" targe=
+t=3D"_blank" style=3D"color:black !important;text-decoration:underline;">
+<img alt=3D"Walmart home page" height=3D"auto" src=3D"https://i5.walmartima=
+ges.com/dfw/1747f906-dc92/k2-_fd87b54e-b6e1-4d2a-b204-5bda585787d3.v1.png" =
+width=3D"180" inline=3D"undefined" style=3D"border:0;font-size:16px;height:=
+auto;text-decoration:none;width:100%;" >
+</a>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td></tr></table><![endif]-->
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td></tr></table></td></tr></table><![endif]-->
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td></tr></table></td>
+</tr><tr>
+<td>
+<table align=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" ro=
+le=3D"presentation" class=3D"mjSection-0-3236875-6-outlook" width=3D"700" s=
+tyle=3D"width:700px;"><tr><td style=3D"font-size:0px;line-height:0px;mso-li=
+ne-height-rule:exactly;"><![endif]-->
+<div class=3D"mjSection-0-3236875-6" style=3D"margin:0px auto;max-width:700=
+px;">
+<table align=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" ro=
+le=3D"presentation" style=3D"width:100%;">
+<tbody>
+<tr>
+<td class=3D"section-wrapper" style=3D"direction:ltr;font-size:0px;padding:=
+0px 32px 0px 32px;text-align:center;">
+<!--[if mso | IE]><table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" r=
+ole=3D"presentation"><tr><td class=3D"mjColumn-0-3236875-5-outlook" style=
+=3D"vertical-align:top;width:636px;"><![endif]-->
+<div class=3D"mj-column-per-100 mj-outlook-group-fix mjColumn-0-3236875-5" =
+style=3D"direction:ltr;display:inline-block;font-size:0px;text-align:left;v=
+ertical-align:top;width:100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" width=3D"100%"><tbody><tr><td style=3D"padding:0px 0px 0px 0px;vertical-=
+align:top;"><table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D=
+"presentation" width=3D"100%">
+<tbody>
+<tr>
+<td align=3D"left" class=3D"label-0-3236875-4" style=3D"font-size:0px;paddi=
+ng:0px;padding-bottom:24px;word-break:break-word;">
+<h1 style=3D"color:#0053E2;font-family:helvetica;font-size:36px;font-weight=
+:300;line-height:1.38;text-align:left;text-decoration:none;margin:0;"> Your=
+ prescription is ready</h1>
+</td>
+</tr>
+<tr>
+<td align=3D"left" style=3D"font-size:0px;padding:0px;word-break:break-word=
+;">
+<div style=3D"color:#000000;font-family:helvetica;font-size:16px;line-heigh=
+t:1.38;text-align:left;"> <span> <p style=3D"margin:0;">Hello Adrian,</p><p=
+ style=3D"margin:0;">&nbsp;</p><p style=3D"margin:0;">Your prescription is =
+ready.</p><p style=3D"margin:0;">&nbsp;</p><p style=3D"margin:0;">And there=
+=E2=80=99s good news! Your prescription is eligible for delivery. That mean=
+s you can save a trip and have your prescription and other essentials deliv=
+ered right to your door, as early as today.</p><p style=3D"margin:0;">&nbsp=
+;</p><p style=3D"margin:0;">Not ready to try delivery? You can still pick u=
+p your prescription at the pharmacy.</p><p style=3D"margin:0;">&nbsp;</p><p=
+ style=3D"margin:0;">Questions? Please call the pharmacy at <a href=3D"tel:=
+(540) 413-3144" style=3D"color:black !important;text-decoration:underline;"=
+>(540) 413-3144</a>.</p><p style=3D"margin:0;">&nbsp;</p><p style=3D"margin=
+:0;"><i>-Your Walmart Pharmacy Team</i></p></span> </div>
+</td>
+</tr>
+<tr>
+<td align=3D"left" vertical-align=3D"middle" style=3D"font-size:0px;padding=
+:0px;padding-bottom:24px;padding-top:24px;word-break:break-word;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"border-collapse:separate;line-height:100%;width:undefined;">
+<tbody>
+<tr>
+<td align=3D"center" bgcolor=3D"#0053E2" role=3D"presentation" valign=3D"mi=
+ddle" style=3D"background:#0053E2;border:1px solid #0053E2;border-radius:10=
+0px;cursor:auto;height:undefined;mso-padding-alt:10px 24px;">
+<a href=3D"https://w-mt.co/rptrcks/comm-smart-app/services/tracking/clickTr=
+acker?redirectTo=3Ds87UMULfqFOAIDTkOO6mmNyP8oNubcwmtBBhKPQMpJjea4bp%2F5zOAA=
+k5rwBhybkX5eOIfPsj62c5JYdT74cTusUw1cDQiHtpughoYhb6zvCG4M2aTJZ2Pyn9lIhQW2AKR=
+kED1CYFvmB0TCq57COt1XsK%2Fsl2I3ZY5mgmaB9odLUI59Xsk1MlvtZGTmHeIbTcdJle0N7yIB=
+NSIRkj1feYif0jsm%2BBt%2FWvJYfr14djNDtJ0LZRF5U1t4TIsHm2mTbbqaJayXl4rI2mqwemo=
+kSO9CCSMRYKRN8NB0AYpcB97VEbnOkP%2FWS1xlm222Rty7qC5MD3kRz0VxD6BqBUrKeWV2BZKQ=
+fdfVng3PkeOAtFwM0Nbh9%2F1JcU1Vy0w6A0Jq%2Fz6cUu5AWL9hILeMWbm2OQbKD64Ncca7yxe=
+X7614iNsmw7ecZwIdKCWfojAruPlEX9fHsZKeLv54q9lo79Kp%2FLKuxonz%2BSeWW7cK6yQZOX=
+mJ21UDokmClSZefgBUM%2F%2BuqWg7HLAYh7dZIw5HN0iXEQMIWhal83LI6RLGR2IgmauNp5%2B=
+ZeRqlUhsrt1F7yO02xkBl9Ecw%2By7MQ3feXUw5%2BtNB8qfGpsDAhK7vfY35YS51ngO6VP8bOj=
+YVykjjF865TdOfiVeJnMB%2FHCV7UebyJH6pACkwTR0%2BQiJAPXVR%2BQM7D8pKJFklwasZIUc=
+g1yGDZP0lhS2I5%2Bd5bj8LuCRLspSOqwKy9p%2FiM4vo%2B2RUVhz8vo%2FIxIr3U9DZaxIbE8=
+KWvLE0pMi3uUVzXophUwd76tFj0LgO%2B5bJoKgsun%2FkO67eRcXSmnGS%2Frh4opuwA1XIu0Q=
+Pnc6Djfi25dBVRMy4e7NUe1V5QWLQwu2JcrBXdFqJmzkDXcaFUEc4nsqPpc7ovQ39U7hsaTnvN0=
+Xcl76rV9ULY512qGGJJxQANZ86f9nKzYrnciRPMbwLpnykASMBrNku6FtqTQkug9nQwRwl1E5A%=
+3D%3D&meta=3DjATgMAXT%2Bel1BAFnjwZ1fXoDQK5%2F0AMVB8deRnKiOkPhdA0BkxSbkbPOkE=
+c%2BlUF4Glg6R36wdtfdZ8UdNoY7dkJOfksakZCWRR46fKveV1ei7H%2FPtUr6Dndxy9zDZSNW0=
+lUBOagJSw6gozoQ3YK2bGQkUmkWOV79kHZjPP%2FFOnSWDH85VISpm7etmeWZDWYjYEFf%2FdN%=
+2BolYooKXSjoXNOA%3D%3D&iv=3DBfraebM%2FtkHRw%2BzxMMprIQ%3D%3D" target=3D"_bl=
+ank" style=3D"background:#0053E2;border-radius:100px;color:#ffffff !importa=
+nt;display:inline-block;font-family:helvetica;font-size:16px;font-weight:70=
+0;line-height:1.429;margin:0;mso-padding-alt:0px;padding:10px 24px;text-dec=
+oration:none;text-transform:none;">
+ Schedule Rx delivery</a></td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+<tr>
+<td style=3D"font-size:0px;padding:0px 0px 24px 0px;word-break:break-word;"=
+>
+<p style=3D"border-top:solid 1px #e6e7e8ff;font-size:1px;margin:0px auto;wi=
+dth:629px;" ></p>
+<!--[if mso | IE]><table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" r=
+ole=3D"presentation" width=3D"629px" style=3D"border-top:solid 1px #e6e7e8f=
+f;font-size:1px;margin:0px auto;width:629px;">
+<tr><td style=3D"height:0;line-height:0;">
+&nbsp;</td>
+</tr>
+</table>
+<![endif]-->
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table></div>
+<!--[if mso | IE]></td></tr></table><![endif]-->
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td></tr></table></td>
+</tr><tr>
+<td>
+<table align=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" ro=
+le=3D"presentation" class=3D"mjSection-0-3236875-8-outlook" width=3D"700" s=
+tyle=3D"width:700px;"><tr><td style=3D"font-size:0px;line-height:0px;mso-li=
+ne-height-rule:exactly;"><![endif]-->
+<div class=3D"mjSection-0-3236875-8" style=3D"margin:0px auto;max-width:700=
+px;">
+<table align=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" ro=
+le=3D"presentation" style=3D"width:100%;">
+<tbody>
+<tr>
+<td class=3D"section-wrapper" style=3D"direction:ltr;font-size:0px;padding:=
+0px 32px 0px 32px;text-align:center;">
+<!--[if mso | IE]><table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" r=
+ole=3D"presentation"><tr><td class=3D"mjColumn-0-3236875-7-outlook" style=
+=3D"vertical-align:top;width:636px;"><![endif]-->
+<div class=3D"mj-column-per-100 mj-outlook-group-fix mjColumn-0-3236875-7" =
+style=3D"direction:ltr;display:inline-block;font-size:0px;text-align:left;v=
+ertical-align:top;width:100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" width=3D"100%"><tbody><tr><td style=3D"padding:0px 0px 0px 0px;vertical-=
+align:top;"><table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D=
+"presentation" width=3D"100%">
+<tbody>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table></div>
+<!--[if mso | IE]></td></tr></table><![endif]-->
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td></tr></table></td>
+</tr><tr>
+<td>
+<table align=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" ro=
+le=3D"presentation" width=3D"700" style=3D"width:700px;"><tr><td style=3D"f=
+ont-size:0px;line-height:0px;mso-line-height-rule:exactly;"><![endif]-->
+<div style=3D"margin:0px auto;max-width:700px;">
+<table align=3D"center" automation-id=3D"uniqueId" border=3D"0" cellpadding=
+=3D"0" cellspacing=3D"0" role=3D"presentation" style=3D"width:100%;">
+<tbody>
+<tr>
+<td style=3D"direction:ltr;font-size:0px;padding:0px;text-align:center;">
+<!--[if mso | IE]><table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" r=
+ole=3D"presentation"><tr><td class=3D"heading-0-3236875-14-outlook" width=
+=3D"700px"><table align=3D"center" border=3D"0" cellpadding=3D"0" cellspaci=
+ng=3D"0" role=3D"presentation" class=3D"heading-0-3236875-14-outlook" width=
+=3D"700" style=3D"width:700px;"><tr><td style=3D"font-size:0px;line-height:=
+0px;mso-line-height-rule:exactly;"><![endif]-->
+<div class=3D"heading-0-3236875-14" style=3D"margin:0px auto;max-width:700p=
+x;">
+<table align=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" ro=
+le=3D"presentation" style=3D"width:100%;">
+<tbody>
+<tr>
+<td class=3D"section-wrapper" style=3D"direction:ltr;font-size:0px;padding:=
+0px 32px;text-align:left;">
+<!--[if mso | IE]><table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" r=
+ole=3D"presentation"><tr><td style=3D"vertical-align:top;width:636px;"><![e=
+ndif]-->
+<div class=3D"mj-column-per-100 mj-outlook-group-fix" style=3D"direction:lt=
+r;display:inline-block;font-size:0px;text-align:left;vertical-align:top;wid=
+th:100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" width=3D"100%" style=3D"vertical-align:top;">
+<tbody>
+<tr>
+<td align=3D"left" class=3D"undefined" style=3D"font-size:0px;padding:0px;w=
+ord-break:break-word;">
+<h2 style=3D"color:#0053E2;font-family:helvetica;font-size:28px;font-weight=
+:300;line-height:1.38;text-align:left;text-decoration:none;margin:0;"> Pres=
+criptions</h2>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td></tr></table><![endif]-->
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td></tr></table></td></tr><tr><td width=3D"700px"><tabl=
+e align=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D=
+"presentation" width=3D"700" style=3D"width:700px;"><tr><td style=3D"font-s=
+ize:0px;line-height:0px;mso-line-height-rule:exactly;"><![endif]-->
+<div style=3D"margin:0px auto;max-width:700px;">
+<table align=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" ro=
+le=3D"presentation" style=3D"width:100%;">
+<tbody>
+<tr>
+<td class=3D"section-wrapper" style=3D"direction:ltr;font-size:0px;padding:=
+0px 32px;text-align:center;">
+<!--[if mso | IE]><table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" r=
+ole=3D"presentation"><tr><td class=3D"innerRow-0-3236875-15-outlook" style=
+=3D"vertical-align:top;width:636px;"><![endif]-->
+<div class=3D"mj-column-per-100 mj-outlook-group-fix innerRow-0-3236875-15"=
+ style=3D"direction:ltr;display:inline-block;font-size:0px;text-align:left;=
+vertical-align:top;width:100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" width=3D"100%" style=3D"vertical-align:top;">
+<tbody>
+<tr>
+<td align=3D"left" style=3D"font-size:0px;padding:0px;word-break:break-word=
+;">
+<table cellpadding=3D"0" cellspacing=3D"0" width=3D"100%" border=3D"0" styl=
+e=3D"border:none;color:#000000;font-family:helvetica;font-size:16px;line-he=
+ight:1.38;table-layout:auto;width:100%;">
+ <tr> <td width=3D"15%"> <img src=3D"https://i5.walmartimages.com/dfw/1747f=
+906-5b13/k2-_9c1095f4-706d-4f6d-9ed0-879973a768db.v1.png" alt=3D"medicine i=
+mage" width=3D"60" style=3D"height:72px;width:72px;">  </td> <td width=3D"7=
+5%" style=3D"font-size:14px;padding-left:5%;vertical-align:top;"> <div styl=
+e=3D"font-family:Helvetica;"> <p style=3D"margin:0;"> Met*****</p> <p style=
+=3D"margin:0;"> Adrian</p> </div> </td> <td width=3D"10%"> <span style=3D"f=
+ont-size:16px;font-weight:700;white-space:nowrap;"> $30.00 </span> </td> </=
+tr> </table>
+
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td></tr></table><![endif]-->
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td></tr></table></td></tr><tr><td width=3D"700px"><tabl=
+e align=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D=
+"presentation" width=3D"700" style=3D"width:700px;"><tr><td style=3D"font-s=
+ize:0px;line-height:0px;mso-line-height-rule:exactly;"><![endif]-->
+<div style=3D"margin:0px auto;max-width:700px;">
+<table align=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" ro=
+le=3D"presentation" style=3D"width:100%;">
+<tbody>
+<tr>
+<td class=3D"section-wrapper" style=3D"direction:ltr;font-size:0px;padding:=
+0px 32px;text-align:center;">
+<!--[if mso | IE]><table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" r=
+ole=3D"presentation"><tr><td style=3D"vertical-align:top;width:636px;"><![e=
+ndif]-->
+<div class=3D"mj-column-per-100 mj-outlook-group-fix" style=3D"direction:lt=
+r;display:inline-block;font-size:0px;text-align:left;vertical-align:top;wid=
+th:100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" width=3D"100%" style=3D"vertical-align:top;">
+<tbody>
+<tr>
+<td align=3D"left" class=3D"innerRow-0-3236875-15" style=3D"font-size:0px;p=
+adding:0px;word-break:break-word;">
+<table cellpadding=3D"0" cellspacing=3D"0" width=3D"100%" border=3D"0" styl=
+e=3D"border:none;color:#000000;font-family:helvetica;font-size:16px;line-he=
+ight:1.38;table-layout:auto;width:100%;">
+ <tr align=3D"left"> <td width=3D"90%"> <span class=3D"totalLabel-0-3236875=
+-12"> Total</span> </td> <td width=3D"10%"> <span class=3D"totalLabel-0-323=
+6875-12" style=3D"white-space:nowrap;"> $30.00</span> </td> </tr> </table>
+
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td></tr></table><![endif]-->
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td></tr></table></td></tr></table><![endif]-->
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td></tr></table></td>
+</tr><tr>
+<td>
+<table align=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" ro=
+le=3D"presentation" class=3D"mjSection-0-3236875-20-outlook" width=3D"700" =
+style=3D"width:700px;"><tr><td style=3D"font-size:0px;line-height:0px;mso-l=
+ine-height-rule:exactly;"><![endif]-->
+<div class=3D"mjSection-0-3236875-20" style=3D"margin:0px auto;max-width:70=
+0px;">
+<table align=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" ro=
+le=3D"presentation" style=3D"width:100%;">
+<tbody>
+<tr>
+<td class=3D"section-wrapper" style=3D"direction:ltr;font-size:0px;padding:=
+0px 32px 0px 32px;text-align:center;">
+<!--[if mso | IE]><table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" r=
+ole=3D"presentation"><tr><td class=3D"mjColumn-0-3236875-19-outlook" style=
+=3D"vertical-align:top;width:636px;"><![endif]-->
+<div class=3D"mj-column-per-100 mj-outlook-group-fix mjColumn-0-3236875-19"=
+ style=3D"direction:ltr;display:inline-block;font-size:0px;text-align:left;=
+vertical-align:top;width:100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" width=3D"100%"><tbody><tr><td style=3D"padding:0px 0px 0px 0px;vertical-=
+align:top;"><table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D=
+"presentation" width=3D"100%">
+<tbody>
+<tr>
+<td style=3D"font-size:0px;padding:40px 0px 24px 0px;word-break:break-word;=
+">
+<p style=3D"border-top:solid 1px #e6e7e8ff;font-size:1px;margin:0px auto;wi=
+dth:629px;" ></p>
+<!--[if mso | IE]><table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" r=
+ole=3D"presentation" width=3D"629px" style=3D"border-top:solid 1px #e6e7e8f=
+f;font-size:1px;margin:0px auto;width:629px;">
+<tr><td style=3D"height:0;line-height:0;">
+&nbsp;</td>
+</tr>
+</table>
+<![endif]-->
+</td>
+</tr>
+<tr>
+<td align=3D"left" class=3D"undefined" style=3D"font-size:0px;padding:0px;p=
+adding-bottom:8px;word-break:break-word;">
+<h2 style=3D"color:#0053E2;font-family:helvetica;font-size:28px;font-weight=
+:300;line-height:1.38;text-align:left;text-decoration:none;margin:0;"> Pres=
+cription delivery is now available!*</h2>
+</td>
+</tr>
+<tr>
+<td align=3D"left" class=3D"mjImage-0-3236875-17" style=3D"font-size:0px;pa=
+dding:0px;padding-bottom:0px;word-break:break-word;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"border-collapse:collapse;border-spacing:0px;">
+<tbody>
+<tr>
+<td style=3D"width:636px;">
+<a href=3D"https://w-mt.co/rptrcks/comm-smart-app/services/tracking/clickTr=
+acker?redirectTo=3DjAHyh6GObc6%2BFyuCeawhaLpaMngH7D6xhFqI3B3MKvG1SkoL2EvrQz=
+2NbgSKREU1HE6nCslsMqsoLWiZNCWb4DJom8Hbs7MQSqa0wZipjV8iTDZdqRBIcmd7GSvR%2FKH=
+ulwGzcSfP1MKbcmf%2BAN4IkPAO9BdxGZwGB2PpONHTw465wN8n7uCMXjcyxMlQOzuEbMtwnK0o=
+ChBQXthoGnfmoTAwfS%2BnGKWN1QNavxdk%2F1VIPp4EdFSD1xlp6KzLJe17il6ZzcP6I4nUFDz=
+0k9djZ%2FY0AC8qw4b%2BI2Ixr3kXQSTorzywvJEewEfIrVWjtiNwXBEzhnczBr51viwlbFaxve=
+TtYl1rY1g83jKIb%2FSBiPKB01cK8GIARNpeQblVWgimf0MqGDk1mg8ojokBNBRik6U9mVmhzD9=
+4vY86VR1YBQG15W%2Bblbbw1%2B7Yppchye433DIwQW%2FOjff1eaCRoXPADEebr%2FwEBerAoW=
+uunt6vReYCLKBObq3IOvbQNb1EXsp4YB4fF8T2ZBjpcLOsojLm1QGOUeFzvKUxFC%2F0ZilYrXC=
+msKLOFiBjbMgfZH8R3LN%2F6ghkqsjKvpR%2ByqIpdozsmVPy8IHOOOUFnYmTu%2BI91S1HcCPL=
+sO9%2BAGviYs1D1InUnA77pD4gluticRF3TgSvWQNpH5yi9yk%2BoLSzzb%2Fpz0ta9Sw%2F6MD=
+M5ajIbrd4kZ6%2F9JECVX4oV6SwscFehIbbT81%2BD5FbRTd9tbHgKNbiuZ4%3D&meta=3Ds0%2=
+B05XTm%2FRAtCj%2BfAek2MFgLfxrRmNAZgm4t259re6HBOyzxrEUsFiuqFgDso6DHwxJOqJ4ql=
+iMZbazO9SUkncOlLyt3ecwWPyKJNqIx46QPYVWPLbgN7lgIuPq4lFJpMUcObjw6xuZePMl10%2B=
+XO8q7F%2BOXKqp7s%2FK%2BPkHGpegIO8d3xcbkCQIn8ZvFT%2Br0V5Z9I7CjiNReSlq2kgl1Vv=
+Q%3D%3D&iv=3D6NwXDQOGX7IQv9L5k62EVg%3D%3D" target=3D"_blank" style=3D"color=
+:black !important;text-decoration:underline;">
+<img alt=3D"preview-img" height=3D"auto" src=3D"https://i5.walmartimages.co=
+m/dfw/1747f906-14c3/k2-_6ba89f83-fba9-4085-8541-478e3e6e043d.v1.png" width=
+=3D"636" inline=3D"false" style=3D"border:0;font-size:16px;height:auto;text=
+-decoration:none;width:100%;" >
+</a>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+<tr>
+<td align=3D"left" class=3D"mjImage-0-3236875-18" style=3D"font-size:0px;pa=
+dding:0px;padding-bottom:0px;padding-left:8px;padding-right:0px;padding-top=
+:16px;word-break:break-word;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"border-collapse:collapse;border-spacing:0px;">
+<tbody>
+<tr>
+<td style=3D"width:147px;">
+<a href=3D"https://w-mt.co/rptrcks/comm-smart-app/services/tracking/clickTr=
+acker?redirectTo=3DHIslDhe5gDnxsNWZnWqxTjpc2QNZfn2hwWOFCyOXS1EIQEOC8qCzWX1Y=
+7e4w6xESIS3ts6jTlQZX1YltyUziKQMHn3YkrZkhkYOtNgUusmnnXCrLMNJeqxY7hoxc1WhHe0c=
+3ddEDnbOVH8snfaWW1FJkEDqwAC1cq4HsjppvKWQ0CaQsajktqHOGCzQ17VDZwMcH89Curo223x=
+EGGpHDY9YxLhsxmjhl%2BRUTdO1PTLxPT5zUJJPQwb7%2BWmDh%2FM8VdLW%2FuA2MNMZ6J5Quy=
+0iwttIpDUNKW4aaAirpelXRE3FZ7%2B5UCz7sE0fTaAMksIrekTpFvtnZL3QonnQz4J4%2FPbKf=
+b6bC%2FPDXEpctcRwnnBhUobgS9xYQ0QnBnKvVGOSC7bvumiWwGrqXZuPCzTPZFT%2FiedeUDmR=
+sSwL7Z5O615jsbo%2BDXiDkmDMl6OjrdrwE4rkn8gGES7%2F%2BJ9C2qOAsxKZesBfKl1YveNoA=
+h5CzwtJ1vyz0YBifDdh1yPsgOc49cO4cafv%2B8YMUEbDerA9HQGipLel5l0STqYO%2BzlpV9e8=
+%3D&meta=3Dvn6v29PPOODXLNDkkiXlVT6p9X5eJdX%2B7%2FFSvkOam1om%2FrRmfmlUeQQaJU=
+5bGzvDJ%2B8A0zDNUF1Kr2B2i9rTVyMTILbUjAkuOTwpDNZmn5GAFy2gRUr7PwORgXHf4lNPcTT=
+STaQnWFPk0iJ02wQ93TbRwPt8tq%2BlZzAEu3M7VtYtPrrv8thlHLIWaFlcSE%2FKw9qEimC99E=
+bTkLsH0YErRg%3D%3D&iv=3DY83Wo9k5cq8QuHuK1OAv8w%3D%3D" target=3D"_blank" sty=
+le=3D"color:black !important;text-decoration:underline;">
+<img alt=3D"preview-img" height=3D"auto" src=3D"https://i5.walmartimages.co=
+m/dfw/1747f906-38a7/k2-_402b65cf-efb9-4131-990b-b940d27629ce.v1.png" width=
+=3D"147" inline=3D"false" style=3D"border:0;font-size:16px;height:auto;text=
+-decoration:none;width:100%;" >
+</a>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+<tr>
+<td style=3D"font-size:0px;padding:40px 0px 8px 0px;word-break:break-word;"=
+>
+<p style=3D"border-top:solid 1px #e6e7e8ff;font-size:1px;margin:0px auto;wi=
+dth:626px;" ></p>
+<!--[if mso | IE]><table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" r=
+ole=3D"presentation" width=3D"626px" style=3D"border-top:solid 1px #e6e7e8f=
+f;font-size:1px;margin:0px auto;width:626px;">
+<tr><td style=3D"height:0;line-height:0;">
+&nbsp;</td>
+</tr>
+</table>
+<![endif]-->
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table></div>
+<!--[if mso | IE]></td></tr></table><![endif]-->
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td></tr></table></td>
+</tr><tr>
+<td>
+<table align=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" ro=
+le=3D"presentation" width=3D"700" style=3D"width:700px;"><tr><td style=3D"f=
+ont-size:0px;line-height:0px;mso-line-height-rule:exactly;"><![endif]-->
+<div style=3D"margin:0px auto;max-width:700px;">
+<table align=3D"center" automation-id=3D"pickup-fulfillment" border=3D"0" c=
+ellpadding=3D"0" cellspacing=3D"0" role=3D"presentation" style=3D"width:100=
+%;">
+<tbody>
+<tr>
+<td style=3D"direction:ltr;font-size:0px;padding:0px;padding-bottom:24px;pa=
+dding-left:0px;padding-right:0px;padding-top:24px;text-align:center;">
+<!--[if mso | IE]><table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" r=
+ole=3D"presentation"><tr><td width=3D"700px"><table align=3D"center" border=
+=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentation" width=3D"7=
+00" style=3D"width:700px;"><tr><td style=3D"font-size:0px;line-height:0px;m=
+so-line-height-rule:exactly;"><![endif]-->
+<div style=3D"margin:0px auto;max-width:700px;">
+<table align=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" ro=
+le=3D"presentation" style=3D"width:100%;">
+<tbody>
+<tr>
+<td class=3D"section-wrapper" style=3D"direction:ltr;font-size:0px;padding:=
+0px 32px;text-align:center;">
+<!--[if mso | IE]><table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" r=
+ole=3D"presentation"><tr><td style=3D"vertical-align:top;width:636px;"><![e=
+ndif]-->
+<div class=3D"mj-column-per-100 mj-outlook-group-fix" style=3D"direction:lt=
+r;display:inline-block;font-size:0px;text-align:left;vertical-align:top;wid=
+th:100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" width=3D"100%" style=3D"vertical-align:top;">
+<tbody>
+<tr>
+<td align=3D"left" class=3D"undefined" style=3D"font-size:0px;padding:0px;w=
+ord-break:break-word;">
+<h2 style=3D"color:#0053E2;font-family:helvetica;font-size:28px;font-weight=
+:300;line-height:1.38;text-align:left;text-decoration:none;margin:0;"> Phar=
+macy</h2>
+</td>
+</tr>
+<tr>
+<td style=3D"font-size:0px;word-break:break-word;">
+<div style=3D"height:8px;line-height:8px;">
+&#8202;</div>
+
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td></tr></table><![endif]-->
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td></tr></table></td></tr><tr><td width=3D"700px"><tabl=
+e align=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D=
+"presentation" width=3D"700" style=3D"width:700px;"><tr><td style=3D"font-s=
+ize:0px;line-height:0px;mso-line-height-rule:exactly;"><![endif]-->
+<div style=3D"margin:0px auto;max-width:700px;">
+<table align=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" ro=
+le=3D"presentation" style=3D"width:100%;">
+<tbody>
+<tr>
+<td class=3D"section-wrapper" style=3D"direction:ltr;font-size:0px;padding:=
+0px 32px;text-align:center;">
+<!--[if mso | IE]><table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" r=
+ole=3D"presentation"><tr><td style=3D"vertical-align:top;width:318px;"><![e=
+ndif]-->
+<div class=3D"mj-column-per-50 mj-outlook-group-fix" style=3D"direction:ltr=
+;display:inline-block;font-size:0px;text-align:left;vertical-align:top;widt=
+h:100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" width=3D"100%" style=3D"vertical-align:top;">
+<tbody>
+<tr>
+<td style=3D"font-size:0px;word-break:break-word;">
+<div style=3D"height:24px;line-height:24px;">
+&#8202;</div>
+
+</td>
+</tr>
+<tr>
+<td align=3D"left" class=3D"undefined" style=3D"font-size:0px;padding:0px;w=
+ord-break:break-word;">
+<h3 style=3D"color:#000000;font-family:helvetica;font-size:16px !important;=
+font-weight:bold !important;line-height:1.38;text-align:left;text-decoratio=
+n:none;margin:0;"> Location</h3>
+</td>
+</tr>
+<tr>
+<td style=3D"font-size:0px;word-break:break-word;">
+<div style=3D"height:4px;line-height:4px;">
+&#8202;</div>
+
+</td>
+</tr>
+<tr>
+<td align=3D"left" class=3D"undefined" style=3D"font-size:0px;padding:0px;w=
+ord-break:break-word;">
+<div style=3D"color:#000000;font-family:helvetica;font-size:16px;line-heigh=
+t:1.38;text-align:left;text-decoration:none;"> <p class=3D"p1" style=3D"mar=
+gin:0;">King George Supercenter</p><p class=3D"p1" style=3D"margin:0;">1637=
+5 Merchant Ln</p><p class=3D"p1" style=3D"margin:0;">King George, VA&nbsp;2=
+2485&nbsp;</p></div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td><td style=3D"vertical-align:top;width:318px;"><![end=
+if]-->
+<div class=3D"mj-column-per-50 mj-outlook-group-fix" style=3D"direction:ltr=
+;display:inline-block;font-size:0px;text-align:left;vertical-align:top;widt=
+h:100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" width=3D"100%" style=3D"vertical-align:top;">
+<tbody>
+<tr>
+<td style=3D"font-size:0px;word-break:break-word;">
+<div style=3D"height:24px;line-height:24px;">
+&#8202;</div>
+
+</td>
+</tr>
+<tr>
+<td align=3D"left" class=3D"undefined" style=3D"font-size:0px;padding:0px;w=
+ord-break:break-word;">
+<h3 style=3D"color:#000000;font-family:helvetica;font-size:16px !important;=
+font-weight:bold !important;line-height:1.38;text-align:left;text-decoratio=
+n:none;margin:0;"> Pharmacy hours</h3>
+</td>
+</tr>
+<tr>
+<td style=3D"font-size:0px;word-break:break-word;">
+<div style=3D"height:4px;line-height:4px;">
+&#8202;</div>
+
+</td>
+</tr>
+<tr>
+<td class=3D"customMargin-0-3236875-22" style=3D"font-size:0px;padding:0px =
+!important;word-break:break-word;">
+<!--[if mso | IE]><table align=3D"center" border=3D"0" cellpadding=3D"0" ce=
+llspacing=3D"0" role=3D"presentation" class=3D"customMargin-0-3236875-22-ou=
+tlook" width=3D"318" style=3D"width:318px;"><tr><td style=3D"font-size:0px;=
+line-height:0px;mso-line-height-rule:exactly;"><![endif]-->
+<div class=3D"customMargin-0-3236875-22" style=3D"margin:0px auto;max-width=
+:318px;">
+<table align=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" ro=
+le=3D"presentation" style=3D"width:100%;">
+<tbody>
+<tr>
+<td class=3D"section-wrapper" style=3D"direction:ltr;font-size:0px;padding:=
+0px !important;text-align:center;">
+<!--[if mso | IE]><table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" r=
+ole=3D"presentation"><tr><td style=3D"width:318px;"><![endif]-->
+<div class=3D"mj-column-per-100 mj-outlook-group-fix" style=3D"direction:lt=
+r;display:inline-block;font-size:0;line-height:0;text-align:left;width:100%=
+;">
+<!--[if mso | IE]><table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" r=
+ole=3D"presentation">
+<tr>
+<td style=3D"vertical-align:top;width:63px;"><![endif]--><div class=3D"mj-c=
+olumn-per-20 mj-outlook-group-fix" style=3D"direction:ltr;display:inline-bl=
+ock;font-size:0px;text-align:left;vertical-align:top;width:20%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" width=3D"100%" style=3D"vertical-align:top;">
+<tbody>
+<tr>
+<td align=3D"left" class=3D"undefined" style=3D"font-size:0px;padding:0px;w=
+ord-break:break-word;">
+<div style=3D"color:#6d6e71;font-family:helvetica;font-size:16px;line-heigh=
+t:1.38;text-align:left;text-decoration:none;"> Mon-Fri</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div><!--[if mso | IE]></td><td style=3D"vertical-align:top;width:238px;">=
+<![endif]--><div class=3D"mj-column-per-75 mj-outlook-group-fix" style=3D"d=
+irection:ltr;display:inline-block;font-size:0px;text-align:left;vertical-al=
+ign:top;width:75%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" width=3D"100%" style=3D"vertical-align:top;">
+<tbody>
+<tr>
+<td align=3D"left" class=3D"undefined" style=3D"font-size:0px;padding:0px;w=
+ord-break:break-word;">
+<div style=3D"color:#6d6e71;font-family:helvetica;font-size:16px;line-heigh=
+t:1.38;text-align:left;text-decoration:none;"> 09:00 am-07:00 pm</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div><!--[if mso | IE]></td></tr>
+</table>
+<![endif]--></div>
+
+<!--[if mso | IE]></td></tr></table><![endif]-->
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td></tr></table><![endif]-->
+
+</td>
+</tr>
+<tr>
+<td class=3D"customMargin-0-3236875-22" style=3D"font-size:0px;padding:0px =
+!important;word-break:break-word;">
+<!--[if mso | IE]><table align=3D"center" border=3D"0" cellpadding=3D"0" ce=
+llspacing=3D"0" role=3D"presentation" class=3D"customMargin-0-3236875-22-ou=
+tlook" width=3D"318" style=3D"width:318px;"><tr><td style=3D"font-size:0px;=
+line-height:0px;mso-line-height-rule:exactly;"><![endif]-->
+<div class=3D"customMargin-0-3236875-22" style=3D"margin:0px auto;max-width=
+:318px;">
+<table align=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" ro=
+le=3D"presentation" style=3D"width:100%;">
+<tbody>
+<tr>
+<td class=3D"section-wrapper" style=3D"direction:ltr;font-size:0px;padding:=
+0px !important;text-align:center;">
+<!--[if mso | IE]><table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" r=
+ole=3D"presentation"><tr><td style=3D"width:318px;"><![endif]-->
+<div class=3D"mj-column-per-100 mj-outlook-group-fix" style=3D"direction:lt=
+r;display:inline-block;font-size:0;line-height:0;text-align:left;width:100%=
+;">
+<!--[if mso | IE]><table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" r=
+ole=3D"presentation">
+<tr>
+<td style=3D"vertical-align:top;width:63px;"><![endif]--><div class=3D"mj-c=
+olumn-per-20 mj-outlook-group-fix" style=3D"direction:ltr;display:inline-bl=
+ock;font-size:0px;text-align:left;vertical-align:top;width:20%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" width=3D"100%" style=3D"vertical-align:top;">
+<tbody>
+<tr>
+<td align=3D"left" class=3D"undefined" style=3D"font-size:0px;padding:0px;w=
+ord-break:break-word;">
+<div style=3D"color:#6d6e71;font-family:helvetica;font-size:16px;line-heigh=
+t:1.38;text-align:left;text-decoration:none;"> Sat</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div><!--[if mso | IE]></td><td style=3D"vertical-align:top;width:238px;">=
+<![endif]--><div class=3D"mj-column-per-75 mj-outlook-group-fix" style=3D"d=
+irection:ltr;display:inline-block;font-size:0px;text-align:left;vertical-al=
+ign:top;width:75%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" width=3D"100%" style=3D"vertical-align:top;">
+<tbody>
+<tr>
+<td align=3D"left" class=3D"undefined" style=3D"font-size:0px;padding:0px;w=
+ord-break:break-word;">
+<div style=3D"color:#6d6e71;font-family:helvetica;font-size:16px;line-heigh=
+t:1.38;text-align:left;text-decoration:none;"> 09:00 am-07:00 pm</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div><!--[if mso | IE]></td></tr>
+</table>
+<![endif]--></div>
+
+<!--[if mso | IE]></td></tr></table><![endif]-->
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td></tr></table><![endif]-->
+
+</td>
+</tr>
+<tr>
+<td class=3D"customMargin-0-3236875-22" style=3D"font-size:0px;padding:0px =
+!important;word-break:break-word;">
+<!--[if mso | IE]><table align=3D"center" border=3D"0" cellpadding=3D"0" ce=
+llspacing=3D"0" role=3D"presentation" class=3D"customMargin-0-3236875-22-ou=
+tlook" width=3D"318" style=3D"width:318px;"><tr><td style=3D"font-size:0px;=
+line-height:0px;mso-line-height-rule:exactly;"><![endif]-->
+<div class=3D"customMargin-0-3236875-22" style=3D"margin:0px auto;max-width=
+:318px;">
+<table align=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" ro=
+le=3D"presentation" style=3D"width:100%;">
+<tbody>
+<tr>
+<td class=3D"section-wrapper" style=3D"direction:ltr;font-size:0px;padding:=
+0px !important;text-align:center;">
+<!--[if mso | IE]><table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" r=
+ole=3D"presentation"><tr><td style=3D"width:318px;"><![endif]-->
+<div class=3D"mj-column-per-100 mj-outlook-group-fix" style=3D"direction:lt=
+r;display:inline-block;font-size:0;line-height:0;text-align:left;width:100%=
+;">
+<!--[if mso | IE]><table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" r=
+ole=3D"presentation">
+<tr>
+<td style=3D"vertical-align:top;width:63px;"><![endif]--><div class=3D"mj-c=
+olumn-per-20 mj-outlook-group-fix" style=3D"direction:ltr;display:inline-bl=
+ock;font-size:0px;text-align:left;vertical-align:top;width:20%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" width=3D"100%" style=3D"vertical-align:top;">
+<tbody>
+<tr>
+<td align=3D"left" class=3D"undefined" style=3D"font-size:0px;padding:0px;w=
+ord-break:break-word;">
+<div style=3D"color:#6d6e71;font-family:helvetica;font-size:16px;line-heigh=
+t:1.38;text-align:left;text-decoration:none;"> Sun</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div><!--[if mso | IE]></td><td style=3D"vertical-align:top;width:238px;">=
+<![endif]--><div class=3D"mj-column-per-75 mj-outlook-group-fix" style=3D"d=
+irection:ltr;display:inline-block;font-size:0px;text-align:left;vertical-al=
+ign:top;width:75%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" width=3D"100%" style=3D"vertical-align:top;">
+<tbody>
+<tr>
+<td align=3D"left" class=3D"undefined" style=3D"font-size:0px;padding:0px;w=
+ord-break:break-word;">
+<div style=3D"color:#6d6e71;font-family:helvetica;font-size:16px;line-heigh=
+t:1.38;text-align:left;text-decoration:none;"> 10:00 am-06:00 pm</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div><!--[if mso | IE]></td></tr>
+</table>
+<![endif]--></div>
+
+<!--[if mso | IE]></td></tr></table><![endif]-->
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td></tr></table><![endif]-->
+
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td></tr></table><![endif]-->
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td></tr></table></td></tr><tr><td width=3D"700px"><tabl=
+e align=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D=
+"presentation" width=3D"700" style=3D"width:700px;"><tr><td style=3D"font-s=
+ize:0px;line-height:0px;mso-line-height-rule:exactly;"><![endif]-->
+<div style=3D"margin:0px auto;max-width:700px;">
+<table align=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" ro=
+le=3D"presentation" style=3D"width:100%;">
+<tbody>
+<tr>
+<td class=3D"section-wrapper" style=3D"direction:ltr;font-size:0px;padding:=
+0px 32px;text-align:center;">
+<!--[if mso | IE]><table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" r=
+ole=3D"presentation"><tr><td style=3D"vertical-align:top;width:636px;"><![e=
+ndif]-->
+<div class=3D"mj-column-per-100 mj-outlook-group-fix" style=3D"direction:lt=
+r;display:inline-block;font-size:0px;text-align:left;vertical-align:top;wid=
+th:100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" width=3D"100%" style=3D"vertical-align:top;">
+<tbody>
+<tr>
+<td style=3D"font-size:0px;word-break:break-word;">
+<div style=3D"height:24px;line-height:24px;">
+&#8202;</div>
+
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td></tr></table><![endif]-->
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td></tr></table></td></tr></table><![endif]-->
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td></tr></table></td>
+</tr><tr>
+<td>
+<table align=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" ro=
+le=3D"presentation" width=3D"700" style=3D"width:700px;"><tr><td style=3D"f=
+ont-size:0px;line-height:0px;mso-line-height-rule:exactly;"><![endif]-->
+<div style=3D"margin:0px auto;max-width:700px;">
+<table align=3D"center" automation-id=3D"footer" border=3D"0" cellpadding=
+=3D"0" cellspacing=3D"0" role=3D"presentation" style=3D"width:100%;">
+<tbody>
+<tr>
+<td style=3D"direction:ltr;font-size:0px;padding:0px;text-align:center;">
+<!--[if mso | IE]><table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" r=
+ole=3D"presentation"><tr><td width=3D"700px"><table align=3D"center" border=
+=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentation" width=3D"7=
+00" style=3D"width:700px;"><tr><td style=3D"font-size:0px;line-height:0px;m=
+so-line-height-rule:exactly;"><![endif]-->
+<div style=3D"margin:0px auto;max-width:700px;">
+<table align=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" ro=
+le=3D"presentation" style=3D"width:100%;">
+<tbody>
+<tr>
+<td class=3D"footer-wrapper" style=3D"direction:ltr;font-size:0px;padding:0=
+px 32px;padding-left:0px;padding-right:0px;text-align:center;">
+<!--[if mso | IE]><table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" r=
+ole=3D"presentation"><tr><td style=3D"vertical-align:top;width:700px;"><![e=
+ndif]-->
+<div class=3D"mj-column-per-100 mj-outlook-group-fix" style=3D"direction:lt=
+r;display:inline-block;font-size:0px;text-align:left;vertical-align:top;wid=
+th:100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" width=3D"100%"><tbody><tr><td style=3D"padding-top:32px;vertical-align:t=
+op;"><table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presen=
+tation" width=3D"100%">
+<tbody>
+<tr>
+<td align=3D"center" style=3D"font-size:0px;padding:0px;word-break:break-wo=
+rd;">
+<p style=3D"border-top:solid 4px #000000;font-size:1px;margin:0px auto;widt=
+h:100%;" ></p>
+<!--[if mso | IE]><table align=3D"center" border=3D"0" cellpadding=3D"0" ce=
+llspacing=3D"0" role=3D"presentation" width=3D"700px" style=3D"border-top:s=
+olid 4px #000000;font-size:1px;margin:0px auto;width:700px;">
+<tr><td style=3D"height:0;line-height:0;">
+&nbsp;</td>
+</tr>
+</table>
+<![endif]-->
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table></div>
+<!--[if mso | IE]></td></tr></table><![endif]-->
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td></tr></table></td></tr><tr><td width=3D"700px"><tabl=
+e align=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D=
+"presentation" width=3D"700" style=3D"width:700px;"><tr><td style=3D"font-s=
+ize:0px;line-height:0px;mso-line-height-rule:exactly;"><![endif]-->
+<div style=3D"margin:0px auto;max-width:700px;">
+<table align=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" ro=
+le=3D"presentation" style=3D"width:100%;">
+<tbody>
+<tr>
+<td class=3D"section-wrapper" style=3D"direction:ltr;font-size:0px;padding:=
+0px 32px;text-align:center;">
+<!--[if mso | IE]><table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" r=
+ole=3D"presentation"><tr><td class=3D"footerColumn-0-3236875-25-outlook" st=
+yle=3D"vertical-align:middle;width:318px;"><![endif]-->
+<div class=3D"mj-column-per-50 mj-outlook-group-fix footerColumn-0-3236875-=
+25" style=3D"direction:ltr;display:inline-block;font-size:0px;text-align:le=
+ft;vertical-align:middle;width:100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" width=3D"100%" style=3D"vertical-align:middle;">
+<tbody>
+<tr>
+<td style=3D"font-size:0px;word-break:break-word;">
+<div style=3D"height:32px;line-height:32px;">
+&#8202;</div>
+
+</td>
+</tr>
+<tr>
+<td align=3D"left" class=3D"footerTitle-0-3236875-24" style=3D"font-size:0p=
+x;padding:0px;word-break:break-word;">
+<div style=3D"color:#000000;font-family:helvetica;font-size:14px;line-heigh=
+t:1.38;text-align:left;"> Shop anywhere with the Walmart app</div>
+</td>
+</tr>
+<tr>
+<td style=3D"font-size:0px;word-break:break-word;">
+<div style=3D"height:16px;line-height:16px;">
+&#8202;</div>
+
+</td>
+</tr>
+<tr>
+<td align=3D"center" class=3D"footerIcons-0-3236875-26" style=3D"font-size:=
+0px;padding:0px;word-break:break-word;">
+<table cellpadding=3D"0" cellspacing=3D"0" role=3D"presentation" width=3D"1=
+00%" border=3D"0" style=3D"border:none;color:#000000;font-family:helvetica;=
+font-size:16px;line-height:1.38;table-layout:auto;width:100%;">
+ <tr> <td width=3D"147px"> <a href=3D"https://w-mt.co/rptrcks/comm-smart-ap=
+p/services/tracking/clickTracker?redirectTo=3D4gycpuMJSLisQ5tmdcu60UeMOjpcH=
+ekIdb0LzjK7J8L1QyRbaSJzitEW41gvsMqEr15wVWjFu46jUHMb%2B0d7vmsBAWMtIB79szQ6EI=
+kDdrEic4xtIjRefSPar8uw8%2Bs7DPqEgAVAcbgjxSpFUBeETvHZGzLfDGj2lWfKeQwNiuF8POR=
+SKyk1DeZFZ01HMJok7LSvE%2BV69YYYhhDVvwEDypt8FwGLAqxXalEqHRPO66ZXmI1qCVccpR5f=
+Dt2z1k2Tdz4InfruQl%2BgFpY9O2R6o790arsX1MjTS74%2BruHtJy8yZRK7Zbs0dxeEcDwjFhb=
+owJNqSzPEEtp%2BiWfrTkxRaknphggmcgf4wTjJ8TaH7KkyssP8gGCtuinxhYpswj6p6EM0GPCn=
+3Jodmy1uix%2FErtMjeQcMDexEj0BNkBtedH%2B4WsxgDS60Y1KtGAwPYM5%2FmDeO5LJhhSqPQ=
+fe7nNFiFDg4XCPuvlc09wwN7HZ64E%2B6O3wK82Fg2h43oFcDCvZ5dIsvbw3GvEkOyTO%2FWBgt=
+E0wfZ02UEqfzpESuze%2B753YnM8gf2mqa%2BGwPg5oCMwdO8riO%2BIA%2FPwwf8U5Q5svCoQ%=
+3D%3D&meta=3DImf7tCfS%2FSk%2FwXE71VF8JioQpYuous%2FloRKjTUpajl11CBLYKXweKmgl=
+I4q5YyahAbKfoie57j0PJwLEuDvUePNK3K2Zs1HfobVYh4HoUERsXlRtqoejBZVChsAC%2BcAt3=
+yTCkINFyPkCPXN5I7%2F%2FYsIkVoJR3U4Hr0W3we%2FMAQnwdrbhiJ40BUz8i969zUoCGRZ9Ea=
+Uf2KH6P99%2BF6HlIw%3D%3D&iv=3D0mzx5WFNc1D5spvHi3f8KQ%3D%3D" target=3D"_blan=
+k" rel=3D"noreferrer" style=3D"color:black !important;text-decoration:under=
+line;"> <img src=3D"https://i5.walmartimages.com/dfw/4ff9c6c9-d5fb/k2-_882f=
+9726-f6f9-489a-a3da-732f54fba4a7.v1.png" alt=3D"Get it on Google Play" widt=
+h=3D"131">  </a> </td> <td> <a href=3D"https://w-mt.co/rptrcks/comm-smart-a=
+pp/services/tracking/clickTracker?redirectTo=3DsDs89G1s69ashM0OvUHrYASD1XZo=
+txAvcswlwKrhTSKDiyHBYT767i5I9T89OpiWwB9951fIv%2F37cuhCybCTYc%2FavfjhixwviLs=
+mmqhqgE1bSPfKQX%2FaJ6A%2FiecBM1%2Fqsb9qgnNSbcyUxQFCp3DM%2BMelbyNyLHFm1WoFmZ=
+GIV627wFGRIgny1jC5VwjDuU3ok2BRm4NDzjVP0i0p%2By4xQXi9NglGNTZwbAzbBCZ2VAJooMv=
+EnIhzYWHk2zoOmhBFdl88wQQH%2Fn%2Fw02lNA96WWJlQUcVkB5Z%2BshA0pYOBImkaiOVSpIp5=
+NfPC0Pix1FsEyfQXVa2uJ6eyCoXms1Fffnhi2AvURQ%2BwJijTBbk4aGZ%2FSsApm9ov6VudBIb=
+ywZJA2vXEsSpYiXSLMVzjUnBTbnFZKBHjVcN3QLTU%2B5%2BfwyWonIdS7RZwTDM4kut4KBq5S3=
+7YpQIiGI5nPxscRgFchmgnb0%2B7jJ6xcKJ5PL7P05v1FZvrRiXTb6O%2BwrjiS1XYBywiLNxGz=
+6RLBAzUEjM3LzMl62BPhrio6OV5v8tobKB%2FI73Pltj3j7L40EVIyCQj8lfMTUzaUbSkJ1nQAf=
+LgWw%3D%3D&meta=3DUPQLn4yni2OIU1xuFCoxk4YNCrSV%2BH3REP3AohCjI5iracHlKgOmKGt=
+AwaZWP%2BlML3HTDYDW0UMYE5kuW1rxE86%2BECs%2FI6N0cNWMFdQstYfyuxw5l%2BdJ1sZMWj=
+dra6%2BskgMoDslfcxPW%2FYPDWbiNwWIxjtPfCHXdr6QAYX9X5ALN4mTGfokASyRTvH12ohrz%=
+2FrnE%2BbmfC5%2BcIThHBpTojw%3D%3D&iv=3Dbmu4%2BZHTiZKw6olDKQPTjQ%3D%3D" targ=
+et=3D"_blank" rel=3D"noreferrer" style=3D"color:black !important;text-decor=
+ation:underline;"> <img src=3D"https://i5.walmartimages.com/dfw/4ff9c6c9-f6=
+8c/k2-_90d3a1b7-9678-4813-b5d6-b85b5ff72a22.v1.png" alt=3D"Download on the =
+App Store" width=3D"117">  </a> </td> </tr> </table>
+
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td><td class=3D"footerColumn-0-3236875-25-outlook" styl=
+e=3D"vertical-align:middle;width:318px;"><![endif]-->
+<div class=3D"mj-column-per-50 mj-outlook-group-fix footerColumn-0-3236875-=
+25" style=3D"direction:ltr;display:inline-block;font-size:0px;text-align:le=
+ft;vertical-align:middle;width:100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" width=3D"100%" style=3D"vertical-align:middle;">
+<tbody>
+<tr>
+<td style=3D"font-size:0px;word-break:break-word;">
+<div style=3D"height:32px;line-height:32px;">
+&#8202;</div>
+
+</td>
+</tr>
+<tr>
+<td align=3D"left" class=3D"footerTitle-0-3236875-24" style=3D"font-size:0p=
+x;padding:0px;word-break:break-word;">
+<div style=3D"color:#000000;font-family:helvetica;font-size:14px;line-heigh=
+t:1.38;text-align:left;"> <p style=3D"margin:0;"> <strong> Questions? </str=
+ong> Visit our <a href=3D"https://w-mt.co/rptrcks/comm-smart-app/services/t=
+racking/clickTracker?redirectTo=3Dh%2F04hM5POOoqTlkl64L8XC8naMDwqLGgyP0mleO=
+H4LNCouBiv9p1eY8i%2BHZj6DymzNjD7w5CJD7w1Kdo1ml6AOONtjaMJ8A%2BOjRf0XjnsqF2QU=
+gGkE0NAssYWkP7Jmw9MPUYWwy3FXDp48AnKThp9VJSZ14Ttyb7N6bPa2mFZ821hnM7e%2FX6Dak=
+fMgRa%2FwrnQWgNebS%2F9y%2BhKxZIYIdZcB9xhfKd2aqYbF7Tcy9wt6jXDDQsAVmPYc0aDT6O=
+CFsmE8O%2B2mAbakXdj8p%2Bv1ZXfiS5Extj75KEGQBiSm1HLN9oyKwLMtYGi4CF2WQuVDvBewk=
+wZQ0Qxtd%2FkoodNDnUjB90ZnnmWMnN7ZR%2FZliCrMf6jQpyu9RwvUUTWVRTOlENDqjuQD0plh=
+10NdUy4GTxw9jqYb9zP0v%2FKWjHPGtyBhbEXToWQ0sO1Uga%2FvveOg1tUdm3p9LxgpJXGAgjv=
+SM4snKH6fTrBZuN1AFqQXd6YlXpZ9uJu2mafMzIch5W5zR0Ud0ya0tR%2F%2BRIexSx%2FlJ82i=
+eof9CtUbX2E9aTc20%2FY%2FNySq%2FMk0Z%2F2tbwS%2FYmnh3VB5h%2FDONkZE7Vpb1MXnUMV=
+RG5%2By9u0XzxlJG9jbsL2EQbuh2BYtZfSjDNcEio4KdjZDwMjXqeJMeTHjZyPS47wIpGOQtvNA=
+LMiHQ3UViZBe%2B2W7kaXMlPxtbsrhDzYmrnTGyOBuNyxTyiWl7e28MmsJT3GiaVfnVedYMTCTK=
+Lse2tu8V9BGbPvZL7zyh8AGbc&meta=3DvwjmeSkq%2F2%2BvftEcSsPO7AfPJz2VyLv4OhThuZ=
+Y%2F0Dk3CEGmtL9WqalAaXLcx%2FXQC4b7guEFB%2FA7xN8jgGGowRrhQXvl%2FcuukEM0Ucws8=
+xbhvb7Dyt1lTNtUtD1DtGAVn3iZsmoC6TL8a3EW8uPIEBeDSYi2H9xZBAOd82ApDmOWVW4qbrI8=
+XSpR%2BrIUOgJJOGs2HpvNF4Vg0yXTpgvqew%3D%3D&iv=3DLEHlw5mFmAlUgf0OiGvztA%3D%3=
+D" target=3D"_blank" rel=3D"noreferrer" style=3D"color:black !important;tex=
+t-decoration:underline;"> Help center</a> </p> </div>
+</td>
+</tr>
+<tr>
+<td style=3D"font-size:0px;word-break:break-word;">
+<div style=3D"height:16px;line-height:16px;">
+&#8202;</div>
+
+</td>
+</tr>
+<tr>
+<td align=3D"center" class=3D"footerIcons-0-3236875-26" style=3D"font-size:=
+0px;padding:0px;word-break:break-word;">
+<table cellpadding=3D"0" cellspacing=3D"0" role=3D"presentation" width=3D"1=
+00%" border=3D"0" style=3D"border:none;color:#000000;font-family:helvetica;=
+font-size:16px;line-height:1.38;table-layout:auto;width:100%;">
+ <tr role=3D"navigation"> <td class=3D"socialLinks-0-3236875-23"> <a href=
+=3D"https://w-mt.co/rptrcks/comm-smart-app/services/tracking/clickTracker?r=
+edirectTo=3D8AemZkB%2Fa82HaJjEB9t4y7VZ%2BJZE4fFdlff3DYha6mH8r%2B%2BG68tQ0a4=
+5mZkkY6DelosDDuhx56RQaotKufuic2u3Pwca%2F9ksb7A058QmZMcjyKBahZe2JqDctpOd%2FH=
+g4pl5N%2B6xuQ0COZXR7ZP%2FZoOThELpXzve7XG9i5e7Jc2hEueSRYRgqaoLGw1cr4uA2FLXAq=
+Rv3Le2kNJErkUqxnrUs6HTdRfJiQilsdd%2F7REPBKTBPlpXm94lRa8UTC7E%2FNZfzBk15MLQf=
+FTwGpmFcZ3dhCkHbYYy%2FWvO5XkcnKlBXqyEpjhwLGQN7y2EHn%2FHt3ekyKKT%2FMk3QYKets=
+2IuBkh8HvtjezJMCfM38hGBO0NJsRQEw5M8Cj7JUqC0bJB%2BtKoV9CiKn5wm18cH3P2T8Ip9lw=
+46xDgCFwZr%2BXi9CT3EBlLOLGKuiwW2zchcSCA%2BIW4O1br8hccDvPsMr8A%2FA8v6CzJfqmU=
+Zuv%2FROepNSxWf42Uhfqi7%2FIHRcX3%2BHEsYoFM4fMQQWNtU2wTBuVU6LBuj249q8rTHG8Wu=
+Lt1hJ1xnP6WzQaws67bACdq%2FFiicQJecirPcxlRc0d8xpaNMWg%3D%3D&meta=3Dj9tbMsa2r=
+oww9TPYH19%2FHx4%2BVtaTTPi%2FWdweU442CPAPRW8ERFpFisi5jqWt%2BEuZmpKQnrhA%2Bu=
+%2BgUDGU1VqG4jskNRQ5ussZMw7M92CxF9yz3km7ifJRBmPAMt%2FUJoJkuE5u%2FPyqQ1E1%2F=
+vppd4aebLz9uUy6zNXLAoRL7twaAoYc1RUf30Vq003V%2FPWH%2FqhLrjnV2Tl7FTBvSxmBLKKb=
+%2BA%3D%3D&iv=3DhNrSTpTJt9AcjTpaCS9wAg%3D%3D" target=3D"_blank" rel=3D"nore=
+ferrer" style=3D"color:black !important;text-decoration:underline;"> <img w=
+idth=3D"40" src=3D"https://i5.walmartimages.com/dfw/4ff9c6c9-dafe/k2-_c3c04=
+28f-64ea-49f2-8ad4-36e22c34a02f.v1.png" alt=3D"Visit us on Twitter">  </a> =
+</td> <td class=3D"socialLinks-0-3236875-23"> <a href=3D"https://w-mt.co/rp=
+trcks/comm-smart-app/services/tracking/clickTracker?redirectTo=3D6n8ps7pndB=
+vaUhiow2oISBA2XpNvP%2BHIQ6ZkidxU3iTqd67XuaerVUd5ytg1bit3kZy8nlekz3Ntmvk9Z19=
+TU79%2FZVwIeaFvPG%2BZHaTYbmgs5i4Sp%2FWxYZVlzkbYOiTDfpnpJG0MIjkiNgSroLTqbuon=
+4xyFDEVXH%2FRrr%2FH8WnENGKjoOHz1Ph4OUsl1jFaTLACQuCffucZ4SL5%2FYCMIPyqiQWL3t=
+avc4FTKicRVF6Mmnm0NurCjLNrS%2BFAjbH8A5bRGSZBHJ2dIs4mdsMPUgCQHVnnPOfXWeBNDnF=
+NJg7Leidh2h69K24Hp2fIiNEcPjV7D6%2FFwL6YqUVmJHQ7AmXusSEn0bX6tDaeRm0ndV3RN1%2=
+FiSe%2BhybslB2smSIYCUYdpoRaM%2BaLFO8EZ66YzbhLC%2FIuqDatmceyrlYT4ND5Ag0YYzYl=
+issgXToOew2utT2anX1grgaIG97orjIUtAFr6GuAll%2BHC1uk%2FeWSVYnVnXVwJlIHO8v5T5Z=
+sds1K3QFJ7T0Z4Ae4Zx4V3d0xiKWVXnJVDp4GPeU6AYovt3cCXsyHg%2BKm9K37rFHdM%2F2DH8=
+Euu5dVJAY5w%2BxcZd5qntK5vFuhmU4d2US8noPMPFH1M%3D&meta=3D8uxMQ9qOyMsxi6mtwGr=
+pToKGMhkLxxVr22l42lmqUWsw77Z49D1xmEFIremnYMjRK8eTwEGurwywiK4d5x5WR0ZgeK%2BT=
+3onh%2Fa2p%2FliuJFd57IilBZDP9VyAe3qRadjUXHJpMRGdf4hZUgVxwdiVYAXh9SEK%2FhyKu=
+Lp%2F6cbU%2BFwgpYJqYmbL5DjSF4YfHWeuh438afBYWRVEHKAMOOPt8g%3D%3D&iv=3DpO1%2B=
+FTXoT4YofK2W4y36Iw%3D%3D" target=3D"_blank" rel=3D"noreferrer" style=3D"col=
+or:black !important;text-decoration:underline;"> <img width=3D"40" src=3D"h=
+ttps://i5.walmartimages.com/dfw/4ff9c6c9-f190/k2-_6b9952f6-107e-47a8-aa7c-9=
+e7736ed0c95.v1.png" alt=3D"Visit us on Pinterest">  </a> </td> <td class=3D=
+"socialLinks-0-3236875-23"> <a href=3D"https://w-mt.co/rptrcks/comm-smart-a=
+pp/services/tracking/clickTracker?redirectTo=3DxbgKHDx7aQyiUA0deYUZBLsqkhpf=
+MX%2FKS1Rb8d3NbbtzJ0KcOv7EyB8ui9eQhv8Xn7QxqsbFPDZcSut4J8w1pYalOSEKeo1tYijZY=
+YoLBn8sXBUc1JWYJ%2FAh2EsUFX2d2CAlzLK88e3KjnLlF%2FpPsCrzxrNAMXol1hu473rF%2Bo=
+Eo9vFUIphtqvbH1wtU%2FIgBs%2F4jUcUeYAL5SFOXGNLHjGsd3vqrzO%2BAxIBIzXvuolMtB7A=
+hpJXsy0SEI1duSbIB6NFpZRt%2F%2FVZvwUXbDithUVsEetJefGWyc84GydeL%2F22yf0%2BQYH=
+0ONeydq3iT4JRcfkBJBdAJYy14xUON2GwneNrLsoaEVYCZLX4Jbxk6PU233StfI0qLuB5KftCdw=
+MRwrPRupPssMpE0%2BgsZvdzraofTEiK6Vx%2FkALn81Rm0kSeI%2BQK4JXhJmkJneAu7ymAEjT=
+dGJlGhLpJs%2BTQzqjh0PUr6aTu%2B15WXf89bBW6ZXTgAlv%2BgKbLp3IlGU%2F%2BEKqRXin3=
+gi1ErxNbwna7Vsin%2FLC8Lmy1EwaUYU7kZ31AGlr1GYIsDD05stlYKBCRoGTraTSwAabXFjx3i=
+AdiK%2BuMizF8Yw29xrzT3URrxiu1zeVw%3D&meta=3DB7y0TOKwFzMKuKpNe7%2FzVPex%2BR7=
+rHkVXMQ%2FTvw5ZOtB%2F6iOi8Irhr8rUDzOy094HVCYc84N7pHSs9J4kJ9C69O4smD6v5C628M=
+G5FY9r88teelCmyFIrKHSQM1MbtL1FlWutzj5roA5uqIQ6LlE%2BVFOHaiWGwygs4rhe96KC8n8=
+uJjCtOq5qi5mPUYKUiiGkQ%2Fxe8%2FUfgX8N8ASd5QYPMw%3D%3D&iv=3DLdzil8v89sVStxxn=
+pAY4YA%3D%3D" target=3D"_blank" rel=3D"noreferrer" style=3D"color:black !im=
+portant;text-decoration:underline;"> <img width=3D"40" src=3D"https://i5.wa=
+lmartimages.com/dfw/4ff9c6c9-bf3d/k2-_b6bd91de-a55e-4901-abd6-984877c50f72.=
+v1.png" alt=3D"Visit us on Facebook">  </a> </td> <td class=3D"socialLinks-=
+0-3236875-23"> <a href=3D"https://w-mt.co/rptrcks/comm-smart-app/services/t=
+racking/clickTracker?redirectTo=3Dso%2Fwvvhmasj%2FdhL1Rac9J31u2syNps4DR9aw1=
+BtGNje5lTqyqohA8rSR%2BThN04xx1VjnE144Zpl81Fx9SAa4EsgwmAiNJRBtZ3FZmwMoeaFdew=
+%2Bz2Uaq1%2Fc85v5bvaBVnJ5SXrcE2%2FIN3w5rtvVReLL2VGkapnpwHAhJ3QeqhfOQyxUaTNa=
+h1288zcjB5zHvzyKRKLBmlX9gD%2FtX%2F6z9AJ4vNRoXcRqLxZia5BNRiqLhOG3cOIMpqsdm6F=
+jL8SvSq7mxfzOdh9q2W98vNal5JZYLAqq1jdMMmkIiFEHKytRchyv1OqowVo9IuYBnU4uzcitKY=
+pzZI0TN6tUJw0C8CKm2R9j6pkR8KyzwkUdK9r%2FNC3ILzmofI97VqLYPLgcKwReFPB1t5A5XyV=
+mQpiIl0mjM7Mb9vH3yvDR54VTvzEbzyvmEs9ZaqfwZHmjXyjoyS1vkuhRjkSBH%2BWGPo5gFLqJ=
+XeKtOv3pEiaHceiN7eoo4xfq5x7cs07Lwu1INrkNqiDobAWXI0OSp4DPNdDlWqq4mwRlbEjyzvP=
+llRC45TI90cjKCMNtkoXWJl9mEZQvEWTQnpHw66tMQ3KHKyN0t5%2FqrFBmOMI%2BpVjbhjCXKl=
+V8%3D&meta=3DwJIvQScWsqldCebVyLvTTmoyRdShR%2FxddwBqCi%2FP7k2yZfzzR38diuPaei=
+V%2BYLyKP4GCZXrwYqtA1MR1KTwdmQO4jq6KEhHMGRv4wWgHkm31Up2JoYyWgIyV%2Fr3fekCV1=
+8We%2FFd7%2B3WOHTeEe9soAPxZ0Ko%2FtfW5pj2%2FrDKZO4tJFginqVTaaxZtrGYZUYlr7Qbt=
+vcuASsvWLfi6W3kLYQ%3D%3D&iv=3D80eBtKNfqf0bwpyHoDbNpQ%3D%3D" target=3D"_blan=
+k" rel=3D"noreferrer" style=3D"color:black !important;text-decoration:under=
+line;"> <img width=3D"40" src=3D"https://i5.walmartimages.com/dfw/4ff9c6c9-=
+d4b0/k2-_42dd7a96-cee8-4556-8e43-2cd222b41fb0.v1.png" alt=3D"Visit us on Yo=
+utube">  </a> </td> <td> <a href=3D"https://w-mt.co/rptrcks/comm-smart-app/=
+services/tracking/clickTracker?redirectTo=3DdIio%2FOltzRLr%2Bzsipt0BTcPbKKv=
+wEJFXyltBFA8JuSiU5BxyqbldJSvJM61FZsIWjYA0Y2WWV2WHZcd0%2F1zom9EZTKibI6%2Fsd7=
+R8oOrmNOMV455rLBmgGeM2%2BSFIfxVN8WQpyEqAjMTF4jbmw893NAruKpHSOqXCavavIDwb98C=
+wytQysTcxVcwwEjyWOV7X15K7k8n36y6wyqL8Z5k4zkOoh0Dh2vEmnsPQF%2BrJkHY6%2BEmwee=
+mNYsqVWaCopCsWiH51XiLLtMeHzlj%2FtH%2Fq4A0U0LbQgJRYkNVS2%2ByZNXGWzFj5x7mb3J4=
+Qn93hfrB7OoAsugFsqg8uZL7c9JUzYpuPeOfGs1hs1wbigljPzT0FL28LakPK4NM9jhGCPOru6h=
+m2URw3qhi8Pv%2BEnJFxgk%2F84Qs4aHbpJOGnhhVKo%2Bct3UJUncCvSDoPATR7yNoSiJjSS3S=
+r%2BtCtBIl6HSFfIBlNPVTg7T0WdK3Smi1GQPPX4ZOvx7HeAbt%2FH%2BKHJy7erJrOR7YR%2Bf=
+pCQEItV%2Fx46rBEZiY3E9yR0PjrtKRadgqasfcGnMdSXN7UR0AZb29k8KiRIBz9ET8EEptMuK8=
+kt%2Bjx2j%2FHNTIR05WVEc6T%2FPw%3D&meta=3DxbB76ANo%2FVEY4nF6l%2FpH87rTWfodhz=
+QM%2B39oqcwD3cY9nY1VJjBKNUQQDW0R4oSBiv8x5ei%2BHAdr3eanexgdh8owqMXkWAiWI230v=
+yZK2%2B4v6gdJBnvRKl1NxIUGFyiDXJ89aoaqpSLNQENtGN%2F3oOERbtUVG6c9vRBuAJPMGSyo=
+9Y4dtGclX6mxoASBr1jI42UnDSW8TDm2%2FYFLdUfrYg%3D%3D&iv=3DFE%2FMZaA9eYbIAGz1C=
+feyVA%3D%3D" target=3D"_blank" rel=3D"noreferrer" style=3D"color:black !imp=
+ortant;text-decoration:underline;"> <img width=3D"40" src=3D"https://i5.wal=
+martimages.com/dfw/4ff9c6c9-9962/k2-_1b36cedf-cf7f-4871-b80e-a9b370b04f31.v=
+1.png" alt=3D"Visit us on Instagram">  </a> </td> </tr> </table>
+
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td></tr></table><![endif]-->
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td></tr></table></td></tr><tr><td width=3D"700px"><tabl=
+e align=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D=
+"presentation" width=3D"700" style=3D"width:700px;"><tr><td style=3D"font-s=
+ize:0px;line-height:0px;mso-line-height-rule:exactly;"><![endif]-->
+<div style=3D"margin:0px auto;max-width:700px;">
+<table align=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" ro=
+le=3D"presentation" style=3D"width:100%;">
+<tbody>
+<tr>
+<td class=3D"section-wrapper" style=3D"direction:ltr;font-size:0px;padding:=
+0px 32px;text-align:center;">
+<!--[if mso | IE]><table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" r=
+ole=3D"presentation"><tr><td style=3D"vertical-align:top;width:636px;"><![e=
+ndif]-->
+<div class=3D"mj-column-per-100 mj-outlook-group-fix" style=3D"direction:lt=
+r;display:inline-block;font-size:0px;text-align:left;vertical-align:top;wid=
+th:100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" width=3D"100%" style=3D"vertical-align:top;">
+<tbody>
+<tr>
+<td style=3D"font-size:0px;word-break:break-word;">
+<div style=3D"height:32px;line-height:32px;">
+&#8202;</div>
+
+</td>
+</tr>
+<tr>
+<td align=3D"left" style=3D"font-size:0px;padding:0px;word-break:break-word=
+;">
+<div style=3D"color:#6d6e71;font-family:helvetica;font-size:14px;line-heigh=
+t:1.43;text-align:left;"> <p style=3D"margin:0;"> Walmart protects your sec=
+urity and privacy. We will never ask for personal information (such as pass=
+words or credit card numbers) in an email. If you receive such a request, p=
+lease do not respond. <a href=3D"https://w-mt.co/rptrcks/comm-smart-app/ser=
+vices/tracking/clickTracker?redirectTo=3DVSafCIPOdbXQgyCN5qm6JIyFu4kZ3%2Bin=
+itIpE0QufasYckbEm6oxnbj37fqAF1nSqEJ%2BzJ4S92u0FqOOmKEeSang8tQFIvaSFtu9MYVet=
+WFBiC%2Bsg0jSHuFjnhj0MyfLSM9uDTaSPtVPrLSrGu0qWAgdzOG4Za%2B7O1yrfIQv2%2BH6FL=
+5r%2BkZrmQxJ2q%2B3hxihTcpM8j4vE3hEC1ngA3RbddeAqECjr5rNKkj3VAWFmtdggovyzbVyh=
+lsmPznfFOgb%2F00qiX6T3fy2YZgqHWcPH9YhtJ5UcrYSa2vozsysb%2Foi9CIHXQpCK9wfquhU=
+TuDAQ8LURsL8GTFfHxevBy6fckt%2FahhNENNOj%2FcklbcNNUnQlYRZrndlBHNJCFr78IvNrXv=
+RIcFe1BWWQrlZ4ti3%2B7mt0gynflKKarrkey%2Bg0WesgUoDZ2TuWqrk4dWpnDflb0gRnjJd7K=
+BfoiVjJ13N8VsqPrtoFQR70%2Bq388Kmrc9SRRbuiHL0N8gFuQWbv23OVi0bMNc62BkGODI3x4g=
+dR2yOQ2I5NtYpyWPry%2BP6n58qBNDgB9z2bLooHkT97E3DIjVKXbh4cBJYiNATzrEloNkeFCRb=
+u78C5xW8DryELZ9LcPY1SOY43G4uYavt2ipkh4GYjHUN2jYSaX4LHUEuWURZcy1ZmB9qdCiEHaL=
+pWA0TVZCzEvz0t77SYHZsFWlwzz5VMYRwJoKGVQd1jb4MniOY2JMP1O3SWMz9J2WKM8k%3D&met=
+a=3Dn3Hyx7C2e87eSh3ntGB1lUII9QXC6%2BiDIf3L%2F%2Fhh5m0h7ZYYJ5bcQHrkmEOmq5jWN=
+O3T%2BcuVa%2FC7ISj8hQY7xsybpQEI9k7jhJjGAp0Ioj180DO6wg0acwCCqsuam%2BH4yOSdFU=
+VLxp3gKyuRaY1G0rr2%2BUcwVKIfTV6JAanb6TB9ooMhLvyfQzz%2But%2B8fzobBMiV%2F7KAj=
+ehBUV8TGoqFFA%3D%3D&iv=3DwzkdQewWqZlskl8sEdBPjA%3D%3D" rel=3D"noreferrer" t=
+arget=3D"_blank" style=3D"color:black !important;text-decoration:underline;=
+"> Learn more</a>  about online safety and see our<a href=3D"https://w-mt.c=
+o/rptrcks/comm-smart-app/services/tracking/clickTracker?redirectTo=3DcDASZ%=
+2B8npJCcUQxnS1Nsp1t0xmvmYJwSuQnz0vIarBXurVPPhDuVtSie7p9Ix0WhOJ8yyOoAd5rzLa1=
+tSofl%2FuIfJfSbct9MwlYLrrBMNRSw%2B5BWEXn2MHwEQZr%2Fnlja7inZus9NpNcx4bFSy2tH=
+ZCjR3JclyxghtYhmdu7QWiH5lV%2FkAeA5VtP6cb4q3Cx1ysm9IctudiJ7098CIWnhOaAQX2oNW=
+HefVrFHg4DmH2kdMtoKFiS5mnlWTVLJuT6HBqNX2dWXPwNFs4rYxRf51fJNlXbMxQJuSvCZ4nQU=
+56ulu2yRUuv0WoAZS9tdeuIQT%2BJmEiVdFdmnpJxBkHeVgOkJl8egci9GmMwsISmvAex25E9RX=
+5imzgqvMap03R2cnkNQdOxMgmyWxOcYsxOXn7cYZNsLxr5QN9USIbfOOfwCPErv0dK8cHlGUm%2=
+BGrd%2FA0lT4cNxf5HRJ5gX9ESfLEp%2FQa%2BJ3LP%2FYCDCRbrw3HcfHPzjel9QvFWep7ff1p=
+7nucIz8XTo0B7EffYV1KmDEijAvez8hOxYaty7r7VzSaEZDgWLAp%2Ff08KRE4p6tIam7AywHZ6=
+mMwbsWZyGGLPkTF4DGDpVnULgIPs2WfdovMjZD7YjKXw2si8AMNlqoa2zDU4yV6c63ZMTkKou6E=
+0qxsy3LT2eX1zS3czSnR6vitqZtPgxpcm9XXQOWoMLyUpo%2B7VseWoRsnnLhZ7nigUk3Xg%3D%=
+3D&meta=3DmFP3CxRsCRt2j9dUiFev4eDrHjURW1r8AfTgcNBCW3VlaG7VO4WRZEmlGzWDU2DCP=
+jrsRjSdq0%2BoPIXzIYkjqmKmYEwEDeKAaqqAj5GqlZN0szT9WLEjSXcye%2Fm3gSnBOZc5hw7g=
+r0P9Lrt8b4IQyUb08O2KM4Lkrw9dGGFNp%2BySSj9nXhQodEHjJ75K8xkjqpjwrZ5YAfeBx5t9b=
+kNdZw%3D%3D&iv=3D%2FGa8H88YLMaet6%2B3QvYPgQ%3D%3D" rel=3D"noreferrer" targe=
+t=3D"_blank" style=3D"color:black !important;text-decoration:underline;"> P=
+rivacy Policy</a> </p> </div>
+</td>
+</tr>
+<tr>
+<td style=3D"font-size:0px;word-break:break-word;">
+<div style=3D"height:16px;line-height:16px;">
+&#8202;</div>
+
+</td>
+</tr>
+<tr>
+<td align=3D"left" style=3D"font-size:0px;padding:0px;word-break:break-word=
+;">
+<div style=3D"color:#6d6e71;font-family:helvetica;font-size:14px;line-heigh=
+t:1.43;text-align:left;"> <p style=3D"margin:0;">Please do not reply to thi=
+s email. This mailbox is not monitored.</p></div>
+</td>
+</tr>
+<tr>
+<td style=3D"font-size:0px;word-break:break-word;">
+<div style=3D"height:16px;line-height:16px;">
+&#8202;</div>
+
+</td>
+</tr>
+<tr>
+<td align=3D"left" style=3D"font-size:0px;padding:0px;word-break:break-word=
+;">
+<div style=3D"color:#6d6e71;font-family:helvetica;font-size:14px;line-heigh=
+t:1.43;text-align:left;"> <p style=3D"margin:0;">&copy; 2025 Walmart. All r=
+ights reserved.</p></div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td></tr></table><![endif]-->
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td></tr></table></td></tr></table><![endif]-->
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td></tr></table></td>
+</tr>
+</table><![endif]--></td></tr></tbody></table></div>
+<!--[if mso | IE]></td></tr></table><![endif]--></body>
+</html>
+

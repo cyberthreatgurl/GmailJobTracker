@@ -1,0 +1,2469 @@
+Delivered-To: kaver68@gmail.com
+Received: by 2002:ac4:8d07:0:b0:759:c52c:7988 with SMTP id ff7csp1648561pib;
+        Sat, 8 Nov 2025 07:20:40 -0800 (PST)
+X-Google-Smtp-Source: AGHT+IGwVxkfDvoI7l3afNkTqm0FJveUSLTWRmgNPWKDdSmNGiIJclztsMM9k6Thr2nWkaWyDEOQ
+X-Received: by 2002:ac8:7d02:0:b0:4d0:ac40:fab8 with SMTP id d75a77b69052e-4eda4e7e330mr38451641cf.7.1762615240709;
+        Sat, 08 Nov 2025 07:20:40 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1762615240; cv=none;
+        d=google.com; s=arc-20240605;
+        b=a8jpVZJQRDYU8uysP2JU2ikvURri91tEuUTZQon21M041vArfaWGsnwwrSRqngoty+
+         UPjWOzgzSyzQCUtZXyAvn9Ce5bqwE9yvHAJXX0zWpdVtGgv9BsJisqj6XWHkDEAEKOS4
+         jUTNp1QTe8YtOXnXYKoD1rpgzOnoBPK1hQh6KWwhDW8AAuXR1v16q9uKEohqvn3bPR9I
+         6XpFnoQxlFePv1V/6Tw53LTXiQhbaTINu/1OwTCaOs6KXHrXtBofMvaVNQTMKGzkTBJ4
+         vwMbpTpahX8R4AlNGiKlfPi+oSLBJfnmERA2xA92FWM7eFH2R5M/iFr5+n2QL84Nob64
+         75KQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=feedback-id:date:list-unsubscribe:list-unsubscribe-post
+         :mime-version:subject:message-id:to:reply-to:from:dkim-signature
+         :dkim-signature;
+        bh=8qEINkg1pRqfbaGOinGWBoZNHvQjxL8gALxI9v+dVzM=;
+        fh=G/VLhrQnXiN6LciSgCgIU9VM0fr+1O2AyqFGWpHCjzw=;
+        b=MoTItC7UrQ8Lnq70Xi2/TPlrhjd+mswdSkhaDsnNUSzZFeUV33noQW3Ko8ZfdNBA87
+         Whk6jKm5Nqll6S4dzVeQTKzfdv2h27XSYyULk80h29rMG8+YSf2kuOcAHUMhbGLQeTEM
+         AbFGXoLFD+qtkw5nUUrBx4v/gJUKRgryFO82ynBazFTO2EnZnRKPI5GXOB/jmMrTSZqG
+         VNW8F87fZwqh8sR8+zcBiYuKJBew5wYhcMPKdrFqLNMsc4/0loybXEOpNvo3yRWtYrJi
+         gCat79JZrP9XDSc5QcNOXItnW3JBuVxqUtjoRc3xCiQi9Y0x9tEd2LvcFXZLuaJsCtdp
+         3Paw==;
+        dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@newsletter.tp-link.com header.s=i54qzkr2r5dtkmltskltqrbyq5gf4qpo header.b=mFhnvz7Z;
+       dkim=pass header.i=@amazonses.com header.s=6gbrjpgwjskckoa6a5zn6fwqkn67xbtw header.b=FweD1NV8;
+       spf=pass (google.com: domain of 0100019a640e265a-54398b2a-00e2-44ca-896f-8d454cdd3588-000000@itsale-us-ses-mailfrom.newsletter.tp-link.com designates 54.240.9.115 as permitted sender) smtp.mailfrom=0100019a640e265a-54398b2a-00e2-44ca-896f-8d454cdd3588-000000@itsale-us-ses-mailfrom.newsletter.tp-link.com;
+       dmarc=pass (p=QUARANTINE sp=QUARANTINE dis=NONE) header.from=newsletter.tp-link.com
+Return-Path: <0100019a640e265a-54398b2a-00e2-44ca-896f-8d454cdd3588-000000@itsale-us-ses-mailfrom.newsletter.tp-link.com>
+Received: from a9-115.smtp-out.amazonses.com (a9-115.smtp-out.amazonses.com. [54.240.9.115])
+        by mx.google.com with ESMTPS id 6a1803df08f44-88238ba91b6si6461496d6.805.2025.11.08.07.20.40
+        for <kaver68@gmail.com>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Sat, 08 Nov 2025 07:20:40 -0800 (PST)
+Received-SPF: pass (google.com: domain of 0100019a640e265a-54398b2a-00e2-44ca-896f-8d454cdd3588-000000@itsale-us-ses-mailfrom.newsletter.tp-link.com designates 54.240.9.115 as permitted sender) client-ip=54.240.9.115;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@newsletter.tp-link.com header.s=i54qzkr2r5dtkmltskltqrbyq5gf4qpo header.b=mFhnvz7Z;
+       dkim=pass header.i=@amazonses.com header.s=6gbrjpgwjskckoa6a5zn6fwqkn67xbtw header.b=FweD1NV8;
+       spf=pass (google.com: domain of 0100019a640e265a-54398b2a-00e2-44ca-896f-8d454cdd3588-000000@itsale-us-ses-mailfrom.newsletter.tp-link.com designates 54.240.9.115 as permitted sender) smtp.mailfrom=0100019a640e265a-54398b2a-00e2-44ca-896f-8d454cdd3588-000000@itsale-us-ses-mailfrom.newsletter.tp-link.com;
+       dmarc=pass (p=QUARANTINE sp=QUARANTINE dis=NONE) header.from=newsletter.tp-link.com
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
+	s=i54qzkr2r5dtkmltskltqrbyq5gf4qpo; d=newsletter.tp-link.com;
+	t=1762615240;
+	h=From:Reply-To:To:Message-ID:Subject:MIME-Version:Content-Type:List-Unsubscribe-Post:List-Unsubscribe:Date;
+	bh=ZjMf4oi8eBToued5r8OWQxnCJJ285MY85eyp3GVKcT4=;
+	b=mFhnvz7ZuSuXH+O+mXmRz5RBApEfc197SBXI29JoVVnJ/FBPEqzIYBSw0F+Umj/h
+	zzAL7fXm8y22JEwm10FdPa667jZIbP0me9krAZEB1xj2SXUJpbpYTHjgSOt5cXEdy+I
+	eDz9foV4zaXz9Dq4g/lgowyuQ2+Y6TJRdGrfQJGJz8TRZIeClEVeGfdXtEorHuPxpOu
+	6S4ImQGeuLGCduJkY97trRpFnbAw5Xf5bk1Gpmw1TnWxCn70wp8g8tQsQLlH/HF9gz5
+	qVVW4lJSwlZALMqX3dnZG9GJWNMljfJcbo/rEU/kQx5cRI/kQhas7gm/Awwp966Jaho
+	IUk1QDqsGQ==
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
+	s=6gbrjpgwjskckoa6a5zn6fwqkn67xbtw; d=amazonses.com; t=1762615240;
+	h=From:Reply-To:To:Message-ID:Subject:MIME-Version:Content-Type:List-Unsubscribe-Post:List-Unsubscribe:Date:Feedback-ID;
+	bh=ZjMf4oi8eBToued5r8OWQxnCJJ285MY85eyp3GVKcT4=;
+	b=FweD1NV8hfpqTNnPjtjoDxegr83htlQsgThSEoWG4IKw+g04a943eBs1JPqFnfMp
+	1Aw//ATLOUyjwPzkOzXCZqWguNufnQfispYFsG/1JlT6+1C2d3D4bD9Y6GUALyqxlMg
+	S9YLQGZf3VFBNYlsLhq0Mg5thlCfxSB0bSNnBaRM=
+From: TP-Link Community Spotlight <no-reply@newsletter.tp-link.com>
+Reply-To: no-reply@newsletter.tp-link.com
+To: kaver68@gmail.com
+Message-ID: <0100019a640e265a-54398b2a-00e2-44ca-896f-8d454cdd3588-000000@email.amazonses.com>
+Subject: Take Control of Your Smart Home with Matter & TP-Link
+MIME-Version: 1.0
+Content-Type: multipart/mixed; 
+	boundary="----=_Part_12886931_718265300.1762615240251"
+List-Unsubscribe-Post: List-Unsubscribe=One-Click
+X-EDM-listContentMd5: 2807ca14bb87198b509325a104443705df85
+List-Unsubscribe: <https://emailpush.tp-link.com/webhook/oneClickUnsubscribe/?s=3&st=47d05e00c017bc5e0ef3d71301a8dd0c&lc=2807ca14bb87198b509325a104443705df85&p=46933283ad41e5e1a51aeaa2ecd1c6dd0e3d925>
+X-EDM-pushHistoryMd5: 46933283ad41e5e1a51aeaa2ecd1c6dd0e3d925
+Date: Sat, 8 Nov 2025 15:20:40 +0000
+Feedback-ID: ::1.us-east-1.2ZloUX7pWKXXypGpWyQ7WMQiQ0/lqPD6Uc7GMexilx8=:AmazonSES
+X-SES-Outgoing: 2025.11.08-54.240.9.115
+
+------=_Part_12886931_718265300.1762615240251
+Content-Type: multipart/related; 
+	boundary="----=_Part_12886932_66645958.1762615240251"
+
+------=_Part_12886932_66645958.1762615240251
+Content-Type: text/html;charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+<!doctype html>
+<html xmlns=3D"http://www.w3.org/1999/xhtml" xmlns:v=3D"urn:schemas-microso=
+ft-com:vml" xmlns:o=3D"urn:schemas-microsoft-com:office:office">
+ <head>=20
+  <!-- NAME: 1:2:1 COLUMN -->=20
+  <!--[if gte mso 15]>
+        <xml>
+            <o:OfficeDocumentSettings>
+            <o:AllowPNG/>
+            <o:PixelsPerInch>96</o:PixelsPerInch>
+            </o:OfficeDocumentSettings>
+        </xml>
+        <![endif]-->=20
+  <meta charset=3D"UTF-8">=20
+  <meta http-equiv=3D"X-UA-Compatible" content=3D"IE=3Dedge">=20
+  <meta name=3D"viewport" content=3D"width=3Ddevice-width, initial-scale=3D=
+1">=20
+  <title>Take Control of Your Smart Home with Matter & TP-Link</title>=20
+  <style type=3D"text/css">
+=09=09p{
+=09=09=09margin:10px 0;
+=09=09=09padding:0;
+=09=09}
+=09=09table{
+=09=09=09border-collapse:collapse;
+=09=09}
+=09=09h1,h2,h3,h4,h5,h6{
+=09=09=09display:block;
+=09=09=09margin:0;
+=09=09=09padding:0;
+=09=09}
+=09=09img,a img{
+=09=09=09border:0;
+=09=09=09height:auto;
+=09=09=09outline:none;
+=09=09=09text-decoration:none;
+=09=09}
+=09=09body,#bodyTable,#bodyCell{
+=09=09=09height:100%;
+=09=09=09margin:0;
+=09=09=09padding:0;
+=09=09=09width:100%;
+=09=09}
+=09=09.mcnPreviewText{
+=09=09=09display:none !important;
+=09=09}
+=09=09#outlook a{
+=09=09=09padding:0;
+=09=09}
+=09=09img{
+=09=09=09-ms-interpolation-mode:bicubic;
+=09=09}
+=09=09table{
+=09=09=09mso-table-lspace:0pt;
+=09=09=09mso-table-rspace:0pt;
+=09=09}
+=09=09.ReadMsgBody{
+=09=09=09width:100%;
+=09=09}
+=09=09.ExternalClass{
+=09=09=09width:100%;
+=09=09}
+=09=09p,a,li,td,blockquote{
+=09=09=09mso-line-height-rule:exactly;
+=09=09}
+=09=09a[href^=3Dtel],a[href^=3Dsms]{
+=09=09=09color:inherit;
+=09=09=09cursor:default;
+=09=09=09text-decoration:none;
+=09=09}
+=09=09p,a,li,td,body,table,blockquote{
+=09=09=09-ms-text-size-adjust:100%;
+=09=09=09-webkit-text-size-adjust:100%;
+=09=09}
+=09=09.ExternalClass,.ExternalClass p,.ExternalClass td,.ExternalClass div,=
+.ExternalClass span,.ExternalClass font{
+=09=09=09line-height:100%;
+=09=09}
+=09=09a[x-apple-data-detectors]{
+=09=09=09color:inherit !important;
+=09=09=09text-decoration:none !important;
+=09=09=09font-size:inherit !important;
+=09=09=09font-family:inherit !important;
+=09=09=09font-weight:inherit !important;
+=09=09=09line-height:inherit !important;
+=09=09}
+=09=09table[align=3Dleft]{
+=09=09=09float:left;
+=09=09}
+=09=09table[align=3Dright]{
+=09=09=09float:right;
+=09=09}
+=09=09#bodyCell{
+=09=09=09padding:10px;
+=09=09}
+=09=09.templateContainer{
+=09=09=09max-width:600px !important;
+=09=09=09border:1px none ;
+=09=09}
+=09=09a.mcnButton{
+=09=09=09display:block;
+=09=09}
+=09=09.mcnImage,.mcnRetinaImage{
+=09=09=09vertical-align:bottom;
+=09=09}
+=09=09.mcnTextContent{
+=09=09=09word-break:break-word;
+=09=09}
+=09=09.mcnTextContent img{
+=09=09=09height:auto !important;
+=09=09}
+=09=09.mcnDividerBlock{
+=09=09=09table-layout:fixed !important;
+=09=09}
+=09/*
+=09@tab Page
+=09@section Background Style
+=09@tip Set the background color and top border for your email. You may wan=
+t to choose colors that match your company's branding.
+=09*/
+=09=09body,#bodyTable{
+=09=09=09/*@editable*/background-color:#f6f6f6;
+=09=09}
+=09/*
+=09@tab Page
+=09@section Background Style
+=09@tip Set the background color and top border for your email. You may wan=
+t to choose colors that match your company's branding.
+=09*/
+=09=09#bodyCell{
+=09=09=09/*@editable*/border-top:0;
+=09=09}
+=09/*
+=09@tab Page
+=09@section Email Border
+=09@tip Set the border for your email.
+=09*/
+=09=09.templateContainer{
+=09=09=09/*@editable*/border:1px none ;
+=09=09}
+=09/*
+=09@tab Page
+=09@section Heading 1
+=09@tip Set the styling for all first-level headings in your emails. These =
+should be the largest of your headings.
+=09@style heading 1
+=09*/
+=09=09h1{
+=09=09=09/*@editable*/color:#202020;
+=09=09=09/*@editable*/font-family:Arial, 'Helvetica Neue', Helvetica, sans-=
+serif;
+=09=09=09/*@editable*/font-size:26px;
+=09=09=09/*@editable*/font-style:normal;
+=09=09=09/*@editable*/font-weight:bold;
+=09=09=09/*@editable*/line-height:125%;
+=09=09=09/*@editable*/letter-spacing:normal;
+=09=09=09/*@editable*/text-align:left;
+=09=09}
+=09/*
+=09@tab Page
+=09@section Heading 2
+=09@tip Set the styling for all second-level headings in your emails.
+=09@style heading 2
+=09*/
+=09=09h2{
+=09=09=09/*@editable*/color:#4e4e4e;
+=09=09=09/*@editable*/font-family:Arial, 'Helvetica Neue', Helvetica, sans-=
+serif;
+=09=09=09/*@editable*/font-size:22px;
+=09=09=09/*@editable*/font-style:normal;
+=09=09=09/*@editable*/font-weight:bold;
+=09=09=09/*@editable*/line-height:125%;
+=09=09=09/*@editable*/letter-spacing:normal;
+=09=09=09/*@editable*/text-align:left;
+=09=09}
+=09/*
+=09@tab Page
+=09@section Heading 3
+=09@tip Set the styling for all third-level headings in your emails.
+=09@style heading 3
+=09*/
+=09=09h3{
+=09=09=09/*@editable*/color:#202020;
+=09=09=09/*@editable*/font-family:Arial, 'Helvetica Neue', Helvetica, sans-=
+serif;
+=09=09=09/*@editable*/font-size:20px;
+=09=09=09/*@editable*/font-style:normal;
+=09=09=09/*@editable*/font-weight:bold;
+=09=09=09/*@editable*/line-height:125%;
+=09=09=09/*@editable*/letter-spacing:normal;
+=09=09=09/*@editable*/text-align:left;
+=09=09}
+=09/*
+=09@tab Page
+=09@section Heading 4
+=09@tip Set the styling for all fourth-level headings in your emails. These=
+ should be the smallest of your headings.
+=09@style heading 4
+=09*/
+=09=09h4{
+=09=09=09/*@editable*/color:#999999;
+=09=09=09/*@editable*/font-family:Arial, 'Helvetica Neue', Helvetica, sans-=
+serif;
+=09=09=09/*@editable*/font-size:18px;
+=09=09=09/*@editable*/font-style:normal;
+=09=09=09/*@editable*/font-weight:bold;
+=09=09=09/*@editable*/line-height:125%;
+=09=09=09/*@editable*/letter-spacing:normal;
+=09=09=09/*@editable*/text-align:left;
+=09=09}
+=09/*
+=09@tab Preheader
+=09@section Preheader Style
+=09@tip Set the background color and borders for your email's preheader are=
+a.
+=09*/
+=09=09#templatePreheader{
+=09=09=09/*@editable*/background-color:#fafafa;
+=09=09=09/*@editable*/background-image:none;
+=09=09=09/*@editable*/background-repeat:no-repeat;
+=09=09=09/*@editable*/background-position:center;
+=09=09=09/*@editable*/background-size:cover;
+=09=09=09/*@editable*/border-top:0;
+=09=09=09/*@editable*/border-bottom:0;
+=09=09=09/*@editable*/padding-top:0px;
+=09=09=09/*@editable*/padding-bottom:0px;
+=09=09}
+=09/*
+=09@tab Preheader
+=09@section Preheader Text
+=09@tip Set the styling for your email's preheader text. Choose a size and =
+color that is easy to read.
+=09*/
+=09=09#templatePreheader .mcnTextContent,#templatePreheader .mcnTextContent=
+ p{
+=09=09=09/*@editable*/color:#656565;
+=09=09=09/*@editable*/font-family:Helvetica;
+=09=09=09/*@editable*/font-size:12px;
+=09=09=09/*@editable*/line-height:150%;
+=09=09=09/*@editable*/text-align:left;
+=09=09}
+=09/*
+=09@tab Preheader
+=09@section Preheader Link
+=09@tip Set the styling for your email's preheader links. Choose a color th=
+at helps them stand out from your text.
+=09*/
+=09=09#templatePreheader .mcnTextContent a,#templatePreheader .mcnTextConte=
+nt p a{
+=09=09=09/*@editable*/color:#656565;
+=09=09=09/*@editable*/font-weight:normal;
+=09=09=09/*@editable*/text-decoration:underline;
+=09=09}
+=09/*
+=09@tab Header
+=09@section Header Style
+=09@tip Set the background color and borders for your email's header area.
+=09*/
+=09=09#templateHeader{
+=09=09=09/*@editable*/background-color:#ffffff;
+=09=09=09/*@editable*/background-image:none;
+=09=09=09/*@editable*/background-repeat:no-repeat;
+=09=09=09/*@editable*/background-position:bottom;
+=09=09=09/*@editable*/background-size:contain;
+=09=09=09/*@editable*/border-top:0;
+=09=09=09/*@editable*/border-bottom:1px none ;
+=09=09=09/*@editable*/padding-top:0px;
+=09=09=09/*@editable*/padding-bottom:0px;
+=09=09}
+=09/*
+=09@tab Header
+=09@section Header Text
+=09@tip Set the styling for your email's header text. Choose a size and col=
+or that is easy to read.
+=09*/
+=09=09#templateHeader .mcnTextContent,#templateHeader .mcnTextContent p{
+=09=09=09/*@editable*/color:#202020;
+=09=09=09/*@editable*/font-family:Helvetica;
+=09=09=09/*@editable*/font-size:16px;
+=09=09=09/*@editable*/line-height:150%;
+=09=09=09/*@editable*/text-align:left;
+=09=09}
+=09/*
+=09@tab Header
+=09@section Header Link
+=09@tip Set the styling for your email's header links. Choose a color that =
+helps them stand out from your text.
+=09*/
+=09=09#templateHeader .mcnTextContent a,#templateHeader .mcnTextContent p a=
+{
+=09=09=09/*@editable*/color:#007C89;
+=09=09=09/*@editable*/font-weight:normal;
+=09=09=09/*@editable*/text-decoration:underline;
+=09=09}
+=09/*
+=09@tab Upper Body
+=09@section Upper Body Style
+=09@tip Set the background color and borders for your email's upper body ar=
+ea.
+=09*/
+=09=09#templateUpperBody{
+=09=09=09/*@editable*/background-color:#ffffff;
+=09=09=09/*@editable*/background-image:none;
+=09=09=09/*@editable*/background-repeat:no-repeat;
+=09=09=09/*@editable*/background-position:top;
+=09=09=09/*@editable*/background-size:cover;
+=09=09=09/*@editable*/border-top:10px none ;
+=09=09=09/*@editable*/border-bottom:1px none ;
+=09=09=09/*@editable*/padding-top:0px;
+=09=09=09/*@editable*/padding-bottom:0px;
+=09=09}
+=09/*
+=09@tab Upper Body
+=09@section Upper Body Text
+=09@tip Set the styling for your email's upper body text. Choose a size and=
+ color that is easy to read.
+=09*/
+=09=09#templateUpperBody .mcnTextContent,#templateUpperBody .mcnTextContent=
+ p{
+=09=09=09/*@editable*/color:#202020;
+=09=09=09/*@editable*/font-family:Helvetica;
+=09=09=09/*@editable*/font-size:16px;
+=09=09=09/*@editable*/line-height:150%;
+=09=09=09/*@editable*/text-align:left;
+=09=09}
+=09/*
+=09@tab Upper Body
+=09@section Upper Body Link
+=09@tip Set the styling for your email's upper body links. Choose a color t=
+hat helps them stand out from your text.
+=09*/
+=09=09#templateUpperBody .mcnTextContent a,#templateUpperBody .mcnTextConte=
+nt p a{
+=09=09=09/*@editable*/color:#007c89;
+=09=09=09/*@editable*/font-weight:normal;
+=09=09=09/*@editable*/text-decoration:underline;
+=09=09}
+=09/*
+=09@tab Columns
+=09@section Column Style
+=09@tip Set the background color and borders for your email's columns.
+=09*/
+=09=09#templateColumns{
+=09=09=09/*@editable*/background-color:#ffffff;
+=09=09=09/*@editable*/background-image:none;
+=09=09=09/*@editable*/background-repeat:no-repeat;
+=09=09=09/*@editable*/background-position:top;
+=09=09=09/*@editable*/background-size:auto;
+=09=09=09/*@editable*/border-top:0;
+=09=09=09/*@editable*/border-bottom:0;
+=09=09=09/*@editable*/padding-top:0px;
+=09=09=09/*@editable*/padding-bottom:0;
+=09=09}
+=09/*
+=09@tab Columns
+=09@section Column Text
+=09@tip Set the styling for your email's column text. Choose a size and col=
+or that is easy to read.
+=09*/
+=09=09#templateColumns .columnContainer .mcnTextContent,#templateColumns .c=
+olumnContainer .mcnTextContent p{
+=09=09=09/*@editable*/color:#202020;
+=09=09=09/*@editable*/font-family:Helvetica;
+=09=09=09/*@editable*/font-size:16px;
+=09=09=09/*@editable*/line-height:150%;
+=09=09=09/*@editable*/text-align:left;
+=09=09}
+=09/*
+=09@tab Columns
+=09@section Column Link
+=09@tip Set the styling for your email's column links. Choose a color that =
+helps them stand out from your text.
+=09*/
+=09=09#templateColumns .columnContainer .mcnTextContent a,#templateColumns =
+.columnContainer .mcnTextContent p a{
+=09=09=09/*@editable*/color:#4acbd6;
+=09=09=09/*@editable*/font-weight:normal;
+=09=09=09/*@editable*/text-decoration:underline;
+=09=09}
+=09/*
+=09@tab Lower Body
+=09@section Lower Body Style
+=09@tip Set the background color and borders for your email's lower body ar=
+ea.
+=09*/
+=09=09#templateLowerBody{
+=09=09=09/*@editable*/background-color:#ffffff;
+=09=09=09/*@editable*/background-image:none;
+=09=09=09/*@editable*/background-repeat:no-repeat;
+=09=09=09/*@editable*/background-position:center;
+=09=09=09/*@editable*/background-size:cover;
+=09=09=09/*@editable*/border-top:0;
+=09=09=09/*@editable*/border-bottom:2px solid #EAEAEA;
+=09=09=09/*@editable*/padding-top:0;
+=09=09=09/*@editable*/padding-bottom:0px;
+=09=09}
+=09/*
+=09@tab Lower Body
+=09@section Lower Body Text
+=09@tip Set the styling for your email's lower body text. Choose a size and=
+ color that is easy to read.
+=09*/
+=09=09#templateLowerBody .mcnTextContent,#templateLowerBody .mcnTextContent=
+ p{
+=09=09=09/*@editable*/color:#202020;
+=09=09=09/*@editable*/font-family:Helvetica;
+=09=09=09/*@editable*/font-size:16px;
+=09=09=09/*@editable*/line-height:150%;
+=09=09=09/*@editable*/text-align:left;
+=09=09}
+=09/*
+=09@tab Lower Body
+=09@section Lower Body Link
+=09@tip Set the styling for your email's lower body links. Choose a color t=
+hat helps them stand out from your text.
+=09*/
+=09=09#templateLowerBody .mcnTextContent a,#templateLowerBody .mcnTextConte=
+nt p a{
+=09=09=09/*@editable*/color:#007c89;
+=09=09=09/*@editable*/font-weight:normal;
+=09=09=09/*@editable*/text-decoration:underline;
+=09=09}
+=09/*
+=09@tab Footer
+=09@section Footer Style
+=09@tip Set the background color and borders for your email's footer area.
+=09*/
+=09=09#templateFooter{
+=09=09=09/*@editable*/background-color:#494c4b;
+=09=09=09/*@editable*/background-image:none;
+=09=09=09/*@editable*/background-repeat:no-repeat;
+=09=09=09/*@editable*/background-position:center;
+=09=09=09/*@editable*/background-size:cover;
+=09=09=09/*@editable*/border-top:0;
+=09=09=09/*@editable*/border-bottom:0;
+=09=09=09/*@editable*/padding-top:9px;
+=09=09=09/*@editable*/padding-bottom:9px;
+=09=09}
+=09/*
+=09@tab Footer
+=09@section Footer Text
+=09@tip Set the styling for your email's footer text. Choose a size and col=
+or that is easy to read.
+=09*/
+=09=09#templateFooter .mcnTextContent,#templateFooter .mcnTextContent p{
+=09=09=09/*@editable*/color:#7a7a7a;
+=09=09=09/*@editable*/font-family:Helvetica;
+=09=09=09/*@editable*/font-size:12px;
+=09=09=09/*@editable*/line-height:150%;
+=09=09=09/*@editable*/text-align:center;
+=09=09}
+=09/*
+=09@tab Footer
+=09@section Footer Link
+=09@tip Set the styling for your email's footer links. Choose a color that =
+helps them stand out from your text.
+=09*/
+=09=09#templateFooter .mcnTextContent a,#templateFooter .mcnTextContent p a=
+{
+=09=09=09/*@editable*/color:#a7a7a7;
+=09=09=09/*@editable*/font-weight:normal;
+=09=09=09/*@editable*/text-decoration:none;
+=09=09}
+=09@media only screen and (min-width:768px){
+=09=09.templateContainer{
+=09=09=09width:600px !important;
+=09=09}
+}=09@media only screen and (max-width: 480px){
+=09=09body,table,td,p,a,li,blockquote{
+=09=09=09-webkit-text-size-adjust:none !important;
+=09=09}
+}=09@media only screen and (max-width: 480px){
+=09=09body{
+=09=09=09width:100% !important;
+=09=09=09min-width:100% !important;
+=09=09}
+}=09@media only screen and (max-width: 480px){
+=09=09.columnWrapper{
+=09=09=09max-width:100% !important;
+=09=09=09width:100% !important;
+=09=09}
+}=09@media only screen and (max-width: 480px){
+=09=09.mcnRetinaImage{
+=09=09=09max-width:100% !important;
+=09=09}
+}=09@media only screen and (max-width: 480px){
+=09=09.mcnImage{
+=09=09=09width:100% !important;
+=09=09}
+}=09@media only screen and (max-width: 480px){
+=09=09.mcnCartContainer,.mcnCaptionTopContent,.mcnRecContentContainer,.mcnC=
+aptionBottomContent,.mcnTextContentContainer,.mcnBoxedTextContentContainer,=
+.mcnImageGroupContentContainer,.mcnCaptionLeftTextContentContainer,.mcnCapt=
+ionRightTextContentContainer,.mcnCaptionLeftImageContentContainer,.mcnCapti=
+onRightImageContentContainer,.mcnImageCardLeftTextContentContainer,.mcnImag=
+eCardRightTextContentContainer,.mcnImageCardLeftImageContentContainer,.mcnI=
+mageCardRightImageContentContainer{
+=09=09=09max-width:100% !important;
+=09=09=09width:100% !important;
+=09=09}
+}=09@media only screen and (max-width: 480px){
+=09=09.mcnBoxedTextContentContainer{
+=09=09=09min-width:100% !important;
+=09=09}
+}=09@media only screen and (max-width: 480px){
+=09=09.mcnImageGroupContent{
+=09=09=09padding:9px !important;
+=09=09}
+}=09@media only screen and (max-width: 480px){
+=09=09.mcnCaptionLeftContentOuter .mcnTextContent,.mcnCaptionRightContentOu=
+ter .mcnTextContent{
+=09=09=09padding-top:9px !important;
+=09=09}
+}=09@media only screen and (max-width: 480px){
+=09=09.mcnImageCardTopImageContent,.mcnCaptionBottomContent:last-child .mcn=
+CaptionBottomImageContent,.mcnCaptionBlockInner .mcnCaptionTopContent:last-=
+child .mcnTextContent{
+=09=09=09padding-top:18px !important;
+=09=09}
+}=09@media only screen and (max-width: 480px){
+=09=09.mcnImageCardBottomImageContent{
+=09=09=09padding-bottom:9px !important;
+=09=09}
+}=09@media only screen and (max-width: 480px){
+=09=09.mcnImageGroupBlockInner{
+=09=09=09padding-top:0 !important;
+=09=09=09padding-bottom:0 !important;
+=09=09}
+}=09@media only screen and (max-width: 480px){
+=09=09.mcnImageGroupBlockOuter{
+=09=09=09padding-top:9px !important;
+=09=09=09padding-bottom:9px !important;
+=09=09}
+}=09@media only screen and (max-width: 480px){
+=09=09.mcnTextContent,.mcnBoxedTextContentColumn{
+=09=09=09padding-right:18px !important;
+=09=09=09padding-left:18px !important;
+=09=09}
+}=09@media only screen and (max-width: 480px){
+=09=09.mcnImageCardLeftImageContent,.mcnImageCardRightImageContent{
+=09=09=09padding-right:18px !important;
+=09=09=09padding-bottom:0 !important;
+=09=09=09padding-left:18px !important;
+=09=09}
+}=09@media only screen and (max-width: 480px){
+=09=09.mcpreview-image-uploader{
+=09=09=09display:none !important;
+=09=09=09width:100% !important;
+=09=09}
+}=09@media only screen and (max-width: 480px){
+=09/*
+=09@tab Mobile Styles
+=09@section Heading 1
+=09@tip Make the first-level headings larger in size for better readability=
+ on small screens.
+=09*/
+=09=09h1{
+=09=09=09/*@editable*/font-size:22px !important;
+=09=09=09/*@editable*/line-height:125% !important;
+=09=09}
+}=09@media only screen and (max-width: 480px){
+=09/*
+=09@tab Mobile Styles
+=09@section Heading 2
+=09@tip Make the second-level headings larger in size for better readabilit=
+y on small screens.
+=09*/
+=09=09h2{
+=09=09=09/*@editable*/font-size:22px !important;
+=09=09=09/*@editable*/line-height:125% !important;
+=09=09}
+}=09@media only screen and (max-width: 480px){
+=09/*
+=09@tab Mobile Styles
+=09@section Heading 3
+=09@tip Make the third-level headings larger in size for better readability=
+ on small screens.
+=09*/
+=09=09h3{
+=09=09=09/*@editable*/font-size:16px !important;
+=09=09=09/*@editable*/line-height:125% !important;
+=09=09}
+}=09@media only screen and (max-width: 480px){
+=09/*
+=09@tab Mobile Styles
+=09@section Heading 4
+=09@tip Make the fourth-level headings larger in size for better readabilit=
+y on small screens.
+=09*/
+=09=09h4{
+=09=09=09/*@editable*/font-size:14px !important;
+=09=09=09/*@editable*/line-height:150% !important;
+=09=09}
+}=09@media only screen and (max-width: 480px){
+=09/*
+=09@tab Mobile Styles
+=09@section Boxed Text
+=09@tip Make the boxed text larger in size for better readability on small =
+screens. We recommend a font size of at least 16px.
+=09*/
+=09=09.mcnBoxedTextContentContainer .mcnTextContent,.mcnBoxedTextContentCon=
+tainer .mcnTextContent p{
+=09=09=09/*@editable*/font-size:14px !important;
+=09=09=09/*@editable*/line-height:150% !important;
+=09=09}
+}=09@media only screen and (max-width: 480px){
+=09/*
+=09@tab Mobile Styles
+=09@section Preheader Visibility
+=09@tip Set the visibility of the email's preheader on small screens. You c=
+an hide it to save space.
+=09*/
+=09=09#templatePreheader{
+=09=09=09/*@editable*/display:block !important;
+=09=09}
+}=09@media only screen and (max-width: 480px){
+=09/*
+=09@tab Mobile Styles
+=09@section Preheader Text
+=09@tip Make the preheader text larger in size for better readability on sm=
+all screens.
+=09*/
+=09=09#templatePreheader .mcnTextContent,#templatePreheader .mcnTextContent=
+ p{
+=09=09=09/*@editable*/font-size:12px !important;
+=09=09=09/*@editable*/line-height:150% !important;
+=09=09}
+}=09@media only screen and (max-width: 480px){
+=09/*
+=09@tab Mobile Styles
+=09@section Header Text
+=09@tip Make the header text larger in size for better readability on small=
+ screens.
+=09*/
+=09=09#templateHeader .mcnTextContent,#templateHeader .mcnTextContent p{
+=09=09=09/*@editable*/font-size:14px !important;
+=09=09=09/*@editable*/line-height:150% !important;
+=09=09}
+}=09@media only screen and (max-width: 480px){
+=09/*
+=09@tab Mobile Styles
+=09@section Upper Body Text
+=09@tip Make the upper body text larger in size for better readability on s=
+mall screens. We recommend a font size of at least 16px.
+=09*/
+=09=09#templateUpperBody .mcnTextContent,#templateUpperBody .mcnTextContent=
+ p{
+=09=09=09/*@editable*/font-size:14px !important;
+=09=09=09/*@editable*/line-height:150% !important;
+=09=09}
+}=09@media only screen and (max-width: 480px){
+=09/*
+=09@tab Mobile Styles
+=09@section Column Text
+=09@tip Make the column text larger in size for better readability on small=
+ screens. We recommend a font size of at least 16px.
+=09*/
+=09=09#templateColumns .columnContainer .mcnTextContent,#templateColumns .c=
+olumnContainer .mcnTextContent p{
+=09=09=09/*@editable*/font-size:14px !important;
+=09=09=09/*@editable*/line-height:150% !important;
+=09=09}
+}=09@media only screen and (max-width: 480px){
+=09/*
+=09@tab Mobile Styles
+=09@section Lower Body Text
+=09@tip Make the lower body text larger in size for better readability on s=
+mall screens. We recommend a font size of at least 16px.
+=09*/
+=09=09#templateLowerBody .mcnTextContent,#templateLowerBody .mcnTextContent=
+ p{
+=09=09=09/*@editable*/font-size:14px !important;
+=09=09=09/*@editable*/line-height:150% !important;
+=09=09}
+}=09@media only screen and (max-width: 480px){
+=09/*
+=09@tab Mobile Styles
+=09@section Footer Text
+=09@tip Make the footer content text larger in size for better readability =
+on small screens.
+=09*/
+=09=09#templateFooter .mcnTextContent,#templateFooter .mcnTextContent p{
+=09=09=09/*@editable*/font-size:12px !important;
+=09=09=09/*@editable*/line-height:150% !important;
+=09=09}
+}</style>
+ </head>=20
+ <body>=20
+  <!--*|IF:MC_PREVIEW_TEXT|*-->=20
+  <!--[if !gte mso 9]><!---->
+  <span class=3D"mcnPreviewText" style=3D"display:none; font-size:0px; line=
+-height:0px; max-height:0px; max-width:0px; opacity:0; overflow:hidden; vis=
+ibility:hidden; mso-hide:all;">Plus October's Featured Updates, Enterprise =
+Beta Program, and New Omada Central v6</span>
+  <!--<![endif]-->=20
+  <!--*|END:IF|*-->=20
+  <center>=20
+   <table align=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0"=
+ height=3D"100%" width=3D"100%" id=3D"bodyTable">=20
+    <tbody>
+     <tr>=20
+      <td align=3D"center" valign=3D"top" id=3D"bodyCell">=20
+       <!-- BEGIN TEMPLATE // -->=20
+       <!--[if (gte mso 9)|(IE)]>
+                        <table align=3D"center" border=3D"0" cellspacing=3D=
+"0" cellpadding=3D"0" width=3D"600" style=3D"width:600px;">
+                        <tr>
+                        <td align=3D"center" valign=3D"top" width=3D"600" s=
+tyle=3D"width:600px;">
+                        <![endif]-->=20
+       <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D"100=
+%" class=3D"templateContainer">=20
+        <tbody>
+         <tr>=20
+          <td valign=3D"top" id=3D"templatePreheader">
+           <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D=
+"100%" class=3D"mcnTextBlock" style=3D"min-width:100%;">=20
+            <tbody class=3D"mcnTextBlockOuter">=20
+             <tr>=20
+              <td valign=3D"top" class=3D"mcnTextBlockInner" style=3D"paddi=
+ng-top:9px;">=20
+               <!--[if mso]>
+=09=09=09=09<table align=3D"left" border=3D"0" cellspacing=3D"0" cellpaddin=
+g=3D"0" width=3D"100%" style=3D"width:100%;">
+=09=09=09=09<tr>
+=09=09=09=09<![endif]-->=20
+               <!--[if mso]>
+=09=09=09=09<td valign=3D"top" width=3D"600" style=3D"width:600px;">
+=09=09=09=09<![endif]-->=20
+               <table align=3D"left" border=3D"0" cellpadding=3D"0" cellspa=
+cing=3D"0" style=3D"max-width:100%; min-width:100%;" width=3D"100%" class=
+=3D"mcnTextContentContainer">=20
+                <tbody>
+                 <tr>=20
+                  <td valign=3D"top" class=3D"mcnTextContent" style=3D"padd=
+ing-top:0; padding-right:18px; padding-bottom:9px; padding-left:18px;">=20
+                   <div style=3D"text-align: center;">
+                    <a href=3D"https://emailpush.tp-link.com/emailViewStats=
+/click?p=3D46933283ad41e5e1a51aeaa2ecd1c6dd0e3d925&lc=3D2807ca14bb87198b509=
+325a104443705df85&h=3Da1bd0ce1a2a8a0ad1c0fe9f4a99eb6fe" target=3D"_blank">V=
+iew Email on the Web</a>
+                   </div> </td>=20
+                 </tr>=20
+                </tbody>
+               </table>=20
+               <!--[if mso]>
+=09=09=09=09</td>
+=09=09=09=09<![endif]-->=20
+               <!--[if mso]>
+=09=09=09=09</tr>
+=09=09=09=09</table>
+=09=09=09=09<![endif]--> </td>=20
+             </tr>=20
+            </tbody>=20
+           </table></td>=20
+         </tr>=20
+         <tr>=20
+          <td valign=3D"top" id=3D"templateHeader">
+           <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D=
+"100%" class=3D"mcnImageBlock" style=3D"min-width:100%;">=20
+            <tbody class=3D"mcnImageBlockOuter">=20
+             <tr>=20
+              <td valign=3D"top" style=3D"padding:0px" class=3D"mcnImageBlo=
+ckInner">=20
+               <table align=3D"left" width=3D"100%" border=3D"0" cellpaddin=
+g=3D"0" cellspacing=3D"0" class=3D"mcnImageContentContainer" style=3D"min-w=
+idth:100%;">=20
+                <tbody>
+                 <tr>=20
+                  <td class=3D"mcnImageContent" valign=3D"top" style=3D"pad=
+ding-right: 0px; padding-left: 0px; padding-top: 0; padding-bottom: 0; text=
+-align:center;"> <img align=3D"center" alt=3D"" src=3D"https://static-email=
+push.tp-link.com/us/promotion/community_spotlight_110825/b92e3ded-0910-054a=
+-843d-550e09c87f14.png" width=3D"600" style=3D"max-width:1200px; padding-bo=
+ttom: 0; display: inline !important; vertical-align: bottom;" class=3D"mcnI=
+mage"> </td>=20
+                 </tr>=20
+                </tbody>
+               </table> </td>=20
+             </tr>=20
+            </tbody>=20
+           </table>
+           <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D=
+"100%" class=3D"mcnCodeBlock">=20
+            <tbody class=3D"mcnTextBlockOuter">=20
+             <tr>=20
+              <td valign=3D"top" class=3D"mcnTextBlockInner">=20
+               <table border=3D"0" cellpadding=3D"5" cellspacing=3D"0" widt=
+h=3D"100%" ;=3D"" style=3D"background-size:cover; color:#000000; font-weigh=
+t:normal; font-size: 90%; text-underline-offset: 3px; font-family: Arial, H=
+elvetica, sans-serif;">=20
+                <tbody>
+                 <tr>=20
+                  <td align=3D"center" valign=3D"middle" width=3D"33%"> <a =
+href=3D"https://emailpush.tp-link.com/emailViewStats/click?p=3D46933283ad41=
+e5e1a51aeaa2ecd1c6dd0e3d925&lc=3D2807ca14bb87198b509325a104443705df85&h=3D3=
+606f035e2264af5f8f6b4f4e0096f93" ,=3D"" style=3D" color: inherit;">Official=
+ Community</a> </td>=20
+                  <td align=3D"center" valign=3D"middle" width=3D"33%"> <a =
+href=3D"https://emailpush.tp-link.com/emailViewStats/click?p=3D46933283ad41=
+e5e1a51aeaa2ecd1c6dd0e3d925&lc=3D2807ca14bb87198b509325a104443705df85&h=3D7=
+f71370ee66816137e757712a0a69e0a" ,=3D"" style=3D"color: inherit;" "=3D"">r/=
+tapo</a> </td>=20
+                  <td align=3D"center" valign=3D"middle" width=3D"33%"> <a =
+href=3D"https://emailpush.tp-link.com/emailViewStats/click?p=3D46933283ad41=
+e5e1a51aeaa2ecd1c6dd0e3d925&lc=3D2807ca14bb87198b509325a104443705df85&h=3D7=
+f71370ee66816137e757712a0a69e0a" ,=3D"" style=3D"color: inherit;" "=3D"">r/=
+tplink</a> </td>=20
+                 </tr>=20
+                </tbody>
+               </table> </td>=20
+             </tr>=20
+            </tbody>=20
+           </table>
+           <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D=
+"100%" class=3D"mcnTextBlock" style=3D"min-width:100%;">=20
+            <tbody class=3D"mcnTextBlockOuter">=20
+             <tr>=20
+              <td valign=3D"top" class=3D"mcnTextBlockInner" style=3D"paddi=
+ng-top:9px;">=20
+               <!--[if mso]>
+=09=09=09=09<table align=3D"left" border=3D"0" cellspacing=3D"0" cellpaddin=
+g=3D"0" width=3D"100%" style=3D"width:100%;">
+=09=09=09=09<tr>
+=09=09=09=09<![endif]-->=20
+               <!--[if mso]>
+=09=09=09=09<td valign=3D"top" width=3D"600" style=3D"width:600px;">
+=09=09=09=09<![endif]-->=20
+               <table align=3D"left" border=3D"0" cellpadding=3D"0" cellspa=
+cing=3D"0" style=3D"max-width:100%; min-width:100%;" width=3D"100%" class=
+=3D"mcnTextContentContainer">=20
+                <tbody>
+                 <tr>=20
+                  <td valign=3D"top" class=3D"mcnTextContent" style=3D"padd=
+ing: 0px 18px 9px; line-height: 150%;"> <p dir=3D"ltr" style=3D"text-align:=
+ left; line-height: 150%;"><span style=3D"font-size:26px"><strong>Hey TP-Li=
+nk Community!</strong></span><br> Before we dive into our main topic this w=
+eek, our networking community saw a few updates worth mentioning separately=
+:</p>=20
+                   <ul>=20
+                    <li><span style=3D"font-size:12px"><a href=3D"https://e=
+mailpush.tp-link.com/emailViewStats/click?p=3D46933283ad41e5e1a51aeaa2ecd1c=
+6dd0e3d925&lc=3D2807ca14bb87198b509325a104443705df85&h=3D639d7968376b836bbd=
+e535c4a8ca6137">Updated Malicious Content Filter Database&nbsp;for&nbsp;Dec=
+o M5 and M9 Plus</a></span></li>=20
+                    <li><span style=3D"font-size:12px"><a href=3D"https://e=
+mailpush.tp-link.com/emailViewStats/click?p=3D46933283ad41e5e1a51aeaa2ecd1c=
+6dd0e3d925&lc=3D2807ca14bb87198b509325a104443705df85&h=3D497709046dd5514262=
+554034269b1e9a">Archer AX50: 160MHz Channel Width on 5GHz Missing After Upd=
+ating Firmware to 1.1.1</a></span></li>=20
+                   </ul>=20
+                   <hr> <p dir=3D"ltr" style=3D"text-align: left; line-heig=
+ht: 150%;">Our teams have been extremely busy over the last few weeks, refr=
+eshing all our Matter Content,&nbsp;updating October's&nbsp;Firmware Overvi=
+ews,&nbsp;and even updating our Business Forums and Knowledge Base!</p> </t=
+d>=20
+                 </tr>=20
+                </tbody>
+               </table>=20
+               <!--[if mso]>
+=09=09=09=09</td>
+=09=09=09=09<![endif]-->=20
+               <!--[if mso]>
+=09=09=09=09</tr>
+=09=09=09=09</table>
+=09=09=09=09<![endif]--> </td>=20
+             </tr>=20
+            </tbody>=20
+           </table>
+           <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D=
+"100%" class=3D"mcnImageCardBlock">=20
+            <tbody class=3D"mcnImageCardBlockOuter">=20
+             <tr>=20
+              <td class=3D"mcnImageCardBlockInner" valign=3D"top" style=3D"=
+padding-top:9px; padding-right:18px; padding-bottom:9px; padding-left:18px;=
+">=20
+               <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" clas=
+s=3D"mcnImageCardLeftContentOuter" width=3D"100%">=20
+                <tbody>
+                 <tr>=20
+                  <td align=3D"center" valign=3D"top" class=3D"mcnImageCard=
+LeftContentInner" style=3D"padding: 0px;background-color: #404040;">=20
+                   <table align=3D"right" border=3D"0" cellpadding=3D"0" ce=
+llspacing=3D"0" class=3D"mcnImageCardLeftImageContentContainer" width=3D"20=
+0">=20
+                    <tbody>
+                     <tr>=20
+                      <td class=3D"mcnImageCardLeftImageContentE2E " align=
+=3D"left" valign=3D"top" style=3D"padding-top:0px; padding-right:0px; paddi=
+ng-bottom:0px; padding-left:0;"> <a href=3D"https://emailpush.tp-link.com/e=
+mailViewStats/click?p=3D46933283ad41e5e1a51aeaa2ecd1c6dd0e3d925&lc=3D2807ca=
+14bb87198b509325a104443705df85&h=3D9e44dffd8cb18aa08ca4b4e3054dcf3b" title=
+=3D"" class=3D"" target=3D"_blank"> <img alt=3D"" src=3D"https://static-ema=
+ilpush.tp-link.com/us/promotion/community_spotlight_110825/079c8c88-3cb0-f8=
+a9-de9c-aec8cdf0f221.png" width=3D"200" style=3D"max-width:640px;" class=3D=
+"mcnImage"> </a> </td>=20
+                     </tr>=20
+                    </tbody>
+                   </table>=20
+                   <table class=3D"mcnImageCardLeftTextContentContainer" al=
+ign=3D"left" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D"346"=
+>=20
+                    <tbody>
+                     <tr>=20
+                      <td valign=3D"top" class=3D"mcnTextContent" style=3D"=
+padding-left: 18px;padding-top: 18px;padding-bottom: 18px;color: #F2F2F2;fo=
+nt-family: Helvetica;font-size: 14px;font-weight: normal;"> <strong><span s=
+tyle=3D"font-size:18px">Latest From Omada</span></strong><br> <br> <span st=
+yle=3D"color:#FFD700"><strong>Apply Now!&nbsp;</strong></span><a href=3D"ht=
+tps://emailpush.tp-link.com/emailViewStats/click?p=3D46933283ad41e5e1a51aea=
+a2ecd1c6dd0e3d925&lc=3D2807ca14bb87198b509325a104443705df85&h=3D9e44dffd8cb=
+18aa08ca4b4e3054dcf3b" target=3D"_blank"><span style=3D"color:#D3D3D3">New =
+US Enterprise Beta Program</span></a><br> <br> <a href=3D"https://emailpush=
+.tp-link.com/emailViewStats/click?p=3D46933283ad41e5e1a51aeaa2ecd1c6dd0e3d9=
+25&lc=3D2807ca14bb87198b509325a104443705df85&h=3D2f2505db37387d272fe71ec949=
+d612ad" target=3D"_blank"><span style=3D"color:#D3D3D3">New Omada Design Ce=
+nter</span></a><br> <br> <a href=3D"https://emailpush.tp-link.com/emailView=
+Stats/click?p=3D46933283ad41e5e1a51aeaa2ecd1c6dd0e3d925&lc=3D2807ca14bb8719=
+8b509325a104443705df85&h=3Ddf98cc30780161ac13b78a1a252c0c48" target=3D"_bla=
+nk"><span style=3D"color:#D3D3D3">See What's New in Omada v6</span></a> </t=
+d>=20
+                     </tr>=20
+                    </tbody>
+                   </table> </td>=20
+                 </tr>=20
+                </tbody>
+               </table> </td>=20
+             </tr>=20
+            </tbody>=20
+           </table>
+           <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D=
+"100%" class=3D"mcnFollowBlock" style=3D"min-width:100%;">=20
+            <tbody class=3D"mcnFollowBlockOuter">=20
+             <tr>=20
+              <td align=3D"center" valign=3D"top" style=3D"padding:9px" cla=
+ss=3D"mcnFollowBlockInner">=20
+               <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" widt=
+h=3D"100%" class=3D"mcnFollowContentContainer" style=3D"min-width:100%;">=
+=20
+                <tbody>
+                 <tr>=20
+                  <td align=3D"center" style=3D"padding-left:9px;padding-ri=
+ght:9px;">=20
+                   <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" =
+width=3D"100%" style=3D"min-width:100%;" class=3D"mcnFollowContent">=20
+                    <tbody>
+                     <tr>=20
+                      <td align=3D"center" valign=3D"top" style=3D"padding-=
+top:9px; padding-right:9px; padding-left:9px;">=20
+                       <table align=3D"center" border=3D"0" cellpadding=3D"=
+0" cellspacing=3D"0">=20
+                        <tbody>
+                         <tr>=20
+                          <td align=3D"center" valign=3D"top">=20
+                           <!--[if mso]>
+                                    <table align=3D"center" border=3D"0" ce=
+llspacing=3D"0" cellpadding=3D"0">
+                                    <tr>
+                                    <![endif]-->=20
+                           <!--[if mso]>
+                                        <td align=3D"center" valign=3D"top"=
+>
+                                        <![endif]-->=20
+                           <table align=3D"left" border=3D"0" cellpadding=
+=3D"0" cellspacing=3D"0" class=3D"mcnBlockFloatLeft" style=3D"display:inlin=
+e;">=20
+                            <tbody>
+                             <tr>=20
+                              <td valign=3D"top" style=3D"padding-right:10p=
+x; padding-bottom:9px;" class=3D"mcnFollowContentItemContainer">=20
+                               <table border=3D"0" cellpadding=3D"0" cellsp=
+acing=3D"0" width=3D"100%" class=3D"mcnFollowContentItem">=20
+                                <tbody>
+                                 <tr>=20
+                                  <td align=3D"left" valign=3D"middle" styl=
+e=3D"padding-top:5px; padding-right:10px; padding-bottom:5px; padding-left:=
+9px;">=20
+                                   <table align=3D"left" border=3D"0" cellp=
+adding=3D"0" cellspacing=3D"0" width=3D"">=20
+                                    <tbody>
+                                     <tr>=20
+                                      <td align=3D"center" valign=3D"middle=
+" width=3D"24" class=3D"mcnFollowIconContent"> <a href=3D"https://emailpush=
+.tp-link.com/emailViewStats/click?p=3D46933283ad41e5e1a51aeaa2ecd1c6dd0e3d9=
+25&lc=3D2807ca14bb87198b509325a104443705df85&h=3D47428760622c5c885b894ed424=
+8820f0" target=3D"_blank"><img src=3D"https://static-emailpush.tp-link.com/=
+us/promotion/community_spotlight_110825/color-reddit-48.png" alt=3D"r/tplin=
+k" style=3D"display:block;" height=3D"24" width=3D"24" class=3D""></a> </td=
+>=20
+                                      <td align=3D"left" valign=3D"middle" =
+class=3D"mcnFollowTextContent" style=3D"padding-left:5px;"> <a href=3D"http=
+s://emailpush.tp-link.com/emailViewStats/click?p=3D46933283ad41e5e1a51aeaa2=
+ecd1c6dd0e3d925&lc=3D2807ca14bb87198b509325a104443705df85&h=3D47428760622c5=
+c885b894ed4248820f0" target=3D"" style=3D"font-family: Arial;font-size: 12p=
+x;text-decoration: none;color: #202020;font-weight: bold;">r/tplink</a> </t=
+d>=20
+                                     </tr>=20
+                                    </tbody>
+                                   </table> </td>=20
+                                 </tr>=20
+                                </tbody>
+                               </table> </td>=20
+                             </tr>=20
+                            </tbody>
+                           </table>=20
+                           <!--[if mso]>
+                                        </td>
+                                        <![endif]-->=20
+                           <!--[if mso]>
+                                        <td align=3D"center" valign=3D"top"=
+>
+                                        <![endif]-->=20
+                           <table align=3D"left" border=3D"0" cellpadding=
+=3D"0" cellspacing=3D"0" class=3D"mcnBlockFloatLeft" style=3D"display:inlin=
+e;">=20
+                            <tbody>
+                             <tr>=20
+                              <td valign=3D"top" style=3D"padding-right:10p=
+x; padding-bottom:9px;" class=3D"mcnFollowContentItemContainer">=20
+                               <table border=3D"0" cellpadding=3D"0" cellsp=
+acing=3D"0" width=3D"100%" class=3D"mcnFollowContentItem">=20
+                                <tbody>
+                                 <tr>=20
+                                  <td align=3D"left" valign=3D"middle" styl=
+e=3D"padding-top:5px; padding-right:10px; padding-bottom:5px; padding-left:=
+9px;">=20
+                                   <table align=3D"left" border=3D"0" cellp=
+adding=3D"0" cellspacing=3D"0" width=3D"">=20
+                                    <tbody>
+                                     <tr>=20
+                                      <td align=3D"center" valign=3D"middle=
+" width=3D"24" class=3D"mcnFollowIconContent"> <a href=3D"https://emailpush=
+.tp-link.com/emailViewStats/click?p=3D46933283ad41e5e1a51aeaa2ecd1c6dd0e3d9=
+25&lc=3D2807ca14bb87198b509325a104443705df85&h=3D32026dc5de6dcbe33d0822ad43=
+64e0f5" target=3D"_blank"><img src=3D"https://static-emailpush.tp-link.com/=
+us/promotion/community_spotlight_110825/color-reddit-48.png" alt=3D"r/tapo"=
+ style=3D"display:block;" height=3D"24" width=3D"24" class=3D""></a> </td>=
+=20
+                                      <td align=3D"left" valign=3D"middle" =
+class=3D"mcnFollowTextContent" style=3D"padding-left:5px;"> <a href=3D"http=
+s://emailpush.tp-link.com/emailViewStats/click?p=3D46933283ad41e5e1a51aeaa2=
+ecd1c6dd0e3d925&lc=3D2807ca14bb87198b509325a104443705df85&h=3D32026dc5de6dc=
+be33d0822ad4364e0f5" target=3D"" style=3D"font-family: Arial;font-size: 12p=
+x;text-decoration: none;color: #202020;font-weight: bold;">r/tapo</a> </td>=
+=20
+                                     </tr>=20
+                                    </tbody>
+                                   </table> </td>=20
+                                 </tr>=20
+                                </tbody>
+                               </table> </td>=20
+                             </tr>=20
+                            </tbody>
+                           </table>=20
+                           <!--[if mso]>
+                                        </td>
+                                        <![endif]-->=20
+                           <!--[if mso]>
+                                        <td align=3D"center" valign=3D"top"=
+>
+                                        <![endif]-->=20
+                           <table align=3D"left" border=3D"0" cellpadding=
+=3D"0" cellspacing=3D"0" class=3D"mcnBlockFloatLeft" style=3D"display:inlin=
+e;">=20
+                            <tbody>
+                             <tr>=20
+                              <td valign=3D"top" style=3D"padding-right:10p=
+x; padding-bottom:9px;" class=3D"mcnFollowContentItemContainer">=20
+                               <table border=3D"0" cellpadding=3D"0" cellsp=
+acing=3D"0" width=3D"100%" class=3D"mcnFollowContentItem">=20
+                                <tbody>
+                                 <tr>=20
+                                  <td align=3D"left" valign=3D"middle" styl=
+e=3D"padding-top:5px; padding-right:10px; padding-bottom:5px; padding-left:=
+9px;">=20
+                                   <table align=3D"left" border=3D"0" cellp=
+adding=3D"0" cellspacing=3D"0" width=3D"">=20
+                                    <tbody>
+                                     <tr>=20
+                                      <td align=3D"center" valign=3D"middle=
+" width=3D"24" class=3D"mcnFollowIconContent"> <a href=3D"https://emailpush=
+.tp-link.com/emailViewStats/click?p=3D46933283ad41e5e1a51aeaa2ecd1c6dd0e3d9=
+25&lc=3D2807ca14bb87198b509325a104443705df85&h=3Ddc4f91cfc2c4fc76e36cc15bcd=
+286651" target=3D"_blank"><img src=3D"https://static-emailpush.tp-link.com/=
+us/promotion/community_spotlight_110825/color-reddit-48.png" alt=3D"r/Omada=
+_Networks" style=3D"display:block;" height=3D"24" width=3D"24" class=3D""><=
+/a> </td>=20
+                                      <td align=3D"left" valign=3D"middle" =
+class=3D"mcnFollowTextContent" style=3D"padding-left:5px;"> <a href=3D"http=
+s://emailpush.tp-link.com/emailViewStats/click?p=3D46933283ad41e5e1a51aeaa2=
+ecd1c6dd0e3d925&lc=3D2807ca14bb87198b509325a104443705df85&h=3Ddc4f91cfc2c4f=
+c76e36cc15bcd286651" target=3D"" style=3D"font-family: Arial;font-size: 12p=
+x;text-decoration: none;color: #202020;font-weight: bold;">r/Omada_Networks=
+</a> </td>=20
+                                     </tr>=20
+                                    </tbody>
+                                   </table> </td>=20
+                                 </tr>=20
+                                </tbody>
+                               </table> </td>=20
+                             </tr>=20
+                            </tbody>
+                           </table>=20
+                           <!--[if mso]>
+                                        </td>
+                                        <![endif]-->=20
+                           <!--[if mso]>
+                                        <td align=3D"center" valign=3D"top"=
+>
+                                        <![endif]-->=20
+                           <table align=3D"left" border=3D"0" cellpadding=
+=3D"0" cellspacing=3D"0" class=3D"mcnBlockFloatLeft" style=3D"display:inlin=
+e;">=20
+                            <tbody>
+                             <tr>=20
+                              <td valign=3D"top" style=3D"padding-right:0; =
+padding-bottom:9px;" class=3D"mcnFollowContentItemContainer">=20
+                               <table border=3D"0" cellpadding=3D"0" cellsp=
+acing=3D"0" width=3D"100%" class=3D"mcnFollowContentItem">=20
+                                <tbody>
+                                 <tr>=20
+                                  <td align=3D"left" valign=3D"middle" styl=
+e=3D"padding-top:5px; padding-right:10px; padding-bottom:5px; padding-left:=
+9px;">=20
+                                   <table align=3D"left" border=3D"0" cellp=
+adding=3D"0" cellspacing=3D"0" width=3D"">=20
+                                    <tbody>
+                                     <tr>=20
+                                      <td align=3D"center" valign=3D"middle=
+" width=3D"24" class=3D"mcnFollowIconContent"> <a href=3D"https://emailpush=
+.tp-link.com/emailViewStats/click?p=3D46933283ad41e5e1a51aeaa2ecd1c6dd0e3d9=
+25&lc=3D2807ca14bb87198b509325a104443705df85&h=3D104a102f13d938cadac87b244e=
+ed589e" target=3D"_blank"><img src=3D"https://static-emailpush.tp-link.com/=
+us/promotion/community_spotlight_110825/color-link-48.png" alt=3D"Forums" s=
+tyle=3D"display:block;" height=3D"24" width=3D"24" class=3D""></a> </td>=20
+                                      <td align=3D"left" valign=3D"middle" =
+class=3D"mcnFollowTextContent" style=3D"padding-left:5px;"> <a href=3D"http=
+s://emailpush.tp-link.com/emailViewStats/click?p=3D46933283ad41e5e1a51aeaa2=
+ecd1c6dd0e3d925&lc=3D2807ca14bb87198b509325a104443705df85&h=3D104a102f13d93=
+8cadac87b244eed589e" target=3D"" style=3D"font-family: Arial;font-size: 12p=
+x;text-decoration: none;color: #202020;font-weight: bold;">Forums</a> </td>=
+=20
+                                     </tr>=20
+                                    </tbody>
+                                   </table> </td>=20
+                                 </tr>=20
+                                </tbody>
+                               </table> </td>=20
+                             </tr>=20
+                            </tbody>
+                           </table>=20
+                           <!--[if mso]>
+                                        </td>
+                                        <![endif]-->=20
+                           <!--[if mso]>
+                                    </tr>
+                                    </table>
+                                    <![endif]--> </td>=20
+                         </tr>=20
+                        </tbody>
+                       </table> </td>=20
+                     </tr>=20
+                    </tbody>
+                   </table> </td>=20
+                 </tr>=20
+                </tbody>
+               </table> </td>=20
+             </tr>=20
+            </tbody>=20
+           </table>
+           <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D=
+"100%" class=3D"mcnDividerBlock" style=3D"min-width:100%;">=20
+            <tbody class=3D"mcnDividerBlockOuter">=20
+             <tr>=20
+              <td class=3D"mcnDividerBlockInner" style=3D"min-width: 100%; =
+padding: 10px 18px 15px;">=20
+               <table class=3D"mcnDividerContent" border=3D"0" cellpadding=
+=3D"0" cellspacing=3D"0" width=3D"100%" style=3D"min-width: 100%;border-top=
+: 2px solid #EAEAEA;">=20
+                <tbody>
+                 <tr>=20
+                  <td> <span></span> </td>=20
+                 </tr>=20
+                </tbody>
+               </table>=20
+               <!--           =20
+                <td class=3D"mcnDividerBlockInner" style=3D"padding: 18px;"=
+>
+                <hr class=3D"mcnDividerContent" style=3D"border-bottom-colo=
+r:none; border-left-color:none; border-right-color:none; border-bottom-widt=
+h:0; border-left-width:0; border-right-width:0; margin-top:0; margin-right:=
+0; margin-bottom:0; margin-left:0;" />
+--> </td>=20
+             </tr>=20
+            </tbody>=20
+           </table>
+           <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D=
+"100%" class=3D"mcnImageBlock" style=3D"min-width:100%;">=20
+            <tbody class=3D"mcnImageBlockOuter">=20
+             <tr>=20
+              <td valign=3D"top" style=3D"padding:0px" class=3D"mcnImageBlo=
+ckInner">=20
+               <table align=3D"left" width=3D"100%" border=3D"0" cellpaddin=
+g=3D"0" cellspacing=3D"0" class=3D"mcnImageContentContainer" style=3D"min-w=
+idth:100%;">=20
+                <tbody>
+                 <tr>=20
+                  <td class=3D"mcnImageContent" valign=3D"top" style=3D"pad=
+ding-right: 0px; padding-left: 0px; padding-top: 0; padding-bottom: 0; text=
+-align:center;"> <a href=3D"https://emailpush.tp-link.com/emailViewStats/cl=
+ick?p=3D46933283ad41e5e1a51aeaa2ecd1c6dd0e3d925&lc=3D2807ca14bb87198b509325=
+a104443705df85&h=3D1ec8836f06ef3554a31cd0d5a277301c" title=3D"" class=3D"" =
+target=3D"_blank"> <img align=3D"center" alt=3D"" src=3D"https://static-ema=
+ilpush.tp-link.com/us/promotion/community_spotlight_110825/658d4981-09a6-5f=
+aa-d080-eb344192c029.png" width=3D"600" style=3D"max-width:1856px; padding-=
+bottom: 0; display: inline !important; vertical-align: bottom;" class=3D"mc=
+nImage"> </a> </td>=20
+                 </tr>=20
+                </tbody>
+               </table> </td>=20
+             </tr>=20
+            </tbody>=20
+           </table></td>=20
+         </tr>=20
+         <tr>=20
+          <td valign=3D"top" id=3D"templateUpperBody">
+           <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D=
+"100%" class=3D"mcnTextBlock" style=3D"min-width:100%;">=20
+            <tbody class=3D"mcnTextBlockOuter">=20
+             <tr>=20
+              <td valign=3D"top" class=3D"mcnTextBlockInner" style=3D"paddi=
+ng-top:9px;">=20
+               <!--[if mso]>
+=09=09=09=09<table align=3D"left" border=3D"0" cellspacing=3D"0" cellpaddin=
+g=3D"0" width=3D"100%" style=3D"width:100%;">
+=09=09=09=09<tr>
+=09=09=09=09<![endif]-->=20
+               <!--[if mso]>
+=09=09=09=09<td valign=3D"top" width=3D"600" style=3D"width:600px;">
+=09=09=09=09<![endif]-->=20
+               <table align=3D"left" border=3D"0" cellpadding=3D"0" cellspa=
+cing=3D"0" style=3D"max-width:100%; min-width:100%;" width=3D"100%" class=
+=3D"mcnTextContentContainer">=20
+                <tbody>
+                 <tr>=20
+                  <td valign=3D"top" class=3D"mcnTextContent" style=3D"padd=
+ing-top:0; padding-right:18px; padding-bottom:9px; padding-left:18px;"> <h3=
+ class=3D"null">Matter and TP-Link - What=E2=80=99s New with Matter?</h3> S=
+ince the release of Matter, there have been several notable developments, f=
+rom <a href=3D"https://emailpush.tp-link.com/emailViewStats/click?p=3D46933=
+283ad41e5e1a51aeaa2ecd1c6dd0e3d925&lc=3D2807ca14bb87198b509325a104443705df8=
+5&h=3D79555731960b36caa39ed51729c281ae">added energy monitoring features</a=
+> to the ability to <a href=3D"https://emailpush.tp-link.com/emailViewStats=
+/click?p=3D46933283ad41e5e1a51aeaa2ecd1c6dd0e3d925&lc=3D2807ca14bb87198b509=
+325a104443705df85&h=3Ddb5296828a0c85bfff40e33d6c0d5abf">add devices directl=
+y to the H500=E2=80=99s Matter Controller!</a><br> <br> We have always work=
+ed to provide thorough coverage of the standard's goals, compatibility, and=
+ development - all of which is accessible through our Community Story: </td=
+>=20
+                 </tr>=20
+                </tbody>
+               </table>=20
+               <!--[if mso]>
+=09=09=09=09</td>
+=09=09=09=09<![endif]-->=20
+               <!--[if mso]>
+=09=09=09=09</tr>
+=09=09=09=09</table>
+=09=09=09=09<![endif]--> </td>=20
+             </tr>=20
+            </tbody>=20
+           </table>
+           <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D=
+"100%" class=3D"mcnButtonBlock" style=3D"min-width:100%;">=20
+            <tbody class=3D"mcnButtonBlockOuter">=20
+             <tr>=20
+              <td style=3D"padding-top:0; padding-right:18px; padding-botto=
+m:18px; padding-left:18px;" valign=3D"top" align=3D"center" class=3D"mcnBut=
+tonBlockInner">=20
+               <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" clas=
+s=3D"mcnButtonContentContainer" style=3D"border-collapse: separate !importa=
+nt;border: 3px solid #5396C9;border-radius: 18px;">=20
+                <tbody>=20
+                 <tr>=20
+                  <td align=3D"center" valign=3D"middle" class=3D"mcnButton=
+Content" style=3D"font-family: Arial; font-size: 16px; padding: 15px;"> <a =
+class=3D"mcnButton " title=3D"Matter and TP-Link - What is  Matter?" href=
+=3D"https://emailpush.tp-link.com/emailViewStats/click?p=3D46933283ad41e5e1=
+a51aeaa2ecd1c6dd0e3d925&lc=3D2807ca14bb87198b509325a104443705df85&h=3D1ec88=
+36f06ef3554a31cd0d5a277301c" target=3D"_blank" style=3D"font-weight: bold;l=
+etter-spacing: normal;line-height: 100%;text-align: center;text-decoration:=
+ none;color: #5396C9;">Matter and TP-Link - What is Matter?</a> </td>=20
+                 </tr>=20
+                </tbody>=20
+               </table> </td>=20
+             </tr>=20
+            </tbody>=20
+           </table>
+           <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D=
+"100%" class=3D"mcnTextBlock" style=3D"min-width:100%;">=20
+            <tbody class=3D"mcnTextBlockOuter">=20
+             <tr>=20
+              <td valign=3D"top" class=3D"mcnTextBlockInner" style=3D"paddi=
+ng-top:9px;">=20
+               <!--[if mso]>
+=09=09=09=09<table align=3D"left" border=3D"0" cellspacing=3D"0" cellpaddin=
+g=3D"0" width=3D"100%" style=3D"width:100%;">
+=09=09=09=09<tr>
+=09=09=09=09<![endif]-->=20
+               <!--[if mso]>
+=09=09=09=09<td valign=3D"top" width=3D"600" style=3D"width:600px;">
+=09=09=09=09<![endif]-->=20
+               <table align=3D"left" border=3D"0" cellpadding=3D"0" cellspa=
+cing=3D"0" style=3D"max-width:100%; min-width:100%;" width=3D"100%" class=
+=3D"mcnTextContentContainer">=20
+                <tbody>
+                 <tr>=20
+                  <td valign=3D"top" class=3D"mcnTextContent" style=3D"padd=
+ing-top:0; padding-right:18px; padding-bottom:9px; padding-left:18px;"> <h3=
+ class=3D"null">What You Need to Get Started with Matter</h3> Integrating M=
+atter into your smart home might seem like a big commitment and investment;=
+ however, this is not the case, especially considering the broad support ac=
+ross various devices and brands. In fact, you probably already have everyth=
+ing you need to add Matter to your home today.&nbsp; </td>=20
+                 </tr>=20
+                </tbody>
+               </table>=20
+               <!--[if mso]>
+=09=09=09=09</td>
+=09=09=09=09<![endif]-->=20
+               <!--[if mso]>
+=09=09=09=09</tr>
+=09=09=09=09</table>
+=09=09=09=09<![endif]--> </td>=20
+             </tr>=20
+            </tbody>=20
+           </table>
+           <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D=
+"100%" class=3D"mcnButtonBlock" style=3D"min-width:100%;">=20
+            <tbody class=3D"mcnButtonBlockOuter">=20
+             <tr>=20
+              <td style=3D"padding-top:0; padding-right:18px; padding-botto=
+m:18px; padding-left:18px;" valign=3D"top" align=3D"center" class=3D"mcnBut=
+tonBlockInner">=20
+               <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" clas=
+s=3D"mcnButtonContentContainer" style=3D"border-collapse: separate !importa=
+nt;border: 3px solid #5396C9;border-radius: 18px;">=20
+                <tbody>=20
+                 <tr>=20
+                  <td align=3D"center" valign=3D"middle" class=3D"mcnButton=
+Content" style=3D"font-family: Arial; font-size: 16px; padding: 15px;"> <a =
+class=3D"mcnButton " title=3D"What You Need to Get Started with Matter" hre=
+f=3D"https://emailpush.tp-link.com/emailViewStats/click?p=3D46933283ad41e5e=
+1a51aeaa2ecd1c6dd0e3d925&lc=3D2807ca14bb87198b509325a104443705df85&h=3D75d2=
+615ee2509be12db0a323154f676a" target=3D"_blank" style=3D"font-weight: bold;=
+letter-spacing: normal;line-height: 100%;text-align: center;text-decoration=
+: none;color: #5396C9;">What You Need to Get Started with Matter</a> </td>=
+=20
+                 </tr>=20
+                </tbody>=20
+               </table> </td>=20
+             </tr>=20
+            </tbody>=20
+           </table>
+           <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D=
+"100%" class=3D"mcnButtonBlock" style=3D"min-width:100%;">=20
+            <tbody class=3D"mcnButtonBlockOuter">=20
+             <tr>=20
+              <td style=3D"padding-top:0; padding-right:18px; padding-botto=
+m:18px; padding-left:18px;" valign=3D"top" align=3D"center" class=3D"mcnBut=
+tonBlockInner">=20
+               <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" clas=
+s=3D"mcnButtonContentContainer" style=3D"border-collapse: separate !importa=
+nt;border: 3px solid #5396C9;border-radius: 18px;">=20
+                <tbody>=20
+                 <tr>=20
+                  <td align=3D"center" valign=3D"middle" class=3D"mcnButton=
+Content" style=3D"font-family: Arial; font-size: 16px; padding: 15px;"> <a =
+class=3D"mcnButton " title=3D"Exploring Third-Party Matter Controllers and =
+Voice Assistants" href=3D"https://emailpush.tp-link.com/emailViewStats/clic=
+k?p=3D46933283ad41e5e1a51aeaa2ecd1c6dd0e3d925&lc=3D2807ca14bb87198b509325a1=
+04443705df85&h=3D7e6de94586e17a4f0ac0ef9489121d0f" target=3D"_blank" style=
+=3D"font-weight: bold;letter-spacing: normal;line-height: 100%;text-align: =
+center;text-decoration: none;color: #5396C9;">Exploring Third-Party Matter =
+Controllers and Voice Assistants</a> </td>=20
+                 </tr>=20
+                </tbody>=20
+               </table> </td>=20
+             </tr>=20
+            </tbody>=20
+           </table>
+           <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D=
+"100%" class=3D"mcnTextBlock" style=3D"min-width:100%;">=20
+            <tbody class=3D"mcnTextBlockOuter">=20
+             <tr>=20
+              <td valign=3D"top" class=3D"mcnTextBlockInner" style=3D"paddi=
+ng-top:9px;">=20
+               <!--[if mso]>
+=09=09=09=09<table align=3D"left" border=3D"0" cellspacing=3D"0" cellpaddin=
+g=3D"0" width=3D"100%" style=3D"width:100%;">
+=09=09=09=09<tr>
+=09=09=09=09<![endif]-->=20
+               <!--[if mso]>
+=09=09=09=09<td valign=3D"top" width=3D"600" style=3D"width:600px;">
+=09=09=09=09<![endif]-->=20
+               <table align=3D"left" border=3D"0" cellpadding=3D"0" cellspa=
+cing=3D"0" style=3D"max-width:100%; min-width:100%;" width=3D"100%" class=
+=3D"mcnTextContentContainer">=20
+                <tbody>
+                 <tr>=20
+                  <td valign=3D"top" class=3D"mcnTextContent" style=3D"padd=
+ing-top:0; padding-right:18px; padding-bottom:9px; padding-left:18px;"> <h3=
+ class=3D"null">Get Started with Tapo=E2=80=99s Matter-Bridged Sensors</h3>=
+ Matter has a few additional features to streamline the experience - such a=
+s allowing you to add compatible sensors from a Compatible Matter Hub (<a h=
+ref=3D"https://emailpush.tp-link.com/emailViewStats/click?p=3D46933283ad41e=
+5e1a51aeaa2ecd1c6dd0e3d925&lc=3D2807ca14bb87198b509325a104443705df85&h=3Da2=
+b1c0490e2710f980907054211b38ba" target=3D"_blank">Such as the H100/H200/H50=
+0</a>) to another platform, simply by adding the Hub:<br> &nbsp; </td>=20
+                 </tr>=20
+                </tbody>
+               </table>=20
+               <!--[if mso]>
+=09=09=09=09</td>
+=09=09=09=09<![endif]-->=20
+               <!--[if mso]>
+=09=09=09=09</tr>
+=09=09=09=09</table>
+=09=09=09=09<![endif]--> </td>=20
+             </tr>=20
+            </tbody>=20
+           </table>
+           <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D=
+"100%" class=3D"mcnButtonBlock" style=3D"min-width:100%;">=20
+            <tbody class=3D"mcnButtonBlockOuter">=20
+             <tr>=20
+              <td style=3D"padding-top:0; padding-right:18px; padding-botto=
+m:18px; padding-left:18px;" valign=3D"top" align=3D"center" class=3D"mcnBut=
+tonBlockInner">=20
+               <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" clas=
+s=3D"mcnButtonContentContainer" style=3D"border-collapse: separate !importa=
+nt;border: 3px solid #5396C9;border-radius: 18px;">=20
+                <tbody>=20
+                 <tr>=20
+                  <td align=3D"center" valign=3D"middle" class=3D"mcnButton=
+Content" style=3D"font-family: Arial; font-size: 16px; padding: 15px;"> <a =
+class=3D"mcnButton " title=3D"Adding Tapo Sub-G Sensors to Another Platform=
+ via Matter Bridging" href=3D"https://emailpush.tp-link.com/emailViewStats/=
+click?p=3D46933283ad41e5e1a51aeaa2ecd1c6dd0e3d925&lc=3D2807ca14bb87198b5093=
+25a104443705df85&h=3D0d4b6e2684b72a699bd7160a505cd7d7" target=3D"_blank" st=
+yle=3D"font-weight: bold;letter-spacing: normal;line-height: 100%;text-alig=
+n: center;text-decoration: none;color: #5396C9;">Adding Tapo Sub-G Sensors =
+to Another Platform via Matter Bridging</a> </td>=20
+                 </tr>=20
+                </tbody>=20
+               </table> </td>=20
+             </tr>=20
+            </tbody>=20
+           </table></td>=20
+         </tr>=20
+         <tr>=20
+          <td valign=3D"top" id=3D"templateColumns">=20
+           <!--[if (gte mso 9)|(IE)]>
+                                    <table align=3D"center" border=3D"0" ce=
+llspacing=3D"0" cellpadding=3D"0" width=3D"600" style=3D"width:600px;">
+                                    <tr>
+                                    <td align=3D"center" valign=3D"top" wid=
+th=3D"300" style=3D"width:300px;">
+                                    <![endif]-->=20
+           <table align=3D"left" border=3D"0" cellpadding=3D"0" cellspacing=
+=3D"0" width=3D"300" class=3D"columnWrapper">=20
+            <tbody>
+             <tr>=20
+              <td valign=3D"top" class=3D"columnContainer"></td>=20
+             </tr>=20
+            </tbody>
+           </table>=20
+           <!--[if (gte mso 9)|(IE)]>
+                                    </td>
+                                    <td align=3D"center" valign=3D"top" wid=
+th=3D"300" style=3D"width:300px;">
+                                    <![endif]-->=20
+           <table align=3D"left" border=3D"0" cellpadding=3D"0" cellspacing=
+=3D"0" width=3D"300" class=3D"columnWrapper">=20
+            <tbody>
+             <tr>=20
+              <td valign=3D"top" class=3D"columnContainer"></td>=20
+             </tr>=20
+            </tbody>
+           </table>=20
+           <!--[if (gte mso 9)|(IE)]>
+                                    </td>
+                                    </tr>
+                                    </table>
+                                    <![endif]--> </td>=20
+         </tr>=20
+         <tr>=20
+          <td valign=3D"top" id=3D"templateLowerBody">
+           <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D=
+"100%" class=3D"mcnDividerBlock" style=3D"min-width:100%;">=20
+            <tbody class=3D"mcnDividerBlockOuter">=20
+             <tr>=20
+              <td class=3D"mcnDividerBlockInner" style=3D"min-width: 100%; =
+padding: 15px 18px;">=20
+               <table class=3D"mcnDividerContent" border=3D"0" cellpadding=
+=3D"0" cellspacing=3D"0" width=3D"100%" style=3D"min-width: 100%;border-top=
+: 4px double #EAEAEA;">=20
+                <tbody>
+                 <tr>=20
+                  <td> <span></span> </td>=20
+                 </tr>=20
+                </tbody>
+               </table>=20
+               <!--           =20
+                <td class=3D"mcnDividerBlockInner" style=3D"padding: 18px;"=
+>
+                <hr class=3D"mcnDividerContent" style=3D"border-bottom-colo=
+r:none; border-left-color:none; border-right-color:none; border-bottom-widt=
+h:0; border-left-width:0; border-right-width:0; margin-top:0; margin-right:=
+0; margin-bottom:0; margin-left:0;" />
+--> </td>=20
+             </tr>=20
+            </tbody>=20
+           </table>
+           <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D=
+"100%" class=3D"mcnTextBlock" style=3D"min-width:100%;">=20
+            <tbody class=3D"mcnTextBlockOuter">=20
+             <tr>=20
+              <td valign=3D"top" class=3D"mcnTextBlockInner" style=3D"paddi=
+ng-top:9px;">=20
+               <!--[if mso]>
+=09=09=09=09<table align=3D"left" border=3D"0" cellspacing=3D"0" cellpaddin=
+g=3D"0" width=3D"100%" style=3D"width:100%;">
+=09=09=09=09<tr>
+=09=09=09=09<![endif]-->=20
+               <!--[if mso]>
+=09=09=09=09<td valign=3D"top" width=3D"600" style=3D"width:600px;">
+=09=09=09=09<![endif]-->=20
+               <table align=3D"left" border=3D"0" cellpadding=3D"0" cellspa=
+cing=3D"0" style=3D"max-width:100%; min-width:100%;" width=3D"100%" class=
+=3D"mcnTextContentContainer">=20
+                <tbody>
+                 <tr>=20
+                  <td valign=3D"top" class=3D"mcnTextContent" style=3D"padd=
+ing-top:0; padding-right:18px; padding-bottom:9px; padding-left:18px;"> <im=
+g align=3D"left" height=3D"125" src=3D"https://static-emailpush.tp-link.com=
+/us/promotion/community_spotlight_110825/ee5a0c86-52cb-c926-1a4f-df191fbff3=
+a4.png" style=3D"border: 0px  ; width: 119px; height: 125px; margin: 0px 20=
+px 0px 10px;" width=3D"119"> <h1 class=3D"null" style=3D"text-align: center=
+;"><br> Highlights and Featured Firmware Updates</h1>=20
+                   <div style=3D"text-align: center;">
+                    <span style=3D"font-size:12px"><em>Last Updated:&nbsp;N=
+ovember 4th</em></span>
+                   </div> </td>=20
+                 </tr>=20
+                </tbody>
+               </table>=20
+               <!--[if mso]>
+=09=09=09=09</td>
+=09=09=09=09<![endif]-->=20
+               <!--[if mso]>
+=09=09=09=09</tr>
+=09=09=09=09</table>
+=09=09=09=09<![endif]--> </td>=20
+             </tr>=20
+            </tbody>=20
+           </table>
+           <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D=
+"100%" class=3D"mcnTextBlock" style=3D"min-width:100%;">=20
+            <tbody class=3D"mcnTextBlockOuter">=20
+             <tr>=20
+              <td valign=3D"top" class=3D"mcnTextBlockInner" style=3D"paddi=
+ng-top:9px;">=20
+               <!--[if mso]>
+=09=09=09=09<table align=3D"left" border=3D"0" cellspacing=3D"0" cellpaddin=
+g=3D"0" width=3D"100%" style=3D"width:100%;">
+=09=09=09=09<tr>
+=09=09=09=09<![endif]-->=20
+               <!--[if mso]>
+=09=09=09=09<td valign=3D"top" width=3D"600" style=3D"width:600px;">
+=09=09=09=09<![endif]-->=20
+               <table align=3D"left" border=3D"0" cellpadding=3D"0" cellspa=
+cing=3D"0" style=3D"max-width:100%; min-width:100%;" width=3D"100%" class=
+=3D"mcnTextContentContainer">=20
+                <tbody>
+                 <tr>=20
+                  <td valign=3D"top" class=3D"mcnTextContent" style=3D"padd=
+ing-top:0; padding-right:18px; padding-bottom:9px; padding-left:18px;">=20
+                   <div style=3D"text-align: center;">
+                    Check Out&nbsp;Our Team=E2=80=99s Highlights of the Upd=
+ates from September&nbsp;Here
+                   </div> </td>=20
+                 </tr>=20
+                </tbody>
+               </table>=20
+               <!--[if mso]>
+=09=09=09=09</td>
+=09=09=09=09<![endif]-->=20
+               <!--[if mso]>
+=09=09=09=09</tr>
+=09=09=09=09</table>
+=09=09=09=09<![endif]--> </td>=20
+             </tr>=20
+            </tbody>=20
+           </table>
+           <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D=
+"100%" class=3D"mcnTextBlock" style=3D"min-width:100%;">=20
+            <tbody class=3D"mcnTextBlockOuter">=20
+             <tr>=20
+              <td valign=3D"top" class=3D"mcnTextBlockInner" style=3D"paddi=
+ng-top:9px;">=20
+               <!--[if mso]>
+=09=09=09=09<table align=3D"left" border=3D"0" cellspacing=3D"0" cellpaddin=
+g=3D"0" width=3D"100%" style=3D"width:100%;">
+=09=09=09=09<tr>
+=09=09=09=09<![endif]-->=20
+               <!--[if mso]>
+=09=09=09=09<td valign=3D"top" width=3D"300" style=3D"width:300px;">
+=09=09=09=09<![endif]-->=20
+               <table align=3D"left" border=3D"0" cellpadding=3D"0" cellspa=
+cing=3D"0" style=3D"max-width:300px;" width=3D"100%" class=3D"mcnTextConten=
+tContainer">=20
+                <tbody>
+                 <tr>=20
+                  <td valign=3D"top" class=3D"mcnTextContent" style=3D"padd=
+ing: 0px 18px 9px; font-style: normal; font-weight: bold;">=20
+                   <div style=3D"text-align: center;">
+                    <a href=3D"https://emailpush.tp-link.com/emailViewStats=
+/click?p=3D46933283ad41e5e1a51aeaa2ecd1c6dd0e3d925&lc=3D2807ca14bb87198b509=
+325a104443705df85&h=3D2ee0b8c84bfb396df1f70463195d62da" target=3D"_blank"><=
+strong>Home Networking Updates</strong></a>
+                   </div> </td>=20
+                 </tr>=20
+                </tbody>
+               </table>=20
+               <!--[if mso]>
+=09=09=09=09</td>
+=09=09=09=09<![endif]-->=20
+               <!--[if mso]>
+=09=09=09=09<td valign=3D"top" width=3D"300" style=3D"width:300px;">
+=09=09=09=09<![endif]-->=20
+               <table align=3D"left" border=3D"0" cellpadding=3D"0" cellspa=
+cing=3D"0" style=3D"max-width:300px;" width=3D"100%" class=3D"mcnTextConten=
+tContainer">=20
+                <tbody>
+                 <tr>=20
+                  <td valign=3D"top" class=3D"mcnTextContent" style=3D"padd=
+ing: 0px 18px 9px; font-style: normal; font-weight: bold;">=20
+                   <div style=3D"text-align: center;">
+                    <a href=3D"https://emailpush.tp-link.com/emailViewStats=
+/click?p=3D46933283ad41e5e1a51aeaa2ecd1c6dd0e3d925&lc=3D2807ca14bb87198b509=
+325a104443705df85&h=3D2d439ad7dd3566539dfd5891cd0a2e06" target=3D"_blank"><=
+strong>Smart Home Updates</strong></a>
+                   </div> </td>=20
+                 </tr>=20
+                </tbody>
+               </table>=20
+               <!--[if mso]>
+=09=09=09=09</td>
+=09=09=09=09<![endif]-->=20
+               <!--[if mso]>
+=09=09=09=09</tr>
+=09=09=09=09</table>
+=09=09=09=09<![endif]--> </td>=20
+             </tr>=20
+            </tbody>=20
+           </table>
+           <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D=
+"100%" class=3D"mcnTextBlock" style=3D"min-width:100%;">=20
+            <tbody class=3D"mcnTextBlockOuter">=20
+             <tr>=20
+              <td valign=3D"top" class=3D"mcnTextBlockInner" style=3D"paddi=
+ng-top:9px;">=20
+               <!--[if mso]>
+=09=09=09=09<table align=3D"left" border=3D"0" cellspacing=3D"0" cellpaddin=
+g=3D"0" width=3D"100%" style=3D"width:100%;">
+=09=09=09=09<tr>
+=09=09=09=09<![endif]-->=20
+               <!--[if mso]>
+=09=09=09=09<td valign=3D"top" width=3D"600" style=3D"width:600px;">
+=09=09=09=09<![endif]-->=20
+               <table align=3D"left" border=3D"0" cellpadding=3D"0" cellspa=
+cing=3D"0" style=3D"max-width:100%; min-width:100%;" width=3D"100%" class=
+=3D"mcnTextContentContainer">=20
+                <tbody>
+                 <tr>=20
+                  <td valign=3D"top" class=3D"mcnTextContent" style=3D"padd=
+ing: 0px 18px 9px; font-style: italic; font-weight: normal; line-height: 12=
+5%;"> <span style=3D"font-size:14px">Please see your device=E2=80=99s suppo=
+rt page for the most up-to-date notes for your specific model and hardware =
+version - our team only includes updates and models with significant additi=
+ons or changes.</span> </td>=20
+                 </tr>=20
+                </tbody>
+               </table>=20
+               <!--[if mso]>
+=09=09=09=09</td>
+=09=09=09=09<![endif]-->=20
+               <!--[if mso]>
+=09=09=09=09</tr>
+=09=09=09=09</table>
+=09=09=09=09<![endif]--> </td>=20
+             </tr>=20
+            </tbody>=20
+           </table>
+           <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D=
+"100%" class=3D"mcnDividerBlock" style=3D"min-width:100%;">=20
+            <tbody class=3D"mcnDividerBlockOuter">=20
+             <tr>=20
+              <td class=3D"mcnDividerBlockInner" style=3D"min-width: 100%; =
+padding: 5px 18px;">=20
+               <table class=3D"mcnDividerContent" border=3D"0" cellpadding=
+=3D"0" cellspacing=3D"0" width=3D"100%" style=3D"min-width: 100%;border-top=
+: 4px double #EAEAEA;">=20
+                <tbody>
+                 <tr>=20
+                  <td> <span></span> </td>=20
+                 </tr>=20
+                </tbody>
+               </table>=20
+               <!--           =20
+                <td class=3D"mcnDividerBlockInner" style=3D"padding: 18px;"=
+>
+                <hr class=3D"mcnDividerContent" style=3D"border-bottom-colo=
+r:none; border-left-color:none; border-right-color:none; border-bottom-widt=
+h:0; border-left-width:0; border-right-width:0; margin-top:0; margin-right:=
+0; margin-bottom:0; margin-left:0;" />
+--> </td>=20
+             </tr>=20
+            </tbody>=20
+           </table>
+           <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D=
+"100%" class=3D"mcnImageBlock" style=3D"min-width:100%;">=20
+            <tbody class=3D"mcnImageBlockOuter">=20
+             <tr>=20
+              <td valign=3D"top" style=3D"padding:9px" class=3D"mcnImageBlo=
+ckInner">=20
+               <table align=3D"left" width=3D"100%" border=3D"0" cellpaddin=
+g=3D"0" cellspacing=3D"0" class=3D"mcnImageContentContainer" style=3D"min-w=
+idth:100%;">=20
+                <tbody>
+                 <tr>=20
+                  <td class=3D"mcnImageContent" valign=3D"top" style=3D"pad=
+ding-right: 9px; padding-left: 9px; padding-top: 0; padding-bottom: 0; text=
+-align:center;"> <a href=3D"https://emailpush.tp-link.com/emailViewStats/cl=
+ick?p=3D46933283ad41e5e1a51aeaa2ecd1c6dd0e3d925&lc=3D2807ca14bb87198b509325=
+a104443705df85&h=3D9e44dffd8cb18aa08ca4b4e3054dcf3b" title=3D"" class=3D"" =
+target=3D"_blank"> <img align=3D"center" alt=3D"" src=3D"https://static-ema=
+ilpush.tp-link.com/us/promotion/community_spotlight_110825/8094ec2b-f3b7-82=
+34-31b7-575a87c9125e.png" width=3D"564" style=3D"max-width:1856px; padding-=
+bottom: 0; display: inline !important; vertical-align: bottom;" class=3D"mc=
+nImage"> </a> </td>=20
+                 </tr>=20
+                </tbody>
+               </table> </td>=20
+             </tr>=20
+            </tbody>=20
+           </table>
+           <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D=
+"100%" class=3D"mcnTextBlock" style=3D"min-width:100%;">=20
+            <tbody class=3D"mcnTextBlockOuter">=20
+             <tr>=20
+              <td valign=3D"top" class=3D"mcnTextBlockInner" style=3D"paddi=
+ng-top:9px;">=20
+               <!--[if mso]>
+=09=09=09=09<table align=3D"left" border=3D"0" cellspacing=3D"0" cellpaddin=
+g=3D"0" width=3D"100%" style=3D"width:100%;">
+=09=09=09=09<tr>
+=09=09=09=09<![endif]-->=20
+               <!--[if mso]>
+=09=09=09=09<td valign=3D"top" width=3D"600" style=3D"width:600px;">
+=09=09=09=09<![endif]-->=20
+               <table align=3D"left" border=3D"0" cellpadding=3D"0" cellspa=
+cing=3D"0" style=3D"max-width:100%; min-width:100%;" width=3D"100%" class=
+=3D"mcnTextContentContainer">=20
+                <tbody>
+                 <tr>=20
+                  <td valign=3D"top" class=3D"mcnTextContent" style=3D"padd=
+ing-top:0; padding-right:18px; padding-bottom:9px; padding-left:18px;"> We=
+=E2=80=99re seeking experienced IT professionals in the United States to pa=
+rticipate in our upcoming&nbsp;<strong>US Enterprise Beta Program</strong>!=
+ Selected users would be able to test and provide feedback on pre-release h=
+ardware, firmware, and features - at no cost.<br> <br> If you are intereste=
+d, please take a moment to fill out this survey so we can learn more about =
+your background and availability. </td>=20
+                 </tr>=20
+                </tbody>
+               </table>=20
+               <!--[if mso]>
+=09=09=09=09</td>
+=09=09=09=09<![endif]-->=20
+               <!--[if mso]>
+=09=09=09=09</tr>
+=09=09=09=09</table>
+=09=09=09=09<![endif]--> </td>=20
+             </tr>=20
+            </tbody>=20
+           </table>
+           <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D=
+"100%" class=3D"mcnButtonBlock" style=3D"min-width:100%;">=20
+            <tbody class=3D"mcnButtonBlockOuter">=20
+             <tr>=20
+              <td style=3D"padding-top:0; padding-right:18px; padding-botto=
+m:18px; padding-left:18px;" valign=3D"top" align=3D"center" class=3D"mcnBut=
+tonBlockInner">=20
+               <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" clas=
+s=3D"mcnButtonContentContainer" style=3D"border-collapse: separate !importa=
+nt;border: 3px solid #5396C9;border-radius: 18px;">=20
+                <tbody>=20
+                 <tr>=20
+                  <td align=3D"center" valign=3D"middle" class=3D"mcnButton=
+Content" style=3D"font-family: Arial; font-size: 16px; padding: 15px;"> <a =
+class=3D"mcnButton " title=3D"US Enterprise Beta Survey" href=3D"https://em=
+ailpush.tp-link.com/emailViewStats/click?p=3D46933283ad41e5e1a51aeaa2ecd1c6=
+dd0e3d925&lc=3D2807ca14bb87198b509325a104443705df85&h=3D9e44dffd8cb18aa08ca=
+4b4e3054dcf3b" target=3D"_blank" style=3D"font-weight: bold;letter-spacing:=
+ normal;line-height: 100%;text-align: center;text-decoration: none;color: #=
+5396C9;">US Enterprise Beta Survey</a> </td>=20
+                 </tr>=20
+                </tbody>=20
+               </table> </td>=20
+             </tr>=20
+            </tbody>=20
+           </table></td>=20
+         </tr>=20
+         <tr>=20
+          <td valign=3D"top" id=3D"templateFooter">
+           <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D=
+"100%" class=3D"mcnDividerBlock" style=3D"min-width:100%;">=20
+            <tbody class=3D"mcnDividerBlockOuter">=20
+             <tr>=20
+              <td class=3D"mcnDividerBlockInner" style=3D"min-width: 100%; =
+padding: 10px 18px 5px;">=20
+               <table class=3D"mcnDividerContent" border=3D"0" cellpadding=
+=3D"0" cellspacing=3D"0" width=3D"100%" style=3D"min-width: 100%;border-top=
+: 4px double #CAD3DA;">=20
+                <tbody>
+                 <tr>=20
+                  <td> <span></span> </td>=20
+                 </tr>=20
+                </tbody>
+               </table>=20
+               <!--           =20
+                <td class=3D"mcnDividerBlockInner" style=3D"padding: 18px;"=
+>
+                <hr class=3D"mcnDividerContent" style=3D"border-bottom-colo=
+r:none; border-left-color:none; border-right-color:none; border-bottom-widt=
+h:0; border-left-width:0; border-right-width:0; margin-top:0; margin-right:=
+0; margin-bottom:0; margin-left:0;" />
+--> </td>=20
+             </tr>=20
+            </tbody>=20
+           </table>
+           <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D=
+"100%" class=3D"mcnTextBlock" style=3D"min-width:100%;">=20
+            <tbody class=3D"mcnTextBlockOuter">=20
+             <tr>=20
+              <td valign=3D"top" class=3D"mcnTextBlockInner" style=3D"paddi=
+ng-top:9px;">=20
+               <!--[if mso]>
+=09=09=09=09<table align=3D"left" border=3D"0" cellspacing=3D"0" cellpaddin=
+g=3D"0" width=3D"100%" style=3D"width:100%;">
+=09=09=09=09<tr>
+=09=09=09=09<![endif]-->=20
+               <!--[if mso]>
+=09=09=09=09<td valign=3D"top" width=3D"600" style=3D"width:600px;">
+=09=09=09=09<![endif]-->=20
+               <table align=3D"left" border=3D"0" cellpadding=3D"0" cellspa=
+cing=3D"0" style=3D"max-width:100%; min-width:100%;" width=3D"100%" class=
+=3D"mcnTextContentContainer">=20
+                <tbody>
+                 <tr>=20
+                  <td valign=3D"top" class=3D"mcnTextContent" style=3D"padd=
+ing: 0px 18px 9px;color: #FFFFFF;"> <h3 class=3D"null" style=3D"text-align:=
+ center;"><span style=3D"color:#A9A9A9"><span style=3D"font-size:16px">Late=
+st Threads</span></span></h3> </td>=20
+                 </tr>=20
+                </tbody>
+               </table>=20
+               <!--[if mso]>
+=09=09=09=09</td>
+=09=09=09=09<![endif]-->=20
+               <!--[if mso]>
+=09=09=09=09</tr>
+=09=09=09=09</table>
+=09=09=09=09<![endif]--> </td>=20
+             </tr>=20
+            </tbody>=20
+           </table>
+           <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D=
+"100%" class=3D"mcnTextBlock" style=3D"min-width:100%;">=20
+            <tbody class=3D"mcnTextBlockOuter">=20
+             <tr>=20
+              <td valign=3D"top" class=3D"mcnTextBlockInner" style=3D"paddi=
+ng-top:9px;">=20
+               <!--[if mso]>
+=09=09=09=09<table align=3D"left" border=3D"0" cellspacing=3D"0" cellpaddin=
+g=3D"0" width=3D"100%" style=3D"width:100%;">
+=09=09=09=09<tr>
+=09=09=09=09<![endif]-->=20
+               <!--[if mso]>
+=09=09=09=09<td valign=3D"top" width=3D"300" style=3D"width:300px;">
+=09=09=09=09<![endif]-->=20
+               <table align=3D"left" border=3D"0" cellpadding=3D"0" cellspa=
+cing=3D"0" style=3D"max-width:300px;" width=3D"100%" class=3D"mcnTextConten=
+tContainer">=20
+                <tbody>
+                 <tr>=20
+                  <td valign=3D"top" class=3D"mcnTextContent" style=3D"padd=
+ing-top:0; padding-left:18px; padding-bottom:9px; padding-right:18px;"> <a =
+href=3D"https://emailpush.tp-link.com/emailViewStats/click?p=3D46933283ad41=
+e5e1a51aeaa2ecd1c6dd0e3d925&lc=3D2807ca14bb87198b509325a104443705df85&h=3D4=
+abf7ac626e1a0d3f8573c99206421f5" target=3D"_blank"><strong><span style=3D"c=
+olor:#A9A9A9">Smart Home - Recent Threads</span></strong></a> </td>=20
+                 </tr>=20
+                </tbody>
+               </table>=20
+               <!--[if mso]>
+=09=09=09=09</td>
+=09=09=09=09<![endif]-->=20
+               <!--[if mso]>
+=09=09=09=09<td valign=3D"top" width=3D"300" style=3D"width:300px;">
+=09=09=09=09<![endif]-->=20
+               <table align=3D"left" border=3D"0" cellpadding=3D"0" cellspa=
+cing=3D"0" style=3D"max-width:300px;" width=3D"100%" class=3D"mcnTextConten=
+tContainer">=20
+                <tbody>
+                 <tr>=20
+                  <td valign=3D"top" class=3D"mcnTextContent" style=3D"padd=
+ing-top:0; padding-left:18px; padding-bottom:9px; padding-right:18px;"> <a =
+href=3D"https://emailpush.tp-link.com/emailViewStats/click?p=3D46933283ad41=
+e5e1a51aeaa2ecd1c6dd0e3d925&lc=3D2807ca14bb87198b509325a104443705df85&h=3Dd=
+e4f101daa562130a6201cc40e111cf6" target=3D"_blank"><strong><span style=3D"c=
+olor:#A9A9A9">Home Networking - Recent Threads</span></strong></a> </td>=20
+                 </tr>=20
+                </tbody>
+               </table>=20
+               <!--[if mso]>
+=09=09=09=09</td>
+=09=09=09=09<![endif]-->=20
+               <!--[if mso]>
+=09=09=09=09</tr>
+=09=09=09=09</table>
+=09=09=09=09<![endif]--> </td>=20
+             </tr>=20
+            </tbody>=20
+           </table>
+           <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D=
+"100%" class=3D"mcnDividerBlock" style=3D"min-width:100%;">=20
+            <tbody class=3D"mcnDividerBlockOuter">=20
+             <tr>=20
+              <td class=3D"mcnDividerBlockInner" style=3D"min-width: 100%; =
+padding: 10px 18px 5px;">=20
+               <table class=3D"mcnDividerContent" border=3D"0" cellpadding=
+=3D"0" cellspacing=3D"0" width=3D"100%" style=3D"min-width: 100%;border-top=
+: 4px double #CAD3DA;">=20
+                <tbody>
+                 <tr>=20
+                  <td> <span></span> </td>=20
+                 </tr>=20
+                </tbody>
+               </table>=20
+               <!--           =20
+                <td class=3D"mcnDividerBlockInner" style=3D"padding: 18px;"=
+>
+                <hr class=3D"mcnDividerContent" style=3D"border-bottom-colo=
+r:none; border-left-color:none; border-right-color:none; border-bottom-widt=
+h:0; border-left-width:0; border-right-width:0; margin-top:0; margin-right:=
+0; margin-bottom:0; margin-left:0;" />
+--> </td>=20
+             </tr>=20
+            </tbody>=20
+           </table>
+           <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D=
+"100%" class=3D"mcnFollowBlock" style=3D"min-width:100%;">=20
+            <tbody class=3D"mcnFollowBlockOuter">=20
+             <tr>=20
+              <td align=3D"center" valign=3D"top" style=3D"padding:9px" cla=
+ss=3D"mcnFollowBlockInner">=20
+               <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" widt=
+h=3D"100%" class=3D"mcnFollowContentContainer" style=3D"min-width:100%;">=
+=20
+                <tbody>
+                 <tr>=20
+                  <td align=3D"center" style=3D"padding-left:9px;padding-ri=
+ght:9px;">=20
+                   <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" =
+width=3D"100%" style=3D"min-width:100%;" class=3D"mcnFollowContent">=20
+                    <tbody>
+                     <tr>=20
+                      <td align=3D"center" valign=3D"top" style=3D"padding-=
+top:9px; padding-right:9px; padding-left:9px;">=20
+                       <table align=3D"center" border=3D"0" cellpadding=3D"=
+0" cellspacing=3D"0">=20
+                        <tbody>
+                         <tr>=20
+                          <td align=3D"center" valign=3D"top">=20
+                           <!--[if mso]>
+                                    <table align=3D"center" border=3D"0" ce=
+llspacing=3D"0" cellpadding=3D"0">
+                                    <tr>
+                                    <![endif]-->=20
+                           <!--[if mso]>
+                                        <td align=3D"center" valign=3D"top"=
+>
+                                        <![endif]-->=20
+                           <table align=3D"left" border=3D"0" cellpadding=
+=3D"0" cellspacing=3D"0" class=3D"mcnBlockFloatLeft" style=3D"display:inlin=
+e;">=20
+                            <tbody>
+                             <tr>=20
+                              <td valign=3D"top" style=3D"padding-right:10p=
+x; padding-bottom:9px;" class=3D"mcnFollowContentItemContainer">=20
+                               <table border=3D"0" cellpadding=3D"0" cellsp=
+acing=3D"0" width=3D"100%" class=3D"mcnFollowContentItem">=20
+                                <tbody>
+                                 <tr>=20
+                                  <td align=3D"left" valign=3D"middle" styl=
+e=3D"padding-top:5px; padding-right:10px; padding-bottom:5px; padding-left:=
+9px;">=20
+                                   <table align=3D"left" border=3D"0" cellp=
+adding=3D"0" cellspacing=3D"0" width=3D"">=20
+                                    <tbody>
+                                     <tr>=20
+                                      <td align=3D"center" valign=3D"middle=
+" width=3D"24" class=3D"mcnFollowIconContent"> <a href=3D"https://emailpush=
+.tp-link.com/emailViewStats/click?p=3D46933283ad41e5e1a51aeaa2ecd1c6dd0e3d9=
+25&lc=3D2807ca14bb87198b509325a104443705df85&h=3D704bf532c4a2ceffac7cb34588=
+213dd3" target=3D"_blank"><img src=3D"https://static-emailpush.tp-link.com/=
+us/promotion/community_spotlight_110825/outline-light-instagram-48.png" alt=
+=3D"Instagram" style=3D"display:block;" height=3D"24" width=3D"24" class=3D=
+""></a> </td>=20
+                                     </tr>=20
+                                    </tbody>
+                                   </table> </td>=20
+                                 </tr>=20
+                                </tbody>
+                               </table> </td>=20
+                             </tr>=20
+                            </tbody>
+                           </table>=20
+                           <!--[if mso]>
+                                        </td>
+                                        <![endif]-->=20
+                           <!--[if mso]>
+                                        <td align=3D"center" valign=3D"top"=
+>
+                                        <![endif]-->=20
+                           <table align=3D"left" border=3D"0" cellpadding=
+=3D"0" cellspacing=3D"0" class=3D"mcnBlockFloatLeft" style=3D"display:inlin=
+e;">=20
+                            <tbody>
+                             <tr>=20
+                              <td valign=3D"top" style=3D"padding-right:10p=
+x; padding-bottom:9px;" class=3D"mcnFollowContentItemContainer">=20
+                               <table border=3D"0" cellpadding=3D"0" cellsp=
+acing=3D"0" width=3D"100%" class=3D"mcnFollowContentItem">=20
+                                <tbody>
+                                 <tr>=20
+                                  <td align=3D"left" valign=3D"middle" styl=
+e=3D"padding-top:5px; padding-right:10px; padding-bottom:5px; padding-left:=
+9px;">=20
+                                   <table align=3D"left" border=3D"0" cellp=
+adding=3D"0" cellspacing=3D"0" width=3D"">=20
+                                    <tbody>
+                                     <tr>=20
+                                      <td align=3D"center" valign=3D"middle=
+" width=3D"24" class=3D"mcnFollowIconContent"> <a href=3D"https://emailpush=
+.tp-link.com/emailViewStats/click?p=3D46933283ad41e5e1a51aeaa2ecd1c6dd0e3d9=
+25&lc=3D2807ca14bb87198b509325a104443705df85&h=3Da8d12f150204c3badb36b3f84e=
+cbda64" target=3D"_blank"><img src=3D"https://static-emailpush.tp-link.com/=
+us/promotion/community_spotlight_110825/outline-light-facebook-48.png" alt=
+=3D"Facebook" style=3D"display:block;" height=3D"24" width=3D"24" class=3D"=
+"></a> </td>=20
+                                     </tr>=20
+                                    </tbody>
+                                   </table> </td>=20
+                                 </tr>=20
+                                </tbody>
+                               </table> </td>=20
+                             </tr>=20
+                            </tbody>
+                           </table>=20
+                           <!--[if mso]>
+                                        </td>
+                                        <![endif]-->=20
+                           <!--[if mso]>
+                                        <td align=3D"center" valign=3D"top"=
+>
+                                        <![endif]-->=20
+                           <table align=3D"left" border=3D"0" cellpadding=
+=3D"0" cellspacing=3D"0" class=3D"mcnBlockFloatLeft" style=3D"display:inlin=
+e;">=20
+                            <tbody>
+                             <tr>=20
+                              <td valign=3D"top" style=3D"padding-right:10p=
+x; padding-bottom:9px;" class=3D"mcnFollowContentItemContainer">=20
+                               <table border=3D"0" cellpadding=3D"0" cellsp=
+acing=3D"0" width=3D"100%" class=3D"mcnFollowContentItem">=20
+                                <tbody>
+                                 <tr>=20
+                                  <td align=3D"left" valign=3D"middle" styl=
+e=3D"padding-top:5px; padding-right:10px; padding-bottom:5px; padding-left:=
+9px;">=20
+                                   <table align=3D"left" border=3D"0" cellp=
+adding=3D"0" cellspacing=3D"0" width=3D"">=20
+                                    <tbody>
+                                     <tr>=20
+                                      <td align=3D"center" valign=3D"middle=
+" width=3D"24" class=3D"mcnFollowIconContent"> <a href=3D"https://emailpush=
+.tp-link.com/emailViewStats/click?p=3D46933283ad41e5e1a51aeaa2ecd1c6dd0e3d9=
+25&lc=3D2807ca14bb87198b509325a104443705df85&h=3D611430781e0a89a081af0597cc=
+8a6d3f" target=3D"_blank"><img src=3D"https://static-emailpush.tp-link.com/=
+us/promotion/community_spotlight_110825/outline-light-youtube-48.png" alt=
+=3D"YouTube" style=3D"display:block;" height=3D"24" width=3D"24" class=3D""=
+></a> </td>=20
+                                     </tr>=20
+                                    </tbody>
+                                   </table> </td>=20
+                                 </tr>=20
+                                </tbody>
+                               </table> </td>=20
+                             </tr>=20
+                            </tbody>
+                           </table>=20
+                           <!--[if mso]>
+                                        </td>
+                                        <![endif]-->=20
+                           <!--[if mso]>
+                                        <td align=3D"center" valign=3D"top"=
+>
+                                        <![endif]-->=20
+                           <table align=3D"left" border=3D"0" cellpadding=
+=3D"0" cellspacing=3D"0" class=3D"mcnBlockFloatLeft" style=3D"display:inlin=
+e;">=20
+                            <tbody>
+                             <tr>=20
+                              <td valign=3D"top" style=3D"padding-right:10p=
+x; padding-bottom:9px;" class=3D"mcnFollowContentItemContainer">=20
+                               <table border=3D"0" cellpadding=3D"0" cellsp=
+acing=3D"0" width=3D"100%" class=3D"mcnFollowContentItem">=20
+                                <tbody>
+                                 <tr>=20
+                                  <td align=3D"left" valign=3D"middle" styl=
+e=3D"padding-top:5px; padding-right:10px; padding-bottom:5px; padding-left:=
+9px;">=20
+                                   <table align=3D"left" border=3D"0" cellp=
+adding=3D"0" cellspacing=3D"0" width=3D"">=20
+                                    <tbody>
+                                     <tr>=20
+                                      <td align=3D"center" valign=3D"middle=
+" width=3D"24" class=3D"mcnFollowIconContent"> <a href=3D"https://emailpush=
+.tp-link.com/emailViewStats/click?p=3D46933283ad41e5e1a51aeaa2ecd1c6dd0e3d9=
+25&lc=3D2807ca14bb87198b509325a104443705df85&h=3D86693966c380e172bca063fdb9=
+ddc9ab" target=3D"_blank"><img src=3D"https://static-emailpush.tp-link.com/=
+us/promotion/community_spotlight_110825/outline-light-linkedin-48.png" alt=
+=3D"LinkedIn" style=3D"display:block;" height=3D"24" width=3D"24" class=3D"=
+"></a> </td>=20
+                                     </tr>=20
+                                    </tbody>
+                                   </table> </td>=20
+                                 </tr>=20
+                                </tbody>
+                               </table> </td>=20
+                             </tr>=20
+                            </tbody>
+                           </table>=20
+                           <!--[if mso]>
+                                        </td>
+                                        <![endif]-->=20
+                           <!--[if mso]>
+                                        <td align=3D"center" valign=3D"top"=
+>
+                                        <![endif]-->=20
+                           <table align=3D"left" border=3D"0" cellpadding=
+=3D"0" cellspacing=3D"0" class=3D"mcnBlockFloatLeft" style=3D"display:inlin=
+e;">=20
+                            <tbody>
+                             <tr>=20
+                              <td valign=3D"top" style=3D"padding-right:10p=
+x; padding-bottom:9px;" class=3D"mcnFollowContentItemContainer">=20
+                               <table border=3D"0" cellpadding=3D"0" cellsp=
+acing=3D"0" width=3D"100%" class=3D"mcnFollowContentItem">=20
+                                <tbody>
+                                 <tr>=20
+                                  <td align=3D"left" valign=3D"middle" styl=
+e=3D"padding-top:5px; padding-right:10px; padding-bottom:5px; padding-left:=
+9px;">=20
+                                   <table align=3D"left" border=3D"0" cellp=
+adding=3D"0" cellspacing=3D"0" width=3D"">=20
+                                    <tbody>
+                                     <tr>=20
+                                      <td align=3D"center" valign=3D"middle=
+" width=3D"24" class=3D"mcnFollowIconContent"> <a href=3D"https://emailpush=
+.tp-link.com/emailViewStats/click?p=3D46933283ad41e5e1a51aeaa2ecd1c6dd0e3d9=
+25&lc=3D2807ca14bb87198b509325a104443705df85&h=3Dec42ba84e235b811863ec813c3=
+de0a2d" target=3D"_blank"><img src=3D"https://static-emailpush.tp-link.com/=
+us/promotion/community_spotlight_110825/outline-light-twitter-48.png" alt=
+=3D"Twitter" style=3D"display:block;" height=3D"24" width=3D"24" class=3D""=
+></a> </td>=20
+                                     </tr>=20
+                                    </tbody>
+                                   </table> </td>=20
+                                 </tr>=20
+                                </tbody>
+                               </table> </td>=20
+                             </tr>=20
+                            </tbody>
+                           </table>=20
+                           <!--[if mso]>
+                                        </td>
+                                        <![endif]-->=20
+                           <!--[if mso]>
+                                        <td align=3D"center" valign=3D"top"=
+>
+                                        <![endif]-->=20
+                           <table align=3D"left" border=3D"0" cellpadding=
+=3D"0" cellspacing=3D"0" class=3D"mcnBlockFloatLeft" style=3D"display:inlin=
+e;">=20
+                            <tbody>
+                             <tr>=20
+                              <td valign=3D"top" style=3D"padding-right:10p=
+x; padding-bottom:9px;" class=3D"mcnFollowContentItemContainer">=20
+                               <table border=3D"0" cellpadding=3D"0" cellsp=
+acing=3D"0" width=3D"100%" class=3D"mcnFollowContentItem">=20
+                                <tbody>
+                                 <tr>=20
+                                  <td align=3D"left" valign=3D"middle" styl=
+e=3D"padding-top:5px; padding-right:10px; padding-bottom:5px; padding-left:=
+9px;">=20
+                                   <table align=3D"left" border=3D"0" cellp=
+adding=3D"0" cellspacing=3D"0" width=3D"">=20
+                                    <tbody>
+                                     <tr>=20
+                                      <td align=3D"center" valign=3D"middle=
+" width=3D"24" class=3D"mcnFollowIconContent"> <a href=3D"https://emailpush=
+.tp-link.com/emailViewStats/click?p=3D46933283ad41e5e1a51aeaa2ecd1c6dd0e3d9=
+25&lc=3D2807ca14bb87198b509325a104443705df85&h=3Dca8bab0eeca6a1ec889b2e54e5=
+7c71fc" target=3D"_blank"><img src=3D"https://static-emailpush.tp-link.com/=
+us/promotion/community_spotlight_110825/outline-light-link-48.png" alt=3D"W=
+ebsite" style=3D"display:block;" height=3D"24" width=3D"24" class=3D""></a>=
+ </td>=20
+                                     </tr>=20
+                                    </tbody>
+                                   </table> </td>=20
+                                 </tr>=20
+                                </tbody>
+                               </table> </td>=20
+                             </tr>=20
+                            </tbody>
+                           </table>=20
+                           <!--[if mso]>
+                                        </td>
+                                        <![endif]-->=20
+                           <!--[if mso]>
+                                        <td align=3D"center" valign=3D"top"=
+>
+                                        <![endif]-->=20
+                           <table align=3D"left" border=3D"0" cellpadding=
+=3D"0" cellspacing=3D"0" class=3D"mcnBlockFloatLeft" style=3D"display:inlin=
+e;">=20
+                            <tbody>
+                             <tr>=20
+                              <td valign=3D"top" style=3D"padding-right:0; =
+padding-bottom:9px;" class=3D"mcnFollowContentItemContainer">=20
+                               <table border=3D"0" cellpadding=3D"0" cellsp=
+acing=3D"0" width=3D"100%" class=3D"mcnFollowContentItem">=20
+                                <tbody>
+                                 <tr>=20
+                                  <td align=3D"left" valign=3D"middle" styl=
+e=3D"padding-top:5px; padding-right:10px; padding-bottom:5px; padding-left:=
+9px;">=20
+                                   <table align=3D"left" border=3D"0" cellp=
+adding=3D"0" cellspacing=3D"0" width=3D"">=20
+                                    <tbody>
+                                     <tr>=20
+                                      <td align=3D"center" valign=3D"middle=
+" width=3D"24" class=3D"mcnFollowIconContent"> <a href=3D"mailto:tplinkus@n=
+ewsletter.tp-link.com" target=3D"_blank"><img src=3D"https://static-emailpu=
+sh.tp-link.com/us/promotion/community_spotlight_110825/outline-light-forwar=
+dtofriend-48.png" alt=3D"Email" style=3D"display:block;" height=3D"24" widt=
+h=3D"24" class=3D""></a> </td>=20
+                                     </tr>=20
+                                    </tbody>
+                                   </table> </td>=20
+                                 </tr>=20
+                                </tbody>
+                               </table> </td>=20
+                             </tr>=20
+                            </tbody>
+                           </table>=20
+                           <!--[if mso]>
+                                        </td>
+                                        <![endif]-->=20
+                           <!--[if mso]>
+                                    </tr>
+                                    </table>
+                                    <![endif]--> </td>=20
+                         </tr>=20
+                        </tbody>
+                       </table> </td>=20
+                     </tr>=20
+                    </tbody>
+                   </table> </td>=20
+                 </tr>=20
+                </tbody>
+               </table> </td>=20
+             </tr>=20
+            </tbody>=20
+           </table>
+           <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D=
+"100%" class=3D"mcnTextBlock" style=3D"min-width:100%;">=20
+            <tbody class=3D"mcnTextBlockOuter">=20
+             <tr>=20
+              <td valign=3D"top" class=3D"mcnTextBlockInner" style=3D"paddi=
+ng-top:9px;text-align:center;">=20
+               <!--[if mso]>
+=09=09=09=09<table align=3D"left" border=3D"0" cellspacing=3D"0" cellpaddin=
+g=3D"0" width=3D"100%" style=3D"width:100%;">
+=09=09=09=09<tr>
+=09=09=09=09<![endif]-->=20
+               <!--[if mso]>
+=09=09=09=09<td valign=3D"top" width=3D"600" style=3D"width:600px;">
+=09=09=09=09<![endif]-->=20
+               <table align=3D"left" border=3D"0" cellpadding=3D"0" cellspa=
+cing=3D"0" style=3D"max-width:100%; min-width:100%;" width=3D"100%" class=
+=3D"mcnTextContentContainer">=20
+                <tbody>
+                 <tr>=20
+                  <td valign=3D"top" class=3D"mcnTextContent" style=3D"padd=
+ing-top:0; padding-right:18px; padding-bottom:9px; padding-left:18px;text-a=
+lign:center;"> <a href=3D"https://emailpush.tp-link.com/emailViewStats/clic=
+k?p=3D46933283ad41e5e1a51aeaa2ecd1c6dd0e3d925&lc=3D2807ca14bb87198b509325a1=
+04443705df85&h=3D1a6da7cc7ae38406c02ebd82b86e6f49" target=3D"_blank">Contac=
+t</a>&nbsp;=E2=80=A2 <a href=3D"https://emailpush.tp-link.com/emailViewStat=
+s/click?p=3D46933283ad41e5e1a51aeaa2ecd1c6dd0e3d925&lc=3D2807ca14bb87198b50=
+9325a104443705df85&h=3D37255f205918596534ddf96c2cf2e68f" target=3D"_blank">=
+TP-Link.com</a>&nbsp;=E2=80=A2 <a href=3D"https://emailpush.tp-link.com/ema=
+ilViewStats/click?p=3D46933283ad41e5e1a51aeaa2ecd1c6dd0e3d925&lc=3D2807ca14=
+bb87198b509325a104443705df85&h=3D829b2c870976d964617f50132a790e9b" target=
+=3D"_blank">Privacy Policy</a><br> <br> <em>Copyright =C2=A9 2025 TP-Link S=
+ystems Inc, All rights reserved.</em><br> You received this email because y=
+ou've signed up and agreed to receive emails from Omada.<br> <br> <span sty=
+le=3D"color:#808080"><strong>Our Mailing address is:</strong></span><br> 5 =
+Peters Canyon Road, Suite 300<br> Irvine, CA 92606<br> <br> Want to change =
+how you receive these emails?<br> You can <a href=3D"https://emailpush.tp-l=
+ink.com/emailViewStats/click?p=3D46933283ad41e5e1a51aeaa2ecd1c6dd0e3d925&lc=
+=3D2807ca14bb87198b509325a104443705df85&h=3D94734b28d9eac10377e08587e5ec298=
+1">unsubscribe from this list</a>. </td>=20
+                 </tr>=20
+                </tbody>
+               </table>=20
+               <!--[if mso]>
+=09=09=09=09</td>
+=09=09=09=09<![endif]-->=20
+               <!--[if mso]>
+=09=09=09=09</tr>
+=09=09=09=09</table>
+=09=09=09=09<![endif]--> </td>=20
+             </tr>=20
+            </tbody>=20
+           </table></td>=20
+         </tr>=20
+        </tbody>
+       </table>=20
+       <!--[if (gte mso 9)|(IE)]>
+                        </td>
+                        </tr>
+                        </table>
+                        <![endif]-->=20
+       <!-- // END TEMPLATE --> </td>=20
+     </tr>=20
+    </tbody>
+   </table>=20
+  </center>=20
+  <img src=3D"https://emailpush.tp-link.com/emailViewStats/open?p=3D4693328=
+3ad41e5e1a51aeaa2ecd1c6dd0e3d925&lc=3D2807ca14bb87198b509325a104443705df85"=
+>=20
+ </body>
+</html>
+------=_Part_12886932_66645958.1762615240251--
+
+------=_Part_12886931_718265300.1762615240251--

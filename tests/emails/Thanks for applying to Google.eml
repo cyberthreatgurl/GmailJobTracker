@@ -1,0 +1,127 @@
+Delivered-To: kaver68@gmail.com
+Received: by 2002:a05:7108:b682:b0:45e:2301:89ff with SMTP id pb2csp690815gdb;
+        Sat, 7 Jun 2025 16:43:34 -0700 (PDT)
+X-Received: by 2002:a05:6830:f87:b0:727:36a0:a2ae with SMTP id 46e09a7af769-73888e1091dmr5600664a34.14.1749339814464;
+        Sat, 07 Jun 2025 16:43:34 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1749339814; cv=none;
+        d=google.com; s=arc-20240605;
+        b=ES6DSU1u+n54dvyFJDn0rL+enSM2wlQJD7cOgoL9+sCAPoRZNYYVP/BjVBOcppWd7V
+         69EzaBDWaZlhtX8K4y7sF6V2qn1Jcc3Hjkms2+eM3X/55KQP6hc6/lUf/DHFKJ624tqB
+         31fx600sotvHBdxvkM2jP2ZV0KvA3r97WaxUY6J81D+XrDepJyGzQ+qB83MbRDD8C+lh
+         Xjo2UTQvWL4LGRxKQzoDEEo8MneboItmJYa13bP0LCocGhVf7nIOsAAD+4xlEq884Je8
+         qdHIuGDoc70tXkJCZr35ZtLk0AoYKaYP7cM5HRIDlN18u1H66aH+G/ZAuME2iSukW1Qe
+         t2lA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=to:from:subject:date:message-id:mime-version:dkim-signature;
+        bh=Hl1pIJPsudWqL1zXKOTji7yPaoxABjxePuim6jxbkeU=;
+        fh=G/VLhrQnXiN6LciSgCgIU9VM0fr+1O2AyqFGWpHCjzw=;
+        b=acPzfbdeTNhwFuqWkUA2DDtI8NFgOEctFnvX7AFUMKBNksMYa/zro1zI3nJfJLnwkt
+         zzRLCLwrL+rlj3Ik7FMqnamgI8fwrASfmnTiHKT95xuVT4EUx5b3nYljib4CC7QkfJE4
+         K03m08y8i6R+WtBFcoQY3Tfz1huBHkgRD1yn8wCYhPn2K9+SNw8wSI2WGi+ZrkfY7Pql
+         1cHDYJsOTvFRKtYm9VqqyHJCPclDYNbU5yqRs/UY3MGrwgOjPXMnSPQEa4ktsCD99rvi
+         KNJNGqwuD2Qr9O0qbPMKeSHVTIhChu5Xe45bywn98CpRGdENo1CON3xiPlpJGwJcnfFo
+         /x7w==;
+        dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@google.com header.s=20230601 header.b=uRetUwbX;
+       spf=pass (google.com: domain of 3pc5eaackb54lmpcnjwemmejc.amki8tcpegek8gj.amk@ghire.bounces.google.com designates 209.85.220.75 as permitted sender) smtp.mailfrom=3pc5EaAcKB54LMPCNJWEMMEJC.AMKI8TCPegEK8GJ.AMK@ghire.bounces.google.com;
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=google.com;
+       dara=pass header.i=@gmail.com
+Return-Path: <3pc5EaAcKB54LMPCNJWEMMEJC.AMKI8TCPegEK8GJ.AMK@ghire.bounces.google.com>
+Received: from mail-sor-f75.google.com (mail-sor-f75.google.com. [209.85.220.75])
+        by mx.google.com with SMTPS id 46e09a7af769-7388a08858asor456945a34.17.2025.06.07.16.43.34
+        for <kaver68@gmail.com>
+        (Google Transport Security);
+        Sat, 07 Jun 2025 16:43:34 -0700 (PDT)
+Received-SPF: pass (google.com: domain of 3pc5eaackb54lmpcnjwemmejc.amki8tcpegek8gj.amk@ghire.bounces.google.com designates 209.85.220.75 as permitted sender) client-ip=209.85.220.75;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@google.com header.s=20230601 header.b=uRetUwbX;
+       spf=pass (google.com: domain of 3pc5eaackb54lmpcnjwemmejc.amki8tcpegek8gj.amk@ghire.bounces.google.com designates 209.85.220.75 as permitted sender) smtp.mailfrom=3pc5EaAcKB54LMPCNJWEMMEJC.AMKI8TCPegEK8GJ.AMK@ghire.bounces.google.com;
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=google.com;
+       dara=pass header.i=@gmail.com
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20230601; t=1749339814; x=1749944614; dara=google.com;
+        h=to:from:subject:date:message-id:mime-version:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=Hl1pIJPsudWqL1zXKOTji7yPaoxABjxePuim6jxbkeU=;
+        b=uRetUwbX962+1bs50HkzJ6QM5n8tWyz9BcdAML7vz/eGOOUud6qVKgAzL89QIhkV31
+         Kioy3FSuNgjOTfBhOV+qS32Me5hcN2zgXIkEO9yuXE9LA5qS9FqWusw/UuRZnlBv3l2y
+         WENuqzAbsybeyCzVpHTn0D5OE46pY5IF/8N4dkIiTZwfkhiRN4th8ktfd/gYeAOWGG9R
+         8aJRoXvBEfiIyqNDHGIPXyw1FljkgAJjpZAopqWOOIojxzHBILo2uVs3FRRH8OnBZhW0
+         A4cDSVwPP6sUF9XE74BIZjZfphofcZOt8K4+GT+ryXi3kW9wkWeLv4CG6to0p4hKSz2s
+         94Tw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1749339814; x=1749944614;
+        h=to:from:subject:date:message-id:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=Hl1pIJPsudWqL1zXKOTji7yPaoxABjxePuim6jxbkeU=;
+        b=nG58SdGVp/WIy737o3zWmhT/ZUCAaiRi+qQph1xOfHhdOAJ9JKvEWU7JBct6c34dh4
+         14cRuRwdvHK3hGTo4QfsIvmqhL/gSy0Hp00Y8xw38vIpVOElAAmY/PU6YyQ2vPGAp9Al
+         NBUubsYXnZx09cWyugM0oKwuZN68rKTMizsXgxrGm9WGcgG6AAY1lQ8xe0Wbe78xJmRl
+         9YGJJFUThv5z5PAABfSEiy2/KYq3dAH8kIPgHzZZ832kTmijzV1KjkQ1serjRovirrR+
+         HBFCwA38awDxIBu4p6VyBgQeoxYLmJmReF/xmFzvYosKrXiR7cDmscFNyQR4p20HSysz
+         IQ3w==
+X-Gm-Message-State: AOJu0YzAWEzK/abSGsvXUIP6Bxlr/df4AuGfV7vshdKdTgB4plrfXw+f
+	lyetV48cO3hz5xESF3jvmdtfTw+2N3KluU5L+EvPaJ609kn83L7ZvIyU6SzA8nO8p9Zpllii/D6
+	+fUzD/P4j9HmKD/O5c8AVeFW3Xusv+BveT6EwV2ryVMzfZCOZEM0P6SKds8OucBRBKXSolgGLkN
+	b3+e11pX7xoRiSLu4ZXgoNFv7QsncNRxvWlvnFSWLEMrclKwp00mw2X1doxWDbts0HJw==
+X-Google-Smtp-Source: AGHT+IHxKp49qLHWm0D6AifaHZLoNAkyJah52uTFCZGM6600U7hMwH6/v+GZ0WYkhVmCGFvWUZRD9Yrex5fdP8SPW8aOjSNtEmuPEB9/
+MIME-Version: 1.0
+X-Received: by 2002:a05:6870:b617:b0:2c1:61c3:2636 with SMTP id
+ 586e51a60fabf-2ea0155a441mr5191fac.8.1749339813597; Sat, 07 Jun 2025 16:43:33
+ -0700 (PDT)
+Message-ID: <0000000000002f08df063703ea44@google.com>
+Date: Sat, 07 Jun 2025 23:43:33 +0000
+Subject: Thanks for applying to Google
+From: noreply@google.com
+To: kaver68@gmail.com
+Content-Type: multipart/alternative; boundary="0000000000002f08d1063703ea41"
+
+--0000000000002f08d1063703ea41
+Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
+Content-Transfer-Encoding: base64
+
+SGkgS2VsbHksDQoNClRoYW5rcyBmb3IgYXBwbHlpbmcgdG8gR29vZ2xlISBUaGVyZSBhcmUgYSB0
+b24gb2YgZ3JlYXQgY29tcGFuaWVzIG91dCAgDQp0aGVyZSwgc28gd2UgYXBwcmVjaWF0ZSB5b3Vy
+IGludGVyZXN0IGluIGpvaW5pbmcgb3VyIHRlYW0uDQoNCldoaWxlIHdl4oCZcmUgbm90IGFibGUg
+dG8gcmVhY2ggb3V0IHRvIGV2ZXJ5IGFwcGxpY2FudCwgb3VyIHJlY3J1aXRpbmcgdGVhbSAgDQp3
+aWxsIGNvbnRhY3QgeW91IGlmIHlvdXIgc2tpbGxzIGFuZCBleHBlcmllbmNlIGFyZSBhIHN0cm9u
+ZyBtYXRjaCBmb3IgdGhlICANCnJvbGUuIEluIHRoZSBtZWFudGltZSwgam9pbiB0aGUgY29udmVy
+c2F0aW9uIGFib3V0IGpvYiBvcHBvcnR1bml0aWVzIGFuZCAgDQpsaWZlIGF0IEdvb2dsZSBvbiBv
+dXIgTGlua2VkSW4gcGFnZTogIA0KaHR0cHM6Ly93d3cubGlua2VkaW4uY29tL2NvbXBhbnkvZ29v
+Z2xlLy4NCg0KVGhhbmtzLA0KDQpHb29nbGUgUmVjcnVpdGluZw0KDQoNCkxlYXJuIG1vcmUgYWJv
+dXQgb3VyIEVxdWFsIEVtcGxveW1lbnQgT3Bwb3J0dW5pdHkgcG9saWN5OiAgDQpodHRwczovL2Nh
+cmVlcnMuZ29vZ2xlLmNvbS9lZW8vIGFuZCB0aGUgRUVPQydzICJFcXVhbCBFbXBsb3ltZW50ICAN
+Ck9wcG9ydHVuaXR5IGlzIFRoZSBMYXciIChQREYpOiAgDQpodHRwczovL2NhcmVlcnMuZ29vZ2xl
+LmNvbS9zdGF0aWMvZmlsZXMvZWVvaXN0aGVsYXcucGRmDQoNClBheSBUcmFuc3BhcmVuY3kgUG9s
+aWN5DQpHb29nbGUncyBQYXkgVHJhbnNwYXJlbmN5IFBvbGljeSBlbnN1cmVzIHRoYXQgeW91IHdv
+bid0IGJlIGRpc2NoYXJnZWQgb3IgIA0KZGlzY3JpbWluYXRlZCBhZ2FpbnN0IGJhc2VkIG9uIHdo
+ZXRoZXIgeW91J3ZlIGlucXVpcmVkIGFib3V0LCBkaXNjdXNzZWQsIG9yICANCmRpc2Nsb3NlZCB5
+b3VyIHBheS4gIFJlYWQgdGhlIGZ1bGwgcG9saWN5IChQREYpOiAgDQpodHRwczovL2NhcmVlcnMu
+Z29vZ2xlLmNvbS9zdGF0aWMvZmlsZXMvcGF5dHJhbnNwYXJlbmN5LnBkZg0KDQpUaGUgaW5mb3Jt
+YXRpb24geW91IHByb3ZpZGUgd2lsbCBiZSB1c2VkIGluIGFjY29yZGFuY2Ugd2l0aCBHb29nbGUn
+cyAgDQphcHBsaWNhbnQgYW5kIGNhbmRpZGF0ZSBwcml2YWN5IHBvbGljeTogIA0KaHR0cHM6Ly93
+d3cuZ29vZ2xlLmNvbS9hYm91dC9jYXJlZXJzL2FwcGxpY2F0aW9ucy9wcml2YWN5LXBvbGljeS4N
+Cg==
+--0000000000002f08d1063703ea41
+Content-Type: text/html; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+<p>Hi Kelly,</p><p>Thanks for applying to Google! There are a ton of great =
+companies out there, so we appreciate your interest in joining our team.</p=
+><p>While we=E2=80=99re not able to reach out to every applicant, our recru=
+iting team will contact you if your skills and experience are a strong matc=
+h for the role. In the meantime, join the conversation about job opportunit=
+ies and life at Google on our <a href=3D"https://www.linkedin.com/company/g=
+oogle/">LinkedIn page</a>.</p><p>Thanks,</p><p>Google Recruiting</p><br><br=
+>Learn more about our <a href=3D"https://careers.google.com/eeo/">Equal Emp=
+loyment Opportunity policy</a> and the EEOC's<a href=3D'https://careers.goo=
+gle.com/static/files/eeoisthelaw.pdf'> "Equal Employment Opportunity is The=
+ Law" (PDF)</a><br><br>Pay Transparency Policy<br>Google's Pay Transparency=
+ Policy ensures that you won't be discharged or discriminated against based=
+ on whether you've inquired about, discussed, or disclosed your pay. <a hre=
+f=3D'https://careers.google.com/static/files/paytransparency.pdf'> Read the=
+ full policy (PDF)</a><br><br>The information you provide will be used in a=
+ccordance with Google's <a href=3D"https://www.google.com/about/careers/app=
+lications/privacy-policy"> applicant and candidate privacy policy</a>.
+--0000000000002f08d1063703ea41--

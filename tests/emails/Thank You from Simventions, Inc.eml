@@ -1,0 +1,142 @@
+Delivered-To: kaver68@gmail.com
+Received: by 2002:ac4:c64b:0:b0:757:76d4:7aec with SMTP id h11csp399195pil;
+        Wed, 5 Nov 2025 07:05:47 -0800 (PST)
+X-Google-Smtp-Source: AGHT+IFHmExReYcwo9CvLWBYTYvab/rIZ70YEan7UqcR+jLS0BB9s+d/l/d6pemoVDVUxrwzjcEO
+X-Received: by 2002:a05:690c:498a:b0:786:6e9e:5b48 with SMTP id 00721157ae682-786a41aae8emr32716297b3.51.1762355147337;
+        Wed, 05 Nov 2025 07:05:47 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1762355147; cv=none;
+        d=google.com; s=arc-20240605;
+        b=EtBu9O5pVQpfxoxyLBBCggjV2wRBvlPVzriQ3NrJcUrEX+myxXXvUtyGXAd8Pafbqy
+         JkWqP4c8EotFF/DYmZkh8mDN2HbD1YdsZ+dXulpmc0aFdTZ+jOHBx2hHTckYMGr82Fud
+         fSmSgEWjEGHueyie9MNxrXxeJLSYe6b+FQ+CB43n/3wDYoKEuYnW7KC5HgxUVDfkuGHs
+         PWHS6GlIKlRhFQ0jqtGHvP6uqDHWd7wn6qaUhTwK8yLMvnKVpYoL/ewH7YtRTRzou2hK
+         USH4mfwCl/cyOtSyfKDT5DekZkoCNc0RsBiRLyzrHVgpTr1aNI2qaV9pLe2fZNCaijn8
+         IDOw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=list-id:list-unsubscribe-post:list-unsubscribe:precedence
+         :mime-version:subject:message-id:to:reply-to:from:date
+         :dkim-signature;
+        bh=W8QsWSHpLBWJmA980oM22u2qbqrK+e+bFrbR23QVtA4=;
+        fh=G/VLhrQnXiN6LciSgCgIU9VM0fr+1O2AyqFGWpHCjzw=;
+        b=hwyv7ZB0Eq4PNSgH1HB/x9gp8/X9dj0stTQCxfjq9+v/Soy6R33OxZS59614VmB9BD
+         IY7PgCsBbOofbnvzx55nCeV8SDCqCY+ja/YwBxN+I2OauyV3oLRce8tgAypjHn+1cAtX
+         FAbPMqJwxkdrPtvjfO9YJCuuC5wMYqjXT2p7AcfCbSKfSdNlh1nbgbHn2SDnL6DLAl0M
+         GUAXdtGAOYGp4N4g/Gsg2dyDaPsOkotmcJvGQ7qdvB8rJT4OiyONP5zMHq6znIpt3wBm
+         Hzu9EPPfqJauCi+IVDLFuSOnzOUvyq0CRiXzh8UrfdgnEMKDx3MyCmMBLCpfESjvSWtg
+         7Hsg==;
+        dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@talent.icims.com header.s=scph1117 header.b=f5CHgnK3;
+       spf=pass (google.com: domain of msprvs1=20404bouuunba=bounces-131558-8400@bounces.icims.com designates 162.247.166.129 as permitted sender) smtp.mailfrom="msprvs1=20404boUUuNba=bounces-131558-8400@bounces.icims.com";
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=talent.icims.com
+Return-Path: <msprvs1=20404boUUuNba=bounces-131558-8400@bounces.icims.com>
+Received: from icims-talentplatform-166129.email.icims.tools (icims-talentplatform-166129.email.icims.tools. [162.247.166.129])
+        by mx.google.com with ESMTPS id 00721157ae682-7864ba6824csi101182187b3.147.2025.11.05.07.05.46
+        for <kaver68@gmail.com>
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 05 Nov 2025 07:05:47 -0800 (PST)
+Received-SPF: pass (google.com: domain of msprvs1=20404bouuunba=bounces-131558-8400@bounces.icims.com designates 162.247.166.129 as permitted sender) client-ip=162.247.166.129;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@talent.icims.com header.s=scph1117 header.b=f5CHgnK3;
+       spf=pass (google.com: domain of msprvs1=20404bouuunba=bounces-131558-8400@bounces.icims.com designates 162.247.166.129 as permitted sender) smtp.mailfrom="msprvs1=20404boUUuNba=bounces-131558-8400@bounces.icims.com";
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=talent.icims.com
+Return-Path: <msprvs1=20404boUUuNba=bounces-131558-8400@bounces.icims.com>
+X-MSFBL: t//ucWiUtoNZgfBIgqVIJSZ1Vguoa5uoKzArdO8/fGE=|eyJzdWJhY2NvdW50X2l
+	kIjoiODQwMCIsInRlbmFudF9pZCI6InNwYyIsImN1c3RvbWVyX2lkIjoiMTMxNTU
+	4IiwibWVzc2FnZV9pZCI6IjY5MDljYTY3MGI2OTEzNmMwYTZiIiwiciI6ImthdmV
+	yNjhAZ21haWwuY29tIn0=
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=talent.icims.com;
+	s=scph1117; t=1762355146; i=@talent.icims.com;
+	bh=W8QsWSHpLBWJmA980oM22u2qbqrK+e+bFrbR23QVtA4=;
+	h=Date:From:To:Message-ID:Subject:Content-Type:X-CSA-Complaints:
+	 List-Unsubscribe:List-Unsubscribe-Post:From:To:Cc:Subject;
+	b=f5CHgnK3i0ic9/4JvNOnhfKRVorFKUsxjY+cAeQOihA0e6iXOWG71lIS5Z9CMjylc
+	 9o3wvdydWg+5pV8N4x0zeao90fXooCDXzOqWUQ7tyJBLINAZBiu+HzMYj9yFH0ya5o
+	 pW6vOzWHtwhv29Y0vMbdMcZzhsiuny9DAYlAfaPg=
+Received: from [10.90.3.53] ([10.90.3.53])
+	by i-09c4bb9a953389478.mta1vrest.sd.prd.sparkpost (ecelerity 5.1.0.74659 r(msys-ecelerity:tags/5.1.0.17)) with REST
+	id B6/A0-07653-AC76B096; Wed, 05 Nov 2025 15:05:46 +0000
+Date: Wed, 5 Nov 2025 10:05:46 -0500 (EST)
+From: Tara Pettyjohn <simventions+email+7b7-0d958e4166@talent.icims.com>
+Reply-To: Tara Pettyjohn <simventions+email+7b7-0d958e4166@talent.icims.com>
+To: kaver68@gmail.com
+Message-ID: <1103635258.14293.1762355146152@ip-10-47-161-115.ec2.internal>
+Subject: Thank You from Simventions, Inc
+MIME-Version: 1.0
+Content-Type: multipart/alternative; 
+	boundary="----=_Part_14291_42029483.1762355146150"
+X-iRecruiter-Type: ME
+X-iCIMS-Type: ME
+X-iCIMS-Priority: Bulk
+Precedence: bulk
+X-iRecruiter-Source: simventions
+X-iCIMS-Message-Id: 85260.kYYRL+gwEn5OS32cxpV7J76BOeul7E+YwmC6/sGRQOM=
+X-CSA-Complaints: csa-complaints@eco.de
+X-MSYS-API: { "options" : { "open_tracking" : true, "click_tracking" : true, "transactional": false, "ip_pool": "prd_us_bulk" } }
+List-Unsubscribe: <mailto:unsubscribe@unsub.spmta.com?subject=unsubscribe:enZlwXKYasgfxDNwMf_4ikP-U5KGyUPN-jA2Ai5aYew~|eyAicmNwdF90byI6ICJrYXZlcjY4QGdtYWlsLmNvbSIsICJ0ZW5hbnRfaWQiOiAic3BjIiwgImN1c3RvbWVyX2lkIjogIjEzMTU1OCIsICJtZXNzYWdlX2lkIjogIjY5MDljYTY3MGI2OTEzNmMwYTZiIiwgInN1YmFjY291bnRfaWQiOiAiODQwMCIgfQ~~>,<https://unsubscribe.spmta.com/u/6hBp82JvqIvGD1uYBo6IFA~~/AAIB5hA~/ZJ12KVbfTzJP4sL32f5_6DPnpyV4u9se-42RrujgWPOsQQGjfjmkPXMkbYc1qto_swpy5_o84Wr6QsAIE-WepQ~~>
+List-Unsubscribe-Post: List-Unsubscribe=One-Click
+List-Id: <spc.131558.8400.sparkpostmail.com>
+
+------=_Part_14291_42029483.1762355146150
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="UTF-8"
+
+Hi Adrian,=0D=0A=C2=A0=0D=0AThank you for your interest in the Cyber System=
+s &amp; Acquisition Analyst (Mid to Senior level) (ID 2025-1507) position. =
+We wanted to reach out and provide an update on the status of your applicat=
+ion.=0D=0A=C2=A0=0D=0AAfter careful review of your application, we have dec=
+ided to move forward with other candidates whose skills and experience more=
+ closely align with the requirements of the position. This decision was not=
+ a reflection on your qualifications, but rather a difficult choice among a=
+ highly competitive field of candidates.=0D=0A=C2=A0=0D=0AWe understand the=
+ effort required to submit an application, and we want to thank you for tak=
+ing the time to apply and for your interest in SimVentions. We encourage yo=
+u to revisit our career site and apply for any suitable positions that are =
+of interest to you. We wish you all the best in your job search, and we hop=
+e that you find a position that is a great fit for your career goals.=0D=0A=
+=C2=A0=0D=0AThank you,=0D=0ASimVentions Recruiting =0D=0A=C2=A0=0D=0A=0D=0A=
+=0D=0A**************************************************=0D=0AThis message =
+was sent to kaver68@gmail.com. If you don't want to receive these emails fr=
+om this company in the future, please go to:=0D=0Ahttps://tracking.icims.co=
+m/f/a/glgI2Q_Oa5cCKrgzaPn0lg~~/AAIB5hA~/hLpSg4vdQQ0LXojm4RN_QIBIWg4GBntbeon=
+0kcXEuKmHcHsp-0G-SyElnMlnv0dZ4g2hLPeN9tkUP0kSN8OIHEEnuBJVx_BMlU3Nxi0OFlBzJD=
+QXzLPzXVZR0xxfjbdhg_MyFVhF_mARrlldscnJRoht6OCFfnOVL5JZoKkZqN0~ =0D=0A/n &#1=
+69; SimVentions Inc. Fredericksburg Virginia USA/n=0D=0A
+------=_Part_14291_42029483.1762355146150
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/html; charset="UTF-8"
+
+<p style=3D"margin: 0px;">Hi Adrian,</p><p style=3D"margin: 0px;">&nbsp;</p=
+><p style=3D"margin: 0px;">Thank you for your interest in the Cyber Systems=
+ &amp; Acquisition Analyst (Mid to Senior level) (ID 2025-1507) position. W=
+e wanted to reach out and provide an update on the status of your applicati=
+on.</p><p style=3D"margin: 0in;">&nbsp;</p><p style=3D"margin: 0in;">After =
+careful review of your application, we have decided to move forward with ot=
+her candidates whose skills and experience more closely align with the requ=
+irements of the position. This decision was not a reflection on your qualif=
+ications, but rather a difficult choice among a highly competitive field of=
+ candidates.</p><p style=3D"margin: 0in;">&nbsp;</p><p style=3D"margin: 0in=
+;">We understand the effort required to submit an application, and we want =
+to thank you for taking the time to apply and for your interest in SimVenti=
+ons. We encourage you to revisit our career site and apply for any suitable=
+ positions that are of interest to you. We wish you all the best in your jo=
+b search, and we hope that you find a position that is a great fit for your=
+ career goals.</p><p style=3D"margin: 0in;">&nbsp;</p><p style=3D"margin: 0=
+in;">Thank you,</p><p style=3D"margin: 0in; border: none; padding: 0in;"><s=
+pan>SimVentions Recruiting </span></p><p style=3D"margin: 0in; border: none=
+; padding: 0in;">&nbsp;</p><p style=3D"margin: 0in; border: none; padding: =
+0in;"><img src=3D"https://simventions.icims.com/icims2/servlet/icims2=3Fmod=
+ule=3DAppInert&amp;action=3Ddownload&amp;id=3D1612&amp;hashed=3D466134330" =
+alt=3D"Recruiting Email Signtature - 2000px" width=3D"457" height=3D"232" /=
+></p><br><hr>This message was sent to kaver68@gmail.com. If you don't want =
+to receive these emails from this company in the future, please go to:<br><=
+a data-notracking=3D"1" href=3D"https://tracking.icims.com/f/a/glgI2Q_Oa5cC=
+KrgzaPn0lg~~/AAIB5hA~/hLpSg4vdQQ0LXojm4RN_QIBIWg4GBntbeon0kcXEuKmHcHsp-0G-S=
+yElnMlnv0dZ4g2hLPeN9tkUP0kSN8OIHEEnuBJVx_BMlU3Nxi0OFlBzJDQXzLPzXVZR0xxfjbdh=
+g_MyFVhF_mARrlldscnJRoht6OCFfnOVL5JZoKkZqN0~">https://simventions.icims.com=
+/icims2/=3Fr=3DD6039052&contactId=3D85260</a>=0D=0A<br><br><center> &#169; =
+SimVentions Inc. Fredericksburg Virginia USA</center>=0D=0A<img border=3D"0=
+" width=3D"1" height=3D"1" alt=3D"" src=3D"https://tracking.icims.com/q/zqp=
+NBuGP3myLNmTwzHSSzg~~/AAIB5hA~/vsP_wGja958UQ172QIgdf9_I-zQE5aFR2Fe2lMtoDrcA=
+_V6FWQFIUU_d9_NTS3mhGVDIqjl6T4z76Y7JTIKuRg~~">=0D=0A=0D=0A
+------=_Part_14291_42029483.1762355146150--

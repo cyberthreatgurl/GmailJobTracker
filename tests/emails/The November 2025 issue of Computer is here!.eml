@@ -1,0 +1,902 @@
+Delivered-To: kaver68@gmail.com
+Received: by 2002:ac4:8d07:0:b0:759:c52c:7988 with SMTP id ff7csp1665396pib;
+        Sat, 8 Nov 2025 08:01:23 -0800 (PST)
+X-Google-Smtp-Source: AGHT+IH1px8DBjjTvigbskX6V2kJvJWTe+oAXz82tWluKog+J5yrhqmtlAIjowP4J5Kgj3jCHr4F
+X-Received: by 2002:a05:6214:2404:b0:880:4aec:c4ed with SMTP id 6a1803df08f44-882385b5393mr42539356d6.6.1762617683403;
+        Sat, 08 Nov 2025 08:01:23 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1762617683; cv=none;
+        d=google.com; s=arc-20240605;
+        b=FbVIQcAXE3zMKsFKYQXDzOEJl7QgObbED1ncQOS+ZjGin2Bxzo5baHCljiiFR2/aBS
+         3fgePX7bxa/dX+r+7FkshU1xAUgIe1rlbWnmjCi6ExGzcgtYwd+YTzMx4dCJcLJqeJ7y
+         1dAWoUVlUYQOfWy/4lJj0bMMSjRlWYjGoVTFnQAoB+3Hxkseqp3SBeUe+kL69HObtCMW
+         PI8mxOnPpuDnFCZqM6O3rJ8gQU6we8mp6yc/c+sRj2MZaGVFgvm6UunGwR83n2Lw5ctR
+         2Gcn5lW/y0B9d1C1gHs7RU+oSRc/9EulwT1g3W7ooozwN7+XGZffHd2T5Ci7P4LlW2oT
+         3HnA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=list-unsubscribe:list-unsubscribe-post:mime-version:subject
+         :message-id:to:reply-to:from:date:dkim-signature:dkim-signature;
+        bh=K8HSstdHNz+uBtnaKqfacFQiE/MuBblKkrvDM3wush0=;
+        fh=G/VLhrQnXiN6LciSgCgIU9VM0fr+1O2AyqFGWpHCjzw=;
+        b=Mk4CAJi3R4Ou6GMIpdj87u8GXJR6UQndaxTDTTyNhFa/GN/lmWd3z1UMsIE7vdr8bn
+         3/6Y6raaFFOVOEdws3W8y5iWu/4xSwO9rDjah2GtKVfyipzFDIDZwZrqp3ZotSqMRBJK
+         8DUiGrA0eag3INbNt3AkTGjmwWaAjFpmh7H3XmJeuLncgoLINg1J1FN0QbSYuwU4SP/v
+         TmPRyHsfEKa+uVeCTux21VsyC/Y3qPU1rWGESQb7DPRdRrFP+B5ks4Vq+cBvy/P5wZ+R
+         dBytKZs9FYX2OHdmYuT92gQczjf8kTQ0npnV5HMSVrlJJhnxBEBKOVPzQL6Dv5HJaqYA
+         yn+A==;
+        dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@deliver.ieee.org header.s=m1 header.b=VdHIMd7K;
+       dkim=pass header.i=@mktdns.com header.s=m1 header.b=C6uaTmuX;
+       spf=pass (google.com: domain of 756-gph-899.0.83230.0.0.115225.9.35149042-36@deliver.ieee.org designates 192.28.153.162 as permitted sender) smtp.mailfrom=756-GPH-899.0.83230.0.0.115225.9.35149042-36@deliver.ieee.org;
+       dmarc=pass (p=QUARANTINE sp=QUARANTINE dis=NONE) header.from=deliver.ieee.org
+Return-Path: <756-GPH-899.0.83230.0.0.115225.9.35149042-36@deliver.ieee.org>
+Received: from deliver1.ieee.org (deliver1.ieee.org. [192.28.153.162])
+        by mx.google.com with ESMTPS id 6a1803df08f44-88238bdbdb9si6555046d6.1279.2025.11.08.08.01.23
+        for <kaver68@gmail.com>
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Sat, 08 Nov 2025 08:01:23 -0800 (PST)
+Received-SPF: pass (google.com: domain of 756-gph-899.0.83230.0.0.115225.9.35149042-36@deliver.ieee.org designates 192.28.153.162 as permitted sender) client-ip=192.28.153.162;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@deliver.ieee.org header.s=m1 header.b=VdHIMd7K;
+       dkim=pass header.i=@mktdns.com header.s=m1 header.b=C6uaTmuX;
+       spf=pass (google.com: domain of 756-gph-899.0.83230.0.0.115225.9.35149042-36@deliver.ieee.org designates 192.28.153.162 as permitted sender) smtp.mailfrom=756-GPH-899.0.83230.0.0.115225.9.35149042-36@deliver.ieee.org;
+       dmarc=pass (p=QUARANTINE sp=QUARANTINE dis=NONE) header.from=deliver.ieee.org
+X-MSFBL: huGu7xsmn2tBpxMlhftScfT048VQ0xMtBEIRFVxRRPo=|eyJ1IjoiNzU2LUdQSC0
+	4OTk6MDoxMzM3ODM6MzA2NjUxOjY3MDU2MToxMTUyMjU6OTo4MzIzMDozNTE0OTA
+	0Mi0zNiIsImciOiJiZy1hYmQtNzA1IiwiYiI6ImR2cC0xOTItMjgtMTUzLTE2MiI
+	sInIiOiJrYXZlcjY4QGdtYWlsLmNvbSJ9
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1762617654;
+	s=m1; d=deliver.ieee.org; i=@deliver.ieee.org;
+	h=List-Unsubscribe:List-Unsubscribe-Post:Content-Type:MIME-Version:Subject:To:From:Date;
+	bh=K8HSstdHNz+uBtnaKqfacFQiE/MuBblKkrvDM3wush0=;
+	b=VdHIMd7Ko/2FQk52CSGRAOHGeHdQkzmAnLFYmamv2eCG3ygod1Hsxz2xKyACrxue
+	6BkmGXu/PUhLyxVvgbno7fyjOLzi1IqvMg84elkMmmUh0NwCE9EP5otptJV9Tu7QSwQ
+	3G/TkPV91RopN3vyyAWT0JezZwuSTcnyUYfHU5lE=
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1762617654;
+	s=m1; d=mktdns.com; i=@mktdns.com;
+	h=List-Unsubscribe:List-Unsubscribe-Post:Content-Type:MIME-Version:Subject:To:From:Date;
+	bh=K8HSstdHNz+uBtnaKqfacFQiE/MuBblKkrvDM3wush0=;
+	b=C6uaTmuXOJfuTaBLvbDqvdQdICZ44xpDAlfUjINthLheRyh7kYc645s27Yc2tw9y
+	FH1QgH4fkiYbaeysrCZy4YYdePuaTpOPNFDFFfXikRQwSw2kCUcrh5yIow8NWLXdJhh
+	Jq9642DespKAIGML0sJZ/+q5Wu9LbRGf6gczZoQk=
+Date: Sat, 8 Nov 2025 10:00:54 -0600 (CST)
+From: IEEE Computer Society <ieee-cs@deliver.ieee.org>
+Reply-To: no-reply@deliver.ieee.org
+To: kaver68@gmail.com
+Message-ID: <863207867.110523960.1762617654720@abmktmail-batch1j.marketo.org>
+Subject: The November 2025 issue of Computer is here!
+MIME-Version: 1.0
+Content-Type: multipart/alternative; 
+	boundary="----=_Part_110523959_800316932.1762617654720"
+X-Binding: bg-abd-705
+List-Unsubscribe-Post: List-Unsubscribe=One-Click
+List-Unsubscribe: <https://connect.ieee.org/u/NzU2LUdQSC04OTkAAAGeAyutu1eLI3mYQDWNAhrGi5G6tECuArZyDLKqnD_xS7E9suxcYQ1CfynX_ZHuyuPjf7B97Ak=?emailAddress=NzU2LUdQSC04OTkAAAGeAyutu5UvaSpE12wAXVQjxmXjU-YFdXvdlvYjJ5aR5atThV21TCmzkavmlj35GJy3Uw>, <mailto:KRGE6STWOJQXMV3SNZ3XO2LJGVZXOSBUNVPTI4DMNN4W6227NJFESYSJI5RGEZZXINYESPI=.83230.115225.9@unsub-ab.mktomail.com>
+X-MarketoID: 756-GPH-899:0:133783:306651:670561:115225:9:83230:35149042-36
+X-PVIQ: mkto-756GPH899-000001-000000-083230
+X-Mailfrom: 756-GPH-899.0.83230.0.0.115225.9.35149042-36@deliver.ieee.org
+X-MktArchive: false
+X-MSYS-API: {"options":{"open_tracking":false,"click_tracking":false}}
+X-MktMailDKIM: true
+
+------=_Part_110523959_800316932.1762617654720
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+To view this email as a web page, go to the following address: https://engage.ieee.org/index.php/email/emailWebview?mkt_tok=NzU2LUdQSC04OTkAAAGeAyutvKBMLBfq87z-66mEhd3z9X9598DryZc_VyzVldT_reWoDw4wIWUvOOB4yDHgqUFuzfQMZCRWusTYxohLUf410oKjRuOsRrWLbHZY6s3PNNJT
+
+
+
+<div></div>
+
+------=_Part_110523959_800316932.1762617654720
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+<!doctype html>
+<html lang=3D"en" xmlns=3D"http://www.w3.org/1999/xhtml" xmlns:v=3D"urn:sch=
+emas-microsoft-com:vml" xmlns:o=3D"urn:schemas-microsoft-com:office:office"=
+>
+<head>
+<title>The <strong><span style=3D"font-family: verdana, geneva; font-size: =
+18px;">May&nbsp;2019</span></strong> issue of Computer is here!</title>
+<!--[if !mso]><!-- -->
+<meta http-equiv=3D"X-UA-Compatible" content=3D"IE=3Dedge">
+<!--<![endif]-->
+<meta http-equiv=3D"Content-Type" content=3D"text/html; charset=3DUTF-8">
+<meta name=3D"viewport" content=3D"width=3Ddevice-width,initial-scale=3D1">
+<style type=3D"text/css">#outlook a { padding:0; }           body, .body { =
+margin:0;padding:0;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;=
+ }           table { border-spacing:0;}           img { border:0;height:aut=
+o;line-height:100%; outline:none;text-decoration:none;-ms-interpolation-mod=
+e:bicubic; }           p { display:block;margin:13px 0; }</style>
+<!--[if mso]>                    <xml>                      <o:OfficeDocume=
+ntSettings>                          <o:AllowPNG/>                         =
+ <o:PixelsPerInch>96</o:PixelsPerInch>                      </o:OfficeDocum=
+entSettings>                    </xml>                        <style type=
+=3D"text/css">             table { border-collapse:collapse;mso-table-lspac=
+e:0pt;mso-table-rspace:0pt; }             .mj-outlook-group-fix { width:100=
+% !important; }             .mso-button-dark-mode a {background: transparen=
+t !important;}           </style>                  <![endif]-->
+<!--[if !mso]><!-->
+<link href=3D"https://assets.knak.io/custom-fonts/Arial/Arial.css" rel=3D"s=
+tylesheet" type=3D"text/css">
+<style type=3D"text/css">@import url(https://assets.knak.io/custom-fonts/Ar=
+ial/Arial.css);</style>
+<!--<![endif]-->
+<style type=3D"text/css">@media only screen and (min-width:620px) {        =
+ .mj-column-per-50 { width:50% !important; max-width: 50%; } .mj-column-per=
+-100 { width:100% !important; max-width: 100%; } .mj-column-per-45 { width:=
+45% !important; max-width: 45%; } .mj-column-per-55 { width:55% !important;=
+ max-width: 55%; }       }</style>
+<style type=3D"text/css">u ~ div .img-container img + div { display: none }=
+ .links-006699-underline a { color: #006699; text-decoration: underline; } =
+[x-apple-data-detectors-type] {            color: inherit !important;      =
+      -webkit-text-decoration-color: inherit !important;            text-de=
+coration: inherit !important;           font-weight: inherit !important;   =
+       } .links-FFFFFF-underline a { color: #FFFFFF; text-decoration: under=
+line; }                                @media only screen and (min-width:62=
+0px) {                         .padding-0px-0px-0px-25px { padding: 0px 0px=
+ 0px 25px !important} .margin-0-auto-0-0 { margin: 0 auto 0 0 !important} .=
+text-align-left { text-align: left !important} .height-20px { height: 20px =
+!important} .line-height-20px { line-height: 20px !important} .font-size-16=
+px { font-size: 16px !important} .padding-10px-25px-10px-10px { padding: 10=
+px 25px 10px 10px !important}             }</style>
+<style type=3D"text/css">p{margin: 0 0;}ul{display: block;}ul li{list-style=
+: disc;}li li{list-style: circle;}sup, sub{line-height:0;}body a{text-decor=
+ation: none; color: #006699;}.image-highlight{transition: 0.3s;}.image-high=
+light:hover{filter: brightness(1.2);}.button-highlight{transition: 0.3s;}.b=
+utton-highlight:hover{filter: brightness(1.5);}@media only screen and (min-=
+width: 620px) { .hide-on-mobile{display:block !important;}.hide-on-desktop{=
+display:none !important;} }.hide-on-desktop{display:block;}.hide-on-mobile{=
+display:none;}</style>
+<!--[if mso]>             <style>                 .hide-on-mobile {display:=
+block !important}             </style>         <![endif]-->
+<!--[if mso]>                 <style>                              .mso-tex=
+t-align-left { text-align: left !important; } .font-size-16px { font-size: =
+16px !important} .text-align-left { text-align: left !important}           =
+      </style>             <![endif]-->
+<style>[class~=3D"x_body"] { width: 99.9% }</style>
+</head>
+<body style=3D"word-spacing:normal;background-color:#F2F2F2;" class=3D"body=
+"><style type=3D"text/css">div#emailPreHeader{ display: none !important; }<=
+/style><div id=3D"emailPreHeader" style=3D"mso-hide:all; visibility:hidden;=
+ opacity:0; color:transparent; mso-line-height-rule:exactly; line-height:0;=
+ font-size:0px; overflow:hidden; border-width:0; display:none !important;">=
+View the current issue now</div>
+<div style=3D"text-align: center"><font face=3D"Verdana" size=3D"1">To view=
+ this email as a web page, <a href=3D
+"https://connect.ieee.org/v/NzU2LUdQSC04OTkAAAGeAyutu4eTtboJ_b5WyK9TP3_pwL1=
+JKDljJTD7HKVEhDEoAv2ZoX8fKReqQt2LZg85gvjcObU=3D"
+>click here</a><br /><br /></font></div>
+
+<div style=3D"background-color:#F2F2F2;background-position:center center;ba=
+ckground-size:auto;background-repeat:repeat;">
+<!--[if mso]><table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=
+=3D"100%"><![endif]-->
+<!--[if mso]><tr><td><![endif]-->
+<table align=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" ro=
+le=3D"presentation" style=3D"width:100%;" class=3D"section">
+<tbody>
+<tr>
+<td align=3D"center">
+<!--[if mso | IE]><table align=3D"center" border=3D"0" cellpadding=3D"0" ce=
+llspacing=3D"0" class=3D"block-grid-outlook" style=3D"width:600px;" width=
+=3D"600" ><tr><td style=3D"line-height:0px;font-size:0px;mso-line-height-ru=
+le:exactly;"><![endif]-->
+<div style=3D"background:#15567C;background-color:#15567C;Margin:0px auto;m=
+ax-width:600px;">
+<table align=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" ro=
+le=3D"presentation" style=3D"background-color:#15567C;width:100%;">
+<tbody>
+<tr>
+<td style=3D"font-size:0px;padding:20px 0px 20px 0px;text-align:center;vert=
+ical-align:top;" class=3D"block-grid">
+<!--[if mso | IE]><table role=3D"presentation" border=3D"0" cellpadding=3D"=
+0" cellspacing=3D"0"><tr><td style=3D"vertical-align:top;width:300px;" ><![=
+endif]-->
+<div class=3D"mj-column-per-50 mj-outlook-group-fix" style=3D"font-size:0px=
+;text-align:left;direction:ltr;display:inline-block;vertical-align:top;widt=
+h:100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"border-radius:0px;vertical-align:top;" width=3D"100%">
+<tbody>
+<tr>
+<td class=3D"padding-0px-0px-0px-25px img-container" style=3D"font-size:0px=
+;padding:0px 0px 0px 0px;word-break:break-word;mso-padding-alt:0px 0px 0px =
+25px;text-align:left;">
+<div style=3D"margin:0 auto;max-width:192px;" class=3D"margin-0-auto-0-0">
+<div class=3D"mktoImg" id=3D"kimage-z50w8nwrq">
+<a href=3D
+"https://connect.ieee.org/NzU2LUdQSC04OTkAAAGeAyutvOi9wPYez6NW48NFZkJO7Ej8g=
+-Wi9pB14ysR6ZugU9WmyFAMK5Z3ld3gdZy__qinI8E=3D" target=3D"_blank" style=3D"t=
+ext-decoration: none; color: #006699;"
+><img alt=3D"IEEE Computer Society Logo" height=3D"auto" width=3D"192" src=
+=3D"https://engage.ieee.org/rs/756-GPH-899/images/IEEE-CS_LogoTM-orange bug=
+-white text.png" style=3D"border:none;outline:none;text-decoration:none;hei=
+ght:auto;width:100%;font-size:13px;display:block;"></a>
+</div>
+<!--[if !mso 9]><!-->
+<div class=3D"mktEditable" id=3D"image-plain-text-pcmntfh2f" style=3D"mso-h=
+ide:all; visibility:hidden; opacity:0; color:transparent; mso-line-height-r=
+ule:exactly; line-height:0; font-size:0px; overflow:hidden; border-width:0;=
+ display:none !important;">
+[ IEEE Computer Society Logo ] [[https://www.computer.org/]]
+</div>
+<!--<![endif]-->
+</div></td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td><td style=3D"vertical-align:top;width:300px;" ><![en=
+dif]-->
+<div class=3D"mj-column-per-50 mj-outlook-group-fix" style=3D"font-size:0px=
+;text-align:left;direction:ltr;display:inline-block;vertical-align:top;widt=
+h:100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"border-radius:0px;vertical-align:top;" width=3D"100%">
+<tbody>
+<tr>
+<td class=3D"hide-on-mobile img-container" style=3D"display: none; font-siz=
+e: 0px; padding: 0px 25px 0px 0px; word-break: break-word; text-align: righ=
+t;" align=3D"right">
+<div style=3D"margin:0 0 0 auto;max-width:126px;">
+<div class=3D"mktoImg" id=3D"kimage-k8yxulsps">
+<a href=3D
+"https://connect.ieee.org/NzU2LUdQSC04OTkAAAGeAyutu_u4ZkUBKaRn1rSfWgF93pcWb=
+zn19flsGB00gWgzrJ5nfUQ6-TXFwkAKF1I-OluhC3g=3D" target=3D"_blank" style=3D"t=
+ext-decoration: none; color: #006699;"
+><img alt=3D"IEEE  Logo" height=3D"auto" width=3D"126" src=3D"https://engag=
+e.ieee.org/rs/756-GPH-899/images/ieee-mb-wh.png" style=3D"border:none;outli=
+ne:none;text-decoration:none;height:auto;width:100%;font-size:13px;display:=
+block;"></a>
+</div>
+<!--[if !mso 9]><!-->
+<div class=3D"mktEditable" id=3D"image-plain-text-mu0b8jp7e" style=3D"mso-h=
+ide:all; visibility:hidden; opacity:0; color:transparent; mso-line-height-r=
+ule:exactly; line-height:0; font-size:0px; overflow:hidden; border-width:0;=
+ display:none !important;">
+[ IEEE Logo ] [[https://www.ieee.org//]]
+</div>
+<!--<![endif]-->
+</div></td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td></tr></table><![endif]--></td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td></tr></table><![endif]--></td>
+</tr>
+</tbody>
+</table>
+<!--[if mso]></td></tr><![endif]-->=20
+<!--[if mso]><tr><td><![endif]-->
+<table align=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" ro=
+le=3D"presentation" style=3D"width:100%;" class=3D"section">
+<tbody>
+<tr>
+<td align=3D"center">
+<!--[if mso | IE]><table align=3D"center" border=3D"0" cellpadding=3D"0" ce=
+llspacing=3D"0" class=3D"block-grid-outlook" style=3D"width:600px;" width=
+=3D"600" ><tr><td style=3D"line-height:0px;font-size:0px;mso-line-height-ru=
+le:exactly;"><![endif]-->
+<div style=3D"background:#FFFFFF;background-color:#FFFFFF;Margin:0px auto;m=
+ax-width:600px;">
+<table align=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" ro=
+le=3D"presentation" style=3D"background-color:#FFFFFF;width:100%;">
+<tbody>
+<tr>
+<td style=3D"font-size:0px;padding:0px;text-align:center;vertical-align:top=
+;" class=3D"block-grid">
+<!--[if mso | IE]><table role=3D"presentation" border=3D"0" cellpadding=3D"=
+0" cellspacing=3D"0"><tr><td style=3D"vertical-align:top;width:600px;" ><![=
+endif]-->
+<div class=3D"mj-column-per-100 mj-outlook-group-fix" style=3D"font-size:0p=
+x;text-align:left;direction:ltr;display:inline-block;vertical-align:top;wid=
+th:100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"border-radius:0px;vertical-align:top;" width=3D"100%">
+<tbody>
+<tr>
+<td style=3D"font-size:0px;padding:0 0 0 0;word-break:break-word;">
+<div style=3D"line-height:20px;height:20px;mso-line-height-alt:20px;">
+&nbsp;
+</div></td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td></tr></table><![endif]--></td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td></tr></table><![endif]--></td>
+</tr>
+</tbody>
+</table>
+<!--[if mso]></td></tr><![endif]-->=20
+<!--[if mso]><tr><td><![endif]-->
+<table align=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" ro=
+le=3D"presentation" style=3D"width:100%;" class=3D"section">
+<tbody>
+<tr>
+<td align=3D"center">
+<!--[if mso | IE]><table align=3D"center" border=3D"0" cellpadding=3D"0" ce=
+llspacing=3D"0" class=3D"block-grid-outlook" style=3D"width:600px;" width=
+=3D"600" ><tr><td style=3D"line-height:0px;font-size:0px;mso-line-height-ru=
+le:exactly;"><![endif]-->
+<div style=3D"background:#FFFFFF;background-color:#FFFFFF;Margin:0px auto;m=
+ax-width:600px;">
+<table align=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" ro=
+le=3D"presentation" style=3D"background-color:#FFFFFF;width:100%;">
+<tbody>
+<tr>
+<td style=3D"font-size:0px;padding:0px;text-align:center;vertical-align:top=
+;" class=3D"block-grid">
+<!--[if mso | IE]><table role=3D"presentation" border=3D"0" cellpadding=3D"=
+0" cellspacing=3D"0"><tr><td style=3D"vertical-align:top;width:270px;" ><![=
+endif]-->
+<div class=3D"mj-column-per-45 mj-outlook-group-fix" style=3D"font-size:0px=
+;text-align:left;direction:ltr;display:inline-block;vertical-align:top;widt=
+h:100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"border-radius:0px;vertical-align:top;" width=3D"100%">
+<tbody>
+<tr>
+<td class=3D"img-container" style=3D"font-size:0px;padding:0px 0px 0px 0px;=
+word-break:break-word;mso-padding-alt:0px 0px 0px 0px;text-align:center;">
+<div style=3D"margin:0 auto;max-width:202px;">
+<div class=3D"mktoImg" id=3D"kimage-phlcueuki" mktolockimgsize=3D"true">
+<a href=3D"https://www.computer.org/csdl/magazine/co/2025/11" target=3D"_bl=
+ank"><img src=3D"https://engage.ieee.org/rs/756-GPH-899/images/SCR-20251103=
+-ndpi.png?version=3D0" width=3D"202" alt=3D"Cover" style=3D""></a>
+</div>
+<!--[if !mso 9]><!-->
+<div class=3D"mktEditable" id=3D"image-plain-text-d91todtyp" style=3D"mso-h=
+ide:all; visibility:hidden; opacity:0; color:transparent; mso-line-height-r=
+ule:exactly; line-height:0; font-size:0px; overflow:hidden; border-width:0;=
+ display:none !important;">
+[ Image ]
+</div>
+<!--<![endif]-->
+</div></td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td><td style=3D"vertical-align:top;width:330px;" ><![en=
+dif]-->
+<div class=3D"mj-column-per-55 mj-outlook-group-fix" style=3D"font-size:0px=
+;text-align:left;direction:ltr;display:inline-block;vertical-align:top;widt=
+h:100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"border-radius:0px;vertical-align:top;" width=3D"100%">
+<!--[if !mso]><!-->
+<tbody>
+<tr>
+<td class=3D"hide-on-desktop" style=3D"display: block; font-size: 0px; padd=
+ing: 0 0 0 0; word-break: break-word;">
+<div style=3D"line-height:10px;height:10px;mso-line-height-alt:10px;">
+&nbsp;
+</div></td>
+</tr>
+<!--<![endif]-->
+<tr>
+<td class=3D"text-container" style=3D"font-size:0px;padding:10px 25px 10px =
+10px;word-break:break-word;mso-padding-alt:10px 25px 10px 10px;text-align:c=
+enter;">
+<div class=3D"mktEditable" id=3D"ktext-zafsxv2qv" style=3D"font-family:Verd=
+ana, Geneva, sans-serif;font-size:20px;font-style:italic;font-weight:bold;l=
+etter-spacing:none;line-height:1.2;text-align:center;mso-line-height-alt:1.=
+5em;color:#00629B;">
+<div class=3D"links-006699-underline">=20
+<div style=3D"font-family:Verdana, Geneva, sans-serif;font-size:20px;font-s=
+tyle:italic;font-weight:bold;letter-spacing:none;line-height:1.2;text-align=
+:center;mso-line-height-alt:1.5em;color:#00629B;" class=3D"mso-text-align-l=
+eft text-align-left">=20
+<p style=3D"margin: 0 0;">AI Failures -- Part II</p>=20
+</div>=20
+</div>
+</div></td>
+</tr>
+<tr>
+<td class=3D"text-container" style=3D"font-size:0px;padding:10px 10px 10px =
+10px;word-break:break-word;mso-padding-alt:10px 10px 10px 10px;text-align:c=
+enter;">
+<div class=3D"mktEditable" id=3D"ktext-por7swgu4" style=3D"font-family:Verd=
+ana, Geneva, sans-serif;font-size:18px;letter-spacing:none;line-height:1.2;=
+text-align:center;mso-line-height-alt:1.375em;color:#000000;">
+<div class=3D"links-006699-underline">=20
+<div style=3D"font-family: Verdana, Geneva, sans-serif; font-size: 18px; le=
+tter-spacing: none; line-height: 1.2; text-align: center; mso-line-height-a=
+lt: 1.375em; color: #000000;" class=3D"mso-text-align-left text-align-left"=
+>=20
+<p style=3D"margin: 0 0;">November 2025</p>=20
+</div>=20
+</div>
+</div></td>
+</tr>
+<tr>
+<td style=3D"font-size:0px;padding:0 0 0 0;word-break:break-word;">
+<div style=3D"line-height:10px;height:10px;mso-line-height-alt:20px;" class=
+=3D"height-20px line-height-20px">
+&nbsp;
+</div></td>
+</tr>
+<tr>
+<td valign=3D"middle" class=3D"padding-10px-25px-10px-10px text-align-left =
+button-container" style=3D"font-size:0px;padding:10px 25px 10px 25px;word-b=
+reak:break-word;mso-padding-alt:10px 25px 10px 10px;text-align:center;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"border-collapse:separate;line-height:100%;margin:0 auto;" class=
+=3D"margin-0-auto-0-0">
+<tbody>
+<tr>
+<td align=3D"center" bgcolor=3D"#FFA300" role=3D"presentation" style=3D"bor=
+der:none;border-radius:3px;cursor:auto;mso-padding-alt:10px 25px;text-align=
+:center;background:#FFA300;" valign=3D"middle">
+<div class=3D"mktEditable" id=3D"kbutton-fllrhli14">
+<a href=3D"https://www.computer.org/csdl/magazine/co/2025/11" style=3D"disp=
+lay: inline-block; background: #FFA300; color: #ffffff; font-family: Verdan=
+a, Geneva, sans-serif; font-size: 14px; font-weight: bold; line-height: 1.2=
+; margin: 0; text-decoration: none; text-transform: none; padding: 10px 25p=
+x; mso-padding-alt: 0px; border-radius: 3px;" target=3D"_blank" class=3D"fo=
+nt-size-16px">Explore The New Issue!</a>
+</div></td>
+</tr>
+</tbody>
+</table></td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td></tr></table><![endif]--></td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td></tr></table><![endif]--></td>
+</tr>
+</tbody>
+</table>
+<!--[if mso]></td></tr><![endif]-->=20
+<!--[if mso]><tr><td><![endif]-->
+<table align=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" ro=
+le=3D"presentation" style=3D"width:100%;" class=3D"section">
+<tbody>
+<tr>
+<td align=3D"center">
+<!--[if mso | IE]><table align=3D"center" border=3D"0" cellpadding=3D"0" ce=
+llspacing=3D"0" class=3D"block-grid-outlook" style=3D"width:600px;" width=
+=3D"600" ><tr><td style=3D"line-height:0px;font-size:0px;mso-line-height-ru=
+le:exactly;"><![endif]-->
+<div style=3D"background:#FFFFFF;background-color:#FFFFFF;Margin:0px auto;m=
+ax-width:600px;">
+<table align=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" ro=
+le=3D"presentation" style=3D"background-color:#FFFFFF;width:100%;">
+<tbody>
+<tr>
+<td style=3D"font-size:0px;padding:0px;text-align:center;vertical-align:top=
+;" class=3D"block-grid">
+<!--[if mso | IE]><table role=3D"presentation" border=3D"0" cellpadding=3D"=
+0" cellspacing=3D"0"><tr><td style=3D"vertical-align:top;width:600px;" ><![=
+endif]-->
+<div class=3D"mj-column-per-100 mj-outlook-group-fix" style=3D"font-size:0p=
+x;text-align:left;direction:ltr;display:inline-block;vertical-align:top;wid=
+th:100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"border-radius:0px;vertical-align:top;" width=3D"100%">
+<tbody>
+<tr>
+<td style=3D"font-size:0px;padding:0 0 0 0;word-break:break-word;">
+<div style=3D"line-height:20px;height:20px;mso-line-height-alt:20px;">
+&nbsp;
+</div></td>
+</tr>
+<tr>
+<td class=3D"text-container" style=3D"font-size:0px;padding:10px 25px 10px =
+25px;word-break:break-word;text-align:left;">
+<div class=3D"mktEditable" id=3D"ktext-68s5rftwr" style=3D"font-family:Verd=
+ana, Geneva, sans-serif;font-size:14px;letter-spacing:none;line-height:1.2;=
+text-align:left;mso-line-height-alt:1.063em;color:#000000;">
+<div class=3D"links-006699-underline">
+<div style=3D"font-family: Verdana, Geneva, sans-serif; font-size: 14px; le=
+tter-spacing: none; line-height: 1.2; text-align: left; mso-line-height-alt=
+: 1.063em; color: #000000;">
+<p style=3D"margin: 0 0;">Dear Adrian,</p>
+<p style=3D"margin: 0 0;">&nbsp;</p>
+<p style=3D"margin: 0 0;">The latest issue of <em>Computer</em> is now avai=
+lable! Log in with your IEEE Account to read your issue today.</p>
+<p style=3D"margin: 0 0;">&nbsp;</p>
+<p style=3D"margin: 0 0;">Sincerely,<br />The IEEE Computer Society</p>
+</div>
+</div>
+</div></td>
+</tr>
+<tr>
+<td style=3D"font-size:0px;padding:0 0 0 0;word-break:break-word;">
+<div style=3D"line-height:20px;height:20px;mso-line-height-alt:20px;">
+&nbsp;
+</div></td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td></tr></table><![endif]--></td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td></tr></table><![endif]--></td>
+</tr>
+</tbody>
+</table>
+<!--[if mso]></td></tr><![endif]-->=20
+<!--[if mso]><tr><td><![endif]-->
+<table align=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" ro=
+le=3D"presentation" style=3D"width:100%;" class=3D"section">
+<tbody>
+<tr>
+<td align=3D"center">
+<!--[if mso | IE]><table align=3D"center" border=3D"0" cellpadding=3D"0" ce=
+llspacing=3D"0" class=3D"block-grid-outlook" style=3D"width:600px;" width=
+=3D"600" ><tr><td style=3D"line-height:0px;font-size:0px;mso-line-height-ru=
+le:exactly;"><![endif]-->
+<div style=3D"background:#00B5E2;background-color:#00B5E2;Margin:0px auto;m=
+ax-width:600px;">
+<table align=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" ro=
+le=3D"presentation" style=3D"background-color:#00B5E2;width:100%;">
+<tbody>
+<tr>
+<td style=3D"font-size:0px;padding:5px 0px 5px 0px;text-align:center;vertic=
+al-align:top;" class=3D"block-grid">
+<!--[if mso | IE]><table role=3D"presentation" border=3D"0" cellpadding=3D"=
+0" cellspacing=3D"0"><tr><td style=3D"vertical-align:top;width:600px;" ><![=
+endif]-->
+<div class=3D"mj-column-per-100 mj-outlook-group-fix" style=3D"font-size:0p=
+x;text-align:left;direction:ltr;display:inline-block;vertical-align:top;wid=
+th:100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"border-radius:0px;vertical-align:top;" width=3D"100%">
+<tbody>
+<tr>
+<td class=3D"text-container" style=3D"font-size:0px;padding:10px 25px 10px =
+25px;word-break:break-word;text-align:center;">
+<div class=3D"mktEditable" id=3D"ktext-t1rb6nogb" style=3D"font-family:Verd=
+ana, Geneva, sans-serif;font-size:14px;letter-spacing:none;line-height:1.2;=
+text-align:center;mso-line-height-alt:1.063em;color:#000000;">
+<p><span style=3D"color: #ffffff;"><strong><span style=3D"color: #ffffff;">=
+<strong><span style=3D"text-decoration: underline;"><span style=3D"color: #=
+ffffff; text-decoration: underline;"><a href=3D "https://connect.ieee.org/N=
+zU2LUdQSC04OTkAAAGeAyutu9fiIZ-rcX5Yq73g03_6d7d0YEU8fAJ_z9g-sMhUrKSJLtp5gABU=
+k2TrzBkLToglbCY=3D" target=3D"_blank" id=3D"" style=3D"color: #ffffff; text=
+-decoration: underline;" >Seeking 2027 EICs for IEEE Computer Society Publi=
+cations</a></span></span><br><br></strong></span></strong></span><span styl=
+e=3D"color: #ffffff;">Ready to shape the future of technology? Get involved=
+ in the community, stay at the forefront of current research, and make your=
+ mark on these industry-renown publications. Apply now to be an Editor in C=
+hief!</span></p>
+</div></td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td></tr></table><![endif]--></td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td></tr></table><![endif]--></td>
+</tr>
+</tbody>
+</table>
+<!--[if mso]></td></tr><![endif]-->=20
+<!--[if mso]><tr><td><![endif]-->
+<table align=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" ro=
+le=3D"presentation" style=3D"background-color:transparent;width:100%;" clas=
+s=3D"section">
+<tbody>
+<tr>
+<td align=3D"center">
+<!--[if mso | IE]><table align=3D"center" border=3D"0" cellpadding=3D"0" ce=
+llspacing=3D"0" class=3D"block-grid-outlook" style=3D"width:600px;" width=
+=3D"600" ><tr><td style=3D"line-height:0px;font-size:0px;mso-line-height-ru=
+le:exactly;"><![endif]-->
+<div style=3D"background:#15567C;background-color:#15567C;Margin:0px auto;m=
+ax-width:600px;">
+<table align=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" ro=
+le=3D"presentation" style=3D"background-color:#15567C;width:100%;">
+<tbody>
+<tr>
+<td style=3D"font-size:0px;padding:10px 0px 10px 0px;text-align:center;vert=
+ical-align:top;" class=3D"block-grid">
+<!--[if mso | IE]><table role=3D"presentation" border=3D"0" cellpadding=3D"=
+0" cellspacing=3D"0"><tr><td style=3D"vertical-align:top;width:600px;" ><![=
+endif]-->
+<div class=3D"mj-column-per-100 mj-outlook-group-fix" style=3D"font-size:0p=
+x;text-align:left;direction:ltr;display:inline-block;vertical-align:top;wid=
+th:100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"border-radius:0px;vertical-align:top;" width=3D"100%">
+<tbody>
+<tr>
+<td class=3D"text-container" style=3D"font-size:0px;padding:10px 25px 10px =
+25px;word-break:break-word;text-align:center;">
+<div class=3D"mktEditable" id=3D"ktext-xozwf1z61" style=3D"font-family:Verd=
+ana, Geneva, sans-serif;font-size:13px;letter-spacing:none;line-height:1.2;=
+text-align:center;mso-line-height-alt:1em;color:#FFFFFF;">
+<div class=3D"links-FFFFFF-underline">=20
+<div style=3D"font-family:Verdana, Geneva, sans-serif;font-size:13px;letter=
+-spacing:none;line-height:1.2;text-align:center;mso-line-height-alt:1em;col=
+or:#FFFFFF;">=20
+<p style=3D"margin: 0 0;"><a href=3D
+"https://connect.ieee.org/NzU2LUdQSC04OTkAAAGeAyutu7zOcFiv8hAStD4zdemiopvuJ=
+y-emUGQsI_jBOtmLTsjITKHn0CnxZwoqr-fWHzACDM=3D" target=3D"_blank" rel=3D"noo=
+pener" style=3D"color: rgb(255, 255, 255); text-decoration: underline;"
+>Unsubscribe</a> | <a style=3D"color: rgb(255, 255, 255); text-decoration: =
+underline;" href=3D
+"https://connect.ieee.org/NzU2LUdQSC04OTkAAAGeAyutvOi9wPYez6NW48NFZkJO7Ej8g=
+-Wi9pB14ysR6ZugU9WmyFAMK5Z3ld3gdZy__qinI8E=3D" target=3D"_blank" rel=3D"noo=
+pener"
+>Website</a> | &nbsp;<a style=3D"color: rgb(255, 255, 255); text-decoration=
+: underline;" href=3D
+"https://connect.ieee.org/NzU2LUdQSC04OTkAAAGeAyutu4V20zKQq51OZ8p4d26V_B7Oh=
+_gQhn7DoixkTpunscIMrpo76KU5ML30HKOkFu4KVo4=3D" target=3D"_blank" rel=3D"noo=
+pener"
+>Privacy Policy</a> | &nbsp;<a style=3D"color: rgb(255, 255, 255); text-dec=
+oration: underline;" href=3D
+"https://connect.ieee.org/NzU2LUdQSC04OTkAAAGeAyutu6HEqWj3serKscP_dmspHEFln=
+f7kMRk_nl0BVwR9xqut41iLrJlgu-M5XHMfqVkrkDY=3D" target=3D"_blank" rel=3D"noo=
+pener"
+>Contact</a></p>=20
+</div>=20
+</div>
+</div></td>
+</tr>
+<tr>
+<td class=3D"social-container" style=3D"font-size:0px;padding:10px 25px 10p=
+x 25px;word-break:break-word;text-align:center;">
+<!--[if mso | IE]><table align=3D"center" border=3D"0" cellpadding=3D"0" ce=
+llspacing=3D"0" role=3D"presentation" ><tr><td><![endif]-->
+<div style=3D"display:inline-block;">
+<table align=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" ro=
+le=3D"presentation" style=3D"float:none;display:inline-table;">
+<tbody>
+<tr>
+<td style=3D"padding:4px;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"background:#FFA300;border-radius:50%;width:32px;">
+<tbody>
+<tr>
+<td style=3D"padding:0px;font-size:0;height:32px;vertical-align:middle;widt=
+h:32px;">
+<div class=3D"mktEditable" id=3D"ksocial-op5ynyk5f">
+<a href=3D
+"https://connect.ieee.org/NzU2LUdQSC04OTkAAAGeAyutux4XDeYy0jyDvypJFkHNoJs1L=
+3q4nkkZEheGRD0oZs8zZ-a6ucIkxPjUZHk2TOIg3Q0=3D" target=3D"_blank" style=3D"t=
+ext-decoration: none; color: #006699;"
+><img alt=3D"Twitter" height=3D"32" src=3D"https://engage.ieee.org/rs/756-G=
+PH-899/images/Icon_Twitter-x.png?version=3D0" style=3D"border-radius:50%;di=
+splay:block;" width=3D"32"></a>
+</div></td>
+</tr>
+</tbody>
+</table></td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td><td><![endif]-->
+<div style=3D"display:inline-block;">
+<table align=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" ro=
+le=3D"presentation" style=3D"float:none;display:inline-table;">
+<tbody>
+<tr>
+<td style=3D"padding:4px;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"background:#FFA300;border-radius:50%;width:32px;">
+<tbody>
+<tr>
+<td style=3D"padding:0px;font-size:0;height:32px;vertical-align:middle;widt=
+h:32px;">
+<div class=3D"mktEditable" id=3D"ksocial-5im9iozot">
+<a href=3D
+"https://connect.ieee.org/NzU2LUdQSC04OTkAAAGeAyutu7mX4tmuoHpWToR7iDve-hH0j=
+ZI3_7y9oCi1e6JPpCvTefOhGD7e5p-zCILP1YMCW4c=3D" target=3D"_blank" style=3D"t=
+ext-decoration: none; color: #006699;"
+><img alt=3D"Linkedin" height=3D"32" src=3D"https://s3.amazonaws.com/assets=
+.knak.io/img/icons/builder-social/linkedin.png" style=3D"border-radius:50%;=
+display:block;" width=3D"32"></a>
+</div></td>
+</tr>
+</tbody>
+</table></td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td><td><![endif]-->
+<div style=3D"display:inline-block;">
+<table align=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" ro=
+le=3D"presentation" style=3D"float:none;display:inline-table;">
+<tbody>
+<tr>
+<td style=3D"padding:4px;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"background:#FFA300;border-radius:50%;width:32px;">
+<tbody>
+<tr>
+<td style=3D"padding:0px;font-size:0;height:32px;vertical-align:middle;widt=
+h:32px;">
+<div class=3D"mktEditable" id=3D"ksocial-4x354xt12">
+<a href=3D
+"https://connect.ieee.org/NzU2LUdQSC04OTkAAAGeAyutuxbP8lm-luwY4yke6lxTnDMCr=
+N2nRHO6b17HxwvNOglJWS-5KAZMjNkbSeJt7BnntGU=3D" target=3D"_blank" style=3D"t=
+ext-decoration: none; color: #006699;"
+><img alt=3D"Facebook" height=3D"32" src=3D"https://s3.amazonaws.com/assets=
+.knak.io/img/icons/builder-social/facebook.png" style=3D"border-radius:50%;=
+display:block;" width=3D"32"></a>
+</div></td>
+</tr>
+</tbody>
+</table></td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td><td><![endif]-->
+<div style=3D"display:inline-block;">
+<table align=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" ro=
+le=3D"presentation" style=3D"float:none;display:inline-table;">
+<tbody>
+<tr>
+<td style=3D"padding:4px;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"background:#FFA300;border-radius:50%;width:32px;">
+<tbody>
+<tr>
+<td style=3D"padding:0px;font-size:0;height:32px;vertical-align:middle;widt=
+h:32px;">
+<div class=3D"mktEditable" id=3D"ksocial-zu13tn82c">
+<a href=3D
+"https://connect.ieee.org/NzU2LUdQSC04OTkAAAGeAyutuxWJAo0o4yyq-Tjn3CYQuGn1o=
+D06ETdT8_cY6cTDjx9EUrFp-popT5wsf-OfdEmuEuo=3D" target=3D"_blank" style=3D"t=
+ext-decoration: none; color: #006699;"
+><img alt=3D"YouTube" height=3D"32" src=3D"https://s3.amazonaws.com/assets.=
+knak.io/img/icons/builder-social/youtube.png" style=3D"border-radius:50%;di=
+splay:block;" width=3D"32"></a>
+</div></td>
+</tr>
+</tbody>
+</table></td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td><td><![endif]-->
+<div style=3D"display:inline-block;">
+<table align=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" ro=
+le=3D"presentation" style=3D"float:none;display:inline-table;">
+<tbody>
+<tr>
+<td style=3D"padding:4px;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"background:#FFA300;border-radius:50%;width:32px;">
+<tbody>
+<tr>
+<td style=3D"padding:0px;font-size:0;height:32px;vertical-align:middle;widt=
+h:32px;">
+<div class=3D"mktEditable" id=3D"ksocial-92mtad9kd">
+<a href=3D
+"https://connect.ieee.org/NzU2LUdQSC04OTkAAAGeAyutu_bp6kM_R23AgLyqk1hVIHlUr=
+SEfygFcdtMVGuCwdrSo6GY7VIlil8KudKDbVPNfq-E=3D" target=3D"_blank" style=3D"t=
+ext-decoration: none; color: #006699;"
+><img alt=3D"Instagram" height=3D"32" src=3D"https://s3.amazonaws.com/asset=
+s.knak.io/img/icons/builder-social/instagram.png" style=3D"border-radius:50=
+%;display:block;" width=3D"32"></a>
+</div></td>
+</tr>
+</tbody>
+</table></td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td></tr></table><![endif]--></td>
+</tr>
+<tr>
+<td class=3D"img-container" style=3D"font-size:0px;padding:10px 0px 0px 0px=
+;word-break:break-word;text-align:center;">
+<div style=3D"margin:0 auto;max-width:115px;">
+<div class=3D"mktoImg" id=3D"kimage-adv4l0q75">
+<img alt=3D"ieee logo" height=3D"auto" width=3D"115" src=3D"https://engage.=
+ieee.org/rs/756-GPH-899/images/ieee-logo%402x-new-white-logo.png" style=3D"=
+border:none;outline:none;text-decoration:none;height:auto;width:100%;font-s=
+ize:13px;display:block;">
+</div>
+<!--[if !mso 9]><!-->
+<div class=3D"mktEditable" id=3D"image-plain-text-0gvzbt5ko" style=3D"mso-h=
+ide:all; visibility:hidden; opacity:0; color:transparent; mso-line-height-r=
+ule:exactly; line-height:0; font-size:0px; overflow:hidden; border-width:0;=
+ display:none !important;">
+[ ieee logo ]
+</div>
+<!--<![endif]-->
+</div></td>
+</tr>
+<tr>
+<td class=3D"text-container" style=3D"font-size:0px;padding:10px 25px 10px =
+25px;word-break:break-word;text-align:center;">
+<div class=3D"mktEditable" id=3D"ktext-rjimvne03" style=3D"font-family:Aria=
+l, Helvetica, Calibri, sans-serif;font-size:10px;letter-spacing:none;line-h=
+eight:1.2;text-align:center;mso-line-height-alt:0.75em;color:#FFFFFF;">
+<div class=3D"links-006699-underline">=20
+<div style=3D"font-family: Arial, Helvetica, Calibri, sans-serif; font-size=
+: 10px; letter-spacing: none; line-height: 1.2; text-align: center; mso-lin=
+e-height-alt: 0.75em; color: #ffffff;">=20
+<p style=3D"margin: 0 0;">=C2=A9 2025 IEEE=E2=80=93 All rights reserved.<br=
+><br></p>=20
+<p style=3D"margin: 0 0;"><span style=3D"font-size: 11px;">10662 Los Vaquer=
+os Circle</span><br><span style=3D"font-size: 11px;">Los Alamitos, CA 90720=
+-1314</span></p>=20
+</div>=20
+</div>
+</div></td>
+</tr>
+<tr>
+<td class=3D"text-container" style=3D"font-size:0px;padding:10px 25px 10px =
+25px;word-break:break-word;text-align:center;">
+<div class=3D"mktEditable" id=3D"ktext-6gcg6zoct" style=3D"font-family:Aria=
+l, Helvetica, Calibri, sans-serif;font-size:11px;letter-spacing:none;line-h=
+eight:1.2;text-align:center;mso-line-height-alt:0.813em;color:#FFFFFF;">
+<div class=3D"links-FFFFFF-underline">=20
+<div style=3D"font-family:Arial, Helvetica, Calibri, sans-serif;font-size:1=
+1px;letter-spacing:none;line-height:1.2;text-align:center;mso-line-height-a=
+lt:0.813em;color:#FFFFFF;">=20
+<p style=3D"margin: 0 0;">If you have an IEEE Account, manage your IEEE com=
+munications preferences <a href=3D
+"https://connect.ieee.org/NzU2LUdQSC04OTkAAAGeAyutu5kGE9ba-pMuMwNkEaTdyVmKJ=
+c_ae6KWRH3h16M-YzKaF3FXB7XhW5IuUJLOnmIw7M0=3D" target=3D"_blank" rel=3D"noo=
+pener" style=3D"color: rgb(255, 255, 255); text-decoration: underline;"
+>here</a>. Users without an IEEE Account can access the <a href=3D
+"https://connect.ieee.org/NzU2LUdQSC04OTkAAAGeAyutvND0gdsURIhnXPrhU7_ner45w=
+1RW41arYZ9WzjvZsCCYGQ1GNkL7n949r82UTZQLCQ8=3D" target=3D"_blank" rel=3D"noo=
+pener" style=3D"color: rgb(255, 255, 255); text-decoration: underline;"
+>Privacy Portal</a> to view selected preferences and policies.</p>=20
+</div>=20
+</div>
+</div></td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td></tr></table><![endif]--></td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td></tr></table><![endif]--></td>
+</tr>
+</tbody>
+</table>
+<!--[if mso]></td></tr><![endif]-->
+<!--[if mso]></table><![endif]-->
+</div>
+<a href=3D
+"https://connect.ieee.org/NzU2LUdQSC04OTkAAAGeAyutu3WA_eSXsdss-DXRhDXzoIjqf=
+cM24k2AAh3E9EYbNDC612_b6XpbsaOVU8aB4PefFGQ=3D"
+></a>
+<img src=3D"https://connect.ieee.org/trk?t=3D1&mid=3DNzU2LUdQSC04OTkAAAGeAy=
+utvFLZ8ovJCjSlXaA4_xY09JWmIms7f34OB_j-pWPpuUQ4oH-K53fljV2JiW4ifw-Kgk860-UO3=
+MVuNJyZEszv_MUO_yHwzu4jB9e1IcxQiHuUNCCsdM7HU7enkLrUkbvt2-HV02_lOCQBEpKK" wi=
+dth=3D"1" height=3D"1" style=3D"display:none !important;" alt=3D"" />
+
+<div></div>
+</body>
+</html>
+------=_Part_110523959_800316932.1762617654720--

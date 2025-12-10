@@ -1,0 +1,149 @@
+Delivered-To: kaver68@gmail.com
+Received: by 2002:a05:7108:544a:b0:475:b510:a7d4 with SMTP id e10csp223114gdw;
+        Tue, 26 Aug 2025 10:39:35 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IGuvlFMA2tMb7qpg81CqL7TPDXy4Ez7SsrnZlUI9I93Dqd3vEpB4HcY8mc6VQu73yKVmYAG
+X-Received: by 2002:a05:690c:6412:b0:71f:a817:1de6 with SMTP id 00721157ae682-71fdc424f07mr215136837b3.41.1756229975731;
+        Tue, 26 Aug 2025 10:39:35 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1756229975; cv=none;
+        d=google.com; s=arc-20240605;
+        b=S4ON6eJKKnhRRyAMwJnb+QRSflSB7vS5/hDBp0WWFZtzorP9v0kk9hYz/3cvH8kLhs
+         wMlmTTPNfwNTSABjl5zXN12E9YNgwKzYAXmXZPfOfnn5vy8/UTlFsRH6Wa9f/FzQRKDQ
+         y7WxnmlI986eNK5HSngqiIuycgpNmVGBo/DaJVGWKMsZttim4NUwvkwT8jKz5C+e3JlM
+         kvAph7cUXGWmumcoPG5Q+HkcyqUqhBPKPfXQwG+9wWNgFdFATaibYOW+onmffuRn3m6x
+         KhaSDuCyn943l1kLtFRdGFtLuLudhokjxRT9cfnylw0Pef5L+dtg3OAwkGe59bp+QrUx
+         PpGw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=list-unsubscribe:mime-version:subject:message-id:to:reply-to:from
+         :date:dkim-signature;
+        bh=aM5G6o/FzUzSkpLFUraL02etSffM4RFcWX1CImY0SHE=;
+        fh=G/VLhrQnXiN6LciSgCgIU9VM0fr+1O2AyqFGWpHCjzw=;
+        b=KnlxKY96YZwenCPWpNSzE7DqUVcO1qMMpvTpV8VuVYurvx7eWxT8CfR0Otm/x/VNtU
+         k0NX2zIH9ddA7Hq9beiWDVBVhXOvhizX8jYVIRwQsEJjBi3cIykCnr944U4fDTEu12HU
+         gUPeZZyiAdxk4BZIjOoeD0ql4//Z3kORNjUJSvFMsUcruJwWXHJKc6bSJY2oujW2MPtg
+         V1lDLpGRI7tuewwenBDVgfxc3IGJty/2O+IPYYQFNgr7FWwfyQwNXW/QazZjBvf8AIN5
+         Dl1AsIj+Lt/3jARhcR8e452BUCTYcHsqlc/l+01oWbFntwjucssDuTqo8CGb52PVu9Ag
+         SxYQ==;
+        dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@talent.icims.com header.s=scph1117 header.b=g+6K+2tg;
+       spf=pass (google.com: domain of msprvs1=20333cxn2o-vv=bounces-131558-2915@bounces.icims.com designates 162.247.166.162 as permitted sender) smtp.mailfrom="msprvs1=20333cxN2O-Vv=bounces-131558-2915@bounces.icims.com";
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=talent.icims.com
+Return-Path: <msprvs1=20333cxN2O-Vv=bounces-131558-2915@bounces.icims.com>
+Received: from icims-talentplatform-166162.email.icims.tools (icims-talentplatform-166162.email.icims.tools. [162.247.166.162])
+        by mx.google.com with ESMTPS id 00721157ae682-71ff1951b3esi43582587b3.374.2025.08.26.10.39.35
+        for <kaver68@gmail.com>
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Tue, 26 Aug 2025 10:39:35 -0700 (PDT)
+Received-SPF: pass (google.com: domain of msprvs1=20333cxn2o-vv=bounces-131558-2915@bounces.icims.com designates 162.247.166.162 as permitted sender) client-ip=162.247.166.162;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@talent.icims.com header.s=scph1117 header.b=g+6K+2tg;
+       spf=pass (google.com: domain of msprvs1=20333cxn2o-vv=bounces-131558-2915@bounces.icims.com designates 162.247.166.162 as permitted sender) smtp.mailfrom="msprvs1=20333cxN2O-Vv=bounces-131558-2915@bounces.icims.com";
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=talent.icims.com
+Return-Path: <msprvs1=20333cxN2O-Vv=bounces-131558-2915@bounces.icims.com>
+X-MSFBL: f9yjP4RevCUQO8J5uFDoLJtQGfBUfLncSMTjUY/QblI=|eyJzdWJhY2NvdW50X2l
+	kIjoiMjkxNSIsImN1c3RvbWVyX2lkIjoiMTMxNTU4IiwidGVuYW50X2lkIjoic3B
+	jIiwibWVzc2FnZV9pZCI6IjY4YTY1NmYxYWQ2ODNiMGY0MTljIiwiciI6ImthdmV
+	yNjhAZ21haWwuY29tIn0=
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=talent.icims.com;
+	s=scph1117; t=1756229974; i=@talent.icims.com;
+	bh=aM5G6o/FzUzSkpLFUraL02etSffM4RFcWX1CImY0SHE=;
+	h=Date:From:To:Message-ID:Subject:Content-Type:List-Unsubscribe:
+	 X-CSA-Complaints:From:To:Cc:Subject;
+	b=g+6K+2tgxlqBYOAWkDaPywimlxhtROaZwUgRPNIXslsOdy9ytPdL4vqxlmOrEwhM4
+	 OQBYloVysC5emg6d8qrFlxipkEt8KTFEzztjJ2jYnIfuDJQmfefMP5VSr6L2u4Yjz3
+	 fR8P7tHGuwmLtRPsufHC9OpNqukB68qDXXUcaawE=
+Received: from [10.90.32.77] ([10.90.32.77])
+	by i-055226b7cf7ea9509.mta1vrest.sd.prd.sparkpost (ecelerity 5.1.0.74589 r(msys-ecelerity:tags/5.1.0.6)) with REST
+	id C9/1C-37350-651FDA86; Tue, 26 Aug 2025 17:39:34 +0000
+Date: Tue, 26 Aug 2025 13:39:34 -0400 (EDT)
+From: Peraton <peraton+autoreply@talent.icims.com>
+Reply-To: Peraton <peraton+autoreply@talent.icims.com>
+To: kaver68@gmail.com
+Message-ID: <1000054016.312579.1756229974759@ip-10-47-161-115.ec2.internal>
+Subject: Peraton Application Update
+MIME-Version: 1.0
+Content-Type: multipart/alternative; 
+	boundary="----=_Part_312577_1759071970.1756229974758"
+List-Unsubscribe: <mailto:peraton+autoreply+ED8A1893395@talent.icims.com?subject=unsubscribe&contactId=11609482>, <https://peraton.icims.com/icims2/?r=ED8A1893395&contactId=11609482&process=1>
+X-iRecruiter-Type: TX
+X-iCIMS-Type: TX
+X-iCIMS-Priority: Auto
+X-iRecruiter-Source: peraton
+X-iCIMS-Message-Id: 11609482.IbazWb3zanrfCpHhTQ9I8wa6VJAFBtc5ul2X/LF0XXo=
+X-CSA-Complaints: csa-complaints@eco.de
+X-MSYS-API: { "options" : { "open_tracking" : true, "click_tracking" : true, "transactional":  true, "ip_pool": "prd_us_transactional" } }
+
+------=_Part_312577_1759071970.1756229974758
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="UTF-8"
+
+Dear Adrian,=0D=0A=C2=A0=0D=0AI would like to take this opportunity to than=
+k you for applying to our Cyber Systems Engineer, Senior Advisor (2024-1530=
+37) position.=0D=0A=0D=0AAfter careful consideration of your qualifications=
+, we regret to inform you that we have decided to pursue other candidates f=
+or this role.=0D=0A=0D=0AWe will maintain your records and should a positio=
+n open that matches your qualifications, we will contact you. We also encou=
+rage you to visit our career site as new positions become available daily.=
+=0D=0A=0D=0AWe appreciate your interest in our company and wish you success=
+ in your career search. To review the status of all applications you=E2=80=
+=99ve submitted for Peraton positions, please sign in to your Peraton caree=
+rs profile from our career site as a returning applicant and review your ap=
+plicant dashboard.=0D=0A=0D=0ARegards,=0D=0A=0D=0A=0D=0ATalent Acquisition=
+=0D=0A=0D=0AIf you no longer wish to receive e-mail from=C2=A0Peraton, clic=
+k here: https://tracking.icims.com/f/a/yFuukR6212TCD2Lv36pQdQ~~/AAIB5hA~/U5=
+SUixOJcMTr8qU089CLFNb_5tZpVDeU67yYLynohrDTpgw7CKZWpCHhA3mzXC18YCQieAWsxZoPm=
+Yg0fpV-jP7n0smLJxdwTHBOAt_-MN6pc6JYK8K9AfF8r62l71tvhXcxZAsh3nLn7kGbWavBKpvm=
+LyfxaDBUpRHsTzqm_4fKhjibaYn1pJOvqmwFiltE.=0D=0A=C2=A0=0D=0A=C2=A0=0D=0A=0D=
+=0A=0D=0A**************************************************=0D=0AThis messa=
+ge was sent to kaver68@gmail.com. If you don't want to receive these emails=
+ from this company in the future, please go to:=0D=0Ahttps://tracking.icims=
+.com/f/a/Lxsc3Toe0WCOne4vD-FWtw~~/AAIB5hA~/s-2ozNi2yUJZBxKQQaR41cuOjFA8Sdr=
+bUdtU4bvBXHB8oUK4o9gRl--Vy4VJ0EdCXWkF2ZuCAKs8bgAEnBLwIlR1twAbWeC66eqrRM9GFZ=
+hFJOZlui4vPsyuNl0Q05AbcEvXMCbdrjP46fkEBO-AspfFvKLoG6Q7Mj6JWXms7iM~ =0D=0A/n=
+ &#169; Peraton, 1875 Explorer Street, Reston, VA 20190/n=0D=0A
+------=_Part_312577_1759071970.1756229974758
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/html; charset="UTF-8"
+
+<p style=3D"margin: 0px;">Dear Adrian,</p><p style=3D"margin: 0px;">&nbsp;<=
+/p><p style=3D"margin: 0px;">I would like to take this opportunity to thank=
+ you for applying to our Cyber Systems Engineer, Senior Advisor (2024-15303=
+7) position.<br /><br />After careful consideration of your qualifications,=
+ we regret to inform you that we have decided to pursue other candidates fo=
+r this role.<br /><br />We will maintain your records and should a position=
+ open that matches your qualifications, we will contact you. We also encour=
+age you to visit our <a href=3D"https://tracking.icims.com/f/a/-3DU00VXJgeD=
+ahLZxzKhug~~/AAIB5hA~/ULaqJ_9E96qStnYIJs1lGlSxXhj8VJj5fHv95ZJKBJhdD3B0cOas_=
+iZY13hI3nQD9M9_CebmFsSgI-E5y3wP8P6lKrJ8GNtB0pV1R7tdN5s~" target=3D"_blank" =
+rel=3D"noopener">career site</a> as new positions become available daily.</=
+p><p style=3D"margin: 0px;"><br />We appreciate your interest in our compan=
+y and wish you success in your career search. To review the status of all a=
+pplications you=E2=80=99ve submitted for Peraton positions, please sign in =
+to your Peraton careers profile from our <a href=3D"https://tracking.icims.=
+com/f/a/-3DU00VXJgeDahLZxzKhug~~/AAIB5hA~/ULaqJ_9E96qStnYIJs1lGlSxXhj8VJj5f=
+Hv95ZJKBJhdD3B0cOas_iZY13hI3nQD9M9_CebmFsSgI-E5y3wP8P6lKrJ8GNtB0pV1R7tdN5s~=
+" target=3D"_blank" rel=3D"noopener">career site</a> as a returning applica=
+nt and review your applicant dashboard.</p><p style=3D"margin: 0px;"><br />=
+Regards,<br /><br /></p><p style=3D"margin: 0px;"><span style=3D"font-size:=
+ 9.0pt; font-family: 'Arial',sans-serif; color: black;">Talent Acquisition<=
+/span></p><p style=3D"margin: 0px;"><span style=3D"font-size: 9.0pt; font-f=
+amily: 'Arial',sans-serif; color: black;"><img src=3D"https://perspecta.ici=
+ms.com/icims2/servlet/icims2=3Fmodule=3DAppInert&amp;action=3Ddownload&amp;=
+id=3D1616786&amp;hashed=3D522487594" alt=3D"Peraton Logo" width=3D"133" hei=
+ght=3D"53" /></span></p><p style=3D"margin: 0px;"><span style=3D"font-size:=
+ 10pt;"><em>If you no longer wish to receive e-mail from&nbsp;Peraton, clic=
+k here: https://peraton.icims.com/icims2/=3Fr=3DED8A1893395&contactId=3D116=
+09482&hashed=3D96568675.</em></span></p><p style=3D"margin: 0px;"><span sty=
+le=3D"font-size: 10pt;"><em>&nbsp;</em></span></p><p style=3D"margin: 0px;"=
+>&nbsp;</p><br><hr>This message was sent to kaver68@gmail.com. If you don't=
+ want to receive these emails from this company in the future, please go to=
+:<br><a data-notracking=3D"1" href=3D"https://tracking.icims.com/f/a/Lxsc3T=
+oe0WCOne4vD-FWtw~~/AAIB5hA~/s-2ozNi2yUJZBxKQQaR41cuOjFA8SdrbUdtU4bvBXHB8oUK=
+4o9gRl--Vy4VJ0EdCXWkF2ZuCAKs8bgAEnBLwIlR1twAbWeC66eqrRM9GFZhFJOZlui4vPsyuNl=
+0Q05AbcEvXMCbdrjP46fkEBO-AspfFvKLoG6Q7Mj6JWXms7iM~">https://peraton.icims.c=
+om/icims2/=3Fr=3DED8A1893395&contactId=3D11609482</a>=0D=0A<br><br><center>=
+ &#169; Peraton, 1875 Explorer Street, Reston, VA 20190</center>=0D=0A<img =
+border=3D"0" width=3D"1" height=3D"1" alt=3D"" src=3D"https://tracking.icim=
+s.com/q/OhaxOkWv9sAVIulJceTBEQ~~/AAIB5hA~/5rnJCuDAuHwpK3xzItBRAwxxdSuk2Xg6z=
+5fjSBSaa97uM7a3KlNsIEalpTXNBAPRsTfwPO83lPklnXXeXQ80Og~~">=0D=0A=0D=0A
+------=_Part_312577_1759071970.1756229974758--

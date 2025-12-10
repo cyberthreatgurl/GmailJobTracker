@@ -1,0 +1,1651 @@
+Delivered-To: kaver68@gmail.com
+Received: by 2002:ac4:8d07:0:b0:759:c52c:7988 with SMTP id ff7csp2971986pib;
+        Mon, 10 Nov 2025 15:15:33 -0800 (PST)
+X-Google-Smtp-Source: AGHT+IGdtFfAp/eWu386JE34jhclkT9OHwOp//0gsagJje1JAS0TMQcpXpMc5a34O2Rr5HfrThHd
+X-Received: by 2002:a05:622a:1995:b0:4ed:7f5a:c6d8 with SMTP id d75a77b69052e-4eda4f7a99cmr140903841cf.41.1762816533459;
+        Mon, 10 Nov 2025 15:15:33 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1762816533; cv=none;
+        d=google.com; s=arc-20240605;
+        b=Jhf+2GrJYc3tlVHha5lMKxlO9ASGlC3Ilq+8eSW/cv0LI38mOM0jNqMU+PH5Z8+LYP
+         9SmZrbva2pO5xwEv7JaRyMnvfW6jRxfWQRONt7H1EBwOamBK8NyxMl6zt6+Kd3D5OTBC
+         MqhUTG2spOxYAyYkiIr9MplqARi8+Pp4OJsBBC2Mc4F9KKAvOhFE0PHnrF1AwMXABg+S
+         4xMi74l79+8UZ1XmWDKc8yKNcLiHWS+dGRu1rrS1UQz3+gtF/8gJ1vnxSeILW9kmFQ4p
+         1fmWAxwtr5gOZrpgjBO43UlIICIw5k8yhX38GG7pH7iyYOx64npZwGHsgK6xOdDhCD4n
+         8ySg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=feedback-id:message-id:reply-to:mime-version:list-unsubscribe-post
+         :list-unsubscribe:date:subject:to:from:dkim-signature:dkim-signature;
+        bh=AQT/M8rDoZPaRdBHH1l1e4LwsiNZvU9Ck0k6Ko4G+tg=;
+        fh=wSFryfXE6rTHkuS8nTG9P7UqZfPYgmS0ny8OriLGuDg=;
+        b=kEWXO57WKKpHyM3vfhOfigbJCY498lvPQFikUd2uYhksqzV8C8PnkSKnvyfj6GRTIL
+         qKdzu752hl1nz5Gm39IIBzY9UGripa/vApIXw2A1CooSpoGMgAATTNYA1lrZ26Q73vvH
+         yYl219sbBGFKeuOmSvryeeDeHUl+9tHBFF0XpEbmoLwZgJ2lATFQieAlgG+4SZW5ezXY
+         k2a0QFeJkcjlUDWRPNFhqlpCoFcKrG2+8v7BV8IoArpPdt+3cYqhk/BKoc2TsaNcE1fP
+         K5uhbpo0IOGEC3IN6NtVV6fBrbGtAmlAQA6nGRsrO7vgnjhvrFsnp+/6AHAayXrnGwDd
+         tfUw==;
+        dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@e.etradefinancial.com header.s=sf201809 header.b=uqlpVPZ0;
+       dkim=pass header.i=@s7.y.mc.salesforce.com header.s=fbldkim7 header.b=QxlgCyPp;
+       spf=pass (google.com: domain of bounce-25_html-552654-300100-7226950-333@bounce.e.etradefinancial.com designates 136.147.185.140 as permitted sender) smtp.mailfrom=bounce-25_HTML-552654-300100-7226950-333@bounce.e.etradefinancial.com;
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=e.etradefinancial.com
+Return-Path: <bounce-25_HTML-552654-300100-7226950-333@bounce.e.etradefinancial.com>
+Received: from mta.e.etradefinancial.com (mta.e.etradefinancial.com. [136.147.185.140])
+        by mx.google.com with ESMTPS id d75a77b69052e-4eda57e69e9si27150451cf.765.2025.11.10.15.15.33
+        for <KAVER68@gmail.com>
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Mon, 10 Nov 2025 15:15:33 -0800 (PST)
+Received-SPF: pass (google.com: domain of bounce-25_html-552654-300100-7226950-333@bounce.e.etradefinancial.com designates 136.147.185.140 as permitted sender) client-ip=136.147.185.140;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@e.etradefinancial.com header.s=sf201809 header.b=uqlpVPZ0;
+       dkim=pass header.i=@s7.y.mc.salesforce.com header.s=fbldkim7 header.b=QxlgCyPp;
+       spf=pass (google.com: domain of bounce-25_html-552654-300100-7226950-333@bounce.e.etradefinancial.com designates 136.147.185.140 as permitted sender) smtp.mailfrom=bounce-25_HTML-552654-300100-7226950-333@bounce.e.etradefinancial.com;
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=e.etradefinancial.com
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; s=sf201809; d=e.etradefinancial.com;
+ h=From:To:Subject:Date:List-Unsubscribe:List-Unsubscribe-Post:MIME-Version:
+ Reply-To:Message-ID:Content-Type; i=ETRADE@e.etradefinancial.com;
+ bh=AQT/M8rDoZPaRdBHH1l1e4LwsiNZvU9Ck0k6Ko4G+tg=;
+ b=uqlpVPZ03IDZsc1/ZQEeMem3tJxkDqxB8z5oT87xgDLEeu6IEF4E1o9Z5xvqyL3i/D/961Eb1XLB
+   z7VVJe/GJJfGkQgzbjilfy46ZYl92K6ajOH8IiaU97WeRhptMFVxuE1SPONJGvWWg0AKwQPU+yHW
+   S4Dfn2wYeYy157uDawOowuBPzvntMKqF2eRcSo7RNFAhTWLwMJalZPyXzDXIXbgijN61Di8ph0Sj
+   Y6G29L8WCZslHWqvsA4XJOpT2EkaKUXO709Ra36ZZEjs6oklXW3MpeTHScQiIXVM3NXVQMWBNL5Q
+   LcQ3dVBmvTR7mvAihhEbLxU0qp6VXD17bXcXEw==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; s=fbldkim7; d=s7.y.mc.salesforce.com;
+ h=From:To:Subject:Date:List-Unsubscribe:MIME-Version:Reply-To:Message-ID:
+ Content-Type;
+ bh=AQT/M8rDoZPaRdBHH1l1e4LwsiNZvU9Ck0k6Ko4G+tg=;
+ b=QxlgCyPpmWv2toq9wmkzlu6rcXoZpm2UyAyFzRARAyofHq/TARVZJTLg3IxlecAYe+UTGl9jWW+n
+   SGVjJ+rScCWY/+CkO4i0uuDyT8qPjI1VBnGP+v6jeZDef2hmvudz/brgP33hTcavGmk0oOiB83kc
+   7qYItfzgq7uN3sxBshrRK1kETUthzJ9TqbZdwREiCoO+UUUXZT4bNiE70KecJDkzhjBfUee/dqzD
+   1jjx2F2pz58Qf7dgl4lYP37+fV3EVdUHtolKxGusxCmJ5mmVCKahDYbDBtcAAlvuTQ4nKt0LG5OY
+   OFQaUA0NYXP/ViDHndvIC/gvKk8+P1HmNryMNA==
+Received: by mta.e.etradefinancial.com id h29p1a2fmd4q for <KAVER68@GMAIL.COM>; Mon, 10 Nov 2025 23:15:08 +0000 (envelope-from <bounce-25_HTML-552654-300100-7226950-333@bounce.e.etradefinancial.com>)
+From: "E*TRADE from Morgan Stanley" <ETRADE@e.etradefinancial.com>
+To: <KAVER68@GMAIL.COM>
+Subject: =?UTF-8?B?8J+NgSBGYWxsIGV4Y2x1c2l2ZTogR2V0IGEgY2FzaCBib251cyB1?=
+ =?UTF-8?B?cCB0byAkMSwwMDAsIHBsdXMgbWFya2V0LWxlYWRpbmcgcmF0ZXMgdXAgdG8g?=
+ =?UTF-8?B?NC4xMCUgQVBZ?=
+Date: Mon, 10 Nov 2025 17:15:07 -0600
+List-Unsubscribe: <https://click.e.etradefinancial.com/subscription_center.aspx?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJtaWQiOiI3MjI2OTUwIiwicyI6IjU1MjY1NCIsImxpZCI6IjI1IiwiaiI6IjMwMDEwMCIsImpiIjoiMzMzIiwiZCI6IjcwMjUwIn0.vgHoNTf1-i_CbhzV7XYJMCCCgXRKdh9P7hHUrvg9Vjg>, <mailto:leave-fd8416751a3c402029-fec4117577620179-fedb17707565047d-fe90137277620d7875-ff66177376@leave.e.etradefinancial.com>
+List-Unsubscribe-Post: List-Unsubscribe=One-Click
+MIME-Version: 1.0
+Reply-To: "Do Not Reply" <reply-fedb17707565047d-25_HTML-552654-7226950-333@e.etradefinancial.com>
+X-SFMC-Stack: 7
+x-job: 7226950_300100
+Message-ID: <178e7a1c-69d9-4eb7-a515-b32e25d79621@atl1s07mta2207.xt.local>
+Feedback-ID: 7226950:300100:136.147.185.140:sfmktgcld
+Content-Type: multipart/alternative;
+	boundary="lQxkMNI7UBfJ=_?:"
+
+This is a multi-part message in MIME format.
+
+--lQxkMNI7UBfJ=_?:
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: 8bit
+
+
+
+
+
+
+
+ 
+https://click.e.etradefinancial.com/?qs=2f44107b33068a9eb13634f41c3b70dc891884c18ca4e8a400a747442ea4a7c0e1223fb38e3cbdf82a7c4e9ad1fe44d38dd03478f7755dd7 
+. 
+
+
+
+
+ 
+ 
+  
+
+https://click.e.etradefinancial.com/?qs=2f44107b33068a9e64ff49650722c9ac71b6444f1f000f3b0e0ddc1816d8ead4d52dca66f3e065a0c6cd2da98d7a5245810f26a1b6475d00 
+ https://view.e.etradefinancial.com/?qs=6110b346889312893916d5538e4506878f482f4667e990560cf4f17575da35dc8bc2b20e5255a4dfaf05faf7624114bf054f30dd4c7d25f7c248e30ca71a30bde985225db9fa0a79 
+View in browser |    
+https://click.e.etradefinancial.com/?qs=2f44107b33068a9ee9775273e1a70fb205e8e71fc277695c858fbb0568eefa37104c2b01c22040690be4231c58f365bfc6ae95820d71db4e 
+Log on  
+
+ 
+ 
+ 
+
+
+ 
+ 
+ 
+https://click.e.etradefinancial.com/?qs=2f44107b33068a9eeb46546e13e08f315ca87f2a11aeede8e32ea6021af2bf97a5908ea2553248209409ec92b3ab75061de0a00f50191bfa 
+
+https://click.e.etradefinancial.com/?qs=2f44107b33068a9eeb46546e13e08f315ca87f2a11aeede8e32ea6021af2bf97a5908ea2553248209409ec92b3ab75061de0a00f50191bfa 
+
+
+ 
+
+ 
+Fall is a great time to turn over a new leaf on your savings. Boost your earnings with two exclusive offers from Morgan Stanley Private Bank, National Association, Member FDIC.
+
+Save more in a few easy steps
+Choose the account that’s right for you—or choose both
+
+
+https://click.e.etradefinancial.com/?qs=2f44107b33068a9e7c4393990271f4dc9d57f4d6236c3722a81c634f507b4cd8ac741de3ed8e5424070bd5e7f11d1fe852fad4e945e30a1a 
+
+https://click.e.etradefinancial.com/?qs=2f44107b33068a9e7c4393990271f4dc9d57f4d6236c3722a81c634f507b4cd8ac741de3ed8e5424070bd5e7f11d1fe852fad4e945e30a1a 
+
+
+https://click.e.etradefinancial.com/?qs=2f44107b33068a9e4b7cf4b3b54d805fad5c7f7904072ef9ef36d10ce34a8439de2ed15218792cc4dffa19d18d2d46537714b45cbe0b5076 
+
+https://click.e.etradefinancial.com/?qs=2f44107b33068a9e4b7cf4b3b54d805fad5c7f7904072ef9ef36d10ce34a8439de2ed15218792cc4dffa19d18d2d46537714b45cbe0b5076 
+
+ 
+ 
+
+Our awards and honors* say it all
+
+
+
+“Best Online Bank of 2025”
+ 
+ 
+ 
+
+“Best CD Accounts”
+ 
+ 
+
+ 
+ 
+
+“Best Savings Account for Investors”
+ 
+ 
+
+ 
+ 
+
+“Best Online Bank of 2025”
+
+“Best CD Accounts”
+
+“Best Savings Account for Investors”
+
+
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+   
+  
+ 
+
+https://click.e.etradefinancial.com/?qs=2f44107b33068a9e6112fcaad274be0b89a936b9a0f4ce425e264d1d3b6d587398908f5cbfd07bb9832601cd67a68a72ecd0fa6a3de920a3 
+ 
+ 
+https://click.e.etradefinancial.com/?qs=2f44107b33068a9e6f1318e653cab90457f08087112e69a474336a91d40ec9594de2904fc0fefcb68fa7a81598f6abc7af97970e0e8647aa 
+ 
+ 
+https://click.e.etradefinancial.com/?qs=2f44107b33068a9e2915f8dc366797e9a0bda2dca0ad5ac9f2c9ed54ab0151796004d951ee3adc231dbab358442b7c256f10140821a120b7 
+
+https://click.e.etradefinancial.com/?qs=2f44107b33068a9edc1b7907bea1ec1188f6e11de077408ef619057b88e31c41c1fb040ce0b573861630c7f89891f32d6bd36d3dba9f931d 
+Privacy Pledge  |  
+ 
+https://click.e.etradefinancial.com/?qs=2f44107b33068a9ecf25d481423a4146c0575581ddb0c307bd1b4b29c4125b57a15ffaa2a29d826256af00241f06215d871e7f37d3468f3d 
+Security Center  | 
+ 
+https://click.e.etradefinancial.com/?qs=2f44107b33068a9e1900794ba8e3d7272316d814c0818dadbd15e3e7e31055bf0b7ddb39023c3d8ea0cb253ed796d5de8a7922210144a578 
+FAQs
+
+ 
+ 
+ 
+ 
+
+ 
+ 
+
+ 
+ 
+
+https://click.e.etradefinancial.com/?qs=2f44107b33068a9edc1b7907bea1ec1188f6e11de077408ef619057b88e31c41c1fb040ce0b573861630c7f89891f32d6bd36d3dba9f931d 
+Privacy Pledge  |  
+ 
+https://click.e.etradefinancial.com/?qs=2f44107b33068a9ecf25d481423a4146c0575581ddb0c307bd1b4b29c4125b57a15ffaa2a29d826256af00241f06215d871e7f37d3468f3d 
+Security Center  |  
+ 
+https://click.e.etradefinancial.com/?qs=2f44107b33068a9e1900794ba8e3d7272316d814c0818dadbd15e3e7e31055bf0b7ddb39023c3d8ea0cb253ed796d5de8a7922210144a578 
+FAQs
+
+ 
+ 
+
+ 
+ 
+
+
+ 
+
+ 
+ * In 2025, the Premium Savings Account from Morgan Stanley Private Bank rated "Best Savings Account for Investors 2025" by Buy Side from Wall Street Journal. To choose Buy Side from WSJ's best high-yield savings accounts, WSJ considered the following factors: accounts offering the highest annual percentage yields (APYs) on deposited funds, accounts without monthly maintenance fees, or with easily waivable fees, and prioritized accounts without high balance and deposit requirements over those with high minimums (though in some cases, APYs are competitive enough to justify high minimums), accessibility, user-friendliness of banking platforms and the customer reputations of the banking institutions that offer these accounts. Reprinted with permission by Dow Jones Company, Inc.
+ 
+
+
+ To determine rankings for the Best CD Accounts of 2025, GOBankingRates considered the following factors (excluding neobanks): (1) total assets as sourced from the FDIC; (2) number of branch locations as sourced from the FDIC; (3) minimum deposit to open an account; (4) 12-month CD APY rate; (5) 60-month CD APY rate, and (6) the average mobile app rating between the Google Play (Android) and Apple stores. All factors were then scored and combined, with the lowest score being the best. Factors (1) and (2) were weighed 0.5 times, factor (3) was weighed 2 times, and factors (4) and (5) were weighed 4 times. All products and offerings had to be available as of Nov. 1, 2024, to be considered. Rates are subject to change; unless otherwise noted, rates are updated periodically. All other
+ information on accounts is accurate as of Dec. 9, 2024.
+ 
+
+
+ To determine the Best Online Banks of 2025, GOBankingRates looked at the following factors across exclusively online banks: (1) total assets as sourced from the FDIC; (2) monthly checking fee ratio (percent the minimum to avoid fee compared to the monthly fee itself); (3) savings APY; (4) 1-year CD APY; (5) Bauer rating (out of 5 stars); (6) products/services offered (auto loans, mortgage loans, credit cards, investment services, and insurance); and (7) the average mobile app rating between the Google Play (Android) and Apple stores. Factors (1) and (2) were weighed 0.5 times, and factors (3) and (7) were weighed 2 times. For all savings and checking account data, only the basic accounts or products offered at each institution were analyzed. All products and offerings had to be available
+ as of Nov. 1, 2024, to be considered. Rates are subject to change; unless otherwise noted, rates are updated periodically. All other information on accounts is accurate as of Dec. 9, 2024
+ 
+
+
+ 
+ 1. In the following disclosure, the words “we”, us”, and “Bank”, refer to Morgan Stanley Private Bank, National Association, Member FDIC ("Morgan Stanley Private Bank"). 
+
+ELIGIBILITY AND LIMITATIONS:
+
+
+ To take advantage of this offer, you must be the original recipient of the offer email from us. 
+ 
+
+
+ This offer is only valid for a new Premium Savings Account (PSA). This offer is not valid for Checking, Max-Rate Checking or line of credit, or other accounts that we or our affiliates offer. IRA and non-IRA Brokerage accounts are ineligible. This offer is only eligible to one new opened and funded Premium Savings Account (PSA) within 30 days. Excludes non-U.S. residents, and residents of any jurisdiction where this offer is not valid. 
+
+
+ Each customer is limited to a lifetime maximum of two new PSA offers. 
+
+
+ Other restrictions may apply.
+ 
+
+OFFER RULES FOR ALL PARTICIPANTS:
+
+ 1. Open Account: Open one new Premium Savings Account between 11/07/2025 and 2/28/2026. No minimum initial deposit is required to open an account; however, the account must be funded within thirty (30) days to remain open. 
+
+ 
+ 
+ 2. Deposit Funds: Deposit a minimum of $25,000 or more in net-new funds* over the first thirty (30) days following account opening (“Deposit Period”). At the end of the Deposit Period, all net new funds will be totaled to determine which Deposit Tier you have satisfied (see below). Net-new funds do not include any deposits transferred from accounts provided by us (e.g. Checking, Max-Rate Checking), or any of our affiliates. 
+ 
+ 
+
+Bonus ChartDeposit TierMinimum Maintenance BalanceCash Credit Tier
+$25,000 - $49,999$25,000$250
+$50,000 - $74,999$50,000$500
+$75,000 - $99,999$75,000$750
+$100,000 or more$100,000$1,000
+
+
+ 
+ 3. Maintain Balance: Maintain an average daily balance in your enrolled Premium Savings Account that meets the Minimum Maintenance Balance of the Deposit Tier you have satisfied in Step 2. The average daily balance calculation will begin from Day thirty (30) of account opening and will end forty-five (45) days following (“Maintenance Period”). 
+ 
+
+
+ 
+ 4. Receive Bonus: After the requirements are satisfied, we will deposit the bonus within thirty (30) days following the end of the Maintenance Period. The bonus will correspond to the Cash Credit Tier for which you qualify, based on the amount deposited during the Deposit Period and maintained during the Maintenance Period. If the Deposit Tier is higher than what is maintained over the Maintenance Period, or vice versa, you will qualify for the lower Cash Credit Tier. Please see below for an example.
+ 
+
+Example: Please see below for an example of how you can earn a cash bonus. 
+
+
+ 
+ 1. You open your Premium Savings account between 11/07/2025 and 2/28/2026. 
+
+
+ 
+ 2. Within thirty (30) days of account opening (the Deposit Period), you deposit $50,000 - $74,999,000 in net new funds.
+
+
+ 
+ 3. For the forty-five (45) days immediately following the Deposit Period (the Maintenance Period), you maintain an average daily balance of at least $50,000. 
+ 
+
+
+ 4. The successful completion of Steps 1, 2 and 3 qualify you for a cash credit of $500. However, let’s say your average daily balance during the Maintenance Period drops between $25,000 - $49,999. In this case, you would only receive $250, notwithstanding your $50,000 deposit during the Deposit Period. 
+ 
+
+
+ The applicable cash credit tier will be determined following the close of the Maintenance Period and will be paid out within thirty (30) days after the Maintenance Period (or one hundred and five (105) days following account opening). Cash credits will be paid to the account where the deposit is made.
+ 
+
+
+ * Net new funds are funds that originate from outside of the Bank into the Premium Savings Account, minus any funds withdrawn from the Premium Savings Account and sent out of the Bank. This includes funds deposited from accounts that are external to us and all our affiliates (i.e. transfers from another bank account). Net-new funds do not include any deposits transferred from accounts provided by us (e.g. Checking, Max-Rate Checking), or any of our affiliates.
+
+BONUS PAYMENT:
+
+
+ 
+ You must keep your account open and in good standing to receive the bonus. If your account is in default, restricted or closed for any reason prior to such time, including being closed by us, you will not be eligible for the bonus.
+
+ 
+ 
+ If we determine, in our sole discretion, that you have violated the Deposit Account Agreement or have engaged in abuse, misuse, or gaming in connection with your account, we may determine that you are not eligible for the Cash Bonus. In such circumstance, we may rescind or decline to award you the Cash Bonus. We reserve the right to modify or revoke this Cash Bonus offer at any time without notice. 
+
+
+ 
+ If you are not eligible or are deemed to be disqualified from receiving the bonus, we will notify you within one hundred and five (105) days of account opening. 
+
+Morgan Stanley Private Bank, National Association reserves the right to terminate this offer at any time. 
+
+
+ Cash bonuses are treated as interest income for US tax purposes and will be reported on IRS Form 1099-INT and may be subject to 24% backup withholding if your account is not properly documented with a valid Form W-9. Taxes related to cash bonuses are the customer’s responsibility. MSPBNA and its affiliates do not provide tax advice, and you should always consult your own tax advisor regarding your personal circumstances before taking any action that may have tax consequences. 
+ 
+ 
+
+
+ 2. As of 11/10/2025, the Annual Percentage Yield (APY) of the Premium Savings Account offered by Morgan Stanley Private Bank, National Association is 3.75%. Your interest rate and APY may change at any time and fees may reduce earnings. Please visit 
+https://click.e.etradefinancial.com/?qs=2f44107b33068a9e156e59810b0cda442d0b505ab8d93b1943287d4c8090f655a829e78eaeb4a056c66c7fd2101390e86f9c5ec4fcca51e3 
+etrade.com/ratesheet  for information regarding this account's current interest rate and corresponding APY. for information regarding this account's current interest rate and corresponding APY.
+ 
+
+
+3. As of 11/10/2025, the Annual Percentage Yield (APY) of the 9-month Certificate of Deposit is 4.10%. Your interest rate and APY may change at any time until funding is settled, and penalties may reduce earnings. The APY is based on no withdrawal of credited interest and no redemption prior to the stated maturity date. Please visit 
+https://click.e.etradefinancial.com/?qs=2f44107b33068a9e156e59810b0cda442d0b505ab8d93b1943287d4c8090f655a829e78eaeb4a056c66c7fd2101390e86f9c5ec4fcca51e3 
+etrade.com/ratesheet  for information regarding the current interest rate, corresponding APY, and account terms. Morgan Stanley Private Bank, National Association reserves the right to terminate this offer at any time. 
+
+
+ 
+ 4. More information about the competitor accounts may be found on the respective competitor websites: 
+https://click.e.etradefinancial.com/?qs=2f44107b33068a9e6f3118c5836b2b1ed3d999dde228e571d5c6ad8740fa61d0d4b664ab47d0851afc6f5600d9f3c64b2fc7ee7597e0bbfe 
+https://click.e.etradefinancial.com/?qs=2f44107b33068a9e6f3118c5836b2b1ed3d999dde228e571d5c6ad8740fa61d0d4b664ab47d0851afc6f5600d9f3c64b2fc7ee7597e0bbfe , 
+ 
+https://click.e.etradefinancial.com/?qs=2f44107b33068a9e952ca2614bb4ca60e2db628ff8fb48cd5fdcd3885237a4bb83c6315cf1e5e3adb284b77de04e36b855cd9305b4d290a8 
+https://click.e.etradefinancial.com/?qs=2f44107b33068a9e952ca2614bb4ca60e2db628ff8fb48cd5fdcd3885237a4bb83c6315cf1e5e3adb284b77de04e36b855cd9305b4d290a8 , 
+ 
+https://click.e.etradefinancial.com/?qs=2f44107b33068a9e61ced3f0c71f9fc54722f5eb95d152ef8607d8f9be57217ba983bd86cedbc1296c4fd6204bb9007aeab61d6b244b2520 
+https://click.e.etradefinancial.com/?qs=2f44107b33068a9e61ced3f0c71f9fc54722f5eb95d152ef8607d8f9be57217ba983bd86cedbc1296c4fd6204bb9007aeab61d6b244b2520 . Rates reflect the highest tiered rate in New York. We believe the above competitor information to be reliable, but neither Morgan Stanley Private Bank nor its affiliates guarantee its accuracy, timeliness, or completeness.
+ 
+
+
+ 5. Based on comparison to the National Deposits Savings Average Annual Percentage Yield (APY) as published on the 
+https://click.e.etradefinancial.com/?qs=2f44107b33068a9edd54765ddc7832cff4e154e328619b6106965d9ed49fb19bf85cc6b1c14f4fdd77a0a0fa977a812517d34b846f85f70f 
+FDIC Weekly National Rates and Rate Caps  Weekly Update, as of October 20, 2025.
+ 
+
+
+ 
+ 6. Certificate of Deposit (CD) interest rates are fixed from the start of the term until their maturity date. 
+
+
+
+The interest rate on the Settlement Date can be higher or lower than the interest rate that was available at the time of account opening. Settlement Date is when funds are received and posted to your account according to our Funds Availability policy, found in section 3 of the 
+https://click.e.etradefinancial.com/?qs=2f44107b33068a9e526d018820e3911a1d53fbfad248de7182ea21b649e49d685180d11d601473693858c1657841ce10634e515a1da0cd39 
+Morgan Stanley Private Bank Deposit Account Agreement . If your Settlement Date is within 10 calendar days of the account opening, the applied interest rate will be the highest of the prevailing interest rate on the date of account opening or the date of Settlement. Maturity is determined based on the Settlement Date and the term selected. The APY is based on no withdrawal of credited interest and no redemption prior to the stated maturity date. A withdrawal will reduce earnings. See the CD Rate Table page at 
+https://click.e.etradefinancial.com/?qs=2f44107b33068a9e156e59810b0cda442d0b505ab8d93b1943287d4c8090f655a829e78eaeb4a056c66c7fd2101390e86f9c5ec4fcca51e3 
+etrade.com  for information on term lengths, current interest rates and corresponding APYs. Certificate of Deposit rates are subject to change at any time and are not guaranteed until the CD is funded and settled. 
+
+
+
+Interest is compounded daily. Interest will compound from the Settlement Date until the last full day before the date of withdrawal using the daily balance method. Accrued interest posts to your account on a quarterly basis, unless you select at account opening to receive interest via check.
+ 
+
+
+ The Premium Savings Account gives Morgan Stanley Private Bank, National Association, Member FDIC the ability to send any amount held on deposit in your Premium Savings Account to other depository accounts at Federal Deposit Insurance Corporation (“FDIC”) member banks with the purpose of affording you additional FDIC insurance coverage. It is designed to offer up to $500,000 in FDIC coverage to individual accounts (up to $1 million for joint accounts). Certain conditions must be met. 
+https://click.e.etradefinancial.com/?qs=2f44107b33068a9ea09a4810637516c73f97537a668b98c45bfa15e77e189768fce9f1fa86ace37c4b011c85e0a5ad7c93f7ec19b1acf540 
+Learn more 
+
+
+ 
+ Deposits held in Certificate of Deposit accounts are FDIC insured up to $250,000. 
+https://click.e.etradefinancial.com/?qs=2f44107b33068a9ec041f06e6a89ab492229b8436147036818c31e2cb079da43f0699021f7f40c043f94610f19f566ee19274e9a616cbeed 
+Learn more 
+
+Banking products and services are provided by Morgan Stanley Private Bank, National Association, Member 
+https://click.e.etradefinancial.com/?qs=2f44107b33068a9ee268291f60df5d25852c6d31aefdeb961bbc353f61b3b2e8f00a9a1791501514eec803e0b9624d3478685b2b3d0347b4 
+FDIC . 
+
+
+ This is a promotional email from Morgan Stanley Private Bank, National Association. 
+https://click.e.etradefinancial.com/?qs=2f44107b33068a9e73ec5ccd9c0fd8896b1980040b50e4c2c49fde64239ac82e01193dead18452d4a832a78ed201478fba4d9db4590cf7f0 
+Click hereto unsubscribe.
+ 
+ Please see our 
+https://click.e.etradefinancial.com/?qs=2f44107b33068a9edc1b7907bea1ec1188f6e11de077408ef619057b88e31c41c1fb040ce0b573861630c7f89891f32d6bd36d3dba9f931d 
+Privacy Pledge  for details about how Morgan Stanley handles personal information. 
+ 
+
+Morgan Stanley Private Bank, P.O. Box 484, Jersey City, NJ 07303-0484
+
+ 
+ 
+ ©2025 E*TRADE from Morgan Stanley. All rights reserved. 
+https://click.e.etradefinancial.com/?qs=2f44107b33068a9ed23234792416a3c8da93c538a7dbce086cf55d6c7237b23f0d2084c9ac91970adb5929c65be07ce481f124b5c056fb9d 
+E*TRADE Copyright Policy 
+
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+https://click.e.etradefinancial.com/?qs=2f44107b33068a9e42fd36fe0815c9b5486c87a93217c2b9093124d9ceb5e181ca0b2675d371aa25d5067239a118c95127614cf12f58c506 
+. 
+
+ 
+
+
+ 
+
+CRC 4935314 11/25
+                                          
+
+
+
+--lQxkMNI7UBfJ=_?:
+Content-Type: text/html;
+	charset="utf-8"
+Content-Transfer-Encoding: 8bit
+
+
+
+<table cellpadding="0" cellspacing="0" width="100%" role="presentation" style="min-width: 100%; " class="stylingblock-content-wrapper"><tr><td class="stylingblock-content-wrapper camarker-inner"></td></tr></table>
+
+
+  <table cellpadding="0" cellspacing="0" width="100%" role="presentation" style="min-width: 100%; " class="stylingblock-content-wrapper"><tr><td class="stylingblock-content-wrapper camarker-inner"><div style="font-size:1pt; line-height:0;" role="none">
+<a  class="button-inner outlook-button outlook-hidden button-callout-button"  href="https://click.e.etradefinancial.com/?qs=2f44107b33068a9ece4d3c9a420a8d4b0c43489e3a189054b09ecdd11640ae1a647f57959ce96ee8793a752afeb568e47dc06c8d07cb4184be0c25ed5c8c7c18" target="_blank" role="none" style="font-size:0pt;">.</a>
+</div>
+</td></tr></table>
+
+
+
+ 
+ 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html lang="en" mcdisabled-xlmns="http://www.w3.org/1999/xhtml" ><head></head><body style="margin:0px; padding:0px;background-color:#eeeeee;" ><style type="text/css">
+div.preheader 
+{ display: none !important; } 
+</style>
+<div class="preheader" style="font-size: 1px; display: none !important;">Special savings offers from Morgan Stanley Private Bank, National Association, Member FDIC</div><custom type="content" name="Ampscript" >
+ <span style="margin:0px; padding:0px;background-color:#ffffff;" >
+<title></title>
+<meta charset="UTF-8" >
+<meta name="viewport" content="width=device-width, initial-scale=1" >
+<meta http-equiv="X-UA-Compatible" content="IE=edge" >
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" >
+<meta name="format-detection" content="telephone=no" >
+   <!--[if (gte mso 9)|(IE)]> <style type="text/css"> sup{font-size: 16px !important;line-height:100% !important;} </style><![endif]-->
+<!--[if (gte mso 9)|(IE)]><![endif]-->
+<style type="text/css">
+ * {
+   margin: 0;
+   padding: 0;
+   /* ect styles */
+} 
+body {
+ -webkit-text-size-adjust: 100% !important;
+ -ms-text-size-adjust: 100% !important;
+ -webkit-font-smoothing: antialiased !important;
+}
+img {
+ border: 0 !important;
+ outline: none !important;
+}
+div {
+ Margin: 0px !important;
+ Padding: 0px !important;
+ line-height: inherit !important;
+}
+p {
+ Margin: 0px !important;
+ Padding: 0px !important;
+ line-height: inherit !important;
+}
+table {
+ border-collapse: collapse;
+ mso-table-lspace: 0px;
+ mso-table-rspace: 0px;
+}
+td, a, span {
+ border-collapse: collapse;
+ mso-line-height-rule: exactly;
+}
+.ExternalClass * {
+ line-height: 100%;
+}
+.em_applewhiltelink a {
+ color: inherit !important;
+ text-decoration: none !important;
+}
+a[x-apple-data-detectors] {
+ color: inherit !important;
+ text-decoration: none !important;
+ font-size: inherit !important;
+ font-family: inherit !important;
+ font-weight: inherit !important;
+ line-height: inherit !important;
+}
+ @media only screen  and (max-width: 700px) {
+  
+  img[class=2colmblimg] {
+   width:100% !important;
+   height:auto !important;
+   }
+table[class=em_subhead_center],td[class=em_subhead_center]  {
+ display:block !important; 
+ width:100% !important;
+ padding:0 40px 0 40px !important;
+}
+table[class=em_subhead_center_nopadding],td[class=em_subhead_center_nopadding]  {
+ display:block !important; 
+ width:100% !important; 
+}
+table[class=em_main_table_hero] {
+  width: 100% !important; 
+  display:block !important; 
+  height:auto !important; 
+}
+td[class=Disclaimer_text], span[class=Disclaimer_text]{
+ padding:0 20px 0 20px !important;
+ font-size: 11px !important; 
+ line-height: 12px !important;
+ }
+table[class=em_main_table] {
+ width: 100% !important; 
+}
+table[class=em_main_table_disc] {
+ width: 100% !important; 
+ padding:30px !important;
+}
+table[class=em_main_cta] {
+ width: 100% !important; 
+ padding-right:10px !important;
+ padding-left:10px !important;
+}
+table[class=em_wrapper], td[class=em_wrapper] {
+ width: 100% !important;
+}
+table[class=em_subhead], td[class=em_subhead] {
+ width: 280px !important;
+ padding:14px 0px 24px 0px !important;
+ text-align: center !important;
+} 
+table[class=em_subhead_txt], td[class=em_subhead_txt] { 
+ padding-left:0px !important;
+ text-align: center !important;
+padding-bottom:15px !important;
+}
+table[class=em_spacer_disc1], td[class=em_spacer_disc1] {
+ width: 20px !important; 
+ border-right:none !important; 
+ padding-right:20px !important;
+ padding-left:20px !important;
+ margin-right:auto !important;
+ margin-left:auto !important;
+}
+table[class=em_spacer_offer1], td[class=em_spacer_offer1] {
+ width: 30px !important; 
+ border-right:none !important; 
+ padding-right:30px !important;
+ padding-left:30px !important;
+ margin-right:auto !important;
+ margin-left:auto !important;
+}
+table[class=em_wrapper_offer1], td[class=em_wrapper_offer1] {
+ width: 300px !important;
+ padding-top:0px; !important;
+ border-right:none !important;
+ border-bottom:1px solid #ffffff !important;
+}
+table[class=em_wrapper_offer2], td[class=em_wrapper_offer2] {
+ width: 300px !important;
+ padding-left:0px !important;
+ padding-top:40px !important;
+ border-right:none !important;
+}
+table[class=em_cta], td[class=em_wrapper_offer2] {
+ width: 300px !important; 
+ border-right:none !important;
+}
+td[class=em_height] {
+ height: 20px !important;
+}
+table[class=em_pb6], td[class=em_pb6] {
+ padding-bottom:6px !important;
+ width: 100% !important;
+}
+td[class=em_hide],table[class=em_hide], br[class=em_hide], img[class=em_hide], span[class=em_hide] {
+ display: none !important;
+ padding:0px !important;
+ width:0px !important;
+}
+td[class=em_side] {
+ width: 15px !important;
+}
+td[class=em_side1] {
+ width: 10px !important;
+}
+img[class=em_img] {
+ width: 100% !important;
+ height: auto !important;
+ max-width: none !important;
+ display:block !important;
+}
+body[yahoo] img[class=em_img_mbl] {
+ overflow:visible !important;
+ display:block !important;
+ width: 100% !important;
+ height: auto !important;
+ max-width: none !important;
+}
+ img[class=em_img_mbl] {
+ overflow:visible !important;
+ display:block !important;
+ width: 100% !important;
+ height: auto !important;
+ max-width: none !important;
+}
+td[class=em_h25] {
+ height: 25px !important;
+}
+div[class=em_non] {
+ display: none !important;
+}
+body[yahoo] div[class=hide_disktop] {
+ max-height:1000px !important;
+ display: table !important;
+ float: none !important;
+ width: 100% !important;
+ overflow: visible !important;
+ height: auto !important;
+}
+ div[class=hide_disktop] {
+ max-height:1000px !important;
+ display: table !important;
+ float: none !important;
+ width: 100% !important;
+ overflow: visible !important;
+ height: auto !important;
+}
+span[class=hide_disktop] {
+ max-height:1000px !important;
+ display: table !important;
+ float: none !important;
+ width: 100% !important;
+ overflow: visible !important;
+ height: auto !important;
+}
+table[class=em_w290] {
+ width: 280px !important;
+}
+td[class=em_w290] {
+ width: 280px !important;
+}
+td[class=em_h30] {
+ height: 30px !important;
+}
+img[class=em_padbtm] {
+ padding-bottom: 15px !important;
+}
+td[class=em_w22] {
+ width: 22px !important;
+}
+td[class=em_h30] {
+ height: 30px !important;
+}
+span[class=em_bold] {
+ font-weight: bold !important;
+}
+table[class=social_bar],  {
+ width: 100% !important;
+}
+}
+  </style>
+
+<img src="https://click.e.etradefinancial.com/open.aspx?ffcb10-fedb17707565047d-febe117577620c7a-fe90137277620d7875-ff981675-fec4117577620179-ff66177376&d=70250&bmt=0" width="1" height="1" alt=""> 
+<!--Full width table start-->
+<table role="presentation" align="center" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color:#eeeeee;" bgcolor="#eeeeee"  >
+  
+  <tbody>
+   <!--=====HEADER======-->
+  <tr>
+    <td valign="top" align="center" bgcolor="#ffffff" >
+     <table role="presentation" width="640" border="0" cellspacing="0" cellpadding="0" style="table-layout: fixed;" class="em_main_table" >
+        <tbody>
+         <tr>
+          <td width="20px" bgcolor="#ffffff" >&nbsp;</td>
+           <td valign="top" align="center" >
+            <table role="presentation" width="600" border="0" cellspacing="0" cellpadding="0" class="em_main_table" bgcolor="#ffffff" >
+               <tbody>
+                <tr>
+                  <td height="12" style="line-height:1px; font-size:1px;" >&nbsp;</td>
+                </tr>
+                <tr>
+                  <td valign="top" align="center" >
+                   <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" align="center" class="em_main_table" >
+                     <tbody>
+                      <tr>
+                       <td valign="bottom" align="left" style="vertical-align:bottom; padding:28px 0px 5px 0px;"><a href="https://click.e.etradefinancial.com/?qs=2f44107b33068a9e785a394fdd6780210c8069d8bbe1cb833a443ffbf0840ebc34250a7f93db1021e5c626ad1e186eac9a1b92ce61e015bf" target="_blank" title="E*TRADE"  style="text-decoration:none; color:#51ae31;" ><img src="http://image.e.etradefinancial.com/lib/fe90137277620d7875/m/10/5406b056-c30a-4e03-87e3-40c6849a37b9.png" width="180" height="auto" alt="E*TRADE from Morgan Stanley" style="display:block; font-family:Arial, sans-serif; font-size:25px; line-height:49px; color:#51ae31; font-weight:bold; text-align:center; height:auto; width:180px;" border="0" ></a>
+                       </td>
+                       <td width="100" class="em_side" >&nbsp;</td>
+                       <td valign="bottom" align="right" > 
+                        <table role="presentation" width="315" border="0" cellspacing="0" cellpadding="0" align="right"  class="em_main_table" >
+                         <tbody>
+                          <tr>
+                           <td valign="bottom" align="right" style="font-family: Arial, sans-serif; padding: 20px 0px 0px 0px; font-size:12px;  line-height:18px; color:#555555; text-align:right;font-weight:normal;" ><span class="em_hide" ><a href="https://view.e.etradefinancial.com/?qs=6110b346889312893916d5538e4506878f482f4667e990560cf4f17575da35dc8bc2b20e5255a4dfaf05faf7624114bf054f30dd4c7d25f7366525a18f87a4d18b523f7f1bfdad69" target="_blank" mcdisabled-title=""  style="text-decoration:none; color:#6633cc;" ><span class="visited" style="color:#6633cc; text-decoration:none;" >View in browser</span></a> &nbsp;&nbsp;|&nbsp;&nbsp;  </span><a href="https://click.e.etradefinancial.com/?qs=2f44107b33068a9e9dce55d451b5ec17da0c6fb97cd5438b0157c9fedd0e19ca93d9fc3ba5e0daa167d92ad6dce23ac6f21eed116a38523e" target="_blank" mcdisabled-title=""  style="text-decoration:none; color:#6633cc;" ><span class="visited" style="color:#6633cc; text-decoration:none;" >Log&nbsp;on</span>
+</a>  </td>
+                           
+                          </tr> 
+                        </tbody>
+                          </table>
+                        </td>
+                      </tr>
+                    </tbody>
+                   </table>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="line-height:0px; font-size:0px;" height="0" >&nbsp;</td>
+                </tr>
+                <tr>
+                  <td height="15" style="line-height:1px; font-size:1px;" >&nbsp;</td>
+                </tr>
+              </tbody>
+            </table>
+          </td>
+          <td width="20px" bgcolor="#ffffff" >&nbsp;</td>
+        </tr>
+      </tbody>
+     </table>
+  </td>
+  </tr>
+  
+  <!--//=====HEADER======-->
+  <!--=====BANNER======-->
+   <!--   <tr>     <td valign="top" align="center" bgcolor="#ffffff" >       <div data-type="slot" data-key="0fhqkeb8h5u" data-label="Header"></div>     </td>   </tr> -->
+  <!--//=====BANNER======--> 
+  <!--=====BODY======-->
+  <!---------CTA---------->
+  <tr>
+    <td valign="top" align="center" >
+       <table cellpadding="0" cellspacing="0" width="100%" role="presentation" style="min-width: 100%; " class="stylingblock-content-wrapper"><tr><td class="stylingblock-content-wrapper camarker-inner"><table role="presentation" class="em_wrapper" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#eeeeee" align="center">
+  <tr>
+    <td valign="top" align="center">
+      <table role="presentation" style="display:block; table-layout:fixed;" class="em_main_table" width="640" cellspacing="0" cellpadding="0" border="0">
+        <tr> 
+          <td valign="top" height="0" align="center">
+            <!--[if !mso 9]><!-->
+            <div class="hide_disktop" style="max-height:0; width:0; overflow:hidden; display:none; background-color:#241056">
+              <table role="presentation" class="em_main_table" width="620" cellspacing="0" cellpadding="0" border="0" bgcolor="#241056">
+                <tr>
+                  <td valign="top" height="0" align="center">
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" align="center">
+                      <tr>
+                        <td valign="top" align="left">
+                          <a href="https://click.e.etradefinancial.com/?qs=2f44107b33068a9eeb46546e13e08f315ca87f2a11aeede8e32ea6021af2bf97a5908ea2553248209409ec92b3ab75061de0a00f50191bfa" target="_blank"><img src="https://image.e.etradefinancial.com/lib/fe90137277620d7875/m/1/6bd0fc40-8c48-4d6b-8235-8dbf3a1cd52e.jpg" alt="Special fall offers to spice up your savings | Open now" style="display:block; font-family:Arial,sans-serif; font-size:15px; line-height:20px; color:#241056; text-align:center; font-weight:bold;" width="100%" height="auto" border="0"></a>
+                        </td>
+                      </tr>
+                    </table>
+                  </td> 
+                </tr>
+              </table>
+            </div>
+            <!--<![endif]-->
+            <table role="presentation" style="table-layout: fixed; " class="em_main_table" width="640" cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff">
+              <tr> 
+                <td class="em_hide" valign="top" align="left">
+                  <a href="https://click.e.etradefinancial.com/?qs=2f44107b33068a9eeb46546e13e08f315ca87f2a11aeede8e32ea6021af2bf97a5908ea2553248209409ec92b3ab75061de0a00f50191bfa" target="_blank"><img src="https://image.e.etradefinancial.com/lib/fe90137277620d7875/m/1/955f707a-1025-41cd-be86-ee8c31299400.jpg" alt="Special fall offers to spice up your savings | Open now" style="font-family:Arial, sans-serif; font-size:19px; line-height:200px; color:#241056; text-align:center; font-weight:bold; max-width:640px;" width="640" border="0"></a>
+                </td> 
+              </tr>
+            </table>
+          </td>
+        </tr>
+       
+      </table> 
+    </td>
+  </tr>
+  
+</table></td></tr></table>
+    </td>
+    </tr>
+   <!---------/CTA---------->
+    <!--------- Section1--------->
+    <tr>
+     <td align="center"   >
+      <table cellpadding="0" cellspacing="0" width="100%" role="presentation" style="min-width: 100%; " class="stylingblock-content-wrapper"><tr><td class="stylingblock-content-wrapper camarker-inner">
+<table role="presentation" class="em_wrapper" width="100%" height="auto" cellspacing="0" cellpadding="0" border="0" bgcolor="#eeeeee">
+  <tr>
+    <td valign="top" align="center">
+      <table role="presentation" class="em_wrapper" width="640" cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" align="center">
+        <tr>
+          <td style="font-family:Arial,sans-serif; font-size:18px; line-height:24px; color:#555555; padding:10px 20px 30px 20px; text-align:center;" class="em_wrapper" valign="top" align="left">
+Fall is a great time to turn over a new leaf on your savings. Boost your earnings with two exclusive offers from Morgan Stanley Private Bank, National Association, Member FDIC.<br><br>
+
+<span style="font-family:Arial,sans-serif; font-size:24px; line-height:24px; color:#555555; padding:10px 20px 30px 20px; text-align:center;"><b>Save more in a few easy steps</b></span>
+<br>
+<b>Choose the account that’s right for you—or choose both</b>
+</td></tr>
+      </table>
+    </td>
+  </tr>
+</table></td></tr></table><table cellpadding="0" cellspacing="0" width="100%" role="presentation" style="min-width: 100%; " class="stylingblock-content-wrapper"><tr><td class="stylingblock-content-wrapper camarker-inner"><table role="presentation" class="em_wrapper" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#eeeeee" align="center">
+  <tr>
+    <td valign="top" align="center">
+      <table role="presentation" style="display:block; table-layout:fixed;" class="em_main_table" width="640" cellspacing="0" cellpadding="0" border="0">
+        <tr> 
+          <td valign="top" height="0" align="center">
+            <!--[if !mso 9]><!-->
+            <div class="hide_disktop" style="max-height:0; width:0; overflow:hidden; display:none; background-color:#FFFFFF">
+              <table role="presentation" class="em_main_table" width="620" cellspacing="0" cellpadding="0" border="0" bgcolor="#FFFFFF">
+                <tr>
+                  <td valign="top" height="0" align="center">
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" align="center">
+                      <tr>
+                        <td valign="top" align="left">
+                          <img src="https://image.e.etradefinancial.com/lib/fe90137277620d7875/m/1/2c1e252c-c89b-4e03-b2ff-9b788e119d1f.png" alt="Get up to $1,000, plus 3.75% APY | Open a new Premium Savings account by 02/28/2026, deposit $25,000+ of qualifying new money within the first 30 days, and get rewarded when you maintain your balance for 45 days after the 30-day funding period ends. Plus, you’ll earn 3.75% APY&lt;sup&gt;2&lt;/sup&gt;—a rate that’s 9X the national average.&lt;sup&gt;5,6&lt;/sup&gt;" style="display:block; font-family:Arial,sans-serif; font-size:15px; line-height:20px; color:#ffffff; text-align:center; font-weight:bold;;display:block;" width="100%" height="auto" border="0"><a href="https://click.e.etradefinancial.com/?qs=2f44107b33068a9e1b0702d230ea79dae5e4c924f7288b7e8d88e2f6bcb8d9f7c4d21d68ff84eb3fca6295280ced4807d22a1987ce11e04e" target="_blank" >
+<img src="https://image.e.etradefinancial.com/lib/fe90137277620d7875/m/1/4b4087ec-8d91-4e1a-aa0d-6c88004310f4.png" alt="Learn more" style="display:block; font-family:Arial,sans-serif; font-size:15px; line-height:20px; color:#ffffff; text-align:center; font-weight:bold;;display:block;" width="100%" height="auto" border="0"></a>
+                        </td>
+                      </tr>
+                    </table>
+                  </td> 
+                </tr>
+              </table>
+            </div>
+            <!--<![endif]-->
+            <table role="presentation" style="table-layout: fixed; " class="em_main_table" width="640" cellspacing="0" cellpadding="0" border="0" bgcolor="#19223c">
+              <tr> 
+                <td class="em_hide" valign="top" align="left">
+                  <img src="https://image.e.etradefinancial.com/lib/fe90137277620d7875/m/1/d0bb4b3a-ef21-4a96-9b04-4302660c5a21.png" alt="Get up to $1,000, plus 3.75% APY | Open a new Premium Savings account by 02/28/2026, deposit $25,000+ of qualifying new money within the first 30 days, and get rewarded when you maintain your balance for 45 days after the 30-day funding period ends. Plus, you’ll earn 3.75% APY&lt;sup&gt;2&lt;/sup&gt;—a rate that’s 9X the national average.&lt;sup&gt;5,6&lt;/sup&gt;" style="font-family:Arial, sans-serif; font-size:19px; line-height:200px; color:#ffffff; text-align:center; font-weight:bold; max-width:640px;display:block;" width="640" border="0"><a href="https://click.e.etradefinancial.com/?qs=2f44107b33068a9e1b0702d230ea79dae5e4c924f7288b7e8d88e2f6bcb8d9f7c4d21d68ff84eb3fca6295280ced4807d22a1987ce11e04e" target="_blank" >
+<img src="https://image.e.etradefinancial.com/lib/fe90137277620d7875/m/1/a623eb36-5d8d-4804-afed-2f959fabb598.png" alt="Learn more" style="font-family:Arial, sans-serif; font-size:19px; line-height:200px; color:#ffffff; text-align:center; font-weight:bold; max-width:640px;display:block;" width="640" border="0"></a>
+                </td> 
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table> 
+    </td>
+  </tr>
+</table></td></tr></table><table cellpadding="0" cellspacing="0" width="100%" role="presentation" style="min-width: 100%; " class="stylingblock-content-wrapper"><tr><td class="stylingblock-content-wrapper camarker-inner">
+<table role="presentation" class="em_wrapper" width="100%" height="auto" cellspacing="0" cellpadding="0" border="0" bgcolor="#eeeeee">
+  <tr>
+    <td valign="top" align="center">
+      <table role="presentation" class="em_wrapper" width="640" cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" align="center">
+        <tr>
+          <td style="font-family:Arial,sans-serif; font-size:18px; line-height:24px; color:#555555; padding:10px 20px 0px 20px; text-align:center;" class="em_wrapper" valign="top" align="left">
+&nbsp;
+</td></tr>
+      </table>
+    </td>
+  </tr>
+</table></td></tr></table><table cellpadding="0" cellspacing="0" width="100%" role="presentation" style="min-width: 100%; " class="stylingblock-content-wrapper"><tr><td class="stylingblock-content-wrapper camarker-inner"><table role="presentation" class="em_wrapper" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#eeeeee" align="center">
+  <tr>
+    <td valign="top" align="center">
+      <table role="presentation" style="display:block; table-layout:fixed;" class="em_main_table" width="640" cellspacing="0" cellpadding="0" border="0">
+        <tr> 
+          <td valign="top" height="0" align="center">
+            <!--[if !mso 9]><!-->
+            <div class="hide_disktop" style="max-height:0; width:0; overflow:hidden; display:none; background-color:#4c2d9c">
+              <table role="presentation" class="em_main_table" width="620" cellspacing="0" cellpadding="0" border="0" bgcolor="#6633cc">
+                <tr>
+                  <td valign="top" height="0" align="center">
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" align="center">
+                      <tr>
+                        <td valign="top" align="left">
+                          <img src="https://image.e.etradefinancial.com/lib/fe90137277620d7875/m/1/3c6e36fe-ecea-4cd5-b772-7003f657a1ee.png" alt="Get up to $1,000, plus 3.75% APY | Open a new Premium Savings account by 02/28/2026, deposit $25,000+ of qualifying new money within the first 30 days, and get rewarded when you maintain your balance for 45 days after the 30-day funding period ends. Plus, you’ll earn 3.75% APY&lt;sup&gt;2&lt;/sup&gt;—a rate that’s 9X the national average.&lt;sup&gt;5,6&lt;/sup&gt;" style="display:block; font-family:Arial,sans-serif; font-size:15px; line-height:20px; color:#ffffff; text-align:center; font-weight:bold;;display:block;" width="100%" height="auto" border="0"><a href="https://click.e.etradefinancial.com/?qs=2f44107b33068a9e0fe43e42b1325fa224481e3c32d45285d1234631d0300280c5adeb941d69df164033508e723beae65820ebb169c268f9" target="_blank" >
+<img src="https://image.e.etradefinancial.com/lib/fe90137277620d7875/m/1/62c5a261-334e-46eb-ab07-4bb364a97b1c.png" alt="Learn more" style="display:block; font-family:Arial,sans-serif; font-size:15px; line-height:20px; color:#ffffff; text-align:center; font-weight:bold;;display:block;" width="100%" height="auto" border="0"></a>
+                        </td>
+                      </tr>
+                    </table>
+                  </td> 
+                </tr>
+              </table>
+            </div>
+            <!--<![endif]-->
+            <table role="presentation" style="table-layout: fixed; " class="em_main_table" width="640" cellspacing="0" cellpadding="0" border="0" bgcolor="#19223c">
+              <tr> 
+                <td class="em_hide" valign="top" align="left">
+                  <img src="https://image.e.etradefinancial.com/lib/fe90137277620d7875/m/1/4a015ad8-ff5a-4e64-a1c8-d73c3eb13f18.png" alt="Get up to $1,000, plus 3.75% APY | Open a new Premium Savings account by 02/28/2026, deposit $25,000+ of qualifying new money within the first 30 days, and get rewarded when you maintain your balance for 45 days after the 30-day funding period ends. Plus, you’ll earn 3.75% APY&lt;sup&gt;2&lt;/sup&gt;—a rate that’s 9X the national average.&lt;sup&gt;5,6&lt;/sup&gt;" style="font-family:Arial, sans-serif; font-size:19px; line-height:200px; color:#ffffff; text-align:center; font-weight:bold; max-width:640px;display:block;" width="640" border="0"><a href="https://click.e.etradefinancial.com/?qs=2f44107b33068a9e0fe43e42b1325fa224481e3c32d45285d1234631d0300280c5adeb941d69df164033508e723beae65820ebb169c268f9" target="_blank" >
+<img src="https://image.e.etradefinancial.com/lib/fe90137277620d7875/m/1/83c4c04a-f701-4e3c-92ed-3f650ba02c39.png" alt="Learn more" style="font-family:Arial, sans-serif; font-size:19px; line-height:200px; color:#ffffff; text-align:center; font-weight:bold; max-width:640px;display:block;" width="640" border="0"></a>
+                </td> 
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table> 
+    </td>
+  </tr>
+</table></td></tr></table><table cellpadding="0" cellspacing="0" width="100%" role="presentation" style="min-width: 100%; " class="stylingblock-content-wrapper"><tr><td class="stylingblock-content-wrapper camarker-inner"><table role="presentation" class="em_wrapper" align="center" width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#eeeeee">
+  <tr>
+    <td width="100%" valign="top" align="center">
+      <table role="presentation" class="em_wrapper" width="640" height="3" cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff"> 
+        <tr>
+          <td width="100%" height="3" valign="top" align="left">
+            <table role="presentation" style=" " width="100%" height="3" cellspacing="0" cellpadding="0" border="0"> 
+              <tr>
+                <td style="padding:0px 30px 0px 30px; height:3px !important" height="3" valign="top" align="center">
+                  <table role="presentation" align="center" style=" " width="25%" height="3" cellspacing="0" cellpadding="0" border="0"> 
+                    <tr>
+                      <td style="border-bottom:solid #eeeeee 3px; padding:0px 40px 1px 40px; line-height:1px; font-size:1px;" valign="top" align="center">&nbsp;
+                      </td>
+                    </tr> 
+                  </table>
+                </td>
+              </tr> 
+            </table>
+          </td>
+        </tr> 
+      </table>
+    </td>
+  </tr>
+</table>
+<table role="presentation" class="em_wrapper" width="100%" height="auto" cellspacing="0" cellpadding="0" border="0" bgcolor="#eeeeee">
+  <tr>
+    <td valign="top" align="center">
+   <table role="presentation" class="em_wrapper" width="640" cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" align="center">
+        <tr>
+          <td style="font-family:Arial,sans-serif; font-size:24px; line-height:34px; color:#555555; padding:20px 20px 10px 20px; text-align:center;" class="em_wrapper" valign="top" align="left">
+            <b>Our awards and honors* say it all</b>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+</td></tr></table><table cellpadding="0" cellspacing="0" width="100%" role="presentation" style="min-width: 100%; " class="stylingblock-content-wrapper"><tr><td class="stylingblock-content-wrapper camarker-inner"><table role="presentation" class="em_hide" width="100%" height="auto" cellspacing="0" cellpadding="0" border="0" bgcolor="#eeeeee">
+    <tr>
+      <td valign="top" align="center">
+        <table role="presentation" class="em_wrapper" width="640" cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" align="center">
+          <tr>
+            <td style="font-family:Arial,sans-serif; font-size:18px; line-height:24px; color:#555555; padding:5px 0px 5px 0px" class="em_wrapper" valign="top" align="left">
+              <table role="presentation" valign="top" class="em_wrapper" width="640" cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff">
+                <tr>
+                  <td>
+                    <img src="http://image.e.etradefinancial.com/lib/fe90137277620d7875/m/2/spacer_v3.png" alt="" style="display:block;" width="20" height="10">
+                  </td>
+                  <td style="font-family:Arial,sans-serif; font-size:18px; line-height:24px; padding-bottom:5px;" valign="top" align="center">
+                    <table role="presentation" valign="top" style="display:inline-block;" width="195" cellspacing="0" cellpadding="0" border="0" align="center">
+                      <tr>
+                        <td valign="top" align="center">
+                          <table role="presentation" class="em_subhead" width="100%" cellspacing="0" cellpadding="0" border="0">
+                            <tr>
+                              <td style="line-height:1px;" class="" width="100%" valign="top" align="center">
+                                <table role="presentation" cellspacing="0" cellpadding="0" align="center">
+                                  <tr>
+                                    <td style="padding-top:5px; padding-bottom:5px" height="100" align="center">
+                                      <img src="https://image.e.etradefinancial.com/lib/fe90137277620d7875/m/1/96f2b3ea-fa5b-491a-9990-1316f87ee236.png" height="100" alt="Best Online Banks Icon"> 
+                                    </td>
+                                  </tr>
+                                </table>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td style="line-height:1px;" valign="top" align="center">
+                                <table role="presentation" style="display:inline-block;" class="em_subhead_center_nopadding" valign="top" height="auto" cellspacing="0" cellpadding="0" border="0" align="center">
+                                  <tr>
+                                    <td width="100%" valign="top" align="center">
+                                      <table role="presentation" style="display:inline-block;" width="100%" cellspacing="0" cellpadding="0" border="0">
+                                        <tr>
+                                          <td style="font-family: Arial, sans-serif; font-size:18px; line-height:24px; color:#555555; padding:10px 8px 0px 8px;" class="em_subhead_hdr" valign="top" align="center">
+                                            <b>“Best Online Bank of 2025”
+                                          </b></td>
+                                        </tr>
+                                        <tr>
+                                          <td style="fot-family: Arial, sans-serif; font-size:1px; line-height:1px; color:#555555;" width="300" valign="top" align="left">&nbsp;
+                                          </td>
+                                        </tr>
+                                        
+                                        
+                                      </table>
+                                    </td>
+                                  </tr>
+                                </table>
+                                
+                                
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                    </table>
+                    <!--[if (gte mso 9)|(IE)]></td>   <td valign="top" style="padding-right:0px; padding-bottom:20px; font-family:Arial,sans-serif; font-size:18px; line-height:24px;"><![endif]-->
+                    <table role="presentation" valign="top" style="display:inline-block;" width="195" cellspacing="0" cellpadding="0" border="0" align="center">
+                      <tr>
+                        <td valign="top" align="center">
+                          <table role="presentation" class="em_subhead" width="100%" cellspacing="0" cellpadding="0" border="0">
+                            <tr>
+                              <td style="line-height:1px;" class="" width="100%" valign="top" align="center">
+                                <table role="presentation" cellspacing="0" cellpadding="0" align="center">
+                                  <tr>
+                                    <td style="padding-top:5px; padding-bottom:5px;" height="100" align="center">
+                                      <img src="https://image.e.etradefinancial.com/lib/fe90137277620d7875/m/1/e9dc7aed-f9f7-4d46-a54b-64e34b9b4af4.png" height="100" alt="Best CD Rates Icon"> 
+                                    </td>
+                                  </tr>
+                                </table>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td style="line-height:1px;" valign="top" align="center">
+                                <table role="presentation" style="display:inline-block;" class="em_subhead_center_nopadding" valign="top" height="auto" cellspacing="0" cellpadding="0" border="0" align="center">
+                                  <tr>
+                                    <td width="100%" valign="top" align="center">
+                                      <table role="presentation" style="display:inline-block;" width="100%" cellspacing="0" cellpadding="0" border="0">
+                                        <tr>
+                                          <td style="font-family: Arial, sans-serif; font-size:18px; line-height:24px; color:#555555; padding:10px 8px 0px 8px;" class="em_subhead_hdr" valign="top" align="center">
+                                            <b>“Best CD Accounts”</b>
+  
+                                          </td>
+                                        </tr>
+                                        <tr>
+                                          <td style="fot-family: Arial, sans-serif; font-size:1px; line-height:1px; color:#555555;" width="300" valign="top" align="left">&nbsp;
+                                          </td>
+                                        </tr>
+                                      
+                                        
+                                      </table>
+                                      
+                                    </td>
+                                  </tr>
+                                </table>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td style="line-height:1px;" valign="top" align="center">
+                                <table role="presentation" style="display:inline-block;" class="em_subhead_center_nopadding" valign="top" height="auto" cellspacing="0" cellpadding="0" border="0" align="center">
+                                  <tr>
+                                    <td width="100%" valign="top" align="center">
+                                      <table role="presentation" style="display:inline-block;" width="100%" cellspacing="0" cellpadding="0" border="0">
+                                        <tr>
+                                          <td style="font-family: Arial, sans-serif; font-size:1px; line-height:1px; color:#555555; padding-bottom:10px;" width="300" valign="top" align="left">&nbsp;
+                                          </td>
+                                        </tr>
+                                      </table>
+                                    </td>
+                                  </tr>
+                                </table>
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                    </table>
+                     <!--[if (gte mso 9)|(IE)]></td>   <td valign="top" style="padding-right:0px; padding-bottom:20px; font-family:Arial,sans-serif; font-size:18px; line-height:24px;"><![endif]-->
+                    <table role="presentation" valign="top" style="display:inline-block;" width="195" cellspacing="0" cellpadding="0" border="0" align="center">
+                      <tr>
+                        <td valign="top" align="center">
+                          <table role="presentation" class="em_subhead" width="100%" cellspacing="0" cellpadding="0" border="0">
+                            <tr>
+                              <td style="line-height:1px;" class="" width="100%" valign="top" align="center">
+                                <table role="presentation" cellspacing="0" cellpadding="0" align="center">
+                                  <tr>
+                                    <td style="padding-top:5px; padding-bottom:5px;" height="100" align="center">
+                                      <img src="https://image.e.etradefinancial.com/lib/fe90137277620d7875/m/1/3d8ca703-f3e1-4d91-80c6-f61bc63d54a2.png" height="100" alt="Best Savings Account for Investors Icon"> 
+                                    </td>
+                                  </tr>
+                                </table>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td style="line-height:1px;" valign="top" align="center">
+                                <table role="presentation" style="display:inline-block;" class="em_subhead_center_nopadding" valign="top" height="auto" cellspacing="0" cellpadding="0" border="0" align="center">
+                                  <tr>
+                                    <td width="100%" valign="top" align="center">
+                                      <table role="presentation" style="display:inline-block;" width="100%" cellspacing="0" cellpadding="0" border="0">
+                                        <tr>
+                                          <td style="font-family: Arial, sans-serif; font-size:18px; line-height:24px; color:#555555; padding:10px 8px 0px 8px;" class="em_subhead_hdr" valign="top" align="center">
+                                    <b>“Best Savings Account for Investors”</b>
+
+  </td>
+                                        </tr>
+                                        <tr>
+                                          <td style="fot-family: Arial, sans-serif; font-size:1px; line-height:1px; color:#555555;" width="300" valign="top" align="left">&nbsp;
+                                          </td>
+                                        </tr>
+                                      
+                                        
+                                      </table>
+                                      
+                                    </td>
+                                  </tr>
+                                </table>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td style="line-height:1px;" valign="top" align="center">
+                                <table role="presentation" style="display:inline-block;" class="em_subhead_center_nopadding" valign="top" height="auto" cellspacing="0" cellpadding="0" border="0" align="center">
+                                  <tr>
+                                    <td width="100%" valign="top" align="center">
+                                      <table role="presentation" style="display:inline-block;" width="100%" cellspacing="0" cellpadding="0" border="0">
+                                        <tr>
+                                          <td style="font-family: Arial, sans-serif; font-size:1px; line-height:1px; color:#555555; padding-bottom:10px;" width="300" valign="top" align="left">&nbsp;
+                                          </td>
+                                        </tr>
+                                      </table>
+                                    </td>
+                                  </tr>
+                                </table>
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                  <td>
+                    <img src="http://image.e.etradefinancial.com/lib/fe90137277620d7875/m/2/spacer_v3.png" alt="" style="display:block;" width="20" height="10">
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr> 
+        </table>
+      </td>
+    </tr>
+  </table>
+  
+  <!--[if !mso 9]><!-->
+  <div class="hide_disktop" style="max-height:0; width:0; overflow:hidden; display:none;">
+    <table role="presentation" align="center" border="0" cellspacing="0" cellpadding="0" bgcolor="#eeeeee" width="100%" height="auto" class="em_wrapper">
+      <tr>
+        <td valign="top" align="center">
+          <table role="presentation" bgcolor="#ffffff" class="em_wrapper" align="center" border="0" cellspacing="0" cellpadding="0" width="640">
+            <tr>
+              <td align="left" valign="top" style="font-family:Arial,sans-serif; font-size:18px; line-height:24px; color:#555555; padding:20px 0px 5px 0px;" class="em_wrapper">
+                <table role="presentation" bgcolor="#ffffff" class="em_main_table" width="640" cellspacing="0" cellpadding="0" border="0">
+                  <tr>
+                    <td height="0" valign="top" align="center">
+                      <table role="presentation" bgcolor="#ffffff" width="100%" cellspacing="0" cellpadding="0" border="0" align="left">
+                        <tr>
+                          <td valign="top" align="center" style="padding:0px;">
+                            <img src="https://image.e.etradefinancial.com/lib/fe90137277620d7875/m/1/96f2b3ea-fa5b-491a-9990-1316f87ee236.png" style="display:block; font-family:Arial,sans-serif; font-size:15px; line-height:20px; color:#58bf58; text-align:center; font-weight:bold; text-align:center;" width="100" height="auto" alt="Best Online Banks Icon" border="0">
+                          </td>
+                        </tr>
+                      </table>
+                    </td> 
+                  </tr>
+                </table>
+              </td>
+            </tr> 
+          </table>
+        </td>
+      </tr>
+      <tr>
+        <td valign="top" align="center" bgcolor="#ffffff">
+          <table role="presentation" class="em_wrapper" width="640" cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" align="center">
+            <tr>
+              <td style="font-family:Arial,sans-serif; font-size:18px; line-height:24px; color:#555555; padding:5px 20px 10px 20px; text-align:center;" class="em_wrapper" valign="top" align="left">
+              <b>“Best Online Bank of 2025”</b></td>
+            </tr>
+          </table>
+       
+        </td>
+      </tr>
+      
+      
+      
+      
+  </table>
+   <table role="presentation" align="center" border="0" cellspacing="0" cellpadding="0" bgcolor="#eeeeee" width="100%" height="auto" class="em_wrapper">
+      <tr>
+        <td valign="top" align="center">
+          <table role="presentation" bgcolor="#ffffff" class="em_wrapper" align="center" border="0" cellspacing="0" cellpadding="0" width="640">
+            <tr>
+              <td align="left" valign="top" style="font-family:Arial,sans-serif; font-size:18px; line-height:24px; color:#555555; padding:20px 0px 5px 0px;" class="em_wrapper">
+                <table role="presentation" bgcolor="#ffffff" class="em_main_table" width="640" cellspacing="0" cellpadding="0" border="0">
+                  <tr>
+                    <td height="0" valign="top" align="center">
+                      <table role="presentation" bgcolor="#ffffff" width="100%" cellspacing="0" cellpadding="0" border="0" align="left">
+                        <tr>
+                          <td valign="top" align="center" style="padding:0px;">
+                            <img src="https://image.e.etradefinancial.com/lib/fe90137277620d7875/m/1/e9dc7aed-f9f7-4d46-a54b-64e34b9b4af4.png" alt="Best CD Rates Icon" style="display:block; font-family:Arial,sans-serif; font-size:15px; line-height:20px; color:#58bf58; text-align:center; font-weight:bold; text-align:center;" width="100" height="auto" border="0">
+                          </td>
+                        </tr>
+                      </table>
+                    </td> 
+                  </tr>
+                </table>
+              </td>
+            </tr> 
+          </table>
+        </td>
+      </tr>
+      <tr>
+        <td valign="top" align="center">
+          <table role="presentation" class="em_wrapper" width="640" cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" align="center">
+            <tr>
+              <td style="font-family:Arial,sans-serif; font-size:18px; line-height:24px; color:#555555; padding:5px 20px 10px 20px; text-align:center;" class="em_wrapper" valign="top" align="left">
+  <b>“Best CD Accounts”</b>
+  
+              </td>
+            </tr>
+          </table>
+         
+        </td>
+      </tr>
+  </table>
+  <table role="presentation" align="center" border="0" cellspacing="0" cellpadding="0" bgcolor="#eeeeee" width="100%" height="auto" class="em_wrapper">
+      <tr>
+        <td valign="top" align="center">
+          <table role="presentation" bgcolor="#ffffff" class="em_wrapper" align="center" border="0" cellspacing="0" cellpadding="0" width="640">
+            <tr>
+              <td align="left" valign="top" style="font-family:Arial,sans-serif; font-size:18px; line-height:24px; color:#555555; padding:20px 0px 5px 0px;" class="em_wrapper">
+                <table role="presentation" bgcolor="#ffffff" class="em_main_table" width="640" cellspacing="0" cellpadding="0" border="0">
+                  <tr>
+                    <td height="0" valign="top" align="center">
+                      <table role="presentation" bgcolor="#ffffff" width="100%" cellspacing="0" cellpadding="0" border="0" align="left">
+                        <tr>
+                          <td valign="top" align="center" style="padding:0px;">
+                            <img src="https://image.e.etradefinancial.com/lib/fe90137277620d7875/m/1/3d8ca703-f3e1-4d91-80c6-f61bc63d54a2.png" alt="Best CD Accounts Icon" style="display:block; font-family:Arial,sans-serif; font-size:15px; line-height:20px; color:#58bf58; text-align:center; font-weight:bold; text-align:center;" width="80" height="auto" border="0">
+                          </td>
+                        </tr>
+                      </table>
+                    </td> 
+                  </tr>
+                </table>
+              </td>
+            </tr> 
+          </table>
+        </td>
+      </tr>
+      <tr>
+        <td valign="top" align="center">
+          <table role="presentation" class="em_wrapper" width="640" cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" align="center">
+            <tr>
+              <td style="font-family:Arial,sans-serif; font-size:18px; line-height:24px; color:#555555; padding:5px 20px 10px 20px; text-align:center;" class="em_wrapper" valign="top" align="left">
+  <b>“Best Savings Account for Investors”</b>
+              </td>
+            </tr>
+          </table>
+         
+        </td>
+      </tr>
+  </table>
+  </div>
+  <!--<![endif]--></td></tr></table><table cellpadding="0" cellspacing="0" width="100%" role="presentation" style="background-color: transparent; min-width: 100%; " class="stylingblock-content-wrapper"><tr><td style="padding: 0px; " class="stylingblock-content-wrapper camarker-inner"><table role="presentation" class="em_wrapper" width="100%" height="auto" cellspacing="0" cellpadding="0" border="0" bgcolor="#eeeeee">
+  <tr>
+    <td valign="top" align="center">
+      <table role="presentation" class="em_wrapper" width="640" cellspacing="0" cellpadding="0" border="0" bgcolor="#eeeeee" align="center">
+        <tr>
+          <td style="font-family:Arial,sans-serif; font-size:12px; color:#eeeeee; padding:5x 20px 0px 20px; text-align:center;" class="em_wrapper" valign="top" align="left">
+&nbsp;
+</td></tr>
+      </table>
+    </td>
+  </tr>
+</table></td></tr></table>
+     </td>
+    </tr>
+    <!--------- /Section1--------->
+    
+
+     
+    <!--------- Blue Section--------->
+    <tr>
+     <td align="center" bgcolor="#eeeeee">
+       <table role="presentation" border="0" cellspacing="0" cellpadding="0" width="640" height="auto" class="em_wrapper" Bgcolor="#19223c" style="border-bottom:solid 4px #6633cc;" >
+                                           <tbody>
+                                            <!--------- Blue Section--------->
+    <tr>
+     <td align="center" >
+      <table cellpadding="0" cellspacing="0" width="100%" role="presentation" style="min-width: 100%; " class="stylingblock-content-wrapper"><tr><td class="stylingblock-content-wrapper camarker-inner">
+<table role="presentation" class="em_wrapper" width="100%" height="auto" cellspacing="0" cellpadding="0" border="0" bgcolor="#241056">
+  <tr>
+    <td valign="top" align="center">
+      <table role="presentation" bgcolor="#241056" class="em_wrapper" align="center" border="0" cellspacing="0" cellpadding="0" width="640">
+        <tr>
+          <td style="font-family:Arial,sans-serif; font-size:1px; line-height:1px; color:#555555; padding:5px 20px 5px 20px; text-align:left;" class="em_wrapper" valign="top" align="left">&nbsp;
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+</td></tr></table>
+    
+    
+     </td>
+    </tr>
+    <!--------- /Blue Section-------->   
+                                          </tbody>
+                                         </table>
+     </td>
+    </tr>
+    <!--------- /Blue Section-------->  
+    
+  <!--=====//BODY======--> 
+  <!--=====FOOTER======-->
+  <tr>
+    <td valign="top" align="center" bgcolor="#eeeeee" >
+  <a name="disclaimer" id="disclaimer"></a>   <table cellpadding="0" cellspacing="0" width="100%" role="presentation" style="min-width: 100%; " class="stylingblock-content-wrapper"><tr><td class="stylingblock-content-wrapper camarker-inner"><!---->
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#eeeeee" align="center">
+  <tr>
+    <td valign="top" align="center">
+      <table role="presentation" style="table-layout:fixed;" class="em_main_table" width="620" cellspacing="0" cellpadding="0" border="0">
+        <tr>
+          <td width="10">&nbsp;
+          </td>
+          <td valign="top" align="center">
+            <table role="presentation" class="em_main_table" width="600" cellspacing="0" cellpadding="0" border="0" align="center">
+              <tr>
+                <td valign="top" align="center">
+                  <table role="presentation" class="em_main_table" width="600" cellspacing="0" cellpadding="0" border="0" align="center">
+                    <tr>
+                      <td class="em_h25" height="23">&nbsp;
+                      </td>
+                    </tr>
+                    <tr>
+                      <td valign="top" align="center">
+                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center">
+                          <tr> 
+                            <td valign="top" align="center">
+                              <a href="https://click.e.etradefinancial.com/?qs=2f44107b33068a9e1ec5a0942d1fd63e39f92838ed667d71f87a5fa0cff3e4ec980819296eeca143ddf8789fd74e4e6d78ba4fd8aa7fea7a" target="_blank" title="Links to Facebook"  style="text-decoration:none; color:#98999b;"><img src="http://image.e.etradefinancial.com/lib/fe90137277620d7875/m/1/ET_Digest_201702_22.jpg" alt="Facebook" style="display:block; font-family:Arial, sans-serif; font-size:15px; line-height:40px; color:#9899b; text-align:center; font-weight:bold;" width="36" height="36" border="0"></a>
+                            </td>
+                            <td class="em_w22" width="24">&nbsp;
+                            </td>
+                            <td valign="top" align="center">
+                              <a href="https://click.e.etradefinancial.com/?qs=2f44107b33068a9e26916731d40b98a27522a5ab230033b465c886fa9fe40c982be5f4f5951a441f09c294c835660d0605490b01e0c1e9e0" target="_blank" title="Links to Twitter"  style="text-decoration:none; color:#98999b;"><img src="https://image.e.etradefinancial.com/lib/fe90137277620d7875/m/1/a93b7c00-dcd7-41a1-a3c6-12a054518819.png" alt="X" style="display:block; font-family:Arial, sans-serif; font-size:15px; line-height:40px; color:#9899b; text-align:center; font-weight:bold;" width="36" height="36" border="0"></a>
+                            </td>
+                            <td class="em_w22" width="24">&nbsp;
+                            </td>
+                            <td valign="top" align="center">
+                              <a href="https://click.e.etradefinancial.com/?qs=2f44107b33068a9e9085f377a4455f932404f2ac29d5a537b0249de6b532aab1ec5eb93a3345ce46978c235e1541885b359f23adfa7f4967" target="_blank" title="Links to Youtube"  style="text-decoration:none; color:#98999b;"><img src="http://image.e.etradefinancial.com/lib/fe90137277620d7875/m/1/ET_Digest_201702_24.jpg" alt="Youtube" style="display:block; font-family:Arial, sans-serif; font-size:15px; line-height:40px; color:#9899b; text-align:center; font-weight:bold;" width="36" height="36" border="0"></a>
+                            </td>
+                            <td class="em_hide" style="font-family: Arial, sans-serif; font-size:12px; line-height:18px; color:#6633cc; font-weight:normal;" width="450" valign="bottom" align="right">
+                              <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center">
+                                <tr>  
+                                  <td class="em_hide" style="font-family: Arial, sans-serif; font-size:12px; line-height:18px; color:#555; font-weight:normal;" width="450" valign="bottom" align="right">
+                                    <a href="https://click.e.etradefinancial.com/?qs=2f44107b33068a9eab3468c302ed8e143217cd29650dc0a5a69e774bdf8d24cf86ab8fe561cd4eb50e0d235dba4687c3f7ae27aa0b4268ed" target="_blank" title=""  style="text-decoration:none; color:#000000;"><span class="visited" style="color:#6633cc; text-decoration:none;">Privacy Pledge</span></a> &nbsp;|&nbsp; 
+                                    <a href="https://click.e.etradefinancial.com/?qs=2f44107b33068a9ea51634ac92dfb94f761364caabf449282c1d7dcb9478c9baeb36bd9fdd330035d045369510ed0dbc0f297904fe3973f6" target="_blank" title=""  style="text-decoration:none; color:#000000;"><span class="visited" style="color:#6633cc; text-decoration:none;">Security Center</span></a> &nbsp;|&nbsp;
+                                    <a href="https://click.e.etradefinancial.com/?qs=2f44107b33068a9e95822a3ef72aa3288047a2beb99028b37cea493a696e47f61d24c9a4e4ff5e2225d141de7ff5fe99956ccee8f3c66317" target="_blank" title=""  style="text-decoration:none; color:#000000;"><span class="visited" style="color:#6633cc; text-decoration:none;">FAQs</span></a>
+                                  </td>
+                                </tr>
+                                <tr>  
+                                  <td class="em_hide" style="font-family: Arial, sans-serif; font-size:12px; line-height:18px; color:#555; font-weight:normal;" width="450" valign="bottom" align="right">
+                                    &nbsp;
+                                  </td>
+                                </tr>
+                                <tr>  
+                                  <td class="em_hide" style="font-family: Arial, sans-serif; font-size:1px; line-height:1px; color:#555; font-weight:normal;" width="450" valign="bottom" align="right">&nbsp;
+                                  </td>
+                                </tr>
+                              </table>
+                            </td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="em_h25" height="10">&nbsp;
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+          </td>
+          <td width="10">&nbsp;
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!--[if !mso 9]><!-->
+<div class="hide_disktop" style="display:none;width:0;overflow:hidden;">
+  <table role="presentation" style="display:none;table-layout: fixed; background-color:#eeeeee;" class="em_main_table_hero" width="620" cellspacing="0" cellpadding="0" border="0" bgcolor="#ebebeb">
+    <tr>
+      <td width="10">
+        <img src="http://image.e.etradefinancial.com/lib/fe90137277620d7875/m/1/ET_Digest_20170222_14.png" alt="#" style="display:inline-block; font-family:Arial, sans-serif; font-size:15px; line-height:20px; color:#58bf58; text-align:center; font-weight:bold;" width="10" height="auto" border="0">
+      </td>
+      <td width="100%" valign="top" height="0" align="center"> 
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" align="center">
+          <tr>
+            <td style="font-family: Arial, sans-serif; font-size:12px; line-height:18px; color:#555;font-weight:normal;" width="45%" valign="top" align="center">
+              <a href="https://click.e.etradefinancial.com/?qs=2f44107b33068a9eab3468c302ed8e143217cd29650dc0a5a69e774bdf8d24cf86ab8fe561cd4eb50e0d235dba4687c3f7ae27aa0b4268ed" target="_blank" title=""  style="text-decoration:none; color:#000000;"><span class="visited" style="color:#6633cc; text-decoration:none;">Privacy Pledge</span></a> &nbsp;|&nbsp; 
+              <a href="https://click.e.etradefinancial.com/?qs=2f44107b33068a9eda954e4d9d4038c78654cabde7207fb0deeee709d95e4ef094579b5af8f89ef2a4c40b67ad4439d69b70876909109a19" target="_blank" title=""  style="text-decoration:none; color:#000000;"><span class="visited" style="color:#6633cc; text-decoration:none;">Security Center</span></a> &nbsp;|&nbsp; 
+              <a href="https://click.e.etradefinancial.com/?qs=2f44107b33068a9e95822a3ef72aa3288047a2beb99028b37cea493a696e47f61d24c9a4e4ff5e2225d141de7ff5fe99956ccee8f3c66317" target="_blank" title=""  style="text-decoration:none; color:#000000;"><span class="visited" style="color:#6633cc; text-decoration:none;">FAQs</span></a>
+            </td>
+          </tr>
+          <tr>
+            <td style="font-family: Arial, sans-serif; font-size:12px; line-height:18px; color:#555;font-weight:normal;" width="45%" valign="top" align="center">
+              &nbsp;
+            </td>
+          </tr>
+        </table>
+      </td>
+      <td width="10">
+        <img src="http://image.e.etradefinancial.com/lib/fe90137277620d7875/m/1/ET_Digest_20170222_14.png" alt="#" style="display:inline-block; font-family:Arial, sans-serif; font-size:15px; line-height:20px; color:#58bf58; text-align:center; font-weight:bold;" width="10" height="auto" border="0">
+      </td>
+    </tr>
+    <tr>
+      <td class="em_h25" height="23">&nbsp;
+      </td>
+    </tr>
+  </table>
+</div>
+<!--<![endif]--></td></tr></table>
+    </td>
+  </tr> 
+  
+  <tr>
+    <td bgcolor="#eeeeee" align="center" valign="top" >
+     <table role="presentation" width="640" border="0" cellspacing="0" cellpadding="0" style="table-layout:fixed;" class="em_main_table_disc" >
+        <tbody>
+         <tr>   
+          <td align="center" valign="top" >
+           <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" align="center" >
+            <tbody>
+             <tr>
+              <td align="center" valign="top" >
+               <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" align="center" >
+                <tbody>
+                 <tr>
+                  <td align="left" valign="top" style="font-size: 11px; line-height: 12px; font-family: Arial, sans-serif; color: #555;padding-top:20px" class="Disclaimer_text" >
+                  <table cellpadding="0" cellspacing="0" width="100%" role="presentation" style="min-width: 100%; " class="stylingblock-content-wrapper"><tr><td class="stylingblock-content-wrapper camarker-inner"><table role="presentation" class="em_wrapper" width="100%" cellspacing="0" cellpadding="0" border="0" align="center">
+    <tr>
+      <td class="em_wrapper" style="font-size: 11px; line-height: 12px; font-family:Arial,sans-serif; color:#555;" valign="top" align="left">
+        * In 2025, the Premium Savings Account from Morgan Stanley Private Bank rated "Best Savings Account for Investors 2025" by Buy Side from Wall Street Journal. To choose Buy Side from WSJ's best high-yield savings accounts, WSJ considered the following factors: accounts offering the highest annual percentage yields (APYs) on deposited funds, accounts without monthly maintenance fees, or with easily waivable fees, and prioritized accounts without high balance and deposit requirements over those with high minimums (though in some cases, APYs are competitive enough to justify high minimums), accessibility, user-friendliness of banking platforms and the customer reputations of the banking institutions that offer these accounts. Reprinted with permission by Dow Jones Company, Inc.
+  <br><br>
+  To determine rankings for the Best CD Accounts of 2025, GOBankingRates considered the following factors (excluding neobanks): (1) total assets as sourced from the FDIC; (2) number of branch locations as sourced from the FDIC; (3) minimum deposit to open an account; (4) 12-month CD APY rate; (5) 60-month CD APY rate, and (6) the average mobile app rating between the Google Play (Android) and Apple stores. All factors were then scored and combined, with the lowest score being the best. Factors (1) and (2) were weighed 0.5 times, factor (3) was weighed 2 times, and factors (4) and (5) were weighed 4 times. All products and offerings had to be available as of Nov. 1, 2024, to be considered. Rates are subject to change; unless otherwise noted, rates are updated periodically. All other
+ information on accounts is accurate as of Dec. 9, 2024.
+  <br><br>
+  To determine the Best Online Banks of 2025, GOBankingRates looked at the following factors across exclusively online banks: (1) total assets as sourced from the FDIC; (2) monthly checking fee ratio (percent the minimum to avoid fee compared to the monthly fee itself); (3) savings APY; (4) 1-year CD APY; (5) Bauer rating (out of 5 stars); (6) products/services offered (auto loans, mortgage loans, credit cards, investment services, and insurance); and (7) the average mobile app rating between the Google Play (Android) and Apple stores. Factors (1) and (2) were weighed 0.5 times, and factors (3) and (7) were weighed 2 times. For all savings and checking account data, only the basic accounts or products offered at each institution were analyzed. All products and offerings had to be
+ available as of Nov. 1, 2024, to be considered. Rates are subject to change; unless otherwise noted, rates are updated periodically. All other information on accounts is accurate as of Dec. 9, 2024
+  <br><br>
+        
+     1. In the following disclosure, the words “we”, us”, and “Bank”, refer to Morgan Stanley Private Bank, National Association, Member FDIC ("Morgan Stanley Private Bank"). <br><br>
+  <b>ELIGIBILITY AND LIMITATIONS:</b><br><br>
+  To take advantage of this offer, you must be the original recipient of the offer email from us. 
+  <br><br>
+  This offer is only valid for a new Premium Savings Account (PSA). This offer is not valid for Checking, Max-Rate Checking or line of credit, or other accounts that we or our affiliates offer. IRA and non-IRA   Brokerage accounts are ineligible. This offer is only eligible to one new opened and funded Premium Savings Account (PSA) within 30 days. Excludes non-U.S. residents, and residents of any jurisdiction where this offer is not valid. <br><br>
+  Each customer is limited to a lifetime maximum of two new PSA offers.  <br><br>
+  Other restrictions may apply.
+  <br><br>
+  <b>OFFER RULES FOR ALL PARTICIPANTS:</b><br>
+  1. <u>Open Account:</u> Open one new Premium Savings Account between 11/07/2025 and 2/28/2026. No minimum initial deposit is required to open an account; however, the account must be funded within thirty (30) days to remain open.         <br><br> 
+  
+  2. <u>Deposit Funds:</u> Deposit a minimum of $25,000 or more in net-new funds* over the first thirty (30) days following account opening (“Deposit Period”). At the end of the Deposit Period, all net new funds will be totaled to determine which Deposit Tier you have satisfied (see below). Net-new funds do not include any deposits transferred from accounts provided by us (e.g. Checking, Max-Rate Checking), or any of our affiliates. 
+  
+  <br><br>
+        <b>Bonus Chart</b>
+        
+  <table style="width:100%; border: 1px solid black;border-collapse: collapse;padding: 5px; text-align: center;" rules="all">
+    
+    <tr>
+      <th>Deposit Tier</th>
+      <th>Minimum Maintenance Balance</th>
+  <th>Cash Credit Tier</th>
+  
+    </tr>
+  <tr>
+  <th>$25,000 - $49,999</th>
+      <th>$25,000</th>
+        <th>$250</th>
+  
+  </tr>
+    <tr>
+   <th>$50,000 - $74,999</th>
+      <th>$50,000</th>
+        <th>$500</th>
+  </tr>
+    <tr>
+   <th>$75,000 - $99,999</th>
+      <th>$75,000</th>
+        <th>$750</th>
+  </tr>
+    <tr>
+  <th>$100,000 or more</th>
+      <th>$100,000</th>
+          <th>$1,000</th>
+  
+  </tr>
+  </table>
+        <br><br>
+  
+        3. <u>Maintain Balance</u>: Maintain an average daily balance in your enrolled Premium Savings Account that meets the Minimum Maintenance Balance of the Deposit Tier you have satisfied in Step 2. The average daily balance calculation will begin from Day thirty (30) of account opening and will end forty-five (45) days following (“Maintenance Period”). 
+  <br><br>
+  
+  4. <u>Receive Bonus</u>: After the requirements are satisfied, we will deposit the bonus within thirty (30) days following the end of the Maintenance Period. The bonus will correspond to the Cash Credit Tier for which you qualify, based on the amount deposited during the Deposit Period and maintained during the Maintenance Period. If the Deposit Tier is higher than what is maintained over the Maintenance Period, or vice versa, you will qualify for the lower Cash Credit Tier. Please see below for an example.
+  <br><br>
+  <b>Example:</b> Please see below for an example of how you can earn a cash bonus. <br><br>
+  
+  1. You open your Premium Savings account between 11/07/2025 and 2/28/2026. <br><br>
+  
+  2. Within thirty (30) days of account opening (the Deposit Period), you deposit <b>$50,000 - $74,999,000</b> in <b>net new funds.</b> <br><br>
+  
+  3. For the forty-five (45) days immediately following the Deposit Period (the Maintenance Period), you maintain an average daily balance of at least <b>$50,000</b>. 
+  <br><br>
+  4. The successful completion of Steps 1, 2 and 3 qualify you for a cash credit of $500. However, let’s say your average daily balance during the Maintenance Period drops between $25,000 - $49,999. In this case, you would only receive $250, notwithstanding your $50,000 deposit during the Deposit Period.   
+  <br><br>
+  The applicable cash credit tier will be determined following the close of the Maintenance Period and will be paid out within thirty (30) days after the Maintenance Period (or one hundred and five (105) days following account opening). Cash credits will be paid to the account where the deposit is made.
+  <br><br>
+  * Net new funds are funds that originate from outside of the Bank into the Premium Savings Account, minus any funds withdrawn from the Premium Savings Account and sent out of the Bank. This includes funds deposited from accounts that are external to us and all our affiliates (i.e. transfers from another bank account). Net-new funds do not include any deposits transferred from accounts provided by us (e.g. Checking, Max-Rate Checking), or any of our affiliates.<br><br>
+  
+  <b>BONUS PAYMENT:</b><br><br>
+  
+  You must keep your account <b>open</b> and in <b>good standing</b> to receive the bonus. If your account is in default, restricted or closed for any reason prior to such time, including being closed by us, you will not be eligible for the bonus.<br><br> 
+  
+  If we determine, in our sole discretion, that you have violated the Deposit Account Agreement or have engaged in abuse, misuse, or gaming in connection with your account, we may determine that you are not eligible for the Cash Bonus. In such circumstance, we may rescind or decline to award you the Cash Bonus. We reserve the right to modify or revoke this Cash Bonus offer at any time without notice. <br><br>
+  
+  If you are not eligible or are deemed to be disqualified from receiving the bonus, we will notify you within one hundred and five (105) days of account opening. <br><br>
+  
+  <b>Morgan Stanley Private Bank, National Association reserves the right to terminate this offer at any time. </b>
+  <br><br>
+  Cash bonuses are treated as interest income for US tax purposes and will be reported on IRS Form 1099-INT and may be subject to 24% backup withholding if your account is not properly documented with a valid Form W-9. Taxes related to cash bonuses are the customer’s responsibility.  MSPBNA and its affiliates do not provide tax advice, and you should always consult your own tax advisor regarding your personal circumstances before taking any action that may have tax consequences.   
+     
+  <br><br>
+  2. As of 11/10/2025, the Annual Percentage Yield (APY) of the Premium Savings Account offered by Morgan Stanley Private Bank, National Association is 3.75%. Your interest rate and APY may change at any time and fees may reduce earnings. Please visit <a href="https://click.e.etradefinancial.com/?qs=2f44107b33068a9e156e59810b0cda442d0b505ab8d93b1943287d4c8090f655a829e78eaeb4a056c66c7fd2101390e86f9c5ec4fcca51e3" target="_blank" style="color:#555;text-decoration:underline;">etrade.com/ratesheet</a> for information regarding this account's current interest rate and corresponding APY. for information regarding this account's current interest rate and corresponding APY.
+  <br><br>
+3. As of 11/10/2025, the Annual Percentage Yield (APY) of the 9-month Certificate of Deposit is 4.10%. Your interest rate and APY may change at any time until funding is settled, and penalties may reduce earnings. The APY is based on no withdrawal of credited interest and no redemption prior to the stated maturity date. Please visit <a href="https://click.e.etradefinancial.com/?qs=2f44107b33068a9e156e59810b0cda442d0b505ab8d93b1943287d4c8090f655a829e78eaeb4a056c66c7fd2101390e86f9c5ec4fcca51e3" target="_blank" style="color:#555;text-decoration:underline;">etrade.com/ratesheet</a> for information regarding the current interest rate, corresponding APY, and account terms. Morgan Stanley Private Bank, National Association reserves the right to terminate this offer at any time.  <br><br>
+  
+  4. More information about the competitor accounts may be found on the respective competitor websites: <a href="https://click.e.etradefinancial.com/?qs=2f44107b33068a9e6f3118c5836b2b1ed3d999dde228e571d5c6ad8740fa61d0d4b664ab47d0851afc6f5600d9f3c64b2fc7ee7597e0bbfe" target="_blank" style="color:#555;text-decoration:underline;">https://www.bankofamerica.com/deposits/savings/savings-accounts/</a>, 
+  <a href="https://click.e.etradefinancial.com/?qs=2f44107b33068a9e952ca2614bb4ca60e2db628ff8fb48cd5fdcd3885237a4bb83c6315cf1e5e3adb284b77de04e36b855cd9305b4d290a8" target="_blank" style="color:#555;text-decoration:underline;">https://www.chase.com/personal/savings/interest-savings/interest-rates</a>, 
+  <a href="https://click.e.etradefinancial.com/?qs=2f44107b33068a9e61ced3f0c71f9fc54722f5eb95d152ef8607d8f9be57217ba983bd86cedbc1296c4fd6204bb9007aeab61d6b244b2520" target="_blank" style="color:#555;text-decoration:underline;">https://www.wellsfargo.com/savings-cds/way2save/</a>. Rates reflect the highest tiered rate in New York. We believe the above competitor information to be reliable, but neither Morgan Stanley Private Bank nor its affiliates guarantee its accuracy, timeliness, or completeness.
+   <br><br>
+  5. Based on comparison to the National Deposits Savings Average Annual Percentage Yield (APY) as published on the <a href="https://click.e.etradefinancial.com/?qs=2f44107b33068a9edd54765ddc7832cff4e154e328619b6106965d9ed49fb19bf85cc6b1c14f4fdd77a0a0fa977a812517d34b846f85f70f" target="_blank" style="color:#555;text-decoration:underline;">FDIC Weekly National Rates and Rate Caps</a> Weekly Update, as of October 20, 2025.
+  <br><br>
+        
+        6. Certificate of Deposit (CD) interest rates are fixed from the start of the term until their maturity date. 
+<br><br>
+The interest rate on the Settlement Date can be higher or lower than the interest rate that was available at the time of account opening. Settlement Date is when funds are received and posted to your account according to our Funds Availability policy, found in section 3 of the <a href="https://click.e.etradefinancial.com/?qs=2f44107b33068a9e526d018820e3911a1d53fbfad248de7182ea21b649e49d685180d11d601473693858c1657841ce10634e515a1da0cd39" target="_blank" style="color:#555;text-decoration:underline;">Morgan Stanley Private Bank Deposit Account Agreement
+</a>. If your Settlement Date is within 10 calendar days of the account opening, the applied interest rate will be the highest of the prevailing interest rate on the date of account opening or the date of Settlement. Maturity is determined based on the Settlement Date and the term selected. The APY is based on no withdrawal of credited interest and no redemption prior to the stated maturity date. A withdrawal will reduce earnings. See the CD Rate Table page at <a href="https://click.e.etradefinancial.com/?qs=2f44107b33068a9e156e59810b0cda442d0b505ab8d93b1943287d4c8090f655a829e78eaeb4a056c66c7fd2101390e86f9c5ec4fcca51e3" target="_blank" style="color:#555;text-decoration:underline;">etrade.com
+</a> for information on term lengths, current interest rates and corresponding APYs. Certificate of Deposit rates are subject to change at any time and are not guaranteed until the CD is funded and settled.  
+<br><br>
+Interest is compounded daily. Interest will compound from the Settlement Date until the last full day before the date of withdrawal using the daily balance method. Accrued interest posts to your account on a quarterly basis, unless you select at account opening to receive interest via check.
+        <br><br>
+  The Premium Savings Account gives Morgan Stanley Private Bank, National Association, Member FDIC the ability to send any amount held on deposit in your Premium Savings Account to other depository accounts at Federal Deposit Insurance Corporation (“FDIC”) member banks with the purpose of affording you additional FDIC insurance coverage. It is designed to offer up to $500,000 in FDIC coverage to individual accounts (up to $1 million for joint accounts). Certain conditions must be met. <a href="https://click.e.etradefinancial.com/?qs=2f44107b33068a9ea09a4810637516c73f97537a668b98c45bfa15e77e189768fce9f1fa86ace37c4b011c85e0a5ad7c93f7ec19b1acf540" target="_blank" style="color:#555;text-decoration:underline;">Learn more</a><br><br>
+  
+  Deposits held in Certificate of Deposit accounts are FDIC insured up to $250,000. <a href="https://click.e.etradefinancial.com/?qs=2f44107b33068a9ec041f06e6a89ab492229b8436147036818c31e2cb079da43f0699021f7f40c043f94610f19f566ee19274e9a616cbeed" target="_blank" style="color:#555;text-decoration:underline;">Learn more</a>
+  
+        <br><br>
+        <b>Banking products and services are provided by Morgan Stanley Private Bank, National Association, Member <a href="https://click.e.etradefinancial.com/?qs=2f44107b33068a9ee268291f60df5d25852c6d31aefdeb961bbc353f61b3b2e8f00a9a1791501514eec803e0b9624d3478685b2b3d0347b4" target="_blank" style="color:#555;text-decoration:underline;">FDIC</a>. </b>
+  <br><br>
+         <table cellpadding="0" cellspacing="0" width="100%" role="presentation" style="min-width: 100%; " class="stylingblock-content-wrapper"><tr><td class="stylingblock-content-wrapper camarker-inner">
+<span style="font-size: 11px; line-height: 12px; font-family:Arial,sans-serif; color:#231F20;">This is a promotional email from Morgan Stanley Private Bank, National Association. <a  style="text-decoration:underline; color: #215E9E;" target="_blank" href="https://click.e.etradefinancial.com/?qs=2f44107b33068a9ec3c78f90019112367a3556cb8d8199f4b1108f64fe64c0524409e054f466efce8562391bf4544941f83b87fac43c0dae">Click here</a> to unsubscribe.</span>
+
+</td></tr></table>
+  <br>
+        
+                   <b> Please see our <a href="https://click.e.etradefinancial.com/?qs=2f44107b33068a9e23d7a9835faa507377a0697a818b83c861b683cfb71f5456129ea7f639dd55023bd2cad8b45b35d29fc9eeb22712cd96" target="_blank"  style="color:#555;text-decoration:underline;">Privacy Pledge</a> for details about how Morgan Stanley handles personal information. 
+        </b> 
+        <br>
+        <br> 
+        
+  <b>Morgan Stanley Private Bank, P.O. Box 484, Jersey City, NJ 07303-0484</b>
+   <br>
+        <br> 
+        
+        ©2025 E*TRADE from Morgan Stanley. All rights reserved. <b><a href="https://click.e.etradefinancial.com/?qs=2f44107b33068a9ed23234792416a3c8da93c538a7dbce086cf55d6c7237b23f0d2084c9ac91970adb5929c65be07ce481f124b5c056fb9d" target="_blank" style="color:#555;text-decoration:underline;">E*TRADE Copyright Policy</a></b>
+  <br><br>
+  
+        
+        
+        <br>
+        <b>
+  
+        
+       
+  
+   
+     
+     
+    
+  <table cellpadding="0" cellspacing="0" width="100%" role="presentation" style="min-width: 100%; " class="stylingblock-content-wrapper"><tr><td class="stylingblock-content-wrapper camarker-inner"><div style="font-size:1pt; line-height:1%;" role="none">
+<a  class="button-inner outlook-button outlook-hidden button-callout-button"  href="https://click.e.etradefinancial.com/?qs=2f44107b33068a9ed817f756d85572c98b584ae5d933266b3555e7e23bc2c1b00806c802eef38744f0ee52a009e39b98bc85947c440380c4ade3b7bbe3b0994b" target="_blank" role="none" style="font-size:1pt;">.</a>
+</div>
+</td></tr></table>
+      </b></td>
+    </tr>
+  </table>
+  <table role="presentation" class="em_wrapper" width="100%" height="auto" cellspacing="0" cellpadding="0" border="0" bgcolor="#eeeeee">
+    <tr>
+      <td valign="top" align="center">
+        <table role="presentation" class="em_wrapper" width="640" cellspacing="0" cellpadding="0" border="0" bgcolor="#eeeeee" align="center">
+          <tr>
+            <td style="font-family:Arial,sans-serif; font-size:18px; line-height:24px; color:#555555; padding:10px 0px 10px 0px" class="em_wrapper" valign="top" align="left">
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+  
+  </td></tr></table><table cellpadding="0" cellspacing="0" width="100%" role="presentation" style="min-width: 100%; " class="stylingblock-content-wrapper"><tr><td class="stylingblock-content-wrapper camarker-inner"><table width="1" height="1" cellpadding="0" cellspacing="0" border="0">
+  <tr><td style="font-size:0px; line-height:0px;">
+    <img src="https://m-ink.etradefinancial.com/p/cp/21a2871d3e6b218b/o.gif?mi_u=EMAIL_ADDR" width="1" height="1" alt="" aria-hidden="true">
+  </td></tr>
+</table></td></tr></table>
+                  <br><br> 
+                  </td>
+                 </tr> 
+                 <tr>
+                  <td align="right" valign="top" style="font-size: 11px; line-height: 12px; font-family:  Arial, sans-serif; color: #555;" class="Disclaimer_text" >CRC 4935314 11/25</td>
+                 </tr>
+                 <tr>
+                  <td height="28" class="em_height" style="line-height:1px;font-size:1px;" >&nbsp;<div class="em_non" style=" white-space:nowrap; font:20px courier; color:#eeeeee; " >&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</div></td>
+                 </tr>
+                  
+                </tbody>
+               </table>
+              </td>
+             </tr>
+            </tbody>
+           </table>
+          </td> 
+        </tr> 
+      </tbody></table>
+      <!-- ET --> 
+</custom>
+
+      </td>
+  </tr>
+  <!--=====//FOOTER======-->
+</tbody></table>
+
+<!--Full width table End--> 
+
+<!--Increase/decrease the number of (-) as per the template width-->
+<img src="https://pixel.app.returnpath.net/pixel.gif?r=91ca1fa3fb6519b5298bd9275ce0793fbfedde00&c=6789" width="1" height="1" alt="pixel">
+ </body></html>
+
+--lQxkMNI7UBfJ=_?:--
+

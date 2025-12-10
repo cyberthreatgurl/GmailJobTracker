@@ -1,0 +1,99 @@
+Delivered-To: kaver68@gmail.com
+Received: by 2002:ac4:8d07:0:b0:759:c52c:7988 with SMTP id ff7csp437537pib;
+        Thu, 6 Nov 2025 09:13:05 -0800 (PST)
+X-Google-Smtp-Source: AGHT+IEyGnh6jYy1m3zMgS5IuBS9ifM04B5j5LSmLyRy/NUNxnTkK4BKtkkJZsjA2QlUXBp+T/n1
+X-Received: by 2002:a53:d056:0:10b0:63f:bd67:7c52 with SMTP id 956f58d0204a3-640c41ed5b5mr105391d50.29.1762449184878;
+        Thu, 06 Nov 2025 09:13:04 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1762449184; cv=none;
+        d=google.com; s=arc-20240605;
+        b=SYNjJ1Y67KPl+PNBcY/UDlgBasLlzGBAcQtS1TtNxsyA4YzsSOJFfWb1SmJ94BfshY
+         Cz+Bjbygepmg7xa9scFjoMnI2Zbkf6UlJrkG514KHVaqp5uO7KV6c6uNOX5rrdBVtc+Y
+         o1lJg2r7gRoGdBCwIBvjkrSMGQpkNj+R1MVmOotWhezfWlircTJyGzmjhtQwFoR6U8jf
+         g3ahKKQQ/imQiL+dfq47ZlsfCjAaRecpa/sw8A5QRPwLvMn8G3Yto7csATE3DZLX1SCP
+         D8lRgUpV/9qxe2/DONrJEW6hz5WmQtZS/wMYXkFiI/vgSu7ep6LIXcy445mYiqY1A2rL
+         qaDw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=list-id:list-unsubscribe-post:list-unsubscribe:mime-version:subject
+         :message-id:to:reply-to:from:date:dkim-signature;
+        bh=K6WZ3CVxHSQHZuO208V3Y6DGc2R15jthYaxznsQ4m34=;
+        fh=G/VLhrQnXiN6LciSgCgIU9VM0fr+1O2AyqFGWpHCjzw=;
+        b=E77TexBmtQnkI9b4LQSxS3yAAdPzwuGqVEKQrdRUqA81za1zmSTKr3PoGhItIg8Q+o
+         T5Y6qKBEqdtIrh2Fm7oPAtYiRk69Jb1yKcdytK9BpXBfPkuUFBmpguZm68to920PcXa8
+         XwBF0syWmMYUXzo7T2WhEBmxLapgKC+c63vg5l5lY6yLOHpL+L/hsrAvaQCgNT8Chw2O
+         Torjl+5ujxkAC1xn7A9CyX1H99000GAdo5jKXIWrnjbaTcwQtLkegwEIHZvnJ+pET1Ka
+         3Zyxece9w6WpGpXfkq5e2TusSywEMalnRtmGIDU0g7wxkPfkVuPm7kaaa2327FCKHk37
+         djlg==;
+        dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@talent.icims.com header.s=scph1117 header.b=vua+6Ync;
+       spf=pass (google.com: domain of msprvs1=20405uo4h0rfw=bounces-131558-1943@bounces.icims.com designates 162.247.166.145 as permitted sender) smtp.mailfrom="msprvs1=20405uo4h0rfw=bounces-131558-1943@bounces.icims.com";
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=talent.icims.com
+Return-Path: <msprvs1=20405uo4h0rfw=bounces-131558-1943@bounces.icims.com>
+Received: from icims-talentplatform-166145.email.icims.tools (icims-talentplatform-166145.email.icims.tools. [162.247.166.145])
+        by mx.google.com with ESMTPS id 00721157ae682-787b13bffa5si15409497b3.132.2025.11.06.09.13.04
+        for <kaver68@gmail.com>
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Thu, 06 Nov 2025 09:13:04 -0800 (PST)
+Received-SPF: pass (google.com: domain of msprvs1=20405uo4h0rfw=bounces-131558-1943@bounces.icims.com designates 162.247.166.145 as permitted sender) client-ip=162.247.166.145;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@talent.icims.com header.s=scph1117 header.b=vua+6Ync;
+       spf=pass (google.com: domain of msprvs1=20405uo4h0rfw=bounces-131558-1943@bounces.icims.com designates 162.247.166.145 as permitted sender) smtp.mailfrom="msprvs1=20405uo4h0rfw=bounces-131558-1943@bounces.icims.com";
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=talent.icims.com
+Return-Path: <msprvs1=20405uo4h0rfw=bounces-131558-1943@bounces.icims.com>
+X-MSFBL: n/llGhXY0Ja/k/A3lOkv1PDT7Drh/DOv07cjtohjDwM=|eyJjdXN0b21lcl9pZCI
+	6IjEzMTU1OCIsInRlbmFudF9pZCI6InNwYyIsInIiOiJrYXZlcjY4QGdtYWlsLmN
+	vbSIsIm1lc3NhZ2VfaWQiOiI2OTA5MWZkNzBjNjkxMTAyMzA3NCIsInN1YmFjY29
+	1bnRfaWQiOiIxOTQzIn0=
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=talent.icims.com;
+	s=scph1117; t=1762449183; i=@talent.icims.com;
+	bh=K6WZ3CVxHSQHZuO208V3Y6DGc2R15jthYaxznsQ4m34=;
+	h=Date:From:To:Message-ID:Subject:Content-Type:X-CSA-Complaints:
+	 List-Unsubscribe:List-Unsubscribe-Post:From:To:Cc:Subject;
+	b=vua+6Ync9roAyLNA77C2k53PIU9bSNsopdUvF2KIuUI3g3UBtVIV7MBUidQ7EuS5A
+	 CawmonL+6TrtME1zwcwYr3qF4aPsELVPxInS9VJa8hzK9OND9bt3KwkU3RpTAWXvS5
+	 nYDH7NkipyzvVVPBT5slZHBXPgeEUbMwDRGcnOF4=
+Received: from [10.90.15.115] ([10.90.15.115])
+	by i-06394c5e8117d8b24.mta1vrest.sd.prd.sparkpost (ecelerity 5.1.0.74659 r(msys-ecelerity:tags/5.1.0.17)) with REST
+	id 47/03-39198-F17DC096; Thu, 06 Nov 2025 17:13:03 +0000
+Date: Thu, 6 Nov 2025 12:13:03 -0500 (EST)
+From: Nandi Hopps <millgroupinc+email+lta-a258e23f1d@talent.icims.com>
+Reply-To: Nandi Hopps <millgroupinc+email+lta-a258e23f1d@talent.icims.com>
+To: kaver68@gmail.com
+Message-ID: <353281366.14318.1762449183526@ip-10-47-161-182.ec2.internal>
+Subject: Response Requested - Cyber Security Engineer - Millennium
+ Corporation
+MIME-Version: 1.0
+Content-Type: multipart/alternative; 
+	boundary="----=_Part_14316_1519534059.1762449183524"
+X-iRecruiter-Type: IE
+X-iCIMS-Type: IE
+X-iCIMS-Priority: Normal
+X-iRecruiter-Source: millgroupinc
+X-iCIMS-Message-Id: 176952.o8QWXbVOhoaw3uPvWsArnMEnGTejooCYAf9ofyhybh4=
+X-CSA-Complaints: csa-complaints@eco.de
+X-MSYS-API: { "options" : { "open_tracking" : true, "click_tracking" : true, "transactional": false, "ip_pool": "prd_us_direct" } }
+List-Unsubscribe: <mailto:unsubscribe@unsub.spmta.com?subject=unsubscribe:BlTV2Hc-LqDep3Naq9PvWMgZ75TwLUqmLdq3BPp11Zw~|eyAicmNwdF90byI6ICJrYXZlcjY4QGdtYWlsLmNvbSIsICJ0ZW5hbnRfaWQiOiAic3BjIiwgImN1c3RvbWVyX2lkIjogIjEzMTU1OCIsICJzdWJhY2NvdW50X2lkIjogIjE5NDMiLCAibWVzc2FnZV9pZCI6ICI2OTA5MWZkNzBjNjkxMTAyMzA3NCIgfQ~~>,<https://unsubscribe.spmta.com/u/4IU4Y6ChEyRGxLWABBv5Ug~~/AAIB5hA~/qpZNQaYO1W-PG9KdEG2E37ZNaUDsfPqQr0w9QiqGYGu2jATGmJ2JUz2CEX4orB5uc7X6z6QCb0t9XANqzTvvYQ~~>
+List-Unsubscribe-Post: List-Unsubscribe=One-Click
+List-Id: <spc.131558.1943.sparkpostmail.com>
+
+------=_Part_14316_1519534059.1762449183524
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+Kelly,
+=C2=A0
+Thank you for expressing interest in our Cyber Security Engineer position s=
+upporting Langley AFB. We would like to press forward with a call to furthe=
+r discuss the opportunity with you.
+=C2=A0
+When able, please provide me with your availability for next week.=C2=A0
+=C2=A0
+I look forward to your response!
+------=_Part_14316_1519534059.1762449183524
+Content-Transfer-Encoding: 7bit
+Content-Type: text/html; charset="UTF-8"
+
+<p style="margin: 0px;">Kelly,</p><p style="margin: 0px;">&nbsp;</p><p style="margin: 0px;">Thank you for expressing interest in our Cyber Security Engineer position supporting Langley AFB. We would like to press forward with a call to further discuss the opportunity with you.</p><p style="margin: 0px;">&nbsp;</p><p style="margin: 0px;">When able, please provide me with your availability for next week.&nbsp;</p><p style="margin: 0px;">&nbsp;</p><p style="margin: 0px;">I look forward to your response!</p>
+<img border="0" width="1" height="1" alt="" src="https://tracking.icims.com/q/ogDT9o9RkDDP8eDV3iR9sQ~~/AAIB5hA~/i4qVkrfmdPy8vkW6Q9pCc-QdearmVQgSGCAwMZxDFqaQNBW9_sxByEELZPIvL2QQdPG0cthc9y3b5CTxTOFw2w~~">
+
+------=_Part_14316_1519534059.1762449183524--

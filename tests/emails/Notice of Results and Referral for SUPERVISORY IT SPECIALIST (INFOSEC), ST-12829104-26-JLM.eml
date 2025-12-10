@@ -1,0 +1,176 @@
+Delivered-To: kaver68@gmail.com
+Received: by 2002:ac4:bf98:0:b0:759:fe82:d5da with SMTP id g24csp2187152pik;
+        Mon, 24 Nov 2025 12:51:08 -0800 (PST)
+X-Google-Smtp-Source: AGHT+IGdL7HNBajjAKrFx/xiWqvKng77/vsp5U3yfAlvRe9VnuXSoAgzljN4x5lQsYIjfMPUOiA5
+X-Received: by 2002:a05:6a20:430d:b0:361:2d0c:fd7a with SMTP id adf61e73a8af0-3637dea5f7cmr105736637.39.1764017468581;
+        Mon, 24 Nov 2025 12:51:08 -0800 (PST)
+ARC-Seal: i=2; a=rsa-sha256; t=1764017468; cv=pass;
+        d=google.com; s=arc-20240605;
+        b=G+5n/Ee/1+BS0GvKORsE+u4Zu+iKXu7wgl+4V2UDF2By/3UDXNDwGg5u+A++qAMRhq
+         5w/oWfezJSJpN1gOq20vXY8pPwo1mO4H7iIJMZoHLzEUQ4HHBYMroWOG+JBnpg8O3ZjE
+         zNYHIyl8vb20bRz+O+EVa+WLHpGrdk5DIaIFPUIOCRsF/kk9fdYPiTPp64ffNzuUUE/b
+         KlqVSOOiQGfNPFDTavJB38pbYDHYw02T0yYip7exWVZugKIa5kdYNFOFyIhmy/7kGUiZ
+         tMrHQWhlXHuZYs68VLWtyrlRQRCu8+wWBopxcp+e3HlpOqh4xYHFOpn18zb+R7W23/OL
+         JNww==
+ARC-Message-Signature: i=2; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=request-id:client-request-id:content-transfer-encoding:mime-version
+         :usastaffing-notificationtoken:message-id:date:subject:to:reply-to
+         :from:sender:dkim-signature;
+        bh=Meg1/5bRVszAecl4/FTx9UxGPYoevBSw9iv4YWvFVgw=;
+        fh=FpRgKkY1+uMlJoxPVrV7lMmCsS7tlD6Go7NfgkTbnMg=;
+        b=lpaPC+pIfL1S0IvxJcBv8035wg9mCvdQ8fI7ZGhq/Mc1bBXgCChsWcYXlP+E1Ikes2
+         aJcXVEYeis++tCaeA42Dyym7u47CUVG9OtYhxtNnMzmTSyEvXrH9+Arqebv33M8PHAHZ
+         58bvSn8ZVAfGPyytVe/iHzzJG2e4Js2qN1fgaOIFlqNWY7FyWGjK9WhGl2ReJ8MHJs/p
+         KsNHYoDbH+4hsOjUpsRKxukCUVEHFSB9oYb5EfHLiLU74Y3Bt6+hq0gqKfpuAEgiWRjN
+         fpvIlO+zfFAMvT+ACPOAoRbwx//wlsXKQzZW3g1OoP95CUXC29rRWoh61af9HUFaAByc
+         dScA==;
+        dara=google.com
+ARC-Authentication-Results: i=2; mx.google.com;
+       dkim=pass header.i=@usastaffing.gov header.s=selector1-azurecomm-prod-net header.b=ST9lPmhE;
+       arc=pass (i=1);
+       spf=pass (google.com: domain of usastaffingoffice@usastaffing.gov designates 40.93.10.87 as permitted sender) smtp.mailfrom=usastaffingoffice@usastaffing.gov;
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=usastaffing.gov
+Return-Path: <usastaffingoffice@usastaffing.gov>
+Received: from CO1PR03CU002.outbound.protection.outlook.com (mail-westus2azacs10210087.outbound.protection.outlook.com. [40.93.10.87])
+        by mx.google.com with ESMTPS id 41be03b00d2f7-bd7604de8easi6559511a12.903.2025.11.24.12.51.08
+        for <kaver68@gmail.com>
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 24 Nov 2025 12:51:08 -0800 (PST)
+Received-SPF: pass (google.com: domain of usastaffingoffice@usastaffing.gov designates 40.93.10.87 as permitted sender) client-ip=40.93.10.87;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@usastaffing.gov header.s=selector1-azurecomm-prod-net header.b=ST9lPmhE;
+       arc=pass (i=1);
+       spf=pass (google.com: domain of usastaffingoffice@usastaffing.gov designates 40.93.10.87 as permitted sender) smtp.mailfrom=usastaffingoffice@usastaffing.gov;
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=usastaffing.gov
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=edUMDlJPDAjmmvWTNRoxjJRJRYOhdfKORORjhHBUEo0THMeFnByC8PlrbTB/7o9LOBZbSoMNzaKxWwpa/zjKxbbN8brj1wUWN4+zDNpa4a0tQFOM/TOoU08M3LSSlDc3Urrb5ya0LuJfXuKIHrrNUMMQVhgNm2IqypGRi/31UkoEWLkMHSU+17NGzbHq8Ju6pR7gXxUJLKEL57/kqliSzhCgWLBZIR+Km1S/6pBpZBBx5+ZTqwPubOYuNylBDcyokZTndsgE+gUP2OyTlpuJ9WvzOBnPDCEnRXCKNJ7nEAEv3HfVBKeOQtIGCqVRfnU7XVgL9h+j18bpcxXqz1Lrsg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=Meg1/5bRVszAecl4/FTx9UxGPYoevBSw9iv4YWvFVgw=;
+ b=ad1WgQvO3kpYNl+l+UBmKDHOGn3FElmR+dgvjq25eKVxx++mUZ3H2+fST2ye+JAUAIhA0/Y/IZHcgIl87fNO/mx8CjSoFvVlMc5wwmP+aHIjWhnEgBL2gVfYM7JtEq39H8n/dh35Sf6m9J9lnXUKFBcu64zAJ8WLreJ3d5e22zzt8FzVk9r72Z0H0LMH06j14ZlDWljbkwjWkutmwextMyqz+Y32SHfitS9J8AHQoh9iu+/igdxKaDt6ktfeEssKzPsG60YBiMbVAhsg7ctjp4R25gGV9f7fN30tQk4/WLAbOvXQ8QZI3vG/asFn55x8/9GJItGF+CuB0N3Er0EgzA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=none; dmarc=none;
+ dkim=none; arc=none
+Received: from substrate.office.com (2603:10b6:806:b9::17) by
+ SA0PR19MB4572.namprd19.prod.outlook.com with HTTP via
+ CH5P221CA0015.NAMP221.PROD.OUTLOOK.COM; Mon, 24 Nov 2025 20:51:06 +0000
+DKIM-Signature: v=1; a=rsa-sha256; d=usastaffing.gov;
+	s=selector1-azurecomm-prod-net; c=relaxed/relaxed; t=1764017466;
+	h=from:to:cc:subject:date:messageid;
+	bh=Meg1/5bRVszAecl4/FTx9UxGPYoevBSw9iv4YWvFVgw=;
+	b=ST9lPmhEIRSj7aaEgdNgLI/kqHvO7enryV4lowUR1KyKKXtW+/Hk/XNHogAZzAphzR12i5cifXL
+	XEWuTfegTRxkUJD6vgLFy4oGt7JlfvfBkErQqUhzGrvqIB8vqLcyQNcAGsW+vKnN+JIDXI3zM9eTd
+	6qIFmFmLDjSIVhNcEr1yBit9XgcBgN5ghksbGFq0qMNr3Q51RC/VCR8J3gIYGzHxl9aqJmA7UQTYt
+	DUO1L0LJ8IJ+kpgHAgdyGfK/L+0pdNvtPLE+MDejNzFpua+OMpnMWIxy93JGoCRMkffYb6gUqBDDp
+	hSzEgYIgOVzWhWtCKQhQ3G6YdEy4OR6KGsbw==
+Sender: USA Staffing Office <usastaffingoffice@usastaffing.gov>
+From: USA Staffing Office <usastaffingoffice@usastaffing.gov>
+Reply-To: doneic <doneic@us.navy.mil>
+To: kaver68 <kaver68@gmail.com>
+Subject: Notice of Results and Referral for SUPERVISORY IT SPECIALIST
+ (INFOSEC), ST-12829104-26-JLM
+Date: Mon, 24 Nov 2025 20:51:06 +0000
+Message-ID: <202511242051.84e9a3621733476aa2961ff36c937cd2-OBZG6ZD4IFBVGRKNIFEUYLLQOJXWILRQG5STCNJVMQ2S2ZLFMZRC2NBSMQYS2YRSMFSS2NDFHBTGIYTDGA2WEZBYPRZW25DQ@microsoft.com>
+USAStaffing-NotificationToken: 05017e0c-a4a4-489f-803b-762018ea2304
+x-priority: 3
+MIME-Version: 1.0
+X-TsbHttpDeliveryResponseType: Success
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+X-MS-PublicTrafficType: Email
+client-request-id: 84e9a362-1733-476a-a296-1ff36c937cd2
+request-id: 84e9a362-1733-476a-a296-1ff36c937cd2
+Return-Path: usastaffingoffice@usastaffing.gov
+X-MS-TrafficTypeDiagnostic: SA0PR19MB4572:EE_ACSPROD
+X-MS-Exchange-SenderADCheck: 0
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;ARA:13230040|61400799027|376014|8096899003;
+X-Microsoft-Antispam-Message-Info:
+	=?utf-8?B?NnRKMVJlUW02UUFHQjBvREZvZ0F4SFZuMEZQdFRWL0NPVE9Db2x3WlBQM1ZF?=
+ =?utf-8?B?TXJmQVJLaUZ6blpseWxDSDlSNU1FdGFmN21OY1RmdU41dURneXlwZHZVa3ls?=
+ =?utf-8?B?L0p4WUs5L2NiRW1vcGJ1OWU5NmJ2KzB3SmQzejFuZzRSU015eDdKVGFpakRp?=
+ =?utf-8?B?MGVoY3d2R0tHQTBnNTFFM215VjdxSmJvd0o5WGFGZWdWQ1VTcURCaGhDUTF0?=
+ =?utf-8?B?N3VXR0RwUkdrUmNGellhWXhNcEM2anFLUGlJYjZmS2Y2NGhQVkhsV3dUV0Z5?=
+ =?utf-8?B?Zis5RTF0OTYybkovTmZmcFRuRjdnNUdKMUJJNi9kOHNnK3BYTVQyQnhjQ2dP?=
+ =?utf-8?B?aHNodkdwVkZuZW9VUlBUZk9hY2ZMVHFhSjZCei9xbmgwb1ZkanlaaWxwRExt?=
+ =?utf-8?B?ZjhpN293VHFIUElMR0RwY2lXcEdxVXNseEVGeThKNTgyZXFWR1JqSjQvWTY0?=
+ =?utf-8?B?Z2E4L2tnaEZSK29WdzBOdHVuM3g4RjNhNnR0OTYwemoxaHNmdmJZbERaV0V3?=
+ =?utf-8?B?SS9GdUxROFJsclpnT0pYSjl2NThKOEJKOTNHSVBXR0YwZUxsSTQ3RUlDa3VJ?=
+ =?utf-8?B?ekNjblJ6bzBkSUt6cm0zdG96b3A4Y2d0b21sb0YrV1JJK3dRVk91ZVRQQjZp?=
+ =?utf-8?B?b2VCZmdZeUZCMHRvV2NBYXdPMmZUUFkxL2JmWmx4aHc1UkZRckdJUHErc0xY?=
+ =?utf-8?B?YW1namszUm9zUnlMS01TU3hwV3VpaWR5TWQ0RXpvZjVqNVpWbWpVMVZhaC9t?=
+ =?utf-8?B?ZGRFa09PWHFQTnNjZ0M3eWtQbTdCTGRrNXlzWjZORHVvbE1tNHcvUVNwUk9i?=
+ =?utf-8?B?ekJCbEJFZU1OMmE2Q0NJcURPYldvbnZpVWxQLzU3TlVjQlllTGlucytVU3p0?=
+ =?utf-8?B?bDJJUlJZZHp3cVZPUDk1VmRJcEdxVFJ1OFhRMGhKNVA1YXdOc0RNNDRzQm5Z?=
+ =?utf-8?B?R081LzVWbVZqNSthR1h6bzdvRGtPdnBDeENENXk3UzFRUE9yc0xjNytNV3pm?=
+ =?utf-8?B?bkh3QnhjWWxvMlcwc0UvdnVBV0lmWTNxR1JuN1BVMVJUQ0NxcGtvUDF2MlVa?=
+ =?utf-8?B?S3dDem1FQkVLbEJTSDFNVEFVbkZxUHZ2R1hnck1MT3NBN0duNjc4d2JhbGFO?=
+ =?utf-8?B?OXhHaUVhSnJqd0NBYSs2WEdkV1NLLytVdHk1L09BMmtSQWFjdlpXNWpWUDVN?=
+ =?utf-8?B?VEZMdG1OZzhUM3JRSjI0ZFBCc1MvK1M4bkJkQk9SWFVlZkZwREJTdGx1cFhM?=
+ =?utf-8?B?ZGlRYlhRSjNGbTdOQzdyZ3NscFB2RDV2WUl3QTJUdXNMeUdscjdxdFNjQitC?=
+ =?utf-8?B?aVFJQ2p2UVh5aFp2WVBWc2xXeHlTaExiNXNZWjUxbE9DWTJGUzBzMFMvRjdu?=
+ =?utf-8?B?Qlh4eWk3dDh1a1ZJc0QweWg0R2VsZmRiWHF0c2t3Y0JqNndyOGFmSnErKzdk?=
+ =?utf-8?B?OWtqMlJxZmg3bDd1WUJ2YkpPWitQZS9GaWhLSVV1YWI3aW9rSkY3dXFKRzhy?=
+ =?utf-8?B?SGJaaHVwZEwraDFDMUF0ZytXQmUzZGk3MEhwa096UFBIMVpTRGNTVWZFbVI5?=
+ =?utf-8?B?Nkw4Qk5SV0JLclJhQWhDWG1nMDIyQ254K01qdmxiSkY0TS9tQUplKzBtVklF?=
+ =?utf-8?B?NElPN3JKR1ZBaEJzQ3IxOFh0SmhOZ3ZPQTZ3dDRMdld0dzYxcVB1TXRHcDBW?=
+ =?utf-8?B?cnZpR3RaUVRjSythSDIzbCtLZzJueFF5d2pjaHp6bWsyV1hEekF6UlM3Vk1X?=
+ =?utf-8?B?ZnlBQTk0enBLa1J3cEdIRXB4emdocjY4VmVhUDNxbnRyRHVrOGFMZlc3ZWJr?=
+ =?utf-8?B?clM3N0EyaE01Zk1HWWRWVTRVRlpUc1RUREUwcjJrVlhYTitRSTVyWU40QWQy?=
+ =?utf-8?B?Q1d5OVRFaW1SdHRTVUQ3TTZpVWNUS3hua0xKMmpwN3FUUTdDaFZlTGhaZ2NK?=
+ =?utf-8?Q?p/ldkNvm3SC18Mx2898jnGIwJIk5MeeV?=
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:;PTR:;CAT:NONE;SFS:(13230040)(61400799027)(376014)(8096899003);DIR:OUT;SFP:1021;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	sk19qliCXS58sZnsWgTRN7QdyZo4mBgzhAtX0/+5SaXJV4mBeUYh13456fsWjouxnU1QUsSfytuDKSYdjYSl/KP62Oyzp+2mdFsLpmMerpN4FaWHCYhNpVetdV2LtOcEvk4Lm/n8e9bKk1PBPjzyH9MuXfARFBBhO2ico11WgMqr9JH2A/klnByGOXbkkXsm/9xMfEUDh7ZfJ0460N1HObgrUZc0LwYqhlZoS4ogiMK0XndsLuUQDHbQ+kxfOWfP6lQaOhsgklmZF8cDW5EKF6/6atD67dJEgN0I1mrc/V/ItbBSluCsthllwoFQwiq+NTdSRaPqeTjbPpP6M255Q9EgdA1uf3uwFfWXOJRRhaVz2V2h3KdgymFyd6bKpmfWhT/QML74zYmbULxBeOyA7w==
+X-OriginatorOrg: acsemailus2.onmicrosoft.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-AuthSource: HttpSubmission-SA0PR19MB4572
+X-MS-Exchange-CrossTenant-Id: 1bc54e25-0f54-4dde-8201-65dd97a87c44
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 24 Nov 2025 20:51:06.7209 (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id:
+	a066a73b-d03f-422f-1b63-08de2b9b30a7
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA0PR19MB4572
+
+Dear Adrian Shaw,<br />
+<br />
+This refers to the application you recently submitted to this office for th=
+e position below:<br />
+Announcement Number: ST-12829104-26-JLM<br />
+Position Title: SUPERVISORY IT SPECIALIST (INFOSEC)<br />
+Pay Plan/Series/Grade: NT-2210-6<br />
+Promotion Potential:None<br />
+Hiring Office: NAVSURFWARCENDLD<br />
+Location: <span>Dahlgren, Virginia</span><br />
+<br />
+You were found: <p>Ineligible for the following position or positions:</p><=
+ul><li>NT-2210-6; You were not considered because you do not meet the Area =
+of Consideration requirements as specified in the announcement.</li></ul><b=
+r />
+<br />
+<p>The following is your referral status for the position or positions to w=
+hich you applied:</p><ul><li>You have not been referred to the hiring manag=
+er for position NT-2210-6 in Dahlgren, Virginia</li></ul>.<br />
+<br />
+Applicants that were referred to the hiring manager for this position may b=
+e contacted for an interview.<br />
+<br />
+Applicants that were referred to the hiring manager for this position will =
+be notified of the final outcome of their referral.<br />
+<br />
+Your eligibility, education and any veterans' preference claims made as par=
+t of your application remain subject to verification. Your rating may chang=
+e if you are unable to provide supporting documentation, if requested.<br /=
+>
+<br />
+If you would like to check the status of this or any other application, log=
+ into your USAJOBS account and click on 'Track My Application.'<br />
+<br />
+If you have any questions regarding this notice, contact Department of Navy=
+ EIC at doneic@us.navy.mil.<br />
+<br />
+Thank you for your interest in Federal employment with the Department of th=
+e Navy.<br />
+<br />
+PLEASE DO NOT RESPOND TO THIS EMAIL MESSAGE. IT IS AUTOMATICALLY GENERATED.=

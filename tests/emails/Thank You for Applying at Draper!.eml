@@ -1,0 +1,252 @@
+Delivered-To: kaver68@gmail.com
+Received: by 2002:a05:7108:c0c:b0:497:b881:99c6 with SMTP id pl12csp4170811gdb;
+        Wed, 1 Oct 2025 16:55:12 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IEKhdZ/3v+J/GLNMS8RLMvCbHsvnRKkMIW7Q1/G3pLYh1Jdhf+1SYkaJ9f02GBQOBSIePjC
+X-Received: by 2002:a17:903:298f:b0:24b:25f:5f81 with SMTP id d9443c01a7336-28e7f2920ccmr68806455ad.17.1759362912697;
+        Wed, 01 Oct 2025 16:55:12 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1759362912; cv=none;
+        d=google.com; s=arc-20240605;
+        b=BPWoelLSz+cT8Pac6z/zXDD1MvngMEahEUcep+tZYTnhVcWM5EuiW75YR/5h+jj95q
+         jvWpxUY5wOjq0ivV45CJVooU5J/5yXoWJTTALNvLON5SUQyI6NcyJWPFzF6U8FwEeZ8o
+         +gAiGCiQD3zuqXMQuHZxnyEGRyUTHwfu7+0NGf/s+zytoaWey2XqmCbFx4msiPFuLR3U
+         rU3dCwtkZUjiu5tz2mLZ53aAx5pwlxWzy7khe50AiucvPhSsUy2/FFFMEddTNNiurnFx
+         siihd6sJTovo8UlWugBcfAMM/YKKoKp8Ls6GOyBqyRuFjEvuaNjHoxRLI82TNqbY8nsC
+         47wQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=feedback-id:list-unsubscribe-post:list-unsubscribe:mime-version
+         :subject:message-id:to:reply-to:from:date:dkim-signature
+         :dkim-signature;
+        bh=5uKI2KuB6VNAF4nTNPrE4udjjXg+7uIY4DrWARy5pY4=;
+        fh=G/VLhrQnXiN6LciSgCgIU9VM0fr+1O2AyqFGWpHCjzw=;
+        b=Vtm2+aHi851XU3hrdUSszS1wI11y710fmV1EfYDtpMQT2XOzSA9U+JL5MZoDe3/eU8
+         Hi92KKQZSYvXxsX2wkwZGBXkR8E1fp+dHYfzfc6xRgKNPonNT+fNED6HnHOeXe4wdWyp
+         gUZaRleqnsizOin9BmgMvVp75pn5JrBKsgkxTG5wQeDd9fl241PlhhOUfIE+oLrUPILI
+         LBNSBbgn1fEpM2HbXvQb3duBC09QX7zC3RwuvUut9dqom9+/3bdAZf2DtMY30PTCTacD
+         epY2iMRW8F6PuHrtE1Ztch5EKfFAgHvDw3om55Y++ptw2KKHUIRjPJhH/NKDsG+6VVR2
+         QGrg==;
+        dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@myworkday.com header.s=3ookoqtpxe5fneduwdxmtwxum6i7bity header.b=bkEMLV+s;
+       dkim=pass header.i=@amazonses.com header.s=gdwg2y3kokkkj5a55z2ilkup5wp5hhxx header.b=YmUDBBcy;
+       spf=pass (google.com: domain of 01010199a2339034-7e717af1-ac8b-4d83-a8f5-b1826a18d9ed-000000@bounce.myworkday.com designates 54.240.27.16 as permitted sender) smtp.mailfrom=01010199a2339034-7e717af1-ac8b-4d83-a8f5-b1826a18d9ed-000000@bounce.myworkday.com;
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=myworkday.com
+Return-Path: <01010199a2339034-7e717af1-ac8b-4d83-a8f5-b1826a18d9ed-000000@bounce.myworkday.com>
+Received: from a27-16.smtp-out.us-west-2.amazonses.com (a27-16.smtp-out.us-west-2.amazonses.com. [54.240.27.16])
+        by mx.google.com with ESMTPS id d9443c01a7336-28e8d1b7bcbsi5901415ad.396.2025.10.01.16.55.12
+        for <kaver68@gmail.com>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 01 Oct 2025 16:55:12 -0700 (PDT)
+Received-SPF: pass (google.com: domain of 01010199a2339034-7e717af1-ac8b-4d83-a8f5-b1826a18d9ed-000000@bounce.myworkday.com designates 54.240.27.16 as permitted sender) client-ip=54.240.27.16;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@myworkday.com header.s=3ookoqtpxe5fneduwdxmtwxum6i7bity header.b=bkEMLV+s;
+       dkim=pass header.i=@amazonses.com header.s=gdwg2y3kokkkj5a55z2ilkup5wp5hhxx header.b=YmUDBBcy;
+       spf=pass (google.com: domain of 01010199a2339034-7e717af1-ac8b-4d83-a8f5-b1826a18d9ed-000000@bounce.myworkday.com designates 54.240.27.16 as permitted sender) smtp.mailfrom=01010199a2339034-7e717af1-ac8b-4d83-a8f5-b1826a18d9ed-000000@bounce.myworkday.com;
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=myworkday.com
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
+	s=3ookoqtpxe5fneduwdxmtwxum6i7bity; d=myworkday.com; t=1759362912;
+	h=Date:From:Reply-To:To:Message-ID:Subject:MIME-Version:Content-Type:List-Unsubscribe:List-Unsubscribe-Post;
+	bh=oBeTFPPgXJa100pw8JsmQsljHVxyHrQzgFPNinMMVD0=;
+	b=bkEMLV+sSdMhbCgoXtyxi8jFNiojDDENj6/GpC0YHX9Ipr42NOUPbsVEE/biPUtB
+	+k++qN3CQ5AyXg7ytiJ2bmPAq5rE//zGEKuM25LKFLnRFK5VAdmWEx6j30otd2gniUd
+	2s0MWo08WCGND8Xpug0Jv5mlC24fpy+WQ74kRKnuSCqMCAkBHCJ4tUeSXDfWZzTHO68
+	ACjdmtUOHSc7wZqyDALRh0Ys/BhrDbib2Vy4+KKl5ydKJ79id0+VtjiBJ0AG1i9hGlq
+	4QttI24eHMQ5j5xVXbOOI5jrCbmz/5H8pnadBHfIf8MnhgKW++xZzHIucG97pSmQ7W2
+	lU6W7j3lfA==
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
+	s=gdwg2y3kokkkj5a55z2ilkup5wp5hhxx; d=amazonses.com; t=1759362912;
+	h=Date:From:Reply-To:To:Message-ID:Subject:MIME-Version:Content-Type:List-Unsubscribe:List-Unsubscribe-Post:Feedback-ID;
+	bh=oBeTFPPgXJa100pw8JsmQsljHVxyHrQzgFPNinMMVD0=;
+	b=YmUDBBcykY5TlTaEQCR+ErQl2hKx7YUaKqGwCHd3cf8j+Z9/VpO/ax433PAEPJvk
+	quMjn1gO7eIavz7heVOlXjXys31ypzPhb5Km8jbZmSinV8tvVHrA49xLRtpgk6cTLvI
+	1/c9diKfi3dkWagNIuQ44BKYTX8B7fZSKcU1oOkA=
+Date: Wed, 1 Oct 2025 23:55:12 +0000
+From: draper@myworkday.com
+Reply-To: wdsetup@myworkday.com
+To: kaver68@gmail.com
+Message-ID: <01010199a2339034-7e717af1-ac8b-4d83-a8f5-b1826a18d9ed-000000@us-west-2.amazonses.com>
+Subject: Thank You for Applying at Draper!
+MIME-Version: 1.0
+Content-Type: multipart/mixed; 
+	boundary="----=_Part_18961278_2143512328.1759362912282"
+X-Workday-Security: false
+X-Workday-System: false
+X-Workday-Static-BP-Address: false
+List-Unsubscribe: List-Unsubscribe=One-Click
+List-Unsubscribe-Post: <https://cust-drogon-unsubscribe.us-west-2.myworkdaymessaging.com/drogon/unsubscribe/draper/drogon-wd5-prod/a2b194bb781910000476d4558ec20013/00b229b2ae0f900172f3baa9c4540000/a2F2ZXI2OEBnbWFpbC5jb20=>
+Feedback-ID: draper:a2b194bb781910000476d4558ec20013:1.us-west-2.JUJti3Bvx/K4861oQT0KR3H2/kbWuyLQ9EZ9IlGATB0=:AmazonSES
+X-SES-Outgoing: 2025.10.01-54.240.27.16
+
+------=_Part_18961278_2143512328.1759362912282
+Content-Type: multipart/related; 
+	boundary="----=_Part_18961277_635693681.1759362912282"
+
+------=_Part_18961277_635693681.1759362912282
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+<!doctype html><html xmlns:v=3D"urn:schemas-microsoft-com:vml" xmlns:o=3D"u=
+rn:schemas-microsoft-com:office:office">
+   <head>
+      <meta http-equiv=3D"Content-Type" content=3D"text/html; charset=3DUTF=
+-8">
+      <title></title><style type=3D"text/css">body, table {
+  font-family: Verdana, Arial, sans-serif;
+  font-size: 12px; width:100%;
+}
+div {
+  padding-top:5px;
+  padding-bottom:5px;
+}
+img=20
+{
+  border:0px;
+}</style></head>
+   <body><div>Dear Adrian, <br/><br/>Thank you for your recent application =
+to the Senior Offensive
+      Threat Researcher position at Draper. Your submission will be reviewe=
+d by our talent
+      acquisition team, and we will contact you should we feel that your ba=
+ckground meets
+      our current needs.<br><br>We invite you to learn more about our appro=
+ach, capabilities, and other career opportunities
+      at www.draper.com.<br><br>Sincerely,<br>The Draper Talent Acquisition=
+ Team<br><br><br>Follow Us on Social: <a href=3D"https://www.linkedin.com/c=
+ompany/draper">LinkedIn</a>
+      <a href=3D"https://www.facebook.com/DraperLaboratory/">Facebook</a> <=
+a href=3D"https://twitter.com/draperlab?lang=3Den">X</a>
+      <a href=3D"https://www.instagram.com/draperlab/?hl=3Den">Instagram</a=
+></div><div><br/></div><div>This email box is not monitored. Please do not =
+reply to this message.</div><div><br/></div><div><img src=3D"cid:ECdsPXRmLB=
+"/></div>
+      =09     <div>
+      =09    <!--[if mso | IE]>
+      =09      <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" widt=
+h=3D"600" align=3D"center"
+      style=3D"width:600px;">
+      =09        <tr>
+      =09          <td style=3D"line-height:0px;font-size:0px;mso-line-heig=
+ht-rule:exactly;">
+      =09      <![endif]-->
+      =09    <div style=3D"margin:0 auto;max-width:600px;">
+      =09      <table cellpadding=3D"0" cellspacing=3D"0" style=3D"font-siz=
+e:0px;width:100%;" align=3D"center"
+      border=3D"0">
+      =09        <tbody>
+      =09          <tr>
+      =09            <td style=3D"text-align:center;vertical-align:top;font=
+-size:0px;padding:20px
+      0px;"></td>
+      =09          </tr>
+      =09        </tbody>
+      =09      </table>
+      =09    </div>
+      =09    <!--[if mso | IE]>
+      =09      </td></tr></table>
+      =09      <![endif]-->
+      =09    <!--[if mso | IE]>
+      =09      <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" widt=
+h=3D"600" align=3D"center"
+      style=3D"width:600px;">
+      =09        <tr>
+      =09          <td style=3D"line-height:0px;font-size:0px;mso-line-heig=
+ht-rule:exactly;">
+      =09      <![endif]-->
+      =09    <div style=3D"margin:0 auto;max-width:600px;">
+      =09      <table cellpadding=3D"0" cellspacing=3D"0" style=3D"font-siz=
+e:0px;width:100%;" align=3D"center"
+      border=3D"0">
+      =09        <tbody>
+      =09          <tr>
+      =09            <td style=3D"text-align:center;vertical-align:top;font=
+-size:0px;padding:20px
+      0px;"></td>
+      =09          </tr>
+      =09        </tbody>
+      =09      </table>
+      =09    </div>
+      =09    <!--[if mso | IE]>
+      =09      </td></tr></table>
+      =09      <![endif]-->
+     =20
+      <!--[if mso | IE]>
+=09      <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D"6=
+00" align=3D"center" style=3D"width:600px;">
+=09        <tr>
+=09          <td style=3D"line-height:0px;font-size:0px;mso-line-height-rul=
+e:exactly;">
+=09      <![endif]-->
+      <div xmlns:wd=3D"urn:com.workday/bsvc" style=3D"margin:0 auto;max-wid=
+th:600px;">
+         <table cellpadding=3D"0" cellspacing=3D"0" style=3D"font-size:0px;=
+width:100%;" align=3D"center" border=3D"0">
+            <tbody>
+               <tr>
+                  <td style=3D"text-align:center;vertical-align:top;font-si=
+ze:0px;padding:20px 0px;">
+                     <!--[if mso | IE]>
+=09 <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0"><tr><td style=
+=3D"vertical-align:top;width:600px;">
+=09      <![endif]-->
+                     <div aria-labelledby=3D"mj-column-per-100" class=3D"mj=
+-column-per-100" style=3D"vertical-align:top;display:inline-block;font-size=
+:13px;text-align:left;width:100%;">
+                        <table cellpadding=3D"0" cellspacing=3D"0" width=3D=
+"100%" border=3D"0">
+                           <tbody>
+                              <tr>
+                                 <td style=3D"word-break:break-word;font-si=
+ze:0px;padding-bottom:0px;" align=3D"center">
+                                    <div style=3D"cursor:auto;color:#98a0a6=
+;font-family:Roboto;font-size:12px;font-weight:400;line-height:22px;">This =
+email was intended for kaver68@gmail.com</div>
+                                 </td>
+                              </tr>
+                              <tr>
+                                 <td style=3D"word-break:break-word;font-si=
+ze:0px;padding-top:0px;" align=3D"center">
+                                    <div style=3D"cursor:auto;color:#98a0a6=
+;font-family:Roboto;font-size:12px;font-weight:400;">The Charles Stark Drap=
+er Laboratory, Inc. =C2=B7 555 Technology Square, Cambridge, MA 02139</div>
+                                 </td>
+                              </tr>
+                           </tbody>
+                        </table>
+                     </div>
+                     <!--[if mso | IE]>
+=09      </td></tr></table>
+=09      <![endif]-->
+                  </td>
+               </tr>
+            </tbody>
+         </table>
+      </div>
+      <!--[if mso | IE]>
+=09      </td></tr></table>
+=09      <![endif]-->
+   </body>
+</html>
+------=_Part_18961277_635693681.1759362912282--
+
+------=_Part_18961278_2143512328.1759362912282
+content-type: image/png
+content-transfer-encoding: base64
+Content-Disposition: attachment; filename=Artboard_2.png
+content-disposition: inline; filename=Artboard_2.png
+content-id: <ECdsPXRmLB>
+content-description: Artboard 2.png
+
+iVBORw0KGgoAAAANSUhEUgAAAGYAAAASCAYAAACpbKu1AAAACXBIWXMAAAsSAAALEgHS3X78AAAC
+uklEQVRYhe2YPZKbMBTHf5tJj4eOalFDG9/A5ATZnmLJDXyDsDfYG4QtqGOfIOwN7NaN2MqdxzmB
+UwgtssBG/pgNM/F/RmMheO/p6X3Kd7vdjhuGh0//egM3dONmmIHiZpiB4rO94AciA34coVkC2WYt
+Z4c+8AMRA7+P8PgDzIDpZi23LhuVSZQCP42lF1Gs0j66S/Vx0AXgabOW2QH6viI+r+UvzMVzIuYL
+8MsPxMMZtBoe8Ag8n0AztZ4fZRKFF+xBQ+sTX4HXOfgGlPZin2FegK/GmBvvUkfBS4vHq/HOybgy
+icaoAwQVbafuQeOYPrEDva2LHrmjfJPmyVj3bMdopTIL1WYtS/3gBwKUhQFGjpvZmjyA2Ahvz5HH
+1JrrlJYCmSMPaOsT0+jjAluXk2DRlrX8Sde3gy/+MolGqLQH8CaKVY7yfID7uvZ8FCZ+IHYdI762
+oL6IuQbGfiBK4zk05ksH+tSY5/XvM42xUtxTSWod4tiYV448zoZ1DiOa9NyS/xGG8egO1zfcaoSZ
+xnIAUawWMomWKMUmMolCUawqB1739bCxRHWJfVjSbkIAFh1rXehMW8D3zVpW5sKphglP/B6UAXKD
+Xnv6iB4vlUn0QHOQc+vwn2lqTYabkV9pd0CLY62/hYtqDPsFf0pTY1tXhj7DmKEfsu9trspUZo/v
+B2KEKrhezSPuJlPyjXluvZuhjOMBDzKJRqJY9d2JykP3DUfYafl9b5u1tPfXgnUOFY1j5X4gxmbU
+9BX/e1T4Tdg3yivued1GiooiUMU06/qovqPojulNFKs9R6iNoNc8HFvvC6HTsj3CUxnVhtTtunbS
+d3RFTHmE3xbldX05taIJ28ra0La+nPYdZGjwOCQvs/l3oDwwd0XFfgrqk2HjGG2KUbP8QIQ6au5u
+f/sPE4O/x/yvuBlmoPgLvCfqBbILoAkAAAAASUVORK5CYII=
+------=_Part_18961278_2143512328.1759362912282--

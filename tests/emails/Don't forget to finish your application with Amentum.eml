@@ -1,0 +1,366 @@
+Delivered-To: kaver68@gmail.com
+Received: by 2002:ac4:8d07:0:b0:759:c52c:7988 with SMTP id ff7csp2346598pib;
+        Sun, 9 Nov 2025 18:19:12 -0800 (PST)
+X-Google-Smtp-Source: AGHT+IGPonJHy6S7C9EiDIWFAFbBfwxqlH6+u6hkITjTC1QTVGsr71UqYxAcKUDLdvq9mOQjoPCQ
+X-Received: by 2002:a05:620a:4729:b0:857:20a4:8bb0 with SMTP id af79cd13be357-8b257f681a8mr829841685a.70.1762741152398;
+        Sun, 09 Nov 2025 18:19:12 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1762741152; cv=none;
+        d=google.com; s=arc-20240605;
+        b=cgSJKN8jq64/d53AnK8Q91attzPIrQPQ4zqAIQ3rDA6VbHZQAZj1ksbY3894Bvfqj2
+         Ms+UO1TIwbNST3JpO1eqtn5v5lDnHCcdC/Lx0wzzxSE2AiwNvLlSZga10es25OnP0iMR
+         Kq8ktxuBjRcE01jiE0HEMZALDB59Xx6fX5dKCgRCbnUc7UTU/ue82WOtwieuGJJnKdHv
+         bZWDz6+xwUbn0q/1yL9YBY63NFN3lIR/cIFDWCUfC+r6Z8e/QHekg+dAiv8ypCp35YR9
+         q3RSdEIJ8zNlIP0lujqO2+9FxjRyGgfbE1xZve3+dN7AMTxi+26mCgwrgNIlSzivJgjz
+         Zh+g==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=transport-encoding:message-id:reply-to:sender:date:to:from:subject
+         :mime-version:dkim-signature:dkim-signature;
+        bh=Z5sZ1FvKEncklSG2+eoZxlEyOaCsgSmGRtq5if+4WH4=;
+        fh=FuwIJV7IWaF+3FTQvecYe8JdqQX6EuuCL/pqe2OKVkI=;
+        b=AtspYea5nfNXKnYbxIuCFlUEUTLYVZEfJs+m9r3SA2T2ATIn+d3im6YPCiQOmffiLF
+         mrGSoLJEHy8/bUlXARb75cVEP+MSdMb3PWz3irO/mmkRmycXwjS8Gf2M2v7gShTaBut+
+         E8DIPB5AyzurEK66AfD5FkVLf2SMI2vW4tIRK6eMTup7NfrPtTmabnj2eChSwPWVvZjR
+         w6VhiKuMQUtjo0ZLOb/KiNANK1EA4vGr/frBcWFTjYvzEWwO8ZcR/V4tvD7kXUNgZSQ0
+         mTOWrmu3allniB6LziFPIq4P+9LSeKqfMI5i/L6sSz11y8ZCtmQnqeaCQdyUYmis5BHY
+         cC1w==;
+        dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@mailer.mailgun.us header.s=k1 header.b=SNwN+OjU;
+       dkim=pass header.i=@mailgun.org header.s=mg header.b=kVG77MVi;
+       spf=pass (google.com: domain of bounce+97feae.3ea141-kaver68=gmail.com@mail.clinchtalent.com designates 159.112.242.217 as permitted sender) smtp.mailfrom="bounce+97feae.3ea141-kaver68=gmail.com@mail.clinchtalent.com";
+       dmarc=pass (p=QUARANTINE sp=NONE dis=NONE) header.from=clinchtalent.com
+Return-Path: <bounce+97feae.3ea141-kaver68=gmail.com@mail.clinchtalent.com>
+Received: from m242-217.mailgun.net (m242-217.mailgun.net. [159.112.242.217])
+        by mx.google.com with UTF8SMTPS id af79cd13be357-8b2355cdb3asi372608185a.1937.2025.11.09.18.19.12
+        for <kaver68@gmail.com>
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Sun, 09 Nov 2025 18:19:12 -0800 (PST)
+Received-SPF: pass (google.com: domain of bounce+97feae.3ea141-kaver68=gmail.com@mail.clinchtalent.com designates 159.112.242.217 as permitted sender) client-ip=159.112.242.217;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@mailer.mailgun.us header.s=k1 header.b=SNwN+OjU;
+       dkim=pass header.i=@mailgun.org header.s=mg header.b=kVG77MVi;
+       spf=pass (google.com: domain of bounce+97feae.3ea141-kaver68=gmail.com@mail.clinchtalent.com designates 159.112.242.217 as permitted sender) smtp.mailfrom="bounce+97feae.3ea141-kaver68=gmail.com@mail.clinchtalent.com";
+       dmarc=pass (p=QUARANTINE sp=NONE dis=NONE) header.from=clinchtalent.com
+DKIM-Signature: a=rsa-sha256; v=1; c=relaxed/relaxed; d=mailer.mailgun.us; q=dns/txt; s=k1; t=1762741152; x=1762748352;
+ h=Message-Id: Reply-To: Sender: Sender: Date: To: To: From: From: Subject: Subject: Content-Type: Mime-Version: X-Feedback-Id;
+ bh=Z5sZ1FvKEncklSG2+eoZxlEyOaCsgSmGRtq5if+4WH4=;
+ b=SNwN+OjU3Yad+lK4THfNojb77wiNiFrDr8Gs1gMGP+bw372t+SHBIfL3BLIQLywKIgmn07b/YVlVeFuQ1ctRUqusjt28b/K+aocwhvQeKeJPql6jm/KKfh05j+V5BSFCS0scFJM6a8VIRPGLpyj3ZeXOPFOv9/1xblyALGN3Jws=
+DKIM-Signature: a=rsa-sha256; v=1; c=relaxed/relaxed; d=mailgun.org; q=dns/txt; s=mg; t=1762741152; x=1762748352;
+ h=Message-Id: Reply-To: Sender: Sender: Date: To: To: From: From: Subject: Subject: Content-Type: Mime-Version: X-Feedback-Id;
+ bh=Z5sZ1FvKEncklSG2+eoZxlEyOaCsgSmGRtq5if+4WH4=;
+ b=kVG77MViDWu11mLeRzai0dfaaVWPkW1oDWs6hTMPS39oIQXlJZxMXQrqrWi1cy3fYlsv/5no8cQNvxX1nQkb5fkZDK8HdriPHEcsisIXoEZlcghSTGonJQA+j3BE1gFQNWkB8hSy4OXybP7pikg772Y/OO2Mp40kP5QMauA5qNc=
+X-Mailgun-Sid: WyI3NzY1NyIsImthdmVyNjhAZ21haWwuY29tIiwiM2VhMTQxIl0=
+X-Feedback-Id: postmaster@mail.clinchtalent.com::5733288a4cd30066a482a25c:mailgun
+Received: by 9358b45665fc96a7d18b803c20afa54168d9c235ebba589b2d18595f9a4ac3b7 with HTTP
+ id 69114ba04360a761efc05cd0; Mon, 10 Nov 2025 02:19:12 GMT
+X-Mailgun-Sending-Ip: 159.112.242.217
+Mime-Version: 1.0
+Content-Type: multipart/alternative;
+ boundary="d4ba6bd86a85b192d48134d4fb3a85021ebc4508a4f24db4ca262b3171c2"
+Subject: Don't forget to finish your application with Amentum
+From: Team Amentum
+ <user-fd44802f8d738a1a217808638ceb7bb1@amentum.mail.clinchtalent.com>
+To: Adrian Shaw <kaver68@gmail.com>
+Date: Mon, 10 Nov 2025 02:19:12 +0000
+Sender: Team Amentum
+ <user-fd44802f8d738a1a217808638ceb7bb1@amentum.mail.clinchtalent.com>
+Reply-To: Team Amentum
+ <user-fd44802f8d738a1a217808638ceb7bb1@amentum.mail.clinchtalent.com>
+Message-Id: <880fad682070e9a7e87712f4af880c71@mail.clinchtalent.com>
+Transport-Encoding: quoted-printable
+
+--d4ba6bd86a85b192d48134d4fb3a85021ebc4508a4f24db4ca262b3171c2
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+
+The next great career move is a click or two away.
+
+=C3=82
+
+=C3=82
+
+Hi Adrian Shaw,
+
+We noticed you started applying for SR All Source Analyst but
+didn=C3=A2=C2=80=C2=99t finish. This could be the perfect next step in your
+career, and it=C3=A2=C2=80=C2=99s waiting for you.
+
+Just click below to pick up where you left off:
+https://www.amentumcareers.com/jobs/sr-all-source-analyst-charlottesville-v=
+irginia-united-states-ba9c7153-3b91-4c91-8815-9ce5fcf7426c?utm_campaign=3Dw=
+orkflow&utm_medium=3Demail&utm_source=3Dworkflow_3a1a70cc3bd9a3e4dd5d39467a=
+b69b28
+
+Don=C3=A2=C2=80=C2=99t wait=C3=A2=C2=80=C2=94great opportunities don=C3=A2=
+=C2=80=C2=99t stick around forever.
+
+Best wishes,
+
+Team Amentum
+
+www.amentumcareers.com=20
+( https://api.clinchtalent.com/v1/public/messages/6ea567f24c7df85398449a25e=
+7b2ad57/events/clicked?signature=3D3864eff4be9a0f7c699537d9714b1255e1d09f38=
+&url=3Dhttps%3A%2F%2Fwww.amentumcareers.com%3Futm_source%3Dworkflow%26utm_m=
+edium%3Demail%26utm_campaign%3DDrop%2520off%2520email )
+
+
+=C3=82=C2=A9 2025
+Amentum Services, Inc.
+
+If you wish to unsubscribe to these messages from Amentum,
+you can manage your subscriptions from your My Settings=20
+( https://api.clinchtalent.com/v1/public/messages/6ea567f24c7df85398449a25e=
+7b2ad57/events/clicked?signature=3Dfd3374828b438f00d2ff422aa0a10f96cf0b05cd=
+&url=3Dhttps%3A%2F%2Fwww.amentumcareers.com%2Fme%2Fsettings%3Fcid%3D3cc268b=
+2f12f458538db6fb0a45381a0 )
+ screen or click Unsubscribe Now=20
+( https://api.clinchtalent.com/v1/public/messages/6ea567f24c7df85398449a25e=
+7b2ad57/events/unsubscribed?signature=3Da2bd37874f8c866c1656c34f29d55f77b17=
+2bdfb&url=3Dhttps%3A%2F%2Fwww.amentumcareers.com%2Fme%2Fcandidates%2Funsubs=
+cribe%3Fmid%3D6ea567f24c7df85398449a25e7b2ad57 )
+ to unsubscribe immediately.
+--d4ba6bd86a85b192d48134d4fb3a85021ebc4508a4f24db4ca262b3171c2
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/html; charset="utf-8"
+
+
+    <div id=3D"background_table">
+<!-- Visually Hidden Preheader Text : BEGIN -->
+        <div style=3D"display: none; font-size: 1px; line-height: 1px; max-=
+height: 0px; max-width: 0px; opacity: 0; overflow: hidden; mso-hide: all; f=
+ont-family: 'Inter', Helvetica, Arial, sans-serif;">
+            <span class=3D"ct-email-preheader" style=3D"font-weight: 400;">
+  The next great career move is a click or two away.
+</span>
+        </div>
+        <!-- Visually Hidden Preheader Text : END -->
+        <table class=3D"container" style=3D"width: 600px; font-family: 'Int=
+er', Helvetica, Arial, sans-serif; color: #444; font-size: 14px; border-spa=
+cing: 0; margin: auto;">
+            <tbody>
+                <tr>
+                    <td>
+                        <div class=3D"content" style=3D"padding: 20px;">
+                            <div class=3D"header-container" style=3D"margin=
+: 0; padding: 0;" align=3D"left">
+                                <table class=3D"container-wrapper" bg-color=
+=3D"#fff" style=3D"border-collapse: collapse; border-spacing: 0; font-famil=
+y: 'Inter', Helvetica, Arial, sans-serif; text-align: left; font-weight: 40=
+0; width: 600px; color: #fff; margin: 0; padding: 0;" bgcolor=3D"#fff">
+                                    <tr style=3D"margin: 0; padding: 0;">
+                                        <td class=3D"blank-space-30" style=
+=3D"border-collapse: collapse; border-spacing: 0; font-family: 'Inter', Hel=
+vetica, Arial, sans-serif; font-weight: 400; font-size: 30px; line-height: =
+30px; margin: 0; padding: 0;" align=3D"left">=C2=A0</td>
+                                    </tr>
+                                    <tr style=3D"margin: 0; padding: 0;">
+                                        <td align=3D"left" style=3D"border-=
+collapse: collapse; border-spacing: 0; font-family: 'Inter', Helvetica, Ari=
+al, sans-serif; font-weight: 400; margin: 0; padding: 0;">
+                                            <div class=3D"header-img" style=
+=3D"margin: 0; padding: 0;" align=3D"left">
+                                                <table class=3D"header" sty=
+le=3D"border-collapse: collapse; border-spacing: 0; font-family: 'Inter', H=
+elvetica, Arial, sans-serif; font-weight: 400; width: 600px; margin: 0 auto=
+; padding: 0;">
+                                                    <tr style=3D"margin: 0;=
+ padding: 0;">
+                                                        <td align=3D"left" =
+style=3D"padding-left: 10px;">
+                                                            <img width=3D"2=
+00" src=3D"https://d25wby5c7p9100.cloudfront.net/public/uploads/0a6d1c6eb40=
+49dd5b2d435eb407be8b2/images/files/1fa05edd1ec3b0de1c10edd7a31b7d27/medium/=
+Amentum_Logo-RGB-Full_Color_H.jpg?1727196585">
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr style=3D"margin: 0; padding: 0;">
+                                        <td class=3D"blank-space-30" style=
+=3D"border-collapse: collapse; border-spacing: 0; font-family: 'Inter', Hel=
+vetica, Arial, sans-serif; font-weight: 400; font-size: 30px; line-height: =
+30px; margin: 0; padding: 0;" align=3D"left">=C2=A0</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class=3D"main" style=3D"background-color: =
+#ffffff; width: 100%; display: table;">
+                                <table class=3D"container-wrapper" style=3D=
+"border-collapse: collapse; border-spacing: 0; font-family: 'Inter', Helvet=
+ica, Arial, sans-serif; text-align: left; font-weight: 400; width: 600px; c=
+olor: #000000; margin: 0 auto; padding: 0;" bgcolor=3D"#fff">
+                                    <tr>
+                                        <td align=3D"left" valign=3D"top" b=
+gcolor=3D"#ffffff" style=3D"padding: 25px;">
+                                            <span class=3D"ct-email-rows" s=
+tyle=3D"font-weight: 400;">
+ =20
+    <table role=3D"presentation" border=3D"0" cellspacing=3D"0" width=3D"10=
+0%" class=3D"ct-email-row" id=3D"email_row_0">
+      <tr class=3D"ct-email-row-border">
+          <td width=3D"100%" class=3D"ct-email-block-column">
+            <span class=3D"ct-email-block row-identified" style=3D"font-wei=
+ght: 400;">
+  <div class=3D"ct-icon-links ct-block-controls">
+</div>
+
+  <span class=3D"ct-email-block-content " id=3D"ct_email_block_ce05bd7b14c7=
+6c89843470b37089212b" style=3D"font-weight: 400;">
+  <p style=3D"font-weight: 400; font-size: 13px; line-height: 28px; color: =
+#000000; font-family: 'Inter', Helvetica, Arial, sans-serif;">Hi <span clas=
+s=3D"editor-placeholder" style=3D"font-weight: 400;">Adrian Shaw</span>,</p=
+>
+<p style=3D"font-weight: 400; font-size: 13px; line-height: 28px; color: #0=
+00000; font-family: 'Inter', Helvetica, Arial, sans-serif;">We noticed you =
+started applying for <span class=3D"editor-placeholder" style=3D"font-weigh=
+t: 400;">SR All Source Analyst</span> but didn=E2=80=99t finish. This could=
+ be the perfect next step in your career, and it=E2=80=99s waiting for you.=
+</p>
+<p style=3D"font-weight: 400; font-size: 13px; line-height: 28px; color: #0=
+00000; font-family: 'Inter', Helvetica, Arial, sans-serif;">Just click belo=
+w to pick up where you left off:<br><span class=3D"editor-placeholder" styl=
+e=3D"font-weight: 400;">https://www.amentumcareers.com/jobs/sr-all-source-a=
+nalyst-charlottesville-virginia-united-states-ba9c7153-3b91-4c91-8815-9ce5f=
+cf7426c?utm_campaign=3Dworkflow&amp;utm_medium=3Demail&amp;utm_source=3Dwor=
+kflow_3a1a70cc3bd9a3e4dd5d39467ab69b28</span></p>
+<p style=3D"font-weight: 400; font-size: 13px; line-height: 28px; color: #0=
+00000; font-family: 'Inter', Helvetica, Arial, sans-serif;">Don=E2=80=99t w=
+ait=E2=80=94great opportunities don=E2=80=99t stick around forever.</p>
+<p style=3D"font-weight: 400; font-size: 13px; line-height: 28px; color: #0=
+00000; font-family: 'Inter', Helvetica, Arial, sans-serif;">Best wishes,</p=
+>
+<p style=3D"font-weight: 400; font-size: 13px; line-height: 28px; color: #0=
+00000; font-family: 'Inter', Helvetica, Arial, sans-serif;">Team Amentum</p=
+>
+</span>
+
+</span>
+</td>      </tr>
+</table></span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td align=3D"center" valign=3D"top"=
+ bgcolor=3D"#ffffff">
+                                            <table width=3D"100%" border=3D=
+"0" cellspacing=3D"0" cellpadding=3D"0">
+                                                <tr>
+                                                    <td class=3D"pad-t-56" =
+align=3D"center" valign=3D"top" style=3D"padding-top: 17px; padding-bottom:=
+ 13px;">
+                                                        <table border=3D"0"=
+ cellspacing=3D"0" cellpadding=3D"0">
+                                                        </table>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class=3D"f-12-l-18 =
+ls-23 pad-t-19 pad-l-r-34" align=3D"center" valign=3D"top" style=3D"font-fa=
+mily: 'Inter', Helvetica, Arial, sans-serif; font-size: 10px; line-height: =
+16px; color: #000000; letter-spacing: 0.15px; padding: 5px 82px 0;">
+                                                        <p style=3D"font-si=
+ze: 13px; color: #2db461; font-weight: 400; line-height: 28px; font-family:=
+ 'Inter', Helvetica, Arial, sans-serif; margin: 0; padding: 0 16px 5px;" al=
+ign=3D"center"><a class=3D"amentum-footer-underline-link" href=3D"https://a=
+pi.clinchtalent.com/v1/public/messages/6ea567f24c7df85398449a25e7b2ad57/eve=
+nts/clicked?signature=3D3864eff4be9a0f7c699537d9714b1255e1d09f38&amp;url=3D=
+https%3A%2F%2Fwww.amentumcareers.com%3Futm_source%3Dworkflow%26utm_medium%3=
+Demail%26utm_campaign%3DDrop%2520off%2520email" target=3D"_blank" style=3D"=
+font-size: 13px; font-weight: 600; text-align: center; color: #2db461;">www=
+=2Eamentumcareers.com</a></p>
+                                                        <p style=3D"font-si=
+ze: 13px; font-weight: 400; line-height: 28px; color: #000000; font-family:=
+ 'Inter', Helvetica, Arial, sans-serif; margin: 0; padding: 0 16px 25px;" a=
+lign=3D"center"><span style=3D"font-size: 13px; font-weight: 400;">=C2=A9 2=
+025 Amentum Services, Inc.</span></p>
+                                                    </td>
+                                                </tr>
+
+                                                <tr>
+                                                    <td class=3D"pad-t-28 p=
+ad-b-27" align=3D"center" valign=3D"top" style=3D"padding: 24px 0 14px;">
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td align=3D"center" valign=3D"top"=
+ bgcolor=3D"#ffffff">
+                                            <table width=3D"100%" border=3D=
+"0" cellspacing=3D"0" cellpadding=3D"0">
+                                                <tr>
+                                                    <td class=3D"pad-t-56" =
+align=3D"center" valign=3D"top" style=3D"padding-top: 17px; padding-bottom:=
+ 13px;">
+                                                        <table border=3D"0"=
+ cellspacing=3D"0" cellpadding=3D"0">
+                                                        </table>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class=3D"f-12-l-18 =
+ls-23 pad-t-19 pad-l-r-34" align=3D"center" valign=3D"top" style=3D"font-fa=
+mily: 'Inter', Helvetica, Arial, sans-serif; font-size: 10px; line-height: =
+16px; color: #000000; letter-spacing: 0.15px; padding: 5px 82px 0;"><span c=
+lass=3D"ct-email-unsubscribe" style=3D"font-weight: 400;">
+    If you wish to unsubscribe to these messages from Amentum, you can mana=
+ge your subscriptions from your <a class=3D"__do-not-track" id=3D"link_me_c=
+andidate_settings_url" href=3D"https://api.clinchtalent.com/v1/public/messa=
+ges/6ea567f24c7df85398449a25e7b2ad57/events/clicked?signature=3Dfd3374828b4=
+38f00d2ff422aa0a10f96cf0b05cd&amp;url=3Dhttps%3A%2F%2Fwww.amentumcareers.co=
+m%2Fme%2Fsettings%3Fcid%3D3cc268b2f12f458538db6fb0a45381a0" style=3D"color:=
+ #2db461;">My Settings</a> screen or click <a class=3D"__do-not-track" id=
+=3D"link_candidates_unsubscribe_me_url" href=3D"https://api.clinchtalent.co=
+m/v1/public/messages/6ea567f24c7df85398449a25e7b2ad57/events/unsubscribed?s=
+ignature=3Da2bd37874f8c866c1656c34f29d55f77b172bdfb&amp;url=3Dhttps%3A%2F%2=
+Fwww.amentumcareers.com%2Fme%2Fcandidates%2Funsubscribe%3Fmid%3D6ea567f24c7=
+df85398449a25e7b2ad57" style=3D"color: #2db461;">Unsubscribe Now</a> to uns=
+ubscribe immediately.
+</span></td>
+                                                </tr>
+
+                                                <tr>
+                                                    <td class=3D"pad-t-28 p=
+ad-b-27" align=3D"center" valign=3D"top" style=3D"padding: 24px 0 14px;">
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class=3D"footer" style=3D"padding: 20px;">
+                                <table>
+                                    <tr>
+                                        <td style=3D"color: #bbb; font-size=
+: 12px;">
+                                            <div class=3D"unsubscribe" styl=
+e=3D"" align=3D"center">
+                                                <p style=3D"font-weight: 40=
+0; font-size: 12px; line-height: 28px; color: #bbb; font-family: 'Inter', H=
+elvetica, Arial, sans-serif;">
+                                                    <span style=3D"font-wei=
+ght: 400;"></span>
+                                                </p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+          <span class=3D"ct-email-tracking-pixel" style=3D"font-weight: 400=
+;">
+      <img src=3D"https://api.clinchtalent.com/v1/public/messages/6ea567f24=
+c7df85398449a25e7b2ad57/events/opened" width=3D"1" height=3D"1">
+  </span>
+
+</div>
+--d4ba6bd86a85b192d48134d4fb3a85021ebc4508a4f24db4ca262b3171c2--

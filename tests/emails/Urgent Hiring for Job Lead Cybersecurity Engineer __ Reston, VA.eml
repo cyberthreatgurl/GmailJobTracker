@@ -1,0 +1,389 @@
+Delivered-To: kaver68@gmail.com
+Received: by 2002:ac4:99a7:0:b0:757:76d4:7aec with SMTP id bb39csp2376040pib;
+        Tue, 28 Oct 2025 13:36:05 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IHsSaHKojQaBeP8aNZqm6YrhcnPG1bRQ0WI4IMqTpwQQJ0wm/JAIf2y0ub1LCIzTMaAy7uN
+X-Received: by 2002:a05:620a:700c:b0:7f3:c6ab:e836 with SMTP id af79cd13be357-8a8e9231f49mr76190885a.18.1761683764847;
+        Tue, 28 Oct 2025 13:36:04 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1761683764; cv=none;
+        d=google.com; s=arc-20240605;
+        b=DlKJzWoPYib7Kfr8pJ3/BLNxWVFRXBXeeYvAbAo6WIny88WIbrM7Vdy6ijbpjLSo2S
+         rnoymyJu9wKpIvZ/cEpNR5Q39uT+p++ACUhgMBqrUCw2uwIyhEhc2X3daUqKWM9yXASP
+         TL0y3FbFhLLIZGKyz9aHjPTUeudpXQmvtPKKkUJNMuOxuDmPYPWZmtO5m2pE12v2yvby
+         imojVCmK9/Wo84/ztF13iTgvXhk5XixmORAAF25sSZctHqbxPl9dXYdXDDx4e5zx4uDv
+         IirmhHlxuy7hluShqHzw6aKyp+J1/AYtdK0Z3QpNtz7qLaj91DnWk/ieFDMJTXK614MT
+         VZtw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=content-transfer-encoding:message-id:list-unsubscribe:reply-to
+         :sender:to:from:subject:mime-version:date:dkim-signature
+         :dkim-signature;
+        bh=1u5PbowXRXIqjpS2UUL41mWkxUHa8oOJppuNirvSGd4=;
+        fh=G/VLhrQnXiN6LciSgCgIU9VM0fr+1O2AyqFGWpHCjzw=;
+        b=cjezL9+iFiPQLeRrzYoSBR/AQGk2xakeWCVDKOp6KFQ06Rw7JhyXqEbVcPpvbIQTwN
+         BkYFvvcWXXH9V3CU3CTKxRUo4IpRomTVQheBajo+fCatBNYO1PchLINOQ/LB7iCaNnG2
+         0/OktsaaXb/1Z8kIlifFPhS8IhxQ7LAOONhclz4a57ib2SWo/oqKh5XSs6rtW795il3r
+         tvNIadqaXDv2sbX7l2tYbQAKlp8kbiq2OEWZzGWyX5RHz3InZoU+oicZxGJOIygd878G
+         IcRPWQaVsg+L8JTIIGcxX77gVX6cizx2zX+d2Q3ugCMBopO8kH7SNNadkoYZL1t+RYNp
+         mclA==;
+        dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@mg4.ceipalmm.com header.s=mx header.b=ebrrBMw0;
+       dkim=pass header.i=@mailgun.org header.s=mg header.b=bErO8R8A;
+       spf=pass (google.com: domain of bounce+ca63c2.866ffc-kaver68=gmail.com@mg4.ceipalmm.com designates 198.244.51.27 as permitted sender) smtp.mailfrom="bounce+ca63c2.866ffc-kaver68=gmail.com@mg4.ceipalmm.com"
+Return-Path: <bounce+ca63c2.866ffc-kaver68=gmail.com@mg4.ceipalmm.com>
+Received: from a27.a57a0aae.use4.send.mailgun.net (a27.a57a0aae.use4.send.mailgun.net. [198.244.51.27])
+        by mx.google.com with UTF8SMTPS id af79cd13be357-89f4670f98dsi310843585a.742.2025.10.28.13.36.04
+        for <kaver68@gmail.com>
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Tue, 28 Oct 2025 13:36:04 -0700 (PDT)
+Received-SPF: pass (google.com: domain of bounce+ca63c2.866ffc-kaver68=gmail.com@mg4.ceipalmm.com designates 198.244.51.27 as permitted sender) client-ip=198.244.51.27;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@mg4.ceipalmm.com header.s=mx header.b=ebrrBMw0;
+       dkim=pass header.i=@mailgun.org header.s=mg header.b=bErO8R8A;
+       spf=pass (google.com: domain of bounce+ca63c2.866ffc-kaver68=gmail.com@mg4.ceipalmm.com designates 198.244.51.27 as permitted sender) smtp.mailfrom="bounce+ca63c2.866ffc-kaver68=gmail.com@mg4.ceipalmm.com"
+DKIM-Signature: a=rsa-sha256; v=1; c=relaxed/relaxed; d=mg4.ceipalmm.com; q=dns/txt; s=mx; t=1761683764; x=1761690964;
+ h=Content-Transfer-Encoding: Content-Type: Message-Id: List-Unsubscribe: Reply-To: Sender: Sender: To: To: From: From: Subject: Subject: Mime-Version: Date: X-Feedback-Id;
+ bh=1u5PbowXRXIqjpS2UUL41mWkxUHa8oOJppuNirvSGd4=;
+ b=ebrrBMw0p14KoUct19thOKffnz2t36Imp/M7GZsaFrYNwzy6JGU/dJ1NvrkT+hhPAM+meaAJWj3qOffpZRUErBwTIwgatEBPbAn9xF4lVhM/g6+T1wPmDpNavNd0xUEva0y130q3aAz8L9vKAx8hvGMsDuC5xEsaU9Ymh8bwW68=
+DKIM-Signature: a=rsa-sha256; v=1; c=relaxed/relaxed; d=mailgun.org; q=dns/txt; s=mg; t=1761683764; x=1761690964;
+ h=Content-Transfer-Encoding: Content-Type: Message-Id: List-Unsubscribe: Reply-To: Sender: Sender: To: To: From: From: Subject: Subject: Mime-Version: Date: X-Feedback-Id;
+ bh=1u5PbowXRXIqjpS2UUL41mWkxUHa8oOJppuNirvSGd4=;
+ b=bErO8R8ALjNVlXFfhhdRAhCcV9y/8rGfn8Br2vQ9CikPswPobvNyP82WRmhRjEsJKbyFPiqsP6so6s4b5gB5HxBX1lzZFdG5CRP6PLseCTa22X+G2FxnapZ+vrktsMxJ13jWws3EoJjkdHlxPu0+dfIYoHuIKTxpmnav8ot+tes=
+X-Mailgun-Sid: WyIyOTMwMiIsImthdmVyNjhAZ21haWwuY29tIiwiODY2ZmZjIl0=
+X-Feedback-Id: postmaster@mg4.ceipalmm.com:th_company_id_21661-o:native-send-o:rewrite-sender-header:5f10d9725f18c0e2fc75f2df:mailgun
+Received: by 9416c796efbf45aa4b8df1d05e4ec82837c545ef46113c98c4a31ca6d795cc02 with HTTP
+ id 69012934c0c0af926a0476e2; Tue, 28 Oct 2025 20:36:04 GMT
+X-Mailgun-Sending-Ip-Pool-Name: MG IP Pool
+X-Mailgun-Sending-Ip-Pool: 6171ed9a6e7732fed4919c70
+X-Mailgun-Sending-Ip: 198.244.51.27
+X-Mailgun-Batch-Id: 690129349e99ce9c8c5de927
+Date: Tue, 28 Oct 2025 20:36:04 +0000
+Mime-Version: 1.0
+Subject: Urgent Hiring for Job Lead Cybersecurity Engineer || Reston, VA
+From: Raghvendra Singh <raghvendra.s@hirekeyz.com>
+To: kaver68@gmail.com
+X-Mailgun-Tag: th_company_id_21661
+X-Mailgun-Tag: o:native-send
+X-Mailgun-Tag: o:rewrite-sender-header
+Sender: Raghvendra Singh <raghvendra.s@hirekeyz.com>
+Reply-To: raghvendra.s@hirekeyz.com
+List-Unsubscribe: <https://unsubscribe.hirekeyz.com/users/request_unsubscribe/eFE3VnFDT2xMdjVOZU1lMzFmaDBMQT09/TjVBc0lZZnYyazh3WGpCMlhZNnpidz09/b0ZRK1QrNTdicEJDSEpENldlKzNndXJNVXZ6dVdSYzhjU0U0NUR6UW8vYz0=>
+X-Mailgun-Variables: {"ref_id": "21661", "user_id": "247332"}
+Message-Id: <20251028203604.7e9b9acc75fd1ab9@mg4.ceipalmm.com>
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+
+<!DOCTYPE html>
+<html lang=3D"en">
+
+<head>
+    <meta charset=3D"UTF-8">
+    <meta name=3D"x-apple-disable-message-reformatting">=20
+    <meta name=3D"viewport" content=3D"width=3Ddevice-width, initial-scale=
+=3D1.0">   =20
+    <title>Your Email Title</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css?family=3DOpen+Sans:300,40=
+0,500,600,700&display=3Dswap');
+    body{font-size:14px;-webkit-text-size-adjust:100%; -ms-text-size-adjust=
+:100%;font-family:'Open Sans', sans-serif, Arial, sans-serif;}
+    .atsEmail{max-width: 100%;padding:10px;font-family:'Open Sans', sans-se=
+rif, Arial, sans-serif; color:#333;}=20
+    .atsMBlock *{box-sizing: border-box;}=20
+    .atsEmail p{font-size:14px;}
+    .tableBlock table{border-collapse: collapse;}
+    .tableBlock th{ white-space: nowrap;}=20
+    .tableBlock td, .tableBlock th{font-size:14px; padding:5px;}
+    .tableBlock {max-width: 100%; overflow: auto;}
+    .tableBlock img, .atsEmail img{max-width: 99%; width: auto;}
+    .mTitle-1{color:#333; font-size: 22px; line-height: 22px; font-family:'=
+Open Sans', sans-serif, Arial, sans-serif; font-weight:700; float: left; wi=
+dth: 100%;  margin-top: 10px;margin-bottom: 20px;}
+    .mTitle-2{color:#333; font-size: 22px; font-family:'Open Sans', sans-se=
+rif, Arial, sans-serif; font-weight:400; float: left; width: 100%;  margin-=
+top: 10px;margin-bottom: 20px;}
+    .mTitle-3{color:#333; font-size: 14px; font-family:'Open Sans', sans-se=
+rif, Arial, sans-serif; font-weight:600; float: left; width: 100%;  margin-=
+top: 10px;margin-bottom: 10px;}
+    .emTitle-1{font-size: 20px!important; width: 100%;font-family:'Open San=
+s', sans-serif, Arial, sans-serif; color:#333; font-weight: 600;}
+    .emNText{font-size: 14px!important; width: 100%;font-family:'Open Sans'=
+, sans-serif, Arial, sans-serif; color:#333; line-height: 20px;}
+    .emNText-2{font-size: 18px!important; width: 100%;font-family:'Open San=
+s', sans-serif, Arial, sans-serif;color:#333; font-weight: 600; margin-top:=
+0;}
+    .emNText-3{font-family:'Open Sans', sans-serif, Arial, sans-serif;color=
+:#333;font-size: 14px!important; line-height: 20px;}
+    .boxColM{font-family:'Open Sans', sans-serif, Arial, sans-serif;color:#=
+333;line-height: 20px;width: 100%;max-width:49%;float: left; margin:10px 0;=
+ padding-right: 1%;}
+    .mFooterDmc{text-align: left;width: 100%;margin: 25px auto 20px;padding=
+: 15px 0px 0;display:block;clear: both;border-top: solid 1px #ececec;float:=
+ left;}
+    .mBodyText{color:#333; font-size:14px; margin-bottom: 10px;font-family:=
+'Open Sans', sans-serif, Arial, sans-serif;  width:100%;}
+    .mBodyText ul{margin: 0; padding: 0 0 0 20px;}
+    @media screen and (max-width: 600px) {=20
+      .boxColM{max-width: 100%!important; margin-top: 10px!important;paddin=
+g-right: 0!important;font-size:16px!important; width: 100%;}
+      .tableBlock {max-width:530px;}     =20
+      .tableBlock td, .tableBlock th{font-size:16px; }
+      .tableBlock th{ white-space: nowrap;}=20
+      .mTitle-1{font-size:20px!important;}
+      .emTitle-1{font-size:20px!important;}
+      .emNText-2{font-size:18px!important;}
+      .emNText{font-size:16px!important;line-height: 22px !important;}
+      .emNText-3{font-size:16px!important;line-height: 22px !important;}
+      .emNText{font-size:16px!important;}
+  }=20
+   @media screen and (max-width: 500px) {
+      .atsEmail{max-width:460px;}
+      .tableBlock {width:460px!important; overflow: auto;}
+      .tableBlock td, .tableBlock th{font-size:16px!important;}
+  }
+  @media screen and (max-width: 430px) {
+      .tableBlock {width: 410px!important; overflow: auto;}
+      .atsEmail{max-width:410px;}
+      .tableBlock td, .tableBlock th{font-size:16px!important;}
+  }
+    @media screen and (max-width: 400px) {
+      .tableBlock {width:390px!important;overflow: auto;}
+      .atsEmail{max-width:390px;}
+      .tableBlock td, .tableBlock th{font-size:16px!important;}
+     =20
+  } =20
+  </style>
+</head>
+
+<body style=3D"margin: 0; padding: 0; font-family:'Open Sans', sans-serif, =
+Arial, sans-serif; background-color: #fff; line-height: 20px;">
+ =20
+  <div class=3D"atsEmail" style=3D"max-width: 100%;padding:0px;font-family:=
+'Open Sans', sans-serif, Arial, sans-serif; color:#333;width:100%;">
+          =20
+<!--  =3D=3Dbody content start here=3D=3D -->
+    <div class=3D"mBodyText" style=3D"color:#333; font-size:14px; margin-bo=
+ttom: 10px;font-family:'Open Sans', sans-serif, Arial, sans-serif;  width:1=
+00%;">
+                              <br>
+      <div style=3D"max-width:100%; clear:both;">
+        <p class=3D"elementtoproof"><span style=3D"font-size:12pt"><span st=
+yle=3D"font-family:Aptos,sans-serif"><span style=3D"font-size:11.0pt"><span=
+ style=3D"font-family:"Amasis MT Pro",serif"><span style=3D"color:black">He=
+llo,</span></span></span></span></span></p>
+
+<p class=3D"elementtoproof"><span style=3D"font-size:12pt"><span style=3D"f=
+ont-family:Aptos,sans-serif">&nbsp;</span></span></p>
+
+<p class=3D"elementtoproof" style=3D"margin-bottom:16px"><span style=3D"fon=
+t-size:12pt"><span style=3D"font-family:Aptos,sans-serif"><span style=3D"fo=
+nt-size:11.0pt"><span style=3D"font-family:"Amasis MT Pro",serif"><span sty=
+le=3D"color:black">Hope you are doing great!</span></span></span></span></s=
+pan></p>
+
+<p class=3D"elementtoproof"><span style=3D"font-size:12pt"><span style=3D"f=
+ont-family:Aptos,sans-serif"><span style=3D"font-size:11.0pt"><span style=
+=3D"font-family:"Amasis MT Pro",serif"><span style=3D"color:black">I am sen=
+ding you this email regarding a job opening.&nbsp;</span></span></span></sp=
+an></span></p>
+
+<p><span style=3D"font-size:12pt"><span style=3D"font-family:Aptos,sans-ser=
+if"><span style=3D"font-size:11.0pt"><span style=3D"font-family:"Amasis MT =
+Pro",serif">Please have a look at the Job Description given below and let m=
+e know if you are interested in this position. Please revert me back with y=
+our resume copy and expected pay rate and we can discuss further.<br />
+Looking forward to speaking to you.<br />
+<br />
+<b>Job Details:</b></span></span></span></span></p>
+
+<p><span style=3D"font-size:12pt"><span style=3D"font-family:Aptos,sans-ser=
+if"><b><span style=3D"font-size:11.0pt"><span style=3D"font-family:"Amasis =
+MT Pro",serif">Title: Lead Cybersecurity Engineer </span></span></b></span>=
+</span></p>
+
+<p><span style=3D"font-size:12pt"><span style=3D"font-family:Aptos,sans-ser=
+if"><b><span style=3D"font-size:11.0pt"><span style=3D"font-family:"Amasis =
+MT Pro",serif">Location: Remote (Reston, VA) <span style=3D"background:yell=
+ow">[Local to Reston, VA preferred but will accept remote candidates. Local=
+ candidates required to be onsite 4 days a week]</span></span></span></b></=
+span></span></p>
+
+<p><span style=3D"font-size:12pt"><span style=3D"font-family:Aptos,sans-ser=
+if"><b><span style=3D"font-size:11.0pt"><span style=3D"font-family:"Amasis =
+MT Pro",serif">Duration: Long Term Contract</span></span></b></span></span>=
+</p>
+
+<p>&nbsp;</p>
+
+<p><span style=3D"font-size:12pt"><span style=3D"font-family:Aptos,sans-ser=
+if"><b><span style=3D"font-size:11.0pt"><span style=3D"font-family:"Amasis =
+MT Pro",serif">Job Summary:</span></span></b><br />
+<span style=3D"font-size:11.0pt"><span style=3D"font-family:"Amasis MT Pro"=
+,serif">Lead Cybersecurity Engineer to drive organization&#39;s cybersecuri=
+ty strategy. Key responsibilities include: Developing, executing, and impro=
+ving enterprise cybersecurity programs. Managing and mentoring a team of cy=
+bersecurity professionals. Overseeing threat detection, incident response, =
+vulnerability management, and security monitoring. Architecting and impleme=
+nting advanced security controls (identity & access, endpoint protection, c=
+loud security, SIEM). Collaborating with IT, DevOps, and business stakehold=
+ers for security integration. Serving as a SME on regulatory compliance (NI=
+ST, CIS). Conducting risk assessments, penetration testing, and security au=
+dits. Reporting security posture and metrics to leadership. Staying updated=
+ on emerging cyber threats/tools/trends</span></span></span></span></p>
+
+<p>&nbsp;</p>
+
+<p><span style=3D"font-size:12pt"><span style=3D"font-family:Aptos,sans-ser=
+if"><b><span style=3D"font-size:11.0pt"><span style=3D"font-family:"Amasis =
+MT Pro",serif">Required Skills :</span></span></b></span></span></p>
+
+<ul>
+	<li><span style=3D"font-size:12pt"><span style=3D"font-family:Aptos,sans-s=
+erif"><span style=3D"font-size:11.0pt"><span style=3D"font-family:"Amasis M=
+T Pro",serif">Bachelor&rsquo;s degree in Cybersecurity, Computer Science, o=
+r related field (or equivalent work experience).</span></span></span></span=
+></li>
+	<li><span style=3D"font-size:12pt"><span style=3D"font-family:Aptos,sans-s=
+erif"><span style=3D"font-size:11.0pt"><span style=3D"font-family:"Amasis M=
+T Pro",serif">5+ years of cybersecurity experience, with at least 2+ years =
+in a leadership role.</span></span></span></span></li>
+	<li><span style=3D"font-size:12pt"><span style=3D"font-family:Aptos,sans-s=
+erif"><span style=3D"font-size:11.0pt"><span style=3D"font-family:"Amasis M=
+T Pro",serif">Expertise in network security, cloud security (AWS/Azure/GCP)=
+, identity management, endpoint security (Crowdstrike preferred), vulnerabi=
+lity management platforms (Qualys preferred) and SIEM platforms (Sumo Logic=
+ preferred). </span></span></span></span></li>
+	<li><span style=3D"font-size:12pt"><span style=3D"font-family:Aptos,sans-s=
+erif"><span style=3D"font-size:11.0pt"><span style=3D"font-family:"Amasis M=
+T Pro",serif">Strong understanding of risk management frameworks (NIST CSF,=
+ MITRE ATT\&CK, FedRAMP). </span></span></span></span></li>
+	<li><span style=3D"font-size:12pt"><span style=3D"font-family:Aptos,sans-s=
+erif"><span style=3D"font-size:11.0pt"><span style=3D"font-family:"Amasis M=
+T Pro",serif">Proven track record of managing security incidents and implem=
+enting proactive defense strategies. </span></span></span></span></li>
+	<li><span style=3D"font-size:12pt"><span style=3D"font-family:Aptos,sans-s=
+erif"><span style=3D"font-size:11.0pt"><span style=3D"font-family:"Amasis M=
+T Pro",serif">Excellent communication, leadership, and stakeholder manageme=
+nt skills. </span></span></span></span></li>
+	<li><span style=3D"font-size:12pt"><span style=3D"font-family:Aptos,sans-s=
+erif"><span style=3D"font-size:11.0pt"><span style=3D"font-family:"Amasis M=
+T Pro",serif">Must have the ability to obtain and maintain a Public Trust S=
+ecurity Clearance.</span></span></span></span></li>
+</ul>
+
+<p>&nbsp;</p>
+
+<p><span style=3D"font-size:12pt"><span style=3D"font-family:Aptos,sans-ser=
+if"><b><span style=3D"font-size:11.0pt"><span style=3D"font-family:"Amasis =
+MT Pro",serif">Preferred Skills:&nbsp; </span></span></b></span></span></p>
+
+<ul>
+	<li><span style=3D"font-size:12pt"><span style=3D"font-family:Aptos,sans-s=
+erif"><span style=3D"font-size:11.0pt"><span style=3D"font-family:"Amasis M=
+T Pro",serif">Master&rsquo;s degree in Cybersecurity or related field.</spa=
+n></span></span></span></li>
+	<li><span style=3D"font-size:12pt"><span style=3D"font-family:Aptos,sans-s=
+erif"><span style=3D"font-size:11.0pt"><span style=3D"font-family:"Amasis M=
+T Pro",serif">Industry certifications such as CISSP, CISM, CEH, OSCP, CCSP,=
+ or SANS GIAC.</span></span></span></span></li>
+	<li><span style=3D"font-size:12pt"><span style=3D"font-family:Aptos,sans-s=
+erif"><span style=3D"font-size:11.0pt"><span style=3D"font-family:"Amasis M=
+T Pro",serif">Experience with Zero Trust architecture and secure software d=
+evelopment lifecycle (SSDLC). </span></span></span></span></li>
+	<li><span style=3D"font-size:12pt"><span style=3D"font-family:Aptos,sans-s=
+erif"><span style=3D"font-size:11.0pt"><span style=3D"font-family:"Amasis M=
+T Pro",serif">Familiarity with scripting languages (e.g., Python, etc.) for=
+ automation.</span></span></span></span></li>
+</ul>
+
+<p>&nbsp;</p>
+
+<p><span style=3D"font-size:12pt"><span style=3D"font-family:Aptos,sans-ser=
+if"><b><span style=3D"font-size:11.0pt"><span style=3D"font-family:"Amasis =
+MT Pro",serif">Security Clearance: </span></span></b><span style=3D"font-si=
+ze:11.0pt"><span style=3D"font-family:"Amasis MT Pro",serif">Able to obtain=
+ MBI</span></span></span></span></p>
+
+<p><br />
+<span style=3D"font-size:12pt"><span style=3D"font-family:Aptos,sans-serif"=
+><b><span style=3D"font-size:11.0pt"><span style=3D"font-family:"Amasis MT =
+Pro",serif"><span style=3D"color:black">Regards,</span></span></span></b></=
+span></span></p>
+
+<p class=3D"elementtoproof"><span style=3D"font-size:12pt"><span style=3D"b=
+ackground:white"><span style=3D"line-height:14.65pt"><span style=3D"font-fa=
+mily:Aptos,sans-serif"><b><span style=3D"font-size:11.0pt"><span style=3D"f=
+ont-family:"Amasis MT Pro",serif"><span style=3D"color:black">Raghvendra Si=
+ngh</span></span></span></b></span></span></span></span></p>
+
+<p class=3D"elementtoproof" style=3D"margin-bottom:16px"><span style=3D"fon=
+t-size:12pt"><span style=3D"background:white"><span style=3D"line-height:14=
+=2E65pt"><span style=3D"font-family:Apt=
+os,sans-serif"><b><span style=3D"font-=
+size:11.0pt"><span style=3D"font-family:"Amasis MT Pro",serif"><span style=
+=3D"color:#548235">Technical Recruiter&nbsp;&nbsp;</span></span></span></b>=
+</span></span></span></span></p>
+
+<p class=3D"elementtoproof"><span style=3D"font-size:12pt"><span style=3D"b=
+ackground:white"><span style=3D"line-height:14.65pt"><span style=3D"font-fa=
+mily:Aptos,sans-serif"><b><span style=3D"font-size:11.0pt"><span style=3D"f=
+ont-family:"Amasis MT Pro",serif"><span style=3D"color:black">10451 Mill Ru=
+n Circle, Suite 710, Owings Mills, MD - 21117</span></span></span></b></spa=
+n></span></span></span></p>
+
+<p class=3D"elementtoproof"><span style=3D"font-size:12pt"><span style=3D"b=
+ackground:white"><span style=3D"line-height:14.65pt"><span style=3D"font-fa=
+mily:Aptos,sans-serif"><b><span style=3D"font-size:11.0pt"><span style=3D"f=
+ont-family:"Amasis MT Pro",serif"><span style=3D"color:black">Email: </span=
+></span></span></b><b><u><span style=3D"font-size:11.0pt"><span style=3D"fo=
+nt-family:"Amasis MT Pro",serif"><span style=3D"color:#0563c1"><a href=3D"m=
+ailto:raghvendra.s@hirekeyz.com" style=3D"color:blue; text-decoration:under=
+line"><span style=3D"color:#0563c1">raghvendra.s@hirekeyz.com</span></a></s=
+pan></span></span></u></b></span></span></span></span></p>
+
+<p class=3D"elementtoproof"><span style=3D"font-size:12pt"><span style=3D"f=
+ont-family:Aptos,sans-serif"><b><span style=3D"font-size:11.0pt"><span styl=
+e=3D"font-family:"Amasis MT Pro",serif"><span style=3D"color:black">LinkedI=
+n</span></span></span></b><span style=3D"font-size:11.0pt"><span style=3D"f=
+ont-family:"Amasis MT Pro",serif"><span style=3D"color:#156082">: </span></=
+span></span><b><u><span style=3D"font-size:11.0pt"><span style=3D"font-fami=
+ly:"Amasis MT Pro",serif"><span style=3D"color:#467886"><a href=3D"https://=
+www.linkedin.com/in/raghvendra-singh-1330511b9/" style=3D"color:blue; text-=
+decoration:underline"><span style=3D"color:#467886">https://www.linkedin.co=
+m/in/raghvendra-singh-1330511b9/</span></a></span></span></span></u></b></s=
+pan></span></p>
+
+<p class=3D"elementtoproof"><span style=3D"font-size:12pt"><span style=3D"f=
+ont-family:Aptos,sans-serif"><b><span style=3D"font-size:11.0pt"><span styl=
+e=3D"font-family:"Amasis MT Pro",serif"><span style=3D"color:red">Disclaime=
+r :</span></span></span></b><span style=3D"font-size:11.0pt"><span style=3D=
+"font-family:"Amasis MT Pro",serif"><span style=3D"color:red"> <b>&ldquo;If=
+ you feel you received this email by mistake or wish to unsubscribe, kindly=
+ reply to this email with &ldquo;UNSUBSCRIBE&rdquo; in the subject line.&rd=
+quo;</b></span></span></span></span></span></p>
+
+<p class=3D"elementtoproof"><span style=3D"font-size:12pt"><span style=3D"f=
+ont-family:Aptos,sans-serif">&nbsp;</span></span></p>
+
+<p>&nbsp;</p>
+        </div>=20
+            </div>
+=20
+<!-- =3D=3Dbody content end here=3D=3D --> =20
+ =20
+
+        <p style=3D"border:none; padding-left:0px; font-size:11px; font-fam=
+ily:Arial, Helvetica, sans-serif; color:#6b6c72; text-align:left; line-heig=
+ht:18px;"> To unsubscribe from future emails or to update your email prefer=
+ences <a rel=3D"nofollow" href=3D"https://unsubscribe.hirekeyz.com/users/re=
+quest_unsubscribe/eFE3VnFDT2xMdjVOZU1lMzFmaDBMQT09/TjVBc0lZZnYyazh3WGpCMlhZ=
+Nnpidz09/b0ZRK1QrNTdicEJDSEpENldlKzNndXJNVXZ6dVdSYzhjU0U0NUR6UW8vYz0=3D" st=
+yle=3D"color:#0077c5; text-decoration:underline"><b> click here </b></a></p=
+></div>
+<img width=3D"1" height=3D"1" alt=3D"" src=3D"http://clicks.mg4.ceipalmm.co=
+m/o/eJw0zMFuhCAQANCvkdsaYHAYDxz6JWaAYSVddMNam_59k9q9vsPLgRBLSUqC8WiQwKNTawB=
+h0nM01mggl0uyk88QSThSAhJVg9V2MtqS1YDajV7mOHNKfirZcJwHp9vdjUnqkx-tjWlvqodPPq=
+UjDU7fG9fHpVKWmoM1iEYd4ViXtLcnbz9Lzctb9wE-Nj7qKbeXbPlfunz3elwk_bYKZ-nq6yX9b=
+3QewKoz2N8AAAD__1aERt4"></body>
+
+</html>

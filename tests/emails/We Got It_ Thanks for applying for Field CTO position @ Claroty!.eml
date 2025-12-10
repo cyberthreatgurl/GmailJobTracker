@@ -1,0 +1,123 @@
+Delivered-To: kaver68@gmail.com
+Received: by 2002:a05:7109:e48a:b0:402:9177:9d1c with SMTP id tn10csp2179357gdc;
+        Mon, 24 Feb 2025 14:31:55 -0800 (PST)
+X-Google-Smtp-Source: AGHT+IHTo+T6SJyHI4FzVrlhouuA2Yt9egB5E7u8gXDgrNgidudHQhmF+NV8jHiEhCKLbNN7KUZM
+X-Received: by 2002:a05:620a:838e:b0:7c0:b0eb:4fa5 with SMTP id af79cd13be357-7c0cf8aea98mr2125088085a.4.1740436315038;
+        Mon, 24 Feb 2025 14:31:55 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1740436315; cv=none;
+        d=google.com; s=arc-20240605;
+        b=ituYd9iOTj9VqqxlewtGo3b+vzVsqmjgC1iceQQOsufWMnJ3xq2MaTvvMiVH2Iargb
+         r2etBPQTaF3alyCE1ZfyP31VFdINv089mt1tFIRVsg0oVw58P0kMiYPk7sI4E5eYkVfQ
+         KdXTgEJ7mLS2pRhidFbb3BRxIGzHcJCWwYO/HGsQvLQwVN+e4notxZUDcRXSEpCKWvP9
+         FMRfChoB79pScCBhONZiStzltrNEzv970Bhvhh6VdMxtmkU2Gbc7a4p6hGP0xRKw0MK7
+         BU9xNrmhbzACOCPxSYGXUdZvmNs84mlA1w2CfCewuu9b8BF7KrtH5xhiLdKZbXDkCx2O
+         4YCQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=from:cc:to:reply-to:sender:subject:mime-version:date:message-id
+         :dkim-signature:dkim-signature;
+        bh=CBS0e/9Xse1HwQjuGvPs85Wl2EuRoKnHVUVPGNTrUps=;
+        fh=O67wW6EmqfFHbIE182f+6MR3+d933BodjEJOhyfFqxM=;
+        b=ObHYWtbTKt57RRRPrNs8CWoqWkCvnAsaHlkskS11OpvbcMthkKexu7qugmFtkFxLpv
+         KU2nlLbqf3sqEDS6NioXj/oonYo3lH1TU0jsKw7ruwajQdz+fl+0WjPggCyUXa5Cpd6M
+         aMJmdsU3irLz7QxEG6O8rBAmD2N8ASTs2urrfA8ALRZRQuldPLk6HDT1dwg4NQQN2+O+
+         EeaxpvNJnKrEFKOPSnCMmANG7a0Th4reO6UPVrYMdSa/8RBVngHjSK81RqtSd8QU/thV
+         WliD1+0aIV6gZ/Hc7YMjhKYKoKtMVoJWsSoIo/KhTbyQ4W6PwfYbUAtP2XhTUHLThvW1
+         yz6w==;
+        dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@comeet-notifications.com header.s=pic header.b=ySeoAX1g;
+       dkim=pass header.i=@mailgun.org header.s=mg header.b=mSv07ap8;
+       spf=pass (google.com: domain of bounce+62cc0c.61a741-kaver68=gmail.com@comeet-notifications.com designates 159.135.229.156 as permitted sender) smtp.mailfrom="bounce+62cc0c.61a741-kaver68=gmail.com@comeet-notifications.com";
+       dmarc=pass (p=QUARANTINE sp=QUARANTINE dis=NONE) header.from=claroty.comeet-notifications.com
+Return-Path: <bounce+62cc0c.61a741-kaver68=gmail.com@comeet-notifications.com>
+Received: from m229-156.mailgun.net (m229-156.mailgun.net. [159.135.229.156])
+        by mx.google.com with UTF8SMTPS id af79cd13be357-7c23c2c4659si39163385a.300.2025.02.24.14.31.54
+        for <kaver68@gmail.com>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 24 Feb 2025 14:31:55 -0800 (PST)
+Received-SPF: pass (google.com: domain of bounce+62cc0c.61a741-kaver68=gmail.com@comeet-notifications.com designates 159.135.229.156 as permitted sender) client-ip=159.135.229.156;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@comeet-notifications.com header.s=pic header.b=ySeoAX1g;
+       dkim=pass header.i=@mailgun.org header.s=mg header.b=mSv07ap8;
+       spf=pass (google.com: domain of bounce+62cc0c.61a741-kaver68=gmail.com@comeet-notifications.com designates 159.135.229.156 as permitted sender) smtp.mailfrom="bounce+62cc0c.61a741-kaver68=gmail.com@comeet-notifications.com";
+       dmarc=pass (p=QUARANTINE sp=QUARANTINE dis=NONE) header.from=claroty.comeet-notifications.com
+DKIM-Signature: a=rsa-sha256; v=1; c=relaxed/relaxed; d=comeet-notifications.com; q=dns/txt; s=pic; t=1740436314; x=1740443514;
+ h=From: From: Cc: To: To: Reply-To: Sender: Sender: Subject: Subject: MIME-Version: Content-Type: Date: Message-Id: X-Feedback-Id;
+ bh=CBS0e/9Xse1HwQjuGvPs85Wl2EuRoKnHVUVPGNTrUps=;
+ b=ySeoAX1gvYjvpNa24N3ae7JId7wF8ElU/oEdjw5QjTLkB3fEnhaj5KdGsN4PUrglqCnYY3YbYQylj92k0HKuQcgCSJGnS6gUh8N1fftFS8Tp8d8e24Th1FvRK0ETvHKq0ye1CddzJa0f0/MsOA1/FiibbkJ+U7LSe6gKLYt4Oso=
+DKIM-Signature: a=rsa-sha256; v=1; c=relaxed/relaxed; d=mailgun.org; q=dns/txt; s=mg; t=1740436314; x=1740443514;
+ h=From: From: Cc: To: To: Reply-To: Sender: Sender: Subject: Subject: MIME-Version: Content-Type: Date: Message-Id: X-Feedback-Id;
+ bh=CBS0e/9Xse1HwQjuGvPs85Wl2EuRoKnHVUVPGNTrUps=;
+ b=mSv07ap8OzmefQHXk5ffdr9cENi/FVy9yQiIoTawo6k5nLqco987ACxkkFQga86PAF0QQcbEa0nHbOac0t3d7l1qCx4K7sRZ5s/y8KM5S/4gbvxhXs8CIcmuUxcXZsftvo9sb/F0FZNe3NNpaFIL8J73DdJizM78Fj3u4K+TnTg=
+X-Feedback-Id: postmaster@comeet-notifications.com::58c1746dfa6095c0b9bb1f29:mailgun
+X-Mailgun-Sending-Ip: 159.135.229.156
+X-Mailgun-Sending-Ip-Pool-Name: 
+X-Mailgun-Sending-Ip-Pool: 
+X-Mailgun-Sid: WyJmN2EzNiIsImthdmVyNjhAZ21haWwuY29tIiwiNjFhNzQxIl0=
+Received: by b2a701c3340d with HTTP id 67bcf35ab32079070d7d211c; Mon, 24 Feb 2025
+ 22:31:54 GMT
+Message-Id: <20250224223154.de87025b0b1d615e@comeet-notifications.com>
+Date: Mon, 24 Feb 2025 22:31:54 +0000
+Content-Type: multipart/mixed; boundary="===============1776907459584069726=="
+MIME-Version: 1.0
+Subject: We Got It: Thanks for applying for Field CTO position @ Claroty!
+Sender: no-reply@Claroty.comeet-notifications.com
+X-TimeMachine-Status: future
+Reply-To: Claroty <no-reply@Claroty.comeet-notifications.com>
+To: kaver68@gmail.com
+Cc: 
+From: Claroty <no-reply@Claroty.comeet-notifications.com>
+
+--===============1776907459584069726==
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+Content-Type: text/html; charset="utf-8"
+
+PHAgc3R5bGU9Im1hcmdpbjowOyI+SGkgQWRyaWFuLDwvcD48cCBzdHlsZT0ibWFyZ2luOjA7Ij48
+YnIvPjwvcD48cCBzdHlsZT0ibWFyZ2luOjA7Ij5XZSBoYXZlIHJlY2VpdmVkIHlvdXIgYXBwbGlj
+YXRpb24uIFRoYW5rIHlvdSBmb3IgeW91ciBpbnRlcmVzdCBpbiB3b3JraW5nIGF0IENsYXJvdHku
+IFdlIGFyZcKgYWx3YXlzIGxvb2tpbmcgZm9yIHRhbGVudGVkIGFuZMKgbW90aXZhdGVkIHBlb3Bs
+ZSB3aG8gc2VlayB0byBtYWtlIGEgZGlmZmVyZW5jZS48L3A+PHAgc3R5bGU9Im1hcmdpbjowOyI+
+PGJyLz48L3A+PHAgc3R5bGU9Im1hcmdpbjowOyI+V2Ugd2lsbCBiZSBoYXBweSB0byBjb250YWN0
+IHlvdSBpZiB0aGlzIHBvc2l0aW9uIG1heSBiZSBhIG1hdGNoISA8L3A+PHAgc3R5bGU9Im1hcmdp
+bjowOyI+PGJyLz48L3A+PHAgc3R5bGU9Im1hcmdpbjowOyI+SW4gdGhlIG1lYW50aW1lLCB5b3Ug
+Y2FuIHJlYWQgbW9yZSBhYm91dCB1czo8YnIvPjxici8+PC9wPjxwIHN0eWxlPSJtYXJnaW46MDsi
+PjwvcD48cCBzdHlsZT0ibWFyZ2luOjA7Ij48dT48YSBocmVmPSJodHRwczovL2NsYXJvdHkuY29t
+L25ld3Nyb29tIiB0YXJnZXQ9Il9ibGFuayI+TGFzdCBuZXdzPC9hPjwvdT48YnIvPjxhIGhyZWY9
+Imh0dHBzOi8vd3d3LmNsYXJvdHkuY29tLyIgdGFyZ2V0PSJfYmxhbmsiPldlYnNpdGU8L2E+PGJy
+Lz48L3A+PHAgc3R5bGU9Im1hcmdpbjowOyI+PGEgaHJlZj0iaHR0cHM6Ly90d2l0dGVyLmNvbS9D
+bGFyb3R5IiB0YXJnZXQ9Il9ibGFuayI+VHdpdHRlcjwvYT48L3A+PHAgc3R5bGU9Im1hcmdpbjow
+OyI+PGEgaHJlZj0iaHR0cHM6Ly93d3cubGlua2VkaW4uY29tL2NvbXBhbnkvY2xhcm90eS8iIHRh
+cmdldD0iX2JsYW5rIj5MaW5rZWRpbjwvYT48L3A+PHAgc3R5bGU9Im1hcmdpbjowOyI+PGEgaHJl
+Zj0iaHR0cHM6Ly93d3cuZm9yYmVzLmNvbS9zaXRlcy90aG9tYXNicmV3c3Rlci8yMDIxLzEyLzA4
+L2NsYXJvdHktd2FudHMtdG8tc3RvcC1jeWJlcmF0dGFja3Mta2lsbGluZy1wZW9wbGUtbmVhcnMt
+Mi1iaWxsaW9uLXZhbHVhdGlvbi8/c2g9MWViOGFiNDkxOTVlIiB0YXJnZXQ9Il9ibGFuayI+Rm9y
+YmVzPC9hPuKAizwvcD48cCBzdHlsZT0ibWFyZ2luOjA7Ij48YSBocmVmPSJodHRwczovL3d3dy5m
+YWNlYm9vay5jb20vTGlmZWF0Q2xhcm90eSIgdGFyZ2V0PSJfYmxhbmsiPkxpZmVhdENsYXJvdHk8
+L2E+4oCLPC9wPjxwIHN0eWxlPSJtYXJnaW46MDsiPjxiciBzdHlsZT0iZm9udC1zaXplOiAxNHB4
+OyIvPjwvcD48cCBzdHlsZT0ibWFyZ2luOjA7Ij48c3BhbiBzdHlsZT0iZm9udC1zaXplOiAxNHB4
+OyI+SWYgeW91IGhhdmUgYW55IHF1ZXN0aW9ucywgeW91IG1heSByZXBseSB0byB0aGlzIGVtYWls
+Ljwvc3Bhbj48YnIvPjwvcD48cCBzdHlsZT0ibWFyZ2luOjA7Ij48YnIvPjwvcD48cCBzdHlsZT0i
+bWFyZ2luOjA7Ij5SZWdhcmRzLDwvcD48cCBzdHlsZT0ibWFyZ2luOjA7Ij48YnIvPjwvcD48cCBz
+dHlsZT0ibWFyZ2luOjA7Ij48YnIvPjwvcD48cCBzdHlsZT0ibWFyZ2luOjA7Ij5DbGFyb3R5J3Mg
+aGlyaW5nIHRlYW08L3A+PHAgc3R5bGU9Im1hcmdpbjowOyI+PGJyLz48L3A+CgoKPGJyLz48YnIv
+PgoKPHRhYmxlIHJvbGU9InByZXNlbnRhdGlvbiIgc3R5bGU9ImJvcmRlcjpub25lOyB0ZXh0LWFs
+aWduOiBsZWZ0OyB0YWJsZS1sYXlvdXQ6IGZpeGVkOyBib3JkZXItY29sbGFwc2U6IGNvbGxhcHNl
+OyIgYm9yZGVyPSIwIiBjZWxsc3BhY2luZz0iMCIgY2VsbHBhZGRpbmc9IjAiIGFsaWduPSJsZWZ0
+Ij4KICAgIDx0cj4KICAgICAgICA8dGQgd2lkdGg9IjcwIiBzdHlsZT0iYm9yZGVyLXRvcDogMXB4
+IHNvbGlkICNjY2NjY2M7IHdpZHRoOiA3MHB4OyBoZWlnaHQ6IDFweDsgbGluZS1oZWlnaHQ6IDFw
+eDsgZm9udC1zaXplOiAxcHg7Ij4mbmJzcDs8L3RkPgogICAgICAgIDx0ZCB3aWR0aD0iKiIgc3R5
+bGU9ImJvcmRlci10b3A6IG5vbmU7IGhlaWdodDogMXB4OyBsaW5lLWhlaWdodDogMXB4OyBmb250
+LXNpemU6IDFweDsiPiZuYnNwOzwvdGQ+CiAgICA8L3RyPgogICAgPHRyPgogICAgICAgIDx0ZCBj
+b2xzcGFuPSIyIiBzdHlsZT0iY29sb3I6ICMzMzMzMzM7IGZvbnQtc2l6ZTogMTJweDsgbGluZS1o
+ZWlnaHQ6IDIwcHg7IHBhZGRpbmctdG9wOiA1cHg7IGZvbnQtZmFtaWx5OiBzZWdvZSB1aSwgSGVs
+dmV0aWNhLCBMdWNpZGEgU2FucywgQXJpYWwsIHNhbnMtc2VyaWY7IHZlcnRpY2FsLWFsaWduOiBt
+aWRkbGU7Ij4KICAgICAgICAgICAgU2VudCB2aWEgPGEgc3R5bGU9ImNvbG9yOiAjMzMzMzMzOyBm
+b250LXNpemU6IDEycHg7IiBocmVmPSJodHRwOi8vd3d3LmNvbWVldC5jbz9yZWZlcnJlcj1Db21l
+ZXRFbWFpbCIgdGFyZ2V0PSJfYmxhbmsiPlNwYXJrIEhpcmUgUmVjcnVpdDwvYT4KICAgICAgICA8
+L3RkPgogICAgPC90cj4KPC90YWJsZT4KCjxiciAvPgo8aW1nIHdpZHRoPSIxIiBoZWlnaHQ9IjEi
+IGFsdD0iIiBzcmM9Imh0dHBzOi8vZW1haWwuY29tZWV0LW5vdGlmaWNhdGlvbnMuY29tL28vZUp3
+Y3lGME93aUFNQU9EVGpEZVh0clNGRnc1VF9wVG9SakxKem1faTYxZVRvZ1ZHMXhJR0J2YnFrZDBy
+MVdpa0xGbUJPbmNRODZyUU8wc3VJVVlETnhJQkNSQXhrVWZodmJZWWdDUkR4cW9vYldNbzgyaHRQ
+YzY1UmhfRjFwam5keV96Y0ZkNjI5MHVqUnZEODdEeC1ldWQ2QmNBQVBfX2liMG92dyI+
+--===============1776907459584069726==--

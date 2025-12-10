@@ -1,0 +1,279 @@
+Delivered-To: kaver68@gmail.com
+Received: by 2002:a05:7108:2a4f:b0:45e:2301:89ff with SMTP id f15csp1377576gda;
+        Wed, 21 May 2025 13:23:32 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IF7hTNQIm+iMexLotKRIsAaHbfTRcR4ixxm1S7T5CCjEuZn5eQCScmPr3EILQn+qRGpv95f
+X-Received: by 2002:a05:622a:259b:b0:479:2509:528a with SMTP id d75a77b69052e-494ae451050mr372386731cf.42.1747859012266;
+        Wed, 21 May 2025 13:23:32 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1747859012; cv=none;
+        d=google.com; s=arc-20240605;
+        b=XdjvVC5o5cR4tHnl53mwLqVQRP+AbCTxZBQX86ovEOHFkUWgnP57rCULi6PmBivm4F
+         lhl+EMdBasD4ExzZA/ZmkznxwWlk+lBUOGAWBjrOHwBrmcRBEK/8s8wz1DovVy240H2O
+         iMD1NjQV8BJYxW9PkqE7B0pm9aAghVoyVtjuCB3HzbVhIF3ZutDNyDB6a5CuulnbYahg
+         XJ446vXN2Z5AmejnatdKY7sPl4mBaVOxlckeLQRy3Hzby1AJBUAWqjbYYOhMIVLpJOlR
+         dx3nORxBXjOTSU0uwLaKk2WSeiCFr5qMj5oesVFWxPTel5ae+fVmrhNNm7afka/IYwsk
+         JL2Q==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=feedback-id:mime-version:subject:message-id:to:reply-to:from:date
+         :dkim-signature:dkim-signature;
+        bh=hpyKB/xotOfQ9vwYx3CccFgrm8HFeZxZ7jiWJOWKzXM=;
+        fh=FuwIJV7IWaF+3FTQvecYe8JdqQX6EuuCL/pqe2OKVkI=;
+        b=Z4OZQAfXkhuqtesmMneVyczz+Xc/YS8+EmRsMjdtdiAjfHHV4gI/cD7GvLPqCsgjjl
+         v/ByGAfssJN4QCwGBqZ69eZ+WXd6DLqCZH8QYax5hlqCvrmyaRqViRBEFXu4Cxwj2sDD
+         wvTJAkATzNIy2d1QxAN/647UERq3P6WtbbTXc412lXhgqTN3mWXPe4DBPaEdL2D3y4zl
+         vAnhVdtwkBmWeb8H14UfURIRQkqhIpjaDtgihGNQlsEmm52qSu2IPJHsx0Rh6FfWMz6j
+         OgaWeIUSsq+h2wn6R+NGkxkxdVELGrqu/+wgUTVxqbB3ABr7fpc6hcEYF+u714y8LfrK
+         Zgiw==;
+        dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@jobvite.com header.s=5svtwkygu74sdqg7txj3gkb4vsu2rswf header.b=gfuVbajC;
+       dkim=pass header.i=@amazonses.com header.s=6gbrjpgwjskckoa6a5zn6fwqkn67xbtw header.b=k7AOljh2;
+       spf=pass (google.com: domain of 01000196f483f976-2314ad00-27a6-4953-ad82-1fbda96e5292-000000@mail-from.jobvite.com designates 54.240.14.169 as permitted sender) smtp.mailfrom=01000196f483f976-2314ad00-27a6-4953-ad82-1fbda96e5292-000000@mail-from.jobvite.com;
+       dmarc=pass (p=QUARANTINE sp=QUARANTINE dis=NONE) header.from=jobvite.com
+Return-Path: <01000196f483f976-2314ad00-27a6-4953-ad82-1fbda96e5292-000000@mail-from.jobvite.com>
+Received: from a14-169.smtp-out.amazonses.com (a14-169.smtp-out.amazonses.com. [54.240.14.169])
+        by mx.google.com with ESMTPS id d75a77b69052e-494ae40c0fasi137310091cf.107.2025.05.21.13.23.32
+        for <kaver68@gmail.com>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 21 May 2025 13:23:32 -0700 (PDT)
+Received-SPF: pass (google.com: domain of 01000196f483f976-2314ad00-27a6-4953-ad82-1fbda96e5292-000000@mail-from.jobvite.com designates 54.240.14.169 as permitted sender) client-ip=54.240.14.169;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@jobvite.com header.s=5svtwkygu74sdqg7txj3gkb4vsu2rswf header.b=gfuVbajC;
+       dkim=pass header.i=@amazonses.com header.s=6gbrjpgwjskckoa6a5zn6fwqkn67xbtw header.b=k7AOljh2;
+       spf=pass (google.com: domain of 01000196f483f976-2314ad00-27a6-4953-ad82-1fbda96e5292-000000@mail-from.jobvite.com designates 54.240.14.169 as permitted sender) smtp.mailfrom=01000196f483f976-2314ad00-27a6-4953-ad82-1fbda96e5292-000000@mail-from.jobvite.com;
+       dmarc=pass (p=QUARANTINE sp=QUARANTINE dis=NONE) header.from=jobvite.com
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
+	s=5svtwkygu74sdqg7txj3gkb4vsu2rswf; d=jobvite.com; t=1747859012;
+	h=Date:From:Reply-To:To:Message-ID:Subject:MIME-Version:Content-Type;
+	bh=ypSJx51Gtvkz7j7JmB9zL0Lyj1HHv6L0VBu74ITmjPM=;
+	b=gfuVbajCFoS/ILbq59Qj59dTRYdbjicaLtz5LIvegsx9/4KPrToXXfzl5RgaPj8f
+	Awvct3yWc+l8DA5PTOGVz1e1C+7mmyZSwKaedIRrLBlsqr2VyDpzolLEd0Qw5IibZOw
+	11AqF0CuUaR4x9Md8k/fdGfuvG9icNTwJ3PKdfFg=
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
+	s=6gbrjpgwjskckoa6a5zn6fwqkn67xbtw; d=amazonses.com; t=1747859012;
+	h=Date:From:Reply-To:To:Message-ID:Subject:MIME-Version:Content-Type:Feedback-ID;
+	bh=ypSJx51Gtvkz7j7JmB9zL0Lyj1HHv6L0VBu74ITmjPM=;
+	b=k7AOljh2HxXqFAGkX7xG2MalRtAnnAIXfFDYI0vnoYnIybYR3D0oiG1m5oXQ652O
+	NRismi3AKogSrp4s2S4xdpcG1dfrmnUkRSBVvSsEqJOAlhjxyv0Ut9YwF5QJF+V+AZj
+	8D7drc+suo95LhmAwJ+lU8L6KVgXCRPqeh8MjGa4=
+Date: Wed, 21 May 2025 20:23:31 +0000
+From: Splunk Recruiting Team <no-reply@jobvite.com>
+Reply-To: "no-reply@jobvite.com" <no-reply@jobvite.com>
+To: Adrian Shaw <kaver68@gmail.com>
+Message-ID: <01000196f483f976-2314ad00-27a6-4953-ad82-1fbda96e5292-000000@email.amazonses.com>
+Subject: Splunk Application Update | Senior Machine Learning Engineer, AI
+ (FULLY REMOTE-USA) (32661)
+MIME-Version: 1.0
+Content-Type: multipart/alternative; 
+	boundary="----=_Part_72713_1288964753.1747859007788"
+X-JV-MAIL-ID: 20250521q7ZbVfwWfabb077cc9af4c1d93ae3e99da3a9762
+Feedback-ID: ::1.us-east-1.1WxhOW01lh+v8N6NW7cBp1Mv0W2bAx3dlxedXqPLh3k=:AmazonSES
+X-SES-Outgoing: 2025.05.21-54.240.14.169
+
+------=_Part_72713_1288964753.1747859007788
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.=
+w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html lang=3D"en" xml:lang=3D=
+"en" xmlns=3D"http://www.w3.org/1999/xhtml" style=3D"background:#f3f3f3!imp=
+ortant"><head><link href=3D"../../../../../../../assets/styles/foundation-e=
+mails/app.css" rel=3D"stylesheet" type=3D"text/css"><meta content=3D"text/h=
+tml; charset=3Dutf-8" http-equiv=3D"Content-Type"><meta content=3D"width=3D=
+device-width" name=3D"viewport"><style>@media only screen{html{min-height:1=
+00%;background:#f3f3f3}}@media only screen and (max-width:596px){.small-flo=
+at-center{margin:0 auto!important;float:none!important;text-align:center!im=
+portant}.small-text-center{text-align:center!important}.small-text-left{tex=
+t-align:left!important}.small-text-right{text-align:right!important}}@media=
+ only screen and (max-width:596px){.hide-for-large{display:block!important;=
+width:auto!important;overflow:visible!important;max-height:none!important;f=
+ont-size:inherit!important;line-height:inherit!important}}@media only scree=
+n and (max-width:596px){table.body table.container .hide-for-large,table.bo=
+dy table.container .row.hide-for-large{display:table!important;width:100%!i=
+mportant}}@media only screen and (max-width:596px){table.body table.contain=
+er .callout-inner.hide-for-large{display:table-cell!important;width:100%!im=
+portant}}@media only screen and (max-width:596px){table.body table.containe=
+r .show-for-large{display:none!important;width:0;mso-hide:all;overflow:hidd=
+en}}@media only screen and (max-width:596px){table.body img{width:auto;heig=
+ht:auto}table.body center{min-width:0!important}table.body .container{width=
+:95%!important}table.body .column,table.body .columns{height:auto!important=
+;-moz-box-sizing:border-box;-webkit-box-sizing:border-box;box-sizing:border=
+-box;padding-left:16px;padding-right:16px}table.body .column .column,table.=
+body .column .columns,table.body .columns .column,table.body .columns .colu=
+mns{padding-left:0;padding-right:0}table.body .collapse .column,table.body =
+.collapse .columns{padding-left:0!important;padding-right:0!important}table=
+.body table.columns td.expander,table.body table.columns th.expander{displa=
+y:none!important}table.body .right-text-pad,table.body .text-pad-right{padd=
+ing-left:10px!important}table.body .left-text-pad,table.body .text-pad-left=
+{padding-right:10px!important}table.menu{width:100%!important}table.menu td=
+,table.menu th{width:auto!important;display:inline-block!important}table.me=
+nu.small-vertical td,table.menu.small-vertical th,table.menu.vertical td,ta=
+ble.menu.vertical th{display:block!important}table.menu[align=3Dcenter]{wid=
+th:auto!important}table.button.small-expand,table.button.small-expanded{wid=
+th:100%!important}table.button.small-expand table,table.button.small-expand=
+ed table{width:100%}table.button.small-expand table a,table.button.small-ex=
+panded table a{text-align:center!important;width:100%!important;padding-lef=
+t:0!important;padding-right:0!important}table.button.small-expand center,ta=
+ble.button.small-expanded center{min-width:0}}@media only screen and (max-w=
+idth:980px){.jv-logo-col{margin-top:25px!important}}@media only screen and =
+(max-width:480px){body,p,table.body,td,th{font-size:12px!important;line-hei=
+ght:1.3}table.button td a{font-size:12px!important;padding:15px 10px 15px 1=
+0px!important}table.body .section-description{margin-left:0!important;Margi=
+n-left:0!important}table.body .section-description .firstColumn{width:100% =
+important}table.body .section-description .gridColumn{padding:0 0 6px 0!imp=
+ortant;margin:0 0 6px 0!important;Margin:0 0 6px 0!important;width:100% imp=
+ortant}.hr-dotted{display:block!important;border-top:1px dotted #999}.paddi=
+ng-left-22{margin-left:10px!important;Margin-left:10px!important}.section-h=
+eading{color:#e86b0a;font-weight:700;margin-top:15px!important;Margin-top:1=
+5px!important;margin-bottom:15px!important;Margin-bottom:15px!important;pad=
+ding-top:0!important;padding-bottom:0!important}.jv-logo-col{margin-top:25p=
+x!important}table.body .container{width:95%!important}.hr-margin{margin-lef=
+t:0!important}td.small-1,th.small-1{display:inline-block!important;width:-z=
+f-grid-calc-pct(1,12)!important}td.small-2,th.small-2{display:inline-block!=
+important;width:-zf-grid-calc-pct(2,12)!important}td.small-3,th.small-3{dis=
+play:inline-block!important;width:-zf-grid-calc-pct(3,12)!important}td.smal=
+l-4,th.small-4{display:inline-block!important;width:-zf-grid-calc-pct(4,12)=
+!important}td.small-5,th.small-5{display:inline-block!important;width:-zf-g=
+rid-calc-pct(5,12)!important}td.small-6,th.small-6{display:inline-block!imp=
+ortant;width:-zf-grid-calc-pct(6,12)!important}td.small-7,th.small-7{displa=
+y:inline-block!important;width:-zf-grid-calc-pct(7,12)!important}td.small-8=
+,th.small-8{display:inline-block!important;width:-zf-grid-calc-pct(8,12)!im=
+portant}td.small-9,th.small-9{display:inline-block!important;width:-zf-grid=
+-calc-pct(9,12)!important}td.small-10,th.small-10{display:inline-block!impo=
+rtant;width:-zf-grid-calc-pct(10,12)!important}td.small-11,th.small-11{disp=
+lay:inline-block!important;width:-zf-grid-calc-pct(11,12)!important}td.smal=
+l-12,th.small-12{display:inline-block!important;width:-zf-grid-calc-pct(12,=
+12)!important}.column td.small-12,.column th.small-12,.columns td.small-12,=
+.columns th.small-12{display:block!important;width:100%!important}table.bod=
+y td.small-offset-1,table.body th.small-offset-1{margin-left:-zf-grid-calc-=
+pct(1,12)!important;Margin-left:-zf-grid-calc-pct(1,12)!important}table.bod=
+y td.small-offset-2,table.body th.small-offset-2{margin-left:-zf-grid-calc-=
+pct(2,12)!important;Margin-left:-zf-grid-calc-pct(2,12)!important}table.bod=
+y td.small-offset-3,table.body th.small-offset-3{margin-left:-zf-grid-calc-=
+pct(3,12)!important;Margin-left:-zf-grid-calc-pct(3,12)!important}table.bod=
+y td.small-offset-4,table.body th.small-offset-4{margin-left:-zf-grid-calc-=
+pct(4,12)!important;Margin-left:-zf-grid-calc-pct(4,12)!important}table.bod=
+y td.small-offset-5,table.body th.small-offset-5{margin-left:-zf-grid-calc-=
+pct(5,12)!important;Margin-left:-zf-grid-calc-pct(5,12)!important}table.bod=
+y td.small-offset-6,table.body th.small-offset-6{margin-left:-zf-grid-calc-=
+pct(6,12)!important;Margin-left:-zf-grid-calc-pct(6,12)!important}table.bod=
+y td.small-offset-7,table.body th.small-offset-7{margin-left:-zf-grid-calc-=
+pct(7,12)!important;Margin-left:-zf-grid-calc-pct(7,12)!important}table.bod=
+y td.small-offset-8,table.body th.small-offset-8{margin-left:-zf-grid-calc-=
+pct(8,12)!important;Margin-left:-zf-grid-calc-pct(8,12)!important}table.bod=
+y td.small-offset-9,table.body th.small-offset-9{margin-left:-zf-grid-calc-=
+pct(9,12)!important;Margin-left:-zf-grid-calc-pct(9,12)!important}table.bod=
+y td.small-offset-10,table.body th.small-offset-10{margin-left:-zf-grid-cal=
+c-pct(10,12)!important;Margin-left:-zf-grid-calc-pct(10,12)!important}table=
+.body td.small-offset-11,table.body th.small-offset-11{margin-left:-zf-grid=
+-calc-pct(11,12)!important;Margin-left:-zf-grid-calc-pct(11,12)!important}}=
+</style></head><body bgcolor=3D"#f3f3f3" style=3D"-moz-box-sizing:border-bo=
+x;-ms-text-size-adjust:100%;-webkit-box-sizing:border-box;-webkit-text-size=
+-adjust:100%;Margin:0;background:#f3f3f3!important;background-color:#f3f3f3=
+;box-sizing:border-box;color:#0a0a0a;font-family:Helvetica,Arial,sans-serif=
+;font-size:16px;font-weight:400;line-height:1.3;margin:0;min-width:100%;pad=
+ding:0;text-align:left;width:100%!important"><table class=3D"body" style=3D=
+"Margin:0;background:#f3f3f3!important;border-collapse:collapse;border-spac=
+ing:0;color:#0a0a0a;font-family:Helvetica,Arial,sans-serif;font-size:16px;f=
+ont-weight:400;height:100%;line-height:1.3;margin:0;padding:0;text-align:le=
+ft;vertical-align:top;width:100%"><tr style=3D"padding:0;text-align:left;ve=
+rtical-align:top"><td class=3D"center" align=3D"center" valign=3D"top" bgco=
+lor=3D"#f3f3f3" style=3D"-moz-hyphens:auto;-webkit-hyphens:auto;Margin:0;ba=
+ckground-color:#f3f3f3;border-collapse:collapse!important;color:#0a0a0a;fon=
+t-family:Helvetica,Arial,sans-serif;font-size:16px;font-weight:400;hyphens:=
+auto;line-height:1.3;margin:0;padding:0;text-align:left;vertical-align:top;=
+word-wrap:break-word"><table align=3D"center" class=3D"container jv-contain=
+er" style=3D"Margin:0 auto;Margin-top:25px!important;background:#fefefe;bac=
+kground-color:#f3f3f3;border-collapse:collapse;border-spacing:0;margin:0 au=
+to;margin-top:25px!important;max-width:960px!important;padding:0;text-align=
+:inherit;vertical-align:top;width:95%"><tbody><tr style=3D"padding:0;text-a=
+lign:left;vertical-align:top"><td style=3D"-moz-hyphens:auto;-webkit-hyphen=
+s:auto;Margin:0;border-collapse:collapse!important;color:#0a0a0a;font-famil=
+y:Helvetica,Arial,sans-serif;font-size:16px;font-weight:400;hyphens:auto;li=
+ne-height:1.3;margin:0;padding:0;text-align:left;vertical-align:top;word-wr=
+ap:break-word"><table class=3D"row jv-table-bg" style=3D"background-color:#=
+fff;border:1px solid #cbcbcb;border-collapse:collapse;border-spacing:0;disp=
+lay:table;padding:0;position:relative;text-align:left;vertical-align:top;wi=
+dth:100%"><tbody><tr style=3D"padding:0;text-align:left;vertical-align:top"=
+><th class=3D"small-12 large-12 columns first last" style=3D"Margin:0 auto;=
+color:#0a0a0a;font-family:Helvetica,Arial,sans-serif;font-size:16px;font-we=
+ight:400;line-height:1.3;margin:0 auto;padding:0;padding-bottom:16px;paddin=
+g-left:16px;padding-right:16px;text-align:left;width:-zf-grid-calc-px(12,12=
+,580px)"><table style=3D"border-collapse:collapse;border-spacing:0;padding:=
+0;text-align:left;vertical-align:top;width:100%"><tbody><tr style=3D"paddin=
+g:0;text-align:left;vertical-align:top"><th style=3D"Margin:0;color:#0a0a0a=
+;font-family:Helvetica,Arial,sans-serif;font-size:16px;font-weight:400;line=
+-height:1.3;margin:0;padding:0;text-align:left"><table height=3D"100" class=
+=3D"row jv-header" style=3D"border-collapse:collapse;border-spacing:0;displ=
+ay:table;height:100px;padding:0;position:relative;text-align:left;vertical-=
+align:top;width:100%"><tbody><tr style=3D"padding:0;text-align:left;vertica=
+l-align:top"><th class=3D"jv-logo-col small-12 large-12 columns first last"=
+ height=3D"100" valign=3D"middle" style=3D"Margin:0 auto;color:#0a0a0a;font=
+-family:Helvetica,Arial,sans-serif;font-size:16px;font-weight:400;line-heig=
+ht:1.3;margin:0 auto;margin-bottom:0!important;padding:0;padding-bottom:0!i=
+mportant;padding-left:0!important;padding-right:16px;text-align:left;width:=
+-zf-grid-calc-pct(12,12)"><table style=3D"border-collapse:collapse;border-s=
+pacing:0;padding:0;text-align:left;vertical-align:top;width:100%"><tbody><t=
+r style=3D"padding:0;text-align:left;vertical-align:top"><th style=3D"Margi=
+n:0;color:#0a0a0a;font-family:Helvetica,Arial,sans-serif;font-size:16px;fon=
+t-weight:400;line-height:1.3;margin:0;padding:0;text-align:left"><img class=
+=3D"jv-logo" style=3D"-ms-interpolation-mode:bicubic;clear:both;display:blo=
+ck;max-height:50px;max-width:100%;outline:0;text-decoration:none;width:auto=
+" alt=3D"Splunk" height=3D"50" src=3D"https://d3igejkwe1ucjd.cloudfront.net=
+/company/q7ZbVfwW/assets/email/images/file/SplunkTransitionLogoBlackaCISCOc=
+ompany200x200_1710881382823.png"></th><th class=3D"expander" style=3D"Margi=
+n:0;color:#0a0a0a;font-family:Helvetica,Arial,sans-serif;font-size:16px;fon=
+t-weight:400;line-height:1.3;margin:0;padding:0!important;text-align:left;v=
+isibility:hidden;width:0"></th></tr></tbody></table></th></tr></tbody></tab=
+le>  <p>Hi Adrian,<br /><br />Thank you so much for applying to the Senior =
+Machine Learning Engineer, AI (FULLY REMOTE-USA) (32661) position at Splunk=
+.<br /><br />We are very impressed with your background, but after much del=
+iberation, we have decided to not move forward with your application at thi=
+s time. <br /><br />If you applied to multiple positions at Splunk, note th=
+at you may receive a separate update for each position you applied to.<br /=
+><br />While we obviously can=E2=80=99t hire every applicant, we do strive =
+to give every candidate a positive experience and we would love to hear abo=
+ut yours. Would you mind taking this <a href=3D"https://splunk.sjc1.qualtri=
+cs.com/jfe/form/SV_6FjU5EJtNGrMdOS">short survey</a>? It should only take a=
+ couple of minutes to complete. Your responses are confidential. Splunk wil=
+l not know the identity of the respondents. Data will be used in aggregate =
+to inform improvements to our processes.<br /><br />Again, thank you for yo=
+ur interest in Splunk! Please feel free to apply to any future openings and=
+ continue to check our <a href=3D"http://www.splunk.com/careers">Careers Pa=
+ge for employment opportunities</a>.<br /><br />Best wishes,<br /><br />The=
+ Splunk Talent Acquisition Team<br /><br /><a href=3D"https://www.splunk.co=
+m/en_us/legal/privacy/career-site-privacy-policy.html">Splunk=E2=80=99s Car=
+eer Site Privacy Policy</a> explains how we collect, use, store and share y=
+our information when you apply for a position at Splunk. This message is in=
+tended only for the personal, confidential, and authorized use of the recip=
+ient(s) named above. If you are not that person, you are not authorized to =
+review, use, copy, forward, distribute or otherwise disclose the informatio=
+n contained in the message.</p></th></tr></tbody></table></th></tr></tbody>=
+</table><table class=3D"row center jv-footer-container" style=3D"Margin-top=
+:10px!important;background-color:#f3f3f3;border-collapse:collapse;border-sp=
+acing:0;display:table;margin-top:10px!important;padding:0;position:relative=
+;text-align:left;vertical-align:top;width:100%"><tbody><tr style=3D"padding=
+:0;text-align:left;vertical-align:top"><th class=3D"small-12 large-12 colum=
+ns first last" style=3D"Margin:0 auto;color:#0a0a0a;font-family:Helvetica,A=
+rial,sans-serif;font-size:16px;font-weight:400;line-height:1.3;margin:0 aut=
+o;padding:0;padding-bottom:16px;padding-left:16px;padding-right:16px;text-a=
+lign:left;width:-zf-grid-calc-px(12,12,580px)"><table style=3D"border-colla=
+pse:collapse;border-spacing:0;padding:0;text-align:left;vertical-align:top;=
+width:100%"><tbody><tr style=3D"padding:0;text-align:left;vertical-align:to=
+p"><th style=3D"Margin:0;color:#0a0a0a;font-family:Helvetica,Arial,sans-ser=
+if;font-size:16px;font-weight:400;line-height:1.3;margin:0;padding:0;text-a=
+lign:left"><span class=3D"jv-footer-identifier" style=3D"display:none">-*__=
+___</span>  <table class=3D"row" style=3D"border-collapse:collapse;border-s=
+pacing:0;display:table;padding:0;position:relative;text-align:left;vertical=
+-align:top;width:100%"><tbody><tr style=3D"padding:0;text-align:left;vertic=
+al-align:top"><p style=3D"Margin:0;Margin-bottom:10px;color:#0a0a0a;font-fa=
+mily:Helvetica,Arial,sans-serif;font-size:12.6px;font-weight:400;line-heigh=
+t:1.3;margin:0;margin-bottom:10px;padding:0;text-align:left"> <a href=3D"ht=
+tps://app.jobvite.com/l?ksiuPSlwj" style=3D"color:#666666"><b>Email Prefere=
+nces</b></a> |      <a href=3D"https://www.jobvite.com/" style=3D"color:#66=
+6666"><b>Powered by Jobvite</b></a> </p></tr></tbody></table><span class=3D=
+"jv-footer-identifier" style=3D"display:none">*______*</span></th></tr></tb=
+ody></table></th></tr></tbody></table></td></tr></tbody></table></td></tr><=
+/table><!-- prevent Gmail on iOS font size manipulation --><div style=3D"di=
+splay:none;white-space:nowrap;font:15px courier;line-height:0"></div></body=
+></html>
+------=_Part_72713_1288964753.1747859007788--

@@ -1,0 +1,170 @@
+Delivered-To: kaver68@gmail.com
+Received: by 2002:a05:6a06:1da:b0:759:fe82:d5da with SMTP id q26csp1005025pin;
+        Thu, 20 Nov 2025 07:07:05 -0800 (PST)
+X-Google-Smtp-Source: AGHT+IE6nuVQACPxfg9knTdiqrzw8DxaUhgj6ctFkVXyRvSbJ74auw+CFf8azFYu9wrfpwySQW+F
+X-Received: by 2002:a05:690c:620a:b0:789:5061:7e96 with SMTP id 00721157ae682-78a7abfb9admr27305287b3.41.1763651224879;
+        Thu, 20 Nov 2025 07:07:04 -0800 (PST)
+ARC-Seal: i=2; a=rsa-sha256; t=1763651224; cv=pass;
+        d=google.com; s=arc-20240605;
+        b=BBPnCVV9sQ90WPLjTU6MMRWEOgb5FChypoz9Ew7hlRuSzQQIzKtZYk7NmJhTHTdDaY
+         WenFB2l48CVlSdjokfPyMhT5mPgvz+gu9EtPV+GMnyD0gZudYKTWvfqw259m9ECkugJP
+         +V1kzgnU1c4Rtf0XAHxcLippbR0D7+vZTUVdtWXK2ofz/BSyfe/PQMY8+4Yt5v6g3Ll3
+         DBS3cILsdvgHMzPZgjYBv27WVxEspAAO0eAT+f7TVn1o04dRUJiyNBK1AkU9TphoPKCz
+         KmlkCZSIxujZPrPdsmdde0wNSUd0jr8bwWVP3cebDiJ0F0GHw6Fkghzcoz2geubGyCz/
+         xAeQ==
+ARC-Message-Signature: i=2; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=request-id:client-request-id:content-transfer-encoding:mime-version
+         :usastaffing-notificationtoken:message-id:date:subject:to:reply-to
+         :from:sender:dkim-signature;
+        bh=jzrOnKFvZ8ZZT2vL8aMaRmmGDCOQLk0A8Cjfv7C5n8M=;
+        fh=FpRgKkY1+uMlJoxPVrV7lMmCsS7tlD6Go7NfgkTbnMg=;
+        b=Q4BF1S8/1lWojqfeXfuXL7jEYJushT6HBMe+NMjl8H/z4nGbmRU1EhSQynDVZ4XgP9
+         94ZxobW1FO6C3+UssxGbeH3PgAGdDDa3QXfsMNl30MCqG2kzV8fUhk+797ZCBMaeSWaJ
+         FbAvyXJVENxeFLepX5CUcMPQ9R5nkJluswNYeZJgRFqIgTz0Afv3BNcOrMWmDICdBsvT
+         prjAWYnM8hYrlILLjmRVOs6zbq79bfEF01jcx22PRRq9WMY46auUdzTduq2pEaBRfqjD
+         IZv5Z3SDzHo+epbUei+vvigEtufPnkZzAhGmdxQaMV5K7eo4Bus30myYn1X5R493yUxV
+         huMg==;
+        dara=google.com
+ARC-Authentication-Results: i=2; mx.google.com;
+       dkim=pass header.i=@usastaffing.gov header.s=selector1-azurecomm-prod-net header.b="TJ9S/IaZ";
+       arc=pass (i=1);
+       spf=pass (google.com: domain of usastaffingoffice@usastaffing.gov designates 2a01:111:f403:c105::7 as permitted sender) smtp.mailfrom=usastaffingoffice@usastaffing.gov;
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=usastaffing.gov
+Return-Path: <usastaffingoffice@usastaffing.gov>
+Received: from CH4PR04CU002.outbound.protection.outlook.com (mail-northcentralusazlp170130007.outbound.protection.outlook.com. [2a01:111:f403:c105::7])
+        by mx.google.com with ESMTPS id 00721157ae682-78a7995b0b8si12168167b3.217.2025.11.20.07.07.04
+        for <kaver68@gmail.com>
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 20 Nov 2025 07:07:04 -0800 (PST)
+Received-SPF: pass (google.com: domain of usastaffingoffice@usastaffing.gov designates 2a01:111:f403:c105::7 as permitted sender) client-ip=2a01:111:f403:c105::7;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@usastaffing.gov header.s=selector1-azurecomm-prod-net header.b="TJ9S/IaZ";
+       arc=pass (i=1);
+       spf=pass (google.com: domain of usastaffingoffice@usastaffing.gov designates 2a01:111:f403:c105::7 as permitted sender) smtp.mailfrom=usastaffingoffice@usastaffing.gov;
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=usastaffing.gov
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=DSxDgkQ75/3/od8GzKr3QV/y3rMDWXgHuJLwW+69DrNJG2sCCdv9jZ7rWwX20kVPyIPa1KokSkEGz1PBUBU1y13Y+MNzgS9ohx6/XzsYBL3uplfYI+X89Qj3ARA8vwGcqHzqn4YvOwMr+0BHIVngKRkfaLDpFYXprKghrFiH//pPvrHWYl/F8rSpKb4mfq8MutXSOZRya4HHmHLVoC/fOOwG4W4OOkesqZRX//N6oI/DxyEWd1Wwjp9+uPRo633vk+gOPrh/D6woOyOLyLa3YlCXvof66wCwSNkdsv1tIkrAykvqdrdur/vXdNqYOX3exqtfAMYAMhPom3Ew6W6ojQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=jzrOnKFvZ8ZZT2vL8aMaRmmGDCOQLk0A8Cjfv7C5n8M=;
+ b=vOgoh68Em1LV77S8MeCu+hvPvPfMIs5WvUPpghTpA/+Rbv7rLN04Uzx31RtmbH3hkxjjweYP28P3M7/1PTnO+niF8UJbnlamcy/IZbEH7HVVhSQ1/vK5U/q/yPeAz4CzmbKFb05CiINv8awj3/7N9TjuhvvVy0kpseFiH+zo2soSjGQvC3F6TPBzEMpbsNF55SEYyFwBp9TF627DDf7p1RwZ+qykZpv4qGbwiy5+NqpY8+e+JK1ikJnxVJ35YQ1/2kVhiRM2NuqyGJ6aIoq4NlXIY4iuMl1o3Fd3Kc/Re5p9g7mwquXdH9D3HnuJS8uHgPmlW7ckyCm7cs21+jKKIA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=none; dmarc=none;
+ dkim=none; arc=none
+Received: from substrate.office.com (2603:10b6:408:1fb::8) by
+ LV8P222MB0920.NAMP222.PROD.OUTLOOK.COM with HTTP via
+ MW4PR04CA0292.NAMPRD04.PROD.OUTLOOK.COM; Thu, 20 Nov 2025 15:07:03 +0000
+DKIM-Signature: v=1; a=rsa-sha256; d=usastaffing.gov;
+	s=selector1-azurecomm-prod-net; c=relaxed/relaxed; t=1763651223;
+	h=from:to:cc:subject:date:messageid;
+	bh=jzrOnKFvZ8ZZT2vL8aMaRmmGDCOQLk0A8Cjfv7C5n8M=;
+	b=TJ9S/IaZx5u5lLnW9Duc6gm9GoTaYvpGfHuIM7hm3A4lCNHBpiVFbQCuBF/la4lxSw6QVGIqp0R
+	BE1BxXxuuKE1mv/e6gh7zk/CuN2HqSSg+FleH/HF4Iel4Gfj3KG/3U7j/5c4QDnOVgpOMTmkgtMAn
+	jSDVlWHdGT4Bk3GxyHc8vcesdaN6P0/eJctq8lya3+NRl1Mp3FVWd++nWcB/iT2p4It0eFmyME1NT
+	oQwCTktqLqzF1Xz2MoP9u/Ke1UjuMq09nkFXotaKF4L2HCRkjYPnmbOiyNVd33tlPsHj+dPK+Nlm1
+	LRLK4BnBwXw+sVn5GoQjutwqdqG+eQivwk3A==
+Sender: USA Staffing Office <usastaffingoffice@usastaffing.gov>
+From: USA Staffing Office <usastaffingoffice@usastaffing.gov>
+Reply-To: dhscsapplicants <dhscsapplicants@hq.dhs.gov>
+To: kaver68 <kaver68@gmail.com>
+Subject: DHS Cybersecurity Service Application Status Update for the
+ Cybersecurity Research and Development - Leadership position (Vacancy
+ #12404802)
+Date: Thu, 20 Nov 2025 15:07:03 +0000
+Message-ID: <202511201507.2dbfd92616a74b3e8bc54ecd341e69ce-OBZG6ZD4IFBVGRKNIFEUYLLQOJXWILRQG5STCNJVMQ2S2ZLFMZRC2NBSMQYS2YRSMFSS2NDFHBTGIYTDGA2WEZBYPRZW25DQ@microsoft.com>
+USAStaffing-NotificationToken: 215644f4-bcd9-4db3-8640-cbf6591ca2ee
+x-priority: 3
+MIME-Version: 1.0
+X-TsbHttpDeliveryResponseType: Success
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+X-MS-PublicTrafficType: Email
+client-request-id: 2dbfd926-16a7-4b3e-8bc5-4ecd341e69ce
+request-id: 2dbfd926-16a7-4b3e-8bc5-4ecd341e69ce
+Return-Path: usastaffingoffice@usastaffing.gov
+X-MS-TrafficTypeDiagnostic: LV8P222MB0920:EE_ACSPROD
+X-MS-Exchange-SenderADCheck: 0
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|61400799027|376014|8096899003|13003099007;
+X-Microsoft-Antispam-Message-Info:
+	=?utf-8?B?YUgwMTBpN0VvUmFzRFFjcm9SOFZtS1VySDRMKzVBenpxdWpKMkIyWEUxSE1F?=
+ =?utf-8?B?V0pKK296R2pQajlKa3FTdFlIaUZGTDluY2VUUHRocksrTUEydEZxRDNQVmFq?=
+ =?utf-8?B?MC84N0lVL2o3aVArN0RjRFczbG1SazlSVjIrZFljampsWHVFSWZRbnJaQ2E5?=
+ =?utf-8?B?SEhUTncwU1pEa0FUcUJEaEpZSGhMQ3ZOeUNsYzNNQnJMeVQvVGwrRHdlVGcr?=
+ =?utf-8?B?S3RRS0FwdTRuTUYvRHdZRzlrN1NnaGRtTlVNWFNDc0tHV2tzdGpLd2lnemhh?=
+ =?utf-8?B?WlRpd3FLODd2OXFyNnkzWUNIMjRzU3hFck4zZzRDSzZnNDRSWE5JNFpsVUpr?=
+ =?utf-8?B?RHRLSmhlUUVTbEhoeG12YmFKbzFnaFRCQUtlbkVTaGVMUGR2b0syQ0R6WG1Q?=
+ =?utf-8?B?aHZXWk9xL2UvMzVONi91TGt0VnpiaXU5YzlMZkdnVFFiYzJFb0k5a2N0SHgr?=
+ =?utf-8?B?blk0OWNMZ1UyQUtSOUpjb2xFdmFzOW5yVGlmUlNKdC9scUxPankxZ3hIcHZG?=
+ =?utf-8?B?TEtTOTBHWExhM3NXNVloVUFvem92VFRYd01XQ2JxdjRzelU1NUY3RnhkUWtD?=
+ =?utf-8?B?amxMbDZ0cCszbHZwU3B2OXhxQlhiT0x1blc5MTZoYXZjdjB4bmRMSGMvT2J0?=
+ =?utf-8?B?b2dNS1QyV0tYMlg4YW1FbzBnTForNUhIV2JLcGgvSGtIdGpkcXhxdWRJVGRN?=
+ =?utf-8?B?TnRGL25xaXdGSnZKUnh4SnpBaFArZW4wNU13Rmt5NHdZWnlqV2QrN3Q3UmNj?=
+ =?utf-8?B?ZUZoN01jNnhGdkZ3Ym9kYXFCR0lVeEwxZ3NEYUV4OTcxWmV3UHBqYStsRm9u?=
+ =?utf-8?B?ZnAyemxNSkZ0L1RWcVpLdHZkOXZNV0xhcTdmODY3bVlXZEV0WXRBQUhPb1Vj?=
+ =?utf-8?B?eEcrWjI0L1d6b2lQRnpJMGpCZDBkdkdCOFNvTndSVnlwdXArbHd5V2JIVVdL?=
+ =?utf-8?B?WlByYytaR29mcE5QMWRFeHdWKzFLUVpvQzVWbk1jL0g0TVVNWERCYldMTDRw?=
+ =?utf-8?B?dHpTSEtlelEyU1VYeGczMmoybWRlS2RpWG5zMDJKNURzNGV1ZG5WL2tMMXg0?=
+ =?utf-8?B?SkdLUHRlVjFNUm9JZzdIS3E2cDdwN0U5Y3F4L09ZU2g4THl6Q3krSU5DcVdk?=
+ =?utf-8?B?SDFrTXZieUZjSXFkQlNnK2ZsUnBET01mMDFuOXlsbG0reEU1UGFLUDlKNTZr?=
+ =?utf-8?B?ZksyNHhod2xCZHFDaXdXQlowNUdwTTBOWk9WWG5VQVBmcGoweGRwTnQvU09v?=
+ =?utf-8?B?YWZicEIzVWF6bXZoUW9iYUM4WTUwb0NSclBUb1NZUUJpclM0NGVvYXAvV0Fv?=
+ =?utf-8?B?K1NPeFRESVBjUEJZa3ZHUEFXdUpwQnJlZnZEZ1BKeHhvWnJkQWVDbXJQVWVI?=
+ =?utf-8?B?UHRWWWtIVG9qYTlQQzdDZDl3dFRDNzVSNHBoaUR1K08xSE9JOVhVYkMxVFFQ?=
+ =?utf-8?B?bTBpN2xwNEV1VE9BMnpCck5RclhIaVFHcWp4Sm04aDNtYTEvUjRKZXVPd1A1?=
+ =?utf-8?B?UEE0Wms4cTE3cTZWQnNPUGszT2tmaWc2bU5meGhSSGZ4UjFqZjEwNmM4T1Qy?=
+ =?utf-8?B?emZCZC9kb2pMVUREcmNzdU4wRTMxMW1WbitVeDRUaS9LTldHN2pKRFdpYmRL?=
+ =?utf-8?B?MkVqam81Yy8wL2ViblhvNjdwWFVXWWJvTUFsN2R2V004Mi96QzVjQUlQaGMv?=
+ =?utf-8?B?N2I2cE50aDBXY3U4dGlxdStUU2J4dnJWVC9JQkc3d25EenRTOUNEc3hPZE8x?=
+ =?utf-8?B?cC85Si84QklGYzc2Qk4rRVlOTFFocTlCcmt1RFBpREtELy9TdmZtcjZLZDN0?=
+ =?utf-8?B?YU4vdTRTM3h4ZkdiVTlzaWQyZFJoNFJVRjE4QXJJMUViZFc0NkRRNjAvblRw?=
+ =?utf-8?B?SnlXaE4vN1pXaFZOcUNRTG96dUNwR1VtRC95anNFRkNlZ1RXSzNXWitiVGpu?=
+ =?utf-8?Q?RHMlIvW+A2Lf1lnNWbgO7G4MGBpcxY0V?=
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:;PTR:;CAT:NONE;SFS:(13230040)(61400799027)(376014)(8096899003)(13003099007);DIR:OUT;SFP:1021;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	naySLcAZ+K2/eHgRWP8/qVJkWnzgrxo64Qwt6YLol2Pajvdx0lV9vkeuublqVCvm5Ns+C4cTfaUMQ0D0aRnO/FfbGrQ0CRaG+Ge+3PIfONz+JxfY9ayO7c3IY1k0UEk1hhTD6hFQPwjjJfaK/beoztuE+kDqtRc+gi/Tz07CQJj1caScIfpUfFXqbRFXe4uatI6bbHpnpBznGq7mInk0ndJFOtpXuYDsuU1N62NNRrLmWSJu/CXAMksHYzgo9BDNTK1/5nehjkkwKWhNc57IMl+aM3+ke06ZZKoG6aMkeykXjLOnHVAPs2PDacnyTAX6lr4NiPX+jUsbMHcatKnossGfyaGfpuuwq4fqyW2VDa9c0y/7vTVnZsmtxUdRuyBZp6D8RTEpveoC5NAXewwg8Q==
+X-OriginatorOrg: acsemailus5.onmicrosoft.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-AuthSource: HttpSubmission-LV8P222MB0920
+X-MS-Exchange-CrossTenant-Id: 780c3af0-888c-427b-bf46-6d2a4f2e4518
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 20 Nov 2025 15:07:03.4377 (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id:
+	a500c82c-474c-4236-ffc6-08de28467690
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: LV8P222MB0920
+
+Dear Adrian Shaw,<br />
+<br />
+We wanted to provide you with a brief update concerning your application. T=
+hank you again for your interest in applying to the Department of Homeland =
+Security (DHS) Cybersecurity Service.<br />
+<br />
+Your assessment results for the <strong>Cybersecurity Research and Developm=
+ent - Leadership </strong>position, <strong>[</strong>Announcement #<strong=
+>24-12404802-CBWQ]</strong> were valid for a period of one year from the da=
+te of completion and has now expired. At this time, your application has be=
+en decommissioned from our system, you will have to reapply and complete th=
+e assessment process again in order to be considered for employment.<br />
+<br />
+We continue to identify and post new DHS Cybersecurity Service opportunitie=
+s and if you are still interested in joining the DHS Cybersecurity Service,=
+ we encourage you to monitor our <a href=3D"https://dhscs.usajobs.gov/apply=
+" rel=3D"noreferrer noopener" target=3D"_blank">application portal</a> for =
+future employment opportunities. If we are not currently accepting open app=
+lications for the track in which you are interested (note: an "Apply Now" b=
+utton is not present); you can connect with our recruiting team.<br />
+<br />
+To refamiliarize yourself with the career tracks, we recommend you visit <a=
+ href=3D"https://dhscs.usajobs.gov/resources" rel=3D"noreferrer noopener" t=
+arget=3D"_blank">Apply</a>. The <a href=3D"https://dhscs.usajobs.gov/resour=
+ces">resource page</a> on the application portal provides helpful informati=
+on prior to applying, including resume tips and information on the assessme=
+nt process.<br />
+<br />
+Thank you again for your interest and wishing you success in all future end=
+eavors.<br />
+<br />
+Best Regards,<br />
+DHS Cybersecurity Service Talent Team=

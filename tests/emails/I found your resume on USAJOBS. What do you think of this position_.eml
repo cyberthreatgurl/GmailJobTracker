@@ -1,0 +1,200 @@
+Delivered-To: kaver68@gmail.com
+Received: by 2002:a05:7108:4a05:b0:45e:2301:89ff with SMTP id dt5csp5186670gdb;
+        Fri, 4 Jul 2025 07:50:25 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IER4qIxjfN+1yUR8V1ogM0vA86h+ed4MQuxhh1RKBmt8FskuuG0KV+NFnpYpetnOS1Nn9/+
+X-Received: by 2002:a05:690c:6709:b0:70c:b221:adee with SMTP id 00721157ae682-71668bd1435mr37782757b3.1.1751640625169;
+        Fri, 04 Jul 2025 07:50:25 -0700 (PDT)
+ARC-Seal: i=2; a=rsa-sha256; t=1751640625; cv=pass;
+        d=google.com; s=arc-20240605;
+        b=THtN4zRIvEtyy1RSdF+hSCnlyrqKJ4xISz5jl5PWe1DbaEYQVWlTBwlCV87MQnsa+G
+         IXbcRNxRjq8rETNhebCN6HVWQHa0CbbS1nNPFvNY46/yg/Sc17eSMdM6ZKCa4OBpwrJb
+         ZQNew6mcpHgUkMbs4mvJiWuAhClnaw8sFv6yDl9lG2xi9QuvvE4ds0nHhpf5Cbm01RP2
+         K6gyUFRxgtRwViEpvjl+dJH1/T+xkMaRGqU7BwxJ+GiQTYiy4SJ50qjBBjM4s85Ov89b
+         aBLrmKWzpT5J+c9cZX78tMGZU+eGlhIrdif+AFdq6yQHgVzAG03i3UfrtNXvykOobBve
+         OYYw==
+ARC-Message-Signature: i=2; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=request-id:client-request-id:mime-version:usajobs-notificationtoken
+         :message-id:date:subject:to:reply-to:from:sender:dkim-signature;
+        bh=foxQh6C2NKi3Ol2SGFD98bj8y5gngSphLfTfqa0+dDY=;
+        fh=FpRgKkY1+uMlJoxPVrV7lMmCsS7tlD6Go7NfgkTbnMg=;
+        b=ce+MJHGsK6o4h0rPZJUwXaYUcKY0xT3ciQWafxk6mi8S/HvZNWzsmtVBjGDNvcbhTJ
+         mUGRGdpkKBGtT2RHmyWne9r4B9Xzmmzn4p5SdRky/jWrwlK926O78kLm7cVm84yWJcC1
+         LHeYplmJEj3XJdUpwg3u3M42pe/jRcWmFgTv/UvqY5KrW+1UwlMnK91vpsMmN9aN9Czs
+         8kBCOqSsBw+6pSF5LRzK44/OnN15kaw4zDogitFGT8lCTRxy7lFbnhCA7gtbCQKnAied
+         4Ht6meM39Q/0a4ZGPvZe8BkRdiMiKv6BJjG/00ilw8Dm04AbIr2vZMFGtBvsotnZMIP4
+         uSzg==;
+        dara=google.com
+ARC-Authentication-Results: i=2; mx.google.com;
+       dkim=pass header.i=@usajobs.gov header.s=selector1-azurecomm-prod-net header.b=z9Q5848T;
+       arc=pass (i=1);
+       spf=pass (google.com: domain of notifications@usajobs.gov designates 104.47.70.57 as permitted sender) smtp.mailfrom=notifications@usajobs.gov;
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=usajobs.gov
+Return-Path: <notifications@usajobs.gov>
+Received: from NAM10-BN7-obe.outbound.protection.outlook.com (mail-bn7nam10acsn2057.outbound.protection.outlook.com. [104.47.70.57])
+        by mx.google.com with ESMTPS id 00721157ae682-71665bd35b3si14814367b3.433.2025.07.04.07.50.24
+        for <kaver68@gmail.com>
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 04 Jul 2025 07:50:25 -0700 (PDT)
+Received-SPF: pass (google.com: domain of notifications@usajobs.gov designates 104.47.70.57 as permitted sender) client-ip=104.47.70.57;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@usajobs.gov header.s=selector1-azurecomm-prod-net header.b=z9Q5848T;
+       arc=pass (i=1);
+       spf=pass (google.com: domain of notifications@usajobs.gov designates 104.47.70.57 as permitted sender) smtp.mailfrom=notifications@usajobs.gov;
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=usajobs.gov
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=IehR6PxRit8GDDnsG4BH+yoUsdVtiCkq09DxcHPBw1Ia2WtFQ8rXd+5vjKEd+HgaqSddfKzLmf0tWh77+HTDtHUA8gTDa/LwqC0eedMcwwz1bEo7IEnQ0KuQ0dKIdEe+YpaKFjc63FUKU53aZVLZh3Tc/owDTrl2jfpxosP/NVnLb3QHWD+iGJEB4jcE8Bgkp0fQWoV5Qd2kLMPSnLDlApXkvsbpsrYOu+btMghqY4SU7qakGAxPID43810yAOTmtxxEJ39sFhq5To62BtURIoegk31ue5xhMs/1mR4MBI588bgLwL0JxJcVYiJ4GkDNPITS6VKF9WulxX9vQbUTqg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=foxQh6C2NKi3Ol2SGFD98bj8y5gngSphLfTfqa0+dDY=;
+ b=w9WjH5f9w1nHQ0shOHTh2uDC35ZJEjp1cdqQTGcHr461nV6yrkudJ0DwDekCfoK4jajIZHNrQxK9fDbF5KJA+4HbM1ClmUjAD9EukhFw1mHMLM4qEx7+M+3Tb7MK6R7kEWrMYz+yMDGhBuGDWDy/XhBuzR6WVH3UJ/DaQMNDVbstW5e6vPiZGibK5V0SYuD15Wk45HjIK3VMQ4rk15P8IAfcd32ICyVdFG/KV/Hs8CYwcBgz+ZflG2ymjea4jrz1+/rDorKVgNKZJc/c4xe0AQw76CA7p/eBUcNLz3v6ougkK82ouH4NgQ6UAYNvG7jqx8/8Nw97bHSZ/4cSey4w4Q==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=none; dmarc=none;
+ dkim=none; arc=none
+Received: from substrate.office.com (2603:10b6:303:76::13) by
+ MW4PR04MB7252.namprd04.prod.outlook.com with HTTP via
+ DM6PR06CA0076.NAMPRD06.PROD.OUTLOOK.COM; Fri, 4 Jul 2025 14:50:23 +0000
+DKIM-Signature: v=1; a=rsa-sha256; d=usajobs.gov;
+	s=selector1-azurecomm-prod-net; c=relaxed/relaxed; t=1751640623;
+	h=from:to:cc:subject:date:messageid;
+	bh=foxQh6C2NKi3Ol2SGFD98bj8y5gngSphLfTfqa0+dDY=;
+	b=z9Q5848TrIene9tjvy/b8HxFWNqDChGkOlTY0oOftsgttu5TiUBcXoPwJNI/71u1bnzG3yb+XdV
+	AmD2BInzJxOV8y5jCB2LFEcEeJxk59WqnnW1+CTG6lzDGxSE0XY6R8ATw1zUkJDo3lyZTUZyFTqE3
+	tQNWI+aT7t67e4dKt4Lr3S29LWeqdf+LS66CyaZYFlD8GH2uPTG0zzl0AxK2cMEM54t+eMLAzROJo
+	MhQj6RxWYkpNw6Urq+TjndxKCt8rzuIWVIx72p7J71BleOzHxfj0oWUh3OvdFlnK9/Zeq2F45fYyP
+	5kjMMSt9sUDkbD4k6rjH2tqRtIU/9W4bORWA==
+Sender: "USAJOBS [DO NOT REPLY]" <notifications@usajobs.gov>
+From: "USAJOBS [DO NOT REPLY]" <notifications@usajobs.gov>
+Reply-To: "kelly.el-yacoubi" <kelly.el-yacoubi@uspto.gov>
+To: kaver68 <kaver68@gmail.com>
+Subject: I found your resume on USAJOBS. What do you think of this position?
+Date: Fri, 04 Jul 2025 14:50:23 +0000
+Message-ID: <202507041450.afe58a2c31744e0f8d7e6682ac98ccf3-OBZG6ZD4IFBVGRKNIFEUYLLQOJXWILRTGRRWMMDFGEZC2OLCMY2S2NBZGBQS2OJVGFQS2MTFMQZWCMJTMUYTMNLBPRZW25DQ@microsoft.com>
+USAJobs-NotificationToken: 2a37d30a-51be-44e6-823e-8683462a6aaa
+Return-Path: notifications@usajobs.gov
+MIME-Version: 1.0
+X-TsbHttpDeliveryResponseType: Success
+Content-Type: multipart/alternative; boundary="=-uNFLEgrYPNxjt17kgNy4Rw=="
+X-MS-PublicTrafficType: Email
+client-request-id: afe58a2c-3174-4e0f-8d7e-6682ac98ccf3
+request-id: afe58a2c-3174-4e0f-8d7e-6682ac98ccf3
+X-MS-TrafficTypeDiagnostic: MW4PR04MB7252:EE_ACSPROD
+X-MS-Exchange-SenderADCheck: 0
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;ARA:13230040|376014|61400799027|8096899003;
+X-Microsoft-Antispam-Message-Info:
+	=?utf-8?B?dFBxL3dvSVZNdnM5a1dNSDVLcDVmMi9XSU1rczhhbkJocUZDRVZ6MkRUUUFh?=
+ =?utf-8?B?VjVqUWo2OUFBY0prVkY0U1lZYlV1OFJibGR2Qms0d2RGWnd6RDFUQ0UyVzhM?=
+ =?utf-8?B?NEhjMVZDRFNOWjlYWU1PbjlrbkZGWW55R1BpU01BZWRMLzF5OE1jajZMUVRT?=
+ =?utf-8?B?QklmcnlTR3lndTRkVDZJUmNZem14SWdoTFhUS3V3alQ2b2ZXZ2N0Tzl6YnMw?=
+ =?utf-8?B?LzhyL2RlVktqUTh1QmEvam1oN1FkMUh4NG9BMVlsaHQxdVJGZWFFbXpVL2pk?=
+ =?utf-8?B?Y08vL21VL3ZCS2pPRFFZK3BVemxweHoyNjJMNlBlcXNVUXVLRmRlYTQ4bjBV?=
+ =?utf-8?B?V1EvK0NFaGdoTGEwOEhIYmVIMUZtQ1kvOU5OeHdFQVppeCtNM2duekY2UTJQ?=
+ =?utf-8?B?NlJsNlQwVkk1VUJUS1lEK3BnMlVpVHM1Qkp1Z3YwSlRhNW0xWXJnNDB5OFRE?=
+ =?utf-8?B?a1krOTlCaklpQVQrdU5aYnd4dHVsQXJOamZydytpRE40RVVoaFhrZitHcFN4?=
+ =?utf-8?B?R1JvSkdnVVh5aklhTldyTTJvNmIxTkdZbDA1VEI2YzlZNk5YZ2NPWjdNSTRC?=
+ =?utf-8?B?NnBjMXNCWkR4Um8wR3Z6RG1tdVZ5R0FtYWwva2UxcDkxTUYyb1l2cGt5Q3Nz?=
+ =?utf-8?B?S1NSa044ZzBtNU1hNUVkK2ZpdTlIejRuZnVyb1hmOWNHc1orNWp5S0xZaGxI?=
+ =?utf-8?B?SWRyWTFWM2xtT0UyczJZNjhGUUZIM2V4RWFlVkthaU5oOXZKOWhyRFE3T3NF?=
+ =?utf-8?B?UFlMVTdkdkYrMmV0MkMwc3JKbFp6czdjS0I3UCtyV1ZMalRnRDZXUkx6QW5K?=
+ =?utf-8?B?SDFiYlZwN3ZqajhvSHoxaUNZRCtMOHNFYVVaNmdNa083MjJkK29JRitKQmNz?=
+ =?utf-8?B?a1VLd05RY0RIY2dEZWpkUG0rUGVuRmVLLzRWVUQ3MjhIbVZES0doYjQ1UnNS?=
+ =?utf-8?B?MENrZzBCaFJ1NUtWWWczdUoxL1BlNkV1Y2lHWUpHVVVac1ZvTjFzLysxTG0r?=
+ =?utf-8?B?S0hnQ2wwdFppWlRwV3FDZ3h3THlua0ZQY01HYVRFUEFiTDNtUGdUbklKclBu?=
+ =?utf-8?B?Q0hlM0dCT1pwM1BkNUJIRkc3MWltOUx2bjRPOUt2dWpvc1N5dFlrV2ljb29R?=
+ =?utf-8?B?RE11UFhudm42QnJ0b29objhYRmpzc0NFODd3Mkw1MmN3bktuRFk1bzNFM2Yy?=
+ =?utf-8?B?N1N0VTUyQ2FKOHdvMnJMamthQ25rQlplL3lBNzhDYTlyZUQrVDRRK04rbVJa?=
+ =?utf-8?B?VnhOQ3VqbnZqbHJhbVA5cFY4cy9rVTFiaDBXRldWSG9OcDV1UlBzbEdlOUlS?=
+ =?utf-8?B?MjhxVmMzdW1HTkFHdW5oQXlUQUFoc2ZPT1Y5NGx1bDVpNDFSSjJ2UW8zczdP?=
+ =?utf-8?B?b2QxbFBsemh3SkJsd2hjaWFXOGpvWk5XNHR5cHZsZGY4YVN1RTZMOHdiTTl4?=
+ =?utf-8?B?cFRuQ3M4NTlWWGJHQWZLckxkTUZESHRiaytIZnEwV3BlUlk0LzgwckZjd1JL?=
+ =?utf-8?B?V01nNWxDeHJ5b0xub2JMbGFEc21obU1lNmxuaVVFNmx5QkdBbjVtcGRFTDFu?=
+ =?utf-8?B?YkFRb3NjRWdGTXZIZzNQZG9LalBxd3k3blRzaEpPdk1hQmtKWkIzb1ZCVFlG?=
+ =?utf-8?B?Y3Q1aDBQOFlLMEZIMTluVFFqVFJDTEt2c1BZSSthMHhDb1A5RHRTWmlzWGRn?=
+ =?utf-8?B?cEk1eTdjTXNpL2RWaEhrc2o3UG4xOTM3ZklDMTFVNmljdWFVMUw4M1k3Z1Uw?=
+ =?utf-8?B?cnV1MkY5VFZDb2E0czdaY0lKSjNjbWk1Q1JqWlJmbFArS05wSWxleVdjK2tI?=
+ =?utf-8?Q?50GlACmgwzjWUlhBKyxgxX5Hx4Pu0FHE9yBqk=3D?=
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:;PTR:;CAT:NONE;SFS:(13230040)(376014)(61400799027)(8096899003);DIR:OUT;SFP:1021;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	PCFSXKd62h3yDM+ZvalZGXuHVNekANcen4YRrAlW3ZGijtN9OQyjX94FjOGCWYIzuNAhv+AzJEn2DQ/auAKt/7TU1XoDylIKS+AJYDETZu7v/humpimY6b1UP71Cu8Y+9S90VgE9cYCOCwC6R8Mvn4o3qcC426IEL30OyO9AGRRhmS6ofvVa6rB46VFIa+MXGXLVtw7PzoSvetDslsmz4ULgfnqVpDwRNf3nxh4YluIwVT7GMHszOVDSfFZ70Q3ht/pgk5Yxa0muXIypv9BPx4BrWPN/aNr+5RCV80M41TXUlSTlhICvr+WwsO+8Ae54Irl45mGwE3xZ8WC/RPFULuW3O2ZIr/Ug60LwbV9ha6ULkZ1f1wMD9IGhN3UsiUUdHAZ0ZhNlfVLZ6eOd2ZTJuQ==
+X-OriginatorOrg: acsemailus1.onmicrosoft.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-AuthSource: HttpSubmission-MW4PR04MB7252
+X-MS-Exchange-CrossTenant-Id: fac08e66-19c7-48f7-90ca-764ad2bfed9f
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 04 Jul 2025 14:50:23.6485 (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id:
+	8e9cf851-f4d0-4a57-54ba-08ddbb0a1b42
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MW4PR04MB7252
+
+--=-uNFLEgrYPNxjt17kgNy4Rw==
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+Hi,
+I=E2=80=99m part of the Human Resources team at the U.S. Patent and Tradema=
+rk Office, and I=E2=80=99m recruiting for patent examiner jobs. I found you=
+r resume on USAJOBS. Your skills seem like a great fit for the electrical e=
+ngineering role! Many candidates like that this role offers a $30,000 bonus=
+ with a 48-month commitment.
+This innovative career lets you use your science, engineering, or math back=
+ground to make an impact on American innovation, shape the future of patent=
+ examination, and advance key processes.
+Does this interest you? You don't need any prior patent experience, just th=
+e skills and passion you already have.
+Please check out the vacancy and consider applying. Let me know if you have=
+ any questions.
+Sincerely,=C2=A0
+Kelly
+
+
+
+--=-uNFLEgrYPNxjt17kgNy4Rw==
+Content-Type: text/html; charset=utf-8
+Content-Id: <bbb7a234-72d6-4b97-93d5-57b032d46a6f>
+Content-Transfer-Encoding: base64
+
+PCFET0NUWVBFIGh0bWwgUFVCTElDICItLy9XM0MvL0RURCBYSFRNTCAxLjAgVHJhbnNpdGlvbmFs
+Ly9FTiIgImh0dHA6Ly93d3cudzMub3JnL1RSL3hodG1sMS9EVEQveGh0bWwxLXRyYW5zaXRpb25h
+bC5kdGQiPjxodG1sIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIj48aGVhZD48
+bWV0YSBodHRwLWVxdWl2PSJDb250ZW50LVR5cGUiIGNvbnRlbnQ9InRleHQvaHRtbDtjaGFyc2V0
+PXV0Zi04Ii8+PG1ldGEgbmFtZT0idmlld3BvcnQiIGNvbnRlbnQ9IndpZHRoPWRldmljZS13aWR0
+aCwgaW5pdGlhbC1zY2FsZT0xLjAiLz48dGl0bGU+WW91ciBNZXNzYWdlIFN1YmplY3Qgb3IgVGl0
+bGU8L3RpdGxlPjxzdHlsZSB0eXBlPSJ0ZXh0L2NzcyI+ICNvdXRsb29rIGF7cGFkZGluZzogMDt9
+Ym9keXtmb250LWZhbWlseTogR2VuZXZhLCBWZXJkYW5hLCBBcmlhbCwgSGVsdmV0aWNhO2ZvbnQt
+c2l6ZTogMTJweDt3aWR0aDogMTAwJSAhaW1wb3J0YW50Oy13ZWJraXQtdGV4dC1zaXplLWFkanVz
+dDogMTAwJTstbXMtdGV4dC1zaXplLWFkanVzdDogMTAwJTttYXJnaW46IDA7cGFkZGluZzogMDt9
+LkV4dGVybmFsQ2xhc3N7d2lkdGg6IDEwMCU7fS5FeHRlcm5hbENsYXNzLCAuRXh0ZXJuYWxDbGFz
+cyBwLCAuRXh0ZXJuYWxDbGFzcyBzcGFuLCAuRXh0ZXJuYWxDbGFzcyBmb250LCAuRXh0ZXJuYWxD
+bGFzcyB0ZCwgLkV4dGVybmFsQ2xhc3MgZGl2e2xpbmUtaGVpZ2h0OiAxMDAlO30jYmFja2dyb3Vu
+ZFRhYmxle21hcmdpbjogMDtwYWRkaW5nOiAwO3dpZHRoOiAxMDAlICFpbXBvcnRhbnQ7bGluZS1o
+ZWlnaHQ6IDEwMCUgIWltcG9ydGFudDt9aW1ne291dGxpbmU6IG5vbmU7dGV4dC1kZWNvcmF0aW9u
+OiBub25lOy1tcy1pbnRlcnBvbGF0aW9uLW1vZGU6IGJpY3ViaWM7fWEgaW1ne2JvcmRlcjogbm9u
+ZTt9LmltYWdlX2ZpeHtkaXNwbGF5OiBibG9jazt9cHttYXJnaW46IDFlbSAwO31oMSwgaDIsIGgz
+LCBoNCwgaDUsIGg2e2NvbG9yOiBibGFjayAhaW1wb3J0YW50O31oMSBhLCBoMiBhLCBoMyBhLCBo
+NCBhLCBoNSBhLCBoNiBhe2NvbG9yOiAjMmI2Y2EwICFpbXBvcnRhbnQ7fWgxIGE6YWN0aXZlLCBo
+MiBhOmFjdGl2ZSwgaDMgYTphY3RpdmUsIGg0IGE6YWN0aXZlLCBoNSBhOmFjdGl2ZSwgaDYgYTph
+Y3RpdmV7Y29sb3I6ICM4YjFkMTggIWltcG9ydGFudDt9aDEgYTp2aXNpdGVkLCBoMiBhOnZpc2l0
+ZWQsIGgzIGE6dmlzaXRlZCwgaDQgYTp2aXNpdGVkLCBoNSBhOnZpc2l0ZWQsIGg2IGE6dmlzaXRl
+ZHtjb2xvcjogIzRCMDA4MiAhaW1wb3J0YW50O310YWJsZSB0ZHtib3JkZXItY29sbGFwc2U6IGNv
+bGxhcHNlO310YWJsZXtib3JkZXItY29sbGFwc2U6IGNvbGxhcHNlO21zby10YWJsZS1sc3BhY2U6
+IDBwdDttc28tdGFibGUtcnNwYWNlOiAwcHQ7fWF7Y29sb3I6ICMwMDdmYzI7dGV4dC1kZWNvcmF0
+aW9uOiBub25lO308L3N0eWxlPjwvaGVhZD48Ym9keT48cD5IaSw8L3A+CjxwPknigJltIHBhcnQg
+b2YgdGhlIEh1bWFuIFJlc291cmNlcyB0ZWFtIGF0IHRoZSA8YSBocmVmPSJodHRwczovL2JpdC5s
+eS8zb01xRjk0Ij5VLlMuIFBhdGVudCBhbmQgVHJhZGVtYXJrIE9mZmljZTwvYT4sIGFuZCBJ4oCZ
+bSByZWNydWl0aW5nIGZvciA8YSBocmVmPSJodHRwczovL2JpdC5seS9wYXRlbnQtMjYiPnBhdGVu
+dCBleGFtaW5lciBqb2JzPC9hPi4gSSBmb3VuZCB5b3VyIHJlc3VtZSBvbiBVU0FKT0JTLiBZb3Vy
+IHNraWxscyBzZWVtIGxpa2UgYSBncmVhdCBmaXQgZm9yIHRoZSA8YSBocmVmPSJodHRwczovL2Jp
+dC5seS80bGVBOE5LIj5lbGVjdHJpY2FsIGVuZ2luZWVyaW5nIHJvbGU8L2E+ISBNYW55IGNhbmRp
+ZGF0ZXMgbGlrZSB0aGF0IHRoaXMgcm9sZSBvZmZlcnMgYSA8c3Ryb25nPiQzMCwwMDAgYm9udXM8
+L3N0cm9uZz4gd2l0aCBhIDQ4LW1vbnRoIGNvbW1pdG1lbnQuPC9wPgo8cD5UaGlzIGlubm92YXRp
+dmUgY2FyZWVyIGxldHMgeW91IHVzZSB5b3VyIHNjaWVuY2UsIGVuZ2luZWVyaW5nLCBvciBtYXRo
+IGJhY2tncm91bmQgdG8gbWFrZSBhbiBpbXBhY3Qgb24gQW1lcmljYW4gaW5ub3ZhdGlvbiwgc2hh
+cGUgdGhlIGZ1dHVyZSBvZiBwYXRlbnQgZXhhbWluYXRpb24sIGFuZCBhZHZhbmNlIGtleSBwcm9j
+ZXNzZXMuPC9wPgo8cD5Eb2VzIHRoaXMgaW50ZXJlc3QgeW91PyBZb3UgZG9uJ3QgbmVlZCBhbnkg
+cHJpb3IgcGF0ZW50IGV4cGVyaWVuY2UsIGp1c3QgdGhlIHNraWxscyBhbmQgcGFzc2lvbiB5b3Ug
+YWxyZWFkeSBoYXZlLjwvcD4KPHA+UGxlYXNlIGNoZWNrIG91dCB0aGUgdmFjYW5jeSBhbmQgY29u
+c2lkZXIgYXBwbHlpbmcuIExldCBtZSBrbm93IGlmIHlvdSBoYXZlIGFueSBxdWVzdGlvbnMuPC9w
+Pgo8cD5TaW5jZXJlbHkswqA8YnIgLz4KS2VsbHk8L3A+Cg0KDQo8L2JvZHk+PC9odG1sPg==
+
+--=-uNFLEgrYPNxjt17kgNy4Rw==--

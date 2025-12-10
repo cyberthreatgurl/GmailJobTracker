@@ -1,0 +1,117 @@
+Delivered-To: kaver68@gmail.com
+Received: by 2002:a05:7108:1c0f:b0:475:b510:a7d4 with SMTP id a15csp1297493gdo;
+        Mon, 4 Aug 2025 08:11:26 -0700 (PDT)
+X-Received: by 2002:a17:907:9706:b0:adb:428f:f748 with SMTP id a640c23a62f3a-af94003ad74mr923859966b.21.1754320286334;
+        Mon, 04 Aug 2025 08:11:26 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1754320286; cv=none;
+        d=google.com; s=arc-20240605;
+        b=RqD7T3F0577u49ZsCTO9Vn6ccNrE/oNUClpkDXRD5nmxiEgYSlbPrPw+p8vB/8wxNs
+         v6KEgYK+qNxww9xAyXhfDXYGMEkWzFNqTh6gKlSEw6lqDBWoKXVWlVnCBzEPzr5a8KMS
+         5kBMln6ZH/1fse1+FoPFQr5Pqhr9GeD6GuTHNWMTkfSatEcPylgNYMr4+QLqKRuU9ABo
+         fmKoNoWWcIyS6RTHDAIBDwlomvE6ISrlTDXNWdmsmnEPYa1X9QJQl6jsi+dBUG3AVj72
+         3r3KzODlFemFOO2yAuKmq90hiwIC2+4rb91lPsU9pbKkOc01PkDMHtPuDezG1rJqxzPR
+         132w==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=to:subject:message-id:date:from:mime-version:dkim-signature;
+        bh=52tmYsRY+ShI1zN+cEUej7vCu5KI+yEPaesw4an1qT0=;
+        fh=7KWGm1lMvOHm7E64VTvEDaxWOoRrpyybg1WkYvjhqBQ=;
+        b=dKJgUh9wjgeg3SpqPeqN62snZFNjN4nhFf55ROcnOr9pZ/MvnTltNY/1nUswDw9ITJ
+         N/gQ6n5mPmimSSMkwCQw+MZR70fPAkJSj6zPwqaoZ0sxDIi6Z0JbFyTCowAm5lhPzaWS
+         35YZTX6GYY1jKn3MJMaEq7HT2lKUliwp474wOh42LCIRL1Kq35Q1FQnsizUpZ/4JYxLI
+         VxDVV0wUXayb4wxT86u/E57hn4s7tMkJFR9I6mL8/inuMeQUuOSwwlqT+dyeUF1r9dWW
+         youT8ApwH674V3BUHklw6DMxwtoRkGW+e1+UmmnTeJn8c6NmrpxTP+/xqrgTzl57jHT0
+         Z4HQ==;
+        dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@eclypsium.com header.s=google header.b=A3sMmE1R;
+       spf=pass (google.com: domain of john.loucaides@eclypsium.com designates 209.85.220.41 as permitted sender) smtp.mailfrom=john.loucaides@eclypsium.com;
+       dmarc=pass (p=QUARANTINE sp=QUARANTINE dis=NONE) header.from=eclypsium.com;
+       dara=pass header.i=@gmail.com
+Return-Path: <john.loucaides@eclypsium.com>
+Received: from mail-sor-f41.google.com (mail-sor-f41.google.com. [209.85.220.41])
+        by mx.google.com with SMTPS id a640c23a62f3a-af91a072fa2sor787539366b.3.2025.08.04.08.11.26
+        for <kaver68@gmail.com>
+        (Google Transport Security);
+        Mon, 04 Aug 2025 08:11:26 -0700 (PDT)
+Received-SPF: pass (google.com: domain of john.loucaides@eclypsium.com designates 209.85.220.41 as permitted sender) client-ip=209.85.220.41;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@eclypsium.com header.s=google header.b=A3sMmE1R;
+       spf=pass (google.com: domain of john.loucaides@eclypsium.com designates 209.85.220.41 as permitted sender) smtp.mailfrom=john.loucaides@eclypsium.com;
+       dmarc=pass (p=QUARANTINE sp=QUARANTINE dis=NONE) header.from=eclypsium.com;
+       dara=pass header.i=@gmail.com
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=eclypsium.com; s=google; t=1754320285; x=1754925085; dara=google.com;
+        h=to:subject:message-id:date:from:mime-version:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=52tmYsRY+ShI1zN+cEUej7vCu5KI+yEPaesw4an1qT0=;
+        b=A3sMmE1RfPVBBNzuW7MD70jeJGhSzbaMM0jVTKpalhriCmoDH5Jz7EWHs9Xsof9OAV
+         u1a7bl7Ypzhftn4nc0+kSjh8cHVnoMEZJTzz1iUZYHWctrQuDrT7QUVL29NfaYJk1yXm
+         6JQfy8T9KNQFRO2SmHXJmJMjpNxRSTw+ui6nZSqLTCSM/RCuR9NIzqe4Ej+wSUdGCPfS
+         r6R4uYDuUHhC2zLDk05qVRl/4I4tXLa7i68oe1E2KOlxOFGTdAzPEEfIvkzhO9gQzodz
+         V+jgVsKTW3pLc+ssByQ673fhmq+swM2yidOfLkL8jLAGxE80au5kQVELZ+e0Cfw7rWhL
+         6Brw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1754320285; x=1754925085;
+        h=to:subject:message-id:date:from:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=52tmYsRY+ShI1zN+cEUej7vCu5KI+yEPaesw4an1qT0=;
+        b=L2xMM9h9aXKtWCDuZoPm9ocTgxlWwuvb9nhE4AL3BsPCsx4LBbz1i2632DO84sqjrE
+         RUeSSLX3ATH7TsC2Jmx0Hu3x8OGIo3LtOjcargXmFnX7BfYGovv1C4m0yCBrb+gUTi5r
+         egEFf6na8x+xxYROsOvNd3OEbAZ50LCY/XKjc7+JoWM1taMukKGPR7j47TdxhKGPQJDs
+         f3V/uqrBgZTKm3jkIu+2QmsTkM03+n8ZkIsFk7v1+zxd6KfxYNCj/FQIC73s/ZANmCDL
+         TfxUHttfw3p9hhLr/YVWkuqMB+5h1G+olbBZoLBbRaMgfgOPNdFNrqYqZcMNs83IW6RO
+         GbGg==
+X-Gm-Message-State: AOJu0YwikcGps5IW82R/ylGKgeuExrDdYAd9cpfzUgq1WCT1alYd6aUd
+	kfb2tos6NzUQezmYj2Rp214amAdS0z9NuO4PkEf6b7CgEP6Hy7GinD6AR/QGGRBGj4gu19MsJXp
+	hkvmrO+y5qAUuGWppLW0ip9DBYCTNV/P6PgG+Y/vCFT16w8eXOY3e
+X-Gm-Gg: ASbGncsmk9IWgDIGA5xchWrVy41M+GykmwPuxj8CDVBzM0/Rbu+VdcXKIb8Oh0hHecb
+	mzPPM0rAA3yAOX3TCUH3APe+8TZEN/Jz7oKIwfdHnrlXuSVrYgSS8SCDvb54ofhfrnJhXzgzFV7
+	PHdCWup9ENDqANljFh99a7m0f2j6m41mKMmZnoypHOBVn+4ZSL8zRPDsUzdCKvUGlveE4Xn4Yc9
+	5r8VtqbJUTEk+LdTVI=
+X-Google-Smtp-Source: AGHT+IEBX2MUGG1nOuTIDbloxzdJoKC7Uzbd6HAHN/WOvPCR/Nmb8aE1CEH3mhj9zVlNQLuGidQm9a1MUXBWh33LzB4=
+X-Received: by 2002:a17:907:97c8:b0:ae0:35fb:5c83 with SMTP id
+ a640c23a62f3a-af9401731f3mr936937166b.28.1754320285526; Mon, 04 Aug 2025
+ 08:11:25 -0700 (PDT)
+MIME-Version: 1.0
+From: John Loucaides <john.loucaides@eclypsium.com>
+Date: Mon, 4 Aug 2025 11:10:48 -0400
+X-Gm-Features: Ac12FXy5FL2MA0tMsYUYw75lpnV6jy3zq9qK_KAqOGMlri1xoadzPDVC9EKMgg4
+Message-ID: <CADP=yKewX8S5uDP11qgUzqhbHMG30dvWRypVA_CA8bKP6Lstuw@mail.gmail.com>
+Subject: Intro Kelly and Stas
+To: kaver68@gmail.com, Stas Lyakhov <stas.lyakhov@eclypsium.com>
+Content-Type: multipart/alternative; boundary="0000000000007137d1063b8b85ae"
+
+--0000000000007137d1063b8b85ae
+Content-Type: text/plain; charset="UTF-8"
+
+Kelly, I'd like to introduce Stas, who is one of our researchers supporting
+the various services that we discussed.
+
+Stas, I recently met Kelly. She is coming out of CISA and has experience
+with malware and OT both as an analyst and as a team lead.
+
+If possible, can you both find some time to meet and discuss whether it
+would be a good fit for Kelly to join us and help with management,
+reporting, and presentation of services?
+
+Thanks,
+ - John
+
+--0000000000007137d1063b8b85ae
+Content-Type: text/html; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+<div dir=3D"ltr"><div dir=3D"ltr"><div><div>Kelly, I&#39;d like to introduc=
+e=C2=A0<span>Stas</span>, who is one of our researchers supporting the vari=
+ous services that we discussed.=C2=A0</div><div dir=3D"auto"><br></div><div=
+ dir=3D"auto"><span>Stas</span>, I recently met Kelly. She is coming out of=
+ CISA and has experience with malware and OT both as an analyst and as a te=
+am lead.</div><div dir=3D"auto"><br></div><div dir=3D"auto">If possible, ca=
+n you both find some time to meet and discuss whether it would be a good fi=
+t for Kelly to join us and help with management, reporting, and presentatio=
+n of services?</div></div><div dir=3D"auto"><br></div><div>Thanks,</div><di=
+v>=C2=A0- John</div><div><br></div><div dir=3D"ltr" class=3D"gmail_signatur=
+e" data-smartmail=3D"gmail_signature"></div></div>
+</div>
+
+--0000000000007137d1063b8b85ae--

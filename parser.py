@@ -136,6 +136,7 @@ _MSG_LABEL_EXCLUDES = {
         "rejection",
         "offer",
         "noise",
+        "head_hunter",
         "ignore",
         "response",
         "follow_up",
@@ -201,6 +202,14 @@ def rule_label(subject: str, body: str = "", sender_domain: str | None = None) -
             print("[DEBUG rule_label] Early scheduling-language match -> interview_invite")
         return "interview_invite"
 
+    # Check rejection patterns BEFORE application confirmation to avoid misclassifying
+    # rejection emails that say "thank you for applying... but we're moving forward with others"
+    for rx in _MSG_LABEL_PATTERNS.get("rejection", []):
+        if rx.search(s):
+            if DEBUG:
+                print(f"[DEBUG rule_label] Early rejection match: {rx.pattern[:80]}")
+            return "rejection"
+
     # Explicit application-confirmation signals should be classified as job_application
     # before we evaluate interview-like phrasing. This prevents ATS confirmation
     # templates (which sometimes include ambiguous language) from being labeled
@@ -232,11 +241,13 @@ def rule_label(subject: str, body: str = "", sender_domain: str | None = None) -
         for rx in _MSG_LABEL_PATTERNS.get(label, []):
             match = rx.search(s)
             if match:
-                if DEBUG and label == "rejection":
-                    print(f"[DEBUG rule_label] Pattern MATCHED: {rx.pattern[:60]}")
+                if DEBUG and label in ("rejection", "noise"):
+                    print(f"[DEBUG rule_label] Pattern MATCHED for '{label}': {rx.pattern[:80]}")
                     print(f"  Matched text: '{match.group()}'")
                 # If any exclude pattern matches, skip this label
                 excludes = _MSG_LABEL_EXCLUDES.get(label, [])
+                if DEBUG and label == "noise" and excludes:
+                    print(f"[DEBUG rule_label] Checking {len(excludes)} exclusion patterns for noise...")
                 matched_excludes = [ex for ex in excludes if ex.search(s)]
                 if matched_excludes:
                     if DEBUG:

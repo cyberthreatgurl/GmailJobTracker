@@ -1,0 +1,204 @@
+Delivered-To: kaver68@gmail.com
+Received: by 2002:a05:7108:c05:b0:40f:9ec9:a547 with SMTP id pl5csp3824110gdb;
+        Wed, 2 Apr 2025 10:57:37 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IGP/6Ftkeb3wh4pcj3ScwOKzSMWwMmmpC7mbPp0MAP/OADar7mszHTubgCbhrNEUGV7vX+8
+X-Received: by 2002:a05:6a20:d708:b0:1ee:ab52:b8cc with SMTP id adf61e73a8af0-200f575d9e0mr553775637.21.1743616656919;
+        Wed, 02 Apr 2025 10:57:36 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1743616656; cv=none;
+        d=google.com; s=arc-20240605;
+        b=Yz89ZUu8b182JbNF0nq9ffVLINlUswyZFvFg9HxStCUawtLxbtGKQxWi+ja9U4wdiI
+         rFUYkoj2wgqD/t69NURFFwt4Q7ZoVjMzJlbo6f1p31LT9kpw+i4pH+tl143ATw3VFlsy
+         LOl7Thx8u3Q/HaKZsbkcISmUqsbClr8g0VGUc3SzTJmAyeVt4j8SmtO5zFY67QRS0g8e
+         2754HPw9yfAx7UTIVomHFmrUOerf46zSK1ABnaB8j9qhDMWsdYt1ftFwOCgVoDq/Yjty
+         6O5g56VHjF2aM+Hombz2N9o12EdDOFUxpWcTTNMzRpOY0HPeYREh2NADYMS7Y5mXUjSv
+         hLvQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=list-unsubscribe:feedback-id:list-unsubscribe-post
+         :content-transfer-encoding:mime-version:subject:message-id:to
+         :reply-to:from:date:dkim-signature:dkim-filter;
+        bh=Z4ZXY49ylpj8MrdGAPLy0dtrEj2JTCygJURIZaqYm/w=;
+        fh=G/VLhrQnXiN6LciSgCgIU9VM0fr+1O2AyqFGWpHCjzw=;
+        b=CWXIi8C7DkB9p0DjGcPqTozLuFyboheK0XDox1ipfo5+1h3LAadMCI2qOMn7rE6W9V
+         y03VeYh4G8KoYEtLuvn+s/Kup0y98rvWyDeseFQogee69+NZT7616szqfPLA3u1I5TSf
+         gM2kBHxZEhZLx8R5Ld85XHpE6zgfJFjWeqMEEP7IHa+LlmWFYkNSqWe+Y83a7CPjFRmz
+         f5a0Ois2YXZs3cEMJHf1NV1nH+fhWf0f5DSNnuFpqop98MFC4r5ZYHsq7xb9OXvSyNfs
+         fFxz+grsY4jFjZT9JBro/VGdgzExeVCOiCfLz5e4emSHhwMNDMYtsVl1GhzkEj9WwtDw
+         YJzQ==;
+        dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@myworkday.com header.s=0s07jfp5 header.b=I8e7VRdg;
+       spf=pass (google.com: domain of parsons@myworkday.com designates 209.177.169.161 as permitted sender) smtp.mailfrom=Parsons@myworkday.com;
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=myworkday.com
+Return-Path: <Parsons@myworkday.com>
+Received: from wd5-az-prod-mail-nat.myworkday.com (wd5-az-prod-mail-nat.myworkday.com. [209.177.169.161])
+        by mx.google.com with ESMTPS id 41be03b00d2f7-af93b87fed2si19175593a12.411.2025.04.02.10.57.36
+        for <kaver68@gmail.com>
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 02 Apr 2025 10:57:36 -0700 (PDT)
+Received-SPF: pass (google.com: domain of parsons@myworkday.com designates 209.177.169.161 as permitted sender) client-ip=209.177.169.161;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@myworkday.com header.s=0s07jfp5 header.b=I8e7VRdg;
+       spf=pass (google.com: domain of parsons@myworkday.com designates 209.177.169.161 as permitted sender) smtp.mailfrom=Parsons@myworkday.com;
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=myworkday.com
+Received: from wire-prod-lf0n43yw.prod-wire.pr501.cust.pdx.wd (localhost [127.0.0.1])
+	by wire-prod-lf0n43yw.prod-wire.pr501.cust.pdx.wd (Postfix) with ESMTP id 283443E506
+	for <kaver68@gmail.com>; Wed,  2 Apr 2025 17:57:36 +0000 (UTC)
+DKIM-Filter: OpenDKIM Filter v2.11.0 wd5-az-prod-mail-nat.myworkday.com 3521F4A38
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=myworkday.com;
+	s=0s07jfp5; t=1743616656;
+	bh=Z4ZXY49ylpj8MrdGAPLy0dtrEj2JTCygJURIZaqYm/w=;
+	h=Date:From:Reply-To:To:Subject:List-Unsubscribe:From;
+	b=I8e7VRdgXv4duQMaEmg3nXsjXIranI2L2NApzX42kAdN6o2EScmVI4fFdmhYZw6CF
+	 D79fWbpI+Chyh/5WsfyE5eaU1XHIAFvs1tkqVQYOIhqMI3Nmq7rCGKLUzW2ScvB/bx
+	 jIRHOSumEYWzZqC9OL6RJJPewaIwmDNmomVMrOFA=
+Date: Wed, 2 Apr 2025 10:57:36 -0700 (PDT)
+X-MSH: v 0.5.6
+From: Parsons Workday <Parsons@myworkday.com>
+Reply-To: no_reply@parsons.com
+To: kaver68@gmail.com
+Message-Id: <2064708161.9016442.1743616656163@myworkday.com>
+Subject: Your Parsons Job Application for: [not available]
+MIME-Version: 1.0
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+X-Workday-Security: false
+List-Unsubscribe-Post: <https://cust-drogon-unsubscribe.us-west-2.myworkdaymessaging.com/drogon/unsubscribe/parsons/drogon-wd5-prod/a2b194bb781910000476d4558ec20013/9fae17ffcb8490015f97d1b5bb550000/a2F2ZXI2OEBnbWFpbC5jb20=>
+X-Workday-Static-BP-Address: false
+Feedback-ID: parsons:a2b194bb781910000476d4558ec20013:000:workday
+List-Unsubscribe: List-Unsubscribe=One-Click
+X-Workday-System: false
+
+<!doctype html><html xmlns:v=3D"urn:schemas-microsoft-com:vml" xmlns:o=3D"u=
+rn:schemas-microsoft-com:office:office">
+   <head>
+      <meta http-equiv=3D"Content-Type" content=3D"text/html; charset=3DUTF=
+-8">
+      <title></title><style type=3D"text/css">body, table {
+  font-family: Verdana, Arial, sans-serif;
+  font-size: 12px; width:100%;
+}
+div {
+  padding-top:5px;
+  padding-bottom:5px;
+}
+img=20
+{
+  border:0px;
+}</style></head>
+   <body><div>Dear Adrian <br/><br/>Please log back into your candidate hom=
+e account and complete
+      any outstanding questionnaires that are listed.<br><br>If you complet=
+ed these tasks as they appeared on the screen following your apply confirma=
+tion
+      then there may not be any task(s) for you to complete and you can dis=
+regard this email.<br><br>Completion of these tasks is needed prior to you =
+being able to move forward in the
+      process.<br><br>Candidate Home Account: https://parsons.wd5.myworkday=
+jobs.com/Search</div><div><br/></div>
+      =09     <div>
+      =09    <!--[if mso | IE]>
+      =09      <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" widt=
+h=3D"600" align=3D"center"
+      style=3D"width:600px;">
+      =09        <tr>
+      =09          <td style=3D"line-height:0px;font-size:0px;mso-line-heig=
+ht-rule:exactly;">
+      =09      <![endif]-->
+      =09    <div style=3D"margin:0 auto;max-width:600px;">
+      =09      <table cellpadding=3D"0" cellspacing=3D"0" style=3D"font-siz=
+e:0px;width:100%;" align=3D"center"
+      border=3D"0">
+      =09        <tbody>
+      =09          <tr>
+      =09            <td style=3D"text-align:center;vertical-align:top;font=
+-size:0px;padding:20px
+      0px;"></td>
+      =09          </tr>
+      =09        </tbody>
+      =09      </table>
+      =09    </div>
+      =09    <!--[if mso | IE]>
+      =09      </td></tr></table>
+      =09      <![endif]-->
+      =09    <!--[if mso | IE]>
+      =09      <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" widt=
+h=3D"600" align=3D"center"
+      style=3D"width:600px;">
+      =09        <tr>
+      =09          <td style=3D"line-height:0px;font-size:0px;mso-line-heig=
+ht-rule:exactly;">
+      =09      <![endif]-->
+      =09    <div style=3D"margin:0 auto;max-width:600px;">
+      =09      <table cellpadding=3D"0" cellspacing=3D"0" style=3D"font-siz=
+e:0px;width:100%;" align=3D"center"
+      border=3D"0">
+      =09        <tbody>
+      =09          <tr>
+      =09            <td style=3D"text-align:center;vertical-align:top;font=
+-size:0px;padding:20px
+      0px;"></td>
+      =09          </tr>
+      =09        </tbody>
+      =09      </table>
+      =09    </div>
+      =09    <!--[if mso | IE]>
+      =09      </td></tr></table>
+      =09      <![endif]-->
+     =20
+      <!--[if mso | IE]>
+=09      <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D"6=
+00" align=3D"center" style=3D"width:600px;">
+=09        <tr>
+=09          <td style=3D"line-height:0px;font-size:0px;mso-line-height-rul=
+e:exactly;">
+=09      <![endif]-->
+      <div xmlns:wd=3D"urn:com.workday/bsvc" style=3D"margin:0 auto;max-wid=
+th:600px;">
+         <table cellpadding=3D"0" cellspacing=3D"0" style=3D"font-size:0px;=
+width:100%;" align=3D"center" border=3D"0">
+            <tbody>
+               <tr>
+                  <td style=3D"text-align:center;vertical-align:top;font-si=
+ze:0px;padding:20px 0px;">
+                     <!--[if mso | IE]>
+=09 <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0"><tr><td style=
+=3D"vertical-align:top;width:600px;">
+=09      <![endif]-->
+                     <div aria-labelledby=3D"mj-column-per-100" class=3D"mj=
+-column-per-100" style=3D"vertical-align:top;display:inline-block;font-size=
+:13px;text-align:left;width:100%;">
+                        <table cellpadding=3D"0" cellspacing=3D"0" width=3D=
+"100%" border=3D"0">
+                           <tbody>
+                              <tr>
+                                 <td style=3D"word-break:break-word;font-si=
+ze:0px;padding-bottom:0px;" align=3D"center">
+                                    <div style=3D"cursor:auto;color:#98a0a6=
+;font-family:Roboto;font-size:12px;font-weight:400;line-height:22px;">This =
+email was intended for kaver68@gmail.com</div>
+                                 </td>
+                              </tr>
+                              <tr>
+                                 <td style=3D"word-break:break-word;font-si=
+ze:0px;padding-top:0px;" align=3D"center">
+                                    <div style=3D"cursor:auto;color:#98a0a6=
+;font-family:Roboto;font-size:12px;font-weight:400;">Parsons =C2=B7 5875 Tr=
+inity Pkwy #300, Centreville, VA 20120</div>
+                                 </td>
+                              </tr>
+                           </tbody>
+                        </table>
+                     </div>
+                     <!--[if mso | IE]>
+=09      </td></tr></table>
+=09      <![endif]-->
+                  </td>
+               </tr>
+            </tbody>
+         </table>
+      </div>
+      <!--[if mso | IE]>
+=09      </td></tr></table>
+=09      <![endif]-->
+   </body>
+</html>

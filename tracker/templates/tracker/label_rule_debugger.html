@@ -30,6 +30,12 @@
         <span style="color:#2563eb; font-weight:600;">{{ matched_label }}</span>
       {% endif %}
     </div>
+    {% if override_note %}
+    <div style="margin-top:0.5rem; padding:0.75rem; background:#d1fae5; border-left:4px solid #10b981; border-radius:4px;">
+      <b style="color:#065f46;">⚙️ Label Override Applied:</b>
+      <div style="color:#047857; margin-top:0.25rem;">{{ override_note }}</div>
+    </div>
+    {% endif %}
     <div style="margin-top:0.5rem;"><b>Extracted Company:</b>
       {% if result.extracted_company %}
         <span style="color:#059669; font-weight:600;">{{ result.extracted_company }}</span>

@@ -222,6 +222,40 @@ def label_rule_debugger(request):
                 matched_labels = sorted(matched_labels_set)
                 if not matched_labels:
                     no_matches = True
+                
+                # Run ML classification to check original prediction
+                ml_label = None
+                try:
+                    from parser import predict_with_fallback, predict_subject_type
+                    ml_result = predict_with_fallback(predict_subject_type, subject, body, threshold=0.55, sender=sender)
+                    ml_label = ml_result.get("ml_label") or ml_result.get("label")
+                except Exception:
+                    pass
+                
+                # Extract company name using parse_subject with sender info
+                try:
+                    parsed = parse_subject(subject, body, sender=sender, sender_domain=sender_domain)
+                    extracted_company = parsed.get("company", "")
+                    company_confidence = parsed.get("confidence", 0)
+                    if extracted_company:
+                        extracted_company = normalize_company_name(extracted_company)
+                except Exception:
+                    # Company extraction failed - continue without it
+                    extracted_company = ""
+                    company_confidence = 0
+                
+                # Apply override logic - check if ML originally predicted head_hunter
+                override_note = None
+                if ml_label == "head_hunter" and sender_domain:
+                    from parser import _map_company_by_domain, HEADHUNTER_DOMAINS
+                    if sender_domain not in HEADHUNTER_DOMAINS:
+                        mapped_company = _map_company_by_domain(sender_domain)
+                        if mapped_company:
+                            override_note = f"Override: Internal recruiter from {mapped_company} - changed to 'other' (ML predicted head_hunter, rules decided {matched_label})"
+                            matched_label = "other"
+                            if "other" not in matched_labels_set:
+                                matched_labels.append("other")
+                
                 # Highlight words in message_text
                 # re is now imported globally
 
@@ -236,18 +270,6 @@ def label_rule_debugger(request):
 
                 message_text = highlight_text(message_text, highlights)
                 
-                # Extract company name using parse_subject with sender info
-                try:
-                    parsed = parse_subject(subject, body, sender=sender, sender_domain=sender_domain)
-                    extracted_company = parsed.get("company", "")
-                    company_confidence = parsed.get("confidence", 0)
-                    if extracted_company:
-                        extracted_company = normalize_company_name(extracted_company)
-                except Exception:
-                    # Company extraction failed - continue without it
-                    extracted_company = ""
-                    company_confidence = 0
-                
                 result = {
                     "subject": subject,
                     "body": body,
@@ -258,9 +280,11 @@ def label_rule_debugger(request):
                     "no_matches": no_matches,
                     "extracted_company": extracted_company,
                     "company_confidence": company_confidence,
+                    "override_note": override_note,
                 }
             except Exception as e:
                 error = f"Failed to parse message: {e}"
+    override_note = result.get("override_note") if result else None
     ctx = {
         "result": result,
         "error": error,
@@ -272,6 +296,7 @@ def label_rule_debugger(request):
         "no_matches": no_matches,
         "extracted_company": extracted_company,
         "company_confidence": company_confidence,
+        "override_note": override_note,
     }
     return render(request, "tracker/label_rule_debugger.html", ctx)
 
@@ -300,272 +325,6 @@ def upload_eml(request):
         form = UploadEmlForm()
 
     return render(request, 'tracker/upload_eml.html', {'form': form, 'result': result, 'error': error})
-
-
-@login_required
-def compare_gmail_filters(request):
-    """
-    Enhanced Gmail filter import page:
-    1. Auto-fetch Gmail filters and save to timestamped XML file.
-    2. Display filters and installed rules side-by-side.
-    3. Highlight differences in installed rules.
-    4. Support checkboxes for all/individual filters.
-    5. Allow editing and saving installed rules.
-    """
-    filters = []
-    error = None
-    gmail_label_prefix = (
-        request.POST.get("gmail_label_prefix")
-        or request.GET.get("gmail_label_prefix")
-        or "#job-hunt"  # Default fallback for compare filters utility
-    )
-    patterns_path = Path("json/patterns.json")
-    label_map_path = Path("json/gmail_label_map.json")
-    patterns = load_json(patterns_path, default={"message_labels": {}})
-    msg_labels = patterns.setdefault("message_labels", {})
-    label_map = load_json(label_map_path, default={})
-
-    # 1) Auto-fetch Gmail filters and save to timestamped XML file
-    try:
-        service = get_gmail_service()
-        if not service:
-            raise RuntimeError(
-                "Failed to initialize Gmail service. Check OAuth credentials in json/."
-            )
-        prefix = gmail_label_prefix.strip()
-        labels_resp = service.users().labels().list(userId="me").execute()
-        id_to_name = {
-            lab.get("id"): lab.get("name") for lab in labels_resp.get("labels", [])
-        }
-        # name_to_id unused; kept for potential future use
-        filt_resp = service.users().settings().filters().list(userId="me").execute()
-        filters_raw = filt_resp.get("filter", []) or []
-
-        # Debug logging
-        print(f"🔍 DEBUG: Fetched {len(filters_raw)} Gmail filters")
-        print(f"🔍 DEBUG: Using prefix: '{prefix}'")
-        print(f"🔍 DEBUG: Total Gmail labels: {len(id_to_name)}")
-
-        # Save to timestamped XML file
-        now_str = datetime.now().strftime("%Y%m%d-%H%M%S")
-        xml_filename = f"gmail_filters_{now_str}.xml"
-        xml_path = Path("json") / xml_filename
-        import xml.etree.ElementTree as ET
-
-        root = ET.Element("filters")
-        for f in filters_raw:
-            entry = ET.SubElement(root, "filter")
-            for k, v in f.items():
-                sub = ET.SubElement(entry, k)
-                sub.text = str(v)
-        tree = ET.ElementTree(root)
-        tree.write(xml_path, encoding="utf-8", xml_declaration=True)
-        print(f"✅ Saved Gmail filters to {xml_path}")
-    except Exception as e:
-        error = f"Failed to fetch/save Gmail filters: {e}"
-        filters_raw = []
-        print(f"❌ ERROR: {error}")
-
-    # 2) Display filters and installed rules side-by-side
-    diff_engine = HtmlDiff()
-    debug_mappings = []  # For debugging: track how each Gmail label maps to internal
-    unmapped_labels = []  # Track labels that couldn't be mapped
-
-    filters_checked = 0  # Count how many filters we process
-    filters_skipped = 0  # Count how many filters we skip
-
-    print("\n==== DEBUG: All Gmail filter labels fetched from API ====")
-    for i, f in enumerate(filters_raw):
-        criteria = f.get("criteria", {}) or {}
-        action = f.get("action", {}) or {}
-        add_ids = action.get("addLabelIds", []) or []
-        target_label_names = [id_to_name.get(j, "") for j in add_ids]
-        print(f"Filter #{i}: {target_label_names}")
-    print("==== END DEBUG FILTER LABELS ====")
-
-    for i, f in enumerate(filters_raw):
-        criteria = f.get("criteria", {}) or {}
-        action = f.get("action", {}) or {}
-        add_ids = action.get("addLabelIds", []) or []
-        target_label_names = [id_to_name.get(j, "") for j in add_ids]
-
-        # Debug: show all target labels for this filter
-        if target_label_names:
-            print(f"🔍 Filter #{i}: labels={target_label_names}, prefix='{prefix}'")
-
-        matched_names = [
-            nm
-            for nm in target_label_names
-            if isinstance(nm, str) and nm.startswith(prefix)
-        ]
-        if not matched_names:
-            filters_skipped += 1
-            continue
-
-        filters_checked += 1
-        for lname in matched_names:
-            gmail_label = lname
-            # Always strip the root prefix for display and mapping
-            root_prefix = gmail_label_prefix.rstrip("/") + "/"
-            display_label = (
-                gmail_label[len(root_prefix) :]
-                if gmail_label.startswith(root_prefix)
-                else gmail_label
-            )
-
-            # Debug: show full criteria for this filter
-            print(f"   📧 Criteria keys: {list(criteria.keys())}")
-            print(f"   📧 Criteria content: {criteria}")
-
-            internal = label_map.get(gmail_label)
-            if not internal:
-                direct = display_label.strip()
-                base_key = direct.lower().split("/")[-1]
-                synonyms = {
-                    # Map Gmail label suffixes to our internal message_labels keys
-                    "rejection": "rejection",
-                    "reject": "rejection",
-                    "rejected": "rejection",
-                    "application": "application",
-                    "apply": "application",
-                    "interview": "interview",
-                    "prescreen": "prescreen",
-                    "headhunter": "head_hunter",
-                    "head_hunter": "head_hunter",
-                    "noise": "noise",
-                    "referral": "referral",
-                    "offer": "offer",
-                    "follow_up": "follow_up",
-                    "followup": "follow_up",
-                    "response": "response",
-                    "ghosted": "ghosted",
-                    "other": "other",
-                    "ignore": "ignore",
-                }
-                tentative = synonyms.get(base_key, direct)
-                allowed_labels = set(msg_labels.keys()) | {
-                    "application",
-                    "interview",
-                    "rejection",
-                    "head_hunter",
-                    "noise",
-                    "referral",
-                    "offer",
-                    "follow_up",
-                    "response",
-                    "ghosted",
-                    "other",
-                    "ignore",
-                }
-                internal = tentative if tentative in allowed_labels else None
-
-            # Track mapping for debug display
-            mapping_info = {
-                "gmail_label": gmail_label,
-                "display_label": display_label,
-                "base_key": (
-                    display_label.lower().split("/")[-1]
-                    if not label_map.get(gmail_label)
-                    else "(from map)"
-                ),
-                "internal": internal or "UNMAPPED",
-                "source": (
-                    "label_map"
-                    if label_map.get(gmail_label)
-                    else "synonym" if internal else "none"
-                ),
-            }
-            debug_mappings.append(mapping_info)
-            if not internal:
-                unmapped_labels.append(gmail_label)
-
-            # Gmail rule (raw)
-            terms = []
-            for key in ("subject", "hasTheWord", "query"):
-                raw_value = criteria.get(key, "")
-                if raw_value:
-                    print(f"   📝 {key}: {raw_value}")
-                extracted = sanitize_to_regex_terms(raw_value)
-                if extracted:
-                    print(f"      → extracted: {extracted}")
-                terms += extracted
-
-            print(f"   🔧 Total terms: {len(terms)}")
-            gmail_rule = make_or_pattern(terms) or ""
-            print(
-                f"   📋 Gmail rule result: {gmail_rule[:100] if gmail_rule else '(empty)'}"
-            )
-
-            # Installed rule (editable): Only show if label is present in msg_labels
-            if internal and internal in msg_labels:
-                installed_rule = "\n".join(msg_labels[internal])
-            else:
-                installed_rule = ""
-            # Diff highlight
-            diff_html = ""
-            if installed_rule and gmail_rule:
-                diff_html = diff_engine.make_table(
-                    gmail_rule.splitlines(),
-                    installed_rule.splitlines(),
-                    fromdesc="Gmail Rule",
-                    todesc="Installed Rule",
-                    context=True,
-                    numlines=2,
-                )
-            filters.append(
-                {
-                    "label": display_label,
-                    "gmail_rule": gmail_rule,
-                    "installed_rule": installed_rule,
-                    "diff_html": diff_html,
-                    "checked": bool(
-                        internal and gmail_rule and (gmail_rule not in installed_rule)
-                    ),
-                }
-            )
-
-    # Debug summary
-    print(f"📊 Filter processing summary:")
-    print(f"   - Total raw filters: {len(filters_raw)}")
-    print(f"   - Filters checked: {filters_checked}")
-    print(f"   - Filters skipped (no matching prefix): {filters_skipped}")
-    print(f"   - Final filters for display: {len(filters)}")
-    print(f"   - Debug mappings: {len(debug_mappings)}")
-    print(f"   - Unmapped labels: {len(unmapped_labels)}")
-
-    # 3) Handle POST: apply selected filters
-    if (
-        request.method == "POST"
-        and request.POST.get("action") == "apply_selected_filters"
-    ):
-        updated = 0
-        for i, f in enumerate(filters):
-            if not request.POST.get(f"update_{i}"):
-                continue
-            internal = label_map.get(f["label"])
-            if not internal:
-                continue
-            new_rule = request.POST.get(f"installed_pattern_{i}")
-            if new_rule:
-                msg_labels[internal] = [
-                    r.strip() for r in new_rule.splitlines() if r.strip()
-                ]
-                updated += 1
-        with open(patterns_path, "w", encoding="utf-8") as f:
-            json.dump(patterns, f, indent=2, ensure_ascii=False)
-        messages.success(
-            request, f"Imported and updated {updated} filter(s) in patterns.json."
-        )
-        return redirect("import_gmail_filters_compare")
-
-    ctx = {
-        "filters": filters,
-        "error": error,
-        "gmail_label_prefix": gmail_label_prefix,
-        "debug_mappings": debug_mappings,
-        "unmapped_labels": unmapped_labels,
-    }
-    return render(request, "tracker/import_gmail_filters_compare.html", ctx)
 
 
 # --- Gmail Filters Label Patterns Compare ---
@@ -2707,6 +2466,29 @@ def label_messages(request):
                                         company = parse_result.get("company") or parse_result.get("predicted_company")
                                     elif isinstance(parse_result, str):
                                         company = parse_result
+                                    
+                                    # Apply internal referral override
+                                    if isinstance(parse_result, dict) and parse_result.get("label") == "other" and ml_label in ("referral", "interview_invite"):
+                                        from parser import _map_company_by_domain
+                                        if sender_domain and company:
+                                            mapped_domain_company = _map_company_by_domain(sender_domain)
+                                            if mapped_domain_company and mapped_domain_company.lower() == company.lower():
+                                                ml_label = "other"
+                                    
+                                    # Apply internal recruiter override - check original ML prediction
+                                    # Only override to 'other' for generic spam, preserve meaningful labels
+                                    original_ml_label = result_dict.get("ml_label") or result_dict.get("label")
+                                    if original_ml_label == "head_hunter":
+                                        from parser import _map_company_by_domain, HEADHUNTER_DOMAINS
+                                        if sender_domain and sender_domain not in HEADHUNTER_DOMAINS:
+                                            mapped_company = _map_company_by_domain(sender_domain)
+                                            if mapped_company and ml_label not in ("interview_invite", "rejection", "job_application", "offer"):
+                                                ml_label = "other"
+                                    
+                                    # Check if sender domain is in personal domains list - override to noise
+                                    from parser import PERSONAL_DOMAINS
+                                    if sender_domain and sender_domain.lower() in PERSONAL_DOMAINS:
+                                        ml_label = "noise"
                                     
                                     # Update message
                                     msg.ml_label = ml_label

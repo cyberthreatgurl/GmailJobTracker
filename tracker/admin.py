@@ -131,7 +131,7 @@ class MessageAdmin(admin.ModelAdmin):
         """Add custom URL for .eml file upload."""
         urls = super().get_urls()
         custom_urls = [
-            path('upload-eml/', self.admin_site.admin_view(self.upload_eml_view), name='message_upload_eml'),
+            path('upload-eml/', self.admin_site.admin_view(self.upload_eml_view), name='tracker_message_upload_eml'),
         ]
         return custom_urls + urls
     

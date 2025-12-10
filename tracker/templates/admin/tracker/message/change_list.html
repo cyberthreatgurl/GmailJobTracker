@@ -1,0 +1,10 @@
+{% extends "admin/change_list.html" %}
+
+{% block object-tools-items %}
+    <li>
+        <a href="{% url 'admin:message_upload_eml' %}" class="addlink">
+            Upload .eml File
+        </a>
+    </li>
+    {{ block.super }}
+{% endblock %}

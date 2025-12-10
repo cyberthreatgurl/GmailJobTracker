@@ -370,29 +370,11 @@ def predict_with_fallback(
             print(f"[DEBUG predict_with_fallback] body first 500 chars: {body[:500]}")
 
     # If rule_label returned a result, use it authoritatively (skip ML overrides)
+    # BUT preserve the original ML prediction for downstream override logic
     if rl is not None:
         if DEBUG:
             print(f"[DEBUG predict_with_fallback] Using rule-based label '{rl}' authoritatively")
-        return {"label": rl, "confidence": 1.0, "fallback": "rule"}
-
-    # Safety override: If ML strongly predicts a head_hunter/referral but the
-    # sender domain maps to a known company, this is likely a company job-alert
-    # or mailing (not a recruiter outreach). Treat these as 'noise' instead of
-    # head_hunter/referral to reduce false positives (e.g., career mailers).
-    try:
-        ml_label = (ml.get("label") if isinstance(ml, dict) else None)
-    except Exception:
-        ml_label = None
-    if ml_label in ("head_hunter", "referral"):
-        d = (sender_domain or "").lower()
-        try:
-            if d and _map_company_by_domain(d):
-                if DEBUG:
-                    print(f"[DEBUG predict_with_fallback] Overriding ML '{ml_label}' -> 'noise' because domain maps to known company: {d}")
-                return {"label": "noise", "confidence": 1.0, "fallback": "ml_domain_company_override"}
-        except Exception:
-            # If domain-mapping fails for any reason, fall through to normal logic
-            pass
+        return {"label": rl, "confidence": 1.0, "fallback": "rule", "ml_label": ml.get("label") if ml else None}
 
     # (scheduling-language authoritative override removed — revert to earlier behavior)
 
@@ -413,7 +395,7 @@ def predict_with_fallback(
         if (is_ats_or_company or has_ats_marker) and is_application_related(subject, body):
             if DEBUG:
                 print("[DEBUG predict_with_fallback] OVERRIDING ML -> job_application because ATS/company cues + application patterns present (rl was None)")
-            return {"label": "job_application", "confidence": 1.0, "fallback": "rules_override"}
+            return {"label": "job_application", "confidence": 1.0, "fallback": "rules_override", "ml_label": ml.get("label") if ml else None}
 
     # Targeted override: If rules detect a job_application and sender/domain or
     # body contain ATS/company cues (Workday, iCIMS, Indeed, List-Unsubscribe, etc.),
@@ -433,7 +415,7 @@ def predict_with_fallback(
         if is_ats_or_company or has_ats_marker:
             if DEBUG:
                 print("[DEBUG predict_with_fallback] OVERRIDING ML for job_application due to ATS/company cues")
-            return {"label": "job_application", "confidence": 1.0, "fallback": "rules_override"}
+            return {"label": "job_application", "confidence": 1.0, "fallback": "rules_override", "ml_label": ml.get("label") if ml else None}
 
     # Targeted rule: If rules detected a rejection or an interview-invite
     # coming from an ATS/company (or body contains ATS markers) AND the
@@ -455,7 +437,7 @@ def predict_with_fallback(
         if (is_ats_or_company or has_ats_marker) and is_application_related(subject, body):
             if DEBUG:
                 print(f"[DEBUG predict_with_fallback] OVERRIDING ML with rule {rl} because ATS cues + application patterns present")
-            return {"label": rl, "confidence": 1.0, "fallback": "rules_override"}
+            return {"label": rl, "confidence": 1.0, "fallback": "rules_override", "ml_label": ml.get("label") if ml else None}
     
     # Allow 'other' to override when ML is trying to force job_application for reminder nudges
     # Treat certain rule labels as high-priority authoritative signals
@@ -464,21 +446,21 @@ def predict_with_fallback(
     if rl in ("noise", "offer", "head_hunter", "other", "job_application", "rejection"):
         if DEBUG:
             print(f"[DEBUG predict_with_fallback] OVERRIDING ML with rules: {rl}")
-        return {"label": rl, "confidence": 1.0, "fallback": "rules_override"}
+        return {"label": rl, "confidence": 1.0, "fallback": "rules_override", "ml_label": ml.get("label") if ml else None}
 
     # Targeted override: Indeed Application confirmations should override ML
     # even if ML predicts interview_invite with high confidence.
     if rl == "job_application" and subject and re.search(r"^Indeed\s+Application:\s*", subject, re.I):
         if DEBUG:
             print("[DEBUG predict_with_fallback] OVERRIDING ML for Indeed Application confirmation -> job_application")
-        return {"label": "job_application", "confidence": 1.0, "fallback": "rules_override"}
+        return {"label": "job_application", "confidence": 1.0, "fallback": "rules_override", "ml_label": ml.get("label") if ml else None}
     
     # If ML confidence is low, use rules as fallback
     if not ml or conf < threshold:
         if rl:
             if DEBUG:
                 print(f"[DEBUG predict_with_fallback] Using rules fallback (low confidence): {rl}")
-            return {"label": rl, "confidence": conf, "fallback": "rules"}
+            return {"label": rl, "confidence": conf, "fallback": "rules", "ml_label": ml.get("label") if ml else None}
     
     if ml and "confidence" not in ml and "proba" in ml:
         ml = {**ml, "confidence": float(ml["proba"])}
@@ -1637,6 +1619,20 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
             "ignore": True,
         }
 
+    # Override internal referrals: If label is "referral" or "interview_invite" but sender domain 
+    # matches company domain, this is an internal referral/introduction (employee introducing someone),
+    # so label as "other"
+    if label in ("referral", "interview_invite") and sender_domain and company:
+        # Check if sender domain matches company domain
+        company_domain = _map_company_by_domain(sender_domain)
+        if company_domain and company_domain.lower() == company.lower():
+            # Additional check: if body contains "introduce" or "introduction", it's definitely internal
+            body_lower = (body or "").lower()
+            if "introduce" in body_lower or "introduction" in body_lower or label == "referral":
+                if DEBUG:
+                    print(f"[DEBUG] Internal referral/introduction detected: sender domain {sender_domain} matches company {company}, overriding to 'other'")
+                label = "other"
+
     return {
         "company": normalize_company_name(company),
         "job_title": job_title,
@@ -1809,6 +1805,19 @@ def ingest_message(service, msg_id):
         if DEBUG:
             print(f"[PATCH] Overriding label to 'other' and company to {company} for user-sent message.")
 
+    # If parse_subject detected internal referral and overrode label to 'other', apply to result
+    if parsed_subject.get("label") == "other" and isinstance(result, dict) and result.get("label") in ("referral", "interview_invite"):
+        sender_domain = metadata.get("sender_domain")
+        if sender_domain:
+            from_company = parsed_subject.get("company") or parsed_subject.get("predicted_company")
+            if from_company:
+                mapped_domain_company = _map_company_by_domain(sender_domain)
+                if mapped_domain_company and mapped_domain_company.lower() == from_company.lower():
+                    result = dict(result)  # Create mutable copy
+                    result["label"] = "other"
+                    if DEBUG:
+                        print(f"[INTERNAL REFERRAL] Overriding result label to 'other' for internal referral: {sender_domain} matches {from_company}")
+
     if parsed_subject.get("ignore"):
         if DEBUG:
             print(f"Ignored by ML: {metadata['subject']}")
@@ -1878,6 +1887,51 @@ def ingest_message(service, msg_id):
     # respected when deciding final labels stored in the DB.
     result = predict_with_fallback(predict_subject_type, subject, body, threshold=0.55, sender=sender)
 
+    # Apply internal recruiter override - check if ML originally predicted head_hunter
+    # Only override to 'other' for generic recruiting spam, preserve meaningful labels
+    if isinstance(result, dict):
+        ml_label = result.get("ml_label") or result.get("label")  # Check original ML prediction
+        final_label = result.get("label")
+        
+        if ml_label == "head_hunter":
+            sender_domain = metadata.get("sender_domain")
+            if sender_domain and sender_domain not in HEADHUNTER_DOMAINS:
+                mapped_company = _map_company_by_domain(sender_domain)
+                if mapped_company:
+                    # Check if this is a meaningful application lifecycle event
+                    # For job_application: only preserve if it has ATS markers (real application confirmation)
+                    # Otherwise it's likely just a generic email mentioning "job submission" in subject
+                    if final_label == "job_application":
+                        # Check for ATS markers to confirm it's a real application
+                        body_lower = (body or "").lower()
+                        ats_markers = ["workday", "myworkday", "taleo", "icims", "indeed", "list-unsubscribe", "one-click"]
+                        has_ats_marker = any(marker in body_lower for marker in ats_markers)
+                        
+                        if not has_ats_marker:
+                            # No ATS markers - this is generic recruiter communication, not real application
+                            result = dict(result)
+                            result["label"] = "other"
+                            if DEBUG:
+                                print(f"[INTERNAL RECRUITER] Overriding job_application to 'other' (no ATS markers) for internal recruiter: {sender_domain} → {mapped_company}")
+                        elif DEBUG:
+                            print(f"[INTERNAL RECRUITER] Preserving job_application (has ATS markers) from internal recruiter: {sender_domain} → {mapped_company}")
+                    elif final_label not in ("interview_invite", "rejection", "offer"):
+                        # Override generic labels to 'other'
+                        result = dict(result)
+                        result["label"] = "other"
+                        if DEBUG:
+                            print(f"[INTERNAL RECRUITER] Overriding {final_label} to 'other' for internal recruiter from company domain: {sender_domain} → {mapped_company}")
+                    elif DEBUG:
+                        print(f"[INTERNAL RECRUITER] Preserving meaningful label '{final_label}' from internal recruiter: {sender_domain} → {mapped_company}")
+
+    # Check if sender domain is in personal domains list - override to noise
+    sender_domain = metadata.get("sender_domain", "").lower()
+    if sender_domain and sender_domain in PERSONAL_DOMAINS:
+        if DEBUG:
+            print(f"[PERSONAL DOMAIN] Detected personal domain: {sender_domain}, overriding to 'noise'")
+        result = dict(result)
+        result["label"] = "noise"
+
     # Apply downgrade/upgrade logic for consistency with parse_subject
     subject_clean = re.sub(r"^(Re|RE|Fwd|FW|Fw):\s*", "", subject, flags=re.IGNORECASE).strip()
     subj_lower = subject_clean.lower()
@@ -1898,9 +1952,12 @@ def ingest_message(service, msg_id):
     
     # Upgrade: Calendar meeting invites with meeting details should be interview_invite
     # if they're from a company and have meeting/interview/call language
-    if result and result.get("label") in ("other", "response"):
-        has_meeting_details = bool(re.search(r"meeting id|passcode|join.*meeting|zoom\.us|meet\.google|teams\.microsoft", body, re.I))
-        has_interview_language = bool(re.search(r"\b(interview|meeting|call|discussion|screen|chat)\b", subj_lower))
+    # Also check job_application since rules may have overridden based on subject alone
+    if result and result.get("label") in ("other", "response", "job_application"):
+        has_meeting_details = bool(re.search(r"meeting id|passcode|join.*meeting|zoom\.us|meet\.google|teams\.microsoft|ms teams|microsoft teams", body, re.I))
+        # Check subject AND body for interview language (sometimes subject is generic like "Job Submission")
+        has_interview_language = bool(re.search(r"\b(interview|meeting|call|discussion|screen|chat)\b", subj_lower)) or \
+                                 bool(re.search(r"\b(interview|meeting|call|discussion|screen|chat)\b", body, re.I))
         
         # Check if sender is from a company domain (not personal)
         sender_domain = metadata.get("sender_domain", "").lower()
@@ -3148,6 +3205,39 @@ def ingest_message_from_eml(eml_content: str, fake_msg_id: str = None):
         company = parse_result.get("company") or parse_result.get("predicted_company")
     elif isinstance(parse_result, str):
         company = parse_result
+    
+    # If parse_subject detected internal referral and overrode label to 'other', apply to result
+    if isinstance(parse_result, dict) and parse_result.get("label") == "other" and ml_label in ("referral", "interview_invite"):
+        sender_domain = metadata.get("sender_domain")
+        if sender_domain and company:
+            mapped_domain_company = _map_company_by_domain(sender_domain)
+            if mapped_domain_company and mapped_domain_company.lower() == company.lower():
+                ml_label = "other"
+                if DEBUG:
+                    print(f"[EML INTERNAL REFERRAL] Overriding ml_label to 'other' for internal referral: {sender_domain} matches {company}")
+    
+    # If ML originally predicted head_hunter but sender domain maps to actual company (internal recruiter),
+    # override to 'other' only for generic spam, preserve meaningful labels
+    original_ml_label = result.get("ml_label") or result.get("label")  # Check original ML prediction
+    if original_ml_label == "head_hunter":
+        sender_domain = metadata.get("sender_domain")
+        if sender_domain and sender_domain not in HEADHUNTER_DOMAINS:
+            mapped_company = _map_company_by_domain(sender_domain)
+            if mapped_company:
+                # Preserve meaningful application lifecycle labels
+                if ml_label not in ("interview_invite", "rejection", "job_application", "offer"):
+                    ml_label = "other"
+                    if DEBUG:
+                        print(f"[EML INTERNAL RECRUITER] Overriding to 'other' for internal recruiter from company domain: {sender_domain} → {mapped_company}")
+                elif DEBUG:
+                    print(f"[EML INTERNAL RECRUITER] Preserving meaningful label '{ml_label}' from internal recruiter: {sender_domain} → {mapped_company}")
+    
+    # Check if sender domain is in personal domains list - override to noise
+    sender_domain = metadata.get("sender_domain", "").lower()
+    if sender_domain and sender_domain in PERSONAL_DOMAINS:
+        if DEBUG:
+            print(f"[EML PERSONAL DOMAIN] Detected personal domain: {sender_domain}, overriding to 'noise'")
+        ml_label = "noise"
     
     if DEBUG:
         print(f"[EML] Parsed company: {company}")

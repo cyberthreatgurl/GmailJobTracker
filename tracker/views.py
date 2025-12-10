@@ -1316,8 +1316,8 @@ def build_sidebar_context():
     applications_week_qs = applications_week_qs.exclude(company__status="headhunter")
     if headhunter_domains:
         applications_week_qs = applications_week_qs.exclude(msg_hh_sender_q)
-    # Count distinct companies
-    applications_week = applications_week_qs.values("company_id").distinct().count()
+    # Count total application messages
+    applications_week = applications_week_qs.count()
 
     # Count rejection messages this week (exclude headhunters and user's own replies)
     rejections_qs = Message.objects.filter(
@@ -1950,17 +1950,14 @@ def dashboard(request):
                     msg_hh_q |= Q(sender__icontains=f"@{d}")
                 apps_msg_q = apps_msg_q.exclude(msg_hh_q)
             
-            # Group by day and count distinct companies (same logic as sidebar)
+            # Group by day and count total application messages
             apps_by_day = (
                 apps_msg_q.annotate(day=TruncDate("timestamp"))
-                .values("day", "company_id")
-                .distinct()
+                .values("day")
+                .annotate(count=Count("id"))
             )
-            # Count companies per day
-            apps_map = {}
-            for r in apps_by_day:
-                day = r["day"]
-                apps_map[day] = apps_map.get(day, 0) + 1
+            # Map application count per day
+            apps_map = {r["day"]: r["count"] for r in apps_by_day}
             
             data = [apps_map.get(d, 0) for d in app_date_list]
         elif ml_label == "rejected":

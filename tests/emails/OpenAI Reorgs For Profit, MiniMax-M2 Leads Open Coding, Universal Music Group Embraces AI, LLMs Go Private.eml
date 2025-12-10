@@ -1,0 +1,2353 @@
+Delivered-To: kaver68@gmail.com
+Received: by 2002:a05:6a06:3f16:b0:759:c014:44a5 with SMTP id gl22csp172838pib;
+        Wed, 5 Nov 2025 12:12:14 -0800 (PST)
+X-Google-Smtp-Source: AGHT+IHA9aMmEUllptRIb+gWE2YZAj2H9PvHJg5VbOH5M8QlMZMoRvM41DDGCX0PnvsbC8GJQ/OV
+X-Received: by 2002:ad4:5c8d:0:b0:880:3eb3:3b0a with SMTP id 6a1803df08f44-88082835121mr11051686d6.4.1762373533949;
+        Wed, 05 Nov 2025 12:12:13 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1762373533; cv=none;
+        d=google.com; s=arc-20240605;
+        b=MMb7ikBOMk0A3jMrRfChYAnTtwkZdRFkvdXPY9WwmL3OkOe8PL1Rn72tr7KFOTDBVk
+         6GkDh9BexRCXvqq2B5EDA5M9Q/2PXuheXmRvq5S8/Gb/nuWlOQNk+ePNO8q4iswnw1oQ
+         BeXIhQVTkWkqZfRHVZmoUX/QlxV3P3YEz7EFw+DCPasSATsb3w5hxEoaM2oeEEQ+QdjB
+         32LOSmEC85guObUeWJCoohXqlmbrB3dvmol3H6F9ACPFQlWrqtOVuwRGDFrEyrh+6P46
+         QEYu/qAFirkV5Vbvyfxd7ijYhk1HY5EcIaEHWzb1bJJEY0FXlGBU7DgSgt07VTsQ6mpC
+         JvYQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=feedback-id:list-unsubscribe-post:precedence:mime-version:subject
+         :message-id:to:reply-to:from:date:list-unsubscribe:dkim-signature
+         :dkim-signature;
+        bh=P7PFTxOvQZBlBe3laC6GvIPSPmKmFkcys8Im13AlE6U=;
+        fh=G/VLhrQnXiN6LciSgCgIU9VM0fr+1O2AyqFGWpHCjzw=;
+        b=J3nAZ59eieN+PGltXN79Na/8rgqO230EN0YDz6WRTdlnKmyNdZG5KdfBEiDBqs2YzW
+         aPNXkPTn0YygpKbYkWQ/ZkZzol5hwplNOonQfqwUVwYWkyfGi2vjLH0lJHf+JBloME7k
+         uCFYI6AW55wnYW1mjdJxOTrBGQSl/0lcyw37G/SsxszXsjUuD9W0kfviUQ9N9S4lB4N2
+         aWx+HBHCQ4JEHCUn4Zc2HSTMLjVsFO8pz8tt+/6mc2z5FsNETx9a/2x9eOq0zdXgHrVz
+         Gi0Lr3GQMKekgPZVkvldyqtslkzJtIy7z0rUgj63aqTuZccAS4EaRkdP2IdkHcB/q8EL
+         LQmA==;
+        dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@bf54x.hubspotemail.net header.s=hs2 header.b=V8ZcWOnm;
+       dkim=pass header.i=@deeplearning.ai header.s=hs1-5871640 header.b=PXGGzkSN;
+       spf=pass (google.com: domain of 1axbz93e6ea8dywht3n0r5agvvveb0rpzd0qs7-kaver68=gmail.com@bf54x.hubspotemail.net designates 143.244.91.26 as permitted sender) smtp.mailfrom="1axbz93e6ea8dywht3n0r5agvvveb0rpzd0qs7-kaver68=gmail.com@bf54x.hubspotemail.net";
+       dmarc=pass (p=NONE sp=NONE dis=NONE) header.from=deeplearning.ai
+Return-Path: <1axbz93e6ea8dywht3n0r5agvvveb0rpzd0qs7-kaver68=gmail.com@bf54x.hubspotemail.net>
+Received: from bd77gks.bf54x.hubspotemail.net (bd77gks.bf54x.hubspotemail.net. [143.244.91.26])
+        by mx.google.com with ESMTPS id 6a1803df08f44-88082b55b54si1441936d6.890.2025.11.05.12.12.13
+        for <kaver68@gmail.com>
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 05 Nov 2025 12:12:13 -0800 (PST)
+Received-SPF: pass (google.com: domain of 1axbz93e6ea8dywht3n0r5agvvveb0rpzd0qs7-kaver68=gmail.com@bf54x.hubspotemail.net designates 143.244.91.26 as permitted sender) client-ip=143.244.91.26;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@bf54x.hubspotemail.net header.s=hs2 header.b=V8ZcWOnm;
+       dkim=pass header.i=@deeplearning.ai header.s=hs1-5871640 header.b=PXGGzkSN;
+       spf=pass (google.com: domain of 1axbz93e6ea8dywht3n0r5agvvveb0rpzd0qs7-kaver68=gmail.com@bf54x.hubspotemail.net designates 143.244.91.26 as permitted sender) smtp.mailfrom="1axbz93e6ea8dywht3n0r5agvvveb0rpzd0qs7-kaver68=gmail.com@bf54x.hubspotemail.net";
+       dmarc=pass (p=NONE sp=NONE dis=NONE) header.from=deeplearning.ai
+Received: by 172.16.157.3 with SMTP id a0b2377bl4ybydvdtrdmrfh02uz2jrt3f1t5l5l3qvc;
+        Wed, 5 Nov 2025 20:12:04 GMT
+DKIM-Signature: v=1; s=hs2; d=bf54x.hubspotemail.net; 
+        i=@bf54x.hubspotemail.net; 
+        h=sender:from:from:reply-to:to:to:cc:cc:subject:subject:list-unsubscribe:form-sub:feedback-id:list-unsubscribe-post; 
+        a=rsa-sha256; c=relaxed/relaxed; 
+        bh=P7PFTxOvQZBlBe3laC6GvIPSPmKmFkcys8Im13AlE6U=; 
+        b=V8ZcWOnmOjEgCUqzV2CLb+xwdQehjbiNLm0DgzgnAhxnKGhZxNxCST3tQSD0Mq
+         Ih9tgFw64hdIsnkNEbP9HNHt5QCUdnBf+YAQEI6cx4Ndl1Ybbh+cLBNQ3Su2YKm
+         OghwW2CICAs3VzLhFep3wWKATe8WUqAANfifGjzlmVD3OJwiTKItGhHaGgHiBPl
+         m3vfMf7Cdd83HkA5SHECV9JvCOTyURpt4UdmO0JPlFVm3FBBQh6eUa9CkAAFLUV
+         hv77IXrhCZVxcGDiAroCDWuf1nzDWOzURC8QYdXW0KZAlW6SvQfRtDF0U11fpv9
+         lU0cV/TJhkSyGTC+wIDYqr6asX8g==; q=dns/txt; t=1762373524; 
+        x=1762636324;
+DKIM-Signature: v=1; s=hs1-5871640; d=deeplearning.ai; 
+        i=@deeplearning.ai; 
+        h=sender:from:from:reply-to:to:to:cc:cc:subject:subject:list-unsubscribe:form-sub:feedback-id:list-unsubscribe-post; 
+        a=rsa-sha256; c=relaxed/relaxed; 
+        bh=P7PFTxOvQZBlBe3laC6GvIPSPmKmFkcys8Im13AlE6U=; 
+        b=PXGGzkSNd6cef84sjXw0mJNdvNAQmeTq4zF5Blx7QyqaOWM79Wtlti9oMgn7hv
+         BNlpXKrJsmbWM8WIj0OT7TLf4l8jDZr4gJGA1e5qQNSQyJDX3SEhmqhYauw4R8W
+         qlUy2DxwzbNhZonqS3o1bBscpnG/IRkHw5jrk49ncTyNgW40v+Hzj8XkVEnLTRt
+         CG8D6rNMIcQ1QyTdEyGmJ2TGzRlXhXS2vUFyJidMpyFYMximCdG2EMZf7Ms0CiW
+         ed+ifFuxisqz/JzRd06U1IdaUS1vS/x24D0Qmy0IdjUJqZ71czin8clIpIA8TpS
+         qydnyFc3YDSsTriovTIrq8jtIIqA==; q=dns/txt; t=1762373524; 
+        x=1762636324;
+Return-Path: <1axbz93e6ea8dywht3n0r5agvvveb0rpzd0qs7-kaver68=gmail.com@bf54x.hubspotemail.net>
+X-HS-Cid: 1axe78yc347xuo4li5dmdy5frzom3ojycitrcr
+List-Unsubscribe: <mailto:1axcxmlog7rh21oxrc3k6alwlrzt36m9e4zz47-kaver68=gmail.com@bf54x.hubspotemail.net?subject=unsubscribe>, <https://info.deeplearning.ai/hs/subscription-preferences/v2/unsubscribe-all?data=W2nXS-N30h-MBW32bryt2TsL_BW4p7kbk2KXfv0W362sRs2WwsMSW4hDj702sBCNtW34rtbk2MLSCyW47TCjF2-MnCbW3B-wk-2CLWspW1Zdtq-2p0XgQW2PtZYx3C1TmtW2qTmSl2MDh9kW2-CnH44ksLyyW38j2jR47WhsyW3SN8X41XwdwhW2KWS_q3yZ6WNW2vM6JN1Qm8yBW4pGc042MVT8FW1SgmjC3F1M6lW3XHZZ347kv81W4mL5mz3dt7QRW3b9XN51Xh8QMW3zg6kP3XPrtfW3K6H1h3Q_qJBW2KXj_B3ZTQDlW2w40Hg3jsQyQW2Kz4Z73LXgYvW41RJnp2HXXMJW4mznVb2zHJJ7W2r40BX3DSjwtW2FMvY421nSgCW1L3JC73y-hXSW2WHB4J2MQHshW2-LtPk47y2qyW367x1F1_j0-jW4cgxg92PLJVnW4kfz3Q1S1sSbW3FfMF545FdC1W2HZCmd4pj26jW3QQsxM2Kz3m-W41BKVR43T9lNW2RJRQz1S3_yzW36Ct9849vQ-9W1Qg6HM3SPQf1W2C-0wH36m3PMW2zXJHY36FWftW1Sx3Gq4rm90cW3Kd5kh2FW0gxW254YFF2zG3_bW2-LsnY2-MPW9f3SyWCT04>
+Date: Wed, 5 Nov 2025 12:12:04 -0800
+From: "The Batch @ DeepLearning.AI" <thebatch@deeplearning.ai>
+Reply-To: thebatch@deeplearning.ai
+To: kaver68@gmail.com
+Message-ID: <1762373474621.4a45b360-4c62-4e38-b79c-fe529103a782@bf54x.hubspotemail.net>
+Subject: OpenAI Reorgs For Profit, MiniMax-M2 Leads Open Coding, Universal
+ Music Group Embraces AI, LLMs Go Private
+MIME-Version: 1.0
+Content-Type: multipart/alternative; 
+	boundary="----=_Part_56567_64926651.1762373524333"
+Precedence: bulk
+X-Report-Abuse-To: abuse@hubspot.com (see
+ https://policy.hubspot.com/abuse-complaints)
+List-Unsubscribe-Post: List-Unsubscribe=One-Click
+Feedback-ID: aedr4ve:aigpmkne:aidf:HubSpot
+
+------=_Part_56567_64926651.1762373524333
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+AI agents are getting better at looking at different types of data in a bus=
+iness to spot patterns and create value.
+
+View in browser (https://info.deeplearning.ai/e3t/Ctc/LX+113/cJhC404/VVY1kt=
+3x0f1HW23X0RT30X8qQW4Mw1s55FwPmLN2dmMxz5m_5PW8wM7ks6lZ3n1W1zvW3134h0n0N2Nxs=
+fSbb_BPW1257zQ2Xg_sBW94Dqjs6RXdtzW98SNyy952PwGVGgf028jBZQnW31scxx7vN0-SW1Ny=
+hKK81BHXPW1F5DSt3lnWv0W2NzVPQ8T7W5mW2twg0C1pHV46W3bGfdF2QW6phW8dmzRS1xXMYgV=
+Vjt8v8PHWXCW6QSzJF1jGBZwW5VWGVX83jf2CW26gfbN6jfCNQW5HbwWV927q8-VH5H6k3HgDMr=
+W2qK6dv6wyJqcW3RhwNf7msytKW3kcMDq2ybH9vVlmh0n7NKz-bVxDbMx1K0rWsW8kTyGt4WPnV=
+QV_qmgS7_vPPtW3d0QP56LdbzKW1c5-lh64DyDrVT0tPS5ZKMDXW2zHrss3g6K9_W380DB-89lB=
+V7W5Vg5x85nYfCtW7TSPqn5d_4pxW3pF3vS7zCScgW2Wpb_F3vK_3FW3FGF0G5lk7CDW5zVLyQ4=
+vjsWfW3Zc3rZ132ZYHW1BJCTn5b5bFhW4J6qsl8gvrKcW2mVLnR7ly-dSW8vzl6K1W4LYbVDkrp=
+J4K5KssW5zySVl1W2T9Hf2TmFb-04 )
+
+The Batch top banner - November 5, 2025 (https://info.deeplearning.ai/e3t/C=
+tc/LX+113/cJhC404/VVY1kt3x0f1HW23X0RT30X8qQW4Mw1s55FwPmLN2dmMwH3prCCW6N1vHY=
+6lZ3mFW7X0DjC6ZHNmWW53vSBm3bwPYzW8TZB3F1GhBxZW2RZrYr2rj6mmW27KXCz61SWwQW6pP=
+s1R7wqf8nW3mhwBw4LQd4yW2nKwgv5kMFqrW6f3wgH5vHQjxW1b-z0c2wwCMMW1h95r17zTRkvW=
+9kS-qd507FZ-W6j5gMk86CTNZV6B0_s56Fw6NN4wJw5qlSzwgW5J1X_Z7T3rXwW7Wwj7t4L9xy_=
+W381-Vt7cKn42N4hm5jH8WYC4VZyGCR3VF6MBW3JFm1G1Kx_1wW7nZhTl8c90_1dnY4zR04 )
+
+Subscribe (https://info.deeplearning.ai/e3t/Ctc/LX+113/cJhC404/VVY1kt3x0f1H=
+W23X0RT30X8qQW4Mw1s55FwPmLN2dmMwH3l5QzW6N1vHY6lZ3nsW6K86z67z2l9HW1qsmQq4MyY=
+JrW98Nw3k4M1jLCW3lHWDf1RNlpWW2-j0d37zSChZW4hLQ5V660SDlVjvVJb6LpkTLVnbcrq4Fw=
+D4dW1V5qCC5XxDgYW4M3TLT4vCqvbVGp1X11CW0lnN96kZdqWhD0WW4sFjmy3FPmByW155rp63K=
+mz0DW4pkD4s3Zrrp4W2sx5SH15gVwHW118gxX6NF22YW1TXY3Z9j8vLlW252SjV7bt_KfN1JM-Y=
+Zn57hYW10mqnL97j7vZW5wcm9t8lMjt9f7kgq6H04 )   Submit a tip (mailto:thebatch=
+@deeplearning.ai?subject=3DRE%3A%20Tips%20and%20News)
+
+Dear friends,
+
+AI agents are getting better at looking at different types of data in busin=
+esses to spot patterns and create value. This is making data silos increasi=
+ngly painful. This is why I increasingly try to select software that lets m=
+e control my own data, so I can make it available to my AI agents.
+
+Because of AI=E2=80=99s growing capabilities, the value you can now create =
+from =E2=80=9Cconnecting the dots=E2=80=9D between different pieces of data=
+ is higher than ever. For example, if an email click is logged in one vendo=
+r=E2=80=99s system and a subsequent online purchase is logged in a differen=
+t one, then it is valuable to build agents that can access both of these da=
+ta sources to see how they correlate to make better decisions.
+
+Unfortunately, many SaaS vendors try to create a data silo in their custome=
+r=E2=80=99s business. By making it hard for you to extract your data, they =
+create high switching costs. This also allows them to steer you to buy thei=
+r AI agent services =E2=80=94 sometimes at high expense and/or of low quali=
+ty =E2=80=94 rather than build your own or buy from a different vendor. Unf=
+ortunately, some SaaS vendors are seeing AI agents coming for this data and=
+ working to make it harder for you (and your AI agents) to efficiently acce=
+ss it.
+
+One of my teams just told me that a SaaS vendor we have been using to store=
+ our customer data wants to charge over $20,000 for an API key to get at ou=
+r data. This high cost =E2=80=94 no doubt intentionally designed to make it=
+ hard for customers to get their data out =E2=80=94 is adding a barrier to =
+implementing agentic workflows that take advantage of that data.
+
+Through AI Aspire (an AI advisory firm), I occasionally advise businesses o=
+n their AI strategies. When it comes to buying SaaS, I often advise them to=
+ try to control their own data (which, sadly, some vendors mightily resist)=
+. This way, you can hire a SaaS vendor to record and operate on your data, =
+but ultimately you decide how to route it to the appropriate human or AI sy=
+stem for processing.
+
+Over the past decade, a lot of work has gone into organizing businesses=E2=
+=80=99 structured data. Because AI can now process unstructured data much b=
+etter than before, the value of organizing your unstructured data (includin=
+g PDF files, which LandingAI=E2=80=99s Agentic Document Extraction speciali=
+zes in!) is higher than ever before.
+
+In the era of generative AI, businesses and individuals have important work=
+ ahead to organize their data to be AI-ready.
+
+Keep building,
+
+Andrew
+
+P.S. As an individual, my favorite note-taking app is Obsidian (https://inf=
+o.deeplearning.ai/e3t/Ctc/LX+113/cJhC404/VVY1kt3x0f1HW23X0RT30X8qQW4Mw1s55F=
+wPmLN2dmMwn3prCCW69sMD-6lZ3lpW1n1_Dm5dchnHW3Lq6R45YhhCtW67_zFn9f_CZqW3nr5z_=
+4kBDWNW5kFvx41-Fqc1N72mhYfVkz52W2mHrDB1HvP74W53NR4Z4P5KbyVFKrS37_MrMdW3gfbj=
+s8_CMydW1RsV6L83CwRlVKqwbh4rnXfrW7YN7s569VrRDN86h8Q5hl5y-W6yK97l9fGt5WV5jDf=
+k3Sqz56Vw8Cj23mjQBbW3CKbJT3b1MkQW3V5Vhg46G-32W5mFD7l55LFCCf3cGwz804 ) . I a=
+m happy to =E2=80=9Chire=E2=80=9D Obsidian to operate on my notes files. An=
+d, all my notes are saved as Markdown files in my file system, and I have b=
+uilt AI agents that read from or write to my Obsidian files. This is a smal=
+l example of how controlling my own notes data lets me do more with AI agen=
+ts!
+
+A MESSAGE FROM DEEPLEARNING.AI (https://info.deeplearning.ai/e3t/Ctc/LX+113=
+/cJhC404/VVY1kt3x0f1HW23X0RT30X8qQW4Mw1s55FwPmLN2dmMwn3prCCW69sMD-6lZ3mJW5z=
+YmPQ7H2JrnN45j18wC3kxrVNHdly6RBXNTW4rH4SV7Bq8rTW6gD8Rc3PVvdQN7RKvMw2cMLXW5D=
+5gkt18JF1nM324zYlcl8VW8VlvTr6LF8B0W8ry9lt1Dg9DnN6hxjm4DxTdlW6HyNXG2pqMgYW9h=
+FttT3M6Z6gW5CbkZ42hXGjhW166BmD7Cpf5VW33tfq_6fyBXjW3Z_Cx76SCFGmW14-smB5cJ4BB=
+W8qMsNP69b-9WN8WyzrsrQYxgf70DKp204 )
+
+Promo banner for: "Jupyter AI: AI Coding in Notebooks" (https://info.deeple=
+arning.ai/e3t/Ctc/LX+113/cJhC404/VVY1kt3x0f1HW23X0RT30X8qQW4Mw1s55FwPmLN2dm=
+Mxg3prCCW7Y8-PT6lZ3lJW61BKKF3s3JYtW8ghkLR6phLddW3VbzzH2w78YyW7J7_VB8B5n1SW1=
+N42Km8zhwH_N5djZf12_sfFW6Y9Njn4K_RY3W7Nj94n4VZTM1N7FGPpwP984YW4bXWXC1gtH9nW=
+6Bq7wN2c1n9RW26tkfy8xHfqpW3pqYtV6D-g4PW9kVqJg7pQ8g1W65-9mx1WVFlQN7vpW49n-Xl=
+nW7FY7dZ2c6yY7W8TtYqd2vZnd1W58PtyV24nY4cMDbcDGwbThMW5Wk_ZC1GK4mfW8HhcyW9gBV=
+n_W8JzJMT5Ymy_4W71NS1R2YTH2mV5pBNF3rmZDLW1fXsp-2DGjwTf4Q9hVY04 )
+
+In Jupyter AI: AI Coding in Notebooks, Andrew Ng and Brian Granger (co-foun=
+der of Project Jupyter) teach you to use Jupyter AI as your notebook coding=
+ partner. Learn to generate, refactor, and debug code through an integrated=
+ chat interface. Available now at DeepLearning.AI. Enroll today! (https://i=
+nfo.deeplearning.ai/e3t/Ctc/LX+113/cJhC404/VVY1kt3x0f1HW23X0RT30X8qQW4Mw1s5=
+5FwPmLN2dmMxg3prCCW7Y8-PT6lZ3lJW61BKKF3s3JYtW8ghkLR6phLddW3VbzzH2w78YyW7J7_=
+VB8B5n1SW1N42Km8zhwH_N5djZf12_sfFW6Y9Njn4K_RY3W7Nj94n4VZTM1N7FGPpwP984YW4bX=
+WXC1gtH9nW6Bq7wN2c1n9RW26tkfy8xHfqpW3pqYtV6D-g4PW9kVqJg7pQ8g1W65-9mx1WVFlQN=
+7vpW49n-XlnW7FY7dZ2c6yY7W8TtYqd2vZnd1W58PtyV24nY4cMDbcDGwbThMW5Wk_ZC1GK4mfW=
+8HhcyW9gBVn_W8JzJMT5Ymy_4W71NS1R2YTH2mV5pBNF3rmZDLW1fXsp-2DGjwTf4Q9hVY04 )
+
+News
+
+OpenAI Reorganizes For Profit
+
+OpenAI completed its transition from nonprofit to for-profit in a feat of l=
+egal engineering that took an army of lawyers, investment bankers, and two =
+state attorneys general 18 months to negotiate.
+
+What=E2=80=99s new: The restructured OpenAI Group PBC is a public benefit c=
+orporation, a for-profit company with a mission to create a positive social=
+ impact. It can earn unlimited returns to its investors, which clears the w=
+ay to attract further investments including a possible initial public offer=
+ing. It remains overseen (https://info.deeplearning.ai/e3t/Ctc/LX+113/cJhC4=
+04/VVY1kt3x0f1HW23X0RT30X8qQW4Mw1s55FwPmLN2dmMw-3prCCW7lCdLW6lZ3psV6H-bS7Jg=
+rSdW53nw9F2jFFS3W35bv9w86FC-0W98h4dq3tYZnmN79yn2ymF2pXW1n44_33nLq-8W6YPNfM6=
+6tMvyW6YmV-M4X6gRFVD2hZD8lvKXWW2GJ21R7fYj2nW3B4X-M1QnpKFW11mMF64WvL5qN2Hl6N=
+X3NNNLW5dPMKG500Sb7W40b-F15JxsD7W3K570z2skPK-N3_hbF55D-F6W8Wp2hs4ZlywSW393Y=
+2W7ZB1fhW35PFsR7-681QW8J3GYm4bpJ74W69JsKK8B1Kc8W63StFS1Kz_FQW86y4Xl53RN0Hf4=
+-cKXb04 ) by a nonprofit foundation, the newly renamed Open AI Foundation, =
+which owns a 26 percent stake in the corporation. Microsoft holds a 27 perc=
+ent stake in OpenAI under new terms for the companies=E2=80=99 partnership =
+(https://info.deeplearning.ai/e3t/Ctc/LX+113/cJhC404/VVY1kt3x0f1HW23X0RT30X=
+8qQW4Mw1s55FwPmLN2dmMxg3prCCW7Y8-PT6lZ3mqW6SVHvh8w0bTqW58gPGm3Bd3FxW2T39qw7=
+JZ_WzW3xGV0L53C2wjW1KJzLS6RMkG3N8YsSQ_GX-XbW4cG17f8K2ZkgW3nzs5339zTklW3_rTJ=
+81bcZx5N74K7qvZl_FkW6F2m353nM1FfVs8gVB1GH1w_W5W7jyC8Fvx7gW4hr7QN57s-N_V1rcM=
+h390n-lW3H2mbX8CG-D0Vf6Q7N8R2QqfW43pfZY6B6QYSW4TJkgY1tt7sbW4XlLJr600FgCW8t1=
+QqN5MN284Vk_L6S7Xh4ndW58Lkm_1dcvWbW4M0TMT5_1jb3VLdYkh1_KlbCW8nzVz452wn0Lf8b=
+K_VY04 ) .
+
+How it works: The agreement frees OpenAI from the constraints of its 2015 n=
+onprofit beginnings that have limited investors to a 100x maximum return si=
+nce an earlier restructuring in 2019. The new structure aims to satisfy the=
+ concerns of state officials in California and Delaware that the old struct=
+ure created conflicts of interest between serving the public and rewarding =
+shareholders, even as it aims to preserve the company=E2=80=99s mission to =
+ensure that artificial general intelligence (AGI), if and when OpenAI build=
+s it, will benefit humanity.
+
+- As a public benefit corporation, OpenAI must balance revenue and growth w=
+ith providing social good. Among AI companies, Anthropic and GrokAI also ar=
+e PBCs.
+- OpenAI=E2=80=99s structure remains unusual in that a nonprofit organizati=
+on is still in charge technically. OpenAI Foundation has the power to appoi=
+nt and remove the corporation=E2=80=99s board members, and its directors si=
+t on the for-profit=E2=80=99s board. Its safety-and-security committee can =
+halt releases of new models.
+- OpenAI=E2=80=99s nonprofit, whose stake in the company is worth $130 bill=
+ion, is the wealthiest foundation in the U.S. For comparison, the Gates Fou=
+ndation holds (https://info.deeplearning.ai/e3t/Ctc/LX+113/cJhC404/VVY1kt3x=
+0f1HW23X0RT30X8qQW4Mw1s55FwPmLN2dmMxz3prCCW8wLKSR6lZ3l8W6764T-8QWqz8N3s6YpK=
+YwFqcW8M3Ypg6KcCjpW4GsPfb60t-pTW1grJcL8t0MD4W8ckyXV8L0BzNW7835mJ84cpQqW6Xly=
+2T89CckFW82q5412j_KCbW8CZSqC3WRQr_W8Dvxth29w3n0VxNJWQ6Q_Hx2W7Q-SR_8b3Rr2W4P=
+9ccB3mL0LbW4P0L4V4HfYHNW8h5xMX8XF6QTW4JfXLx7rlj-VW10pc0r6VSRv1W5SKWYs8gcHrs=
+W695L7T8P--SSW4KkL3R8BQTxmW2fj2WF8_q6JsVBdTST4RB5sGW4ZGy-t1nhlCSW1rZqCF27S5=
+xvVgfKdp8zwrcnW6g4YCX5R1_CkVTv43X8FWWPRf39v4yY04 ) $86 billion. It committe=
+d an initial $25 billion to improving healthcare and fortifying AI guardrai=
+ls.
+- Microsoft will have rights to use OpenAI=E2=80=99s models until 2032, inc=
+luding models built after the companies agree that OpenAI has built an AGI.=
+ Microsoft will continue to receive 20 percent of OpenAI=E2=80=99s revenue =
+and have an exclusive right to use its APIs, but it no longer has a right o=
+f first refusal on new cloud business, according to Bloomberg (https://info=
+.deeplearning.ai/e3t/Ctc/LX+113/cJhC404/VVY1kt3x0f1HW23X0RT30X8qQW4Mw1s55Fw=
+PmLN2dmMxT3prCCW95jsWP6lZ3lsW83Vl-93x8lFTW6-YwN61R5l1fW1YwRq75FLx7zW7ff8sS2=
+L8RMvW8rcSgY2p5tnpW2hg2kX52nnpRVSf3H_5lXR4nW7MgJ-W2Xx6ZSW3zVLxs6vqbTbW8llCF=
+p3z01XYW3gBG7q4lF9f_N7vd0WFbPbvkW6Jy5Fc74xPCqN2K_J95MJDNwW8mqS5B6_1sLCW75z5=
+q_55vXzFW5Wz1w-4_BPq0W2lrR_73Pfq-BVp1W911WWbgTVZ3Gx08sq9t9W6pb5q33StmZqW354=
+rrq8z6804W27-Y7Z82YJnbW6tLMRt32wMq9W6_LDG42V3BXkW23QRmg41ZWSqW8flJ657dc9RFW=
+8f01th4hKYr6W2NRRSM1xLHdPW7Cq4vW5524vYf8XWfnH04 ) . The revenue-sharing and=
+ API agreements will remain in effect until an independent panel verifies t=
+hat OpenAI has achieved AGI.
+
+Behind the news: This isn=E2=80=99t the restructuring OpenAI originally wan=
+ted. A 2024 plan would have eliminated the nonprofit and turned the company=
+ into a traditional venture-backed entity. The California and Delaware atto=
+rneys general balked at that proposal, which led to a compromise that keeps=
+ the nonprofit in charge.
+
+- OpenAI needed California=E2=80=99s and Delaware=E2=80=99s approvals to av=
+oid losing a $40 billion investment from SoftBank, half of which was contin=
+gent on the restructuring and lifting of the cap on investor returns. It al=
+so needed Microsoft=E2=80=99s agreement. This gave Microsoft significant le=
+verage over the terms.
+- OpenAI committed to remaining in California, and thus to continue to be s=
+ubject to the state=E2=80=99s oversight, as part of its negotiation with Ca=
+lifornia=E2=80=99s attorney general.
+
+Why it matters: OpenAI has achieved staggering growth in its user base and =
+valuation in spite of its nonprofit status. The new restructure adds pressu=
+re to get on a road to profitability. The company=E2=80=99s annual revenue =
+run rate reportedly is greater than $13 billion, but given its commitment t=
+o spend (https://info.deeplearning.ai/e3t/Ctc/LX+113/cJhC404/VVY1kt3x0f1HW2=
+3X0RT30X8qQW4Mw1s55FwPmLN2dmMw45m_5PW5BWr2F6lZ3pHW2q0p7G1zdCFsVylZx-5lJY5jW=
+4tKtm08xX5H2W6hnLXb8KBqX4W7TBknB4RLmFfW5SdPr28MsHjMW6t2YZb3qSRY2W7yc-Sp4-gc=
+0sW3DYQq15pD-mNW72RjMR7TjZQgW6BhLj86QGHtnVvsPxQ56GDF1W3yfFy_6RhWVQW562fl54c=
+FLk7W6DpN_d8kCNfgW7KTW5W76vnRxW68mD446z-rgQW6s5wGv2GDy-sW91NBRm1dYR-hW8f1lH=
+F6hYtlxW4T2R3d5J_j3XW17-VB32cMx7BW5CLP3g55-rzdW2XTgc44sClFTW2mqN5l8BLk6_W3G=
+JTpc2CHmF6W2BGTGh8zFGlhW9j3zTN6D1hxBW28V4v02dNsXVW3qvLdB3KhzX7W841Nfw8bBrSG=
+N7rgV-D6DrYYV23DGh19YXh7W5jFB152Gv1y2f3bZ9Ps04 ) an estimated $1 trillion o=
+n computing infrastructure, further funding is necessary to finance its amb=
+itions.
+
+We=E2=80=99re thinking: Microsoft=E2=80=99s early investments in OpenAI hav=
+e more than paid off. When Microsoft CEO Satya Nadella proposed his company=
+=E2=80=99s initial $1 billion investment in 2019, Bill Gates warned, =E2=80=
+=9CYou=E2=80=99re going to burn this billion dollars.=E2=80=9D Microsoft=E2=
+=80=99s total investment of $13 billion is now worth $135 billion.
+
+Open-Weights Coding Leader
+
+An open-weights model from Shanghai-based MiniMax challenges top proprietar=
+y models on key benchmarks for coding and agentic tasks.
+
+What=E2=80=99s new: MiniMax, which provides voice-chat and image-generation=
+ services, released the weights for MiniMax-M2 (https://info.deeplearning.a=
+i/e3t/Ctc/LX+113/cJhC404/VVY1kt3x0f1HW23X0RT30X8qQW4Mw1s55FwPmLN2dmMwH3prCC=
+W6N1vHY6lZ3m_W7HQbCj7GZHX4N6Q1fSbHlBrnW93N4w52QskzBW6PzHC_2WhCXFVkrtLx1xwMz=
+4N1jr6RZYXJBMW1Nchwk4DNqx8W60lc9r9501wGW4qDZVD6Pr7CQW7nkd9H2bkrKrW8Ky7wX5Ld=
+9YgV5lg2j559zFpW59_wzt3y5lBdVBJbmX116kv4W4jVSN272Rf30N3TVyrqdG9cRN5nXY3ZTmb=
+vMW8HXPQ61prgn4W1ZrCK-4g-D_rVlmQGx1jQZ2YW3NPLmZ3CkmvQW5hd9CS92Hcsnf8CNht604=
+ ) , a large language model that=E2=80=99s optimized for coding and agentic=
+ tasks.
+
+- Input/output: Text in (up to 204,000 (https://info.deeplearning.ai/e3t/Ct=
+c/LX+113/cJhC404/VVY1kt3x0f1HW23X0RT30X8qQW4Mw1s55FwPmLN2dmMw-3prCCW7lCdLW6=
+lZ3ljW4t87z13YCxndW4RkBM-7Q41LtW1_Zby16vVf-qW7JspdK8htpLdN8gS760dSZCBW49BVM=
+G5W4GhbW40Lt0B3VM0jgW19_KFv3_jqSrV1bjnM5V_dXWW6j222Y4cVKfHW3VP00V57JPLSN37L=
+QPrqc_JtW58ns7v8J33jVW5lHVGH4wzr7nW8X_Nn46JXwBtW1G7rMZ6HyC2qW30Q-c41XZT6hW8=
+SF0K94R4rMtW1_Zmt91gtCHvW7xF8LX1F84ycW2FJYPx2DsDLxW74Tzwj47DMq0W1DgKK22QyRT=
+NN951c2PVJfXyf8V6jhq04 )  tokens), text out (up to 131,000 tokens, roughly =
+100 tokens per second)
+- Architecture: Mixture-of-experts transformer, 230 billion parameters tota=
+l, 10 billion parameters active per token
+- Performance: First among open weights models on Artificial Analysis=E2=80=
+=99 Intelligence Index
+- Availability: Weights free to download from Hugging Face (https://info.de=
+eplearning.ai/e3t/Ctc/LX+113/cJhC404/VVY1kt3x0f1HW23X0RT30X8qQW4Mw1s55FwPmL=
+N2dmMwH3prCCW6N1vHY6lZ3pZW4lCN-C3x5DnsW3JKrwr4pNnmBW8C5pY53R23DZW3WwxJb2T3y=
+rtW12lBD391V3j6W3pr5X316HHS6W7bLQ0m8BTBgQW5xJpS64JrfqCW3FSNDw2T-dR-W8tbhMb9=
+dJmRPW67qPnR4XnHZBN3rCdLhWgHrgW1GrjZt6Qp4ZKVvXmmh1NC7kBW5xjyTw3yXsbpN7W95j3=
+klVN5W8T9Bhj2GhvdhW5TRJ7g5q1qmYW1x9K4y8qjLqcW4cq4P05fZ6lrVLbNb01HhQP2W3VmKd=
+_7Ks5rMf8G5mrl04 )  and ModelScope (https://info.deeplearning.ai/e3t/Ctc/LX=
++113/cJhC404/VVY1kt3x0f1HW23X0RT30X8qQW4Mw1s55FwPmLN2dmMw-3prCCW7lCdLW6lZ3p=
+fW39gjvr4tRd4wM1D9lRJtc7jW44N1638dQKM6W6X_t8Q268JxJW8hMwBl4pBbZ6VCc2Fm703rC=
+NW4rT2xh264Pv_VygbW214Jf8zW8ZCf_754Gg8QW6nZ4Q_5cz04KW3Lqg8_84DcQbVPrZtj5N-s=
+QfW5rKkYX2Qkd8zW8K42Bk6xCjjKN59RYV2STHmPW5cbnvV4p5bwQN9dcGyk80qbsW64fsyN4Zj=
+3zWW1hXlWF33s6YKW699yV98rHH0vW4HH2H163L1GCW6-0B9M2BgmdjW8Ns3Yx1KzbztW6_Bk5j=
+357PMCf3QsXCd04 ) for commercial and noncommercial uses under MIT license, =
+API $0.30/$1.20 per million input/output tokens via MiniMax (https://info.d=
+eeplearning.ai/e3t/Ctc/LX+113/cJhC404/VVY1kt3x0f1HW23X0RT30X8qQW4Mw1s55FwPm=
+LN2dmMwn3prCCW69sMD-6lZ3pPW1GL_tq7r1JGgW1KxxJC75gM9TW4fBBLV3G9-8_W8yltbl3qr=
+4j3W1XqjFC4dtj3_W87zC2x7Wp9FWW5WcBsq3ChMpxW1g_s9F18Bd7WW7-jNVM8X20tfW2sy3BP=
+32y5YQW5DZzC65jyc1RW8cgSjB6XDwn7N8BK-2kWJTDnW9lCsc63QR0LYW5kPKWr1Ghym6W1THB=
+MT3F62tZW3DD8ZH67nT3pVwPYL936sfdhW70KR922mgrKvW84rbqC23YBlBf1QdqQK04 )
+- Undisclosed: Training data, specific training methods
+
+How it works: MiniMax has not published a technical report on MiniMax-M2, s=
+o little public information is available about how it built the model.
+
+- Given a prompt, MiniMax-M2 interleaves reasoning steps (enclosed within <=
+think>...</think> tags) within its output. This differs from models like De=
+epSeek-R1 that generate a block of reasoning steps prior to final output. I=
+t also differs from models like OpenAI GPT-5 and recent Anthropic Claude mo=
+dels that also generate reasoning steps prior to final output but hide or s=
+ummarize them.
+- MiniMax advises users to retain <think>...</think> tags in their conversa=
+tion histories for optimal performance across multiple turns, because remov=
+ing them (say, to economize on tokens) would degrade the model=E2=80=99s co=
+ntext.
+
+Results: MiniMax-M2 achieved 61 on independent evaluator Artificial Analysi=
+s=E2=80=99 Intelligence Index (a weighted average of benchmark performance =
+in mathematics, science, reasoning, and coding), a new high for open weight=
+s models, ahead of DeepSeek-V3.2 (57 points) and Kimi K2 (50 points). It tr=
+ails proprietary models GPT-5 with thinking enabled (69 points) and Claude =
+Sonnet 4.5 (63 points). Beyond that, it excelled in coding and agentic task=
+s but proved notably verbose. It consumed 120 million tokens to complete Ar=
+tificial Analysis evaluations, tied for highest with Grok 4.
+
+- On =CF=842-Bench (https://info.deeplearning.ai/e3t/Ctc/LX+113/cJhC404/VVY=
+1kt3x0f1HW23X0RT30X8qQW4Mw1s55FwPmLN2dmMwH3prCCW6N1vHY6lZ3kKW3cPLCB8YYKrlVF=
+lGhc903mflW2p41lk8MdFQ3W1dKF7l1yP_X0VPFct14RB3-rW7bqGy98wp9_NW3bqXlg1nbSYTW=
+2ndrWx7_9zy_N767SX0-S9ckW5RFnNv6qG7p-W2QKB8X1hJKgTW5R3v_b1twPjqW73cGMq8LL6N=
+fW2DJQDm2sNfp7W6ZQR6t8Ym2rRW6Thb1Z3v_H8HW1dVzdf204-MLW5kMDQF5P7byjW4HWhqB3V=
+bMqTW7rwDfZ98YjS_VmkLh38pHcRRW72JQx_37QD9Jf1Vx__T04 ) , a test of agentic t=
+ool use, MiniMax-M2 (77.2 percent) ranked ahead of GLM-4.6 (75.9 percent) a=
+nd Kimi K2 (70.3 percent) but behind Claude Sonnet 4.5 (84.7 percent) and G=
+PT-5 with thinking enabled (80.1 percent).
+- On IFBench (https://info.deeplearning.ai/e3t/Ctc/LX+113/cJhC404/VVY1kt3x0=
+f1HW23X0RT30X8qQW4Mw1s55FwPmLN2dmMwH3prCCW6N1vHY6lZ3ljW61l2pt9dtZH9W82PXgg3=
+xm2bpW3Csb451_RT_hW83LqxG8fVL0rW160DBv4XJ3MmW1pcGnJ8KpmZkW57VQG_9hxxvxW795Z=
+Pk8krwznVXxlKh35W6cLW1xpXy08wmT-lW4MHLQc4VG4cLW2Pj_hP1FYJ5RN14nVCP5tvjxW5tw=
+CfR2XV59jW75cGc764b-TBW16BNsV26H9jxV2_cyk1mJHNcW8kwQm43dzCVDW12YDLq2XzmYfN1=
+yXbb6d-Gc2VRZWJw34qHnGW3_7hCC1z_GZKf4vyQFW04 ) , which tests the ability to=
+ follow instructions, MiniMax-M2 (72 percent) significantly outperformed Cl=
+aude Sonnet 4.5 (57 percent) but narrowly trailed GPT-5 with thinking enabl=
+ed (73 percent).
+- On SWE-bench Verified (https://info.deeplearning.ai/e3t/Ctc/LX+113/cJhC40=
+4/VVY1kt3x0f1HW23X0RT30X8qQW4Mw1s55FwPmLN2dmMw-3prCCW7lCdLW6lZ3p2W6bphM47jS=
+vfHW12qTTM8lZNDZW2xQgCH5xxPQkW60Fpvl3LrSWpW1lbTvZ3-Rq_nW4S23tL7Kj9WYW1tl5LT=
+94cPWQW6z9H3V5smyWdW3wJXCB1C6-sHVKZg7D13PJk6W5vSk3K7n05d3W3NwHt11bpzs6W7wxx=
+fp7b3DgJW5czdmQ8GmCScN3VvN7N_Ck82N5GRqG97pvvXW8hqmvK751D7QW5-v2-s18cWVpW6jx=
+JZm9c983SW38VrBZ6s3PTLN4Ns-CVX6sGGW96RJS556PZMmW4RTM5N6V19KWN4p2mlk6B-pSf2l=
+dZKj04 ) , which evaluates software engineering tasks that require multi-fi=
+le edits and test validation, MiniMax-M2 (69.4 percent) ranked in the middl=
+e tier ahead of Gemini 2.5 Pro (63.8 percent) and DeepSeek-V3.2 (67.8 perce=
+nt) but behind Claude Sonnet 4.5 (77.2 percent) and GPT-5 with thinking ena=
+bled (74.9 percent).
+- On Terminal-Bench (https://info.deeplearning.ai/e3t/Ctc/LX+113/cJhC404/VV=
+Y1kt3x0f1HW23X0RT30X8qQW4Mw1s55FwPmLN2dmMw-3prCCW7lCdLW6lZ3lsW2FY5gX3CSG2NW=
+42hR-T5f2k0pW95tyrf5cLRXqW5WGrFS96Chy4W485-W57W5QFBW4PRyj62GRN5LW1cJf1Z6NJN=
+VkW2bWj2G9df_FFN1szmgV2M6VYW39_zqp2zYwr_W5ktPwx3T0QjLW8vnd-P1SX13XW3qwMYD82=
+ZknvN8T_QqJ3ZdsnN4XjdhGQYfM7W8-qt327jl41YN8Kz-2-2fJqZW88GLmh5fSf8CW6wcYVm2h=
+BzsCW2LCbrJ3kPYw_VkD2Xk1gzwKSVbcVWc3_65d0W8T0FZB92NKc4W6DJl4Z2N13tKf8mlMjC0=
+4 ) , which measures command-line task execution, MiniMax-M2 (46.3 percent)=
+ ranked second only to Claude Sonnet 4.5 (50 percent), significantly ahead =
+of Kimi K2 (44.5 percent), GPT-5 with thinking enabled (43.8 percent), and =
+DeepSeek-V3.2 (37.7 percent).
+
+Behind the news: In June, MiniMax published weights for MiniMax-M1 (https:/=
+/info.deeplearning.ai/e3t/Ctc/LX+113/cJhC404/VVY1kt3x0f1HW23X0RT30X8qQW4Mw1=
+s55FwPmLN2dmMwH3prCCW6N1vHY6lZ3lKV9kplJ3N4jVCW5Bc4Z_3PT5fFW4pkK1W7Pt3MQW7m1=
+ZhC1HntdJVF-Vb720t9hwW2BLFZL5X9N1RW8FH2PM6ScDZ5W2rYz433gwG7DW7mQ53m29V5BbW5=
+Ppkr61FFCkSW99bn3Y6Z9DBGN2YxN5xZ4cZkW6yNvnv1F2LwYW2fbzGH8cWnlTW5kw-lV8vd2pw=
+W8lt_j79kCh4_W3TRGl61j8HxCN3pX0XrHSGqTVrY5-85wW1VmW5w-c4y4nPtvCW1Z3n5l7JD5D=
+7VVv18B2XhQl_f7C5WDY04 ) , a reasoning model designed to support agentic wo=
+rkflows over long contexts (1 million tokens). The company had been develop=
+ing agents for internal use in tasks like coding, processing user feedback,=
+ and screening resumes. However, it found that leading closed-weights model=
+s were too costly and slow, while open-weights alternatives were less capab=
+le. It says it built MiniMax-M2 to fill the gap.
+
+Why it matters: Developing reliable agentic applications requires experimen=
+ting with combinations and permutations of prompts, tools, and task decompo=
+sitions, which generates lots of tokens. Cost-effective models that are cap=
+able of agentic tasks, like MiniMax-M2, can help more small teams innovate =
+with agents.
+
+We=E2=80=99re thinking: MiniMax-M2=E2=80=99s visible reasoning traces make =
+its decisions more auditable than models that hide or summarize their reaso=
+ning steps. As agents are applied increasingly to mission-critical applicat=
+ions, transparency in reasoning may matter as much as raw performance.
+
+A computer scientist at her desktop, using an AI agent program to find and =
+fix security holes (https://info.deeplearning.ai/e3t/Ctc/LX+113/cJhC404/VVY=
+1kt3x0f1HW23X0RT30X8qQW4Mw1s55FwPmLN2dmMw49bqx4W5BXf_W6lZ3kSVv3bZW5-NRjjW5F=
+Fwq731wr5vW8HD-LY6KLjcPW9kZtC87ykHrDW3Wzrxb8-m5zxW46KBc82VC5wsW8S5mnC2yCyvy=
+W30LhWX7XBk1tW1V_3CB2D8S4LW3TRrCq30HfT_W1bkTkT393vsPW8TQTFh93K-tsW7vVl6Q6DM=
+5dJW4hM4402VfDygN586Hwf64JBPW7pK8fS8W3BPfW1T1Yr88ls2NkW4LfhSP3kcnF_W5cKVXS6=
+F6BvWW3gYLjB6678LdW49jc9l4xfMwVW120mK132Cr_6W4p98zH8XSNxbN46Gr4w8TwSjW76mlS=
+p1N4GBSVBTs2L8ysTt5W89CMvp8k5wyKW67lRB924wH9qW27Xp_C44g_bdW60Mjkh1_y25KW7mr=
+T7S6wqQkKN7T2tVPG9KymV2t1MB25tRqcW50Q-Pv8Phln6W6QbZnx3pM4g4W70b8V692WFJVW17=
+n7ZP5-wsmNW8qV9sk8Pj-h2W1q-Bx47-rBQTW5zl_lT7GlNjFW9fssdf86ClV9T_xgP63KndFN3=
+_bzBLvNStcW167pmq5SQjLLVrMGNm2ss19RW2dshTr3V5PtKN8tsBKMtSgKsW8T6j_M12plTKW6=
+FbPdh217GG0W8chRLt6lKqcNW5kD01M7HBbXTW7RMt-l26t9znW49k_6w47_NXNW1vg7n-7yzTR=
+3N81KyCzfkwLbW9gs9Pn2m8f0sN3VyvflmXY1ZW1GlyMf2xzHSjVCyf223m47fvN2P-wdQc8kWY=
+N9383lJG3sg6W65SchS56PwTxW6pnqbt8PqGjvW3Hyyk68MPwRZW4-9zNJ7qDDpPN6s51vQk8p5=
+5dxVWgH04 )
+
+Learn More About AI With Data Points!
+
+AI is moving faster than ever. Data Points helps you make sense of it just =
+as fast. Data Points arrives in your inbox twice a week with six brief news=
+ stories. This week, we covered OpenAI=E2=80=99s new GPT-5-powered security=
+ agent for open-source projects and Cursor=E2=80=99s major update with a ne=
+w coding model and multi-agent interface. Subscribe today (https://info.dee=
+plearning.ai/e3t/Ctc/LX+113/cJhC404/VVY1kt3x0f1HW23X0RT30X8qQW4Mw1s55FwPmLN=
+2dmMw49bqx4W5BXf_W6lZ3kSVv3bZW5-NRjjW5FFwq731wr5vW8HD-LY6KLjcPW9kZtC87ykHrD=
+W3Wzrxb8-m5zxW46KBc82VC5wsW8S5mnC2yCyvyW30LhWX7XBk1tW1V_3CB2D8S4LW3TRrCq30H=
+fT_W1bkTkT393vsPW8TQTFh93K-tsW7vVl6Q6DM5dJW4hM4402VfDygN586Hwf64JBPW7pK8fS8=
+W3BPfW1T1Yr88ls2NkW4LfhSP3kcnF_W5cKVXS6F6BvWW3gYLjB6678LdW49jc9l4xfMwVW120m=
+K132Cr_6W4p98zH8XSNxbN46Gr4w8TwSjW76mlSp1N4GBSVBTs2L8ysTt5W89CMvp8k5wyKW67l=
+RB924wH9qW27Xp_C44g_bdW60Mjkh1_y25KW7mrT7S6wqQkKN7T2tVPG9KymV2t1MB25tRqcW50=
+Q-Pv8Phln6W6QbZnx3pM4g4W70b8V692WFJVW17n7ZP5-wsmNW8qV9sk8Pj-h2W1q-Bx47-rBQT=
+W5zl_lT7GlNjFW9fssdf86ClV9T_xgP63KndFN3_bzBLvNStcW167pmq5SQjLLVrMGNm2ss19RW=
+2dshTr3V5PtKN8tsBKMtSgKsW8T6j_M12plTKW6FbPdh217GG0W8chRLt6lKqcNW5kD01M7HBbX=
+TW7RMt-l26t9znW49k_6w47_NXNW1vg7n-7yzTR3N81KyCzfkwLbW9gs9Pn2m8f0sN3VyvflmXY=
+1ZW1GlyMf2xzHSjVCyf223m47fvN2P-wdQc8kWYN9383lJG3sg6W65SchS56PwTxW6pnqbt8PqG=
+jvW3Hyyk68MPwRZW4-9zNJ7qDDpPN6s51vQk8p55dxVWgH04 ) !
+
+AI Music With Major-Label Support
+
+Music-generation service Udio will build an AI streaming platform in collab=
+oration with the world=E2=80=99s biggest record label.
+
+What=E2=80=99s new: Udio plans (https://info.deeplearning.ai/e3t/Ctc/LX+113=
+/cJhC404/VVY1kt3x0f1HW23X0RT30X8qQW4Mw1s55FwPmLN2dmMwn5m_5PW69t95C6lZ3nzW1J=
+2LQj5xyh--VG8v2M2Dw1wHW1FwtyT70MXw_W329Mht3mQygpN8cCgQTGMKf6MfSR--9zjG-W5Dq=
+x531VV6XkW7jclx38nTKv2W1HYf2B2MsCLPW3q1yYS4D8-B4VSvlH239yYyrW8W0xG28qYPXhV6=
+3lV62bzv-tW1BMRpz7kHZKpW3LVptL6z5v8cW54qLkr6CgK0rW6L15PP3-jDLzW6R5H6J6Cgl0C=
+W5YYQFV3wK8hWW51bVQk33mpq2W4899-L1c-ZnMW14sND63pDkcYW8QTLMc4TDTSbV5sKQx7kNL=
+g1Vzxg0p3bGTkkW1D8LXS3MtSKFN6FlR27BS3rlN7LWxNX9vLpdW1CfgHc5YTd-bW27x7mr9csj=
+ShW2nqwd_5PbmnLV3McLV2qRCmMW6gMdNJ4dbvyMW91L7N44_yNlNW53H9mW1P61xmW22HjQD1x=
+kVC5f1qml6R04 ) to launch (https://info.deeplearning.ai/e3t/Ctc/LX+113/cJhC=
+404/VVY1kt3x0f1HW23X0RT30X8qQW4Mw1s55FwPmLN2dmMwH3prCCW6N1vHY6lZ3nzW7byYR34=
+FKTR8N3RhJYHgHk6bW69crL34z2kcmW51Fkh-8cvdDbW25kMCZ9ghFlsW2xS1Lq3VJ0Z2W8dJM2=
+D5Z-sB2W2zdDnM8TRhGWW3V-12r6R_BYkN2KntQ59LxwQW4VMdgs4b09VYW3Nykmd5289TlW36_=
+CrW7h6C_vW7hCS4L220fxdW54m9t_3L2cbLW6wgvGx3TPb0hN1w90BG2S_LqN90YnKXWdc76N54=
+h4PsF101wW1f4c0b1b1jZPW9jx6Tg2y6gjxW58_MMf47cCLHf2gqlLg04 ) a paid platform=
+ that enables fans to generate music based on recordings by artists on Univ=
+ersal Music Group (BMG) and its subsidiary labels. UMG artists include Tayl=
+or Swift, Olivia Rodrigo, Kendrick Lamar, and many other best-selling perfo=
+rmers. The venture is part of an agreement to settle a lawsuit filed last y=
+ear, in which UMG alleged that Udio had violated its copyrights when the AI=
+ company trained its music models. The financial terms, duration, and the r=
+emainder of the settlement are undisclosed. Udio is free to make similar ar=
+rangements with other music labels, the music-industry news publication Bil=
+lboard reported (https://info.deeplearning.ai/e3t/Ctc/LX+113/cJhC404/VVY1kt=
+3x0f1HW23X0RT30X8qQW4Mw1s55FwPmLN2dmMxz3prCCW8wLKSR6lZ3mCW7rx3fB4ygxqgW13X5=
+3356Nk3yV8nDWr3ClGmNW1t-Ynv2RPYGZVBbBLK62fNwcW5M29Nr2S44KMW8nRHsX8k3_16W6Gj=
+n9Q7VLfkWW4J45_K9k-glTVvWL114TWxKcW3YBKbz181dfjVXShvx5CgvmWW8wLt7g8jJ_xfW8t=
+zl6c4MTFdQW2Fn6kc22N38lW5mNSST7gcDkQN4CMhgFhjNLlVvkYzB5XxDnVW50nwHB3Yjyr_W1=
+hf7G24KMr4LVHqpzd8tVqp_VpHH988xTfJgW5NLtw677mvtzW696wL46Q2XmfW4VXP-H5l3zy6W=
+358Bvz3pklyPW2qs_0B8kj9GtW84mmG24_sTh9f8X9NVP04 ) .
+
+How it works: The platform will allow paying customers to remix, customize,=
+ and combine existing recordings and share them with other subscribers.
+
+- Artists must give permission for their recordings to be available on the =
+platform, and they will control how recordings may be used; for instance, t=
+o mimic voices or musical styles, change from one style to another, combine=
+ one artist=E2=80=99s characteristics with those of another, and the like.
+- Artists will receive payments for making their music available for traini=
+ng Udio models plus further compensation for uses of their recordings to pr=
+oduce generated music.
+- The new platform will not allow users to download generated music or dist=
+ribute it via other streaming services. As part of the agreement, Udio brie=
+fly terminated the ability to download generated music from its current ser=
+vice and offered subscribers additional credits to generate music to compen=
+sate for taking away this capability. After users complained, Udio temporar=
+ily restored (https://info.deeplearning.ai/e3t/Ctc/LX+113/cJhC404/VVY1kt3x0=
+f1HW23X0RT30X8qQW4Mw1s55FwPmLN2dmMxT3prCCW95jsWP6lZ3nTW1Pr3h57DdkCTW4nZ2Qf7=
+t_zKCN4N5k6L7C1LpVX58YX5d39XqW4wT5lF1rndsCW71ghMv8pTLDKV7qhV74mXRlsW4FmG4j4=
+lms_BW4m0mbg2by6BdW6g-V172DXnB4VrLyvR2RVHW0VF8x401JmkcfW15NCMQ5l3GkHW7bww9H=
+27X4Z2W4RVRzk6VzDPtW81jRlW5yBtnKW8WNbZM4Ckm5tW7jW6wc29hQPGW9bJSyS629hzqV9l7=
+zq8tmT8HW1Jq3bn7NKNPvW1xrmc-4WyVRqW4S5f5R1xTCwwVK1LHT4gg10sW19jlVD7wlyb7W4q=
+NNsR3x8TgGW4-b7F93jtHmJN3TfhlF7MQ-sN6H3QvN5-F8XW6V7dHb7H4xW2f3fdYtF04 )  do=
+wnloads of existing generated music. The company said its existing service =
+will remain available but with differences that include fingerprinting and =
+other measures.
+
+Other deals: In addition to Udio, UMG forged relationships with other AI mu=
+sic companies that supply tools and technology.
+
+- UMG and Sony Music said (https://info.deeplearning.ai/e3t/Ctc/LX+113/cJhC=
+404/VVY1kt3x0f1HW23X0RT30X8qQW4Mw1s55FwPmLN2dmMw-5m_5PW7lCGcx6lZ3lyW7MD9bx2=
+5ft59W20n5NF7-y6XLW5qzgPX4KzXfqW9lPw5n6fDBFTW45RVYJ4q_VGWW8mm6wD9gn9LjW8Ynv=
+Qs33lr7NW3F9cMt8hR3M_W1P68R712hKl-W1gQX-P6cFl7VW7XhLdP7r4c3lW8jqWMV39J_Q1W4=
+NbrFT3_40dPW1qWwgb6GT0q8V1JB7n85d2_VVfn84L90JfgDW1lQCxd1bSQ2vW7yQMq91XNdjpW=
+2F8Ybh1r_bCFW1fGxJS3b5NQ3W6687P17fdWXSW8pkzFl8c-gmvW6PxtnB6lj6rFW23kw0C1GJy=
+wGW6PxcX83HjNBhW2_HZ1k9dPRv-W7hDgfp6RzBQRW3TppWm7XPj0xV4_6qW5-8l59W85nPJ72N=
+NxXWW5YGz7y4hNJ-zW212zFb6FSyLDW74lvRd1pD6nzN1lgdwtqqMPXW8CvML04hKCZqVKzN1C3=
+x5lfqV9mhgK53WSjfW2TF13v5dvKpBW6Y80kC8rXbMyV3PNl04zxFtnf3Y2q9l04 )  they wo=
+uld use audio fingerprinting technology developed by SoundPatrol, which com=
+pares learned embeddings to identify generated output related to an origina=
+l source.
+- Stability AI, maker of the Stable Audio 2.5 music generator, announced (h=
+ttps://info.deeplearning.ai/e3t/Ctc/LX+113/cJhC404/VVY1kt3x0f1HW23X0RT30X8q=
+QW4Mw1s55FwPmLN2dmMxz3prCCW8wLKSR6lZ3m1V5KC5X2jvCNKN8ZNR40FN_sVW2TpSfQ8fJGT=
+XW92rXV-8hrBTFMsFzxch4CKrW3_3Hc36BmqLjM8N2RS6_7mLW4MSCMK5BnHc_W5Z2fPc5nTgdd=
+W6q3tlQ50GmhDW29zcct6rsHXwW9blrN96P8wmWW45QRhj6GrQ4GW7qqVyX2FTwPHW6f36Jx7cD=
+ylxW4NSc5k510xKrVbsPVL4jm8zTW92mSSd2mxKJDVcdBf65Rv4CNW5bSKYz8l1TQbW31qg1R6h=
+8kL2W76b5fh6Xh-J8W7bGl4n75wNQYW8m8h-C1clVC1W3GpMyC2wtHT_V4sZQJ7MkMFxW2h-GjY=
+1FkMTYW5KX6ps6JSbz6f2K9-YR04 )  a partnership with UMG to develop professio=
+nal music-production tools.
+
+Behind the news: Like book publishers and movie studios, recording companie=
+s have moved aggressively to stop AI companies from training models on mate=
+rials they control and generating output that might compete with them.
+
+- STIM, a Swedish organization that collects royalties on behalf of compose=
+rs and recording artists, devised (https://info.deeplearning.ai/e3t/Ctc/LX+=
+113/cJhC404/VVY1kt3x0f1HW23X0RT30X8qQW4Mw1s55FwPmLN2dmMwn5m_5PW69t95C6lZ3pF=
+W2yLcLM7dx01fW4NMZhy9dYhx9W4wvG9l1m9p1QW6tnJz36qpp-pW8ZFg6q1Lv2jGW50bzFs3z5=
+7B2VMMV6x6V6J5qW5Lc0sQ750rWbW6LvYtt34ZD5kW4Jh1zM6N85HtW5rwM0d3_1tcNW2b_LLF1=
+kTctSW4Pz8WY1TCscWW6KvZgl93CjzvW9dCFfm4L-5gsW6cGvTr2VBSCGW4qQG8m4ZzqBhVB1M-=
+X1Cf4RzW7ml4lp7qCFF2W6WW1Wh9gqjR0W8KdcgX6p5sVBW5XmSWz3GZSL9W8DWVrF9gDmzzW6M=
+zWv66Dt03yVRrX5l65gXYXVmfQt06dG_8dW7Lx2R14vkFKkW5SF1Gy3x8tHSW4tfDp05nDMZ1N8=
+_5Mf3gwDvHW7LVYYS7P1q4GW6wmKD875STJ1W27-Ztk9fmSKvW3VxYqX6-nzBvW90F26y2VnzXX=
+W4-jhWM8H8BWkf16v7s404 ) a license to compensate musicians for use of their=
+ works to train AI models.
+- Last year, Sony Music, UMG, Warner Music, and trade organization Recordin=
+g Industry Association of America (RIAA) sued (https://info.deeplearning.ai=
+/e3t/Ctc/LX+113/cJhC404/VVY1kt3x0f1HW23X0RT30X8qQW4Mw1s55FwPmLN2dmMvP5m_5PW=
+50kH_H6lZ3p5W5Fg8Vt3LQphHVqB3tH8Ytr9tW3d9by71V_D4NW3KSF1H31kNHhW4DlxRR2H5Rw=
+SW6R2sLP2814M7W8h3c3F4qBgJKW6xqFpB4hqQDcW2M1tkm8tymhSW15b30c7ZWVSXV6RFyg1mR=
+BK4W6br6t74C65DvVNR1W-4ZQYK4W1dbdBQ4mpbMWW7j59Pv4qS-lpW1kMyBG91hlcFN9b-Y1JD=
+6fK7W8LPD6F3zmlCpVQ2JVM7-6wkPW8TQZ_J6PhD-qW3p3zZc31HjtxN3pY0tscp6QGW5GznBQ3=
+WCtPmW4vsTsk42-dDXW2MHCss7xjFD2W4jHVJS3Dx102W1V9pmK68P9ttVSmfS67TkX-jW5ngKm=
+P608fz4W19MSzs1NZWSnN1lNC5fJ2jYnW6LG7yM1TqbkDf5kSpdx04 )  Suno and Udio for=
+ alleged copyright violations in their music generators. The music companie=
+s filed separate lawsuits that alleged the AI companies had trained AI mode=
+ls on copyrighted recordings, and made unauthorized copies in the process, =
+to compete commercially with their music.
+- In 2023, UMG pressed Apple Music, Spotify, and YouTube to counter (https:=
+//info.deeplearning.ai/e3t/Ctc/LX+113/cJhC404/VVY1kt3x0f1HW23X0RT30X8qQW4Mw=
+1s55FwPmLN2dmMxz3prCCW8wLKSR6lZ3m4W4gp_nD99W4V7W3NYkjq5P-g01N11XkZGDKbVrW7L=
+T7Tf71lZxbW923w1B2Cx4Y9W4sf4Dj7k2xfsN688DXVcxplzW32kLCs93HNgfW6JQPdX8zBGKZW=
+86Kqc33cLy8GW2__J731rFZWHW3tSC2m5fWbzjW8VyYXZ4f3H9gW2Gx_p55mdcMhW8NNYlr2Cp0=
+mWW1znzVJ5TmdWFW5QZ4fD82WCzFW8WzGVS3Wv6djW8txBkj2zYk28W4jdnmL2KfSYXVRYVFg3H=
+SF-hW4cK3wx9hbSggW5VvZTg506cBdVpKrY48FpSsyW7p9c556_hcQ8Vc4zr98cBMmHW2j06L05=
+lpSdmW2vdQLl8-5sqVf74vJn404 )  AI-enabled imitations of its artists by bloc=
+king AI developers from downloading their recordings. It also asked the str=
+eaming companies not to distribute AI-generated music.
+
+Why it matters: Music labels, like other media companies, see their busines=
+ses threatened by generative AI, which can synthesize products that are sup=
+erficially similar to their own at lower cost and in less time. A study by =
+the French streaming music service Deezer found (https://info.deeplearning.=
+ai/e3t/Ctc/LX+113/cJhC404/VVY1kt3x0f1HW23X0RT30X8qQW4Mw1s55FwPmLN2dmMxg3prC=
+CW7Y8-PT6lZ3nTW7HTTVf3_0bf1W78R2_-3gpcQ7N4zHG4Dt_pc7W6D_SPq8_L-h1W91ZBK01Sv=
+tf9W2n3BgS4HqG_7MXkxwTNlr-lW3lx9Fw2kRQQQW6rQGLJ3GFFcdW92W9H783fql-W9dtXrm11=
+1C7gW8y8qvm1-fqcqW55nMjQ3yHPGGW5__qYm6Q_fzJVtPdxS7LBFLYW3H7JQF6Wn2gTN8fKYHh=
+2jw3SW2wnWlF7vNgZgW1BGzcZ8FG4NHVj4GSt80dKVbW7SJYLb33HwRXN9dwWcpw_hqLN38jMj1=
+VB6kyW5YNLNq1hL9VrW80vMLl2c-mtPW7QgdJf40KGhcf58Z4_v04 ) that nearly 28 perc=
+ent of the music it delivered was generated. In June, a musical group calle=
+d Velvet Sundown racked up 1 million plays on Spotify of music generated by=
+ Suno. The settlement between Udio and UMG unites traditional and AI-genera=
+ted music in a single business and suggests there could be common ground be=
+tween media and AI companies, albeit with side effects such as limiting Udi=
+o=E2=80=99s distribution of generated music.
+
+We=E2=80=99re thinking: Lawsuits against Suno and Udio by Sony Music, Warne=
+r Music, and the RIAA are still underway. This deal offers a blueprint for =
+resolving those cases, but their outcomes are by no means certain. As lover=
+s of music, we look forward to hearing more of it.
+
+Masking Private Data in Training Sets
+
+Large language models often memorize details in their training data, includ=
+ing private information that may appear only once, like a person=E2=80=99s =
+name, address, or phone number. Researchers built the first open-weights la=
+nguage model that=E2=80=99s guaranteed not to remember such facts.
+
+What=E2=80=99s new: Amer Sinha, Thomas Mesnard, and colleagues at Google re=
+leased VaultGemma (https://info.deeplearning.ai/e3t/Ctc/LX+113/cJhC404/VVY1=
+kt3x0f1HW23X0RT30X8qQW4Mw1s55FwPmLN2dmMxg3prCCW7Y8-PT6lZ3kwW8qcQ-w2nycg_VZf=
+d152HGHNJW7hcPt02Dh5ZcW8rqr648VhTNvW8tWXkX5gwHt0W6r25SY3nc6ksW8try8v1RC7TPW=
+5yV9z36JyxnDW4NwvtQ6zx7hpW287rw-8PgvBzW45RMdy70TZQYW3nJs4t4nxV28V9xMQr7q0sx=
+rN1y7_P01-GCSN37L0l9-4FSDW63gd6L3M1P4-W7Frcd36f0Sb2N1ShjfXGsY_DW4HG-s87-1RL=
+6W5BjmtR31ckPBW41gfL125n15qW50r0qw24Yr1WW2jHBqG7pFdLXW30YWb-6xncqpW5_BblH65=
+-mb5VqNHSV2N1jQhf7byYv404 ) , a 1 billion-parameter model that=E2=80=99s tr=
+ained from scratch using the technique known as differential privacy. This =
+method prevented the model from memorizing examples that occurred only once=
+ in its training data, with a modest sacrifice in performance. Weights are =
+free to download (https://info.deeplearning.ai/e3t/Ctc/LX+113/cJhC404/VVY1k=
+t3x0f1HW23X0RT30X8qQW4Mw1s55FwPmLN2dmMwH3prCCW6N1vHY6lZ3pfN4DVmZVpp6F4W80YX=
+Hw4CN2VnW5HlYQP3l-SNJW9ddR_M4WgWVtW6yYX7z3pd2dsW7N1_SR2VQRJRW5pFBzn3WDh8WW8=
+HcZWk4Wzy7ZW6C3_bG5TSXvfN90ZQVPJr7mNW5wT_7M21b_v0W5YpXCM9kjmrvW77R-zz2SW19S=
+W74FwcS5g18y-W306hKD38SqYrW8ZT0h41TwwgqW6b7mSh3y6NQcW2Lxc_t4t9FBlW7GdLZT6Lt=
+j37W6VCLTr2mZ2b2W8nbYsh7crxVKW8CGdxR4G_L-Pf5Pk3wb04 ) under a license (http=
+s://info.deeplearning.ai/e3t/Ctc/LX+113/cJhC404/VVY1kt3x0f1HW23X0RT30X8qQW4=
+Mw1s55FwPmLN2dmMwH3prCCW6N1vHY6lZ3pBW2FKMbh67PVrRN1tc2MCky9g5W1HFrKg68MN0TV=
+Qvdf-6DD6ZfW56mQbW1KppH3N75rRYmFlBDrVCPHPL7Qmx8TW6bDX_X5Y9s-wW3cPR3b5JmZZQW=
+9h8Xlc4FMbvwW4NkStZ3vT0KsW7m1KzJ36j1B8W6qn3v998_dZrW4Df_lP4Lm39TW1rsF8682sm=
+YkVSx3PD4rftLQW9k2sRM25Xsn1W7JN-TY8qHPRkW9fjjMg5_9w17F6WX-BxxNmVW1lP4933f2t=
+cJW1BxcKr5czhg2f68SKyl04 )  that allows noncommercial and commercial uses w=
+ith some restrictions.
+
+Differential privacy basics: An algorithm (such as training a neural networ=
+k) is differentially private if it=E2=80=99s impossible to tell the differe=
+nce between its product (the learned weights) and its product given that sa=
+me dataset minus any given example. Since the presence or absence of a sing=
+le example can=E2=80=99t significantly change the product, personal informa=
+tion can=E2=80=99t leak from the product (the model=E2=80=99s weights) or t=
+he consequences of the product (the model=E2=80=99s outputs). In training a=
+ neural network, it=E2=80=99s possible to limit the impact of one example b=
+y limiting how much each example=E2=80=99s gradient can impact a model=E2=
+=80=99s weights, for instance, by adding noise to each example=E2=80=99s gr=
+adient to make it harder to tell from that of other examples.
+
+Key insight: Most previous work (https://info.deeplearning.ai/e3t/Ctc/LX+11=
+3/cJhC404/VVY1kt3x0f1HW23X0RT30X8qQW4Mw1s55FwPmLN2dmMwH3prCCW6N1vHY6lZ3p8W6=
+66bGK3TxLCVN4c_lLgkHgl0W7FCrbT8P9y0SW2C0DYt71KnfPW6WQxGV64Y1klW3JGk1z3T1GbP=
+W6wx47w6dVCTFW1P_Nlf2mQZB7W5-3WDq7gSw8tW8xd3595mG9r2W4GC2-v1-5WkLW5YJhvH7YL=
+lLPW3PpHSb8qSKvDW3jKLKT5QLmSzW7p-CVm5VzN_ZW4YW0xR4Bdc3LW5CGFj36V9kmHW5sfRXv=
+8tyrs-W3Lw30C1-_HTnW80dRYd6d6lqTW5JhSKW1r87ntW45l7rG2drsNpf2PfFy204 )  appl=
+ies differential privacy when fine-tuning a model, but that doesn=E2=80=99t=
+ prevent the model from memorizing an example during pretraining. Once priv=
+ate information is encoded in the model=E2=80=99s weights, later fine-tunin=
+g can=E2=80=99t remove it reliably. Training with differential privacy from=
+ the start ensures that such details don=E2=80=99t become embedded in the m=
+odel.
+
+How it works: VaultGemma follows the same transformer architecture as the 1=
+ billion-parameter version of Google=E2=80=99s Gemma 2. Moreover, the autho=
+rs pretrained it from scratch on the same 13-trillion-token dataset as Gemm=
+a 2 (web, code, and scientific text). The authors applied differential priv=
+acy as VaultGemma learned to predict the next token in sequences of 1,024 t=
+okens.
+
+- For every example in a batch, the authors computed the gradient and clipp=
+ed it so its contribution to the weight update didn=E2=80=99t exceed a fixe=
+d threshold. This ensured that any given example didn=E2=80=99t have a disp=
+roportionate impact on the weight updates relative to other examples.
+- The authors averaged the clipped gradients across each batch and added Ga=
+ussian noise to the average before updating the model=E2=80=99s weights. Th=
+e noise weakened the influence of unique examples while allowing repeated e=
+xamples to stand out. As a result, the model=E2=80=99s weights became stati=
+stically indistinguishable from those of a model trained without any partic=
+ular 1,024-token sequence.
+
+Results: VaultGemma showed no measurable memorization across 1 million sequ=
+ences sampled at random from the training set, while pretrained Gemma 1, 2,=
+ and 3 models of roughly similar sizes did. VaultGemma=E2=80=99s average pe=
+rformance across 7 question-answering benchmarks generally matched that of =
+GPT-2 (1.5 billion parameters) but fell short of Gemma models of roughly si=
+milar size.
+
+- The authors measured memorization in the Gemma family by the percentage o=
+f examples a model could reproduce when given the first half of the sequenc=
+e. Gemma 3 (1 billion parameters) reproduced 0.0005 percent of training exa=
+mples tested, while Gemma 2 (2 billion parameters) reproduced 0.04 percent.=
+ Gemma 1 (2 billion) reproduced about 1 percent. VaultGemma reproduced 0 pe=
+rcent.
+- VaultGemma achieved 39 percent accuracy on HellaSwag (https://info.deeple=
+arning.ai/e3t/Ctc/LX+113/cJhC404/VVY1kt3x0f1HW23X0RT30X8qQW4Mw1s55FwPmLN2dm=
+MwH3prCCW6N1vHY6lZ3m2N3ZsGPwDBJ70W4YdCfN76G1lDVvQR4S2sSS4KW3z_5GS8r7SYTW3g6=
+p9b2zCZF_W8ClmWY2f6xkyW2R7hTq8m4w0QW3bW0m9892WqyVM0fx76sfn51W1WCR_94jVbvgW5=
+VHjth9f-HwYW60Rqmb5bjZ0sW3hJgVh2jCPzyW6Ly5v82QRrM4N8-HGtDcxLjQW49Rv0T18H3Z7=
+W3ywmy75yWzTWW8dG-ht3cn20GW7M43Lw4ffVsJW1fBmyx3ywbywW44jYHm9kFgqCW8QgGkM6jt=
+kwHf8jDH8M04 ) , a benchmark that=E2=80=99s designed to test common-sense r=
+easoning in everyday situations. GPT-2 achieved 48 percent and Gemma 3 (1 b=
+illion parameters) reached 61 percent.
+- On TriviaQA (https://info.deeplearning.ai/e3t/Ctc/LX+113/cJhC404/VVY1kt3x=
+0f1HW23X0RT30X8qQW4Mw1s55FwPmLN2dmMwH3prCCW6N1vHY6lZ3p6W5WjPKF3ZwfGNW6F3ljQ=
+2kswdrW3J0kl15wCnB6W8qDL_L62Gks0W8hd7Zy74J7_lW2s92G11FRJCkW8VXhJN6MnBQqW2h-=
+55Q6wRMD8N1Rnmsb4d1T_W8Wj0RV411c9jW7Zg9ny8tZ7dBW6Mpb3D7R0vSxN7hPpSB4xVBJW29=
+RT728MWVs1W48SlXr7_S0CjW4JDCkg14L5XcVyWY4s1p93ksN427lfzrd1YBW4vxWFv3V8z8_N3=
+8_T_Q9KqddW6WKF7f7BrpNcW8rr3457qdkjKf2NYJd404 ) , which measures factual qu=
+estion answering, VaultGemma achieved 11 percent, while GPT-2 achieved 6 pe=
+rcent and Gemma 3 (1 billion parameters) achieved 40 percent.
+
+Yes, but:  The privacy protection comes with a caveat: It applies only to u=
+nique examples such as a private phone number that occurs only once in the =
+dataset. If private information appears repeatedly in the training data, fo=
+r instance, a celebrity's street address that leaked and appeared in severa=
+l publications, the model can learn it as a general pattern.
+
+Why it matters: Private information can find its way into training datasets=
+, and in normal use, a typical large language model may divulge it without =
+the subject=E2=80=99s consent.  VaultGemma shows that large open-weights mo=
+dels can be provably private. While such privacy still comes with a cost =
+=E2=80=94 VaultGemma 1B performs roughly on par with models built about fiv=
+e years ago =E2=80=94 the results are promising, and future work may close =
+that gap.
+
+We=E2=80=99re thinking: The smartest model for sensitive data might be the =
+one that remembers only the most common information.
+
+Work With Andrew Ng
+
+Join the teams that are bringing AI to the world! Check out job openings at=
+ DeepLearning.AI (https://info.deeplearning.ai/e3t/Ctc/LX+113/cJhC404/VVY1k=
+t3x0f1HW23X0RT30X8qQW4Mw1s55FwPmLN2dmMwH3prCCW6N1vHY6lZ3l0W7rSZg1482XK9W663=
+0-62jz7RLW6q5-3N3yM8LlW5Tkq2x6YCjz5W2SKDVy2kCBlkN3yVpTvkh-zlW3ff4SG7JWyCjW1=
+CnM1D6gvpv7W8G2gZX6V4RH6W8XNZ9Q9hbPTNN18MNlKGQX0XW5yS-bH8YGx_5W2JHKGQ8XTg0W=
+W1rNXtn4rxltgW7kyf7N69GvpYN6N-CG2yNGRzW835B083mCr0_W7CjTCZ2QKJGjN3NvCzJlM5D=
+XW3b8Zm-4Tbs9vN6YK7syf7G2yW5Gx2Wn7Bfb7tf5Qpsmq04 ) , AI Fund (https://info.=
+deeplearning.ai/e3t/Ctc/LX+113/cJhC404/VVY1kt3x0f1HW23X0RT30X8qQW4Mw1s55FwP=
+mLN2dmMwn3prCCW69sMD-6lZ3ptW4jGp8X2njCsrVFH3yW22pTw6W35mhkM5nHS0ZW8rcsTX3jX=
+NrQW7zwCwV6H6RjmW2nL-cz5PPD7CW3qBJgj5DYrK3W6y8dTh20Tdv6W5hCbGz9931GkVWkVzH2=
+hWv4NVCrnyG4VY5mnW5GnCqf4ZNp4YW3Tc1W-1Kt48NW3DyGRg2GvbmhVn7lQZ3YSx0zW7W6YYC=
+6RT2DBW2cTtdl3RV571W1q6rjd73qthSW7kl7fb59hXBQW439tt44ctjgsf3427qj04 ) , and=
+ Landing AI (https://info.deeplearning.ai/e3t/Ctc/LX+113/cJhC404/VVY1kt3x0f=
+1HW23X0RT30X8qQW4Mw1s55FwPmLN2dmMwn3prCCW69sMD-6lZ3mFW1L5yF51_82NfW8GWWyq6-=
+sh8_W4Pw9Hg98vC2cW4tBjgm2v_JRCVQrR0C1TNPcpW4fwz4Z6CdTXZW1yBKcD6X6gkzW6mS_wm=
+1_WkFqW6mBt6t47SZzYVZPg2x5nhsM9W1BCKfF8Q4M-mW637_Yg8zR-TwW3qZMsH3YsMZVW1MmS=
+431JFRBBW5ZmKjj1g16ZgW3-pNxL2f3L1yW6-89vr4FcCmrW91W8S725fT5YW43Txcj59WrZmN4=
+_fLtXDLm-_f42R_2C04 ) .
+
+Subscribe and view previous issues here (https://info.deeplearning.ai/e3t/C=
+tc/LX+113/cJhC404/VVY1kt3x0f1HW23X0RT30X8qQW4Mw1s55FwPmLN2dmMwH3l5QzW6N1vHY=
+6lZ3nsW6K86z67z2l9HW1qsmQq4MyYJrW98Nw3k4M1jLCW3lHWDf1RNlpWW2-j0d37zSChZW4hL=
+Q5V660SDlVjvVJb6LpkTLVnbcrq4FwD4dW1V5qCC5XxDgYW4M3TLT4vCqvbVGp1X11CW0lnN96k=
+ZdqWhD0WW4sFjmy3FPmByW155rp63Kmz0DW4pkD4s3Zrrp4W2sx5SH15gVwHW118gxX6NF22YW1=
+TXY3Z9j8vLlW252SjV7bt_KfN1JM-YZn57hYW10mqnL97j7vZW5wcm9t8lMjt9f7kgq6H04 ) .
+
+Thoughts, suggestions, feedback? Please send to thebatch@deeplearning.ai (m=
+ailto:thebatch@deeplearning.ai?subject=3DRE:%20Thoughts,%20Suggestions,%20f=
+eedback) . Avoid our newsletter ending up in your spam folder by adding our=
+ email address to your contacts list.
+
+DeepLearning.AI, 400 Castro St., Suite 600, Mountain View, CA 94041, United=
+ States
+
+Unsubscribe (https://info.deeplearning.ai/hs/preferences-center/en/direct?d=
+ata=3DW2nXS-N30h-MjW1Nzc1j4fNNshW2FM5Br4ms5LLW34q9Xb1BrGyjW3JFRvH2xys8PW3bq=
+4lK2TskTdW2-FvTK25hPtPW2RrH2F2FBNSVW47C0sX2502j-W3ZFLk73bfl_JW25fPdW1BKJ54W=
+41Fgbt24_-PGW3SRVlr49BTtVW30HPRL34j3bXW2Ksm2B1_6RT7W219YyK2FRHcsW2xFTN62vCz=
+WFW1W_qtl2TCdJTW2r1xKl2MCRkPW3J-00H1Ly-pCW3ZG96b3CfxKPW2-lJgx2HyYbnW2KnxzD1=
+L5Rr7W2vzwN24thdtcW2p51d32r8-Q5W3P9cRB3K2W8ZW3F1fPS4pkjdsW2nX2PT2TQ36_W3bg-=
+0b2q_sV9W21hnG73VRK5wW3DL1g332Ctp1W23kFv13LXcHQW2HsW_t3LS6QhW3XvblH2RLvVtW2=
+HB_864kLlWlW2CKCdr2TvqYXW2CthL51-ZMyNW4mdrpv3KbpB2W1Z7VS_3g2sTRW3ZKWf33-0hP=
+xW327w-c2KyJg_W1Xv1gc1Sh8HnW38fXz12KCGcpW41pPt33jnClSW364ZN33dB1JXW2sQfZl4f=
+z9TgW400ty54pCGfsW4mCTC44pDrtDW36tR1p2FWSjvW49BqJ54rDJ8k0&_hsenc=3Dp2ANqtz-=
+_03T6jPDonD09LQZ8k-n5sf-iY4KlhOs03n0vXftISU3b2Hf6JldIRkOiFIw116emefBuoJL-AZ=
+ZHpkR60gh9ZQFNt9w&_hsmi=3D388564600 )
+Manage preferences (https://info.deeplearning.ai/hs/preferences-center/en/p=
+age?data=3DW2nXS-N30h-MjW1Nzc1j4fNNshW2FM5Br4ms5LLW34q9Xb1BrGyjW3JFRvH2xys8=
+PW3bq4lK2TskTdW2-FvTK25hPtPW2RrH2F2FBNSVW47C0sX2502j-W3ZFLk73bfl_JW25fPdW1B=
+KJ54W41Fgbt24_-PGW3SRVlr49BTtVW30HPRL34j3bXW2Ksm2B1_6RT7W219YyK2FRHcsW2xFTN=
+62vCzWFW1W_qtl2TCdJTW2r1xKl2MCRkPW3J-00H1Ly-pCW3ZG96b3CfxKPW2-lJgx2HyYbnW2K=
+nxzD1L5Rr7W2vzwN24thdtcW2p51d32r8-Q5W3P9cRB3K2W8ZW3F1fPS4pkjdsW2nX2PT2TQ36_=
+W3bg-0b2q_sV9W21hnG73VRK5wW3DL1g332Ctp1W23kFv13LXcHQW2HsW_t3LS6QhW3XvblH2RL=
+vVtW2HB_864kLlWlW2CKCdr2TvqYXW2CthL51-ZMyNW4mdrpv3KbpB2W1Z7VS_3g2sTRW3ZKWf3=
+3-0hPxW327w-c2KyJg_W1Xv1gc1Sh8HnW38fXz12KCGcpW41pPt33jnClSW364ZN33dB1JXW2sQ=
+fZl4fz9TgW400ty54pCGfsW4mCTC44pDrtDW36tR1p2FWSjvW49BqJ54rDJ8k0&_hsenc=3Dp2A=
+Nqtz-_03T6jPDonD09LQZ8k-n5sf-iY4KlhOs03n0vXftISU3b2Hf6JldIRkOiFIw116emefBuo=
+JL-AZZHpkR60gh9ZQFNt9w&_hsmi=3D388564600 )
+------=_Part_56567_64926651.1762373524333
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional //EN" "http://www=
+.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns=3D"http://www.w3=
+.org/1999/xhtml" xmlns:o=3D"urn:schemas-microsoft-com:office:office" xmlns:=
+v=3D"urn:schemas-microsoft-com:vml" lang=3D"en"><head>
+    <title>OpenAI Reorgs For Profit, MiniMax-M2 Leads Open Coding, Universa=
+l Music Group Embraces AI, LLMs Go Private</title>
+    <meta property=3D"og:title" content=3D"OpenAI Reorgs For Profit, MiniMa=
+x-M2 Leads Open Coding, Universal Music Group Embraces AI, LLMs Go Private"=
+>
+    <meta name=3D"twitter:title" content=3D"OpenAI Reorgs For Profit, MiniM=
+ax-M2 Leads Open Coding, Universal Music Group Embraces AI, LLMs Go Private=
+">
+   =20
+   =20
+   =20
+<meta name=3D"x-apple-disable-message-reformatting">
+<meta http-equiv=3D"Content-Type" content=3D"text/html; charset=3DUTF-8">
+<meta http-equiv=3D"X-UA-Compatible" content=3D"IE=3Dedge">
+<meta name=3D"viewport" content=3D"width=3Ddevice-width, initial-scale=3D1.=
+0">
+    <!--[if gte mso 9]>
+  <xml>
+    <o:OfficeDocumentSettings>
+      <o:AllowPNG/>
+      <o:PixelsPerInch>96</o:PixelsPerInch>
+    </o:OfficeDocumentSettings>
+    <w:WordDocument xmlns:w=3D"urn:schemas-microsoft-com:office:word">
+      <w:DontUseAdvancedTypographyReadingMail/>
+    </w:WordDocument>
+  </xml>
+ =20
+  <style>
+    ul > li {
+      text-indent: -1em;
+    }
+  </style>
+<![endif]-->
+<!--[if mso]>
+<style type=3D"text/css">
+ body, td {font-family: Arial, Helvetica, sans-serif;}
+ .hse-body-wrapper-table {background-color: #ffffff;}
+</style>
+<![endif]-->
+<!--[if mso | IE]>
+  <style type=3D"text/css">
+    .hse-column-container { border: none !important; padding: 0 !important;=
+ }
+  </style>
+<![endif]-->
+   =20
+     =20
+ =20
+ =20
+   =20
+  <meta name=3D"generator" content=3D"HubSpot"><meta property=3D"og:url" co=
+ntent=3D"https://info.deeplearning.ai/openai-reorgs-for-profit-minimax-m2-l=
+eads-open-coding-universal-music-group-embraces-ai-llms-go-private"><meta n=
+ame=3D"robots" content=3D"noindex,follow"><!--[if !((mso)|(IE))]><!-- --><s=
+tyle type=3D"text/css">@media only screen and (max-width:639px){img.stretch=
+-on-mobile,.hs_rss_email_entries_table img,.hs-stretch-cta .hs-cta-img{heig=
+ht:auto !important;width:100% !important}
+.display_block_on_small_screens{display:block}.hs_padded{padding-left:20px =
+!important;padding-right:20px !important}
+.hs-hm,table.hs-hm{display:none}.hs-hd{display:block !important}table.hs-hd=
+{display:table !important}
+}@media only screen and (max-width:639px){.hse-border-m{border-left:1px sol=
+id #ccc !important;border-right:1px solid #ccc !important;box-sizing:border=
+-box}
+.hse-border-bottom-m{border-bottom:1px solid #ccc !important}.hse-border-to=
+p-m{border-top:1px solid #ccc !important}
+.hse-border-top-hm{border-top:none !important}.hse-border-bottom-hm{border-=
+bottom:none !important}
+}.moz-text-html .hse-column-container{max-width:600px !important;width:600p=
+x !important}
+.moz-text-html .hse-column{display:table-cell;vertical-align:top}.moz-text-=
+html .hse-section .hse-size-12{max-width:600px !important;width:600px !impo=
+rtant}
+@media only screen and (min-width:640px){.hse-column-container{max-width:60=
+0px !important;width:600px !important}
+.hse-column{display:table-cell;vertical-align:top}.hse-section .hse-size-12=
+{max-width:600px !important;width:600px !important}
+}@media only screen and (max-width:639px){.hse-body-wrapper-td{padding-top:=
+20px !important}
+#section_1706730515171 .hse-column-container{background-color:transparent !=
+important}
+#section_1706730515171 .hse-column-container{background-color:transparent !=
+important}
+}</style><!--<![endif]--><style type=3D"text/css">#hs_body #hs_cos_wrapper_=
+main a[x-apple-data-detectors]{color:inherit !important;text-decoration:non=
+e !important;font-size:inherit !important;font-family:inherit !important;fo=
+nt-weight:inherit !important;line-height:inherit !important}
+a{text-decoration:underline}p{margin:0}body{-ms-text-size-adjust:100%;-webk=
+it-text-size-adjust:100%;-webkit-font-smoothing:antialiased;moz-osx-font-sm=
+oothing:grayscale}
+table{border-spacing:0;mso-table-lspace:0;mso-table-rspace:0}table,td{borde=
+r-collapse:collapse}
+img{-ms-interpolation-mode:bicubic}p,a,li,td,blockquote{mso-line-height-rul=
+e:exactly}
+.ShadowHTML p,.sh-modified-inline p{margin:0}</style></head>
+  <body id=3D"hs_body" bgcolor=3D"#ffffff" style=3D"margin:0 !important; pa=
+dding:0 !important; font-family:Helvetica, Arial, sans-serif; font-size:18p=
+x; color:#3b3b3b; word-break:break-word">
+    <div id=3D"preview_text" style=3D"display:none;font-size:1px;color:#fff=
+fff;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;=
+" lang=3D"en">AI agents are getting better at looking at different types of=
+ data in a business to spot patterns and create value.</div>
+   =20
+<!--[if gte mso 9]>
+<v:background xmlns:v=3D"urn:schemas-microsoft-com:vml" fill=3D"t">
+    <v:fill type=3D"tile" size=3D"100%,100%" color=3D"#ffffff"/>
+</v:background>
+<![endif]-->
+    <div class=3D"hse-body-background" lang=3D"en" style=3D"background-colo=
+r:#ffffff" bgcolor=3D"#ffffff">
+      <table role=3D"presentation" class=3D"hse-body-wrapper-table hse-full=
+-width-template" cellpadding=3D"0" cellspacing=3D"0" style=3D"margin:0; pad=
+ding:0; width:100% !important; min-width:320px !important; height:100% !imp=
+ortant" width=3D"100%" height=3D"100%">
+        <tbody><tr>
+          <td class=3D"hse-body-wrapper-td" valign=3D"top" style=3D"font-fa=
+mily:Helvetica, Arial, sans-serif; font-size:18px; color:#3b3b3b; word-brea=
+k:break-word; padding-top:20px">
+            <div id=3D"hs_cos_wrapper_main" class=3D"hs_cos_wrapper hs_cos_=
+wrapper_widget hs_cos_wrapper_type_email_flex_area" style=3D"color: inherit=
+; font-size: inherit; line-height: inherit;" data-hs-cos-general-type=3D"wi=
+dget" data-hs-cos-type=3D"email_flex_area">  <div id=3D"section_17067305151=
+71" class=3D"hse-section hse-section-first" style=3D"padding-left:10px; pad=
+ding-right:10px">
+   =20
+   =20
+      <div class=3D"hse-column-container" style=3D"min-width:280px; max-wid=
+th:600px; margin:0 auto">
+   =20
+    <!--[if (mso)|(IE)]>
+      <table align=3D"center" style=3D"width:600px;" cellpadding=3D"0" cell=
+spacing=3D"0" role=3D"presentation">
+      <tr>
+    <![endif]-->
+    <!--[if (mso)|(IE)]>
+  <td valign=3D"top" style=3D"width:600px;">
+<![endif]-->
+<!--[if gte mso 9]>
+  <table role=3D"presentation" width=3D"600" cellpadding=3D"0" cellspacing=
+=3D"0" style=3D"width:600px">
+<![endif]-->
+<div id=3D"column_1706730515171_0" class=3D"hse-column hse-size-12">
+  <div id=3D"hs_cos_wrapper_module_17067305151702" class=3D"hs_cos_wrapper =
+hs_cos_wrapper_widget hs_cos_wrapper_type_module" style=3D"color: inherit; =
+font-size: inherit; line-height: inherit;" data-hs-cos-general-type=3D"widg=
+et" data-hs-cos-type=3D"module"><div style=3D"overflow:hidden">
+  <table role=3D"presentation" class=3D"hse-pre-header hse-secondary" width=
+=3D"100%" cellpadding=3D"0" cellspacing=3D"0" style=3D"text-align:right; fo=
+nt-family:Arial, sans-serif; font-size:12px; line-height:135%; color:#23496=
+d; margin-bottom:0; padding:0" align=3D"right">
+    <tbody>
+      <tr>
+        <td align=3D"right" valign=3D"top" style=3D"color:#3b3b3b; word-bre=
+ak:break-word; text-align:right; font-family:Arial, sans-serif; font-size:1=
+2px; padding:10px 0; margin-bottom:0; line-height:135%">
+          <a href=3D"https://info.deeplearning.ai/e3t/Ctc/LX+113/cJhC404/VV=
+Y1kt3x0f1HW23X0RT30X8qQW4Mw1s55FwPmLN2dmMxT5nR3bW95jVnq6lZ3lLN1sQjfmPzRwbW1=
+tfcn-5NjDpNW837NrD5C08pxW8tfmR36gVcXXW54kGcP1mP7X9VJ-YF-81-yn-W34DjBy69gf3p=
+V4mhlP54KSMGW8Nxh9G12vSg7W3L5jmY5HHv4TW3wLPvD3YmYJbVfkNX84xvKGjW47WlsB70pzw=
+pN3s6hNClNwYFN6bJGkvKFDzsVvwPqg2XY1gjVvtJ202YM86fW3cLb-q1QZ_hlW35p3yd2C9WJg=
+MvGskJPTZsHW31BQDV31k3WXW7lfClN2TqqmGV6VL2s5BpRSzW12CPC96lZ6RdW4Y0hl54XfLnj=
+W2-sLT17jnhJ3W3bRpYR2rNNnjW8nqlYq138mLGW8_SbkL4-mnSsN2dhhCy1hmFBVHLD7w4G1sV=
+NW3MFZ087h868VW7T7MC_1dMVSZW34KkyR4XKD0jW6Wv3Ps9jmZX-W5HkzNy31D1B8W4zqFZj3v=
+gT_pW5_KwcY6kDQsYW1pyNs07MWGYXW8Byrrb18Dmg7W2DTyc16rBtpDVF0kk55-6L3SW3kKDfx=
+6gtrvgVrGS8B8_pNr3W8vWzTS9fyTrbW7mQw6L93C0Svf7lGhKs04" style=3D"color:#237B=
+94; font-weight:normal; text-decoration:underline; font-style:normal" data-=
+hs-link-id=3D"0" data-hs-link-id-v2=3D"cn/mrUbu" target=3D"_blank">View in =
+browser</a>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div></div>
+</div>
+<!--[if gte mso 9]></table><![endif]-->
+<!--[if (mso)|(IE)]></td><![endif]-->
+    <!--[if (mso)|(IE)]></tr></table><![endif]-->
+    </div>
+  =20
+  </div>
+  <div id=3D"section_0" class=3D"hse-section" style=3D"padding-left:10px; p=
+adding-right:10px; background-color:#ffffff" bgcolor=3D"#ffffff">
+   =20
+     =20
+      <!--[if gte mso 9]><table align=3D"center" border=3D"0" cellpadding=
+=3D"0" cellspacing=3D"0" role=3D"presentation" width=3D"100%" style=3D"widt=
+h:100%" bgcolor=3D"#ffffff"><tbody><tr><td valign=3D"top"><![endif]-->
+   =20
+   =20
+      <div class=3D"hse-column-container" style=3D"min-width:280px; max-wid=
+th:600px; margin:0 auto; padding-bottom:10px; padding-top:10px">
+   =20
+    <!--[if (mso)|(IE)]>
+      <table align=3D"center" style=3D"width:600px;" cellpadding=3D"0" cell=
+spacing=3D"0" role=3D"presentation">
+      <tr>
+    <![endif]-->
+    <!--[if (mso)|(IE)]>
+  <td valign=3D"top" style=3D"width:600px;padding-bottom:10px; padding-top:=
+10px;">
+<![endif]-->
+<!--[if gte mso 9]>
+  <table role=3D"presentation" width=3D"600" cellpadding=3D"0" cellspacing=
+=3D"0" style=3D"width:600px">
+<![endif]-->
+<div id=3D"column_0_0" class=3D"hse-column hse-size-12">
+  <div id=3D"hs_cos_wrapper_hs_email_body_old" class=3D"hs_cos_wrapper hs_c=
+os_wrapper_widget hs_cos_wrapper_type_module" style=3D"color: inherit; font=
+-size: inherit; line-height: inherit;" data-hs-cos-general-type=3D"widget" =
+data-hs-cos-type=3D"module"><table class=3D"hse-image-wrapper" role=3D"pres=
+entation" width=3D"100%" cellpadding=3D"0" cellspacing=3D"0">
+  <tbody>
+    <tr>
+      <td align=3D"center" valign=3D"top" style=3D"font-family:Helvetica, A=
+rial, sans-serif; color:#3b3b3b; word-break:break-word; text-align:center; =
+padding:0px; font-size:0px">
+        <a href=3D"https://info.deeplearning.ai/e3t/Ctc/LX+113/cJhC404/VVY1=
+kt3x0f1HW23X0RT30X8qQW4Mw1s55FwPmLN2dmMw-3qgz0W7lCdLW6lZ3p_W9fvCVm3WX_PHW3Q=
+yBnD3Z-K9qN5j6CFYCQD6lW5n2X262nJCRTW1zYQnD4kNhdNW6NtYD349xT0lW2yrxn651ZcyBW=
+37qhY83njTK8W172y866pHYw3W2HcWKm5QtJhzW2vcQL57xtNcFW23CW5D6xpXd9MDP6H_d3bYC=
+W8xHPvD8-f_gtW2Q5WYS5bTsN3W491sPv3mJmq7W6bdZj816sfnmW5cpW8s8wh9VqW2GKY425xK=
+hh3W5YzTQ95ymSN3W1595VT7bbWf3W3589Pr7F-v3bW9g1lB71YB6VZW1kz8m47ypwD7f4j0hvM=
+04" target=3D"_blank" style=3D"color:#00a4bd" data-hs-link-id=3D"0" data-hs=
+-link-id-v2=3D"hgAQx2nE">
+        <img alt=3D"The Batch top banner - November 5, 2025" src=3D"https:/=
+/info.deeplearning.ai/hs-fs/hubfs/The%20Batch%20top%20banners%20(61).png?wi=
+dth=3D1200&amp;upscale=3Dtrue&amp;name=3DThe%20Batch%20top%20banners%20(61)=
+.png" style=3D"outline:none; text-decoration:none; border:none; max-width:1=
+00%; font-size:16px" width=3D"600" align=3D"middle" class=3D"stretch-on-mob=
+ile">
+        </a>
+      </td>
+    </tr>
+  </tbody>
+</table></div>
+<div id=3D"hs_cos_wrapper_hs_email_body_old1" class=3D"hs_cos_wrapper hs_co=
+s_wrapper_widget hs_cos_wrapper_type_module" style=3D"color: inherit; font-=
+size: inherit; line-height: inherit;" data-hs-cos-general-type=3D"widget" d=
+ata-hs-cos-type=3D"module"><div id=3D"hs_cos_wrapper_hs_email_body_old1_" c=
+lass=3D"hs_cos_wrapper hs_cos_wrapper_widget hs_cos_wrapper_type_rich_text"=
+ style=3D"color: inherit; font-size: inherit; line-height: inherit;" data-h=
+s-cos-general-type=3D"widget" data-hs-cos-type=3D"rich_text"><div style=3D"=
+line-height:125%; text-align:center" align=3D"center"><span style=3D"font-s=
+ize: 15px; font-family: Helvetica, sans-serif;"><a href=3D"https://info.dee=
+plearning.ai/e3t/Ctc/LX+113/cJhC404/VVY1kt3x0f1HW23X0RT30X8qQW4Mw1s55FwPmLN=
+2dmMwH3lYM-W6N1vHY6lZ3kRW48R1X09bS-8xVnQvGR3Ftjq-W6WMp_Q2-ccM3W3ZZ90h5-1Y0W=
+W4dBGYG8Nvj8tW1F6PFf2z5Xq_W6mdt0V62sH9BMhJs54QPc2SW5z-D3W8BH4MfM5XdxvMYC5jV=
+PdqYt53skbXW5GWCl85zrsN8W4T61p21MhfY1V8My_N5HVNq0W90d92p6pGsjQW5LFj5N6XQ9_w=
+N7vzB1kKPMDgW3xSt7223YnG1W4NcX5C6qHcKfW8jfR6y4LwCDBW7kjmks1CRr9dW5mQMcD6Jbj=
+Q3f1T5VlC04" target=3D"_blank" style=3D"font-size:15px; font-style:initial;=
+ color:#f53b0d; text-decoration:underline" rel=3D"noopener" data-hs-link-id=
+=3D"0" data-hs-link-id-v2=3D"Y5q3J6B/">Subscribe</a> &nbsp;&nbsp;<a href=3D=
+"mailto:thebatch@deeplearning.ai?subject=3DRE%3A%20Tips%20and%20News" targe=
+t=3D"_blank" style=3D"font-size:15px; font-style:initial; color:#f53b0d; te=
+xt-decoration:underline" rel=3D"noopener" data-hs-link-id=3D"0" data-hs-lin=
+k-id-v2=3D"dpgz9vS1">Submit a tip</a></span></div>
+<p style=3D"line-height:150%">&nbsp;</p>
+<p style=3D"line-height:150%">&nbsp;</p>
+<p style=3D"line-height:150%"><span style=3D"font-family: Georgia, serif;">=
+Dear friends,</span></p>
+<p style=3D"line-height:150%">&nbsp;</p>
+<p style=3D"line-height:150%"><span style=3D"font-family: Georgia, serif;">=
+AI agents are getting better at looking at different types of data in busin=
+esses to spot patterns and create value. This is making data silos increasi=
+ngly painful. This is why I increasingly try to select software that lets m=
+e control my own data, so I can make it available to my AI agents.</span></=
+p>
+<p style=3D"line-height:150%">&nbsp;</p>
+<p style=3D"line-height:150%"><span style=3D"font-family: Georgia, serif;">=
+Because of AI=E2=80=99s growing capabilities, the value you can now create =
+from =E2=80=9Cconnecting the dots=E2=80=9D between different pieces of data=
+ is higher than ever. For example, if an email click is logged in one vendo=
+r=E2=80=99s system and a subsequent online purchase is logged in a differen=
+t one, then it is valuable to build agents that can access both of these da=
+ta sources to see how they correlate to make better decisions.&nbsp;</span>=
+</p>
+<p style=3D"line-height:150%">&nbsp;</p>
+<p style=3D"line-height:150%"><span style=3D"font-family: Georgia, serif;">=
+Unfortunately, many SaaS vendors try to create a data silo in their custome=
+r=E2=80=99s business. By making it hard for you to extract your data, they =
+create high switching costs. This also allows them to steer you to buy thei=
+r AI agent services =E2=80=94 sometimes at high expense and/or of low quali=
+ty =E2=80=94 rather than build your own or buy from a different vendor. Unf=
+ortunately, some SaaS vendors are seeing AI agents coming for this data and=
+ working to make it harder for you (and your AI agents) to efficiently acce=
+ss it. </span></p>
+<p style=3D"line-height:150%">&nbsp;</p>
+<p style=3D"line-height:150%"><span style=3D"font-family: Georgia, serif;">=
+One of my teams just told me that a SaaS vendor we have been using to store=
+ our customer data wants to charge over $20,000 for an API key to get at ou=
+r data. This high cost =E2=80=94 no doubt intentionally designed to make it=
+ hard for customers to get their data out =E2=80=94 is adding a barrier to =
+implementing agentic workflows that take advantage of that data.&nbsp;&nbsp=
+;</span></p></div></div>
+<div id=3D"hs_cos_wrapper_hs_email_body_old2" class=3D"hs_cos_wrapper hs_co=
+s_wrapper_widget hs_cos_wrapper_type_module" style=3D"color: inherit; font-=
+size: inherit; line-height: inherit;" data-hs-cos-general-type=3D"widget" d=
+ata-hs-cos-type=3D"module"><table class=3D"hse-image-wrapper" role=3D"prese=
+ntation" width=3D"100%" cellpadding=3D"0" cellspacing=3D"0">
+  <tbody>
+    <tr>
+      <td align=3D"center" valign=3D"top" style=3D"font-family:Helvetica, A=
+rial, sans-serif; color:#3b3b3b; word-break:break-word; text-align:center; =
+padding:10px 0px; font-size:0px">
+        <img alt=3D"Robots extract colorful data streams from silo towers, =
+highlighting data silos being broken." src=3D"https://info.deeplearning.ai/=
+hs-fs/hubfs/2025.11.05%20LETTER.png?width=3D1200&amp;upscale=3Dtrue&amp;nam=
+e=3D2025.11.05%20LETTER.png" style=3D"outline:none; text-decoration:none; m=
+ax-width:100%; font-size:16px" width=3D"600" align=3D"middle" class=3D"stre=
+tch-on-mobile">
+      </td>
+    </tr>
+  </tbody>
+</table></div>
+<div id=3D"hs_cos_wrapper_hs_email_body_old3" class=3D"hs_cos_wrapper hs_co=
+s_wrapper_widget hs_cos_wrapper_type_module" style=3D"color: inherit; font-=
+size: inherit; line-height: inherit;" data-hs-cos-general-type=3D"widget" d=
+ata-hs-cos-type=3D"module"><div id=3D"hs_cos_wrapper_hs_email_body_old3_" c=
+lass=3D"hs_cos_wrapper hs_cos_wrapper_widget hs_cos_wrapper_type_rich_text"=
+ style=3D"color: inherit; font-size: inherit; line-height: inherit;" data-h=
+s-cos-general-type=3D"widget" data-hs-cos-type=3D"rich_text"><p style=3D"li=
+ne-height:150%"><span style=3D"font-family: Georgia, serif;">Through AI Asp=
+ire (an AI advisory firm), I occasionally advise businesses on their AI str=
+ategies. When it comes to buying SaaS, I often advise them to try to contro=
+l their own data (which, sadly, some vendors mightily resist). This way, yo=
+u can hire a SaaS vendor to record and operate on your data, but ultimately=
+ you decide how to route it to the appropriate human or AI system for proce=
+ssing. &nbsp;</span></p>
+<p style=3D"line-height:150%"><span style=3D"font-family: Georgia, serif;">=
+<br>Over the past decade, a lot of work has gone into organizing businesses=
+=E2=80=99&nbsp;structured data. Because AI can now process unstructured dat=
+a much better than before, the value of organizing your unstructured data (=
+including PDF files, which LandingAI=E2=80=99s Agentic Document Extraction =
+specializes in!) is higher than ever before. </span></p>
+<p style=3D"line-height:150%">&nbsp;</p>
+<p style=3D"line-height:150%"><span style=3D"font-family: Georgia, serif;">=
+In the era of generative AI, businesses and individuals have important work=
+ ahead to organize their data to be AI-ready. &nbsp;</span></p>
+<p style=3D"line-height:150%">&nbsp;</p>
+<p style=3D"line-height:150%"><span style=3D"font-family: Georgia, serif;">=
+Keep building,</span></p>
+<p style=3D"line-height:150%"><span style=3D"font-family: Georgia, serif;">=
+Andrew&nbsp;</span></p>
+<p style=3D"line-height:150%">&nbsp;</p>
+<p style=3D"line-height:150%"><span style=3D"font-family: Georgia, serif;">=
+P.S. As an individual, my favorite note-taking app is <a href=3D"https://in=
+fo.deeplearning.ai/e3t/Ctc/LX+113/cJhC404/VVY1kt3x0f1HW23X0RT30X8qQW4Mw1s55=
+FwPmLN2dmMwn3qgz0W69sMD-6lZ3nqW6zfy6J4q3Tx3W7HglJS6xd7tbW4PmnYM6j1LGmN53HyV=
+5hXXzQW4ghRrW4CKDCNW1PqX5y1W315BW3nvnqm1HhXC4W42J1NH3tK8sMW8wbd1m2640ylW4xq=
+C6T7BSqYfW7xql334k3FlNW6xtCYm5Z2TH9W91y29t8FlH4cW3r0RKc7W9vpcW1Qk2xF5RdV7RW=
+7x3_yB2LJ3LZW2W2tJY1Lv4bpW85vNlS7hwQMpW2V4hVq59j2S6N1xm_jGBC1rRf72s54-04" r=
+el=3D"noopener" style=3D"color:#237b94" data-hs-link-id=3D"0" data-hs-link-=
+id-v2=3D"EXlrx82e" target=3D"_blank">Obsidian</a>. I am happy to =E2=80=9Ch=
+ire=E2=80=9D Obsidian to operate on my notes files. And, all my notes are s=
+aved as Markdown files in my file system, and I have built AI agents that r=
+ead from or write to my Obsidian files. This is a small example of how cont=
+rolling my own notes data lets me do more with AI agents!&nbsp;</span></p>
+<p style=3D"line-height:150%">&nbsp;</p>
+<p style=3D"font-size:18px; line-height:1.5">&nbsp;</p></div></div>
+<div id=3D"hs_cos_wrapper_module_16890053646291" class=3D"hs_cos_wrapper hs=
+_cos_wrapper_widget hs_cos_wrapper_type_module" style=3D"color: inherit; fo=
+nt-size: inherit; line-height: inherit;" data-hs-cos-general-type=3D"widget=
+" data-hs-cos-type=3D"module"><div id=3D"hs_cos_wrapper_module_168900536462=
+91_" class=3D"hs_cos_wrapper hs_cos_wrapper_widget hs_cos_wrapper_type_rich=
+_text" style=3D"color: inherit; font-size: inherit; line-height: inherit;" =
+data-hs-cos-general-type=3D"widget" data-hs-cos-type=3D"rich_text"><h2 styl=
+e=3D"margin:0; font-size:21px; line-height:150%"><span style=3D"color: #000=
+000;">A MESSAGE FROM</span> <span style=3D"color: #000000;"><a href=3D"http=
+s://info.deeplearning.ai/e3t/Ctc/LX+113/cJhC404/VVY1kt3x0f1HW23X0RT30X8qQW4=
+Mw1s55FwPmLN2dmMwH3qgz0W6N1vHY6lZ3q5W80-VvH10pMrcW6CcwMk1FqJ7FW7TbF8657qrFx=
+W4-03bz1TpjxJW44NG-7818Y6ZVr4_B-7-wx1gW2VVMzl4fY75BW92pb-45xgKLrW5fhLdy4SnD=
+_QW5qSzft9dgcxVW3KM8gY94Y3L2W3fPqjN38MCh1N5NDqgTV7DM6W4c1DDB8KKRLwW92_MRQ5m=
+lwLcW92XZT72cbWSRW1PLhT56RNCpCW5_SSsz3rgrhwW1x9bjh5Wk0StW88-nkv7smX_CVLRbPJ=
+3-NvxpW6y7Prr6R2jnjf8m-JGv04" style=3D"font-weight:bold; text-decoration:no=
+ne; color:#000000" rel=3D"noopener" data-hs-link-id=3D"0" data-hs-link-id-v=
+2=3D"5QsDfwQ9" target=3D"_blank">DEEPLEARNING.AI</a></span></h2></div></div=
+>
+<div id=3D"hs_cos_wrapper_module_16848647586863" class=3D"hs_cos_wrapper hs=
+_cos_wrapper_widget hs_cos_wrapper_type_module" style=3D"color: inherit; fo=
+nt-size: inherit; line-height: inherit;" data-hs-cos-general-type=3D"widget=
+" data-hs-cos-type=3D"module"><table class=3D"hse-image-wrapper" role=3D"pr=
+esentation" width=3D"100%" cellpadding=3D"0" cellspacing=3D"0">
+  <tbody>
+    <tr>
+      <td align=3D"center" valign=3D"top" style=3D"font-family:Helvetica, A=
+rial, sans-serif; color:#3b3b3b; word-break:break-word; text-align:center; =
+padding:5px 0px 10px; font-size:0px">
+        <a href=3D"https://info.deeplearning.ai/e3t/Ctc/LX+113/cJhC404/VVY1=
+kt3x0f1HW23X0RT30X8qQW4Mw1s55FwPmLN2dmMxz3qgz0W8wLKSR6lZ3nLW1g0x501QbYDsV-Z=
+bM56-tjM9W6m5r2T8zGG5HW4x8Nz0327ZRhW6RHNgW1XpvqhW117tTN3f_TXdW1dFqCF2d-95pV=
+nB9Wl7YygqYVn4qQr7mVb4rW7P2VgQ8SpVsYW7XHyYd3Gxx9dVmf8Tt2JkCHLW1SV3mT3TW5mTW=
+6th8Fj7FgG8gW8Q31Xk7jp1sYW8wKWzK76T4RTW7qQdvr41d2J2W9fXWsL5yjb9LN1-QPy0bzVL=
+dW3WL78X22whzvW3lNF1y8H9db8W5PjJys7Ms59rW33CzPC1WrCJXW7QR2Lp4zJ1lwW3qBkxW8Q=
+C0ysW8PzjTC4YcNF9W5PchJp5QFpg6W42HmRJ7c82whf2jmHXl04" target=3D"_blank" sty=
+le=3D"color:#00a4bd" data-hs-link-id=3D"0" data-hs-link-id-v2=3D"y22qOl34">
+        <img alt=3D"Promo banner for: &quot;Jupyter AI: AI Coding in Notebo=
+oks&quot;" src=3D"https://info.deeplearning.ai/hs-fs/hubfs/The_Batch_Jupyte=
+rAI_AI_coding_in_notebooks_1920x1080-01.png?width=3D1200&amp;upscale=3Dtrue=
+&amp;name=3DThe_Batch_JupyterAI_AI_coding_in_notebooks_1920x1080-01.png" st=
+yle=3D"outline:none; text-decoration:none; border:none; max-width:100%; fon=
+t-size:16px" width=3D"600" align=3D"middle" class=3D"stretch-on-mobile">
+        </a>
+      </td>
+    </tr>
+  </tbody>
+</table></div>
+<div id=3D"hs_cos_wrapper_hs_email_body_old19" class=3D"hs_cos_wrapper hs_c=
+os_wrapper_widget hs_cos_wrapper_type_module" style=3D"color: inherit; font=
+-size: inherit; line-height: inherit;" data-hs-cos-general-type=3D"widget" =
+data-hs-cos-type=3D"module"><div id=3D"hs_cos_wrapper_hs_email_body_old19_"=
+ class=3D"hs_cos_wrapper hs_cos_wrapper_widget hs_cos_wrapper_type_rich_tex=
+t" style=3D"color: inherit; font-size: inherit; line-height: inherit;" data=
+-hs-cos-general-type=3D"widget" data-hs-cos-type=3D"rich_text"><p style=3D"=
+line-height:150%"><span style=3D"font-family: Helvetica, Arial, sans-serif;=
+"><span style=3D"color: inherit; font-size: inherit;"><span style=3D"font-s=
+tyle: normal;">In <span style=3D"font-style: italic;">Jupyter AI: AI Coding=
+ in Notebooks</span>, Andrew Ng and Brian Granger (co-founder of Project Ju=
+pyter) teach you to use Jupyter AI as your notebook coding partner. Learn t=
+o generate, refactor, and debug code through an integrated chat interface. =
+Available now at DeepLearning.AI. <a href=3D"https://info.deeplearning.ai/e=
+3t/Ctc/LX+113/cJhC404/VVY1kt3x0f1HW23X0RT30X8qQW4Mw1s55FwPmLN2dmMxz3qgz0W8w=
+LKSR6lZ3q5W6_6tKq1kVHkrN86ZsZgtzr2vW6b-5dx6dW_21W7zPSSd751bQsV6gBwS3ZzgSkW7=
+fvDWD9d7lcFW16s6XC7_sTXrF22kX92QrMcW5t4swD9gBRPPW57fgBQ19gRBHW4Q1KRF5dJQGXW=
+92yNRy4SHSJrW172z5h4HWRjnW7NWPPh5fzgYbW2PHCSq44YpytW8pjsFQ9lr46SW4_HYkr6xk0=
+42W3stptQ8PMH2nW4SKS9J6SlvbrW3LV_gP4hQPNnVGkmhq3ByfcGW1xXQQT3S5hWqW5rYrfm1c=
+qsfFW4JPQgG42K9GPVvkpM-51m1kHW1ZFZjG5pQySZW5sTMkH2xwN0YW91gGFd3R6fWKf89QWdC=
+04" rel=3D"noopener" style=3D"color:#237b94" data-hs-link-id=3D"1" data-hs-=
+link-id-v2=3D"LQMlVMAb" target=3D"_blank">Enroll today!</a></span></span></=
+span></p>
+<p style=3D"line-height:150%">&nbsp;</p></div></div>
+<div id=3D"hs_cos_wrapper_hs_email_body_old7" class=3D"hs_cos_wrapper hs_co=
+s_wrapper_widget hs_cos_wrapper_type_module" style=3D"color: inherit; font-=
+size: inherit; line-height: inherit;" data-hs-cos-general-type=3D"widget" d=
+ata-hs-cos-type=3D"module"><div id=3D"hs_cos_wrapper_hs_email_body_old7_" c=
+lass=3D"hs_cos_wrapper hs_cos_wrapper_widget hs_cos_wrapper_type_rich_text"=
+ style=3D"color: inherit; font-size: inherit; line-height: inherit;" data-h=
+s-cos-general-type=3D"widget" data-hs-cos-type=3D"rich_text"><h1 style=3D"m=
+argin:0; font-family:Helvetica, Arial, sans-serif; font-size:32px; line-hei=
+ght:125%">News</h1></div></div>
+<div id=3D"hs_cos_wrapper_module_16195246841011" class=3D"hs_cos_wrapper hs=
+_cos_wrapper_widget hs_cos_wrapper_type_module" style=3D"color: inherit; fo=
+nt-size: inherit; line-height: inherit;" data-hs-cos-general-type=3D"widget=
+" data-hs-cos-type=3D"module"><table class=3D"hse-image-wrapper" role=3D"pr=
+esentation" width=3D"100%" cellpadding=3D"0" cellspacing=3D"0">
+  <tbody>
+    <tr>
+      <td align=3D"center" valign=3D"top" style=3D"font-family:Helvetica, A=
+rial, sans-serif; color:#3b3b3b; word-break:break-word; text-align:center; =
+padding:5px 0px 10px; font-size:0px">
+        <img alt=3D"Prominent dollar sign amid geometric lines, illustratin=
+g OpenAI's shift to for-profit status" src=3D"https://info.deeplearning.ai/=
+hs-fs/hubfs/OPENAIFORPROFIT2.png?width=3D1200&amp;upscale=3Dtrue&amp;name=
+=3DOPENAIFORPROFIT2.png" style=3D"outline:none; text-decoration:none; max-w=
+idth:100%; font-size:16px" width=3D"600" align=3D"middle" class=3D"stretch-=
+on-mobile">
+      </td>
+    </tr>
+  </tbody>
+</table></div>
+<div id=3D"hs_cos_wrapper_hs_email_body_old12" class=3D"hs_cos_wrapper hs_c=
+os_wrapper_widget hs_cos_wrapper_type_module" style=3D"color: inherit; font=
+-size: inherit; line-height: inherit;" data-hs-cos-general-type=3D"widget" =
+data-hs-cos-type=3D"module"><div id=3D"hs_cos_wrapper_hs_email_body_old12_"=
+ class=3D"hs_cos_wrapper hs_cos_wrapper_widget hs_cos_wrapper_type_rich_tex=
+t" style=3D"color: inherit; font-size: inherit; line-height: inherit;" data=
+-hs-cos-general-type=3D"widget" data-hs-cos-type=3D"rich_text"><h1 style=3D=
+"margin:0; font-family:Helvetica, Arial, sans-serif; line-height:125%; font=
+-size:32px; font-weight:bold">OpenAI Reorganizes For Profit</h1>
+<p style=3D"line-height:150%">&nbsp;</p>
+<p style=3D"line-height:150%">OpenAI completed its&nbsp;transition from non=
+profit to for-profit in a feat of legal engineering that took an army of la=
+wyers, investment bankers, and two state attorneys general 18 months to neg=
+otiate.</p>
+<p style=3D"line-height:150%">&nbsp;</p>
+<p style=3D"line-height:150%"><span style=3D"font-weight: bold;">What=E2=80=
+=99s new:</span> The restructured OpenAI Group PBC is a public benefit corp=
+oration, a for-profit company with a mission to create a positive social im=
+pact. It can earn unlimited returns to its investors, which&nbsp;clears&nbs=
+p;the way to attract further investments including a possible initial publi=
+c offering. It remains <a href=3D"https://info.deeplearning.ai/e3t/Ctc/LX+1=
+13/cJhC404/VVY1kt3x0f1HW23X0RT30X8qQW4Mw1s55FwPmLN2dmMw-3qgz0W7lCdLW6lZ3n1W=
+4lrzrh3gvt-NV6LYdH5NhCRGW6Hp8q74rSkD9W88G-NS7YMWRYW2h1CFV41cVsXW6VNb5z1C_SN=
+kN6bYgJBG-xxhN6R5KRgD72QbW3gWsSr801m6PW3-Hy3g1tKwF7N7lkft1pQybpW8cZh_r4W6nz=
+fW2_Dm9P62jb8SN2zz-VjdqbfQW502M4-7s3jhNW26BFHp6T-L9NW5flCRC5K-hJxW2kwH-11RQ=
+_HwW2JJB_R6rJr7DW8yXL3L1-8Zn8W3KBCY81PKtG0W5366Dr7FT7GpW482w8N3WNVgGW5DYNLY=
+92nRFYdYzhmY04" rel=3D"noopener" style=3D"color:#237b94" data-hs-link-id=3D=
+"0" data-hs-link-id-v2=3D"Ox3M9mKI" target=3D"_blank">overseen</a> by a non=
+profit foundation, the newly renamed Open AI Foundation, which owns a 26 pe=
+rcent stake in the corporation. Microsoft holds a 27 percent stake in OpenA=
+I under new terms for the companies=E2=80=99 <a href=3D"https://info.deeple=
+arning.ai/e3t/Ctc/LX+113/cJhC404/VVY1kt3x0f1HW23X0RT30X8qQW4Mw1s55FwPmLN2dm=
+Mxz3qgz0W8wLKSR6lZ3lgW1tTs4L5vZpXxVXtwTr6kvWghN4zMwPt_WzgHVzkXXC7n-rRTW8nTn=
+XD38kLSZW8JypM78X7lHwW7M3y1n38-ylCW1XqhSw8wnZBHW80mPK96Wkq6lVwwbmw4Lhb0NW4T=
+kGlG7smYLjW95hTY521bPJsW1thLkf8_N673W5LjyxP4_KHKkW4TGrZG2PHMhHVcdZkY3fgbklW=
+1xhQfR5GsgL9N5QQjV7QnZ45W5w4YfK32mLFmM1JmLLnrmlVW6wvgx-8HwxnDW29sy8L11w8zGW=
+3Xznqg5R3jq4W44qDPk3wbSPdW3cSCM21sCFqHN7Tbg67lY8LVM3Nqx5Pq_0WW4WK4y38k7VVzf=
+74rNg004" rel=3D"noopener" style=3D"color:#237b94" data-hs-link-id=3D"0" da=
+ta-hs-link-id-v2=3D"7iAmHiNU" target=3D"_blank">partnership</a>.</p>
+<p style=3D"line-height:150%">&nbsp;</p>
+<p style=3D"line-height:150%"><span style=3D"font-weight: bold;">How it wor=
+ks:</span> The agreement frees OpenAI from the constraints of its 2015 nonp=
+rofit beginnings that have limited investors to a 100x maximum return since=
+ an earlier restructuring in 2019. The new structure&nbsp;aims to satisfy t=
+he concerns of state officials in California and Delaware that the old stru=
+cture created conflicts of interest between serving the public and rewardin=
+g shareholders, even as it aims to preserve&nbsp;the company=E2=80=99s miss=
+ion to ensure that artificial general intelligence (AGI), if and when OpenA=
+I builds it, will benefit humanity.</p>
+<ul style=3D"line-height:150%">
+<li aria-level=3D"1">As a public benefit corporation, OpenAI must balance r=
+evenue and growth with providing social good. Among AI companies, Anthropic=
+ and GrokAI also are PBCs.</li>
+<li aria-level=3D"1">OpenAI=E2=80=99s structure remains unusual in that a n=
+onprofit organization is still in charge technically. OpenAI Foundation has=
+ the power to appoint and remove the corporation=E2=80=99s board members, a=
+nd its directors sit on the for-profit=E2=80=99s board. Its safety-and-secu=
+rity committee can halt releases of new models.</li>
+<li aria-level=3D"1">OpenAI=E2=80=99s nonprofit, whose stake in the company=
+ is worth $130 billion, is the wealthiest foundation in the U.S. For compar=
+ison, the Gates Foundation <a href=3D"https://info.deeplearning.ai/e3t/Ctc/=
+LX+113/cJhC404/VVY1kt3x0f1HW23X0RT30X8qQW4Mw1s55FwPmLN2dmMxT3qgz0W95jsWP6lZ=
+3kBW4CQRW22vWjzTW85nzTt33yShVW6n1tky5Wj26gW2FMMJS5xX-ysW41-fJR4LCFhKW5jXTvM=
+2TWdFRN8ntWTMkJ4xCW5mCfD87c5CnKW1jM__F3KMPMzW2R55sx5YxL4nW8B3X4X4YBVM6VW83s=
+K3nq7MFW6FjVQy5J8VDBW2lrVK04r4SBnW2mzVNv6bfkH9W7wVKms73wcdrW3nl0R43-zzgtW2k=
+XY7c2p-hGqW6sznbS1dNX-tW4FHQxl8JFj80N4DbWdJWrYLmN4B1tj7GVSR4W8_9tyg4v1p3_W8=
+2B0W87rn0W-W74jFSH8ZLPkYW2PF0Hb2m2zZQVfyy2M5WKNJ-W4s0zQt1DBms1N4bh6P-6zg9pN=
+1364dtmTYDCf7QnG0H04" rel=3D"noopener" style=3D"color:#237b94" data-hs-link=
+-id=3D"0" data-hs-link-id-v2=3D"eTZDA95T" target=3D"_blank">holds</a> $86 b=
+illion. It committed an initial $25 billion to improving healthcare and for=
+tifying AI guardrails.</li>
+<li aria-level=3D"1">Microsoft will have rights to use OpenAI=E2=80=99s mod=
+els until 2032, including models built after the companies agree that OpenA=
+I has built an AGI. Microsoft will continue to receive 20 percent of OpenAI=
+=E2=80=99s revenue and have an exclusive right to use its APIs, but it no l=
+onger has a right of first refusal on new cloud business, according to <a h=
+ref=3D"https://info.deeplearning.ai/e3t/Ctc/LX+113/cJhC404/VVY1kt3x0f1HW23X=
+0RT30X8qQW4Mw1s55FwPmLN2dmMvP5nR3bW50kH_H6lZ3mWW25JkPJ7kJt9PW231T719g9s-sW4=
+VrxW03qJgKKW7kPCmN5-D83DW7Vw78V1N0WQnN7Nlh8-bnY0BW14RCsV86yQ6FW7-_YdL2HhN5Q=
+W59QLD458ZDKXW8LC8915BG08TW5DQZVF80G9dhW4G0jGc6R65yDW971XCL1Tr2N9N2byQnmGtD=
+nFW6wzb8r7gR6F3W8WZJ_w6t6qYxN6_2zph1M1pLW21mCSk2GQYNsN8sQV0MXVqsrN4WbgDWlgz=
+NZW30tMrV2Nd4X7W3L762z3b2KxXVfBgcT86W1pnW3F_C3b3qHlVyW3KDjYb7K-HxWW6fFDp154=
+cMd3W9jGbjt1B0mmVVTqBCx7lP9NFW5k4k1n4vJ9kbW1gKx8g815zVlW519cpw1B2W6bW3grC15=
+7Lnjrgf64jr-d04" rel=3D"noopener" style=3D"color:#237b94" data-hs-link-id=
+=3D"0" data-hs-link-id-v2=3D"j+aasARX" target=3D"_blank"><span style=3D"fon=
+t-style: italic;">Bloomberg</span></a>. The revenue-sharing and API agreeme=
+nts will remain in effect until an independent panel verifies that OpenAI h=
+as achieved AGI.</li>
+</ul>
+<p style=3D"line-height:150%"><span style=3D"font-weight: bold;">Behind the=
+ news:</span> This isn=E2=80=99t the restructuring OpenAI originally wanted=
+. A 2024 plan would have eliminated the nonprofit and turned the company in=
+to a traditional venture-backed entity. The California and Delaware attorne=
+ys general balked at that proposal, which led to a compromise that keeps th=
+e nonprofit in charge.</p>
+<ul style=3D"line-height:150%">
+<li aria-level=3D"1">OpenAI needed California=E2=80=99s and Delaware=E2=80=
+=99s approvals to avoid losing a $40 billion investment from SoftBank, half=
+ of which was contingent on the restructuring and lifting of the cap on inv=
+estor returns. It also needed&nbsp;Microsoft=E2=80=99s agreement. This gave=
+ Microsoft significant leverage over the terms.</li>
+<li aria-level=3D"1">OpenAI committed to remaining in California, and thus =
+to continue to be subject to the state=E2=80=99s oversight, as part of its =
+negotiation with California=E2=80=99s&nbsp;attorney general.</li>
+</ul>
+<p style=3D"line-height:150%"><span style=3D"font-weight: bold;">Why it mat=
+ters:</span> OpenAI has achieved staggering growth in its user base and val=
+uation in spite of its nonprofit status. The new restructure adds pressure =
+to get on a road to profitability. The company=E2=80=99s annual revenue run=
+ rate reportedly is&nbsp;greater than $13 billion, but given its commitment=
+ to <a href=3D"https://info.deeplearning.ai/e3t/Ctc/LX+113/cJhC404/VVY1kt3x=
+0f1HW23X0RT30X8qQW4Mw1s55FwPmLN2dmMwn5nR3bW69t95C6lZ3pBW3fTTt_94fGXbW3KKfvd=
+1SrYjDW2wd8YX6sfg1MW77cvdL19jq_PN5THcx4Kkyn2W1jR-_125T3hnW7rhbWC4jljxdW7jz4=
+Zx1llgJpW8qkl8M41mMMcW7StTYY6Wpb3SW46849b1mZmrCW2tsXXg62xr84W8dSbzk1Mcp4VW1=
+Qy0311ZhGnWVFH-Tl4r0178VyYV1H5lhYh3W3zKRCf6txF9RW6tQ7827zrg0zW8h5ct72Bdn-gW=
+5zBVzG3Z3PpcW2RHWJ55PGjHcN7f3y1W2Fs7QW8WY1lJ8j07FFW58j86v4RpRNJW4JyhDs7clg5=
+5W5-t8YH4JwxxKW2vgMq24DXWXdW91l18s92TBcpW2X6jXW20zF0xW5Lfg9q7C5WlrN2PtDJKCc=
+SkZW3Tg9gN1LvfMJW8_90yP7d6v3gN4hYh1zlf9MLW6FGgHy4b7VJkW3N9FFP7kd2kyf58r2kv0=
+4" rel=3D"noopener" style=3D"color:#237b94" data-hs-link-id=3D"0" data-hs-l=
+ink-id-v2=3D"6A27VEWl" target=3D"_blank">spend</a> an estimated $1 trillion=
+ on computing infrastructure, further funding is necessary to finance its a=
+mbitions.</p>
+<p style=3D"line-height:150%">&nbsp;</p>
+<p style=3D"line-height:150%"><span style=3D"font-weight: bold;">We=E2=80=
+=99re thinking: </span>Microsoft=E2=80=99s early investments in OpenAI have=
+ more than paid off. When Microsoft CEO Satya Nadella proposed his company=
+=E2=80=99s initial $1 billion investment in 2019, Bill Gates warned, =E2=80=
+=9CYou=E2=80=99re going to burn this billion dollars.=E2=80=9D Microsoft=E2=
+=80=99s total investment of $13 billion is now worth $135 billion.</p>
+<p style=3D"line-height:150%">&nbsp;</p></div></div>
+  <table role=3D"presentation" cellpadding=3D"0" cellspacing=3D"0" width=3D=
+"100%" class=3D"" style=3D""><tbody><tr><td style=3D"font-family:Helvetica,=
+ Arial, sans-serif; font-size:18px; color:#3b3b3b; word-break:break-word; p=
+adding:0px 0px 10px"><div id=3D"hs_cos_wrapper_module_17370396178185" class=
+=3D"hs_cos_wrapper hs_cos_wrapper_widget hs_cos_wrapper_type_module" style=
+=3D"color: inherit; font-size: inherit; line-height: inherit;" data-hs-cos-=
+general-type=3D"widget" data-hs-cos-type=3D"module"><table role=3D"none" bo=
+rder=3D"0" cellpadding=3D"0" cellspacing=3D"0" style=3D"vertical-align:top"=
+ width=3D"100%">
+  <tbody><tr>
+    <td align=3D"center" style=3D"font-family:Helvetica, Arial, sans-serif;=
+ color:#3b3b3b; font-size:0; word-break:break-word">
+      <p style=3D"font-size:1px;border-top:1px solid #000000;width:100%;mar=
+gin:0 auto;"></p>
+      <!--[if mso]>
+        <table role=3D"none" align=3D"center" border=3D"0" cellpadding=3D"0=
+" cellspacing=3D"0" style=3D"font-size:1px;border-top:1px solid #000000;wid=
+th:600px;">
+          <tr>
+            <td style=3D"height:0;line-height:0">&nbsp;</td>
+          </tr>
+        </table>
+      <![endif]-->
+    </td>
+  </tr>
+</tbody></table></div></td></tr></tbody></table>
+<div id=3D"hs_cos_wrapper_module_17241662452411" class=3D"hs_cos_wrapper hs=
+_cos_wrapper_widget hs_cos_wrapper_type_module" style=3D"color: inherit; fo=
+nt-size: inherit; line-height: inherit;" data-hs-cos-general-type=3D"widget=
+" data-hs-cos-type=3D"module"><table class=3D"hse-image-wrapper" role=3D"pr=
+esentation" width=3D"100%" cellpadding=3D"0" cellspacing=3D"0">
+  <tbody>
+    <tr>
+      <td align=3D"center" valign=3D"top" style=3D"font-family:Helvetica, A=
+rial, sans-serif; color:#3b3b3b; word-break:break-word; text-align:center; =
+padding:5px 0px 10px; font-size:0px">
+        <img alt=3D"Chart displays MiniMax-M2 with high intelligence and co=
+mpetitive pricing, outshining other models." src=3D"https://info.deeplearni=
+ng.ai/hs-fs/hubfs/MINIMAXM2.png?width=3D1200&amp;upscale=3Dtrue&amp;name=3D=
+MINIMAXM2.png" style=3D"outline:none; text-decoration:none; max-width:100%;=
+ font-size:16px" width=3D"600" align=3D"middle" class=3D"stretch-on-mobile"=
+>
+      </td>
+    </tr>
+  </tbody>
+</table></div>
+<div id=3D"hs_cos_wrapper_hs_email_body_old9" class=3D"hs_cos_wrapper hs_co=
+s_wrapper_widget hs_cos_wrapper_type_module" style=3D"color: inherit; font-=
+size: inherit; line-height: inherit;" data-hs-cos-general-type=3D"widget" d=
+ata-hs-cos-type=3D"module"><div id=3D"hs_cos_wrapper_hs_email_body_old9_" c=
+lass=3D"hs_cos_wrapper hs_cos_wrapper_widget hs_cos_wrapper_type_rich_text"=
+ style=3D"color: inherit; font-size: inherit; line-height: inherit;" data-h=
+s-cos-general-type=3D"widget" data-hs-cos-type=3D"rich_text"><h1 style=3D"m=
+argin:0; font-family:Helvetica, Arial, sans-serif; line-height:125%; font-s=
+ize:32px; font-weight:bold">Open-Weights Coding Leader</h1>
+<p style=3D"line-height:150%">&nbsp;</p>
+<p style=3D"line-height:150%">An open-weights model from Shanghai-based Min=
+iMax challenges top proprietary models on key benchmarks for coding and age=
+ntic tasks.</p>
+<p style=3D"line-height:150%">&nbsp;</p>
+<p style=3D"line-height:150%"><span style=3D"font-weight: bold;">What=E2=80=
+=99s new:</span> MiniMax, which provides voice-chat and image-generation se=
+rvices, released the weights for <a href=3D"https://info.deeplearning.ai/e3=
+t/Ctc/LX+113/cJhC404/VVY1kt3x0f1HW23X0RT30X8qQW4Mw1s55FwPmLN2dmMw-3qgz0W7lC=
+dLW6lZ3m8W5Q7zTs79n8MZW94FFsL3_7R9DN84hdcd9r0zDW90cQZM1HxjpGW8hrwCz3czCvrTd=
+qxh8CcvG0N33Jzq9jzPkKW4RDk6l6zK7l8W9jd8Lj3L2_nyW7rl4gq8TD00tN7PXsWQtrgS-W65=
+P8RH6RdGSXW7l6c-b68SlFQW3kvLqY3yPNGtW8vylpt3DMGMBVJQgrz1xlsvvW2hQzFw8T-mv_W=
+8wKydr7d0cFNW5c6zX21M66YWW4ymP5K38qhD8W56kPQm6ZJm1hW51WS221mckWyW50Y4m-6xPc=
+Z3W3qvw0H7gVcTDf77cC6H04" rel=3D"noopener" style=3D"color:#237b94" data-hs-=
+link-id=3D"0" data-hs-link-id-v2=3D"PHEx15GO" target=3D"_blank">MiniMax-M2<=
+/a>, a large language model that=E2=80=99s optimized for coding and agentic=
+ tasks.</p>
+<ul style=3D"line-height:150%">
+<li aria-level=3D"1"><span style=3D"font-weight: bold;">Input/output:</span=
+> Text in (up to <a href=3D"https://info.deeplearning.ai/e3t/Ctc/LX+113/cJh=
+C404/VVY1kt3x0f1HW23X0RT30X8qQW4Mw1s55FwPmLN2dmMxg3qgz0W7Y8-PT6lZ3nNW1XY2xf=
+89MZdWW8d6XQt5_NdBrW4S3tC56qvFcyMRqQ4lVMflpW2TftZT4N-QtnW3xlyWm65xyfLW1Y3Rp=
+l5TkbqWVhz3Ck6zF0lKVNdy-Z1FpxFjW75V46R1B6fY1W6sScvN3YkCmDN8gxYpCvDhMKN4C-3M=
+1p3nkJVdr0LW6dQFg9V2TXMs7rNWy6W6WMQTb63pc0YW4W5-017XMp2rW8drfvl27GtTTW6ymCb=
+92g92r5W5kL1G73Sr75CW19n3f88hGvwBW3VWr_74092xnN1ghMDKV2jQZW718tcT51HhQSW2b8=
+RTp6_ywkQW97spZn99z2f_f4s4d4s04" rel=3D"noopener" style=3D"color:#237b94" d=
+ata-hs-link-id=3D"0" data-hs-link-id-v2=3D"v8dH1YNR" target=3D"_blank">204,=
+000</a>&nbsp;tokens), text out (up to 131,000 tokens, roughly 100 tokens pe=
+r second)</li>
+<li aria-level=3D"1"><strong>Architecture:</strong> Mixture-of-experts tran=
+sformer, 230 billion parameters total, 10 billion parameters active per tok=
+en</li>
+<li aria-level=3D"1"><strong>Performance:</strong> First among open weights=
+ models on Artificial Analysis=E2=80=99 Intelligence Index</li>
+<li aria-level=3D"1"><span style=3D"font-weight: bold;">Availability:</span=
+> Weights free to download from <a href=3D"https://info.deeplearning.ai/e3t=
+/Ctc/LX+113/cJhC404/VVY1kt3x0f1HW23X0RT30X8qQW4Mw1s55FwPmLN2dmMw-3qgz0W7lCd=
+LW6lZ3mfW47QT-w6kx880W3_C3Ry2SxgKrW5zbNJv7TcX-lW5DZ7W95hfxH6W6yWKCS51py0GW7=
+1XWWk4Fy_wdW97gFqG47Lvk4W7Js0xp1lHH3kW15fB8K2qLYHxW6_FVyG4jnWyJW3_4x2L107sC=
+7W1smk8h6Bk9blW2JSC172qxMbPV22R9S5Z0X6cW2q4HMh2pXPDsW46dptL1VfT3YW749hRR5vJ=
+B16W11qr7l2Kkr9FW6DQmPn5hV1WGVP0HP42bbnBKW5GY2_-34551CTB6yl95kt2cW7WkvJh8GZ=
+X8BW7hwp-y6dRDQsf7VrPTR04" rel=3D"noopener" style=3D"color:#237b94" data-hs=
+-link-id=3D"0" data-hs-link-id-v2=3D"za+RaWTK" target=3D"_blank">Hugging Fa=
+ce</a>&nbsp;and <a href=3D"https://info.deeplearning.ai/e3t/Ctc/LX+113/cJhC=
+404/VVY1kt3x0f1HW23X0RT30X8qQW4Mw1s55FwPmLN2dmMw-3qgz0W7lCdLW6lZ3n4W5nm5VX2=
+Y-0b3W6nTR8015RxqWW7jdHlT5wVkN0VZ1Cts83VW9jN10tKZfrCzWFW812BX35fzwPMW5TTPwd=
+3PQs63N71rCGPsHbdWW1Jh7cp4yv_QDW6kBx1G46WfD9W31_4N93ngWK7W7RqnCG3_b4l-W61W-=
+Xj30MRKkW3sG-NS97MlvcW5NYd213Vq3GLW70jTnn3Pv8m_W7cBjg32pMD8_W7JCC2h1SB7l3N4=
+nTBBk2xkfJW4bByG14PYrcXW6Shl6w8T91BSVPZn1J6nGstCW1SLhRr1QKPkzW49gqsY7BJr8Df=
+2FBDz004" rel=3D"noopener" style=3D"color:#237b94" data-hs-link-id=3D"0" da=
+ta-hs-link-id-v2=3D"NE7nenDe" target=3D"_blank">ModelScope</a> for commerci=
+al and noncommercial uses under MIT license, API $0.30/$1.20 per million in=
+put/output tokens via <a href=3D"https://info.deeplearning.ai/e3t/Ctc/LX+11=
+3/cJhC404/VVY1kt3x0f1HW23X0RT30X8qQW4Mw1s55FwPmLN2dmMwH3qgz0W6N1vHY6lZ3n2W2=
+Ps2778PB8fDW4tDWfQ2zM7YZW3S8VXq6lLVwcW50-cWz1SGLD0W8CZmwT8wGVXZW93wlDg4vMVj=
+9N7zlD-rVxBQqW6vt4v477gdnBN755xLNPVfPSW8G7nv02XGL0mN7FCVDx-bhlmW3YdVq64QW31=
+2N7vmHZl9TPl-W3lm9BT53k55gW3vv1LZ8LbCsKW5mxtGP3Bhm6GW1sFNFD9lqT-3W3PFHsl39C=
+98RW3kqx001xdY2SW6cWKTG2fMFY5W4P1pV93Y1N21W1kcDdX7P6ykHf33WZs-04" rel=3D"no=
+opener" style=3D"color:#237b94" data-hs-link-id=3D"0" data-hs-link-id-v2=3D=
+"TSIBxNAb" target=3D"_blank">MiniMax</a></li>
+<li aria-level=3D"1"><strong>Undisclosed:</strong> Training data, specific =
+training methods</li>
+</ul>
+<p style=3D"line-height:150%"><span style=3D"font-weight: bold;">How it wor=
+ks:</span> MiniMax has not published a technical report on MiniMax-M2, so l=
+ittle public information is available about how it built the model.</p>
+<ul style=3D"line-height:150%">
+<li aria-level=3D"1">Given a prompt, MiniMax-M2 interleaves reasoning steps=
+ (enclosed within &lt;think&gt;...&lt;/think&gt; tags) within its output. T=
+his differs from models like DeepSeek-R1 that generate a block of reasoning=
+ steps prior to final output. It also differs from models like OpenAI GPT-5=
+ and recent Anthropic Claude models that also generate reasoning steps prio=
+r to&nbsp;final output but hide or summarize them.</li>
+<li aria-level=3D"1">MiniMax advises users to retain &lt;think&gt;...&lt;/t=
+hink&gt; tags in their conversation histories for optimal performance acros=
+s multiple turns, because removing them (say, to economize on tokens) would=
+ degrade the model=E2=80=99s context.</li>
+</ul>
+<p style=3D"line-height:150%"><span style=3D"font-weight: bold;">Results:</=
+span> MiniMax-M2 achieved 61 on independent evaluator Artificial Analysis=
+=E2=80=99 Intelligence Index (a weighted average of benchmark performance i=
+n mathematics, science, reasoning, and coding), a new high for open weights=
+ models, ahead of DeepSeek-V3.2 (57 points) and Kimi K2 (50 points). It tra=
+ils proprietary models GPT-5 with thinking enabled (69 points) and Claude S=
+onnet 4.5 (63 points). Beyond that, it excelled in coding and agentic tasks=
+ but proved notably verbose. It consumed 120 million tokens to complete Art=
+ificial Analysis evaluations,&nbsp;tied for highest with Grok 4.</p>
+<ul style=3D"line-height:150%">
+<li aria-level=3D"1">On <a href=3D"https://info.deeplearning.ai/e3t/Ctc/LX+=
+113/cJhC404/VVY1kt3x0f1HW23X0RT30X8qQW4Mw1s55FwPmLN2dmMwH3qgz0W6N1vHY6lZ3nH=
+W4PYWw12__5s_W11qC4G1dgQHsW5wcM4F2S9NlGW1B1jq33qWyP7W4z8y_L3Qs3qZW7pkZw23Pd=
+L-TW8rNpsY8XZhv1W7HPktP6sCJkTW3wFn4-415GSqW48p0Bt6623wVW1fpRkB8L5PzkVd4K508=
+XYbRbW8p9Y3c4YyJ5GV30C1c8Q3HTGW2XqjYQ8Ndl-jW3RCdHX7bMTlGW7t6_301J4QC9Mbnq7N=
+hVXclW7r-G1h1GSqf0W81NLhH8LvWjKW31hGpl93gcyjVtwmrn5W8gKcf5kR70-04" rel=3D"n=
+oopener" style=3D"color:#237b94" data-hs-link-id=3D"0" data-hs-link-id-v2=
+=3D"lRUb2VLa" target=3D"_blank">=CF=84<sup>2</sup>-Bench</a>, a test of age=
+ntic tool use, MiniMax-M2 (77.2 percent) ranked ahead of GLM-4.6 (75.9 perc=
+ent) and Kimi K2 (70.3 percent) but behind Claude Sonnet 4.5 (84.7 percent)=
+ and GPT-5 with thinking enabled (80.1 percent).</li>
+<li aria-level=3D"1">On <a href=3D"https://info.deeplearning.ai/e3t/Ctc/LX+=
+113/cJhC404/VVY1kt3x0f1HW23X0RT30X8qQW4Mw1s55FwPmLN2dmMwH3qgz0W6N1vHY6lZ3q6=
+N8mHph3gVydkW5271LV5B2Z1zN18txpfMnS4ZW6Bsq1Q8R-yzTW5Ry1Yx4TVVLLW6q0xsS6XHYL=
+7W4WP0hN6RQ8T3W7RVTd47JFc0WW6bvwxq4D1sSrW5JhFGf1BVk8YN7T18gD8xN_fN52Kp0N_fR=
+vRW4dFvH33csf0TW828K5M12rXVnW6vcH4P4JkZ9cW5vsX8B8hB-NGW58nnvj23d4S6VWgKps89=
+rBMtW2kfldv474_zYW9hR5g929MkPlW2LwRBP6ynBTsW6JqF586DmHHFf34SygC04" rel=3D"n=
+oopener" style=3D"color:#237b94" data-hs-link-id=3D"0" data-hs-link-id-v2=
+=3D"q4RygRyY" target=3D"_blank">IFBench</a>, which tests the ability to fol=
+low instructions, MiniMax-M2 (72 percent) significantly outperformed Claude=
+ Sonnet 4.5 (57 percent) but narrowly trailed GPT-5 with thinking enabled (=
+73 percent).</li>
+<li aria-level=3D"1">On <a href=3D"https://info.deeplearning.ai/e3t/Ctc/LX+=
+113/cJhC404/VVY1kt3x0f1HW23X0RT30X8qQW4Mw1s55FwPmLN2dmMw-3qgz0W7lCdLW6lZ3kJ=
+W5b6nx72pzf9PVqwSbt38_2JFVtlMSV4SckrgW8Sv9p77MDbdyW1hp6vw4Q1q9vW48cLHS97kBy=
+HW3hHS8W4Hx6gYW6dhjhx37xG7sW4RzZk98Grx80N8CRRH516ZmcW4sTnPm74V46XW8CVBSM3qL=
+BQSN8XnLdHzTRyXW45rVXR8DxXrGW2K1sMH55J-xNW6fs3ph1CyyJlW8qzVbs6rsn-sW1pFjqT7=
+491MJW1MmS4k2gws1bW7S74Yw1F97TpW5nftk637v0PfW8VzcWM7GJd_1W7TxbB58TQw87W1KPm=
+Z68tl8zBf7hQDv804" rel=3D"noopener" style=3D"color:#237b94" data-hs-link-id=
+=3D"0" data-hs-link-id-v2=3D"7jbpj1u9" target=3D"_blank">SWE-bench Verified=
+</a>, which evaluates software engineering tasks that require multi-file ed=
+its and test validation, MiniMax-M2 (69.4 percent) ranked in the middle tie=
+r ahead of Gemini 2.5 Pro (63.8 percent) and DeepSeek-V3.2 (67.8 percent) b=
+ut behind Claude Sonnet 4.5 (77.2 percent) and GPT-5 with thinking enabled =
+(74.9 percent).</li>
+<li aria-level=3D"1">On <a href=3D"https://info.deeplearning.ai/e3t/Ctc/LX+=
+113/cJhC404/VVY1kt3x0f1HW23X0RT30X8qQW4Mw1s55FwPmLN2dmMw-3qgz0W7lCdLW6lZ3pw=
+W7g57xj7BPzKpVpvVmb7s9gc4V6v_l25nHd6dN4ntVHkTDgf_N8YsLdL3jLd_W2yLq4B8RYYjtW=
+3SDj_d2pnrNpVFd6Y-2VHw7HW8jFC876G8P9lW6xs7ZT4j43y1W7wtV386nk4gtW3pFX723Kzf5=
+nW5lyd1w6GRgG3W4gFxsL1tW-z-W4bpwCf7xXT5mW8wz6516qLfXMW7r1sjD4dPvj-N2tw-f4GR=
+dy6W6-GScH4X1t2RW5MHNYJ7kSY8RW6Wwc3n4B0qHXW8y-fKQ7Yg7x9N4Rm_RdqZz6WW4T0TQ52=
+z-Fgzf17Hgtl04" rel=3D"noopener" style=3D"color:#237b94" data-hs-link-id=3D=
+"0" data-hs-link-id-v2=3D"wX+Mloe3" target=3D"_blank">Terminal-Bench</a>, w=
+hich measures command-line task execution, MiniMax-M2 (46.3 percent) ranked=
+ second only to Claude Sonnet 4.5 (50 percent), significantly ahead of Kimi=
+ K2 (44.5 percent), GPT-5 with thinking enabled (43.8 percent), and DeepSee=
+k-V3.2 (37.7 percent).</li>
+</ul>
+<p style=3D"line-height:150%"><span style=3D"font-weight: bold;">Behind the=
+ news:</span> In June, MiniMax published weights for <a href=3D"https://inf=
+o.deeplearning.ai/e3t/Ctc/LX+113/cJhC404/VVY1kt3x0f1HW23X0RT30X8qQW4Mw1s55F=
+wPmLN2dmMwH3qgz0W6N1vHY6lZ3q6W9dyHCP5ptCMrW97skWL32pjr4W80JpzG21Rtx3W8gztq9=
+3dRCQTW7Vlz7P32rSLRW7t_FGM1qBfZTW3dkWbN4-KhwzW2gJmkn8sgtwQW3_22ND3Q7h-DVjTm=
+HC1mGc1VW8RW-Y01HGPb4W114PfV63ltSNW6zTtp6424-mQW1Gv75w7zPc8tV7_ttM74MF5wW4p=
+VnZw7M7z_pW3DfN8l6hV4ZMW8rvGTf6V8Tv4W28BQwX6mCCWPW44Cxzl446RBJW2-jC8p7gklpc=
+W4n5Ty51s8ywDf1V4--804" rel=3D"noopener" style=3D"color:#237b94" data-hs-li=
+nk-id=3D"0" data-hs-link-id-v2=3D"yoZwPMw4" target=3D"_blank">MiniMax-M1</a=
+>, a reasoning model designed to support agentic workflows over long contex=
+ts (1 million tokens). The company had been developing agents for internal =
+use in tasks like coding, processing user feedback, and screening resumes. =
+However, it found that leading closed-weights models were too costly and sl=
+ow, while open-weights alternatives were less capable. It says it built Min=
+iMax-M2 to fill the gap.</p>
+<p style=3D"line-height:150%">&nbsp;</p>
+<p style=3D"line-height:150%"><span style=3D"font-weight: bold;">Why it mat=
+ters:</span> Developing reliable agentic applications requires experimentin=
+g with combinations and permutations of prompts, tools, and task decomposit=
+ions, which generates lots of tokens. Cost-effective models that are capabl=
+e of agentic tasks, like MiniMax-M2, can help more small teams innovate wit=
+h agents.</p>
+<p style=3D"line-height:150%">&nbsp;</p>
+<p style=3D"line-height:150%"><span style=3D"font-weight: bold;">We=E2=80=
+=99re thinking:</span> MiniMax-M2<span style=3D"font-weight: normal;">=E2=
+=80=99</span>s visible reasoning traces make its decisions more auditable t=
+han models that hide or summarize their reasoning steps. As agents are appl=
+ied increasingly to mission-critical applications, transparency in reasonin=
+g may matter as much as raw performance.</p>
+<p style=3D"line-height:150%">&nbsp;</p></div></div>
+  <table role=3D"presentation" cellpadding=3D"0" cellspacing=3D"0" width=3D=
+"100%" class=3D"" style=3D""><tbody><tr><td style=3D"font-family:Helvetica,=
+ Arial, sans-serif; font-size:18px; color:#3b3b3b; word-break:break-word; p=
+adding:0px 0px 10px"><div id=3D"hs_cos_wrapper_hs_email_body_old13" class=
+=3D"hs_cos_wrapper hs_cos_wrapper_widget hs_cos_wrapper_type_module" style=
+=3D"color: inherit; font-size: inherit; line-height: inherit;" data-hs-cos-=
+general-type=3D"widget" data-hs-cos-type=3D"module"><table role=3D"none" bo=
+rder=3D"0" cellpadding=3D"0" cellspacing=3D"0" style=3D"vertical-align:top"=
+ width=3D"100%">
+  <tbody><tr>
+    <td align=3D"center" style=3D"font-family:Helvetica, Arial, sans-serif;=
+ color:#3b3b3b; font-size:0; word-break:break-word">
+      <p style=3D"font-size:1px;border-top:1px solid #000000;width:100%;mar=
+gin:0 auto;"></p>
+      <!--[if mso]>
+        <table role=3D"none" align=3D"center" border=3D"0" cellpadding=3D"0=
+" cellspacing=3D"0" style=3D"font-size:1px;border-top:1px solid #000000;wid=
+th:600px;">
+          <tr>
+            <td style=3D"height:0;line-height:0">&nbsp;</td>
+          </tr>
+        </table>
+      <![endif]-->
+    </td>
+  </tr>
+</tbody></table></div></td></tr></tbody></table>
+<div id=3D"hs_cos_wrapper_module_17241662744162" class=3D"hs_cos_wrapper hs=
+_cos_wrapper_widget hs_cos_wrapper_type_module" style=3D"color: inherit; fo=
+nt-size: inherit; line-height: inherit;" data-hs-cos-general-type=3D"widget=
+" data-hs-cos-type=3D"module"><table class=3D"hse-image-wrapper" role=3D"pr=
+esentation" width=3D"100%" cellpadding=3D"0" cellspacing=3D"0">
+  <tbody>
+    <tr>
+      <td align=3D"center" valign=3D"top" style=3D"font-family:Helvetica, A=
+rial, sans-serif; color:#3b3b3b; word-break:break-word; text-align:center; =
+padding:5px 0px 10px; font-size:0px">
+        <a href=3D"https://info.deeplearning.ai/e3t/Ctc/LX+113/cJhC404/VVY1=
+kt3x0f1HW23X0RT30X8qQW4Mw1s55FwPmLN2dmMwn9cftvW69v02T6lZ3nFW8njXLr6X-TKmW7d=
+V-4D8kZxQqW19mD4c3ZZkzDVqW63-27ZL8VW7RFJ8B4qbgLmN56MWFLcdNC9W8bSCVf52nRHkW3=
+MNRR96GR047MRLpCML_l-8W7DnvnM3zk7kcW3h_Whn4w7rRjW1gfxvM6zsYdGW7_CNkD6_qY-dM=
+52QMVPNgFNW3rNpVg2D_c_cN3S4gDV_4XKBW4yGyXV5FBvcLW97lGkb67Gx6FW6-shXL3ptz3yW=
+5w66hw4H9pXCW4qPv_T20dV3KW70dY1K3tZRqMVLNfs52Zchr2N7B8zHRYD1LwW5yRVx-8Cf_TQ=
+W9brHy763l-qRW8qV0-P5JBttqW8X7DL53ljxhgVMld_r6Ps4dRW2j04_X4Y9_gCW9fVv7j880s=
+ScVCLX698rHg82W6jQyFD7fmk3VW8jknDf7ff6qzW7Vy5_t3xJ9PRW8QsfH-1RYMlyN8bWcbxMt=
+Fj1W973vyx44vD_gW6bRp0g1cSPbMN8zh0Lr713JJW2m4GZl6dbP1xW8XFvg08YP87pW8LQ1r34=
+PTRCzM5QTKGRN0rpW4TM6Ts6B13w_W2c88zN5Rv1twW7W-PlL32qJWRW6rsBfR1fd49WW1PDNTs=
+8t2ySxW4s9R_j3knRmJW5lgnZf7xQR1NN7LlZ78Y6XlbW2xdGhG7yLTznVWGwB73tWHTBW7sNml=
+T2cK7sXN5Zxn6PP8nZ5W7X2wQN8Fy8BgW9h5MlC2PdCMNW6h2fP_37R9KxW1dsfDT98jdlpW76P=
+ghT7zSddkW3_YGR38MlwHSW6-3z0V2TcgLJN1ZvDKJwWSlcN1CrMzCTJ03gW1Jzm7x52GqPGW9k=
+yhHf6HgBgDW3mp_dL3rjm3wf4DHpCx04" target=3D"_blank" style=3D"color:#00a4bd"=
+ data-hs-link-id=3D"0" data-hs-link-id-v2=3D"wpqI7lFX">
+        <img alt=3D"A computer scientist at her desktop, using an AI agent =
+program to find and fix security holes" src=3D"https://info.deeplearning.ai=
+/hs-fs/hubfs/Security%20Researcher%20Finding%20Holes.png?width=3D1200&amp;u=
+pscale=3Dtrue&amp;name=3DSecurity%20Researcher%20Finding%20Holes.png" style=
+=3D"outline:none; text-decoration:none; border:none; max-width:100%; font-s=
+ize:16px" width=3D"600" align=3D"middle" class=3D"stretch-on-mobile">
+        </a>
+      </td>
+    </tr>
+  </tbody>
+</table></div>
+<div id=3D"hs_cos_wrapper_hs_email_body_old24" class=3D"hs_cos_wrapper hs_c=
+os_wrapper_widget hs_cos_wrapper_type_module" style=3D"color: inherit; font=
+-size: inherit; line-height: inherit;" data-hs-cos-general-type=3D"widget" =
+data-hs-cos-type=3D"module"><div id=3D"hs_cos_wrapper_hs_email_body_old24_"=
+ class=3D"hs_cos_wrapper hs_cos_wrapper_widget hs_cos_wrapper_type_rich_tex=
+t" style=3D"color: inherit; font-size: inherit; line-height: inherit;" data=
+-hs-cos-general-type=3D"widget" data-hs-cos-type=3D"rich_text"><h1 style=3D=
+"margin:0; font-family:Helvetica, Arial, sans-serif; line-height:125%; font=
+-size:32px; font-weight:bold">Learn More About AI With Data Points!</h1>
+<p style=3D"line-height:150%">&nbsp;</p>
+<p style=3D"line-height:150%"><span style=3D"font-family: Helvetica, Arial,=
+ sans-serif;">AI is moving faster than ever. <em>Data Points</em> helps you=
+ make sense of it just as fast. <em>Data Points</em> arrives in your inbox =
+twice a week with six brief news stories. This week, we covered OpenAI=E2=
+=80=99s new GPT-5-powered security agent for open-source projects and Curso=
+r=E2=80=99s major update with a new coding model and multi-agent interface.=
+ <a href=3D"https://info.deeplearning.ai/e3t/Ctc/LX+113/cJhC404/VVY1kt3x0f1=
+HW23X0RT30X8qQW4Mw1s55FwPmLN2dmMwn9cftvW69v02T6lZ3pmN74c_k9j8Nb5W97lnN61Bbm=
+R1W9hBdmf3RRtrHW4T9Cbr5qkfvCVDhzTw5r9K8pV-PyCh7Fnkl2VmgsQ22Q2tFkN4Fnsd_Tng8=
+8W6Hlwsv4rXLLkW6-t88h4D10ykW3yG9315LbMnyW71SL5Y2PFcj-W2NYTrB8hhHMqW1VklQx73=
+MG08W6QWW9m6FqRVZW7MWYcM7TgYYyN1lv_vNZlXBlW4tM64k5rzv-QN7bjlb3CLQyjW3zZ-vX7=
+W3F1XW3MYjjH7lnhgVVHllrn4c3_NTVY06Sr592Kz4W7WTlGT3hwM9DW4tNHpt1mqgNVW61Btfm=
+2Xg-twN308DbWQlwbXN3jlmfXZ56FsW7dyNk77HKVKhW4-tWyl6YXX1-W7CVXSv7QsSWcW6Mtks=
+m1RHbDHW30C0lD1hz384W1Cr2t38H37N2N90tP8QkHMBwW3gwlvR4ssr4LW8Cttsh7kYsQwW8B9=
+7FC1mTvy0N7MCCJ5RTbSvW82qcNg5th3lHW5g3CqQ8syZ0KVVXL766fz9k-W4fRL9Q2XTPDJW7b=
+zLbc480YcpW4H8Qrk4lSPhxW9ds-6Z1xPD-KV7mbf35FFFq9W6SwSNz8SP-BtW85H4656z-_KBW=
+9fVj_08Kf3mSW4NrgZ08K8xFpN99yT5cdx2rKW49-vhT3sKlhYW10lXJz4Y7fmRW28LMj-7cdQJ=
+6W18XBq85c3RlJW1jjFXg7qgbf6VhkgkK3HZHP2W2_51Bq4psc0CW1PhT786vYybGW6WdVZp91K=
+1HCW4BqtWd5PsvdXW7smwbf83WGYhW7cTxyZ85sJwTVf4cxM6VpbFYW1XzQHj964xGGVzXPpC8X=
+TfdRW2YgyzV2hVvyxf7mLBGb04" target=3D"_blank" rel=3D"noopener" data-hs-link=
+-id=3D"1" data-hs-link-id-v2=3D"H71JU3BH" style=3D"color:#237b94">Subscribe=
+ today</a>!</span></p>
+<p style=3D"line-height:150%">&nbsp;</p></div></div>
+  <table role=3D"presentation" cellpadding=3D"0" cellspacing=3D"0" width=3D=
+"100%" class=3D"" style=3D""><tbody><tr><td style=3D"font-family:Helvetica,=
+ Arial, sans-serif; font-size:18px; color:#3b3b3b; word-break:break-word; p=
+adding:0px 0px 10px"><div id=3D"hs_cos_wrapper_module_17370394853571" class=
+=3D"hs_cos_wrapper hs_cos_wrapper_widget hs_cos_wrapper_type_module" style=
+=3D"color: inherit; font-size: inherit; line-height: inherit;" data-hs-cos-=
+general-type=3D"widget" data-hs-cos-type=3D"module"><table role=3D"none" bo=
+rder=3D"0" cellpadding=3D"0" cellspacing=3D"0" style=3D"vertical-align:top"=
+ width=3D"100%">
+  <tbody><tr>
+    <td align=3D"center" style=3D"font-family:Helvetica, Arial, sans-serif;=
+ color:#3b3b3b; font-size:0; word-break:break-word">
+      <p style=3D"font-size:1px;border-top:1px solid #000000;width:100%;mar=
+gin:0 auto;"></p>
+      <!--[if mso]>
+        <table role=3D"none" align=3D"center" border=3D"0" cellpadding=3D"0=
+" cellspacing=3D"0" style=3D"font-size:1px;border-top:1px solid #000000;wid=
+th:600px;">
+          <tr>
+            <td style=3D"height:0;line-height:0">&nbsp;</td>
+          </tr>
+        </table>
+      <![endif]-->
+    </td>
+  </tr>
+</tbody></table></div></td></tr></tbody></table>
+<div id=3D"hs_cos_wrapper_module_17370394878062" class=3D"hs_cos_wrapper hs=
+_cos_wrapper_widget hs_cos_wrapper_type_module" style=3D"color: inherit; fo=
+nt-size: inherit; line-height: inherit;" data-hs-cos-general-type=3D"widget=
+" data-hs-cos-type=3D"module"><table class=3D"hse-image-wrapper" role=3D"pr=
+esentation" width=3D"100%" cellpadding=3D"0" cellspacing=3D"0">
+  <tbody>
+    <tr>
+      <td align=3D"center" valign=3D"top" style=3D"font-family:Helvetica, A=
+rial, sans-serif; color:#3b3b3b; word-break:break-word; text-align:center; =
+padding:5px 0px 10px; font-size:0px">
+        <img alt=3D"Universal Music logo paired with Udio, highlighting the=
+ir new AI music generation venture." src=3D"https://info.deeplearning.ai/hs=
+-fs/hubfs/UMGUDIO2.png?width=3D1200&amp;upscale=3Dtrue&amp;name=3DUMGUDIO2.=
+png" style=3D"outline:none; text-decoration:none; max-width:100%; font-size=
+:16px" width=3D"600" align=3D"middle" class=3D"stretch-on-mobile">
+      </td>
+    </tr>
+  </tbody>
+</table></div>
+<div id=3D"hs_cos_wrapper_hs_email_body_old21" class=3D"hs_cos_wrapper hs_c=
+os_wrapper_widget hs_cos_wrapper_type_module" style=3D"color: inherit; font=
+-size: inherit; line-height: inherit;" data-hs-cos-general-type=3D"widget" =
+data-hs-cos-type=3D"module"><div id=3D"hs_cos_wrapper_hs_email_body_old21_"=
+ class=3D"hs_cos_wrapper hs_cos_wrapper_widget hs_cos_wrapper_type_rich_tex=
+t" style=3D"color: inherit; font-size: inherit; line-height: inherit;" data=
+-hs-cos-general-type=3D"widget" data-hs-cos-type=3D"rich_text"><h1 style=3D=
+"margin:0; font-family:Helvetica, Arial, sans-serif; line-height:125%; font=
+-size:32px; font-weight:bold">AI Music With Major-Label Support</h1>
+<p style=3D"line-height:150%">&nbsp;</p>
+<p style=3D"line-height:150%">Music-generation service Udio will build an A=
+I streaming platform in collaboration with the world=E2=80=99s biggest reco=
+rd label.</p>
+<p style=3D"line-height:150%">&nbsp;</p>
+<p style=3D"line-height:150%"><span style=3D"font-weight: bold;">What=E2=80=
+=99s new:</span> Udio <a href=3D"https://info.deeplearning.ai/e3t/Ctc/LX+11=
+3/cJhC404/VVY1kt3x0f1HW23X0RT30X8qQW4Mw1s55FwPmLN2dmMwn5nR3bW69t95C6lZ3lyW4=
+YF-mm70CQlRW3mdMsN7vxsbxW3kg97V86z5FqW6rPsFw1rQWjcW1DkDhC5kGNnlW3R_d947Mv5l=
+XW3__rlR1yxH0RW7CjC9j31F8bsW22sdt93xflrBW2n-y847fsyRcW3rQM3l2k8fB5W98_fvy4G=
+GZ15W8StrHs4hNXTJW7G20w994nBQZW2XjJQ07JRCbYW6Wz5698p5XLnW7fH78v2_G9slW3Jdxn=
+T1NFmmJV5rtZj45j2J5W2mT1mR9dLfBXN3Z_4srrCjKxW8RP1QJ1tqTHBM1JzWZ6lX93W7c_XHs=
+3lLhJVW7mPkZV39q0LrW5gLpy95B1CMyV--X_094vrD6W65m2FX7dCXlVN6qWQYDS_9ltW833RS=
+c3b4sM0N6Vm_S5C1qh3N2W4sKMxQRPqN3xhBTmTqr1DW63m2Pk5y16gYW8jhbzk6n4dmFW92SDy=
+h6jdjF6f8RlZ3204" rel=3D"noopener" style=3D"color:#237b94" data-hs-link-id=
+=3D"0" data-hs-link-id-v2=3D"+6zYIrm/" target=3D"_blank">plans</a> to <a hr=
+ef=3D"https://info.deeplearning.ai/e3t/Ctc/LX+113/cJhC404/VVY1kt3x0f1HW23X0=
+RT30X8qQW4Mw1s55FwPmLN2dmMwH3qgz0W6N1vHY6lZ3pLVC36-n4v6fXVW8Jd34Z6sP4WHW7GJ=
+dhR39FXN9W6Bh-N85yrnD9N86f4mJPXQlBVMGTz92tXHjcW7LDm277SXR2sW2MDWzQ7X1NzyW66=
+211s4cXtktW5HwPQG2K9HXpV232RG4b1nMlW80flKN5yWCNBW67gzQW5--bsFW7VBnSJ7fQ-3qW=
+1P0WsY6CGlkJW8wCswN1l5sVbN8MXKYxllvckW5vLm-t4YHls3W6FmxVX65lg9CW3DtkT-2QVWB=
+CW7lp88r56NhC8W8bcmrD6sFwCYf4hm-zH04" rel=3D"noopener" style=3D"color:#237b=
+94" data-hs-link-id=3D"0" data-hs-link-id-v2=3D"rRVmpecg" target=3D"_blank"=
+>launch</a> a paid platform that enables fans to generate music based on re=
+cordings by artists on Universal Music Group (BMG) and its subsidiary label=
+s. UMG artists include Taylor Swift, Olivia Rodrigo, Kendrick Lamar, and ma=
+ny other best-selling performers. The venture is part of an agreement to se=
+ttle a lawsuit filed last year, in which UMG alleged that Udio had violated=
+ its copyrights when the AI company trained its music models. The financial=
+ terms, duration, and the remainder of the settlement are undisclosed. Udio=
+ is free to make similar arrangements with other music labels, the music-in=
+dustry news publication <span style=3D"font-style: italic;">Billboard</span=
+> <a href=3D"https://info.deeplearning.ai/e3t/Ctc/LX+113/cJhC404/VVY1kt3x0f=
+1HW23X0RT30X8qQW4Mw1s55FwPmLN2dmMxz3qgz0W8wLKSR6lZ3mxW84N7r46zX4ncW1DFXCT5j=
+lyVlW8GPGjn8tZhTTW38_-VF89BFT7N5sqGN2fXSL1N43Bns1jyN36W41JZBt1XsScrW4yBmrW3=
+yJswMW5wvLHZ78rW-SW7Fs_wV2k58qxW30tr1S7vBPK-VgkBlc2b9YnDW2MXwnp7Rv1DzN1g6gK=
+W-GLFxVB96rC4FMQL7W6jJxT27BgQgvW3xpm3t2R9FpCW5v_dYL5BPV9NW8Q-NgS3gVZfjW8JqN=
+cX1WHh3dN5rCcBYXRSdZVhNMYy7Zg8cJW4cvrRY2LHRtJW1xrDG86ZwvkPW7pyrBS4pFDFQW79p=
+hdD8MpzGsN9dVC6_wfLQtW453Pl94jvmxYf6zGSK004" rel=3D"noopener" style=3D"colo=
+r:#237b94" data-hs-link-id=3D"0" data-hs-link-id-v2=3D"bKIBmKmr" target=3D"=
+_blank">reported</a>.</p>
+<p style=3D"line-height:150%">&nbsp;</p>
+<p style=3D"line-height:150%"><span style=3D"font-weight: bold;">How it wor=
+ks:</span> The platform will allow paying customers to remix, customize, an=
+d combine existing recordings and share them with other subscribers.</p>
+<ul style=3D"line-height:150%">
+<li aria-level=3D"1">Artists must give permission for their recordings to b=
+e available on the platform, and they will control how recordings may be us=
+ed; for instance, to mimic voices or musical styles, change from one style =
+to another, combine one artist=E2=80=99s characteristics with those of anot=
+her, and the like.</li>
+<li aria-level=3D"1">Artists will receive payments for making their music a=
+vailable for training Udio models plus further compensation for uses of the=
+ir recordings to produce generated music.</li>
+<li aria-level=3D"1">The new platform will not allow users to download gene=
+rated music or distribute it via other streaming services. As part of the a=
+greement, Udio briefly terminated the ability to download generated music f=
+rom its current service and offered subscribers additional credits to gener=
+ate music to compensate for taking away this capability. After users compla=
+ined, Udio temporarily <a href=3D"https://info.deeplearning.ai/e3t/Ctc/LX+1=
+13/cJhC404/VVY1kt3x0f1HW23X0RT30X8qQW4Mw1s55FwPmLN2dmMvP5nR3bW50kH_H6lZ3pGV=
+F65n41SKMZGW8N87864zDlHRW42kLq68m1QJqW8lPGWD3K5cF0W5DjHDZ60Yqs_W79kyTC6v3CR=
+MW5GT9Sz2H0F8DVJNhKp7yxR0MW1kRQDv2mkP75W2Jk-mx87ZdW9N5RDgVryNWmBW5ZwKJb1JMb=
+fRN7YKpv-6w6JqW8Rzhg62js6GsW8gwbQl6yW1qWW7fLG9c6KLn0YMfLQD0Qb_Y0N4-V-76VF_j=
+vVyc3nn1w_GkgW71QKRt7yCLfxW32Zq2G7j9gFMW6_GfqF3SYx3nW2mR3Jc2qjscJW7RHf2M28B=
+yXPW3MkQpG73W734W5h5g118d0G0nN9djKKVL6Y1GW1FbsQy8WlPbsW67zzWj3D6J54W7MH1zy1=
+z0r13W1L-88d1XmhcVVJ2FMB5Cgzsrf299-pv04" rel=3D"noopener" style=3D"color:#2=
+37b94" data-hs-link-id=3D"0" data-hs-link-id-v2=3D"NJRknJA1" target=3D"_bla=
+nk">restored</a>&nbsp;downloads of existing generated music. The company sa=
+id its existing service will remain available but with differences that inc=
+lude fingerprinting and other measures.</li>
+</ul>
+<p style=3D"line-height:150%"><span style=3D"font-weight: bold;">Other deal=
+s:</span> In addition to Udio, UMG forged relationships with other AI music=
+ companies that supply tools and technology.</p>
+<ul style=3D"line-height:150%">
+<li aria-level=3D"1">UMG and Sony Music <a href=3D"https://info.deeplearnin=
+g.ai/e3t/Ctc/LX+113/cJhC404/VVY1kt3x0f1HW23X0RT30X8qQW4Mw1s55FwPmLN2dmMw-5n=
+R3bW7lCGcx6lZ3mpW8SM_QW6ZQ_0bN8lSrTgF3_vbVgC-JX32rngGW5PQTgl31fZbBW2WKfkD7G=
+KNzMW8jrKLh3PbGXMW7Vttmm8FrkQWN16ybV8THXnsW6xfsmC5N_HxmW1qh3NP7c3b0PW307-nS=
+6C3ljcW3zYx1b5nDQ7LW2yKWM86t0cCkW5z3qNj6kHdtyW8Ksqz-6-Mp_VW4lHHX55Nq_MZW4GB=
+2dh8gKXH-W1fnQZC3bkbmnW7wC2j23fMPzrW5PNH66543v_xW1L9lxr5Y6ysQVyYTM33s56cxW1=
+zwsYV3PHM_wW9cHcph2LWHvcW3zYRZ75KkDG_W6Cm9dJ5fb_vwW5qZ_Cy3JF6pDW3BwGgz7CbK1=
+BN577f174QVHWW134DkC8VdT7gW8gcdJG80XQG7W5vL1S57HhlW1W3B142Z915PfcW41gz1y390=
+cWZW2YNbBv1-Zw9RW1tf7vB3R-g77W62-NHh76HGVcW91pDxH2br33qW1t14Xb7VC5d0W2D5MTg=
+87F5Zwf4nQbR804" rel=3D"noopener" style=3D"color:#237b94" data-hs-link-id=
+=3D"0" data-hs-link-id-v2=3D"zp1ilbi2" target=3D"_blank">said</a>&nbsp;they=
+ would use audio fingerprinting technology developed by SoundPatrol, which =
+compares learned embeddings to identify generated output related to an orig=
+inal source.</li>
+<li aria-level=3D"1">Stability AI, maker of the Stable Audio 2.5 music gene=
+rator, <a href=3D"https://info.deeplearning.ai/e3t/Ctc/LX+113/cJhC404/VVY1k=
+t3x0f1HW23X0RT30X8qQW4Mw1s55FwPmLN2dmMxT3qgz0W95jsWP6lZ3nrN8jdMgRlhdyxW3F8X=
+Kg5B0VXvVpqX1g7JSD6BW400D4F34DP4mW4TkYs36F385QW7vz55-8znp6HW8gylnq51FGMKW4C=
+6dW78dln2vW5R4wGm44JDfcW6x0Mmq4KM5g8W589vd-1MNZ6MW5-hppQ8cGK3-W1fXgSm5sMCkV=
+W1fvTMq416Xc2W83LwqZ4-hGkqW4QFKRH2mv6dKW2929qY30-RkqW7JTQGS80zy38W6zDpsr5HH=
+2sRW7T9MMW7XDXzKW7SPPD167s0l-W2pMcrN8jb99fW7Wy2Dp3C-NJWW12KdkC8n29BGM98ZGyj=
+YY39W6hGYQn56MRX2N8HMWmLXNlr0VGpKT355pvCwW3634D983H_gTW7LYTSK8Y0PrSf1Vt1xd0=
+4" rel=3D"noopener" style=3D"color:#237b94" data-hs-link-id=3D"0" data-hs-l=
+ink-id-v2=3D"1mqywCB9" target=3D"_blank">announced</a>&nbsp;a partnership w=
+ith UMG to develop professional music-production tools.</li>
+</ul>
+<p style=3D"line-height:150%"><span style=3D"font-weight: bold;">Behind the=
+ news:</span> Like book publishers and movie studios, recording companies h=
+ave moved aggressively to stop AI companies from training models on materia=
+ls they control and generating output that might compete with them.</p>
+<ul style=3D"line-height:150%">
+<li aria-level=3D"1">STIM, a Swedish organization that collects royalties o=
+n behalf of composers and recording artists, <a href=3D"https://info.deeple=
+arning.ai/e3t/Ctc/LX+113/cJhC404/VVY1kt3x0f1HW23X0RT30X8qQW4Mw1s55FwPmLN2dm=
+Mwn5nR3bW69t95C6lZ3kKW2hXBMh5XLkZnW3NKnyC6XZ1wJW4zmyY48074xPW1dBFcf86w_0qW4=
+5w0Tf23_-ltW4dkJ5x8b6Qc_VYZM6k6WwYDFW29jqG2231P-TW6zW3ky8j0fR6W3pHkQY8wtGHR=
+W27Nbl_7GdGqzW4FFM3g99j9MrW7Pzypw6tMPM4W6H81QQ1CG1bNVfq93f41mZq4W9jlX0q5H7t=
+JZW85h9x96J5Sp5N6g8jyJ841p3N29xSCdJVbw0W2C53tP42D-K3W4qFkH24Bbj4mW8mDV4y8sT=
+4D0W8cSHf335m1MhW8hZdkm7t19vxW4s362S55f72QN6N53SQCxdXHVPFCS14NkJQDW3Mmxkh6K=
+7XqqW91M4my1dvY-mW8mNR3h3SCmLFW54hMLw96706_N6yMpg4mx8b0W44KG4p6701dXW3CxplM=
+9cSJyMW6Qd05F7xgLbNW7S1BZY7NXJQZf7Wjlq-04" rel=3D"noopener" style=3D"color:=
+#237b94" data-hs-link-id=3D"0" data-hs-link-id-v2=3D"k13eEB3i" target=3D"_b=
+lank">devised</a> a license to compensate musicians for use of their works =
+to train AI models.</li>
+<li aria-level=3D"1">Last year, Sony Music, UMG, Warner Music, and trade or=
+ganization Recording Industry Association of America (RIAA) <a href=3D"http=
+s://info.deeplearning.ai/e3t/Ctc/LX+113/cJhC404/VVY1kt3x0f1HW23X0RT30X8qQW4=
+Mw1s55FwPmLN2dmMvP5nR3bW50kH_H6lZ3p6W7CJnLy7BjrrcN4bzXQ8hP-shW4jmJt87GPfjpV=
+1P0Lk3KWRQ-W3qBbPl2WGflkW4swMFV7VPQDcW5KNFZ77zl3w3W98TNZR1dlRPNW45ccDP3H2Y1=
+2W5XS9Zq8STR6FW2g1KSt64ssD_F5TK_51Gz8zW5DFkD21CwMtDW5_Z4cY6wf1DhW13pB-y5zq_=
+Q3W6TXFL67GPnxSW7ggCRc4xP-4HW865g5j7_61RGW5sxnsl2wgWd2W6Pk5H6219RJrW9jZV5j7=
+MtmR4W7Gr-4B7qhgKqW69gnW163HwtDW2X-xhX5nBlD_W2_7cpC4TV7XpW1n_k_j4j65ySVNm80=
+S6hwKKcW77BbxT5HVqTzW3Nh76Y6J5vbLW4ND8NK3qMF7MW6shK4q7n4XSBW4VgsQ_9ctQ-vf5y=
+1wBF04" rel=3D"noopener" style=3D"color:#237b94" data-hs-link-id=3D"0" data=
+-hs-link-id-v2=3D"NNNPaaA5" target=3D"_blank">sued</a>&nbsp;Suno and Udio f=
+or alleged copyright violations in their music generators. The music compan=
+ies filed separate lawsuits that alleged the AI companies had trained AI mo=
+dels on copyrighted recordings, and made unauthorized copies in the process=
+, to compete commercially with their music.</li>
+<li aria-level=3D"1">In 2023, UMG pressed Apple Music, Spotify, and YouTube=
+ to <a href=3D"https://info.deeplearning.ai/e3t/Ctc/LX+113/cJhC404/VVY1kt3x=
+0f1HW23X0RT30X8qQW4Mw1s55FwPmLN2dmMxT3qgz0W95jsWP6lZ3mGW5scLf_1kwRzDW6Lph1k=
+6r-2JtW42M2wk1nxQV1W6QBmL04Qjy2rW8d5Hqm6sgZYTW756y-c43gNbCW2yjhf05zTSyjW1DY=
+Jm-4nTdZsW2Pf9jq4Pl-7tW90k4qW1YkRL-W8bJYkt9dv5qTV5gJhp3Hl3lVW9bc1NX42TMmQVc=
+jmK033ZvS5W5BvJfC2WQ9NwW36qNzF8dngqDW5Ywzm86jB8_HN2nVD9CsG5B5W6z8Jxv3BRNy2W=
+8Dv3Wy46XQZcW3bsW-N8Y92PrN6r_VWxRnMr3W4VsF-_1zMcDNW1S94nB1y3mD7W3pdft68lKGL=
+gW6Pf0bN6ws0tyW317XRP8Q1cF3W9bh5V149jxV9W5VYxdq2vdwt7W4H4C9T93GNBkf2fTyZb04=
+" rel=3D"noopener" style=3D"color:#237b94" data-hs-link-id=3D"0" data-hs-li=
+nk-id-v2=3D"pb8GRNYb" target=3D"_blank">counter</a>&nbsp;AI-enabled imitati=
+ons of its artists by blocking AI developers from downloading their recordi=
+ngs. It also asked the streaming companies not to distribute AI-generated m=
+usic.</li>
+</ul>
+<p style=3D"line-height:150%"><span style=3D"font-weight: bold;">Why it mat=
+ters:</span> Music labels, like other media companies, see their businesses=
+ threatened by generative AI, which can synthesize products that are superf=
+icially similar to their own at lower cost and in less time. A study by the=
+ French streaming music service Deezer <a  href=3D"https://info.deeplearnin=
+g.ai/e3t/Ctc/LX+113/cJhC404/VVY1kt3x0f1HW23X0RT30X8qQW4Mw1s55FwPmLN2dmMxg3q=
+gz0W7Y8-PT6lZ3pxW8F4c6w8GvdPlW449SCG59HvrXW7Q6N_S7mQ6fpV50vtp2hsn7TW271pSM6=
+4WgcRW8NLz-z8NklPXW1kzvnM59R4m_W9l0B916PmJJXW2mC-qm3438ZpVTdC2D6N5vb1W8wr4p=
+t6QwcWtW3tg0_p2WV9h2W4fdw9T3nnSPwW15DHb71fxPhDW6QzV-r8nP7gmW4BBXcj2_JNGWN2x=
+_l7vXCg0_W3KB01w6ldBCbVHJySB3mx5rPW1DyQf46ztmrWW7nRJz04FhMd0V6jK6y7y5RKPW2S=
+1C805FDZRdW5jyYwB3g5XDjW33JMfr7WhFPwW4zHD4624nF31f62T2vd04" rel=3D"noopener=
+" style=3D"color:#237b94" data-hs-link-id=3D"0" data-hs-link-id-v2=3D"e80/G=
+sSa" target=3D"_blank">found</a> that nearly 28 percent of the music it del=
+ivered was generated. In June, a musical group called Velvet Sundown racked=
+ up 1 million plays on Spotify of music generated by Suno. The settlement b=
+etween Udio and UMG unites traditional and AI-generated music in a single b=
+usiness and suggests there could be common ground between media and AI comp=
+anies, albeit with side effects such as limiting Udio=E2=80=99s distributio=
+n of generated music.</p>
+<p style=3D"line-height:150%">&nbsp;</p>
+<p style=3D"line-height:150%"><span style=3D"font-weight: bold;">We=E2=80=
+=99re thinking:</span> Lawsuits against Suno and Udio by Sony Music, Warner=
+ Music, and the RIAA are still underway. This deal offers a blueprint for r=
+esolving those cases, but their outcomes are by no means certain. As lovers=
+ of music, we look forward to hearing more of it.&nbsp;</p>
+<p style=3D"line-height:150%">&nbsp;</p></div></div>
+  <table role=3D"presentation" cellpadding=3D"0" cellspacing=3D"0" width=3D=
+"100%" class=3D"" style=3D""><tbody><tr><td style=3D"font-family:Helvetica,=
+ Arial, sans-serif; font-size:18px; color:#3b3b3b; word-break:break-word; p=
+adding:0px 0px 10px"><div id=3D"hs_cos_wrapper_hs_email_body_old22" class=
+=3D"hs_cos_wrapper hs_cos_wrapper_widget hs_cos_wrapper_type_module" style=
+=3D"color: inherit; font-size: inherit; line-height: inherit;" data-hs-cos-=
+general-type=3D"widget" data-hs-cos-type=3D"module"><table role=3D"none" bo=
+rder=3D"0" cellpadding=3D"0" cellspacing=3D"0" style=3D"vertical-align:top"=
+ width=3D"100%">
+  <tbody><tr>
+    <td align=3D"center" style=3D"font-family:Helvetica, Arial, sans-serif;=
+ color:#3b3b3b; font-size:0; word-break:break-word">
+      <p style=3D"font-size:1px;border-top:1px solid #000000;width:100%;mar=
+gin:0 auto;"></p>
+      <!--[if mso]>
+        <table role=3D"none" align=3D"center" border=3D"0" cellpadding=3D"0=
+" cellspacing=3D"0" style=3D"font-size:1px;border-top:1px solid #000000;wid=
+th:600px;">
+          <tr>
+            <td style=3D"height:0;line-height:0">&nbsp;</td>
+          </tr>
+        </table>
+      <![endif]-->
+    </td>
+  </tr>
+</tbody></table></div></td></tr></tbody></table>
+<div id=3D"hs_cos_wrapper_module_17241662955853" class=3D"hs_cos_wrapper hs=
+_cos_wrapper_widget hs_cos_wrapper_type_module" style=3D"color: inherit; fo=
+nt-size: inherit; line-height: inherit;" data-hs-cos-general-type=3D"widget=
+" data-hs-cos-type=3D"module"><table class=3D"hse-image-wrapper" role=3D"pr=
+esentation" width=3D"100%" cellpadding=3D"0" cellspacing=3D"0">
+  <tbody>
+    <tr>
+      <td align=3D"center" valign=3D"top" style=3D"font-family:Helvetica, A=
+rial, sans-serif; color:#3b3b3b; word-break:break-word; text-align:center; =
+padding:5px 0px 10px; font-size:0px">
+        <img alt=3D"Chart illustrates exact and approximate memorization pe=
+rcentages in different Gemma models." src=3D"https://info.deeplearning.ai/h=
+s-fs/hubfs/VAULTGEMMA.png?width=3D1200&amp;upscale=3Dtrue&amp;name=3DVAULTG=
+EMMA.png" style=3D"outline:none; text-decoration:none; max-width:100%; font=
+-size:16px" width=3D"600" align=3D"middle" class=3D"stretch-on-mobile">
+      </td>
+    </tr>
+  </tbody>
+</table></div>
+<div id=3D"hs_cos_wrapper_module_17370395015403" class=3D"hs_cos_wrapper hs=
+_cos_wrapper_widget hs_cos_wrapper_type_module" style=3D"color: inherit; fo=
+nt-size: inherit; line-height: inherit;" data-hs-cos-general-type=3D"widget=
+" data-hs-cos-type=3D"module"><div id=3D"hs_cos_wrapper_module_173703950154=
+03_" class=3D"hs_cos_wrapper hs_cos_wrapper_widget hs_cos_wrapper_type_rich=
+_text" style=3D"color: inherit; font-size: inherit; line-height: inherit;" =
+data-hs-cos-general-type=3D"widget" data-hs-cos-type=3D"rich_text"><h1 styl=
+e=3D"margin:0; font-family:Helvetica, Arial, sans-serif; line-height:125%; =
+font-size:32px; font-weight:bold">Masking Private Data in Training Sets</h1=
+>
+<p style=3D"line-height:150%">&nbsp;</p>
+<p style=3D"line-height:150%">Large language models often memorize details =
+in their training data, including private information that may appear only =
+once, like a person=E2=80=99s name, address, or phone number. Researchers b=
+uilt the first open-weights language model that=E2=80=99s guaranteed not to=
+ remember such facts.</p>
+<p style=3D"line-height:150%">&nbsp;</p>
+<p style=3D"line-height:150%"><span style=3D"font-weight: bold;">What=E2=80=
+=99s new:</span> Amer Sinha, Thomas Mesnard, and colleagues at Google relea=
+sed <a href=3D"https://info.deeplearning.ai/e3t/Ctc/LX+113/cJhC404/VVY1kt3x=
+0f1HW23X0RT30X8qQW4Mw1s55FwPmLN2dmMxg3qgz0W7Y8-PT6lZ3lgW5qMXC97s-KNqVrqJNN7=
+8SL72W75z9cd2GZRK_W8DDRfS13RfngW3MKqS24mkCrVW6QSTLw8X6gjJW2Rc3D-3RrVzzW4M6R=
+pW13dYjkW3W4Gtg46QLYXW1lwGPF64ym3gW92pqLB4YH1DwW37Hpnw1flWfyW890dJd2xlFFVW3=
+PNHrk8_JhgpW870mZm3jyk6YN4gZNLcm9Ll8W4ZjgZX68DRbqW7Q8rBz9jw85vW2nJ2LD8Rb5DD=
+W2wn-LJ1nWFmnW2MHglr57VPM1W8KsZGb5kYNDdW6FT0Nn6fjnvMVrhVBs6Y2RZcW9fVnyD2l3d=
+mgW3qKyLj67CZmsf2v8pBF04" rel=3D"noopener" style=3D"color:#237b94" data-hs-=
+link-id=3D"0" data-hs-link-id-v2=3D"+XXLDnsY" target=3D"_blank">VaultGemma<=
+/a>, a 1 billion-parameter model that=E2=80=99s trained from scratch using =
+the technique known as differential privacy. This method prevented the mode=
+l from memorizing examples that occurred only once in its training data, wi=
+th a modest sacrifice in performance. Weights are free to <a href=3D"https:=
+//info.deeplearning.ai/e3t/Ctc/LX+113/cJhC404/VVY1kt3x0f1HW23X0RT30X8qQW4Mw=
+1s55FwPmLN2dmMw-3qgz0W7lCdLW6lZ3nBW2Mxk-t7p717gW6xsWh872-gtmW7qJjvr5cm85HW7=
+3HpK26vWcMrW4QfGkT5qr1dqW7Hf4SL8N42SRW3WmGtM63gzL2V8LyJR8wXDH_W1bJpcb3Xj-ch=
+VbMJPh7YWwsSW8HQHNn8drlKYW1c55hl3-FNlPW4mg7X3420hwWW8_Kh7z43RKqRW1-R26w5p0k=
+BPN6NxCwGnjvnJW8dmLXm4pC1LbW6-xfG321DSYHW5ZVMrB1bHN5SW4WG8bh5kzBy2W4S5skk2T=
+YS_4V_7jFv8LCCZvW6kDGwT6HjcrQW3V2pN51sGF4Sf4mztHH04" rel=3D"noopener" style=
+=3D"color:#237b94" data-hs-link-id=3D"0" data-hs-link-id-v2=3D"bvEdqfud" ta=
+rget=3D"_blank">download</a> under a <a href=3D"https://info.deeplearning.a=
+i/e3t/Ctc/LX+113/cJhC404/VVY1kt3x0f1HW23X0RT30X8qQW4Mw1s55FwPmLN2dmMwH3qgz0=
+W6N1vHY6lZ3kJW3CczMC9jgz49W6Jy1ZR8h7lPCW30qgmb7S_HlXW6QtGkx8dPtbzW6Z50rL3DM=
+wW5W206ZF02Sv5ltN1bwvL6P3JxXW2J_4DW44cXQDVS7Nv19grnsQV5Cnk44jYDJjVYpCtY13ns=
+CSVMGF148H4mq5W812Khk3_cfW0W8N7g564Bssd9W5B_33y58cVN1VkgdNy72X1p_N6ZxVnPVRF=
+jqW2kW0b02vhQp8W5fs1zk2V2Hx8W5TpNhd1WTz-9VKFHgn48xr_5W3yj2lN5wgJXzd_hlWC04"=
+ rel=3D"noopener" style=3D"color:#237b94" data-hs-link-id=3D"0" data-hs-lin=
+k-id-v2=3D"BqSBHz/7" target=3D"_blank">license</a>&nbsp;that allows noncomm=
+ercial and commercial uses with some restrictions.</p>
+<p style=3D"line-height:150%">&nbsp;</p>
+<p style=3D"line-height:150%"><span style=3D"font-weight: bold;">Differenti=
+al privacy basics:</span> An algorithm (such as training a neural network) =
+is differentially private if it=E2=80=99s impossible to tell the difference=
+ between its product (the learned weights) and its product given that same =
+dataset minus any given example. Since the presence or absence of a single =
+example can=E2=80=99t significantly change the product, personal informatio=
+n can=E2=80=99t leak from the product (the model=E2=80=99s weights) or the =
+consequences of the product (the model=E2=80=99s outputs). In training a ne=
+ural network, it=E2=80=99s possible to limit the impact of one example by l=
+imiting how much each example=E2=80=99s gradient can impact a model=E2=80=
+=99s weights, for instance, by adding noise to each example=E2=80=99s gradi=
+ent to make it harder to tell from that of other examples.</p>
+<p style=3D"line-height:150%">&nbsp;</p>
+<p style=3D"line-height:150%"><span style=3D"font-weight: bold;">Key insigh=
+t:</span> Most previous <a href=3D"https://info.deeplearning.ai/e3t/Ctc/LX+=
+113/cJhC404/VVY1kt3x0f1HW23X0RT30X8qQW4Mw1s55FwPmLN2dmMwH3qgz0W6N1vHY6lZ3n9=
+W6qQ1kQ3shtNrW7JWhNP8Nh7tNVkgZQy6WJKx2W6ktQFN4kcyP1W8nl69089ZDctW1btjqY6txX=
+PHW1J0ZNr7Rl9bSW8j-FCj1LcKyPN25qRljWvd3TW3StSpg8wfKVzW715CZ38fKv6mW5bsD402m=
+M4xtW6Q2Kdl9lt-F4W5lBXB1278VqLW6brFjM6GdFl6W8Bbhdy5XcrxTW59X9w96N1KBhV3Mhmt=
+8dZR4yVjZP8s6lXZ2vW7cgtsy59jPPwW8WWSR78ZpHRZW3mhNBz207VzMf24-zG604" rel=3D"=
+noopener" style=3D"color:#237b94" data-hs-link-id=3D"0" data-hs-link-id-v2=
+=3D"savsdina" target=3D"_blank">work</a>&nbsp;applies differential privacy =
+when fine-tuning a model, but that doesn=E2=80=99t prevent the model from m=
+emorizing an example during pretraining. Once private information is encode=
+d in the model=E2=80=99s weights, later fine-tuning can=E2=80=99t remove it=
+ reliably. Training with differential privacy from the start ensures that s=
+uch details don=E2=80=99t become embedded in the model.</p>
+<p style=3D"line-height:150%">&nbsp;</p>
+<p style=3D"line-height:150%"><span style=3D"font-weight: bold;">How it wor=
+ks:</span> VaultGemma follows the same transformer architecture as the 1 bi=
+llion-parameter version of Google=E2=80=99s Gemma 2. Moreover, the authors =
+pretrained it from scratch on the same 13-trillion-token dataset as Gemma 2=
+ (web, code, and scientific text). The authors applied differential privacy=
+ as VaultGemma learned to predict the next token in sequences of 1,024 toke=
+ns.</p>
+<ul style=3D"line-height:150%">
+<li aria-level=3D"1">For every example in a batch, the authors computed the=
+ gradient and clipped it so its contribution to the weight update didn=E2=
+=80=99t exceed a fixed threshold. This ensured that any given example didn=
+=E2=80=99t have a disproportionate impact on the weight updates relative to=
+ other examples.</li>
+<li aria-level=3D"1">The authors averaged the clipped gradients across each=
+ batch and added Gaussian noise to the average before updating the model=E2=
+=80=99s weights. The noise weakened the influence of unique examples while =
+allowing repeated examples to stand out. As a result, the model=E2=80=99s w=
+eights became statistically indistinguishable from those of a model trained=
+ without any particular 1,024-token sequence.</li>
+</ul>
+<p style=3D"line-height:150%"><span style=3D"font-weight: bold;">Results:</=
+span> VaultGemma showed no measurable memorization across 1 million sequenc=
+es sampled at random from the training set, while pretrained Gemma 1, 2, an=
+d 3 models of roughly similar sizes did. VaultGemma=E2=80=99s average perfo=
+rmance across 7 question-answering benchmarks generally matched that of GPT=
+-2 (1.5 billion parameters) but fell short of&nbsp;Gemma models of roughly =
+similar size.</p>
+<ul style=3D"line-height:150%">
+<li aria-level=3D"1">The authors measured memorization in the Gemma family =
+by the percentage of examples a model could reproduce when given the first =
+half of the sequence. Gemma 3 (1 billion parameters) reproduced 0.0005 perc=
+ent of training examples tested, while Gemma 2 (2 billion parameters) repro=
+duced 0.04 percent. Gemma 1 (2 billion) reproduced about 1 percent. VaultGe=
+mma reproduced 0 percent.</li>
+<li aria-level=3D"1">VaultGemma achieved 39 percent accuracy on <a href=3D"=
+https://info.deeplearning.ai/e3t/Ctc/LX+113/cJhC404/VVY1kt3x0f1HW23X0RT30X8=
+qQW4Mw1s55FwPmLN2dmMwH3qgz0W6N1vHY6lZ3mRW6YzJWt5kGW9KW2mHZd020dLpJW6MY1kh12=
+PQh9W9l35rJ1bmTfXW47ZR2m3Tm9LsVD0MJC9ccx11W5-tKQk8cMbF-W9hxht17N-K7JW6T2dj4=
+75_GtsW9gh_T53TTCKhW9fD3Bz5cVWZJW4fmyH84Cxt4dW5q9XkC45h3RrW7MY0hg5Y-YVDW75y=
+Th02s1tM3W1TbFbm1tlVv2W99NZ-y7M8pNcW6p8HWq2hZ5ybW8XhBk079pgQBW7rmgGq22nJ92W=
+4Vb6vs1H1BSlN9hky7yTlDK7f6WW35604" rel=3D"noopener" style=3D"color:#237b94"=
+ data-hs-link-id=3D"0" data-hs-link-id-v2=3D"pqCppZgr" target=3D"_blank">He=
+llaSwag</a>, a benchmark that=E2=80=99s designed to test common-sense reaso=
+ning in everyday situations. GPT-2 achieved 48 percent and Gemma 3 (1 billi=
+on parameters) reached 61 percent.</li>
+<li aria-level=3D"1">On <a href=3D"https://info.deeplearning.ai/e3t/Ctc/LX+=
+113/cJhC404/VVY1kt3x0f1HW23X0RT30X8qQW4Mw1s55FwPmLN2dmMwH3qgz0W6N1vHY6lZ3q7=
+VCJRSX1ccG28VQFf897XkwvvN519kkFBRQmFW8dy76w4bBGYdW3hyMzf1RTl3DW8LjR5K5fmTWm=
+W33SG9D8BL61nW8nx67P84x1FKW4VH1GH9f4FmNW7zRTqF1YGfCRVLTG0H5g6MbKW3GP4Yz4GTP=
+dxVmN8jB2PQ8MzW2571t87b5DBvW1WHzv815mCqYW8q7cDS4cznDXN1fpZDvW6B8-W8mBbVw6d2=
+g3sW8Z583H7qxz6fW5hjN-y8pBx6BW4KJz_z7SQ-zsW75sFTG1WfpNPf8g1lPH04" rel=3D"no=
+opener" style=3D"color:#237b94" data-hs-link-id=3D"0" data-hs-link-id-v2=3D=
+"m5bhZxRD" target=3D"_blank">TriviaQA</a>, which measures factual question =
+answering, VaultGemma achieved 11 percent, while GPT-2 achieved 6 percent a=
+nd Gemma 3 (1 billion parameters) achieved 40 percent.</li>
+</ul>
+<p style=3D"line-height:150%"><span style=3D"font-weight: bold;">Yes, but:<=
+/span>&nbsp; The privacy protection comes with a caveat: It applies only to=
+ unique examples such as a private phone number that occurs only once in th=
+e dataset. If private information appears repeatedly in the training data, =
+for instance, a celebrity's street address&nbsp;that leaked and appeared in=
+ several&nbsp;publications, the model can learn it as a general pattern.</p=
+>
+<p style=3D"line-height:150%">&nbsp;</p>
+<p style=3D"line-height:150%"><span style=3D"font-weight: bold;">Why it mat=
+ters:</span> Private information can find its way into training datasets, a=
+nd in normal use, a typical large language model may divulge it without the=
+ subject=E2=80=99s consent.&nbsp; VaultGemma shows that large open-weights =
+models can be provably private. While such privacy still comes with a cost =
+=E2=80=94 VaultGemma 1B performs roughly on par with models built about fiv=
+e years ago =E2=80=94 the results are promising, and future work may close =
+that gap.</p>
+<p style=3D"line-height:150%">&nbsp;</p>
+<p style=3D"line-height:150%"><span style=3D"font-weight: bold;">We=E2=80=
+=99re thinking:</span> The smartest model for sensitive data might be the o=
+ne that remembers only the most common information.</p>
+<p style=3D"line-height:150%">&nbsp;</p></div></div>
+  <table role=3D"presentation" cellpadding=3D"0" cellspacing=3D"0" width=3D=
+"100%" class=3D"" style=3D""><tbody><tr><td style=3D"font-family:Helvetica,=
+ Arial, sans-serif; font-size:18px; color:#3b3b3b; word-break:break-word; p=
+adding:0px 0px 10px"><div id=3D"hs_cos_wrapper_hs_email_body_old25" class=
+=3D"hs_cos_wrapper hs_cos_wrapper_widget hs_cos_wrapper_type_module" style=
+=3D"color: inherit; font-size: inherit; line-height: inherit;" data-hs-cos-=
+general-type=3D"widget" data-hs-cos-type=3D"module"><table role=3D"none" bo=
+rder=3D"0" cellpadding=3D"0" cellspacing=3D"0" style=3D"vertical-align:top"=
+ width=3D"100%">
+  <tbody><tr>
+    <td align=3D"center" style=3D"font-family:Helvetica, Arial, sans-serif;=
+ color:#3b3b3b; font-size:0; word-break:break-word">
+      <p style=3D"font-size:1px;border-top:1px solid #000000;width:100%;mar=
+gin:0 auto;"></p>
+      <!--[if mso]>
+        <table role=3D"none" align=3D"center" border=3D"0" cellpadding=3D"0=
+" cellspacing=3D"0" style=3D"font-size:1px;border-top:1px solid #000000;wid=
+th:600px;">
+          <tr>
+            <td style=3D"height:0;line-height:0">&nbsp;</td>
+          </tr>
+        </table>
+      <![endif]-->
+    </td>
+  </tr>
+</tbody></table></div></td></tr></tbody></table>
+<div id=3D"hs_cos_wrapper_hs_email_body_old29" class=3D"hs_cos_wrapper hs_c=
+os_wrapper_widget hs_cos_wrapper_type_module" style=3D"color: inherit; font=
+-size: inherit; line-height: inherit;" data-hs-cos-general-type=3D"widget" =
+data-hs-cos-type=3D"module"><div id=3D"hs_cos_wrapper_hs_email_body_old29_"=
+ class=3D"hs_cos_wrapper hs_cos_wrapper_widget hs_cos_wrapper_type_rich_tex=
+t" style=3D"color: inherit; font-size: inherit; line-height: inherit;" data=
+-hs-cos-general-type=3D"widget" data-hs-cos-type=3D"rich_text"><h1 style=3D=
+"margin:0; font-family:Helvetica, Arial, sans-serif; line-height:125%; font=
+-size:32px">Work With Andrew Ng</h1>
+<p style=3D"line-height:125%">&nbsp;</p>
+<p style=3D"line-height:150%">Join the teams that are bringing AI to the wo=
+rld! Check out job openings at&nbsp;<a href=3D"https://info.deeplearning.ai=
+/e3t/Ctc/LX+113/cJhC404/VVY1kt3x0f1HW23X0RT30X8qQW4Mw1s55FwPmLN2dmMwH3qgz0W=
+6N1vHY6lZ3mGW88-QGM805QDMN9f95sS2zGVkVWWRWZ7q8PRlW429Tnc2RD1B_W4BnK4s5psJr-=
+W6Yh6cT6sPmF_W7P-3gk3_4-FYW6xBWh51b-cjVW8wRvCz6n1Q3CW6_Nk-g8k8WRTW17NbWF1DY=
+y7DW2-N-n5473NHNW60vXXT6cr_mvW3VPcYr7N2MHdW1fcJNj6V8hnFW2PJrRQ8wV85RW5xx-t4=
+7hkphSW1RCJCY3tXnLQW1xMmqv37x8mbW5CRrd48QtK_yW3hdQGx8mGwzbW5zKBBN7H85ynf8Vr=
+-pP04" rel=3D"noopener" style=3D"color:#237b94" data-hs-link-id=3D"0" data-=
+hs-link-id-v2=3D"cXHQINQr" target=3D"_blank">DeepLearning.AI</a>,&nbsp;<a h=
+ref=3D"https://info.deeplearning.ai/e3t/Ctc/LX+113/cJhC404/VVY1kt3x0f1HW23X=
+0RT30X8qQW4Mw1s55FwPmLN2dmMwH3qgz0W6N1vHY6lZ3nLW2JT8Yf5JhF8wVZQrkw7nN_WcVm_=
+V3b6zV3FDW2jLdWK53YLtqW2tTJGM3XwMSDW3Lt6_83gyYNvW14l2121SPBgnW8b76j04JVs_3W=
+80_54K2XLqpZVy8bNR8BbJH3W8Gqmv65lYqCYW2Z9cdj7WlfPqW54Nc1b2mDVvjW8_GF0N3Xvj5=
+-V4CBvk2MBC9wW6J6hRg1B1qLyVJPV-q1yjmHxW4KVnxD3QFjyJW1Z3P1H21rrGBMqgkQ3tTLQV=
+W2gFqfH9f5stLW4W38TG68SzF9f2jWTNF04" rel=3D"noopener" style=3D"color:#237b9=
+4" data-hs-link-id=3D"0" data-hs-link-id-v2=3D"AdxhxV6z" target=3D"_blank">=
+AI Fund</a>, and&nbsp;<a href=3D"https://info.deeplearning.ai/e3t/Ctc/LX+11=
+3/cJhC404/VVY1kt3x0f1HW23X0RT30X8qQW4Mw1s55FwPmLN2dmMwH3qgz0W6N1vHY6lZ3p1W9=
+5Yq3l53gKhRW5V1_c95W91LHW8Mk3p98F2d7fW1zKFNb7Y1Bp2W2Swmzn2PcStPW2GZmPX9hHww=
+YW7fTsB86BrT5CW7V8dgv5SccrGW5ZfT8g6GWpDNW8wpJcB7514ZMW4DTFRs4vG-kWW98PTJq6H=
+s81yN70w-vFGvrsMW4pqj5J5RTklDW6q1sm52YjMMjW2gW-8v5yVHFNW488zjG1YqYDPW7yn3Jr=
+4sD8BMVjjsyq4b_XCpW4n2jjN4LRT-HVv26H18T97bHW3g42D66d9RZLf6gtmgM04" rel=3D"n=
+oopener" style=3D"color:#237b94" data-hs-link-id=3D"0" data-hs-link-id-v2=
+=3D"FaIZABW0" target=3D"_blank">Landing AI</a>.</p>
+<p style=3D"line-height:150%">&nbsp;</p></div></div>
+  <table role=3D"presentation" cellpadding=3D"0" cellspacing=3D"0" width=3D=
+"100%" class=3D"" style=3D""><tbody><tr><td style=3D"font-family:Helvetica,=
+ Arial, sans-serif; font-size:18px; color:#3b3b3b; word-break:break-word; p=
+adding:0px 0px 10px"><div id=3D"hs_cos_wrapper_hs_email_body_old30" class=
+=3D"hs_cos_wrapper hs_cos_wrapper_widget hs_cos_wrapper_type_module" style=
+=3D"color: inherit; font-size: inherit; line-height: inherit;" data-hs-cos-=
+general-type=3D"widget" data-hs-cos-type=3D"module"><table role=3D"none" bo=
+rder=3D"0" cellpadding=3D"0" cellspacing=3D"0" style=3D"vertical-align:top"=
+ width=3D"100%">
+  <tbody><tr>
+    <td align=3D"center" style=3D"font-family:Helvetica, Arial, sans-serif;=
+ color:#3b3b3b; font-size:0; word-break:break-word">
+      <p style=3D"font-size:1px;border-top:1px solid #000000;width:100%;mar=
+gin:0 auto;"></p>
+      <!--[if mso]>
+        <table role=3D"none" align=3D"center" border=3D"0" cellpadding=3D"0=
+" cellspacing=3D"0" style=3D"font-size:1px;border-top:1px solid #000000;wid=
+th:600px;">
+          <tr>
+            <td style=3D"height:0;line-height:0">&nbsp;</td>
+          </tr>
+        </table>
+      <![endif]-->
+    </td>
+  </tr>
+</tbody></table></div></td></tr></tbody></table>
+<div id=3D"hs_cos_wrapper_hs_email_body_old31" class=3D"hs_cos_wrapper hs_c=
+os_wrapper_widget hs_cos_wrapper_type_module" style=3D"color: inherit; font=
+-size: inherit; line-height: inherit;" data-hs-cos-general-type=3D"widget" =
+data-hs-cos-type=3D"module"><div id=3D"hs_cos_wrapper_hs_email_body_old31_"=
+ class=3D"hs_cos_wrapper hs_cos_wrapper_widget hs_cos_wrapper_type_rich_tex=
+t" style=3D"color: inherit; font-size: inherit; line-height: inherit;" data=
+-hs-cos-general-type=3D"widget" data-hs-cos-type=3D"rich_text"><p style=3D"=
+line-height:125%; font-size:14px; text-align:center" align=3D"center">Subsc=
+ribe and view previous issues <a href=3D"https://info.deeplearning.ai/e3t/C=
+tc/LX+113/cJhC404/VVY1kt3x0f1HW23X0RT30X8qQW4Mw1s55FwPmLN2dmMwH3lYM-W6N1vHY=
+6lZ3mFW67322W1SrPsqW1hmD0S1SLjVMW2z6Cl-1p7VXZW89Lpdh6mQyz5W4TMhw24RH814W6Xd=
+PFl1sJ8KtW4vWcpg5BJKD5VbwdXG67XV49VLxMBJ4pf5y7W1NqgSb13h_n5W4V4R3Y4Wm2hnW6n=
+w3Z22YFRtqW4Yv55W7Ds1_fW2GsBdf78JGyNW2bGbV81vC6D6W51jMqq49s-bbW94XYVW29FVwC=
+Vc-JkS2B-K-9W70qmLJ18vqYFVycqsW6fbyWmW6VnQrg8hmj3FW81sTDP6gKhLTf1PF0fl04" t=
+arget=3D"_blank" rel=3D"noopener" style=3D"color:#237b94" data-hs-link-id=
+=3D"1" data-hs-link-id-v2=3D"E8V530aN">here</a>.</p>
+<p style=3D"line-height:125%; font-size:14px; text-align:center" align=3D"c=
+enter">&nbsp;</p>
+<p style=3D"line-height:125%; font-size:14px; text-align:center" align=3D"c=
+enter">Thoughts, suggestions, feedback? Please send to <a href=3D"mailto:th=
+ebatch@deeplearning.ai?subject=3DRE:%20Thoughts,%20Suggestions,%20feedback"=
+ target=3D"_blank" rel=3D"noopener" style=3D"color:#237b94" data-hs-link-id=
+=3D"0" data-hs-link-id-v2=3D"VCcUpJPM">thebatch@deeplearning.ai</a>. Avoid =
+our newsletter ending up in your spam folder by adding our email address to=
+ your contacts list.</p>
+<p style=3D"line-height:125%; font-size:14px; text-align:center" align=3D"c=
+enter">&nbsp;</p></div></div>
+<div id=3D"hs_cos_wrapper_footer" class=3D"hs_cos_wrapper hs_cos_wrapper_wi=
+dget hs_cos_wrapper_type_module" style=3D"color: inherit; font-size: inheri=
+t; line-height: inherit;" data-hs-cos-general-type=3D"widget" data-hs-cos-t=
+ype=3D"module"><table role=3D"presentation" class=3D"hse-footer hse-seconda=
+ry" width=3D"100%" cellpadding=3D"0" cellspacing=3D"0" style=3D"font-family=
+:Arial, sans-serif; font-size:12px; line-height:135%; color:#23496d; margin=
+-bottom:0; padding:0">
+  <tbody>
+    <tr>
+      <td align=3D"center" valign=3D"top" style=3D"font-family:Helvetica, A=
+rial, sans-serif; font-size:18px; color:#3b3b3b; word-break:break-word; tex=
+t-align:center; margin-bottom:0; line-height:135%; padding:10px 20px">
+        <p style=3D"font-family:Helvetica,Arial,sans-serif;font-size:14px;f=
+ont-weight:normal;text-decoration:none;font-style:normal;color:#3b3b3b">
+          DeepLearning.AI, 400 Castro St., Suite 600, Mountain View, CA 940=
+41, United States
+        </p>
+        <p>
+          <a data-unsubscribe=3D"true" href=3D"https://info.deeplearning.ai=
+/hs/preferences-center/en/direct?data=3DW2nXS-N30h-MjW1Nzc1j4fNNshW2FM5Br4m=
+s5LLW34q9Xb1BrGyjW3JFRvH2xys8PW3bq4lK2TskTdW2-FvTK25hPtPW2RrH2F2FBNSVW47C0s=
+X2502j-W3ZFLk73bfl_JW25fPdW1BKJ54W41Fgbt24_-PGW3SRVlr49BTtVW30HPRL34j3bXW2K=
+sm2B1_6RT7W219YyK2FRHcsW2xFTN62vCzWFW1W_qtl2TCdJTW2r1xKl2MCRkPW3J-00H1Ly-pC=
+W3ZG96b3CfxKPW2-lJgx2HyYbnW2KnxzD1L5Rr7W2vzwN24thdtcW2p51d32r8-Q5W3P9cRB3K2=
+W8ZW3F1fPS4pkjdsW2nX2PT2TQ36_W3bg-0b2q_sV9W21hnG73VRK5wW3DL1g332Ctp1W23kFv1=
+3LXcHQW2HsW_t3LS6QhW3XvblH2RLvVtW2HB_864kLlWlW2CKCdr2TvqYXW2CthL51-ZMyNW4md=
+rpv3KbpB2W1Z7VS_3g2sTRW3ZKWf33-0hPxW327w-c2KyJg_W1Xv1gc1Sh8HnW38fXz12KCGcpW=
+41pPt33jnClSW364ZN33dB1JXW2sQfZl4fz9TgW400ty54pCGfsW4mCTC44pDrtDW36tR1p2FWS=
+jvW49BqJ54rDJ8k0&amp;utm_campaign=3DThe%20Batch&amp;utm_source=3Dhs_email&a=
+mp;utm_medium=3Demail&amp;utm_content=3D388564600&amp;_hsenc=3Dp2ANqtz-_QTf=
+XfWkm2xR8mf5V1r05V-4fZJPdbNEFAMfZGBnfRsDBIcXywPjBd0JMVATsGZiQrZqyo2A1_tvCth=
+mnRnIFDa66cmQ&amp;_hsmi=3D388564600" style=3D"font-family:Helvetica,Arial,s=
+ans-serif; font-size:10px; color:#3b3b3b; font-weight:normal; text-decorati=
+on:underline; font-style:normal" data-hs-link-id=3D"0" data-hs-link-id-v2=
+=3D"SFRZzEXk" target=3D"_blank">Unsubscribe</a>
+          <a data-unsubscribe=3D"true" href=3D"https://info.deeplearning.ai=
+/hs/preferences-center/en/page?data=3DW2nXS-N30h-MjW1Nzc1j4fNNshW2FM5Br4ms5=
+LLW34q9Xb1BrGyjW3JFRvH2xys8PW3bq4lK2TskTdW2-FvTK25hPtPW2RrH2F2FBNSVW47C0sX2=
+502j-W3ZFLk73bfl_JW25fPdW1BKJ54W41Fgbt24_-PGW3SRVlr49BTtVW30HPRL34j3bXW2Ksm=
+2B1_6RT7W219YyK2FRHcsW2xFTN62vCzWFW1W_qtl2TCdJTW2r1xKl2MCRkPW3J-00H1Ly-pCW3=
+ZG96b3CfxKPW2-lJgx2HyYbnW2KnxzD1L5Rr7W2vzwN24thdtcW2p51d32r8-Q5W3P9cRB3K2W8=
+ZW3F1fPS4pkjdsW2nX2PT2TQ36_W3bg-0b2q_sV9W21hnG73VRK5wW3DL1g332Ctp1W23kFv13L=
+XcHQW2HsW_t3LS6QhW3XvblH2RLvVtW2HB_864kLlWlW2CKCdr2TvqYXW2CthL51-ZMyNW4mdrp=
+v3KbpB2W1Z7VS_3g2sTRW3ZKWf33-0hPxW327w-c2KyJg_W1Xv1gc1Sh8HnW38fXz12KCGcpW41=
+pPt33jnClSW364ZN33dB1JXW2sQfZl4fz9TgW400ty54pCGfsW4mCTC44pDrtDW36tR1p2FWSjv=
+W49BqJ54rDJ8k0&amp;utm_campaign=3DThe%20Batch&amp;utm_source=3Dhs_email&amp=
+;utm_medium=3Demail&amp;utm_content=3D388564600&amp;_hsenc=3Dp2ANqtz-_QTfXf=
+Wkm2xR8mf5V1r05V-4fZJPdbNEFAMfZGBnfRsDBIcXywPjBd0JMVATsGZiQrZqyo2A1_tvCthmn=
+RnIFDa66cmQ&amp;_hsmi=3D388564600" style=3D"font-family:Helvetica,Arial,san=
+s-serif; font-size:10px; color:#3b3b3b; font-weight:normal; text-decoration=
+:underline; font-style:normal" data-hs-link-id=3D"0" data-hs-link-id-v2=3D"=
+qjPJqCop" target=3D"_blank">Manage preferences</a>
+        </p>
+      </td>
+    </tr>
+  </tbody>
+</table></div>
+</div>
+<!--[if gte mso 9]></table><![endif]-->
+<!--[if (mso)|(IE)]></td><![endif]-->
+    <!--[if (mso)|(IE)]></tr></table><![endif]-->
+    </div>
+  =20
+      <!--[if gte mso 9]></td></tr></table><![endif]-->
+  =20
+  </div></div>
+          </td>
+        </tr>
+      </tbody></table>
+    </div>
+ =20
+<img src=3D"https://info.deeplearning.ai/e3t/Cto/LX+113/cJhC404/VVY1kt3x0f1=
+HW23X0RT30X8qQW4Mw1s55FwPmLW2dmMgN3Cy50v122" alt=3D"" width=3D"1" height=3D=
+"1" border=3D"0" style=3D"display:none!important;min-height:1px!important;w=
+idth:1px!important;border-width:0!important;margin-top:0!important;margin-b=
+ottom:0!important;margin-right:0!important;margin-left:0!important;padding-=
+top:0!important;padding-bottom:0!important;padding-right:0!important;paddin=
+g-left:0!important"></body></html>
+------=_Part_56567_64926651.1762373524333--
+

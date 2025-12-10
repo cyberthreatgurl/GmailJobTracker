@@ -1,0 +1,230 @@
+Delivered-To: kaver68@gmail.com
+Received: by 2002:ac4:8d07:0:b0:759:c52c:7988 with SMTP id ff7csp2347114pib;
+        Sun, 9 Nov 2025 18:20:48 -0800 (PST)
+X-Google-Smtp-Source: AGHT+IGq60UPWQKOn/lAtYZVqEZXVLRcdWE3Ll94Bz4vK3C7xDom8TxOGAPKxzWj7W62tHSqRLVw
+X-Received: by 2002:a05:620a:2545:b0:8a3:cd9e:e40e with SMTP id af79cd13be357-8b257f780b3mr836248585a.86.1762741247993;
+        Sun, 09 Nov 2025 18:20:47 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1762741247; cv=none;
+        d=google.com; s=arc-20240605;
+        b=ThlzhrzuemcVyYBFdyycm0p+BBP97d8hjTFjWX3AmZzL2C2QkIRU/d2fngKt/bxzcw
+         zd8tD3v29sTCJ7flVd6MgZ9+z7fjg4dfVAgzUqX2VoGnNYWVFeyfstACgOLA66QQATFu
+         okwBwWJew8XdjwdX8E3H5k8pqVLwOQeK0ZLJ73V252fufw+tKiAolQEw52o++nM3mEUG
+         yW5d1c25lHnKRme5c98MPlxFBuNNQfSeXI5ykU5wJdfhW/W7Foc5v7LBG3dAuE6de/A2
+         zT/nFHJ5V4bbcYRyJ4eqnPUDQ8P+z8ianz3NAZp7cNMz7jniWWSHyZIUeHdAGxhPG0PR
+         Ht/Q==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=importance:mime-version:subject:message-id:to:from:date
+         :dkim-signature:dkim-filter;
+        bh=MmD5vEhE/9HXqjP70PBY4KKmLvYtCtUxki9oyFpkOPY=;
+        fh=j55jDf10FblbMXrgygo3mhv1557yDLr9PLxmMaEUdog=;
+        b=cDfs8KDQnypw1TwTerlKPS7p31LF6QdVCV8+Sk4Iia7J8R/izyVga9pkqI63OX/goX
+         QdiatvvstabgrPmFSGzh8p13QO1+m/rwCZf/yBTiqw/qINgikZEphBuri1KRXRqEWP5J
+         xsNS4BRv5WfusYUPr9djtIfmoLzmcL4P9PcVSLfXoSpdy69EARpMbhj4f3xFL1RRwvNy
+         ZzXmJn4Y69lph/rORzWsLG4e39XJDV73Ztp0xyMZQQ335mHtRtvXO3xMKXEBh2Zevnbh
+         nd2P/hxhr6hvdo6C5A1TsWuMy25bcQolmTkeIkCT9fwCic4bt2zvoxgSVZZOlcDTtNt7
+         1RTw==;
+        dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@invalidemail.com header.s=dktaleo24041610 header.b=u96J5TMN;
+       spf=pass (google.com: domain of do_not_reply@invalidemail.com designates 155.248.8.180 as permitted sender) smtp.mailfrom=do_not_reply@invalidemail.com;
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=invalidemail.com
+Return-Path: <do_not_reply@invalidemail.com>
+Received: from lfigrelay.taleo.net (lfigrelay.taleo.net. [155.248.8.180])
+        by mx.google.com with ESMTPS id af79cd13be357-8b23545472asi385781785a.978.2025.11.09.18.20.47
+        for <kaver68@gmail.com>
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 09 Nov 2025 18:20:47 -0800 (PST)
+Received-SPF: pass (google.com: domain of do_not_reply@invalidemail.com designates 155.248.8.180 as permitted sender) client-ip=155.248.8.180;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@invalidemail.com header.s=dktaleo24041610 header.b=u96J5TMN;
+       spf=pass (google.com: domain of do_not_reply@invalidemail.com designates 155.248.8.180 as permitted sender) smtp.mailfrom=do_not_reply@invalidemail.com;
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=invalidemail.com
+Received: from lfig1a-app-005.a.lfig.oraclevcn.com (host-10-144-56-172.n.lfig.oraclevcn.com [10.144.56.172])
+	by lfigrelay.taleo.net (Postfix) with ESMTPS id 9B65980470
+	for <kaver68@gmail.com>; Sun,  9 Nov 2025 21:20:47 -0500 (EST)
+DKIM-Filter: OpenDKIM Filter v2.11.0 lfigrelay.taleo.net 9B65980470
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=invalidemail.com;
+	s=dktaleo24041610; t=1762741247; x=1763173247;
+	bh=MmD5vEhE/9HXqjP70PBY4KKmLvYtCtUxki9oyFpkOPY=;
+	h=Date:From:To:Subject:From;
+	b=u96J5TMN7O9XoTvvZ/f6+kVvVT0MWFVCrZvyPa9nrCSXMsfxjrADv7H8RXbNpKgm3
+	 0ZRgoKTGewlfobxtngGpWaSiS+15YmP3tZXiuu70R/eU/A6qeFeTsUf7D60/2qaClF
+	 bJIxG+Be6B+8XBCYPrfoRk26BQbfIo1wcZpJEgfCqpmQgdj12Bi5BfmVEDmt2NnbCj
+	 lApVBPez9VjbdLx8jau8DdG98yOreW2v1+98639F/zPRiU6r6rvU3vM136ansOULnK
+	 2GlZ+0yqNvvPGEsTOdgMFyN2NP/JyMOBpsCegAPAUnkAtkLgHdqGjYnjFEYeR1O813
+	 grQNDI8Gdjjpg==
+Received: from lfig1a-app-005.a.lfig.oraclevcn.com (localhost [127.0.0.1])
+	by lfig1a-app-005.a.lfig.oraclevcn.com (Postfix) with ESMTP id 980A580029
+	for <kaver68@gmail.com>; Sun,  9 Nov 2025 21:20:47 -0500 (EST)
+Date: Sun, 9 Nov 2025 21:20:47 -0500 (EST)
+From: Amentum Talent Acquisition <do_not_reply@invalidemail.com>
+To: kaver68@gmail.com, Kelly Shaw <kaver68@gmail.com>
+Message-ID: <191831425.15743.1762741247622@127.0.0.1>
+Subject: Your Application for SR All Source Analyst-CIS0003WZ at Amentum
+MIME-Version: 1.0
+Content-Type: multipart/mixed; 
+	boundary="----=_Part_15742_277432491.1762741247621"
+X-Priority: 3
+X-MSMail-Priority: Normal
+Importance: normal
+X-Spam-Status: No, score=2.0 required=15.0 tests=HTML_MESSAGE,MIME_HTML_ONLY,
+	MISSING_MIMEOLE,T_HTML_ATTACH,T_OBFU_HTML_ATTACH autolearn=no
+	autolearn_force=no version=3.4.6
+X-Spam-Level: *
+X-Spam-Checker-Version: SpamAssassin 3.4.6
+
+------=_Part_15742_277432491.1762741247621
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/><title></title>
+</head>
+<body style='font-family: Arial, Times New Roman, Verdana, Sans-Serif; padding: 5px 5px 5px 5px; margin: 0px; border-style: none; background-color: #ffffff'>
+<div><table width="650" border="0" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td>
+<p style="margin-top: 0px; margin-bottom: 0px;"><span style="font-family:jacobs chronos"><span style="font-size:1em"><span style="color:#000000"><img src= "https://jacobs.taleo.net/custom/images/company_logo_01.gif"> </img></span></span></span></p>
+<p style="margin-top: 0px; margin-bottom: 0px;"><span style="font-family:jacobs chronos"><span style="font-size:1em"><span style="color:#000000">&nbsp;</span></span></span></p>
+</td>
+</tr>
+</tbody>
+</table></div><div><table width="650" border="0" cellpadding="0" cellspacing="0" style="text-align: justify; ">
+<tbody>
+<tr>
+<td>
+<div><span style="font-family:jacobs chronos">Hi Kelly,</span></div>
+<div><span style="font-family:jacobs chronos">&nbsp;</span></div>
+</td>
+</tr>
+</tbody>
+</table></div><div><table width="650" border="0" cellpadding="0" cellspacing="0" style="text-align: justify;">
+<tbody>
+<tr>
+<td>
+<div><span style="font-family:jacobs chronos">Thank you very much for your recent application to our SR All Source Analyst, CIS0003WZ position in United States>Virginia>Charlottesville>20394-CRL0.</span></div>
+<div><span style="font-family:jacobs chronos">&nbsp;</span></div>
+<div><span style="font-family:jacobs chronos">Your application has been received and will be reviewed by our recruiting team. If selected for further consideration, you will be contacted by a member of our recruiting team.</span></div>
+</td>
+</tr>
+</tbody>
+</table></div><div><table width="650" border="0" cellpadding="0" cellspacing="0" style="text-align: justify;">
+<tbody>
+<tr>
+<td>
+<div><span style="font-family:jacobs chronos">&nbsp;</span></div>
+<div><span style="font-family:jacobs chronos">Please keep this email so that you can check on the status of your application.</span></div>
+<div><span style="font-family:jacobs chronos">&nbsp;</span></div>
+<div><span style="font-family:jacobs chronos">Note: you may have applications with Amentum within more that one system. To check on the status of this application, please login as follows:</span></div>
+<div><span style="font-family:jacobs chronos">&nbsp;</span></div>
+<div><span style="font-family:jacobs chronos">Login Here: https://jacobs.taleo.net/careersection/ex/default.ftl?lang=en</span></div>
+<div><span style="font-family:jacobs chronos">Username:&nbsp;kaver68@gmail.com - the email address that this email was sent to is your username</span></div>
+<div><span style="font-family:jacobs chronos">&nbsp;</span></div>
+</td>
+</tr>
+</tbody>
+</table></div><div><table width="650" border="0" cellpadding="0" cellspacing="0" style="text-align: justify;">
+<tbody>
+<tr>
+<td>
+<div><span style="font-family:jacobs chronos">In the meantime, feel free to visit our careers page at https://www.amentumcareers.com/homepage to view and apply to additional opportunities with Amentum..</span></div>
+<div><span style="font-family:jacobs chronos">&nbsp;</span></div>
+</td>
+</tr>
+</tbody>
+</table></div><div><table width="650" border="0" cellpadding="0" cellspacing="0" style="text-align: justify;">
+<tbody>
+<tr>
+<td>
+<div><span style="font-family:jacobs chronos">Thanks again!</span></div>
+<div><span style="font-family:jacobs chronos">&nbsp;</span></div>
+<div><span style="font-family:jacobs chronos">Amentum Recruiting</span></div>
+<div><span style="font-family:jacobs chronos">&nbsp;</span></div>
+</td>
+</tr>
+</tbody>
+</table></div></body>
+</html>
+
+------=_Part_15742_277432491.1762741247621
+Content-Type: application/octet-stream; name=this_message_in_html.html
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename=this_message_in_html.html
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/><title></title>
+</head>
+<body style='font-family: Arial, Times New Roman, Verdana, Sans-Serif; padding: 5px 5px 5px 5px; margin: 0px; border-style: none; background-color: #ffffff'>
+<div><table width="650" border="0" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td>
+<p style="margin-top: 0px; margin-bottom: 0px;"><span style="font-family:jacobs chronos"><span style="font-size:1em"><span style="color:#000000"><img src= "https://jacobs.taleo.net/custom/images/company_logo_01.gif"> </img></span></span></span></p>
+<p style="margin-top: 0px; margin-bottom: 0px;"><span style="font-family:jacobs chronos"><span style="font-size:1em"><span style="color:#000000">&nbsp;</span></span></span></p>
+</td>
+</tr>
+</tbody>
+</table></div><div><table width="650" border="0" cellpadding="0" cellspacing="0" style="text-align: justify; ">
+<tbody>
+<tr>
+<td>
+<div><span style="font-family:jacobs chronos">Hi Kelly,</span></div>
+<div><span style="font-family:jacobs chronos">&nbsp;</span></div>
+</td>
+</tr>
+</tbody>
+</table></div><div><table width="650" border="0" cellpadding="0" cellspacing="0" style="text-align: justify;">
+<tbody>
+<tr>
+<td>
+<div><span style="font-family:jacobs chronos">Thank you very much for your recent application to our SR All Source Analyst, CIS0003WZ position in United States>Virginia>Charlottesville>20394-CRL0.</span></div>
+<div><span style="font-family:jacobs chronos">&nbsp;</span></div>
+<div><span style="font-family:jacobs chronos">Your application has been received and will be reviewed by our recruiting team. If selected for further consideration, you will be contacted by a member of our recruiting team.</span></div>
+</td>
+</tr>
+</tbody>
+</table></div><div><table width="650" border="0" cellpadding="0" cellspacing="0" style="text-align: justify;">
+<tbody>
+<tr>
+<td>
+<div><span style="font-family:jacobs chronos">&nbsp;</span></div>
+<div><span style="font-family:jacobs chronos">Please keep this email so that you can check on the status of your application.</span></div>
+<div><span style="font-family:jacobs chronos">&nbsp;</span></div>
+<div><span style="font-family:jacobs chronos">Note: you may have applications with Amentum within more that one system. To check on the status of this application, please login as follows:</span></div>
+<div><span style="font-family:jacobs chronos">&nbsp;</span></div>
+<div><span style="font-family:jacobs chronos">Login Here: https://jacobs.taleo.net/careersection/ex/default.ftl?lang=en</span></div>
+<div><span style="font-family:jacobs chronos">Username:&nbsp;kaver68@gmail.com - the email address that this email was sent to is your username</span></div>
+<div><span style="font-family:jacobs chronos">&nbsp;</span></div>
+</td>
+</tr>
+</tbody>
+</table></div><div><table width="650" border="0" cellpadding="0" cellspacing="0" style="text-align: justify;">
+<tbody>
+<tr>
+<td>
+<div><span style="font-family:jacobs chronos">In the meantime, feel free to visit our careers page at https://www.amentumcareers.com/homepage to view and apply to additional opportunities with Amentum..</span></div>
+<div><span style="font-family:jacobs chronos">&nbsp;</span></div>
+</td>
+</tr>
+</tbody>
+</table></div><div><table width="650" border="0" cellpadding="0" cellspacing="0" style="text-align: justify;">
+<tbody>
+<tr>
+<td>
+<div><span style="font-family:jacobs chronos">Thanks again!</span></div>
+<div><span style="font-family:jacobs chronos">&nbsp;</span></div>
+<div><span style="font-family:jacobs chronos">Amentum Recruiting</span></div>
+<div><span style="font-family:jacobs chronos">&nbsp;</span></div>
+</td>
+</tr>
+</tbody>
+</table></div></body>
+</html>
+
+------=_Part_15742_277432491.1762741247621--

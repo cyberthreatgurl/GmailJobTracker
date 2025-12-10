@@ -1,0 +1,197 @@
+Delivered-To: kaver68@gmail.com
+Received: by 2002:ac4:99a7:0:b0:757:76d4:7aec with SMTP id bb39csp1560084pib;
+        Mon, 27 Oct 2025 09:20:23 -0700 (PDT)
+X-Received: by 2002:a17:90b:1c8e:b0:32e:7277:9a81 with SMTP id 98e67ed59e1d1-340286c4a66mr79837a91.4.1761582023665;
+        Mon, 27 Oct 2025 09:20:23 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1761582023; cv=none;
+        d=google.com; s=arc-20240605;
+        b=PLY8Fd8W6K7C4Jkq4LUkoHSY4YnYcn9QXRlRZp+CwqIqz4vZwSFXbEk2/zIPhXiD7l
+         Pf6WWAMpq0R/scN0b3HQKzrXr17PWdIEcMd7GFRvNqJ5+lD61vkrvgvfJENyYoU1VdhS
+         B9MTE4g3kZnkZpXwXtQWPopGXfk4/p+ze7jyaQblb54xVwCd07aNg3wP3YfqHT+q2L3l
+         rX/XfOcpjPRCW1x9QCQWwIFkEh1dHpWe74urfAA9FujftDTgmj4lzEch5A8o+5dN7IKd
+         cz4MfNyqAseNmJ3bwiMedA8H04GyjEF7uLpE8BTnZKRc1W24BNSBI0EsySVZA0o22shf
+         IhCA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=to:subject:message-id:date:from:in-reply-to:references:mime-version
+         :dkim-signature;
+        bh=1HZLg4C+9T6MMmolN3W/y8yqwPmRfClHzDlocJpGPyc=;
+        fh=BKVhQbieh+vDU/j+9/hc4CM6UOAYQfzxVO2JaqvBFjM=;
+        b=RukTu0B+kJtE6gWdAIyxwNqrdNg75A5BvkCsTmFQBfwBUEt9tvANmsvlatouzLLyx7
+         XQANpmic7m42T6r6AKL3iNIViIxb2eI7GdGvo3VyqlL8QtRrZ4Txfa878TJVlZyC+Q/u
+         lhcNVa8M+PZvxSWZEf3BOtm3gykllnUoLVF1ORRvJp420dvI0aiPp51zGWv5Otb/addR
+         XzUpSISfOZJlj35Ou/G7Yznatekz1Y22kZwvnMumAtijaG4xsDINsHA/CaR7UpIQm7lu
+         BCHz0y6tqtEWq1SEk/rzcxEcqrFknb8D7imANPWKg/gNl//f/784YQm//amwMTWzxFea
+         qN0Q==;
+        dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@kgcs.k12.va.us header.s=google header.b=pQZggxaZ;
+       spf=pass (google.com: domain of dshaw@kgcs.k12.va.us designates 209.85.220.41 as permitted sender) smtp.mailfrom=dshaw@kgcs.k12.va.us;
+       dara=pass header.i=@gmail.com
+Return-Path: <dshaw@kgcs.k12.va.us>
+Received: from mail-sor-f41.google.com (mail-sor-f41.google.com. [209.85.220.41])
+        by mx.google.com with SMTPS id 41be03b00d2f7-b71fab90004sor1880004a12.0.2025.10.27.09.20.23
+        for <kaver68@gmail.com>
+        (Google Transport Security);
+        Mon, 27 Oct 2025 09:20:23 -0700 (PDT)
+Received-SPF: pass (google.com: domain of dshaw@kgcs.k12.va.us designates 209.85.220.41 as permitted sender) client-ip=209.85.220.41;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@kgcs.k12.va.us header.s=google header.b=pQZggxaZ;
+       spf=pass (google.com: domain of dshaw@kgcs.k12.va.us designates 209.85.220.41 as permitted sender) smtp.mailfrom=dshaw@kgcs.k12.va.us;
+       dara=pass header.i=@gmail.com
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=kgcs.k12.va.us; s=google; t=1761582023; x=1762186823; dara=google.com;
+        h=to:subject:message-id:date:from:in-reply-to:references:mime-version
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=1HZLg4C+9T6MMmolN3W/y8yqwPmRfClHzDlocJpGPyc=;
+        b=pQZggxaZUTvYtS5/IxHrfjvcIStTrRjzXMg563Lk/TRyQ9EWQa52dX3IeysntADgmn
+         vQGYluYNrl/I2k5jJJ8+1qZAQUf6XJwvFR/IHz9YhFdxnpSSj4V/fnnKzYQMkeWhydO4
+         HXdTiS7nj53awUfiMOUzRzI0UIaHpS2aCatIM=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1761582023; x=1762186823;
+        h=to:subject:message-id:date:from:in-reply-to:references:mime-version
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=1HZLg4C+9T6MMmolN3W/y8yqwPmRfClHzDlocJpGPyc=;
+        b=SSHkEDTmVz+f7yv5Mfg7XYaGOkc8Kcl67QVUvi84w7UZsHPqIiRF4cNEujJhPZ0+hZ
+         j6oDsoBmvpTEBrbew7nH9bsBjNDVRvEbLW2ptm3ZUvBJ3VpPD8X3Y8ibwH2QMZ3P3y02
+         C3ClGyyRcCYsJ9pBwgaEKPm+QilIRdp90DRvVvv/W81TQQEZmBvMv3x7SO1vVwbXgHke
+         TGiv2ujH6ARtwL9hTy3zIHgGs+1uCYfs4fP7N5Ho95zebS2ctYnIa4uMOfn90MrjLSjo
+         tlaB3K0bCI8IWPKwZPFk2NKppJJMZ0XKz6L35oUvxcFV/f+9RiSlzmHpqsyB3M61lvaf
+         DzpQ==
+X-Gm-Message-State: AOJu0Yx2O3ambtQeWXGhJ1s39AqaJRqNmobEwpZtWCEb6fTVFySJU3iS
+	sqlBQI7cj8Sy/GndvZHKjnm0R9g3SQ9loGCaiC0nmd8+pgRhM7gXlsqQ5xkAwE3Vxd7JiSt7nqd
+	MgqVC6EGXVbdVMzcuLP5sIbY3b/R8K7ag2S0FtvGH1nStRKVdm3ABr+St8GkX4rP0UxFpEjnPPJ
+	rSOwcjJzvFuWm0mKbcYEF1SMS6l6UM9W9V
+X-Gm-Gg: ASbGncsQAzQaiZRKDvQ/ONS6/dMqtRo2x22WwURw2tRZwlDbExEyNIyGHExZ8wf6mmI
+	SJhIUNPTamhLWBvvg4Rlwke5ZIAAHasjCoI9fBGCP398WMb0Voysv6q4+xYfNw04A0HQxIPBlb3
+	L5rrQ2amkf1lq5iYh4cchcpaLrRG7aqp8kWH8tmTlC7VX6sCb0XnELqYlpKWIhFvjjVGv7768Fr
+	OBVuqUf7NPtADBs12h6Tj9f/ietPdLe0++rmpBoCPQKstwdFqjmx2nMlf9D20gx3WqNGMvoZrDX
+	R4xcAQ5PC4mUK+R/KV+l+hiB+mv6GDKvUud5HC+g
+X-Google-Smtp-Source: AGHT+IEpHlf+eXMY/aNx0g9SkXuyP7AOwPPV6difxlQvxFpZ3RcvcsnllQ4bTQrODIzcm6sAcy5FZ3kESQRjx1/3Pdg=
+X-Received: by 2002:a17:902:d551:b0:294:8c99:f318 with SMTP id
+ d9443c01a7336-294cc69f36amr522455ad.3.1761582022734; Mon, 27 Oct 2025
+ 09:20:22 -0700 (PDT)
+MIME-Version: 1.0
+References: <68ff6fb8.170a0220.36120b.0cddSMTPIN_ADDED_MISSING@mx.google.com>
+In-Reply-To: <68ff6fb8.170a0220.36120b.0cddSMTPIN_ADDED_MISSING@mx.google.com>
+From: "Shaw, Deanne" <dshaw@kgcs.k12.va.us>
+Date: Mon, 27 Oct 2025 12:20:11 -0400
+X-Gm-Features: AWmQ_bmfq-Jj4Hxg0vldWIiiJ_xWh2pMUJKLPCTurKRqHY57YqH_jvQNUKpRnvQ
+Message-ID: <CAAVvQzwrMEhR=rRcFSKm4cOzdV=qEVs6nB_Amrj4iD8C5qJkKQ@mail.gmail.com>
+Subject: Fwd: TLC Health Care Coverage Updated
+To: Kelly Shaw <kaver68@gmail.com>
+Content-Type: multipart/alternative; boundary="000000000000b5580e06422646b0"
+
+--000000000000b5580e06422646b0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+---------- Forwarded message ---------
+From: System - Process Notification <donotreply@neoed.com>
+Date: Mon, Oct 27, 2025 at 9:12=E2=80=AFAM
+Subject: TLC Health Care Coverage Updated
+To: <DShaw@kgcs.k12.va.us>
+
+
+Good day Deanne Shaw,
+
+This email is to confirm that your Health Coverage change request has been
+successfully submitted. This change will apply to the upcoming pay date.
+
+If you have any questions regarding this update, do not hesitate to contact
+me.
+
+Thank you,
+Cheila Candelario
+HR Specialist
+
+
+--=20
+*Mrs. Deanne P. Shaw*
+*Grade Level Leader - Kindergarten Teacher*
+*Potomac Elementary School*
+
+The information conveyed in this communication is intended for the use of
+the original addressee(s), and may be legally privileged, confidential,
+and/or exempt from disclosure under applicable law.  If this communication
+was not addressed or copied to you, then you have received it in error and
+are strictly prohibited from reading, copying, distributing, disseminating,
+or transmitting any of the information it conveys.  If you received this
+communication in error, please destroy all electronic, paper, and other
+copies, and notify the sender of the error immediately.  Accidental
+transmission of this communication is not intended to waive any privilege
+or confidentiality protected under Virginia's Freedom of Information Act.
+
+--=20
+The information conveyed in this communication is intended for the use of=
+=20
+the original addressee(s), and may be legally privileged, confidential,=20
+and/or exempt from disclosure under applicable law. =C2=A0If this communica=
+tion=20
+was not addressed or copied to you, then you have received it in error and=
+=20
+are strictly prohibited from reading, copying, distributing, disseminating,=
+=20
+or transmitting any of the information it conveys. =C2=A0If you received th=
+is=20
+communication in error, please destroy all electronic, paper, and other=20
+copies, and notify the sender of the error immediately. =C2=A0Accidental=20
+transmission of this communication is not intended to waive any privilege=
+=20
+or confidentiality protected under Virginia's Freedom of Information Act.
+
+--000000000000b5580e06422646b0
+Content-Type: text/html; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+<div dir=3D"ltr"><div class=3D"gmail_default" style=3D"font-family:comic sa=
+ns ms,sans-serif;color:#0000ff"><br></div><br><div class=3D"gmail_quote gma=
+il_quote_container"><div dir=3D"ltr" class=3D"gmail_attr">---------- Forwar=
+ded message ---------<br>From: <strong class=3D"gmail_sendername" dir=3D"au=
+to">System - Process Notification</strong> <span dir=3D"auto">&lt;<a href=
+=3D"mailto:donotreply@neoed.com">donotreply@neoed.com</a>&gt;</span><br>Dat=
+e: Mon, Oct 27, 2025 at 9:12=E2=80=AFAM<br>Subject: TLC Health Care Coverag=
+e Updated<br>To:  &lt;<a href=3D"mailto:DShaw@kgcs.k12.va.us">DShaw@kgcs.k1=
+2.va.us</a>&gt;<br></div><br><br>Good day Deanne Shaw,<br id=3D"m_-82179029=
+32008686421isPasted"><br>This email is to confirm that your Health Coverage=
+ change request has been successfully submitted. This change will apply to =
+the upcoming pay date.<br><br>If you have any questions regarding this upda=
+te, do not hesitate to contact me.<br><br>Thank you,<br>Cheila Candelario<b=
+r>HR Specialist
+
+</div><div><br clear=3D"all"></div><div><br></div><span class=3D"gmail_sign=
+ature_prefix">-- </span><br><div dir=3D"ltr" class=3D"gmail_signature" data=
+-smartmail=3D"gmail_signature"><div dir=3D"ltr"><font face=3D"comic sans ms=
+, sans-serif" color=3D"#0000ff"><i>Mrs. Deanne P. Shaw</i></font><div><font=
+ color=3D"#0000ff" face=3D"comic sans ms, sans-serif"><i>Grade Level Leader=
+ - Kindergarten Teacher</i></font></div><div><font color=3D"#0000ff" face=
+=3D"comic sans ms, sans-serif"><i>Potomac Elementary School</i></font></div=
+><div><font color=3D"#0000ff" face=3D"comic sans ms, sans-serif"><i><img sr=
+c=3D"https://ci3.googleusercontent.com/mail-sig/AIorK4w7jg39UkZSZFXOMIK5OiW=
+b0aBLPNwM7mTZyXIA7lO-ib1ZdFcRqmWin8o0mJydlNdx9C6F7Bs" width=3D"96" height=
+=3D"96"><br></i></font><span style=3D"color:rgb(68,68,68);font-size:x-small=
+">The information conveyed in this communication is intended for the use of=
+ the original addressee(s), and may be legally privileged, confidential, an=
+d/or exempt from disclosure under applicable law.=C2=A0 If this communicati=
+on was not addressed or copied to you, then you have received it in error a=
+nd are strictly prohibited from reading, copying, distributing, disseminati=
+ng, or transmitting any of the information it conveys.=C2=A0 If you receive=
+d this communication in error, please destroy all electronic, paper, and ot=
+her copies, and notify the sender of the error immediately.=C2=A0 Accidenta=
+l transmission of this communication is not intended to waive any privilege=
+ or confidentiality protected under Virginia&#39;s Freedom of Information A=
+ct.</span></div></div></div></div>
+
+<br>
+<span style=3D"background-color:rgb(255,255,255)"><font face=3D"Verdana" si=
+ze=3D"1" color=3D"#808080">The information conveyed in this communication i=
+s intended for the use of the original addressee(s), and may be legally pri=
+vileged, confidential, and/or exempt from disclosure under applicable law. =
+=C2=A0If this communication was not addressed or copied to you, then you ha=
+ve received it in error and are strictly prohibited from reading, copying, =
+distributing, disseminating, or transmitting any of the information it conv=
+eys. =C2=A0If you received this communication in error, please destroy all =
+electronic, paper, and other copies, and notify the sender of the error imm=
+ediately. =C2=A0Accidental transmission of this communication is not intend=
+ed to waive any privilege or confidentiality protected under Virginia&#39;s=
+ Freedom of Information Act.</font></span>
+--000000000000b5580e06422646b0--

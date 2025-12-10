@@ -1,0 +1,228 @@
+Delivered-To: kaver68@gmail.com
+Received: by 2002:a05:6a06:83d1:b0:75d:fb61:e24a with SMTP id c17csp3287911pim;
+        Mon, 1 Dec 2025 08:31:03 -0800 (PST)
+X-Google-Smtp-Source: AGHT+IGsKmwXAcOZgr3CAaPZuScBV8NOfDDt1ib2veSqthdnZGTpsEdMdfWjjcMgxiDVOAP8FIUW
+X-Received: by 2002:a05:6808:18a6:b0:450:c321:d50d with SMTP id 5614622812f47-45115acc55amr14729685b6e.40.1764606662853;
+        Mon, 01 Dec 2025 08:31:02 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1764606662; cv=none;
+        d=google.com; s=arc-20240605;
+        b=NKoX/gH9USe/jOOSbJpHz9XkFq9YdFNafQZCo4Bb17ZNbW1FiRQq1ZdWZwT+GmmVD8
+         AXnCXTj3S2h3ou842fNjx+L53fdJJXGZx5dwp3UD7NLFz8uY+mEBqZi6aEmJ/EOSeFlr
+         Fx4Lf8kFu/7eCR2C4GqpZJ2Elwm8ZeRJCgcSd58qM/ps/vNneZbYTGoySDA/QyZsv9Vi
+         l7rq6kcigfQI8SLkxCnUtxIMf3nVKRtA6YqLcxkK9HQKxxESHOBVNf2VG9CqKZIC26mT
+         Ysrh6z6CwwrXzDfpdO+S3/xba4Zdj+E1hOGfeU0gN89hMvQAF82LhbZkwBNglUbN0QlO
+         xRoQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=transport-encoding:message-id:date:reply-to:sender:to:from:subject
+         :mime-version:dkim-signature:dkim-signature;
+        bh=0tFJ5gkUp8z/TDNLoecclyobOqdaiammx0HOs+l7Hxk=;
+        fh=FuwIJV7IWaF+3FTQvecYe8JdqQX6EuuCL/pqe2OKVkI=;
+        b=fEY/e81vSOrLTjMusonDEX8w65ybDxl9reB/KW5WXJLkVDSdgLeBHxxO/fQg8+aHM8
+         rzYrjr+jmnW+dwD7EPN/5mi4vX2xuu5cwSgZ2iHRL0CV/BRBm/16Gq4ylViMZxqOdGt/
+         Mn8pYGmfJHzMZQHN5NF/+9AWP9UJvd0SjJZkie5t+VupBMDD6U7zCu4PB9U/PK9e17xj
+         uJ/mgWQaP4SkPhvtyJd8xXln/wBillXJ1OO5k67K6d9+zVzJz6vVwdRrigoW/1Pc6CLG
+         UOxkud06bZIvdnRToJG2NcCtvXaNdpVpm9vKqNEzIHQRfEkkDGFzjLX2JkzB3jsfxcMh
+         Aelg==;
+        dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@mailer.mailgun.us header.s=k1 header.b=hFACbpPE;
+       dkim=pass header.i=@mailgun.org header.s=mg header.b=LI9aAs5X;
+       spf=pass (google.com: domain of bounce+97feae.3ea141-kaver68=gmail.com@mail.clinchtalent.com designates 159.112.242.217 as permitted sender) smtp.mailfrom="bounce+97feae.3ea141-kaver68=gmail.com@mail.clinchtalent.com";
+       dmarc=pass (p=QUARANTINE sp=NONE dis=NONE) header.from=clinchtalent.com
+Return-Path: <bounce+97feae.3ea141-kaver68=gmail.com@mail.clinchtalent.com>
+Received: from m242-217.mailgun.net (m242-217.mailgun.net. [159.112.242.217])
+        by mx.google.com with UTF8SMTPS id af79cd13be357-8b52a1b4991si473272185a.1140.2025.12.01.08.31.02
+        for <kaver68@gmail.com>
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Mon, 01 Dec 2025 08:31:02 -0800 (PST)
+Received-SPF: pass (google.com: domain of bounce+97feae.3ea141-kaver68=gmail.com@mail.clinchtalent.com designates 159.112.242.217 as permitted sender) client-ip=159.112.242.217;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@mailer.mailgun.us header.s=k1 header.b=hFACbpPE;
+       dkim=pass header.i=@mailgun.org header.s=mg header.b=LI9aAs5X;
+       spf=pass (google.com: domain of bounce+97feae.3ea141-kaver68=gmail.com@mail.clinchtalent.com designates 159.112.242.217 as permitted sender) smtp.mailfrom="bounce+97feae.3ea141-kaver68=gmail.com@mail.clinchtalent.com";
+       dmarc=pass (p=QUARANTINE sp=NONE dis=NONE) header.from=clinchtalent.com
+DKIM-Signature: a=rsa-sha256; v=1; c=relaxed/relaxed; d=mailer.mailgun.us; q=dns/txt; s=k1; t=1764606662; x=1764613862;
+ h=Message-Id: Date: Reply-To: Sender: Sender: To: To: From: From: Subject: Subject: Content-Type: Mime-Version: X-Feedback-Id;
+ bh=0tFJ5gkUp8z/TDNLoecclyobOqdaiammx0HOs+l7Hxk=;
+ b=hFACbpPEw0wyQPEL4sMhXDjJNMtc/6crMdL7atztVmBrc0u8kjbo2NmYLo65uf/shk4RpO6UJJ4bvI5BKWu+tPCViXUFvKgw0gMpnk1f3cbYWktnuCVcdC7VBVz06gQbo3L+KFEqRgybaPcfRFQV/lljk0s2EfxuotuiwY8tpHk=
+DKIM-Signature: a=rsa-sha256; v=1; c=relaxed/relaxed; d=mailgun.org; q=dns/txt; s=mg; t=1764606662; x=1764613862;
+ h=Message-Id: Date: Reply-To: Sender: Sender: To: To: From: From: Subject: Subject: Content-Type: Mime-Version: X-Feedback-Id;
+ bh=0tFJ5gkUp8z/TDNLoecclyobOqdaiammx0HOs+l7Hxk=;
+ b=LI9aAs5XNbia/k5byYnZVKvD2MjyqLRGtkJDttrEoAX6rwun4hJAjrdoO7yn3z0u7ya2IgdTiIYWY2pcga7sjnASrPw+l7Aqy/DqMPwet1FKg1f9XIqhLODagk9SuWB/6pO3cHDzez7BxdVjKWJSQ5b3H1EtkDKkcpQcHxsRtb0=
+X-Mailgun-Sid: WyI3NzY1NyIsImthdmVyNjhAZ21haWwuY29tIiwiM2VhMTQxIl0=
+X-Feedback-Id: postmaster@mail.clinchtalent.com::5733288a4cd30066a482a25c:mailgun
+Received: by 2c9cedee1003a661c01fb732376bc693485daeefa0e096292885b5e552a80bc7 with HTTP
+ id 692dc2c6ac4904d57e531009; Mon, 01 Dec 2025 16:31:02 GMT
+X-Mailgun-Sending-Ip: 159.112.242.217
+Mime-Version: 1.0
+Content-Type: multipart/alternative;
+ boundary="324dfb5ea857824349b5571896642e0faaafc7e7e9e974d3142078bb95c6"
+Subject: AmentumCareers Job Alerts
+From: Team Amentum
+ <user-fd44802f8d738a1a217808638ceb7bb1@amentum.mail.clinchtalent.com>
+To: Adrian Shaw <kaver68@gmail.com>
+Sender: Team Amentum
+ <user-fd44802f8d738a1a217808638ceb7bb1@amentum.mail.clinchtalent.com>
+Reply-To: Team Amentum
+ <user-fd44802f8d738a1a217808638ceb7bb1@amentum.mail.clinchtalent.com>
+Date: Mon, 01 Dec 2025 15:09:20 +0000
+Message-Id: <7557eb3cbcede72946a4e512fa54cd40@mail.clinchtalent.com>
+Transport-Encoding: quoted-printable
+
+--324dfb5ea857824349b5571896642e0faaafc7e7e9e974d3142078bb95c6
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+
+Here are a list of recently posted jobs that best match the
+criteria you have registered for.=C3=82
+
+If you would like to update your job alert settings=C3=82 you can do
+so here=20
+( https://api.clinchtalent.com/v1/public/messages/22a7b6d997982e75769f91421=
+7387902/events/clicked?signature=3Dbc098c41a67ba36c5b003793bd75e38efb263516=
+&url=3Dhttps%3A%2F%2Fwww.amentumcareers.com%2Fme%2Fsettings%3Futm_source%3D=
+job_alert%26utm_medium%3Demail%26utm_campaign%3DJob%2520Alert )
+=2E
+
+Mid-level Biometric and Identity Intelligence
+Analyst
+Charlottesville, Virginia, United States
+
+Amentum is looking for a Biometric and Identity
+Intelligence Analyst to support its federal program in
+Charlottesville, VA. The Program is a premier program in the
+industry that advances the use of tactical and strategic Identity
+Intelligence trad...
+
+Read More =C3=82=C2=BB=20
+( https://api.clinchtalent.com/v1/public/messages/22a7b6d997982e75769f91421=
+7387902/events/clicked?signature=3Dac38911adf17d7869e2cff4bcab7c74c6b12afde=
+&url=3Dhttps%3A%2F%2Fwww.amentumcareers.com%2Fjobs%2Fmid-level-biometric-an=
+d-identity-intelligence-analyst-charlottesville-virginia-united-states%3Fci=
+d%3D3cc268b2f12f458538db6fb0a45381a0%26utm_campaign%3DJob%2BAlert%26utm_con=
+tent%3Djob_alert%26utm_medium%3Demail%26utm_source%3Djob_alert )
+
+
+If you wish to unsubscribe to these messages from Amentum,
+you can manage your subscriptions from your My Settings=20
+( https://api.clinchtalent.com/v1/public/messages/22a7b6d997982e75769f91421=
+7387902/events/clicked?signature=3Dfd3374828b438f00d2ff422aa0a10f96cf0b05cd=
+&url=3Dhttps%3A%2F%2Fwww.amentumcareers.com%2Fme%2Fsettings%3Fcid%3D3cc268b=
+2f12f458538db6fb0a45381a0 )
+ screen or click Unsubscribe Now=20
+( https://api.clinchtalent.com/v1/public/messages/22a7b6d997982e75769f91421=
+7387902/events/unsubscribed?signature=3Dee6e3206c3b0ad3eeadb40c67a974b6d65b=
+e0c8e&url=3Dhttps%3A%2F%2Fwww.amentumcareers.com%2Fme%2Fcandidates%2Funsubs=
+cribe%3Fmid%3D22a7b6d997982e75769f914217387902 )
+ to unsubscribe immediately.
+--324dfb5ea857824349b5571896642e0faaafc7e7e9e974d3142078bb95c6
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/html; charset="utf-8"
+
+
+<div id=3D"background_table">
+<!-- Visually Hidden Preheader Text : BEGIN -->
+  <div style=3D"display: none; font-size: 1px; line-height: 1px; max-height=
+: 0px; max-width: 0px; opacity: 0; overflow: hidden; mso-hide: all; font-fa=
+mily: sans-serif;">
+    <span class=3D"ct-email-preheader">
+ =20
+</span>
+  </div>
+  <!-- Visually Hidden Preheader Text : END -->
+  <div class=3D"container" style=3D'width: 600px; font-family: "Helvetica N=
+eue", Helvetica, Arial, sans-serif; color: #444; font-size: 14px; margin: a=
+uto;'>
+    <div class=3D"content" style=3D"padding: 20px;">
+      <div class=3D"main" style=3D"background-color: #fff; border-radius: 3=
+px; border: 1px solid #e9e9e9;">
+        <span class=3D"ct-email-rows">
+ =20
+    <table role=3D"presentation" border=3D"0" cellspacing=3D"0" width=3D"10=
+0%" class=3D"ct-email-row" id=3D"email_row_0">
+      <tr class=3D"ct-email-row-border">
+          <td width=3D"100%" class=3D"ct-email-block-column" style=3D"paddi=
+ng: 0px;">
+            <span class=3D"ct-email-block row-identified">
+  <div class=3D"ct-icon-links ct-block-controls">
+</div>
+
+  <span class=3D"ct-email-block-content " id=3D"ct_email_block_7d47d30735d4=
+349154702426c0bae626">
+  <p>Here are a list of recently posted jobs that best match the criteria y=
+ou have registered for.=C2=A0</p>
+<p>If you would like to update your job alert settings=C2=A0<a href=3D"http=
+s://api.clinchtalent.com/v1/public/messages/22a7b6d997982e75769f91421738790=
+2/events/clicked?signature=3Dbc098c41a67ba36c5b003793bd75e38efb263516&amp;u=
+rl=3Dhttps%3A%2F%2Fwww.amentumcareers.com%2Fme%2Fsettings%3Futm_source%3Djo=
+b_alert%26utm_medium%3Demail%26utm_campaign%3DJob%2520Alert" target=3D"_bla=
+nk">you can do so here</a>.</p>
+</span>
+
+</span>
+</td>      </tr>
+</table></span>
+        <table>
+         =20
+          <tr>
+            <td valign=3D"top" style=3D"border-top-width: 2px; border-top-c=
+olor: #eeeeee; border-top-style: solid; padding: 20px 0px;">
+              <strong style=3D"line-height: 30px !important;">Mid-level Bio=
+metric and Identity Intelligence Analyst</strong>
+              <p style=3D"font-size: 14px; margin: 0px; padding: 0px;">Char=
+lottesville, Virginia, United States</p>
+              <p style=3D"padding-bottom: 10px; font-size: 14px;">Amentum i=
+s looking for a Biometric and Identity Intelligence Analyst to support its =
+federal program in Charlottesville, VA. The Program is a premier program in=
+ the industry that advances the use of tactical and strategic Identity Inte=
+lligence trad...</p>
+              <a href=3D"https://api.clinchtalent.com/v1/public/messages/22=
+a7b6d997982e75769f914217387902/events/clicked?signature=3Dac38911adf17d7869=
+e2cff4bcab7c74c6b12afde&amp;url=3Dhttps%3A%2F%2Fwww.amentumcareers.com%2Fjo=
+bs%2Fmid-level-biometric-and-identity-intelligence-analyst-charlottesville-=
+virginia-united-states%3Fcid%3D3cc268b2f12f458538db6fb0a45381a0%26utm_campa=
+ign%3DJob%2BAlert%26utm_content%3Djob_alert%26utm_medium%3Demail%26utm_sour=
+ce%3Djob_alert" style=3D"display: block; text-decoration: none; font-weight=
+: bold;">Read More =C2=BB</a>
+            </td>
+          </tr>
+         =20
+        </table>
+      </div>
+      <div class=3D"footer" style=3D"padding: 20px;">
+        <table>
+          <tr>
+            <td style=3D"color: #bbb; font-size: 12px; padding: 0px;">
+              <div class=3D"unsubscribe" style=3D"" align=3D"center">
+                <p style=3D"color: #bbb; font-size: 12px;">
+                  <span><span class=3D"ct-email-unsubscribe">
+    If you wish to unsubscribe to these messages from Amentum, you can mana=
+ge your subscriptions from your <a class=3D"__do-not-track" id=3D"link_me_c=
+andidate_settings_url" href=3D"https://api.clinchtalent.com/v1/public/messa=
+ges/22a7b6d997982e75769f914217387902/events/clicked?signature=3Dfd3374828b4=
+38f00d2ff422aa0a10f96cf0b05cd&amp;url=3Dhttps%3A%2F%2Fwww.amentumcareers.co=
+m%2Fme%2Fsettings%3Fcid%3D3cc268b2f12f458538db6fb0a45381a0" style=3D"color:=
+ #bbb; font-size: 12px;">My Settings</a> screen or click <a class=3D"__do-n=
+ot-track" id=3D"link_candidates_unsubscribe_me_url" href=3D"https://api.cli=
+nchtalent.com/v1/public/messages/22a7b6d997982e75769f914217387902/events/un=
+subscribed?signature=3Dee6e3206c3b0ad3eeadb40c67a974b6d65be0c8e&amp;url=3Dh=
+ttps%3A%2F%2Fwww.amentumcareers.com%2Fme%2Fcandidates%2Funsubscribe%3Fmid%3=
+D22a7b6d997982e75769f914217387902" style=3D"color: #bbb; font-size: 12px;">=
+Unsubscribe Now</a> to unsubscribe immediately.
+</span></span>
+                </p>
+              </div>
+            </td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </div>
+    <span class=3D"ct-email-tracking-pixel">
+      <img src=3D"https://api.clinchtalent.com/v1/public/messages/22a7b6d99=
+7982e75769f914217387902/events/opened" width=3D"1" height=3D"1">
+  </span>
+
+</div>
+
+--324dfb5ea857824349b5571896642e0faaafc7e7e9e974d3142078bb95c6--

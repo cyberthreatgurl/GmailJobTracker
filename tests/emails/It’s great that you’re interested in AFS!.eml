@@ -1,0 +1,122 @@
+Delivered-To: kaver68@gmail.com
+Received: by 2002:a05:7108:c0c:b0:497:b881:99c6 with SMTP id pl12csp4163265gdb;
+        Wed, 1 Oct 2025 16:34:08 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IFcxvMZP7Vv9kXxcpqyDZTdMnJ+E7keSQ11rcCEqumV7bSTs/yJcDnko/WNHt+k5FMdpiyx
+X-Received: by 2002:a05:620a:3727:b0:817:4e4a:698a with SMTP id af79cd13be357-8737116ced1mr849651385a.31.1759361648588;
+        Wed, 01 Oct 2025 16:34:08 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1759361648; cv=none;
+        d=google.com; s=arc-20240605;
+        b=E4+fSgvxyOfz3Ywpc5LrpR75lL4aqrTDYA7l2fBfSHEcLbwKfiJMYOJtu4tlWvf6oj
+         ZP/1SVzdslZlGJ+lmnpr/MBBfg2B26ZJnW+XudjqR4zjrExNmBn05b+nUb3Qe7/OZdKq
+         jJeCGAANvB6SwPxjOfihCs2omyMCFHlpYNm8+QP9QTli+o+ycI64V3lJSj+/8PybsVHO
+         h9B0RlBptoX80Yd+924UXLHjFbNbT88aQ3XbfqAt7PFWrje96q+oJZcvjB5mjRhRHRNP
+         WXoyaw6ybaLUyJMloQjRWIduzM68gN4E7feuFu3pKXE/GoPEDVHJc7Gp5nMi0919h5vq
+         r0EQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=message-id:list-unsubscribe:to:from:subject:mime-version:date
+         :dkim-signature:dkim-signature;
+        bh=AdBb4xJDUnTSWSgtcv7AWjylMPMrd4LkQBQQkPvyz88=;
+        fh=G/VLhrQnXiN6LciSgCgIU9VM0fr+1O2AyqFGWpHCjzw=;
+        b=O65Yy47gWSDt6/jpfIN8WtqoLEK++cNHkhGAtu3MWxV1jjrmYmGh+a8BRWdX8ngOoT
+         /JHiSG+V56XUYnx+5wnPFVUaVfrn/+vYBaNf0/tIexhEE0Njo85q0xQlCC+jjZGz08mE
+         Byib0e/v1x6abFtZP012Y8Kz4qMP5y7RO51uMHVOctZjJOgLrF1UwytmZsaBHZbtZYAZ
+         Is0eE89EfDpMaoHLJs9qt+JeWThzi8lXJfbikmvcnRjaf78wE8gX+1XWaTrJfggzdalx
+         xSCdk/5HfjXqH1tVt+4WqC/ySox6tJ7Aa+lS/BrAFTQV7R1KfkPm7syIc/hpMRsD/inN
+         pYhQ==;
+        dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@gh-mail.afs.com header.s=pic header.b=QHd5lJYZ;
+       dkim=pass header.i=@mailgun.org header.s=mg header.b=EdsAdrPO;
+       spf=pass (google.com: domain of postmaster@gh-mail.afs.com designates 69.72.40.96 as permitted sender) smtp.mailfrom=postmaster@gh-mail.afs.com;
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=afs.com
+Return-Path: <postmaster@gh-mail.afs.com>
+Received: from mail-40-96.greenhouse.io (mail-40-96.greenhouse.io. [69.72.40.96])
+        by mx.google.com with UTF8SMTPS id af79cd13be357-8776fb1910fsi58135685a.219.2025.10.01.16.34.08
+        for <kaver68@gmail.com>
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 01 Oct 2025 16:34:08 -0700 (PDT)
+Received-SPF: pass (google.com: domain of postmaster@gh-mail.afs.com designates 69.72.40.96 as permitted sender) client-ip=69.72.40.96;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@gh-mail.afs.com header.s=pic header.b=QHd5lJYZ;
+       dkim=pass header.i=@mailgun.org header.s=mg header.b=EdsAdrPO;
+       spf=pass (google.com: domain of postmaster@gh-mail.afs.com designates 69.72.40.96 as permitted sender) smtp.mailfrom=postmaster@gh-mail.afs.com;
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=afs.com
+DKIM-Signature: a=rsa-sha256; v=1; c=relaxed/relaxed; d=gh-mail.afs.com; q=dns/txt; s=pic; t=1759361648; x=1759368848;
+ h=Message-Id: List-Unsubscribe: To: To: From: From: Subject: Subject: Content-Type: Mime-Version: Date: X-Feedback-Id: Sender;
+ bh=AdBb4xJDUnTSWSgtcv7AWjylMPMrd4LkQBQQkPvyz88=;
+ b=QHd5lJYZS1fyX1h0qBUKPw2qSu/OR7UDfVtDIIYx70E/gPHbI8sBzZQLBfO+DuIPGJF6eBWMbOuQibDocW9Q07ZLP9r/wPgWzO1O3/Q0+NCIGrA68Pey6vBM9VfS53KKTY90AXWBrkkcg0cQcl+9gOM/BC2fEzoIdmwgmmW6suCjU0I64CvNBk8FbdWshWUk5DkpLoTGmLzs8A9I+ZzrDjdClyC1FphtOaBaPOeQm2vhTIaJuTvjwzR/RB3FKB457ScXhNhhZeoqtBKp613qv1WiQ8JE62SXNoxSEc3ErmsvVaDu8HLSXLVf36N9xMhSwfFHIZwLlGtv24vL5vbGNQ==
+DKIM-Signature: a=rsa-sha256; v=1; c=relaxed/relaxed; d=mailgun.org; q=dns/txt; s=mg; t=1759361648; x=1759368848;
+ h=Message-Id: List-Unsubscribe: To: To: From: From: Subject: Subject: Content-Type: Mime-Version: Date: X-Feedback-Id: Sender;
+ bh=AdBb4xJDUnTSWSgtcv7AWjylMPMrd4LkQBQQkPvyz88=;
+ b=EdsAdrPO5wN/zFtjE8TqZV+p/DqRfGVySmdb1EwTXugSGv/WLtqWQiN3dPVLVD8l7o2/tRO6+uXW3cCI/aDq5fnvd/wrPTb2arbSWQnqMNqHAiM9AOrXUgYgNQoQd2wPq/MTO9PL6LXwF491Dd3ln6asZbS6fKCncVMs1C9MBCM=
+X-Mailgun-Sid: WyIzYjlmNCIsImthdmVyNjhAZ21haWwuY29tIiwiNDE3YTZiIl0=
+X-Feedback-Id: postmaster@gh-mail.afs.com:CandidateAutoReply:635066d0d625ce23b2b74e4d:mailgun
+Received: by 2bb0fe2e0a94d70e71a1d0c88f55ae24bf0b11ac054e9448af51602f4ab969fb with HTTP
+ id 68ddba702f8635cc8496e864; Wed, 01 Oct 2025 23:34:08 GMT
+X-Mailgun-Sending-Ip: 69.72.40.96
+Date: Wed, 01 Oct 2025 23:34:08 +0000
+Mime-Version: 1.0
+Content-Type: multipart/alternative;
+ boundary="8d3a52d7d2d6cfecfed41576f2659bcb33b64084809cd2f582f103ae9629"
+Subject: =?UTF-8?q?It=E2=80=99s_great_that_you=E2=80=99re_interested_in_AFS!?=
+From: no-reply@afs.com
+To: kaver68@gmail.com
+X-Mailgun-Tag: CandidateAutoReply
+X-Mailgun-Native-Send: true
+List-Unsubscribe: 
+X-Mailgun-Variables: {"org_id": "4000471006", "person_id": "39831004006", "silo_id": "6"}
+Message-Id: <20251001233408.c3ab9c918e47fc00@gh-mail.afs.com>
+
+--8d3a52d7d2d6cfecfed41576f2659bcb33b64084809cd2f582f103ae9629
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+
+Hi Adrian,
+
+Thank you for your interest in Accenture Federal Services! Our team will re=
+view your application and determine if your background/experience aligns wi=
+th the role that you applied for or any other roles that we currently have =
+open. If you don=E2=80=99t hear back from us quickly, we=E2=80=99re not ign=
+oring you - while we might not see an immediate fit, we=E2=80=99ll still co=
+nsider you for future roles and reach out to chat more.
+
+Thank you,
+
+The Accenture Federal Services Recruiting Team
+
+Your privacy is important to us here at Accenture Federal Services (AFS) as=
+ we, AFS, will treat your personal information as confidential. AFS, and it=
+s affiliate companies (as identified to you during the application process)=
+, is the company that is recruiting for the job vacancy that you have appli=
+ed for consideration. AFS will process your personal information as describ=
+ed in our Privacy Statement ( https://www.accenture.com/us-en/about/privacy=
+-policy-federal-services ) and in accordance with applicable data protectio=
+n laws. This message is for the designated recipient only. If you have rece=
+ived it in error, please notify the sender immediately.
+--8d3a52d7d2d6cfecfed41576f2659bcb33b64084809cd2f582f103ae9629
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+<p>Hi Adrian,<br><br>Thank you for your interest in Accenture Federal Servi=
+ces! Our team will review your application and determine if your background=
+/experience aligns with the role that you applied for or any other roles th=
+at we currently have open. If you don&rsquo;t hear back from us quickly, we=
+&rsquo;re not ignoring you - while we might not see an immediate fit, we&rs=
+quo;ll still consider you for future roles and reach out to chat more.<br><=
+br>Thank you,<br><br>The Accenture Federal Services Recruiting Team&nbsp;&n=
+bsp;</p>
+<p><em>Your privacy is important to us here at Accenture Federal Services (=
+AFS) as we, AFS, will treat your personal information as confidential. AFS,=
+ and its affiliate companies (as identified to you during the application p=
+rocess), is the company that is recruiting for the job vacancy that you hav=
+e applied for consideration. AFS will process your personal information as =
+described in our <a href=3D"https://www.accenture.com/us-en/about/privacy-p=
+olicy-federal-services" target=3D"_blank" rel=3D"noopener">Privacy Statemen=
+t</a> and in accordance with applicable data protection laws. This message =
+is for the designated recipient only. If you have received it in error, ple=
+ase notify the sender immediately.</em></p><img width=3D"1" height=3D"1" al=
+t=3D"" src=3D"http://email.gh-mail.afs.com/o/eJwczE1uwyAQxfHTlF2tGRgPsJhF1R=
+v0AtXwkQTVCRF2LfX2Fdn-9d6vCKFXTqYK-jU6RqZgbsKJK1PRUNRnTjYBrxhDKomIUINpYsGuC=
+IDWOYKwZKcp5oihkr9kgDeC6-39rm1b9LIvud9NH9fvVoQAgDwCsHnWsffHjC4GhwA065AfPevg=
+MI2XMN972_pcsjnkUx-lFT3qx-_Rv-pz-zOn2P8AAAD__5eWPBM">
+--8d3a52d7d2d6cfecfed41576f2659bcb33b64084809cd2f582f103ae9629--

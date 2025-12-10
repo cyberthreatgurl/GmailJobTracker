@@ -1,0 +1,181 @@
+Delivered-To: kaver68@gmail.com
+Received: by 2002:a05:6a06:3f16:b0:759:c014:44a5 with SMTP id gl22csp171707pib;
+        Wed, 5 Nov 2025 12:10:11 -0800 (PST)
+X-Google-Smtp-Source: AGHT+IEgR9nkpC9qOVRXPLPCdD+ioB/219UszqQXB6chIYvAo5iWDOUIjuzkjmqCNnj/pQIG1NnR
+X-Received: by 2002:a05:622a:1886:b0:4ed:213c:1582 with SMTP id d75a77b69052e-4ed7233333dmr46891201cf.7.1762373411530;
+        Wed, 05 Nov 2025 12:10:11 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1762373411; cv=none;
+        d=google.com; s=arc-20240605;
+        b=fpB0wkAfzl/t4z/g9m4as80lcrAkhhVrDt4GQh/ZIF4jEv/7J+OcrvpXrPjL4PEY+Q
+         HjK6dS4blgud2xJdOybxudge0+CQ6ykJfzZpdpFJdgX4trLsta8lR4y5pohrklpdI07B
+         rjr4KWMShhHMiCo+cTp9cn1VQmfxZDYX9QPJsJFKRgjb9bpVaoXZVxp+o8NditUhsLQ3
+         A3IThNQiFnb++QwIUJsQ5OhlIihFz5//uNsnaYMyn3m9NL97co9An29f7jLQLkHn2AxA
+         SrdJZgrIFENgPc9YsSvcwK1ap1hdvtNWoCk+kHrOPvL/sQabpdHPiwEMuzYRAL8P/vBH
+         GApA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=content-transfer-encoding:message-id:reply-to:to:from:subject
+         :mime-version:date:dkim-signature:dkim-signature;
+        bh=fh0JEg2T5L4sGAybsLBV949Rs3QaAI+uDeJVwf0U2JE=;
+        fh=G/VLhrQnXiN6LciSgCgIU9VM0fr+1O2AyqFGWpHCjzw=;
+        b=XLeZkRIgGkebnD/SYWJz+8R0lzvvkAa1Na4zx7w6DmsnleCBQxpnl/5M4xJaNUy/NN
+         zFqrBaVIvQWdYMlbV/7MSOlymwC7AfyHflsLLiogFO02qX/RwFEr6GEk5oqqsZWUnUej
+         9kn1cvsyFqJTwy5QshB77vuq0cbyUjLXSx1YvA6TNKlOfPzt0TKM6mHh4br2FC22hGZf
+         QbHUZwGzNWDrbb10jDSuSPmpmnzMGOy/H/EHA2fkieLVsapMFyYQHn9BIZCxTYFU1B31
+         EnYOaOLDW4k5KYooc2v5qbLj2stkWa35c2lSVJIZ+jKfpDAcyzFNLA/SrHbg8wc+Q5Qt
+         sZ2w==;
+        dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@mail.paylocity.com header.s=mx header.b=qH3y926m;
+       dkim=pass header.i=@mailgun.org header.s=mg header.b=B04i5Qgb;
+       spf=pass (google.com: domain of bounce+e71c6b.adc0c-kaver68=gmail.com@mail.paylocity.com designates 159.112.242.28 as permitted sender) smtp.mailfrom="bounce+e71c6b.adc0c-kaver68=gmail.com@mail.paylocity.com";
+       dmarc=pass (p=REJECT sp=NONE dis=NONE) header.from=paylocity.com
+Return-Path: <bounce+e71c6b.adc0c-kaver68=gmail.com@mail.paylocity.com>
+Received: from m242-28.mailgun.net (m242-28.mailgun.net. [159.112.242.28])
+        by mx.google.com with UTF8SMTPS id d75a77b69052e-4ed814647eesi1204191cf.1030.2025.11.05.12.10.11
+        for <kaver68@gmail.com>
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 05 Nov 2025 12:10:11 -0800 (PST)
+Received-SPF: pass (google.com: domain of bounce+e71c6b.adc0c-kaver68=gmail.com@mail.paylocity.com designates 159.112.242.28 as permitted sender) client-ip=159.112.242.28;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@mail.paylocity.com header.s=mx header.b=qH3y926m;
+       dkim=pass header.i=@mailgun.org header.s=mg header.b=B04i5Qgb;
+       spf=pass (google.com: domain of bounce+e71c6b.adc0c-kaver68=gmail.com@mail.paylocity.com designates 159.112.242.28 as permitted sender) smtp.mailfrom="bounce+e71c6b.adc0c-kaver68=gmail.com@mail.paylocity.com";
+       dmarc=pass (p=REJECT sp=NONE dis=NONE) header.from=paylocity.com
+DKIM-Signature: a=rsa-sha256; v=1; c=relaxed/relaxed; d=mail.paylocity.com; q=dns/txt; s=mx; t=1762373411; x=1762380611;
+ h=Content-Transfer-Encoding: Content-Type: Message-Id: Reply-To: To: To: From: From: Subject: Subject: Mime-Version: Date: X-Feedback-Id: Sender;
+ bh=fh0JEg2T5L4sGAybsLBV949Rs3QaAI+uDeJVwf0U2JE=;
+ b=qH3y926mt+VcAmxvz6jOIL7PVHxXAh7VA0DiHzHRDyKI8fAmd/YZ288FyX5PCJgJ5uMuow14VuyMYE/z+vTIGEGIu4k8kq/0jtKwOMM5kqYM4pph9CKYIvfFaDg3Q0kkfSpFWLmUVZIvFkv0geIBFmYNOTK0fr/X6lh9bsABqkk=
+DKIM-Signature: a=rsa-sha256; v=1; c=relaxed/relaxed; d=mailgun.org; q=dns/txt; s=mg; t=1762373411; x=1762380611;
+ h=Content-Transfer-Encoding: Content-Type: Message-Id: Reply-To: To: To: From: From: Subject: Subject: Mime-Version: Date: X-Feedback-Id: Sender;
+ bh=fh0JEg2T5L4sGAybsLBV949Rs3QaAI+uDeJVwf0U2JE=;
+ b=B04i5Qgbx2NEQgbPvQwuS1ip4IzX6HJcWSMCgE10aq1R0pvAqPRuu60vT0wBKoDa2EO4GX561bFbvS8w1AG5FmodDR3TRDYqACraWyILPNH8yFI6eMAvX6o+IQIpz6QHYpZHUW13mWcJZKnEK+9Omsg2ys3ZTv+dqMiWdgigp6A=
+X-Mailgun-Sid: WyI5ZmU5ZCIsImthdmVyNjhAZ21haWwuY29tIiwiYWRjMGMiXQ==
+X-Feedback-Id: recruiting+g9qynj4ig10x@mail.paylocity.com::5a1e17264f41fe970462ba9f:mailgun
+Received: by bba97eeb6b6df4ad2696115e4aa4688bf687f1b3581188672ecf02f7ae852877 with HTTP
+ id 690baf212070a5dafead99c3; Wed, 05 Nov 2025 20:10:09 GMT
+X-Mailgun-Sending-Ip: 159.112.242.28
+Date: Wed, 05 Nov 2025 20:10:09 +0000
+Mime-Version: 1.0
+Subject: CSA Thanks You!
+From: Samantha Donnelly <recruiting+g9qynj4ig10x@mail.paylocity.com>
+To: kaver68@gmail.com
+X-Mailgun-Rewrite-Sender-Header: false
+Reply-To: Samantha Donnelly <recruiting+g9qynj4ig10x@mail.paylocity.com>
+X-Mailgun-Variables: {"CorrelationId": "754fd205-5f52-407f-b76f-68088cf5540b", "NotificationId":
+ "70f14312-26d2-4d98-ad03-047d23257f9e", "OperationId":
+ "663f3709-34a2-489b-832e-556c99250b64", "ReferenceId": "candidate:105775780"}
+Message-Id: <20251105201009.c79204d0bf1a15c6@mail.paylocity.com>
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+<html style=3D"background-color: #F4F6F8;"><head><meta http-equiv=3D"Conten=
+t-Type" content=3D"text/html; charset=3Dus-ascii"> <!--[if mso]> <html styl=
+e=3D'background-color: #FAFCFD;'> <![endif]--> <!--[if !mso]><!-->  <!--<![=
+endif]-->   </head> <body><div style=3D"display: none; font-size: 1px; line=
+-height: 1px; max-height: 0px; max-width: 0px; opacity: 0; overflow: hidden=
+;"> Hi Adrian,Thank you for your application to the Senior Systems Security=
+ Engineer position at CSA. Af...</div> <div style=3D"display: none; font-si=
+ze: 1px; line-height: 1px; max-height: 0px; max-width: 0px; opacity: 0; ove=
+rflow: hidden;"> &nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=
+=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=
+=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=
+=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=
+=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=
+=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=
+=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=
+=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=
+=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=
+=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=
+=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=
+=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=
+=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=
+=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=
+=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=
+=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=
+=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=
+=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=
+=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=
+=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=
+=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=
+=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=
+=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=
+=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=
+=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=
+=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=
+=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=
+=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=
+=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=
+=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=
+=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=
+=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=
+=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=
+=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=
+=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=
+=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=
+=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=
+=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=
+=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=
+=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=
+=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=
+=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;=E2=80=8C&nbsp;</div>=
+ <!--[if mso]> <table align=3D'center' class=3D'backgroundmso'> <![endif]--=
+> <!--[if !mso]><!--> <table align=3D"center" style=3D"width: 100%;backgrou=
+nd-color: #FAFCFD"> <!--<![endif]--> <tbody>  <tr> <td align=3D"center"> <d=
+iv style=3D"width: 680px;border-radius: 20px;border: 1px solid rgba(75, 88,=
+ 99, 0.5);box-shadow: 0px 4px 12px 0px rgba(75, 88, 99, 0.5);border-collaps=
+e: collapse;background-color: #ffffff;color: #222222;font-size: 14px;text-a=
+lign: left"> <table cellpadding=3D"0" cellspacing=3D"0" align=3D"center" st=
+yle=3D"table-layout: fixed;border-radius: 20px;width: 680px;font-family: Ar=
+ial, Helvetica, sans-serif;background-color: #ffffff;color: #222222;font-si=
+ze: 14px;text-align: left"> <tbody> <tr> <td width=3D"32">&nbsp;</td> <td><=
+/td> <td width=3D"32">&nbsp;</td> </tr> <tr> <td width=3D"32">&nbsp;</td>  =
+<td style=3D"color: #4B5863; font-family: Arial, Helvetica, sans-serif; fon=
+t-size: 18px;"> CSA Global LLC [318016] </td>  <td width=3D"32">&nbsp;</td>=
+ </tr> <tr height=3D"44px"> <td width=3D"32">&nbsp;</td> <td></td> <td widt=
+h=3D"32">&nbsp;</td> </tr> <tr> <td width=3D"32">&nbsp;</td> <td> <p style=
+=3D"margin-top:0px;margin-bottom:0px;white-space:pre-wrap;">Hi Adrian,</p><=
+p style=3D"margin-top:0px;margin-bottom:0px;white-space:pre-wrap;"><br></p>=
+<p style=3D"margin-top:0px;margin-bottom:0px;white-space:pre-wrap;">Thank y=
+ou for your application to the Senior Systems Security Engineer position at=
+ CSA. After reviewing your qualifications, we have decided not to move forw=
+ard with the interview process at this time. We hope you don't mind if we r=
+each out to you in the future as our team continues to grow.</p><p style=3D=
+"margin-top:0px;margin-bottom:0px;white-space:pre-wrap;"><br></p><p style=
+=3D"margin-top:0px;margin-bottom:0px;white-space:pre-wrap;">Please note: If=
+ you have applied to any of our other positions, you are still under consid=
+eration for those roles.</p><p style=3D"margin-top:0px;margin-bottom:0px;wh=
+ite-space:pre-wrap;"><br></p><p style=3D"margin-top:0px;margin-bottom:0px;w=
+hite-space:pre-wrap;">We appreciate your interest in CSA Global LLC and wis=
+h you success in your job search.</p><p style=3D"margin-top:0px;margin-bott=
+om:0px;white-space:pre-wrap;"><br></p><p style=3D"margin-top:0px;margin-bot=
+tom:0px;white-space:pre-wrap;">Sincerely,&nbsp;</p><p style=3D"margin-top:0=
+px;margin-bottom:0px;white-space:pre-wrap;"><br></p><p style=3D"margin-top:=
+0px;margin-bottom:0px;white-space:pre-wrap;">CSA Talent Acquisition Team</p=
+><table cellspacing=3D"0" cellpadding=3D"0"> <tbody>  </tbody> </table> &nb=
+sp;<br>&nbsp;<br> </td> <td width=3D"32">&nbsp;</td> </tr> </tbody> </table=
+> </div> </td> </tr> </tbody> </table> <!--[if mso]> <div style=3D'height:2=
+5px;width:100%;background-color:#FAFCFD;'></div> <table style=3D'width:100%=
+;background-color:#FAFCFD;'> <![endif]--> <!--[if !mso]><!--> <div style=3D=
+"height:25px;width:100%;background-color:#F4F6F8;"></div> <table style=3D"w=
+idth:100%;background-color:#F4F6F8;"> <!--<![endif]--> <tbody> <tr> <td> <t=
+able align=3D"center" style=3D"width:440px;font-family:Arial, Helvetica, sa=
+ns-serif;border-collapse:collapse;"> <tbody> <!--[if mso]> <tr style=3D'bac=
+kground-color:#FAFCFD;'> <![endif]--> <!--[if !mso]><!--> <tr style=3D"back=
+ground-color:#F4F6F8;"> <!--<![endif]--> <td> <table style=3D"table-layout:=
+fixed;" align=3D"center" cellspacing=3D"0" cellpadding=3D"0"> <tbody> <tr h=
+eight=3D"39px"> <td>&nbsp;</td> </tr> <tr> <td style=3D"text-align:center">=
+ <span style=3D"color:#626F79;font-size:12px;font-family:Arial,Helvetica,sa=
+ns-serif;">This email is only for the person(s) addressed.</span> </td> </t=
+r> <tr> <td style=3D"text-align:center"> <span style=3D"text-align:center">=
+ <a style=3D"color:#626F79;font-size:12px;font-family:Arial,Helvetica,sans-=
+serif;" href=3D"https://prod.url.paylocity.com?q=3D07257be380b840218b83bbb8=
+06b1cbe6">Privacy Policy</a>   | <a style=3D"color:#626F79;font-size:12px;l=
+ine-height:18px;font-family:Arial,Helvetica,sans-serif;" href=3D"https://pr=
+od.url.paylocity.com?q=3D2760a5e617284bdcb3e834b0e859b958">Unsubscribe</a> =
+ </span> </td> </tr>   </tbody> </table> </td> </tr> </tbody> </table> </td=
+> </tr> </tbody> </table> <img width=3D"1" height=3D"1" alt=3D"" src=3D"htt=
+p://email.mail.paylocity.com/o/eJw8y8FqIzEMgOGniW8OkixZ9sGHZU-57MK-gceytkOT=
+TBiGQN6-tNBe_5_v97bv89qPdbtfrKmwG4FEcaHIoB4XzR5zgVKGizAs4c92rL6OHwOOnJAiZaP=
+IVkvsBikCq1EiUa8z_H3M_RvknDwp1Ji4U-RSl1gSzSiSR60ksGQO_6bPfd7HvFgb_W6r9WOe0i=
+8EURUtEKx1GzDCbKiZkiZGDG_NVBXmwsV79QyYhg-spbAh1yVZWBsBCSIIAQLU89BKwAaLY0cZ-=
+cRw6-v1_Oiv6zbW43Ue2y3s7b0_557LieH_1_-sz0YfAQAA__-v0Fvf"></body></html>

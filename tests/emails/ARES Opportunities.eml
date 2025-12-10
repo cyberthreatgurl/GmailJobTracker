@@ -1,0 +1,270 @@
+Delivered-To: kaver68@gmail.com
+Received: by 2002:a05:6a06:83d1:b0:75d:fb61:e24a with SMTP id c17csp4853613pim;
+        Wed, 3 Dec 2025 08:43:35 -0800 (PST)
+X-Google-Smtp-Source: AGHT+IEK63ezUpbM7+ecE5ybhyx8Mli7VamMHvGA7zjUFY/iueHPga+R0b3hc11iWCd8tzfUVqEy
+X-Received: by 2002:a05:690c:4588:b0:788:1cde:cabb with SMTP id 00721157ae682-78c0bef796cmr22186137b3.20.1764780215230;
+        Wed, 03 Dec 2025 08:43:35 -0800 (PST)
+ARC-Seal: i=2; a=rsa-sha256; t=1764780215; cv=pass;
+        d=google.com; s=arc-20240605;
+        b=CLhBipv8gZebuEpfETo3uag2pYl2NnIqdE0rF9c1YTvz9F5REhc+/moqB7aFj8X8cu
+         t5Lb4/qvbRLeENPUDuDk/IwuTQ+uUu4064isJaI0H4ltSEQTyaNsejwJ32SJnAjpH2ZS
+         090miTZIVdv+MibUqjNOuxPLvNh8Su+dVEGV6/stkd64c8ZWdQL6qcSlX2xiPNwbjTzB
+         6Mtam+2MLo4XHN41U5Q+mLtwUYLE342XmkLxdMxwU1TlmWFZfM3BjHjf8LveKPw8bU3B
+         bRNnXUD8o6m2pBBI+ImbSX803YSx2oi1DJHaqpBB62PiSei7IzpekDtsmtuZ84fWT24N
+         JuSQ==
+ARC-Message-Signature: i=2; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=mime-version:content-language:accept-language:message-id:date
+         :thread-index:thread-topic:subject:to:from:dkim-signature;
+        bh=w6nSnLU/chdZlGT28/+ZVw0J4MrLXTtObU7NdxdAZTw=;
+        fh=YLdA8bTgBnuFlK4NUOYKkrkFBJuqdC8ysp3yRpmmlVU=;
+        b=jfKm90Uw0nMXDWcD/cd69DHy7t1As4P6uZlRuFn5cWRS9BDf0T/HK6CJ2w+Pprib1U
+         8cO7EuRzZV3odnBvRtMjAAFmiNIaS8gk/3tDPTOh33Uo3YE+Y/NNUfzHXkq8xcVaxzOD
+         GoAGgRHtt8pXSsoBgUx/OWhmUgH6EIUYibHckZd57t+s4lO1mUV8NSrRZzlRq8YGeDtv
+         Uwan1RJB9fLJ0FGcqtfPuh/j6Lwwl1hgf5xXakAZwmztgFVI4karq1azvTkhNYHOmB5P
+         FZ6vyhHBOdFFrzndP9tUZkL+tCRl5zCpUwbaTwSrO3j1/G3omUZMGyymv8xZw+RCS+hZ
+         UXEw==;
+        dara=google.com
+ARC-Authentication-Results: i=2; mx.google.com;
+       dkim=pass header.i=@arescorporation.com header.s=selector1 header.b=HGaFrQzP;
+       arc=pass (i=1 spf=pass spfdomain=arescorporation.com dkim=pass dkdomain=arescorporation.com dmarc=pass fromdomain=arescorporation.com);
+       spf=pass (google.com: domain of rmiller@arescorporation.com designates 2001:489a:2202:d::60c as permitted sender) smtp.mailfrom=rmiller@arescorporation.com;
+       dmarc=pass (p=QUARANTINE sp=QUARANTINE dis=NONE) header.from=arescorporation.com
+Return-Path: <rmiller@arescorporation.com>
+Received: from USG02-CY1-obe.outbound.protection.office365.us (mail-cy1usg02on060c.outbound.protection.office365.us. [2001:489a:2202:d::60c])
+        by mx.google.com with ESMTPS id 00721157ae682-78ad107ed72si95934537b3.612.2025.12.03.08.43.34
+        for <kaver68@gmail.com>
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 03 Dec 2025 08:43:35 -0800 (PST)
+Received-SPF: pass (google.com: domain of rmiller@arescorporation.com designates 2001:489a:2202:d::60c as permitted sender) client-ip=2001:489a:2202:d::60c;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@arescorporation.com header.s=selector1 header.b=HGaFrQzP;
+       arc=pass (i=1 spf=pass spfdomain=arescorporation.com dkim=pass dkdomain=arescorporation.com dmarc=pass fromdomain=arescorporation.com);
+       spf=pass (google.com: domain of rmiller@arescorporation.com designates 2001:489a:2202:d::60c as permitted sender) smtp.mailfrom=rmiller@arescorporation.com;
+       dmarc=pass (p=QUARANTINE sp=QUARANTINE dis=NONE) header.from=arescorporation.com
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector5401; d=microsoft.com; cv=none;
+ b=lnBzt5kf6H9fV7r9VBJQDNB1Hsp8lxUo/P1tylLnT6MeeDWkhJAC6S+g/IDNLz4wNP9KGaHd1m8iqYOBFjJTaW8y4guD59rLOQpo80BxC0BnxXuq4hIWwtjZSiBRRQWiyAYT1MYbSo/WE9dN9t0gP4B7iDiGcJqN0em3rxQsVYDaNypdXITsRWOIHmJE0MEgRm6ySsy6BvARQAy6+Q0rwdtXlXbMrKKtYddBuHq7mkGjWaT4Do6wAULSaUygX0ewV9AnF8aNZ6wcammLpIftyfOQMwHRBg+sr29jgzWxK1kfMcRO/uNc0YZsgJegdwNlAhTlPIGv5e5jdREU51tsoA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector5401;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=w6nSnLU/chdZlGT28/+ZVw0J4MrLXTtObU7NdxdAZTw=;
+ b=pXEeBhC4k93j3sorbEPtaUnGR5VBM24TfHxrlSkc6e7XvgNk+AJNx4gGSzQtL8aihXz95uJCal2wmxKPwGC/HCcO1JoXNqXsCqNdc0GiOiWVygfCKVsvJohgZ033dd9V19SqcUI6wcTHk1bRkvydJn8TA229J01GqNNX72Kz/TpuvJi8sXWCwz4iorTW7oUNboVEfbV5VD8NwkZZNJetkFjDNtHXl6NygX9mil17cDff+iskJ3aWiLh2R3EtvdyvC2a+dC94ovPYJhCKJUMY5zvQFJ/P3fqzvpoIGusDziGAUNBWTkDmnUFW31DK4OejXLNLN9LA4GF21lhesLZGWA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=arescorporation.com; dmarc=pass action=none
+ header.from=arescorporation.com; dkim=pass header.d=arescorporation.com;
+ arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arescorporation.com;
+ s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=w6nSnLU/chdZlGT28/+ZVw0J4MrLXTtObU7NdxdAZTw=;
+ b=HGaFrQzP9Ky+fkEVYlW31DqOgJmAkrddnQlTwX+YtDr26D+KJ8TIwSb/MV2TtoKy4aYThDf2BpixQiKcpGCZvh7l+1JVYXrVXmD+xwZPeKEwDLeND+ohwATvSfjgbkmDrmNUp3jJ2qwlEMtF1Impdv2u9Aj5BVtWiPozS2SNuEvTTDRnVFgSQpjqA95Rbvs3U30LHayJn95pC8jgPKVwm9xwm5OnZ4i4Md95SUbKEOPmIkMYE7Z+WmkCrP6SUZwGeSX5e485iemphH2C8ueGacDIAdXSVZZV0wYXZGkrwko9+9KDBfiHSZ/dMLtBWXDckyR+F3E9Q4VEzoFdhyQdDw==
+Received: from BN0P110MB1675.NAMP110.PROD.OUTLOOK.COM (2001:489a:200:187::5)
+ by PH3P110MB2200.NAMP110.PROD.OUTLOOK.COM (2001:489a:200:1b1::10) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9388.10; Wed, 3 Dec
+ 2025 16:43:31 +0000
+Received: from BN0P110MB1675.NAMP110.PROD.OUTLOOK.COM
+ ([fe80::972a:e6a9:4538:fb44]) by BN0P110MB1675.NAMP110.PROD.OUTLOOK.COM
+ ([fe80::972a:e6a9:4538:fb44%4]) with mapi id 15.20.9388.009; Wed, 3 Dec 2025
+ 16:43:31 +0000
+From: Ryan Miller <rmiller@arescorporation.com>
+To: "kaver68@gmail.com" <kaver68@gmail.com>
+Subject: ARES Opportunities
+Thread-Topic: ARES Opportunities
+Thread-Index: Adxkc/OGxDvTDvBsQ8WmTW88C7YeuQ==
+Date: Wed, 3 Dec 2025 16:43:31 +0000
+Message-ID:
+ <BN0P110MB1675F8224C6694D1A65C62FABFD9A@BN0P110MB1675.NAMP110.PROD.OUTLOOK.COM>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach:
+X-MS-TNEF-Correlator:
+authentication-results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=arescorporation.com;
+x-ms-publictraffictype: Email
+x-ms-traffictypediagnostic: BN0P110MB1675:EE_|PH3P110MB2200:EE_
+x-ms-office365-filtering-correlation-id: d3e2bdfb-a542-4d54-1387-08de328b17bc
+x-ms-exchange-senderadcheck: 1
+x-microsoft-antispam:
+ BCL:0;ARA:13230040|41320700013|1800799024|366016|38070700021|13003099007|8096899003;
+x-microsoft-antispam-message-info:
+ =?us-ascii?Q?oNcSSzmPm2dJmME16MDfxD0kvzMzFYejnNn7cypYvADrz3MSgxKG5+1EIu7f?=
+ =?us-ascii?Q?sHU/RT55Cv76C2Bf1bGuayg5sAOUuxhTplH6pgIUVgMrMDwE9qwWhDlgwQZc?=
+ =?us-ascii?Q?IRle9vwWEVNg367e3OFjYAkyMxTDT5mvoJD8cQ1WgOG2quDIFn5GtQfcgyqo?=
+ =?us-ascii?Q?KB7ey6KDm+D9XYEjqbaj2vOrllo/nKn6qgQ5Rd/p2fEjkGJb2EP+QO1dAZMh?=
+ =?us-ascii?Q?sAhkVvSTdVPsptyMq0b8RQ0QGwpoRAFQtPW1LdOd1IIuNhZZfo+RxlNPMgqw?=
+ =?us-ascii?Q?x4wBJzKvvwgtI1hhw6MhB6yaDPCSgm3/OfDJoAUQEe8luy+pbO33pfrW0pUG?=
+ =?us-ascii?Q?F79PwFNxSpXK/WrCdRZcUTAjC5KvcXs+cXv2xIUDBoxbGVHh+/TBUXKAyvDH?=
+ =?us-ascii?Q?Y/+lTH29MkSvwlLnpaLiwdLQ4A2+KZUE+CeIkaK0V1t13tz6iz0AhSREqVYW?=
+ =?us-ascii?Q?21fQw8A/eskrele0SnhwnlSVVeeC3E71OQKixlrAKLHDQb5oZYrgY7dZFhoD?=
+ =?us-ascii?Q?rJmPXiiH3HGynSmK1qmsu8a9oaB6uvN1mCvA5D+uoVzoLzstO2ZcPW5TijUI?=
+ =?us-ascii?Q?DyNv4HQMuDpHmTPj5lcsitCVGJy+4ffZltn3HYxDz9hB9hlQwDQrmLeBhLnv?=
+ =?us-ascii?Q?/PvLpNLmRPNgH9vQcZNIRgd/Ji0AK0unUlmBMHh1b6guYgsCYxr0uZqIHyR7?=
+ =?us-ascii?Q?VnoaEYQpwuparKIydjtJswMEFo70cGN5DSSs3ZYDEt4Ab0CX+PKTg+6rCha3?=
+ =?us-ascii?Q?7ugXbG4/g4LUBaIv0993goH6kNmmFv2x4ExHDpzW12s2WRnbaMk8QZ9UHGjZ?=
+ =?us-ascii?Q?LJjoNCSgAyqccZX3Ll4tMwHAU7Tud9+Dj7WKdlgXpYc2sib4neBcGQl+J/Sh?=
+ =?us-ascii?Q?YVnhUFcgRd21bwtmFhHTBvnSnr/tGoH+zCuZUuOIxwrPDlBHfumHWd+Fh1/S?=
+ =?us-ascii?Q?EuCJ3QBjDdjUPv1XisVrmaTdnY4CPtJuv0d7oUtzMwrGFX14iyOqT6gykjXd?=
+ =?us-ascii?Q?QV+aqpjiA7v+DtDft4sqIPkcbfBYVXKrZ+U4n0ifjtvUUhKyt05+4gwlBl8M?=
+ =?us-ascii?Q?qUajjKyIDMludrSWy56PVptNlgvZa7Y5a23j8fpJOrxFEbZt/wfqChXyvvmw?=
+ =?us-ascii?Q?sIGd/zMWzMbrRIYBEwiPmDfawrTAvEF4X1XFiCyKvywX54am/NAbRF+PMMAx?=
+ =?us-ascii?Q?M1TOpTelwb/RcdW3LDVQUdt39OQ5RKaE8+GnZl08ZA24S3DiQYQ1qDCjKBHc?=
+ =?us-ascii?Q?Hn7xTjn84eR7Mkvz1M6lKm8NoSgeB60zYevOHN4RqyTEQKa61vEl1i0vV9qK?=
+ =?us-ascii?Q?f5wEv9TDrZA5QIu+Jdc6WINl88GviYjUIJ5ipwhT4inhTrI+OP503cNleeOD?=
+ =?us-ascii?Q?BTp/m2oRrSyUM/khWtW/kYLDoMsWdB7XAExEA7EvQZGsIdoAPoAUioqbKA3c?=
+ =?us-ascii?Q?t/NVp69sBfdHQwpJgMZ1vn1xumAe4oKix0C3zalwNwKaHL+H0XVCDvpp5vQa?=
+ =?us-ascii?Q?/2E3XF9i8O+uDnCjBvyObTo1gUzfyIsSX0Y0?=
+x-forefront-antispam-report:
+ CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BN0P110MB1675.NAMP110.PROD.OUTLOOK.COM;PTR:;CAT:NONE;SFS:(13230040)(41320700013)(1800799024)(366016)(38070700021)(13003099007)(8096899003);DIR:OUT;SFP:1101;
+x-ms-exchange-antispam-messagedata-chunkcount: 1
+x-ms-exchange-antispam-messagedata-0:
+ =?us-ascii?Q?EY4Fn5I5/dNS9UDvdwr5XRXj+PPFoUl3QZdUjbGrSh9Tj9uY4P1exPXCLg0h?=
+ =?us-ascii?Q?cx2iX2caE1qPZrRvSrwjshlcuWB/UqKkdZcFC8u8QLtV8RDclr6oAiXJL7co?=
+ =?us-ascii?Q?hKR5iwy8jDvKcr9zZxan7ASc1LKSZe4wB9CX08OGsjW7lptre2+n3QnqOiVR?=
+ =?us-ascii?Q?95dpyYB/Jb71NkEcJkvG1Sv3/8HKG2mI7vqI1q3+JJW8Jf5V8sae8MDLccXw?=
+ =?us-ascii?Q?8ii1ghxh3l4EkvcpYqvh26ofsXqtszaoWq6kRUDOU6nCsAYFgxU5fOGiEcqC?=
+ =?us-ascii?Q?0G+YHBe1KTlRhpc5UlnZusavpSr0ijKxxtO+LusyBrBgpc5U0jA8+XHGvAgD?=
+ =?us-ascii?Q?yumP+WD3ipg9NuMrX/3zvDhRs/rldqNEgZZ2p+rT0iKJTEULD+UpkUpdlS4G?=
+ =?us-ascii?Q?frvnhFy4S3BCYmyZwZql3RcJ0TKbr332xmDO85VPz7uvNHf8Yz0I3PXpBxJo?=
+ =?us-ascii?Q?pFHp+Yl4tGRgzJ1GMOiAaFsZAfuao4U4O+7VLzrvc0hSKRZ6UgaTdnsftx8y?=
+ =?us-ascii?Q?aLvX6Nm2A+z1XHVohoHD/OY5ZZhzPJoYdZmhFndxKoY8pFGn7sSH+xAi5IB8?=
+ =?us-ascii?Q?2R+MUmmcZJIVKSBVyAHE7qvTooW3zrYu12UzLurte9WYg2bB8s7YnhcgJ6Cw?=
+ =?us-ascii?Q?hDqk2gIiK+DvTsLfcL1qBKoWYm15dbpPXyRP/9liQrxPWEVJF6xuagXc5B92?=
+ =?us-ascii?Q?wqlQu8QZjrljjbKYhOT6g4XjWPde30jJTndvQHEb1n9ou9TfRJm+k0b63hv3?=
+ =?us-ascii?Q?X8BIoMdQozKLojHyBxPGZNyjTDdvBfCrt9xJAFKdvYnkAhTMjcSLJmng5oaT?=
+ =?us-ascii?Q?gpgzCZ/T42toyTmfQaM6m6/8XK3oTqU0kXhztXE6psOaczQpsy2eWOUOid0V?=
+ =?us-ascii?Q?j341FK8+N9s7FH+O6MgPbfCXOCExFgPcnzIDIC7YNnyJV4DNHC9P7W7F5Tns?=
+ =?us-ascii?Q?3eyxGhZIjOUuUJtOe+DfgEC2xl4jst0PJ+x0Bid87Xh13HZLSAgDy2tHOFPU?=
+ =?us-ascii?Q?PknPl8cUNOrBmIUlvEeN5SRjNrTYTHr4Y/QWtymXiPtYDabGmmLv5mnO1ZQC?=
+ =?us-ascii?Q?VYQTBFBnuPsESqDGoLCRAxQSXsn0MTMhWuOIWwzz6P3eMOF+l1YAS8DtNxcN?=
+ =?us-ascii?Q?DBMnJatffoDLN3bppj2jI0Sog5J3FcEgKCfNpsoGqsCs/VpobnCD0kajSG4l?=
+ =?us-ascii?Q?t+p+GSO7ClUcaxSdDhbNTMpDvYSlsTBefeU1p9u7Etnv4sekR3/Tb6Ss3G2F?=
+ =?us-ascii?Q?5x51EOJ8oh5JJ3Mxi+Gw8gIpW0oLW1CV3eZKK11XT/5c61yodwr1uBjfSng6?=
+ =?us-ascii?Q?49g4ZhFau+a3BVM9LTe01PffMg8ffQayh7Zs7BoOqtX9hQaDgERK/bi4Q2eZ?=
+ =?us-ascii?Q?LFb5qn1km8g3K2BLBw4T62WKmFNQCekTl6WWQVBNmEmWRqakWNrmXUt6bX0J?=
+ =?us-ascii?Q?7lNIBm/nGECaWVcBY9Ag9F6b0+JVUCmPEkKPOkXdl2p+WNhDfQem+xPHq7hf?=
+ =?us-ascii?Q?bQENRcJEjvxLnJ/leFj7VvaT8ImLzGzJD/uX?=
+Content-Type: multipart/alternative;
+	boundary="_000_BN0P110MB1675F8224C6694D1A65C62FABFD9ABN0P110MB1675NAMP_"
+MIME-Version: 1.0
+X-OriginatorOrg: arescorporation.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-AuthSource: BN0P110MB1675.NAMP110.PROD.OUTLOOK.COM
+X-MS-Exchange-CrossTenant-Network-Message-Id: d3e2bdfb-a542-4d54-1387-08de328b17bc
+X-MS-Exchange-CrossTenant-originalarrivaltime: 03 Dec 2025 16:43:31.2670
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: 8fb73d9b-8318-4520-b9be-149aab393ed5
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH3P110MB2200
+
+--_000_BN0P110MB1675F8224C6694D1A65C62FABFD9ABN0P110MB1675NAMP_
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+
+Kelly,
+
+Thank you for applying to our PM position. I have reviewed your resume and =
+would like to discuss the position with you further.
+
+Two things to note: 1) This role would be supporting NSWCDD at Dahlgren.  I=
+t does not require on-site work every day, but the PM would need to plan to=
+ be there 2-3 days per week.  2) This is a contingent role pending contract=
+ award. The start date would be July 1, 2026.
+
+If you are interested, please let me know when you would be available for a=
+ call.
+
+Thanks,
+Ryan Miller | Vice President, IT Programs
+ARES Corporation | 8444 Westpark Drive, Suite 800, McLean, VA
+501-620-6111 | rmiller@arescorporation.com<mailto:rmiller@arescorporation.c=
+om>
+Creating Opportunities Through Risk Insight
+www.arescorporation.com<http://www.arescorporation.com/>
+
+
+--_000_BN0P110MB1675F8224C6694D1A65C62FABFD9ABN0P110MB1675NAMP_
+Content-Type: text/html; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+
+<html xmlns:o=3D"urn:schemas-microsoft-com:office:office" xmlns:w=3D"urn:sc=
+hemas-microsoft-com:office:word" xmlns:m=3D"http://schemas.microsoft.com/of=
+fice/2004/12/omml" xmlns=3D"http://www.w3.org/TR/REC-html40">
+<head>
+<meta http-equiv=3D"Content-Type" content=3D"text/html; charset=3Dus-ascii"=
+>
+<meta name=3D"Generator" content=3D"Microsoft Word 15 (filtered medium)">
+<style><!--
+/* Font Definitions */
+@font-face
+	{font-family:"Cambria Math";
+	panose-1:2 4 5 3 5 4 6 3 2 4;}
+@font-face
+	{font-family:Calibri;
+	panose-1:2 15 5 2 2 2 4 3 2 4;}
+@font-face
+	{font-family:Aptos;}
+/* Style Definitions */
+p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{margin:0in;
+	font-size:12.0pt;
+	font-family:"Aptos",sans-serif;
+	mso-ligatures:standardcontextual;}
+span.EmailStyle17
+	{mso-style-type:personal-compose;
+	font-family:"Aptos",sans-serif;
+	color:windowtext;}
+.MsoChpDefault
+	{mso-style-type:export-only;}
+@page WordSection1
+	{size:8.5in 11.0in;
+	margin:1.0in 1.0in 1.0in 1.0in;}
+div.WordSection1
+	{page:WordSection1;}
+--></style>
+</head>
+<body lang=3D"EN-US" link=3D"#467886" vlink=3D"#96607D" style=3D"word-wrap:=
+break-word">
+<div class=3D"WordSection1">
+<p class=3D"MsoNormal">Kelly,<o:p></o:p></p>
+<p class=3D"MsoNormal"><o:p>&nbsp;</o:p></p>
+<p class=3D"MsoNormal">Thank you for applying to our PM position. I have re=
+viewed your resume and would like to discuss the position with you further.=
+&nbsp;
+<o:p></o:p></p>
+<p class=3D"MsoNormal"><o:p>&nbsp;</o:p></p>
+<p class=3D"MsoNormal">Two things to note: 1) This role would be supporting=
+ NSWCDD at Dahlgren.&nbsp; It does not require on-site work every day, but =
+the PM would need to plan to be there 2-3 days per week.&nbsp; 2) This is a=
+ contingent role pending contract award. The
+ start date would be July 1, 2026. <o:p></o:p></p>
+<p class=3D"MsoNormal"><o:p>&nbsp;</o:p></p>
+<p class=3D"MsoNormal">If you are interested, please let me know when you w=
+ould be available for a call.&nbsp;
+<o:p></o:p></p>
+<p class=3D"MsoNormal"><o:p>&nbsp;</o:p></p>
+<p class=3D"MsoNormal">Thanks,<o:p></o:p></p>
+<p class=3D"MsoNormal" style=3D"mso-margin-top-alt:auto;margin-bottom:12.0p=
+t"><b><span style=3D"font-family:&quot;Calibri&quot;,sans-serif;color:black=
+">Ryan Miller
+</span></b><span style=3D"font-family:&quot;Calibri&quot;,sans-serif;color:=
+black">| <i>Vice President, IT Programs
+<br>
+</i>ARES Corporation | 8444 Westpark Drive, Suite 800, McLean, VA<br>
+501-620-6111 | </span><span style=3D"font-family:&quot;Calibri&quot;,sans-s=
+erif"><a href=3D"mailto:rmiller@arescorporation.com" target=3D"_blank"><spa=
+n style=3D"color:blue">rmiller@arescorporation.com</span></a>
+</span><o:p></o:p></p>
+<p class=3D"MsoNormal"><i><span style=3D"font-family:&quot;Calibri&quot;,sa=
+ns-serif;color:#C00000">Creating Opportunities Through Risk Insight<o:p></o=
+:p></span></i></p>
+<p class=3D"MsoNormal"><span style=3D"font-family:&quot;Calibri&quot;,sans-=
+serif"><a href=3D"http://www.arescorporation.com/" target=3D"_blank"><span =
+style=3D"color:blue">www.arescorporation.com</span></a><u><span style=3D"co=
+lor:#6888C9">
+</span></u></span><o:p></o:p></p>
+<p class=3D"MsoNormal"><o:p>&nbsp;</o:p></p>
+</div>
+</body>
+</html>
+
+--_000_BN0P110MB1675F8224C6694D1A65C62FABFD9ABN0P110MB1675NAMP_--

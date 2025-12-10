@@ -1,0 +1,403 @@
+Delivered-To: kaver68@gmail.com
+Received: by 2002:a05:7108:aa92:b0:482:4c38:5f08 with SMTP id mh18csp2051789gdb;
+        Tue, 2 Sep 2025 13:29:20 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IE/BBA7x25PNic/Kx7ZfjD8Vvu4907/Ngwfs8icL36+PJHZUeq29hbzs4WQtcONiTlYb1nw
+X-Received: by 2002:a05:6871:6889:b0:315:c1c9:a5be with SMTP id 586e51a60fabf-3196308e1dcmr5128421fac.9.1756844959998;
+        Tue, 02 Sep 2025 13:29:19 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1756844959; cv=none;
+        d=google.com; s=arc-20240605;
+        b=ikae20nbtxI5p7pBnGC6VwcixAC4UgC8fNdWAM33+ojl5Jy8s17uAxpZFMBF6kP2nx
+         NM/wCMfhWLHx6ObDDC8DcU2oL8X/v6zqZsKyyIe0l0C/BIui/COJGh8bv92/DPg3NuQm
+         SxOWMZd1r8pVk23l9UA2CThEeV3hc/U+n24p5+1e9sA90gSKWrN9aRTWrOIUn/XUs3Ed
+         bUfvc6LCeGSgo0hug6IsMYERxzeShIa0i3Ei4F7K7uKetqdmti9sJxhi4lxXgaZxTyQ+
+         VxIihXsf+iw9ZbPBvDQz5Url2eyWpuWqBZIy0LZCs8IBs8g87gALGJNkDrbVTyIvUY9R
+         BXaw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=date:mime-version:subject:message-id:to:from:dkim-signature
+         :dkim-signature;
+        bh=qAacGhwV2/573IxWlyfSiW5IZ25KF15vqG2FYAVURmE=;
+        fh=G/VLhrQnXiN6LciSgCgIU9VM0fr+1O2AyqFGWpHCjzw=;
+        b=G8b2U8a7+MhofxiRGV3lskSIhmsjIxocwPN3h5oVTA9mvNeaP6vJ2nKjI6RcNRAAKr
+         10I1ynp+e6twUPhgsBEj84mO7Fznx9MfJBnmSNpzLWKbR357C9Xi0spBi0Nct8KP5/3x
+         trdPASisa1anZmkQo5+VrLFYKyMzjXFM4iEl6jgOY9JcYq3urXCUtrC+skr9S+DMKp4B
+         YO8szxMn/uSAAeCHg+3K+m2WJYdkxdecH5hV3iihBEybtl5UvDfMgaMG6mH9tMEzvUPp
+         TQMtcPwFj5ecEbv7KoL7lI0YSGF37eJp0wENV5sEVSayrg6bOtwEfzFxo2JVyOJxOfE4
+         5C2g==;
+        dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@irionline.com header.s=jdmta1 header.b=SLl+ZlRw;
+       dkim=pass header.i=@jobopportunityforyou.com header.s=jd1 header.b=Jd88Qw4P;
+       spf=pass (google.com: domain of aakib@irionline.com designates 216.200.152.159 as permitted sender) smtp.mailfrom=aakib@irionline.com;
+       dmarc=pass (p=NONE sp=NONE dis=NONE) header.from=irionline.com
+Return-Path: <aakib@irionline.com>
+Received: from mail32.jobopportunityforyou.com (mail32.jobopportunityforyou.com. [216.200.152.159])
+        by mx.google.com with ESMTPS id 586e51a60fabf-319b5ff6b24si621017fac.126.2025.09.02.13.29.19
+        for <kaver68@gmail.com>
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 02 Sep 2025 13:29:19 -0700 (PDT)
+Received-SPF: pass (google.com: domain of aakib@irionline.com designates 216.200.152.159 as permitted sender) client-ip=216.200.152.159;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@irionline.com header.s=jdmta1 header.b=SLl+ZlRw;
+       dkim=pass header.i=@jobopportunityforyou.com header.s=jd1 header.b=Jd88Qw4P;
+       spf=pass (google.com: domain of aakib@irionline.com designates 216.200.152.159 as permitted sender) smtp.mailfrom=aakib@irionline.com;
+       dmarc=pass (p=NONE sp=NONE dis=NONE) header.from=irionline.com
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; s=jdmta1; d=irionline.com;
+ h=From:To:Message-ID:Subject:MIME-Version:Content-Type:Date;
+ i=aakib@irionline.com;
+ bh=qAacGhwV2/573IxWlyfSiW5IZ25KF15vqG2FYAVURmE=;
+ b=SLl+ZlRwaDyVNSg9NX+oGRUocQfAcm00hSHhmYD2BnJX7nQ6K1rAVcH32x14PGLCbOcsqdKKhSkw
+   XPWRR+Zracpl4Ribpx81fnMVjmY6hwV93KsDXzN0msPQvhKaPWB0iecwesljxbjdN4zzvabTxZoF
+   k/hE7L7PYEvVUr9apLVnfTmRnoT12ok6JjGgNWtjhy3R1u4U9yV/7JNUcBDqxwoOs6Psl5z2E4+5
+   dwIZ6nz4YIm53LS9veWERtCOS+auGVGoNwwfFrcf8TqIZU49CtEbrXNsyPs0VIWjNDLDiTcaJDVy
+   sVbnPYfsNngVw3nQlybbOtWpigSjsJ7iKHS/2A==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; s=jd1; d=jobopportunityforyou.com;
+ h=From:To:Message-ID:Subject:MIME-Version:Content-Type:Date;
+ bh=qAacGhwV2/573IxWlyfSiW5IZ25KF15vqG2FYAVURmE=;
+ b=Jd88Qw4P6Sp5Opld0TRO0yfjNfSWAUBh9uePrdL7r5gw4yQC678ZJ37uhQ4KGy0w1i9xpCh7RP7p
+   zPAuM4SsdDRupz8LLPSToYuH4XnRzLXY/cwC79V9EToSlmlvBnNxkma1Q/hRqY815swp9tqq4kIw
+   RhlASKjrCEaae4qr3KXFr0B3BewaU8KN7DFLQlOeR7CjoSQe/PvPcinUEsnMVCxMt/Wxh+WnqWSX
+   rEwcGa9stCDp/GVvAcV6zJDhu2Dc/WqF+BBKNvvccuDza/UObWWqq3ORiZzwF3CosG3PgK762TlA
+   oUxTEY/vvlrFComMrzMCEknSjQNtmsw63d3fIQ==
+From: Aakib Qureshi <aakib@irionline.com>
+To: kaver68@gmail.com
+Message-ID: <354154358.2477.1756844959485@emailmerge25.jobdiva.com>
+Subject: PERMANENT/ FULL TIME JOB | OT Cyber Security Analyst | Apollo
+ Beach, FL 33572
+MIME-Version: 1.0
+Content-Type: multipart/mixed; 
+	boundary="----=_Part_2476_303805531.1756844959478"
+Date: Tue, 2 Sep 2025 16:24:17 -0400
+X-Virtual-MTA: mail32_jobopportunityforyou
+
+------=_Part_2476_303805531.1756844959478
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+<span style=3D"font-size:11pt;"><span style=3D"font-family:Arial,Helvetica,=
+sans-serif;">Hi Adrian,<br />
+Hope you are doing fine =F0=9F=98=8A<br />
+This is <strong>Aakib</strong> from <strong>Integrated Resources </strong>I=
+ am writing you regarding an excellent job opportunity that I have with one=
+ of our Direct Client.<br />
+&nbsp;<br />
+After my extensive research, I found your profile to be an excellent match.=
+<br />
+If interested in learning more, please share your most updated resume in MS=
+ Word/PDF and the best time to connect.<br />
+&nbsp;<br />
+In considering candidates, time is of the essence, so please respond ASAP a=
+nd Please accept my humble apologies if this role is not a fit for your pro=
+file or if you are not willing to make a change in your career at this poin=
+t of time!<br />
+&nbsp;<br />
+You can reach me at <strong>732-737-9236 </strong>or email me your resume a=
+t <a href=3D"mailto:aakib@irionline.com" target=3D"_blank"><strong><span st=
+yle=3D"color:windowtext;">aakib@irionline.com</span></strong></a><br />
+&nbsp;<br />
+<strong>Job title: - OT Cyber Security Analyst (Progression Path &ndash; Le=
+vel 1 to Level 3)</strong><br />
+<strong>Location:-&nbsp;Apollo Beach, FL 33572</strong><br />
+<strong>Employment Type: PERMANENT/ FULL TIME JOB</strong><br />
+<br />
+<strong>SALARY: 85k-115k PER YEAR + BENEFITS</strong><br />
+<br />
+<strong>Overview</strong><br />
+The Cyber Security Analyst progression path includes three levels (Analyst,=
+ Senior Analyst, and Lead Analyst). Each level builds on increasing respons=
+ibility, technical expertise, and leadership within the Operational Technol=
+ogy (OT) cybersecurity program. Analysts are responsible for protecting, ma=
+intaining, and continuously improving the security of OT environments, ensu=
+ring compliance with regulatory and industry standards such as NERC CIP and=
+ NIST.<br />
+&nbsp;<br />
+<strong>Level 1 &ndash; Cyber Security Analyst</strong><br />
+<strong>Position Concept:</strong><br />
+The Level 1 Cyber Security Analyst supports OT cybersecurity maintenance ac=
+tivities, manages cyber asset inventories, assists in the implementation of=
+ cybersecurity programs, and ensures security controls are applied consiste=
+ntly across operational systems.<br />
+&nbsp;<br />
+<strong>Key Responsibilities:</strong></span></span>
+<ul>
+=09<li><span style=3D"font-size:11pt;"><span style=3D"font-family:Arial,Hel=
+vetica,sans-serif;">Identify and document OT cyber assets; extract and upda=
+te asset configurations in the database.</span></span></li>
+=09<li><span style=3D"font-size:11pt;"><span style=3D"font-family:Arial,Hel=
+vetica,sans-serif;">Install security patches, update antivirus definitions,=
+ and perform system backups.</span></span></li>
+=09<li><span style=3D"font-size:11pt;"><span style=3D"font-family:Arial,Hel=
+vetica,sans-serif;">Maintain baselines of operational systems; update cyber=
+security SharePoint sites for stakeholder engagement.</span></span></li>
+=09<li><span style=3D"font-size:11pt;"><span style=3D"font-family:Arial,Hel=
+vetica,sans-serif;">Monitor CVE releases and assess applicability to OT ass=
+ets.</span></span></li>
+=09<li><span style=3D"font-size:11pt;"><span style=3D"font-family:Arial,Hel=
+vetica,sans-serif;">Provide IT-related support for OT systems (e.g., HMIs, =
+network appliances, remote connectivity).</span></span></li>
+</ul>
+<span style=3D"font-size:11pt;"><span style=3D"font-family:Arial,Helvetica,=
+sans-serif;"><strong>Required Knowledge/Skills/Abilities:</strong></span></=
+span>
+
+<ul>
+=09<li><span style=3D"font-size:11pt;"><span style=3D"font-family:Arial,Hel=
+vetica,sans-serif;">Basic understanding of industrial automation systems (A=
+BB, Allen Bradley, Emerson, etc.) or operating system security (Windows, Li=
+nux/Unix, Mac OS).</span></span></li>
+=09<li><span style=3D"font-size:11pt;"><span style=3D"font-family:Arial,Hel=
+vetica,sans-serif;">Familiarity with endpoint, server, and network security=
+ tools such as Firewalls, IDS/IPS, SIEM, Antivirus, and DLP.</span></span><=
+/li>
+=09<li><span style=3D"font-size:11pt;"><span style=3D"font-family:Arial,Hel=
+vetica,sans-serif;">Knowledge of forensic investigation techniques for logs=
+, networks, and systems.</span></span></li>
+=09<li><span style=3D"font-size:11pt;"><span style=3D"font-family:Arial,Hel=
+vetica,sans-serif;">Working knowledge of networking protocols and system ad=
+ministration.</span></span></li>
+=09<li><span style=3D"font-size:11pt;"><span style=3D"font-family:Arial,Hel=
+vetica,sans-serif;">Ability to recognize and investigate indicators of comp=
+romise.</span></span></li>
+=09<li><span style=3D"font-size:11pt;"><span style=3D"font-family:Arial,Hel=
+vetica,sans-serif;">Strong analytical, communication, and risk assessment s=
+kills.</span></span></li>
+</ul>
+<span style=3D"font-size:11pt;"><span style=3D"font-family:Arial,Helvetica,=
+sans-serif;"><strong>Preferred Skills:</strong></span></span>
+
+<ul>
+=09<li><span style=3D"font-size:11pt;"><span style=3D"font-family:Arial,Hel=
+vetica,sans-serif;">Experience applying patches, antivirus updates, and per=
+forming backups.</span></span></li>
+=09<li><span style=3D"font-size:11pt;"><span style=3D"font-family:Arial,Hel=
+vetica,sans-serif;">Experience troubleshooting network communications.</spa=
+n></span></li>
+=09<li><span style=3D"font-size:11pt;"><span style=3D"font-family:Arial,Hel=
+vetica,sans-serif;">Supporting compliance audits.</span></span></li>
+=09<li><span style=3D"font-size:11pt;"><span style=3D"font-family:Arial,Hel=
+vetica,sans-serif;">Designing/implementing industrial automation or network=
+ architecture.</span></span></li>
+</ul>
+<span style=3D"font-size:11pt;"><span style=3D"font-family:Arial,Helvetica,=
+sans-serif;"><strong>Level 2 &ndash; Senior Cyber Security Analyst</strong>=
+<br />
+<strong>Position Concept:</strong><br />
+The Level 2 Analyst is responsible for assessing OT vulnerabilities, ensuri=
+ng secure configurations, and developing remediation plans. The role includ=
+es mentoring junior analysts, developing cybersecurity maintenance procedur=
+es, and providing guidance for program compliance.<br />
+&nbsp;<br />
+<strong>Key Responsibilities:</strong></span></span>
+
+<ul>
+=09<li><span style=3D"font-size:11pt;"><span style=3D"font-family:Arial,Hel=
+vetica,sans-serif;">Evaluate OT network architecture, system configurations=
+, and external connections for compliance.</span></span></li>
+=09<li><span style=3D"font-size:11pt;"><span style=3D"font-family:Arial,Hel=
+vetica,sans-serif;">Review vendor manuals, training materials, and industry=
+ standards to develop cybersecurity procedures.</span></span></li>
+=09<li><span style=3D"font-size:11pt;"><span style=3D"font-family:Arial,Hel=
+vetica,sans-serif;">Mentor and provide guidance to Level 1 Analysts.</span>=
+</span></li>
+=09<li><span style=3D"font-size:11pt;"><span style=3D"font-family:Arial,Hel=
+vetica,sans-serif;">Monitor and assess new CVEs for applicability to OT sys=
+tems.</span></span></li>
+=09<li><span style=3D"font-size:11pt;"><span style=3D"font-family:Arial,Hel=
+vetica,sans-serif;">Support incident response, security intelligence monito=
+ring, and OT awareness initiatives.</span></span></li>
+</ul>
+<span style=3D"font-size:11pt;"><span style=3D"font-family:Arial,Helvetica,=
+sans-serif;"><strong>Required Knowledge/Skills/Abilities:</strong></span></=
+span>
+
+<ul>
+=09<li><span style=3D"font-size:11pt;"><span style=3D"font-family:Arial,Hel=
+vetica,sans-serif;">Advanced knowledge of OS security (Windows, Linux/Unix,=
+ Mac OS), web servers, and network security.</span></span></li>
+=09<li><span style=3D"font-size:11pt;"><span style=3D"font-family:Arial,Hel=
+vetica,sans-serif;">Hands-on experience with security tools: Firewalls, IDS=
+/IPS, SIEM, Endpoint Security, File Integrity Monitoring, etc.</span></span=
+></li>
+=09<li><span style=3D"font-size:11pt;"><span style=3D"font-family:Arial,Hel=
+vetica,sans-serif;">Proficiency in forensic investigation (logs, networks, =
+systems).</span></span></li>
+=09<li><span style=3D"font-size:11pt;"><span style=3D"font-family:Arial,Hel=
+vetica,sans-serif;">Strong knowledge of scripting (Python, Bash, PowerShell=
+).</span></span></li>
+=09<li><span style=3D"font-size:11pt;"><span style=3D"font-family:Arial,Hel=
+vetica,sans-serif;">Familiarity with penetration testing tools and techniqu=
+es.</span></span></li>
+=09<li><span style=3D"font-size:11pt;"><span style=3D"font-family:Arial,Hel=
+vetica,sans-serif;">Understanding of compliance frameworks (NERC CIP, SOX, =
+PCI).</span></span></li>
+=09<li><span style=3D"font-size:11pt;"><span style=3D"font-family:Arial,Hel=
+vetica,sans-serif;">Strong communication, risk assessment, and analytical s=
+kills.</span></span></li>
+</ul>
+<span style=3D"font-size:11pt;"><span style=3D"font-family:Arial,Helvetica,=
+sans-serif;"><strong>Level 3 &ndash; Lead Cyber Security Analyst</strong><b=
+r />
+<strong>Position Concept:</strong><br />
+The Lead Analyst is responsible for maintaining and improving OT cybersecur=
+ity frameworks, overseeing compliance activities, leading vulnerability man=
+agement efforts, and ensuring alignment with industry standards. This role =
+leads cross-departmental collaboration, trains staff and provides subject m=
+atter expertise for audits and regulatory engagements.<br />
+<br />
+<strong>Key Responsibilities:</strong></span></span>
+
+<ul>
+=09<li><span style=3D"font-size:11pt;"><span style=3D"font-family:Arial,Hel=
+vetica,sans-serif;">Translate standards (NERC CIP, NIST CSF, NIST 800-53) i=
+nto systemic and procedural solutions.</span></span></li>
+=09<li><span style=3D"font-size:11pt;"><span style=3D"font-family:Arial,Hel=
+vetica,sans-serif;">Maintain and improve OT cybersecurity standards, proced=
+ures, and maintenance schedules.</span></span></li>
+=09<li><span style=3D"font-size:11pt;"><span style=3D"font-family:Arial,Hel=
+vetica,sans-serif;">Lead vulnerability management and remediation programs.=
+</span></span></li>
+=09<li><span style=3D"font-size:11pt;"><span style=3D"font-family:Arial,Hel=
+vetica,sans-serif;">Evaluate OT systems for compliance with regulatory and =
+internal standards.</span></span></li>
+=09<li><span style=3D"font-size:11pt;"><span style=3D"font-family:Arial,Hel=
+vetica,sans-serif;">Develop management responses for internal/external audi=
+ts.</span></span></li>
+=09<li><span style=3D"font-size:11pt;"><span style=3D"font-family:Arial,Hel=
+vetica,sans-serif;">Facilitate IT/OT collaboration and train staff on cyber=
+security best practices.</span></span></li>
+</ul>
+<span style=3D"font-size:11pt;"><span style=3D"font-family:Arial,Helvetica,=
+sans-serif;"><strong>Required Knowledge/Skills/Abilities:</strong></span></=
+span>
+
+<ul>
+=09<li><span style=3D"font-size:11pt;"><span style=3D"font-family:Arial,Hel=
+vetica,sans-serif;">Expertise in developing and implementing OT cybersecuri=
+ty programs.</span></span></li>
+=09<li><span style=3D"font-size:11pt;"><span style=3D"font-family:Arial,Hel=
+vetica,sans-serif;">Strong knowledge of OS, web, and network security acros=
+s enterprise and OT environments.</span></span></li>
+=09<li><span style=3D"font-size:11pt;"><span style=3D"font-family:Arial,Hel=
+vetica,sans-serif;">Advanced expertise in security tools (Firewalls, IDS/IP=
+S, SIEM, DLP, Endpoint Security, etc.).</span></span></li>
+=09<li><span style=3D"font-size:11pt;"><span style=3D"font-family:Arial,Hel=
+vetica,sans-serif;">Deep knowledge of forensic investigation, malware analy=
+sis, and packet analysis.</span></span></li>
+=09<li><span style=3D"font-size:11pt;"><span style=3D"font-family:Arial,Hel=
+vetica,sans-serif;">Proficiency in scripting (Python, Bash, PowerShell).</s=
+pan></span></li>
+=09<li><span style=3D"font-size:11pt;"><span style=3D"font-family:Arial,Hel=
+vetica,sans-serif;">Strong knowledge of compliance frameworks (NERC CIP, SO=
+X, PCI).</span></span></li>
+=09<li><span style=3D"font-size:11pt;"><span style=3D"font-family:Arial,Hel=
+vetica,sans-serif;">Excellent leadership, communication, and risk managemen=
+t skills.</span></span></li>
+</ul>
+<span style=3D"font-size:11pt;"><span style=3D"font-family:Arial,Helvetica,=
+sans-serif;"><strong>Preferred Skills:</strong></span></span>
+
+<ul>
+=09<li><span style=3D"font-size:11pt;"><span style=3D"font-family:Arial,Hel=
+vetica,sans-serif;">Advanced expertise in reverse engineering malware.</spa=
+n></span></li>
+=09<li><span style=3D"font-size:11pt;"><span style=3D"font-family:Arial,Hel=
+vetica,sans-serif;">Extensive experience integrating compliance controls in=
+to OT systems.</span></span></li>
+</ul>
+<span style=3D"font-size:11pt;"><span style=3D"font-family:Arial,Helvetica,=
+sans-serif;"><strong>Education</strong></span></span>
+
+<ul>
+=09<li><span style=3D"font-size:11pt;"><span style=3D"font-family:Arial,Hel=
+vetica,sans-serif;"><strong>Required (All Levels):</strong> High School Dip=
+loma or equivalent.</span></span></li>
+=09<li><span style=3D"font-size:11pt;"><span style=3D"font-family:Arial,Hel=
+vetica,sans-serif;"><strong>Preferred:</strong> Bachelor&rsquo;s degree in =
+computer science, Information Systems, Cybersecurity, or related field.</sp=
+an></span></li>
+</ul>
+<span style=3D"font-size:11pt;"><span style=3D"font-family:Arial,Helvetica,=
+sans-serif;"><strong>Certifications</strong></span></span>
+
+<ul>
+=09<li><span style=3D"font-size:11pt;"><span style=3D"font-family:Arial,Hel=
+vetica,sans-serif;"><strong>Required (All Levels):</strong> At least one se=
+curity-related certification (from vendors such as Cisco, (ISC)&sup2;, GIAC=
+, ISA, ISACA, CompTIA, EC-Council) or ability to obtain within one year of =
+hire.</span></span></li>
+=09<li><span style=3D"font-size:11pt;"><span style=3D"font-family:Arial,Hel=
+vetica,sans-serif;"><strong>Preferred:</strong> Three or more advanced cert=
+ifications (e.g., CISSP, CISM, CISA, CEH, CCNP, OSCP, GIAC certifications).=
+</span></span></li>
+</ul>
+<span style=3D"font-size:11pt;"><span style=3D"font-family:Arial,Helvetica,=
+sans-serif;"><strong>Experience</strong></span></span>
+
+<ul>
+=09<li><span style=3D"font-size:11pt;"><span style=3D"font-family:Arial,Hel=
+vetica,sans-serif;"><strong>Level 1:</strong> 5+ years related experience i=
+n Cybersecurity, IT, OT, industrial automation, or technical fields.</span>=
+</span>
+
+=09<ul>
+=09=09<li><span style=3D"font-size:11pt;"><span style=3D"font-family:Arial,=
+Helvetica,sans-serif;">May substitute: 2 years with Associate&rsquo;s Degre=
+e or 1 year with Bachelor&rsquo;s Degree.</span></span></li>
+=09</ul>
+=09</li>
+=09<li><span style=3D"font-size:11pt;"><span style=3D"font-family:Arial,Hel=
+vetica,sans-serif;"><strong>Level 2:</strong> 6+ years related experience.<=
+/span></span>
+=09<ul>
+=09=09<li><span style=3D"font-size:11pt;"><span style=3D"font-family:Arial,=
+Helvetica,sans-serif;">May substitute: 4 years with associate&rsquo;s degre=
+e or 3 years with bachelor&rsquo;s degree.</span></span></li>
+=09</ul>
+=09</li>
+=09<li><span style=3D"font-size:11pt;"><span style=3D"font-family:Arial,Hel=
+vetica,sans-serif;"><strong>Level 3:</strong> 8+ years related experience.<=
+/span></span>
+=09<ul>
+=09=09<li><span style=3D"font-size:11pt;"><span style=3D"font-family:Arial,=
+Helvetica,sans-serif;">May substitute: 4 years with associate&rsquo;s degre=
+e or 2 years with bachelor&rsquo;s degree.</span></span></li>
+=09</ul>
+=09</li>
+</ul>
+<span style=3D"font-size:11pt;"><span style=3D"font-family:Arial,Helvetica,=
+sans-serif;"><strong>Feel free to forward my email to your friends/colleagu=
+es who might be available. We do offer a referral bonus! Thank you for your=
+ time and consideration. I am looking forward to hearing from you.</strong>=
+<br />
+<br />
+Best Regards,<br />
+Aakib&nbsp;Qureshi<br />
+Sr Recruitment Executive- IT<br />
+<strong>Integrated Resources, Inc</strong><br />
+<strong>IT&nbsp;&nbsp; REHAB&nbsp;&nbsp; CLINICAL&nbsp;&nbsp; NURSING</stro=
+ng><br />
+<strong>Inc. <span style=3D"color:red;">5</span><span style=3D"color:#ff990=
+0;">0</span><span style=3D"color:navy;">0</span><span style=3D"color:#5033f=
+f;">0</span><em><span style=3D"color:navy;"> &ndash; 2007-2014 (8th Years)<=
+/span></em></strong><br />
+<span style=3D"color:#1f497d;">Certified MBE I GSA - Schedule 66 I GSA - Sc=
+hedule 621I I GSA - Schedule 70</span><br />
+<a href=3D"mailto:aakib@irionline.com">aakib@irionline.com</a><br />
+(732) 737-9236 Ext.414</span></span><br />
+<br />
+<em><span style=3D"font-family:garamond,serif">CONFIDENTIALITY NOTICE: The =
+contents of this message, together with any attachments, are intended only =
+for the use of the person(s) to which they are addressed and may contain co=
+nfidential and/or privileged information.If you are not the intended recipi=
+ent, immediately advise the sender and delete this message and any attachme=
+nts. Any distribution, or copying of this message, or any attachment, is pr=
+ohibited.</span></em><br />
+&nbsp;<br><br>If you are interested in this position, please click <a href=
+=3D'https://www2.joboppforyou.com/jobseekers/myjobs/emailmerge_response.jsp=
+?d=3D907_18972418750523_25566753_1504767_1_Aakib+Qureshi&t11=3D175684495947=
+7'>here</a>.<br><br>If you would like to unsubscribe from Integrated Resour=
+ces, Inc, please click <a href=3D'https://www2.joboppforyou.com/optout.jsp?=
+d=3D3930375f6b61766572363840676d61696c2e636f6d&e=3D107&t11=3D1756844959478'=
+>unsubscribe</a>.<img id=3D'logo' src=3D'https://www2.joboppforyou.com/serv=
+lets-examples/servlet/trackEmailMerge?a=3D01eHQZYCRRfNlNuCgZaAVYUXFVDAzBQWQ=
+NYVFtCFhFc' />
+------=_Part_2476_303805531.1756844959478--

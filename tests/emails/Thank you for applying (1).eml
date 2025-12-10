@@ -1,0 +1,283 @@
+Delivered-To: kaver68@gmail.com
+Received: by 2002:ac4:8d07:0:b0:759:c52c:7988 with SMTP id ff7csp1702655pib;
+        Sat, 8 Nov 2025 09:20:23 -0800 (PST)
+X-Google-Smtp-Source: AGHT+IFJhu75ekewpWUEMSaZn2Qb4Mq0f5GkbvU66z7J2615ygH3ueh0peup6ZmppuNOhPXJu1D8
+X-Received: by 2002:a05:6a20:12c3:b0:334:8759:5016 with SMTP id adf61e73a8af0-353a2e3d4a7mr4633828637.28.1762622423255;
+        Sat, 08 Nov 2025 09:20:23 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1762622423; cv=none;
+        d=google.com; s=arc-20240605;
+        b=jLHVn6DNjWsBk2UH84P2VG9r5mmuj7Qff1VwpYozsa4P7/j7Zo9nEtw8tLHQmQ3rAT
+         cuikRX6C5aEtWZeH85MhA7uy8um2squhpkgCm8TUDr+BoumKdM2/RB5KGdzLwPEVEYSa
+         ujxvw6iT/voETBVLT7qhdJR3VKSyGAzKEiKVE80jxPxCX6CJkH7XmrgxPbpoPdeihRkC
+         9wwxbjdhmPGTm07qTZzGckwtg+wgPAOi2UzCLHB/H9mc3LIQOVTUH11WUWQgO9uYDm8L
+         wdpFLcKn9vnadNvjLqnBxY53oFmabghKmGW2rln1PVxe5eVwb8aJn4TF4671e32B1AQ2
+         qu1A==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=list-unsubscribe:feedback-id:list-unsubscribe-post:mime-version
+         :subject:message-id:to:reply-to:from:date:dkim-signature;
+        bh=6SANAXE2aoxRkIZ5YN6idD5XfIRVLLYxguVEWkKs/hk=;
+        fh=G/VLhrQnXiN6LciSgCgIU9VM0fr+1O2AyqFGWpHCjzw=;
+        b=kT3edcd1krGoCE2DOOGLO9gi2mUeUL67IpqVZPCe+i9X+YTexkjAYInntr/Bf0dCS1
+         imf7KYYbNzOVl/wUqN9HBu9Zf9QpffnB8Cn7yAFZwk4iAmcXipLYAnPNIrWN7Zr+gy0T
+         RWZX8jCR88uffHfQ8cale4tooWgDgsfU73HcqxX82V9TDJ9VF4ewylPZV6iNHZlH7U7i
+         0Iw738ckWXbBQdtGShKuUAoBB731XW/OUaiiREtnV+lNwQhaFAH0nSR+99RhZooImRWk
+         6g9gmEPsjMLuVY1MLZJV1HAumSJa34I6ixHUXodQLuXeFAbdENRD6Lhe5cxxloZrUx+c
+         RSXw==;
+        dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@bah.com header.s=ser-09182023-pod header.b=Qmdcpn40;
+       spf=pass (google.com: domain of workday@bah.com designates 67.231.144.183 as permitted sender) smtp.mailfrom=workday@bah.com;
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=bah.com
+Return-Path: <workday@bah.com>
+Received: from mx0a-00099902.pphosted.com (mx0a-00099902.pphosted.com. [67.231.144.183])
+        by mx.google.com with ESMTPS id 41be03b00d2f7-ba8ff37b04esi4941698a12.773.2025.11.08.09.20.23
+        for <kaver68@gmail.com>
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sat, 08 Nov 2025 09:20:23 -0800 (PST)
+Received-SPF: pass (google.com: domain of workday@bah.com designates 67.231.144.183 as permitted sender) client-ip=67.231.144.183;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@bah.com header.s=ser-09182023-pod header.b=Qmdcpn40;
+       spf=pass (google.com: domain of workday@bah.com designates 67.231.144.183 as permitted sender) smtp.mailfrom=workday@bah.com;
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=bah.com
+Received: from pps.filterd (m0370389.ppops.net [127.0.0.1])
+	by mx0a-00099902.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 5A8EBhpa1750336
+	for <kaver68@gmail.com>; Sat, 8 Nov 2025 12:20:22 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bah.com; h=
+	content-type:date:from:list-unsubscribe:list-unsubscribe-post
+	:message-id:mime-version:reply-to:subject:to; s=
+	ser-09182023-pod; bh=6SANAXE2aoxRkIZ5YN6idD5XfIRVLLYxguVEWkKs/hk
+	=; b=Qmdcpn409lUEqKL1LIV06e2zbbNyoDWSf3IqO5+SyXmCOXRjN0JDn5UbM+g
+	A3ErC1j4ZbyPrUtFhqH6tIvodNpUf8NIAmGI78vJDtseO/5J+/CQ2VviiVOmtWPR
+	xTNZ3qgeYrIfLyYL3abR8rIsKnkuxWFEp/PelzcGoyd5EdfF88Q2NkPNZzaxP3dU
+	DnvyoIMDqdArLZqaC8JUSo/hzJen3CZuctnKqViHU0ofQOUzz+Rmb4F/WvinzpBg
+	/uHEE0CDeQCcZDq5ajJLny91Tq5NE8+BCa09NB+OhyLra2zYXbh5ulstQ6WRK8xA
+	1w57nyPDzN3l9gRqjNTm7pYyrbw==
+Received: from smtp-us.ser.proofpoint.com (pmta-use.ser.proofpoint.com [44.208.76.22])
+	by mx0a-00099902.pphosted.com (PPS) with ESMTPS id 4a9xqj0h5u-1
+	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
+	for <kaver68@gmail.com>; Sat, 08 Nov 2025 12:20:22 -0500 (EST)
+Received: from wd1-az-cust-mail-nat.myworkday.com ([209.177.165.160])
+	by cmsmtp with ESMTPSA
+	id HmbtvYgndYZs3HmbuvjaR5; Sat, 08 Nov 2025 17:20:22 +0000
+X-Mailer: SER-af50759f7dcbafa37d97dabdbc978e02bf57fa8f53ff68095f879a1eae5e24c0
+X-Cloudmark-MID: HmbtvYgndYZs3HmbuvjaR5
+X-Proofpoint-CID: b719278b-bf12-2166-1313-8ead5cbe2842
+Date: Sat, 8 Nov 2025 09:20:21 -0800 (PST)
+From: "workday@bah.com" <workday@bah.com>
+Reply-To: noreply@bah.com
+To: kaver68@gmail.com
+Message-ID: <1825178402.1644069.1762622421993@wire-prod-cr1x52ha.prod-wire.pr502.cust.ash.wd>
+Subject: Thank you for applying
+MIME-Version: 1.0
+Content-Type: multipart/mixed; 
+	boundary="----=_Part_1644067_148642906.1762622421993"
+X-Workday-Security: false
+List-Unsubscribe-Post: <https://cust-drogon-unsubscribe.us-west-2.myworkdaymessaging.com/drogon/unsubscribe/bah/drogon-wd1-prod/a2b194bb781910000476d4558ec20013/e17cd0375f4490001efdbe2fe6d70000/a2F2ZXI2OEBnbWFpbC5jb20=>
+X-Workday-Static-BP-Address: false
+Feedback-ID: bah:a2b194bb781910000476d4558ec20013:000:workday
+List-Unsubscribe:  List-Unsubscribe=One-Click
+X-Workday-System: false
+X-Proofpoint-Virus-Version: 
+
+------=_Part_1644067_148642906.1762622421993
+Content-Type: multipart/related; 
+	boundary="----=_Part_1644068_466413645.1762622421993"
+
+------=_Part_1644068_466413645.1762622421993
+content-type: text/html; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+<!doctype html><html xmlns:v=3D"urn:schemas-microsoft-com:vml" xmlns:o=3D"u=
+rn:schemas-microsoft-com:office:office">
+   <head>
+      <meta http-equiv=3D"Content-Type" content=3D"text/html; charset=3DUTF=
+-8">
+      <title></title><style type=3D"text/css">body, table {
+  font-family: Verdana, Arial, sans-serif;
+  font-size: 12px; width:100%;
+}
+div {
+  padding-top:5px;
+  padding-bottom:5px;
+}
+img=20
+{
+  border:0px;
+}</style></head>
+   <body><div>Subject: Adrian Shaw =E2=80=8E- R0227462 Digital Network Expl=
+oitation Analyst, Senior (C02285008)</div><div>Thanks Adrian Shaw! <br> <br=
+> We just received your application for the Digital Network
+      Exploitation Analyst, Senior position. We=E2=80=99re currently review=
+ing your skills and experience,
+      and if you=E2=80=99re a good fit, we will be in touch.<br><br>Meanwhi=
+le, you can track the status of your application <a href=3D"https://bah.wd1=
+.myworkdayjobs.com/en-US/BAH_Jobs/userHome">here</a>.
+      We also encourage you to connect with us on <a href=3D"https://www.li=
+nkedin.com/company/booz-allen-hamilton"
+      target=3D"_blank">LinkedIn</a>, <a href=3D"https://twitter.com/lifeat=
+booz" target=3D"_blank">Twitter</a>,
+      <a href=3D"https://www.facebook.com/boozallen/" target=3D"_blank">Fac=
+ebook</a> and <a
+      href=3D"https://www.instagram.com/boozallen/?hl=3Den" target=3D"_blan=
+k">Instagram</a>.<br><br>We=E2=80=99re looking forward to changing the worl=
+d with you.<br><br>Booz Allen Talent Acquisition</div><div><img src=3D"cid:=
+KYzpxNdmIN"/></div>
+      =09     <div>
+      =09    <!--[if mso | IE]>
+      =09      <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" widt=
+h=3D"600" align=3D"center"
+      style=3D"width:600px;">
+      =09        <tr>
+      =09          <td style=3D"line-height:0px;font-size:0px;mso-line-heig=
+ht-rule:exactly;">
+      =09      <![endif]-->
+      =09    <div style=3D"margin:0 auto;max-width:600px;">
+      =09      <table cellpadding=3D"0" cellspacing=3D"0" style=3D"font-siz=
+e:0px;width:100%;" align=3D"center"
+      border=3D"0">
+      =09        <tbody>
+      =09          <tr>
+      =09            <td style=3D"text-align:center;vertical-align:top;font=
+-size:0px;padding:20px
+      0px;"></td>
+      =09          </tr>
+      =09        </tbody>
+      =09      </table>
+      =09    </div>
+      =09    <!--[if mso | IE]>
+      =09      </td></tr></table>
+      =09      <![endif]-->
+      =09    <!--[if mso | IE]>
+      =09      <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" widt=
+h=3D"600" align=3D"center"
+      style=3D"width:600px;">
+      =09        <tr>
+      =09          <td style=3D"line-height:0px;font-size:0px;mso-line-heig=
+ht-rule:exactly;">
+      =09      <![endif]-->
+      =09    <div style=3D"margin:0 auto;max-width:600px;">
+      =09      <table cellpadding=3D"0" cellspacing=3D"0" style=3D"font-siz=
+e:0px;width:100%;" align=3D"center"
+      border=3D"0">
+      =09        <tbody>
+      =09          <tr>
+      =09            <td style=3D"text-align:center;vertical-align:top;font=
+-size:0px;padding:20px
+      0px;"></td>
+      =09          </tr>
+      =09        </tbody>
+      =09      </table>
+      =09    </div>
+      =09    <!--[if mso | IE]>
+      =09      </td></tr></table>
+      =09      <![endif]-->
+     =20
+      <!--[if mso | IE]>
+=09      <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D"6=
+00" align=3D"center" style=3D"width:600px;">
+=09        <tr>
+=09          <td style=3D"line-height:0px;font-size:0px;mso-line-height-rul=
+e:exactly;">
+=09      <![endif]-->
+      <div xmlns:wd=3D"urn:com.workday/bsvc" style=3D"margin:0 auto;max-wid=
+th:600px;">
+         <table cellpadding=3D"0" cellspacing=3D"0" style=3D"font-size:0px;=
+width:100%;" align=3D"center" border=3D"0">
+            <tbody>
+               <tr>
+                  <td style=3D"text-align:center;vertical-align:top;font-si=
+ze:0px;padding:20px 0px;">
+                     <!--[if mso | IE]>
+=09 <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0"><tr><td style=
+=3D"vertical-align:top;width:600px;">
+=09      <![endif]-->
+                     <div aria-labelledby=3D"mj-column-per-100" class=3D"mj=
+-column-per-100" style=3D"vertical-align:top;display:inline-block;font-size=
+:13px;text-align:left;width:100%;">
+                        <table cellpadding=3D"0" cellspacing=3D"0" width=3D=
+"100%" border=3D"0">
+                           <tbody>
+                              <tr>
+                                 <td style=3D"word-break:break-word;font-si=
+ze:0px;padding-bottom:0px;" align=3D"center">
+                                    <div style=3D"cursor:auto;color:#98a0a6=
+;font-family:Roboto;font-size:12px;font-weight:400;line-height:22px;">This =
+email was intended for kaver68@gmail.com</div>
+                                 </td>
+                              </tr>
+                           </tbody>
+                        </table>
+                     </div>
+                     <!--[if mso | IE]>
+=09      </td></tr></table>
+=09      <![endif]-->
+                  </td>
+               </tr>
+            </tbody>
+         </table>
+      </div>
+      <!--[if mso | IE]>
+=09      </td></tr></table>
+=09      <![endif]-->
+   </body>
+</html>
+------=_Part_1644068_466413645.1762622421993
+content-type: image/png
+content-transfer-encoding: base64
+content-disposition: inline; filename=BAHTeal_logo85x85.png
+content-id: <KYzpxNdmIN>
+content-description: BAHTeal_logo85x85.png
+
+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
+YII=
+------=_Part_1644068_466413645.1762622421993--
+
+------=_Part_1644067_148642906.1762622421993--

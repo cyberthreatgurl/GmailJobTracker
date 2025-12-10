@@ -50,7 +50,7 @@ from django.db.models import (
     Value,
     When,
 )
-from django.db.models.functions import Lower
+from django.db.models.functions import Lower, TruncDate
 from django.http import JsonResponse, StreamingHttpResponse
 
 # Consolidated shared imports for the entire module to avoid reimports
@@ -74,6 +74,7 @@ from tracker.models import (
     AuditEvent,
 )
 from .forms_company import CompanyEditForm
+from parser import parse_subject, normalize_company_name
 
 
 @login_required
@@ -93,6 +94,8 @@ def label_rule_debugger(request):
     matched_labels = []  # unique labels that matched
     message_text = ""
     no_matches = False
+    extracted_company = ""
+    company_confidence = 0
     if request.method == "POST":
         pasted = (request.POST.get("pasted_message") or "").strip()
         upload = request.FILES.get("message_file")
@@ -112,6 +115,8 @@ def label_rule_debugger(request):
                 # Extract metadata robustly for raw EML or pasted content
                 subject = ""
                 body = ""
+                sender = ""
+                sender_domain = ""
                 try:
                     if isinstance(msg_obj, str):
                         meta = parse_raw_message(msg_obj)
@@ -120,6 +125,8 @@ def label_rule_debugger(request):
                         meta = parse_raw_message(raw_text)
                     subject = meta.get("subject", "")
                     body = meta.get("body", "")
+                    sender = meta.get("sender", "")
+                    sender_domain = meta.get("sender_domain", "")
                 except Exception:
                     # naive fallback: split headers/body for EML-like content
                     parts = raw_text.split("\n\n", 1)
@@ -129,6 +136,12 @@ def label_rule_debugger(request):
                         for line in headers.splitlines():
                             if line.lower().startswith("subject:"):
                                 subject = line.split(":", 1)[1].strip()
+                            elif line.lower().startswith("from:"):
+                                sender = line.split(":", 1)[1].strip()
+                                # Extract domain from sender
+                                match = re.search(r"@([A-Za-z0-9.-]+)$", sender)
+                                if match:
+                                    sender_domain = match.group(1).lower()
                 message_text = body or subject
                 patterns_path = Path("json/patterns.json")
                 patterns = load_json(patterns_path, default={"message_labels": {}})
@@ -222,6 +235,19 @@ def label_rule_debugger(request):
                     return text
 
                 message_text = highlight_text(message_text, highlights)
+                
+                # Extract company name using parse_subject with sender info
+                try:
+                    parsed = parse_subject(subject, body, sender=sender, sender_domain=sender_domain)
+                    extracted_company = parsed.get("company", "")
+                    company_confidence = parsed.get("confidence", 0)
+                    if extracted_company:
+                        extracted_company = normalize_company_name(extracted_company)
+                except Exception:
+                    # Company extraction failed - continue without it
+                    extracted_company = ""
+                    company_confidence = 0
+                
                 result = {
                     "subject": subject,
                     "body": body,
@@ -230,6 +256,8 @@ def label_rule_debugger(request):
                     "matched_patterns": matched_patterns,
                     "highlights": highlights,
                     "no_matches": no_matches,
+                    "extracted_company": extracted_company,
+                    "company_confidence": company_confidence,
                 }
             except Exception as e:
                 error = f"Failed to parse message: {e}"
@@ -242,6 +270,8 @@ def label_rule_debugger(request):
         "matched_labels": matched_labels,
         "matched_patterns": matched_patterns,
         "no_matches": no_matches,
+        "extracted_company": extracted_company,
+        "company_confidence": company_confidence,
     }
     return render(request, "tracker/label_rule_debugger.html", ctx)
 
@@ -1254,36 +1284,22 @@ def build_sidebar_context():
     except Exception:
         headhunter_domains = []
 
-    # Count companies only if they have at least one non-headhunter message
-    # Build a Q for any headhunter sender (Company context joins via message__sender)
-    hh_sender_q = Q()
-    for d in headhunter_domains:
-        # Match typical email pattern '@domain'
-        hh_sender_q |= Q(message__sender__icontains=f"@{d}")
+    # Count companies with actual applications (ThreadTracking records)
+    companies_count = (
+        Company.objects.filter(threadtracking__isnull=False)
+        .exclude(status="headhunter")
+        .distinct()
+        .count()
+    )
 
-    # Build a Q for Message model context (direct sender field)
+    # Build a Q for Message model context (direct sender field) for weekly stats
     msg_hh_sender_q = Q()
     for d in headhunter_domains:
         msg_hh_sender_q |= Q(sender__icontains=f"@{d}")
 
-    # A non-headhunter message is: not labeled head_hunter AND sender not from any headhunter domain
-    non_hh_msg_filter = ~Q(message__ml_label="head_hunter") & ~hh_sender_q
-
-    companies_count = (
-        Company.objects.exclude(status="headhunter")
-        .annotate(non_hh_msg_count=Count("message", filter=non_hh_msg_filter))
-        .filter(non_hh_msg_count__gt=0)
-        .count()
-    )
-
-    # Authoritative application source: ThreadTracking rows for job applications
-    # (created during ingestion for ml_label in ['job_application']).
-    tt_app_qs = ThreadTracking.objects.filter(
-        ml_label="job_application", company__isnull=False
-    )
-    # Exclude headhunters by company status and domain (join through messages if needed)
-    tt_app_qs = tt_app_qs.exclude(company__status="headhunter")
-    applications_count = tt_app_qs.count()
+    # Total applications: count all ThreadTracking records (not just ml_label='job_application')
+    # ThreadTracking represents application threads (job_application, interview_invite, etc.)
+    applications_count = ThreadTracking.objects.exclude(company__status="headhunter").count()
 
     # Weekly application count: Use Message model directly (more reliable than ThreadTracking)
     # because not all job_application messages have corresponding ThreadTracking rows
@@ -1318,6 +1334,7 @@ def build_sidebar_context():
     rejections_week = rejections_qs.count()
 
     # Count interview invitation messages this week
+    # Use distinct company_id to count companies with interviews (not individual messages or threads)
     interviews_qs = Message.objects.filter(
         ml_label="interview_invite",
         timestamp__gte=now() - timedelta(days=7),
@@ -1328,7 +1345,8 @@ def build_sidebar_context():
     # Exclude headhunter senders/domains for interviews as well
     if headhunter_domains:
         interviews_qs = interviews_qs.exclude(msg_hh_sender_q)
-    interviews_week = interviews_qs.count()
+    # Count distinct companies with interviews (multiple messages/threads from same company = 1 interview)
+    interviews_week = interviews_qs.values("company_id").distinct().count()
 
     # Upcoming interviews: unify filters with interview list logic (exclude rejected/ghosted)
     upcoming_interviews = (
@@ -1909,18 +1927,41 @@ def dashboard(request):
         ml_label = series["ml_label"]
         # Check if this is an application-based series or message-based series
         if ml_label == "job_application":
-            # Applications per day
-            apps_q = (
-                ThreadTracking.objects.filter(sent_date__gte=app_start_date)
-                if app_start_date
-                else ThreadTracking.objects.none()
+            # Applications per day - use Message table for accuracy (same as sidebar)
+            # Count distinct companies with job_application messages per day
+            apps_msg_q = Message.objects.filter(
+                ml_label__in=["job_application", "application"],
+                company__isnull=False,
             )
+            if app_start_date:
+                apps_msg_q = apps_msg_q.filter(timestamp__date__gte=app_start_date)
+            # Exclude user's own messages
+            user_email = (os.environ.get("USER_EMAIL_ADDRESS") or "").strip()
+            if user_email:
+                apps_msg_q = apps_msg_q.exclude(sender__icontains=user_email)
             if hh_companies:
-                apps_q = apps_q.exclude(company_id__in=hh_companies)
+                apps_msg_q = apps_msg_q.exclude(company_id__in=hh_companies)
             if company_filter_id:
-                apps_q = apps_q.filter(company_id=company_filter_id)
-            apps_by_day = apps_q.values("sent_date").annotate(count=models.Count("id"))
-            apps_map = {r["sent_date"]: r["count"] for r in apps_by_day}
+                apps_msg_q = apps_msg_q.filter(company_id=company_filter_id)
+            # Exclude headhunter domain senders
+            if headhunter_domains:
+                msg_hh_q = Q()
+                for d in headhunter_domains:
+                    msg_hh_q |= Q(sender__icontains=f"@{d}")
+                apps_msg_q = apps_msg_q.exclude(msg_hh_q)
+            
+            # Group by day and count distinct companies (same logic as sidebar)
+            apps_by_day = (
+                apps_msg_q.annotate(day=TruncDate("timestamp"))
+                .values("day", "company_id")
+                .distinct()
+            )
+            # Count companies per day
+            apps_map = {}
+            for r in apps_by_day:
+                day = r["day"]
+                apps_map[day] = apps_map.get(day, 0) + 1
+            
             data = [apps_map.get(d, 0) for d in app_date_list]
         elif ml_label == "rejected":
             # Rejections per day: combine Application-based and Message-based (fallback) counts
@@ -1938,8 +1979,6 @@ def dashboard(request):
             app_rejs_map = {r["rejection_date"]: r["count"] for r in rejs_by_day}
 
             # 2) Messages labeled rejected/rejection (exclude those whose thread has an Application)
-            from django.db.models.functions import TruncDate
-
             app_threads = list(
                 ThreadTracking.objects.filter(rejection_date__isnull=False).values_list(
                     "thread_id", flat=True
@@ -2088,31 +2127,35 @@ def dashboard(request):
         "company_id", "company__name", "timestamp"
     )
 
-    # Only count an "Application Sent" if the thread has at least one job_application/application message
-    job_app_exists = Exists(
-        Message.objects.filter(
-            thread_id=OuterRef("thread_id"),
-            ml_label__in=["job_application", "application"],
-        )
-    )
-    # Removed the implicit 7-day default range for company breakdown lists.
-    # Provide full historical data; client-side date picker (JS) will filter range.
+    # Use Message table directly for application companies (same as chart and sidebar)
+    # This ensures consistency across all dashboard metrics
     application_companies_qs = (
-        ThreadTracking.objects.filter(
-            sent_date__isnull=False,
+        Message.objects.filter(
+            ml_label__in=["job_application", "application"],
             company__isnull=False,
         )
-        .annotate(has_job_app=job_app_exists)
-        .filter(has_job_app=True)
-        .exclude(ml_label="noise")
         .select_related("company")
+        .annotate(sent_date=TruncDate("timestamp"))
         .values("company_id", "company__name", "sent_date")
         .order_by("-sent_date")
     )
+    # Exclude user's own messages
+    user_email = (os.environ.get("USER_EMAIL_ADDRESS") or "").strip()
+    if user_email:
+        application_companies_qs = application_companies_qs.exclude(
+            sender__icontains=user_email
+        )
+    # Exclude headhunter companies
     if hh_company_list:
         application_companies_qs = application_companies_qs.exclude(
             company_id__in=hh_company_list
         )
+    # Exclude headhunter domain senders
+    if headhunter_domains:
+        msg_hh_q = Q()
+        for d in headhunter_domains:
+            msg_hh_q |= Q(sender__icontains=f"@{d}")
+        application_companies_qs = application_companies_qs.exclude(msg_hh_q)
     if company_filter_id:
         application_companies_qs = application_companies_qs.filter(
             company_id=company_filter_id

@@ -5,7 +5,10 @@ Extracted from monolithic views.py (Phase 5 refactoring).
 
 import json
 import os
+import re
+import subprocess
 import sys
+from datetime import datetime, timedelta
 from pathlib import Path
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -20,6 +23,9 @@ from tracker.forms import CompanyEditForm
 from tracker.views.helpers import build_sidebar_context
 from db import PATTERNS_PATH
 from scripts.import_gmail_filters import load_json
+
+# Module-level constants
+python_path = sys.executable
 
 
 @login_required
@@ -551,9 +557,7 @@ def merge_companies(request):
     return render(request, "tracker/merge_companies.html", ctx)
 
 
-from datetime import datetime, timedelta
-
-python_path = sys.executable
+# Constants for manage_domains function
 ALIAS_EXPORT_PATH = Path("json/alias_candidates.json")
 ALIAS_LOG_PATH = Path("alias_approvals.csv")
 ALIAS_REJECT_LOG_PATH = Path("alias_rejections.csv")

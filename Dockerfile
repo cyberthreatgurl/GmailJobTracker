@@ -2,6 +2,9 @@
 # Stage 1: Build dependencies
 FROM python:3.11-slim AS builder
 
+# Set PATH to suppress pip warnings
+ENV PATH=/root/.local/bin:$PATH
+
 WORKDIR /app
 
 # Install build dependencies

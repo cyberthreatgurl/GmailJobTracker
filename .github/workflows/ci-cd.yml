@@ -80,7 +80,6 @@ jobs:
         run: |
           mkdir -p db logs model json
           cp .env.example .env
-          echo "GMAIL_JOBHUNT_LABEL_ID=test_label" >> .env
           echo "DJANGO_SECRET_KEY=test-secret-key-for-ci" >> .env
           touch json/patterns.json
           touch json/companies.json

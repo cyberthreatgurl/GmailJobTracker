@@ -11,6 +11,7 @@ This module handles the core email processing pipeline:
 - Tracks ingestion statistics and handles duplicate detection
 """
 import base64
+import hashlib
 import html
 import json
 import os
@@ -1011,15 +1012,19 @@ def extract_metadata(service, msg_id):
         if h_name == "Organization":
             header_hints["organization"] = h["value"]
     
-    # Prepend header info to body for classification (won't affect database storage)
+    # RFC 5322 compliance: Keep body and classification_text separate
+    # body = actual message body (RFC 5322 compliant, no headers)
+    # classification_text = body + relevant headers for ML/pattern matching
+    classification_text = body
     if header_text:
-        body = "\n".join(header_text) + "\n\n" + body
+        classification_text = "\n".join(header_text) + "\n\n" + body
 
     return {
         "thread_id": thread_id,
         "subject": subject,
-        "body": body,
+        "body": body,  # RFC 5322 compliant body only
         "body_html": body_html,
+        "classification_text": classification_text,  # Body + headers for classification
         "date": date_str,
         "timestamp": date_obj,
         "labels": labels,
@@ -1708,7 +1713,8 @@ def ingest_message(service, msg_id):
 
     try:
         metadata = extract_metadata(service, msg_id)
-        body = metadata["body"]
+        body = metadata["body"]  # RFC 5322 compliant body (no headers)
+        classification_text = metadata.get("classification_text", body)  # Body + headers for classification
         result = None  #  Prevent UnboundLocalError
 
         # --- PATCH: Skip and log blank/whitespace-only bodies ---
@@ -1734,7 +1740,7 @@ def ingest_message(service, msg_id):
     # (ATS systems add List-Unsubscribe headers even to application confirmations)
     is_app_related = is_application_related(
         metadata["subject"], 
-        metadata.get("body", "")[:500]  # Check first 500 chars for performance
+        classification_text[:500]  # Use classification_text (body+headers) for pattern matching
     )
     
     if DEBUG:
@@ -1935,7 +1941,9 @@ def ingest_message(service, msg_id):
     # over the raw ML prediction during ingestion/re-ingestion. This ensures
     # that matches from `rule_label` (via `predict_with_fallback`) are
     # respected when deciding final labels stored in the DB.
-    result = predict_with_fallback(predict_subject_type, subject, body, threshold=0.55, sender=sender)
+    # Use classification_text (body + headers) for classification
+    classification_text = metadata.get("classification_text", body)
+    result = predict_with_fallback(predict_subject_type, subject, classification_text, threshold=0.55, sender=sender)
 
     # Apply internal recruiter override - check if ML originally predicted head_hunter
     # Only override to 'other' for generic recruiting spam, preserve meaningful labels
@@ -1953,9 +1961,10 @@ def ingest_message(service, msg_id):
                     # Otherwise it's likely just a generic email mentioning "job submission" in subject
                     if final_label == "job_application":
                         # Check for ATS markers to confirm it's a real application
-                        body_lower = (body or "").lower()
+                        # Use classification_text to check headers for ATS markers
+                        classification_text_lower = (classification_text or "").lower()
                         ats_markers = ["workday", "myworkday", "taleo", "icims", "indeed", "list-unsubscribe", "one-click"]
-                        has_ats_marker = any(marker in body_lower for marker in ats_markers)
+                        has_ats_marker = any(marker in classification_text_lower for marker in ats_markers)
                         
                         if not has_ats_marker:
                             # No ATS markers - this is generic recruiter communication, not real application
@@ -2616,21 +2625,85 @@ def ingest_message(service, msg_id):
             f"Not reviewed: confidence={result.get('confidence', 0.0):.2f}, label={result.get('label')}, company={company}"
         )
 
-    # ✅ Check for near-duplicate messages (same subject, sender, timestamp within 5 seconds)
+    # ✅ Enhanced duplicate detection: Use body hash for reliable deduplication
+    # This catches both Gmail re-ingestion and EML uploads of the same message
     ts = metadata["timestamp"]
+    body = metadata["body"]
+    
+    # Compute SHA256 hash of body content (normalized)
+    # Strip whitespace and normalize line endings for consistent hashing
+    normalized_body = re.sub(r'\s+', ' ', body or "").strip()
+    body_hash = hashlib.sha256(normalized_body.encode('utf-8')).hexdigest()
+    
+    # First check: Body hash match (most reliable - catches exact content duplicates)
+    if body_hash:
+        hash_duplicate_qs = Message.objects.filter(body_hash=body_hash)
+        if hash_duplicate_qs.exists():
+            existing = hash_duplicate_qs.first()
+            if DEBUG:
+                print(f"⚠️ BODY HASH duplicate detected: subject='{subject[:60]}...'")
+                print(f"   Existing msg_id: {existing.msg_id}, New msg_id: {msg_id}")
+                print(f"   Body hash: {body_hash[:16]}...")
+                print(f"   Skipping duplicate (same body content)")
+            IgnoredMessage.objects.get_or_create(
+                msg_id=msg_id,
+                defaults={
+                    "subject": subject,
+                    "body": metadata["body"],
+                    "company_source": company_source or "",
+                    "sender": metadata["sender"],
+                    "sender_domain": (metadata["sender"].split("@")[-1] if "@" in metadata["sender"] else ""),
+                    "date": ts,
+                    "reason": "duplicate_body_hash",
+                },
+            )
+            stats.total_ignored += 1
+            IngestionStats.objects.filter(date=stats.date).update(total_ignored=F("total_ignored") + 1)
+            return "ignored"
+    
+    # Second check: Exact timestamp match (for messages with empty/malformed bodies)
+    exact_duplicate_qs = Message.objects.filter(
+        subject=subject,
+        sender=metadata["sender"],
+        timestamp=ts,
+    )
+    if exact_duplicate_qs.exists():
+        existing = exact_duplicate_qs.first()
+        if DEBUG:
+            print(f"⚠️ EXACT duplicate detected: subject='{subject}', sender='{metadata['sender']}', ts={ts}")
+            print(f"   Existing msg_id: {existing.msg_id}, New msg_id: {msg_id}")
+            print(f"   Skipping duplicate (same timestamp to the second)")
+        IgnoredMessage.objects.get_or_create(
+            msg_id=msg_id,
+            defaults={
+                "subject": subject,
+                "body": metadata["body"],
+                "company_source": company_source or "",
+                "sender": metadata["sender"],
+                "sender_domain": (metadata["sender"].split("@")[-1] if "@" in metadata["sender"] else ""),
+                "date": ts,
+                "reason": "duplicate_exact",
+            },
+        )
+        stats.total_ignored += 1
+        IngestionStats.objects.filter(date=stats.date).update(total_ignored=F("total_ignored") + 1)
+        return "ignored"
+    
+    # Third check: Near-duplicate (within 5-second window for quick re-sends)
     window_start = ts - timedelta(seconds=5)
     window_end = ts + timedelta(seconds=5)
-    duplicate_qs = Message.objects.filter(
+    near_duplicate_qs = Message.objects.filter(
         subject=subject,
         sender=metadata["sender"],
         timestamp__gte=window_start,
         timestamp__lte=window_end,
     )
-    if duplicate_qs.exists():
-        # Optionally log or ignore
+    if near_duplicate_qs.exists():
+        existing = near_duplicate_qs.first()
         if DEBUG:
-            print(f"⚠️ Duplicate message detected: subject='{subject}', sender='{metadata['sender']}', ts={ts}")
-        # Optionally log to IgnoredMessage
+            print(f"⚠️ Near duplicate detected: subject='{subject}', sender='{metadata['sender']}'")
+            print(f"   Existing timestamp: {existing.timestamp}, New timestamp: {ts}")
+            print(f"   Delta: {abs((existing.timestamp - ts).total_seconds())} seconds")
         IgnoredMessage.objects.get_or_create(
             msg_id=msg_id,
             defaults={
@@ -2643,7 +2716,9 @@ def ingest_message(service, msg_id):
                 "reason": "duplicate_near",
             },
         )
-        return  # Skip duplicate
+        stats.total_ignored += 1
+        IngestionStats.objects.filter(date=stats.date).update(total_ignored=F("total_ignored") + 1)
+        return "ignored"
 
     # Headhunter enforcement: ALL messages from headhunter domains/companies should be labeled head_hunter
     if result:
@@ -2696,6 +2771,7 @@ def ingest_message(service, msg_id):
                 sender=metadata["sender"],
                 body=metadata.get("body", ""),
                 body_html=metadata.get("body_html", metadata.get("body", "")),
+                body_hash=body_hash,
                 timestamp=metadata["timestamp"],
                 ml_label="other",
                 confidence=result["confidence"] if result else 0.0,
@@ -2711,6 +2787,7 @@ def ingest_message(service, msg_id):
                 sender=metadata["sender"],
                 body=metadata.get("body", ""),
                 body_html=metadata.get("body_html", metadata.get("body", "")),
+                body_hash=body_hash,
                 timestamp=metadata["timestamp"],
                 ml_label=result["label"],
                 confidence=result["confidence"],
@@ -3170,13 +3247,18 @@ def ingest_message_from_eml(eml_content: str, fake_msg_id: str = None):
                     print(f"[EML] Error decoding body: {e}")
         
         # Prepare metadata dictionary matching extract_metadata format
+        # RFC 5322 compliance: body should not contain headers
+        rfc_body = body or "Empty Body"
+        classification_text = rfc_body  # For EML files, no header text prepended
+        
         metadata = {
             "subject": subject,
             "date": date_obj,  # Store as datetime object, not string
             "sender": sender,
             "sender_domain": sender_domain,
             "to": to_header,
-            "body": body or "Empty Body",
+            "body": rfc_body,  # RFC 5322 compliant body only
+            "classification_text": classification_text,  # Same as body for EML (no headers to add)
             "thread_id": fake_msg_id,  # Use message ID as thread ID
             "labels": "",  # No labels from .eml files
             "header_hints": {
@@ -3201,7 +3283,8 @@ def ingest_message_from_eml(eml_content: str, fake_msg_id: str = None):
         return None
     
     # Now follow the same pipeline as ingest_message
-    body = metadata["body"]
+    body = metadata["body"]  # RFC 5322 compliant body (for storage)
+    classification_text = metadata.get("classification_text", body)  # For classification
     
     # Skip blank bodies
     if not body or not body.strip():
@@ -3211,11 +3294,11 @@ def ingest_message_from_eml(eml_content: str, fake_msg_id: str = None):
         IngestionStats.objects.filter(date=stats.date).update(total_ignored=F("total_ignored") + 1)
         return "ignored"
     
-    # Check if application-related
+    # Check if application-related (use classification_text for pattern matching)
     header_hints = metadata.get("header_hints", {})
     is_app_related = is_application_related(
         metadata["subject"], 
-        metadata.get("body", "")[:500]
+        classification_text[:500]
     )
     
     if DEBUG:
@@ -3233,20 +3316,20 @@ def ingest_message_from_eml(eml_content: str, fake_msg_id: str = None):
     # Continue with classification and company resolution
     # (Using the same logic as ingest_message but without Gmail service dependency)
     
-    # Run ML classification first
+    # Run ML classification first (use classification_text for ML/pattern matching)
     result = predict_with_fallback(
         predict_subject_type,
         metadata["subject"],
-        body,
+        classification_text,
         sender=metadata["sender"]
     )
     ml_label = result.get("label", "noise")
     ml_confidence = result.get("confidence", 0.0)
     
-    # Parse company from subject/body
+    # Parse company from subject/body (use classification_text for pattern matching)
     parse_result = parse_subject(
         metadata["subject"],
-        body,
+        classification_text,
         metadata["sender"],
         metadata["sender_domain"]
     )
@@ -3323,6 +3406,10 @@ def ingest_message_from_eml(eml_content: str, fake_msg_id: str = None):
     
     # Create new message
     try:
+        # Compute body hash for deduplication
+        normalized_body = re.sub(r'\s+', ' ', body or "").strip()
+        body_hash = hashlib.sha256(normalized_body.encode('utf-8')).hexdigest()
+        
         msg_obj = Message.objects.create(
             msg_id=fake_msg_id,
             thread_id=metadata["thread_id"],
@@ -3334,6 +3421,7 @@ def ingest_message_from_eml(eml_content: str, fake_msg_id: str = None):
             confidence=ml_confidence,
             body=body,
             body_html=body_html,
+            body_hash=body_hash,
             reviewed=False
         )
         

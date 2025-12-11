@@ -12,6 +12,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from django.db.models import Q, Count, F, Case, When, Value
+from django.db.models.functions import Lower
 from parser import parse_subject, normalize_company_name
 from tracker.models import Company, Message, ThreadTracking, UnresolvedCompany
 from tracker.services import CompanyService

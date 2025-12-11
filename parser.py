@@ -58,6 +58,7 @@ from parser_refactored import (
     DomainMapper,
     CompanyResolver,
     EmailBodyParser,
+    MetadataExtractor,
 )
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dashboard.settings")
@@ -85,6 +86,7 @@ _company_resolver = CompanyResolver(
     job_board_domains=_domain_mapper.job_board_domains,
     ats_domains=_domain_mapper.ats_domains,
 )
+_metadata_extractor = MetadataExtractor(_rule_classifier, debug=DEBUG)
 
 # --- Load personal_domains.json ---
 PERSONAL_DOMAINS_PATH = Path(__file__).parent / "json" / "personal_domains.json"
@@ -606,36 +608,8 @@ def extract_metadata(service, msg_id):
 
 
 def extract_status_dates(body, received_date):
-    """
-    Extract key status dates from email body.
-    
-    For interview invites, sets interview_date to 7 days in the future
-    to mark as "upcoming" (user can manually update with actual date).
-    """
-    body_lower = body.lower()
-    dates = {
-        "response_date": None,
-        "rejection_date": None,
-        "interview_date": None,
-        "follow_up_dates": [],
-    }
-    
-    # Use compiled patterns from RuleClassifier instance
-    interview_patterns = _rule_classifier._msg_label_patterns.get("interview_invite", [])
-    rejection_patterns = _rule_classifier._msg_label_patterns.get("rejection", [])
-    response_patterns = _rule_classifier._msg_label_patterns.get("response", [])
-    followup_patterns = _rule_classifier._msg_label_patterns.get("follow_up", [])
-    
-    if any(re.search(p, body_lower) for p in response_patterns):
-        dates["response_date"] = received_date
-    if any(re.search(p, body_lower) for p in rejection_patterns):
-        dates["rejection_date"] = received_date
-    if any(re.search(p, body_lower) for p in interview_patterns):
-        # Set to 7 days in future to mark as "upcoming interview"
-        dates["interview_date"] = (received_date + timedelta(days=7)).date()
-    if any(re.search(p, body_lower) for p in followup_patterns):
-        dates["follow_up_dates"] = received_date
-    return dates
+    """Extract status dates from body (delegates to MetadataExtractor)."""
+    return _metadata_extractor.extract_status_dates(body, received_date)
 
 
 def classify_message(body):
@@ -656,49 +630,8 @@ def classify_message(body):
 
 
 def extract_organizer_from_icalendar(body):
-    """
-    Extract organizer email from iCalendar data in message body.
-    
-    Teams/Zoom meeting invites often contain BASE64 encoded iCalendar data
-    with ORGANIZER field containing the sender's email address.
-    
-    Returns: (organizer_email, organizer_domain) or (None, None)
-    """
-    if not body:
-        return None, None
-    
-    # Look for BASE64 encoded iCalendar data
-    # Pattern: continuous BASE64 string (common in calendar invites)
-    base64_pattern = r'(?:[A-Za-z0-9+/]{60,}\n?)+'
-    matches = re.findall(base64_pattern, body)
-    
-    for match in matches:
-        try:
-            # Remove newlines and decode
-            base64_data = match.replace('\n', '').replace('\r', '')
-            decoded = base64.b64decode(base64_data).decode('utf-8', errors='ignore')
-            
-            # Check if this is iCalendar data
-            if 'BEGIN:VCALENDAR' in decoded or 'ORGANIZER' in decoded:
-                # Extract ORGANIZER email
-                # Format: ORGANIZER;CN=Name:mailto:email@domain.com
-                organizer_match = re.search(
-                    r'ORGANIZER[^:]*:mailto:([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})',
-                    decoded,
-                    re.IGNORECASE
-                )
-                if organizer_match:
-                    email = organizer_match.group(1).lower()
-                    domain = email.split('@')[-1] if '@' in email else None
-                    if DEBUG:
-                        print(f"[DEBUG] Extracted organizer from iCalendar: {email} (domain: {domain})")
-                    return email, domain
-        except Exception as e:
-            if DEBUG:
-                print(f"[DEBUG] Failed to decode/parse iCalendar data: {e}")
-            continue
-    
-    return None, None
+    """Extract organizer from iCalendar (delegates to MetadataExtractor)."""
+    return MetadataExtractor.extract_organizer_from_icalendar(body, debug=DEBUG)
 
 
 def parse_subject(subject, body="", sender=None, sender_domain=None):
@@ -1186,9 +1119,8 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
         )
         job_title = title_match.group(1).strip() if title_match else ""
 
-    # Job ID
-    id_match = re.search(r"(?:Job\s*#?|Position\s*#?|jobId=)([\w\-]+)", subject_clean, re.IGNORECASE)
-    job_id = id_match.group(1).strip() if id_match else ""
+    # Job ID (delegate to MetadataExtractor)
+    job_id = MetadataExtractor.extract_job_id(subject_clean)
 
     # --- Hard-ignore check AFTER company extraction ---
     # If we found a valid company from known list or domain, override noise classification

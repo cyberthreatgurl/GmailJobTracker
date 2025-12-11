@@ -159,9 +159,9 @@ jobs:
       #     only-severities: critical,high
       #   continue-on-error: true
 
-  # Job 4: Deploy (only on release or main branch)
+  # Job 4: Deploy to Local Docker Server
   deploy:
-    name: Deploy
+    name: Deploy to docker-server.shaw.local
     runs-on: ubuntu-latest
     needs: build
     if: github.event_name == 'release' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
@@ -169,7 +169,50 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Create deployment artifact
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DOCKER_SERVER_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H docker-server.shaw.local >> ~/.ssh/known_hosts 2>/dev/null || true
+
+      - name: Deploy to Docker Server
+        env:
+          DOCKER_SERVER_HOST: docker-server.shaw.local
+          DOCKER_SERVER_USER: ${{ secrets.DOCKER_SERVER_USER || 'kelly' }}
+          DEPLOY_PATH: ${{ secrets.DOCKER_SERVER_DEPLOY_PATH || '/home/kelly/apps/GmailJobTracker' }}
+        run: |
+          ssh -o StrictHostKeyChecking=no ${DOCKER_SERVER_USER}@${DOCKER_SERVER_HOST} << 'EOF'
+            set -e
+            cd ${DEPLOY_PATH}
+            
+            # Login to GitHub Container Registry
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            
+            # Pull latest image
+            docker-compose pull
+            
+            # Stop and remove old containers
+            docker-compose down
+            
+            # Start new containers
+            docker-compose up -d
+            
+            # Cleanup old images
+            docker image prune -f
+            
+            echo "✅ Deployment complete!"
+          EOF
+
+      - name: Verify Deployment
+        env:
+          DOCKER_SERVER_HOST: docker-server.shaw.local
+          DOCKER_SERVER_USER: ${{ secrets.DOCKER_SERVER_USER || 'kelly' }}
+          DEPLOY_PATH: ${{ secrets.DOCKER_SERVER_DEPLOY_PATH || '/home/kelly/apps/GmailJobTracker' }}
+        run: |
+          ssh ${DOCKER_SERVER_USER}@${DOCKER_SERVER_HOST} "cd ${DEPLOY_PATH} && docker-compose ps"
+
+      - name: Create deployment artifact (backup)
         run: |
           mkdir -p deploy
           cp docker-compose.yml deploy/
@@ -183,27 +226,3 @@ jobs:
           name: deployment-package
           path: gmailtracker-deploy.tar.gz
           retention-days: 30
-
-      - name: Create release notes
-        if: github.event_name == 'release'
-        run: |
-          echo "## Docker Deployment Instructions" > release-notes.md
-          echo "" >> release-notes.md
-          echo "1. Download the deployment artifact" >> release-notes.md
-          echo "2. Extract: \`tar -xzf gmailtracker-deploy.tar.gz\`" >> release-notes.md
-          echo "3. Configure: \`cp .env.template .env\` and edit values" >> release-notes.md
-          echo "4. Deploy: \`docker-compose up -d\`" >> release-notes.md
-          echo "" >> release-notes.md
-          echo "Docker Image: \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest\`" >> release-notes.md
-
-      - name: Comment on PR with deployment info
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: '✅ Docker image built successfully! Ready for deployment.'
-            })

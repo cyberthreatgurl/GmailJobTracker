@@ -1,5 +1,4 @@
 import csv
-import os
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple
@@ -108,16 +107,11 @@ class Command(BaseCommand):
                 else:
                     self.stdout.write(self.style.WARNING(f"Label name not found in Gmail: {nm}"))
         elif not gmail_query:
-            # Default to env var GMAIL_JOBHUNT_LABEL_ID if present
-            env_id = os.getenv("GMAIL_JOBHUNT_LABEL_ID")
-            if env_id:
-                label_ids.add(env_id)
-            else:
-                # No labels or query specified: show available labels and exit
-                self._print_label_list(id_to_name)
-                raise CommandError(
-                    "No Gmail labels or query specified. Use --gmail-query, --gmail-label-names, or --gmail-label-ids (or set GMAIL_JOBHUNT_LABEL_ID)."
-                )
+            # No labels or query specified: show available labels and exit
+            self._print_label_list(id_to_name)
+            raise CommandError(
+                "No Gmail labels or query specified. Use --gmail-query, --gmail-label-names, or --gmail-label-ids."
+            )
 
         if label_ids:
             self.stdout.write(

@@ -127,6 +127,26 @@ def test_rand_scheduling_followup_is_other():
     )
 
 
+def test_trellix_rejection_extracts_company():
+    """Trellix rejection email should extract 'Trellix' not 'Manager'.
+    
+    Subject: "Trellix career opportunity update on Manager, Threat Intelligence Services"
+    From: trellix@myworkday.com (ATS domain with sender alias)
+    Body: Contains "interest in Manager" which could be misinterpreted
+    
+    Should extract 'Trellix' from ATS sender alias, not 'Manager' from body text.
+    Trellix is a single-word company name that should not be cleared as a person name.
+    """
+    result = _classify_fixture("*Trellix*.eml")
+    company = result.get("company")
+    label = result.get("label")
+    assert company == "Trellix", (
+        f"Expected 'Trellix' but got '{company}'. "
+        "Should extract from ATS sender alias, not from 'interest in Manager' in body."
+    )
+    assert label == "rejection", f"Expected 'rejection' but got '{label}'"
+
+
 def test_smoke_all_fixtures_do_not_crash():
     """Run all .eml fixtures to ensure parsing/classification doesn't crash."""
     emls = sorted(EMAIL_DIR.glob("*.eml"))

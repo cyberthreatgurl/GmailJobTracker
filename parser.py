@@ -852,6 +852,49 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
                 if DEBUG:
                     print(f"[DEBUG] Body plain is empty, cannot extract company")
 
+    # Generic ATS body patterns - look for company name in application confirmation text
+    if not company and body and ("application" in subject.lower() or "applying" in subject.lower() or "applied" in subject.lower()):
+        if DEBUG:
+            print(f"[DEBUG] Entering ATS body pattern extraction")
+        body_plain = body
+        try:
+            if body and ("<html" in body.lower() or "<style" in body.lower()):
+                soup = BeautifulSoup(body, "html.parser")
+                for tag in soup(["style", "script"]):
+                    tag.decompose()
+                body_plain = soup.get_text(separator=" ", strip=True)
+        except Exception:
+            body_plain = body
+
+        if body_plain:
+            if DEBUG:
+                print(f"[DEBUG] Body plain length: {len(body_plain)}, first 200 chars: {body_plain[:200]}")
+            # Pattern: "application for [POSITION] position here at COMPANY"
+            # Pattern: "application for our [POSITION] position at COMPANY"
+            # Pattern: "your application for [POSITION] at COMPANY"
+            ats_body_patterns = [
+                r"position\s+(?:here\s+)?at\s+([A-Z][A-Za-z0-9\s&.,'-]+?)(?:\.|[\r\n]|\s+Thank)",
+                r"position\s+(?:here\s+)?(?:at|with)\s+([A-Z][A-Za-z0-9\s&.,'-]{2,30})[\r\n.]",
+                r"application\s+for\s+(?:our|the)\s+.{5,50}?\s+at\s+([A-Z][A-Za-z0-9\s&.,'-]+?)(?:\.|[\r\n])",
+                r"considering\s+us\s+at\s+([A-Z][A-Za-z0-9\s&.,'-]+?)\s+as",
+                r"considering\s+([A-Z][A-Za-z0-9\s&.,'-]+?)\s+as\s+(?:a\s+)?(?:potential|future)\s+employer",
+            ]
+            
+            for pattern in ats_body_patterns:
+                ats_match = re.search(pattern, body_plain, re.IGNORECASE)
+                if ats_match:
+                    extracted = ats_match.group(1).strip()
+                    # Clean up trailing words and punctuation
+                    extracted = re.sub(r'\s+(and|the|a|as|at|for|with|in)$', '', extracted, flags=re.IGNORECASE).strip()
+                    extracted = extracted.rstrip(".,;:")
+                    if extracted and len(extracted) > 1 and is_valid_company_name(extracted):
+                        company = normalize_company_name(extracted)
+                        if DEBUG:
+                            print(f"[DEBUG] ATS body pattern extraction SUCCESS: {company}")
+                        break
+                    elif DEBUG:
+                        print(f"[DEBUG] ATS body pattern matched but failed validation: '{extracted}'")
+
         # Special case: IntelligenceCareers.gov (NSA ATS) - extract agency from body
         if not company and domain_lower == "intelligencecareers.gov" and body:
             # Extract plain text body for pattern matching

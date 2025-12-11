@@ -51,6 +51,9 @@ from tracker.models import (
     UnresolvedCompany,
 )
 
+# Import refactored components
+from parser_refactored import CompanyValidator
+
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dashboard.settings")
 django.setup()
 DEBUG = True
@@ -62,6 +65,9 @@ if PATTERNS_PATH.exists():
     PATTERNS = patterns_data
 else:
     PATTERNS = {}
+
+# Initialize refactored components
+_company_validator = CompanyValidator(PATTERNS)
 
 # --- Load personal_domains.json ---
 PERSONAL_DOMAINS_PATH = Path(__file__).parent / "json" / "personal_domains.json"
@@ -746,21 +752,11 @@ def log_ignored_message(msg_id, metadata, reason):
 
 
 def is_valid_company_name(name):
-    """Reject company names that match known invalid prefixes from patterns.json."""
-    if not name:
-        return False
-
-    invalid_prefixes = PATTERNS.get("invalid_company_prefixes", [])
-    for prefix in invalid_prefixes:
-        try:
-            # Compile each prefix as regex, using re.IGNORECASE
-            if re.match(prefix, name, re.IGNORECASE):
-                return False
-        except re.error:
-            # If invalid regex, fallback to simple startswith
-            if name.lower().startswith(prefix.lower()):
-                return False
-    return True
+    """Reject company names that match known invalid prefixes from patterns.json.
+    
+    Delegates to CompanyValidator class (refactored).
+    """
+    return _company_validator.is_valid_company_name(name)
 
 
 def normalize_company_name(name: str) -> str:
@@ -770,28 +766,10 @@ def normalize_company_name(name: str) -> str:
     - Remove suffix fragments like "- Application ..." or trailing "Application"
     - Collapse repeated whitespace
     - Map known pseudo-companies like "Indeed Application" -> "Indeed"
+    
+    Delegates to CompanyValidator class (refactored).
     """
-    if not name:
-        return ""
-
-    n = name.strip()
-
-    # Remove common subject suffixes accidentally captured
-    n = re.sub(r"\s*-\s*Application.*$", "", n, flags=re.IGNORECASE)
-    n = re.sub(r"\bApplication\b\s*$", "", n, flags=re.IGNORECASE)
-
-    # Trim lingering separators/punctuation
-    n = re.sub(r"[\s\-:|•]+$", "", n)
-
-    # Collapse multiple internal spaces
-    n = re.sub(r"\s{2,}", " ", n)
-
-    # Known normalizations
-    lower = n.lower()
-    if lower == "indeed application":
-        return "Indeed"
-
-    return n
+    return _company_validator.normalize_company_name(name)
 
 
 def looks_like_person(name: str) -> bool:
@@ -802,29 +780,10 @@ def looks_like_person(name: str) -> bool:
     - No token contains digits, '&', '@', '.', or corporate suffix markers
     - Contains no common company suffix words (Inc, LLC, Corp, Company, Technologies, Systems)
     - If exactly two tokens and both are common first/last name shapes (<=12 chars) treat as person
+    
+    Delegates to CompanyValidator class (refactored).
     """
-    if not name:
-        return False
-    raw = name.strip()
-    if len(raw) > 40:  # Long strings unlikely to be just a person name
-        return False
-    tokens = raw.split()
-    if not (1 <= len(tokens) <= 3):
-        return False
-    corp_markers = {"inc", "llc", "ltd", "co", "corp", "corporation", "company", "technologies", "systems", "group"}
-    if any(t.lower().strip(".,") in corp_markers for t in tokens):
-        return False
-    # Reject if any token has non alpha (besides hyphen) or is ALLCAPS acronym
-    for t in tokens:
-        if not re.match(r"^[A-Z][a-z]+(?:-[A-Z][a-z]+)?$", t):
-            return False
-    # Two-token typical person pattern
-    if len(tokens) == 2 and all(len(t) <= 12 for t in tokens):
-        return True
-    # Single short token like "Kelly" should not be considered a company unless in known companies
-    if len(tokens) == 1 and len(tokens[0]) <= 10:
-        return True
-    return False
+    return _company_validator.looks_like_person(name)
 
 
 PARSER_VERSION = "1.0.0"

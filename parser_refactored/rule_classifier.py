@@ -89,6 +89,7 @@ class RuleClassifier:
         # Early detection patterns
         early_detection = self.patterns.get("early_detection", {})
         self._early_scheduling = self._compile_pattern_list(early_detection.get("scheduling_language", []))
+        self._reply_indicators = self._compile_pattern_list(early_detection.get("reply_indicators", []))
         self._early_referral = self._compile_pattern_list(early_detection.get("referral_language", []))
         self._early_rejection_override = self._compile_pattern_list(early_detection.get("rejection_override", []))
         self._early_application_confirm = self._compile_pattern_list(early_detection.get("application_confirmation", []))
@@ -169,11 +170,21 @@ class RuleClassifier:
                     print(f"[DEBUG rule_label] Early rejection match: {rx.pattern[:80]}")
                 return "rejection"
 
+        # Check if this is a reply/follow-up email (RE:, Re:, FW:, Fwd:, etc.)
+        is_reply = subject and any(rx.search(subject) for rx in self._reply_indicators)
+
         # Early scheduling-language detection -> interview_invite
+        # BUT classify as 'other' for replies (to avoid classifying scheduling follow-ups as interviews)
         if any(rx.search(s) for rx in self._early_scheduling):
-            if DEBUG:
-                print("[DEBUG rule_label] Early scheduling-language match -> interview_invite")
-            return "interview_invite"
+            if is_reply:
+                if DEBUG:
+                    print("[DEBUG rule_label] Scheduling language in reply detected -> treating as follow-up (other)")
+                # Scheduling follow-ups should be classified as 'other'
+                return "other"
+            else:
+                if DEBUG:
+                    print("[DEBUG rule_label] Early scheduling-language match -> interview_invite")
+                return "interview_invite"
 
         # Early referral detection
         if any(rx.search(s) for rx in self._early_referral):
@@ -271,11 +282,18 @@ class RuleClassifier:
                                     continue
 
                     # Special case: job_application with scheduling language -> interview_invite
+                    # BUT skip for replies (to avoid classifying scheduling follow-ups as interviews)
                     if label == "job_application":
                         if any(rx.search(s) for rx in self._early_scheduling):
-                            if DEBUG:
-                                print("[DEBUG rule_label] Matched scheduling language -> returning interview_invite")
-                            return "interview_invite"
+                            if is_reply:
+                                if DEBUG:
+                                    print("[DEBUG rule_label] job_application + scheduling in reply -> skipping interview_invite")
+                                # Don't convert to interview_invite for scheduling follow-ups
+                                # Fall through to return job_application or continue checking
+                            else:
+                                if DEBUG:
+                                    print("[DEBUG rule_label] Matched scheduling language -> returning interview_invite")
+                                return "interview_invite"
 
                     if DEBUG and label == "rejection":
                         print(f"[DEBUG rule_label] About to return '{label}'")

@@ -1,14 +1,26 @@
 """Gmail message parsing and ingestion engine.
 
-    # Respect caller's intention to suppress auto-review (e.g., re-ingest from UI)
-    if os.environ.get("SUPPRESS_AUTO_REVIEW", "").lower() in ("1", "true", "yes"):
-        reviewed = False
 This module handles the core email processing pipeline:
 - Extracts metadata (subject, sender, body, timestamps) from Gmail API responses
 - Applies hybrid ML + regex-based classification (interview/rejection/application/noise)
 - Resolves company names via 4-tier fallback (whitelist → domain mapping → ML → regex)
 - Creates/updates Django ORM records (Message, Application, Company)
 - Tracks ingestion statistics and handles duplicate detection
+
+Architecture:
+    Phase 3 (Refactoring): Consolidated parser classes from parser_refactored/ package
+    into this single file for simpler architecture and easier maintenance.
+    
+    Previously, these classes were separated in parser_refactored/:
+    - CompanyValidator: Company name validation and normalization
+    - DomainMapper: Domain-to-company mapping and ATS detection
+    - RuleClassifier: Rule-based classification using regex patterns
+    - CompanyResolver: Company name extraction strategies
+    - EmailBodyParser: Email body extraction and MIME decoding
+    - MetadataExtractor: Date/metadata extraction from emails
+    
+    Now all classes are defined inline in this module, maintaining the same APIs
+    and functionality while eliminating the need for a separate package.
 """
 import base64
 import hashlib
@@ -51,19 +63,1304 @@ from tracker.models import (
     UnresolvedCompany,
 )
 
-# Import refactored components
-from parser_refactored import (
-    CompanyValidator,
-    RuleClassifier,
-    DomainMapper,
-    CompanyResolver,
-    EmailBodyParser,
-    MetadataExtractor,
-)
-
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dashboard.settings")
 django.setup()
 DEBUG = True
+
+
+# ======================================================================================
+# PHASE 3: CONSOLIDATED PARSER CLASSES
+# Previously in parser_refactored/ package, now consolidated here for simplicity.
+# ======================================================================================
+
+
+class CompanyValidator:
+    """Handles company name validation and normalization.
+    
+    This class provides methods for:
+    - Validating company names against invalid patterns
+    - Normalizing company names (removing artifacts, standardizing format)
+    - Detecting if a string looks like a person's name rather than a company
+    """
+    
+    def __init__(self, patterns: dict):
+        """Initialize the validator with pattern definitions.
+        
+        Args:
+            patterns: Dictionary containing 'invalid_company_prefixes' and other patterns
+        """
+        self.patterns = patterns
+        self.invalid_prefixes = patterns.get("invalid_company_prefixes", [])
+    
+    def is_valid_company_name(self, name):
+        """Reject company names that match known invalid prefixes from patterns.
+        
+        Args:
+            name: Company name to validate
+            
+        Returns:
+            True if valid company name, False if invalid or matches exclusion patterns
+        """
+        if not name:
+            return False
+
+        for prefix in self.invalid_prefixes:
+            try:
+                # Compile each prefix as regex, using re.IGNORECASE
+                if re.match(prefix, name, re.IGNORECASE):
+                    return False
+            except re.error:
+                # If invalid regex, fallback to simple startswith
+                if name.lower().startswith(prefix.lower()):
+                    return False
+        return True
+    
+    def normalize_company_name(self, name: str) -> str:
+        """Normalize common subject-derived artifacts from company names.
+
+        - Strip whitespace and trailing punctuation
+        - Remove suffix fragments like "- Application ..." or trailing "Application"
+        - Collapse repeated whitespace
+        - Map known pseudo-companies like "Indeed Application" -> "Indeed"
+        
+        Args:
+            name: Company name to normalize
+            
+        Returns:
+            Normalized company name
+        """
+        if not name:
+            return ""
+
+        n = name.strip()
+
+        # Remove common subject suffixes accidentally captured
+        n = re.sub(r"\s*-\s*Application.*$", "", n, flags=re.IGNORECASE)
+        n = re.sub(r"\bApplication\b\s*$", "", n, flags=re.IGNORECASE)
+
+        # Trim lingering separators/punctuation
+        n = re.sub(r"[\s\-:|•]+$", "", n)
+
+        # Collapse multiple internal spaces
+        n = re.sub(r"\s{2,}", " ", n)
+
+        # Known normalizations
+        lower = n.lower()
+        if lower == "indeed application":
+            return "Indeed"
+
+        return n
+    
+    def looks_like_person(self, name: str) -> bool:
+        """Heuristic: return True if the string looks like an individual person's name.
+
+        Criteria (intentionally conservative so we *reject* obvious person names):
+        - 1–3 tokens, each starting with capital then lowercase letters only
+        - No token contains digits, '&', '@', '.', or corporate suffix markers
+        - Contains no common company suffix words (Inc, LLC, Corp, Company, Technologies, Systems)
+        - If exactly two tokens and both are common first/last name shapes (<=12 chars) treat as person
+        
+        Args:
+            name: Name string to check
+            
+        Returns:
+            True if likely a person name, False if likely a company name
+        """
+        if not name:
+            return False
+        raw = name.strip()
+        if len(raw) > 40:  # Long strings unlikely to be just a person name
+            return False
+        tokens = raw.split()
+        if not (1 <= len(tokens) <= 3):
+            return False
+        corp_markers = {
+            "inc", "llc", "ltd", "co", "corp", "corporation", 
+            "company", "technologies", "systems", "group"
+        }
+        if any(t.lower().strip(".,") in corp_markers for t in tokens):
+            return False
+        # Reject if any token has non alpha (besides hyphen) or is ALLCAPS acronym
+        for t in tokens:
+            if not re.match(r"^[A-Z][a-z]+(?:-[A-Z][a-z]+)?$", t):
+                return False
+        # Two-token typical person pattern
+        if len(tokens) == 2 and all(len(t) <= 12 for t in tokens):
+            return True
+        # Single short token like "Kelly" should not be considered a company unless in known companies
+        if len(tokens) == 1 and len(tokens[0]) <= 10:
+            return True
+        return False
+
+
+class DomainMapper:
+    """Maps email domains to companies and detects ATS/job board domains.
+    
+    This class encapsulates domain resolution logic, company data loading,
+    and automatic reloading when the companies.json file changes.
+    """
+
+    def __init__(self, companies_path: Path):
+        """Initialize DomainMapper with path to companies.json.
+        
+        Args:
+            companies_path: Path to companies.json configuration file
+        """
+        self.companies_path = companies_path
+        self._domain_map_mtime = None
+        
+        # Company data structures
+        self.ats_domains = []
+        self.headhunter_domains = []
+        self.job_board_domains = []
+        self.known_companies = set()
+        self.known_companies_cased = []
+        self.domain_to_company = {}
+        self.aliases = {}
+        self.company_data = {}
+        
+        # Load initial data
+        self._load_company_data()
+
+    def _load_company_data(self):
+        """Load company data from companies.json file."""
+        if not self.companies_path.exists():
+            if DEBUG:
+                print(f"[WARNING] companies.json not found at {self.companies_path}")
+            return
+        
+        try:
+            with open(self.companies_path, "r", encoding="utf-8") as f:
+                self.company_data = json.load(f)
+            
+            # Extract all company configuration data
+            self.ats_domains = [d.lower() for d in self.company_data.get("ats_domains", [])]
+            self.headhunter_domains = [d.lower() for d in self.company_data.get("headhunter_domains", [])]
+            self.job_board_domains = [d.lower() for d in self.company_data.get("job_boards", [])]
+            self.known_companies = {c.lower() for c in self.company_data.get("known", [])}
+            self.known_companies_cased = self.company_data.get("known", [])
+            self.domain_to_company = {
+                k.lower(): v for k, v in self.company_data.get("domain_to_company", {}).items()
+            }
+            self.aliases = self.company_data.get("aliases", {})
+            
+            # Track file modification time for auto-reload
+            try:
+                self._domain_map_mtime = self.companies_path.stat().st_mtime
+            except Exception:
+                self._domain_map_mtime = None
+                
+            if DEBUG:
+                print(f"[INFO] Loaded companies.json: {len(self.domain_to_company)} domains, "
+                      f"{len(self.known_companies)} companies")
+                
+        except json.JSONDecodeError as e:
+            print(f"[Error] Failed to parse companies.json: {e}")
+            self.company_data = {}
+        except Exception as e:
+            print(f"[Error] Unable to read companies.json: {e}")
+            self.company_data = {}
+
+    def reload_if_needed(self):
+        """Reload company data from companies.json if the file has been modified.
+        
+        This allows companies.json edits to be picked up at runtime without
+        restarting the process.
+        """
+        try:
+            if not self.companies_path.exists():
+                return
+            
+            mtime = self.companies_path.stat().st_mtime
+            if self._domain_map_mtime != mtime:
+                self._load_company_data()
+                if DEBUG:
+                    print(f"[INFO] Reloaded companies.json (mtime changed)")
+        except Exception as e:
+            # If reload fails, keep the existing mapping silently
+            if DEBUG:
+                print(f"[WARNING] Failed to reload companies.json: {e}")
+
+    def is_ats_domain(self, domain: str) -> bool:
+        """Return True if domain equals or is a subdomain of any ATS root domain.
+        
+        Args:
+            domain: Email domain to check (e.g., 'myworkday.com', 'talent.icims.com')
+            
+        Returns:
+            True if domain is an ATS domain, False otherwise
+        """
+        if not domain:
+            return False
+        d = domain.lower()
+        for ats in self.ats_domains:
+            if d == ats or d.endswith("." + ats):
+                return True
+        return False
+
+    def map_company_by_domain(self, domain: str):
+        """Resolve company by exact or subdomain match from domain_to_company mapping.
+
+        Example: if mapping contains 'nsa.gov' -> 'National Security Agency', then
+        'uwe.nsa.gov' will also map to that company.
+        
+        Args:
+            domain: Email domain to resolve (e.g., 'careers.company.com')
+            
+        Returns:
+            Company name if domain maps to a known company, None otherwise
+        """
+        # Ensure we have the latest mapping
+        self.reload_if_needed()
+        
+        if not domain:
+            return None
+        
+        d = domain.lower()
+        
+        # Exact match first
+        if d in self.domain_to_company:
+            return self.domain_to_company[d]
+        
+        # Subdomain suffix match
+        for root, company in self.domain_to_company.items():
+            if d.endswith("." + root):
+                return company
+        
+        return None
+
+    def is_job_board_domain(self, domain: str) -> bool:
+        """Return True if domain is a known job board domain.
+        
+        Args:
+            domain: Email domain to check
+            
+        Returns:
+            True if domain is a job board, False otherwise
+        """
+        if not domain:
+            return False
+        return domain.lower() in self.job_board_domains
+
+    def is_headhunter_domain(self, domain: str) -> bool:
+        """Return True if domain is a known headhunter/recruiting agency domain.
+        
+        Args:
+            domain: Email domain to check
+            
+        Returns:
+            True if domain is a headhunter domain, False otherwise
+        """
+        if not domain:
+            return False
+        return domain.lower() in self.headhunter_domains
+
+
+class RuleClassifier:
+    """Classifies email messages using rule-based regex patterns.
+    
+    This class encapsulates the rule_label function logic, which checks message
+    text against compiled regex patterns in a prioritized order to classify
+    job search emails (applications, rejections, interviews, etc.).
+    """
+
+    def __init__(self, patterns: dict):
+        """Initialize RuleClassifier with patterns from patterns.json.
+        
+        Args:
+            patterns: Dictionary containing message_label_patterns, 
+                     message_label_excludes, special_cases, early_detection,
+                     and validation_rules from patterns.json
+        """
+        self.patterns = patterns
+        self._compile_patterns()
+        self._compile_special_patterns()
+
+    def _compile_patterns(self):
+        """Compile regex patterns from patterns.json for efficient matching."""
+        self._msg_label_patterns = {}
+        
+        # Map code labels to patterns.json keys
+        label_key_map = {
+            "interview_invite": "interview",
+            "job_application": "application",
+            "rejection": "rejection",
+            "offer": "offer",
+            "noise": "noise",
+            "head_hunter": "head_hunter",
+            "ignore": "ignore",
+            "response": "response",
+            "follow_up": "follow_up",
+            "ghosted": "ghosted",
+            "referral": "referral",
+            "other": "other",
+            "blank": "blank",
+        }
+        
+        # Compile positive patterns for each label
+        message_labels = self.patterns.get("message_labels", {})
+        for code_label, pattern_key in label_key_map.items():
+            compiled = []
+            pattern_list = message_labels.get(pattern_key, [])
+            for p in pattern_list:
+                if p != "None":
+                    try:
+                        compiled.append(re.compile(p, re.I))
+                    except re.error as e:
+                        print(f"⚠️  Invalid regex pattern for {code_label}: {p} - {e}")
+            self._msg_label_patterns[code_label] = compiled
+
+        # Compile negative patterns (excludes) for each label
+        message_excludes = self.patterns.get("message_label_excludes", {})
+        self._msg_label_excludes = {}
+        for code_label, pattern_key in label_key_map.items():
+            exclude_list = message_excludes.get(pattern_key, [])
+            compiled_excludes = []
+            for p in exclude_list:
+                try:
+                    compiled_excludes.append(re.compile(p, re.I))
+                except re.error as e:
+                    print(f"⚠️  Invalid exclude pattern for {code_label}: {p} - {e}")
+            self._msg_label_excludes[code_label] = compiled_excludes
+
+    def _compile_special_patterns(self):
+        """Compile special case, early detection, and validation patterns from patterns.json."""
+        # Special cases (subject-based rules)
+        special_cases = self.patterns.get("special_cases", {})
+        self._special_indeed_subject = self._compile_pattern_list(special_cases.get("indeed_application_subject", []))
+        self._special_assessment = self._compile_pattern_list(special_cases.get("assessment_complete", []))
+        self._special_incomplete_app = self._compile_pattern_list(special_cases.get("incomplete_application_reminder", []))
+        
+        # Early detection patterns
+        early_detection = self.patterns.get("early_detection", {})
+        self._early_scheduling = self._compile_pattern_list(early_detection.get("scheduling_language", []))
+        self._reply_indicators = self._compile_pattern_list(early_detection.get("reply_indicators", []))
+        self._early_referral = self._compile_pattern_list(early_detection.get("referral_language", []))
+        self._early_rejection_override = self._compile_pattern_list(early_detection.get("rejection_override", []))
+        self._early_application_confirm = self._compile_pattern_list(early_detection.get("application_confirmation", []))
+        
+        # Validation rules
+        validation = self.patterns.get("validation_rules", {})
+        self._headhunter_contact_patterns = validation.get("head_hunter_contact_patterns", [])
+        signature_pattern = validation.get("head_hunter_signature_pattern", "")
+        self._headhunter_signature_rx = re.compile(signature_pattern, re.I) if signature_pattern else None
+        referral_lang = validation.get("referral_explicit_language", "")
+        self._referral_explicit_rx = re.compile(referral_lang, re.I) if referral_lang else None
+
+    def _compile_pattern_list(self, pattern_list):
+        """Helper to compile a list of regex patterns."""
+        compiled = []
+        for p in pattern_list:
+            try:
+                compiled.append(re.compile(p, re.I | re.DOTALL))
+            except re.error as e:
+                print(f"⚠️  Invalid pattern: {p} - {e}")
+        return compiled
+
+    def classify(
+        self,
+        subject: str,
+        body: str = "",
+        sender_domain=None,
+        headhunter_domains: set = None,
+        job_board_domains: set = None,
+        is_ats_domain_fn=None,
+        map_company_by_domain_fn=None,
+    ):
+        """Return a rule-based label from compiled regex patterns.
+
+        Checks message text against label patterns in a prioritized order to
+        reduce false positives (e.g., prefer noise over rejected for newsletters).
+
+        Args:
+            subject: Email subject line
+            body: Email body text
+            sender_domain: Sender's email domain (optional)
+            headhunter_domains: Set of known headhunter domains (optional)
+            job_board_domains: Set of known job board domains (optional)
+            is_ats_domain_fn: Function to check if domain is an ATS (optional)
+            map_company_by_domain_fn: Function to map domain to company (optional)
+
+        Returns:
+            One of the known labels or None if no rule matches.
+            Labels: interview_invite, job_application, rejection, offer, noise,
+                   head_hunter, other, referral, ghosted, blank
+        """
+        s = f"{subject or ''} {body or ''}"
+
+        # Special-case: Indeed application confirmation subjects
+        if subject and any(rx.search(subject) for rx in self._special_indeed_subject):
+            if DEBUG:
+                print("[DEBUG rule_label] Forcing job_application for Indeed Application subject")
+            return "job_application"
+
+        # Special-case: Assessment completion notifications -> "other"
+        subject_text = subject or ""
+        if any(rx.search(subject_text) for rx in self._special_assessment):
+            if DEBUG:
+                print("[DEBUG rule_label] Forcing 'other' for assessment completion notification")
+            return "other"
+
+        # Special-case: Incomplete application reminders -> "other"
+        if any(rx.search(s) for rx in self._special_incomplete_app):
+            if DEBUG:
+                print("[DEBUG rule_label] Forcing 'other' for incomplete application reminder")
+            return "other"
+
+        # Check rejection patterns EARLY (before scheduling detection)
+        # This prevents email threads with rejection + old scheduling language from being misclassified
+        for rx in self._msg_label_patterns.get("rejection", []):
+            if rx.search(s):
+                if DEBUG:
+                    print(f"[DEBUG rule_label] Early rejection match: {rx.pattern[:80]}")
+                return "rejection"
+
+        # Check if this is a reply/follow-up email (RE:, Re:, FW:, Fwd:, etc.)
+        is_reply = subject and any(rx.search(subject) for rx in self._reply_indicators)
+
+        # Early scheduling-language detection -> interview_invite
+        # BUT classify as 'other' for replies (to avoid classifying scheduling follow-ups as interviews)
+        if any(rx.search(s) for rx in self._early_scheduling):
+            if is_reply:
+                if DEBUG:
+                    print("[DEBUG rule_label] Scheduling language in reply detected -> treating as follow-up (other)")
+                # Scheduling follow-ups should be classified as 'other'
+                return "other"
+            else:
+                if DEBUG:
+                    print("[DEBUG rule_label] Early scheduling-language match -> interview_invite")
+                return "interview_invite"
+
+        # Early referral detection
+        if any(rx.search(s) for rx in self._early_referral):
+            if DEBUG:
+                print(f"[DEBUG rule_label] Early referral match -> referral")
+            return "referral"
+
+        # Check for rejection signals BEFORE application confirmation
+        # (to handle mixed messages like "thanks for applying, but we moved forward with others")
+        for rx in self._early_rejection_override:
+            if rx.search(s):
+                if DEBUG:
+                    print(f"[DEBUG rule_label] Early rejection signal detected, checking rejection patterns")
+                # Verify with full rejection patterns
+                for pattern_rx in self._msg_label_patterns.get("rejection", []):
+                    if pattern_rx.search(s):
+                        if DEBUG:
+                            print(f"[DEBUG rule_label] Rejection confirmed -> rejection")
+                        return "rejection"
+                break  # Exit after checking rejection patterns once
+
+        # Explicit application-confirmation signals -> job_application
+        if any(rx.search(s) for rx in self._early_application_confirm):
+            if DEBUG:
+                print("[DEBUG rule_label] Matched application-confirmation -> job_application")
+            return "job_application"
+
+        # Check labels in priority order
+        for label in (
+            "offer",
+            "rejection",
+            "head_hunter",
+            "noise",
+            "job_application",
+            "interview_invite",
+            "other",
+            "referral",
+            "ghosted",
+            "blank",
+        ):
+            if DEBUG and label == "rejection":
+                print(f"[DEBUG rule_label] Checking '{label}' patterns...")
+            
+            for rx in self._msg_label_patterns.get(label, []):
+                match = rx.search(s)
+                if match:
+                    if DEBUG and label in ("rejection", "noise"):
+                        print(f"[DEBUG rule_label] Pattern MATCHED for '{label}': {rx.pattern[:80]}")
+                        print(f"  Matched text: '{match.group()}'")
+                    
+                    # Check exclude patterns
+                    excludes = self._msg_label_excludes.get(label, [])
+                    if DEBUG and label == "noise" and excludes:
+                        print(f"[DEBUG rule_label] Checking {len(excludes)} exclusion patterns for noise...")
+                    
+                    matched_excludes = [ex for ex in excludes if ex.search(s)]
+                    if matched_excludes:
+                        if DEBUG:
+                            print(f"[DEBUG rule_label] Label '{label}' pattern matched but EXCLUDED by:")
+                            for ex in matched_excludes:
+                                print(f"  - {ex.pattern}")
+                        continue
+
+                    # Conservative handling for head_hunter / referral labels
+                    if label in ("head_hunter", "referral"):
+                        d = (sender_domain or "").lower()
+
+                        # Allow immediate return if domain is configured as headhunter
+                        if headhunter_domains and d and d in headhunter_domains:
+                            return label
+
+                        # Skip if domain is ATS/job-board/company
+                        try:
+                            if d:
+                                is_ats = is_ats_domain_fn(d) if is_ats_domain_fn else False
+                                is_job_board = d in job_board_domains if job_board_domains else False
+                                is_company = map_company_by_domain_fn(d) if map_company_by_domain_fn else False
+                                if is_ats or is_job_board or is_company:
+                                    continue
+                        except Exception:
+                            pass
+
+                        # Additional strictness for head_hunter: require contact evidence
+                        if label == "head_hunter":
+                            has_contact = (
+                                any(re.search(p, s, re.I) for p in self._headhunter_contact_patterns)
+                                or (self._headhunter_signature_rx and self._headhunter_signature_rx.search(s))
+                            )
+                            if not has_contact:
+                                continue
+                        else:
+                            # For referral: require explicit referral language if no domain
+                            if not d:
+                                if not (self._referral_explicit_rx and self._referral_explicit_rx.search(s)):
+                                    continue
+
+                    # Special case: job_application with scheduling language -> interview_invite
+                    # BUT skip for replies (to avoid classifying scheduling follow-ups as interviews)
+                    if label == "job_application":
+                        if any(rx.search(s) for rx in self._early_scheduling):
+                            if is_reply:
+                                if DEBUG:
+                                    print("[DEBUG rule_label] job_application + scheduling in reply -> skipping interview_invite")
+                                # Don't convert to interview_invite for scheduling follow-ups
+                                # Fall through to return job_application or continue checking
+                            else:
+                                if DEBUG:
+                                    print("[DEBUG rule_label] Matched scheduling language -> returning interview_invite")
+                                return "interview_invite"
+
+                    if DEBUG and label == "rejection":
+                        print(f"[DEBUG rule_label] About to return '{label}'")
+                    return label
+
+        return None
+
+
+class EmailBodyParser:
+    """Parses and extracts body text from email messages.
+    
+    This class handles:
+    - MIME part decoding (base64, quoted-printable, 7bit)
+    - Gmail API payload body extraction (recursive multipart handling)
+    - Raw EML message parsing
+    - HTML to plain text conversion
+    - Header extraction for classification
+    """
+
+    @staticmethod
+    def decode_mime_part(data: str, encoding: str) -> str:
+        """Decode a MIME part body string using the provided encoding.
+
+        Supports base64, quoted-printable, and 7bit. Returns a decoded UTF-8 string.
+        
+        Args:
+            data: Encoded MIME part data
+            encoding: Encoding type (base64, quoted-printable, 7bit)
+            
+        Returns:
+            Decoded UTF-8 string
+        """
+        if encoding == "base64":
+            return base64.urlsafe_b64decode(data).decode("utf-8", errors="ignore")
+        elif encoding == "quoted-printable":
+            return quopri.decodestring(data).decode("utf-8", errors="ignore")
+        elif encoding == "7bit":
+            return data  # usually already decoded
+        else:
+            return data
+
+    @staticmethod
+    def extract_from_gmail_parts(parts: list) -> str:
+        """Extract the first HTML part's body from a Gmail message payload tree.
+
+        Walks nested multipart sections; prefers HTML and returns full HTML string.
+        
+        Args:
+            parts: List of Gmail API message parts
+            
+        Returns:
+            HTML body string, "Empty Body" if empty, or "" if not found
+        """
+        for part in parts:
+            mime_type = part.get("mimeType")
+            body_data = part.get("body", {}).get("data")
+            
+            if mime_type == "text/html" and body_data:
+                decoded = base64.urlsafe_b64decode(body_data).decode("utf-8", errors="ignore")
+                if not decoded:
+                    decoded = "Empty Body"
+                    if DEBUG:
+                        print("Decoded Body/HTML part is empty.")
+                return decoded  # preserve full HTML
+            elif "parts" in part:
+                result = EmailBodyParser.extract_from_gmail_parts(part["parts"])
+                if result:
+                    return result
+                else:
+                    return "Empty Body"
+        
+        return ""
+
+    @staticmethod
+    def decode_header_value(raw_val: str) -> str:
+        """Decode RFC 2047 encoded header values to unicode.
+
+        Falls back gracefully on decode errors, always returns a str.
+        
+        Args:
+            raw_val: Raw header value (may be RFC 2047 encoded)
+            
+        Returns:
+            Decoded unicode string
+        """
+        if not raw_val:
+            return ""
+        
+        try:
+            parts = eml_decode_header(raw_val)
+            decoded_chunks = []
+            for text, enc in parts:
+                if isinstance(text, bytes):
+                    try:
+                        decoded_chunks.append(text.decode(enc or "utf-8", errors="ignore"))
+                    except Exception:
+                        decoded_chunks.append(text.decode("utf-8", errors="ignore"))
+                else:
+                    decoded_chunks.append(text)
+            return "".join(decoded_chunks)
+        except Exception:
+            return raw_val
+
+    @staticmethod
+    def html_to_text(html: str) -> str:
+        """Convert HTML to plain text using BeautifulSoup.
+        
+        Args:
+            html: HTML content
+            
+        Returns:
+            Plain text with HTML tags removed
+        """
+        if not html:
+            return ""
+        
+        try:
+            soup = BeautifulSoup(html, "html.parser")
+            # Remove script and style tags
+            for tag in soup(["script", "style"]):
+                tag.decompose()
+            return soup.get_text(separator=" ", strip=True)
+        except Exception:
+            return html
+
+    @staticmethod
+    def parse_raw_eml(raw_text: str, now_fn=None):
+        """Parse a raw EML (RFC 822) message string and return metadata.
+
+        This allows debugging/ingesting messages pasted into the UI or loaded from disk
+        without requiring a live Gmail API service call.
+        
+        Args:
+            raw_text: Raw EML message text
+            now_fn: Function to get current time (for testing)
+            
+        Returns:
+            Dictionary with keys: subject, body, body_html, timestamp, date(str),
+            sender, sender_domain, thread_id(None), labels(""), last_updated, header_hints
+        """
+        if now_fn is None:
+            now_fn = timezone.now
+        
+        if not raw_text:
+            return {
+                "subject": "",
+                "body": "",
+                "body_html": "",
+                "timestamp": now_fn(),
+                "date": now_fn().strftime("%Y-%m-%d %H:%M:%S"),
+                "sender": "",
+                "sender_domain": "",
+                "thread_id": None,
+                "labels": "",
+                "last_updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "header_hints": {},
+            }
+
+        try:
+            eml = eml_from_string(raw_text)
+        except Exception:
+            # Return minimal structure if parsing fails
+            return {
+                "subject": "(parse error)",
+                "body": raw_text,
+                "body_html": "",
+                "timestamp": now_fn(),
+                "date": now_fn().strftime("%Y-%m-%d %H:%M:%S"),
+                "sender": "",
+                "sender_domain": "",
+                "thread_id": None,
+                "labels": "",
+                "last_updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "header_hints": {},
+            }
+
+        subject = EmailBodyParser.decode_header_value(eml.get("Subject", ""))
+        sender = EmailBodyParser.decode_header_value(eml.get("From", ""))
+        date_raw = eml.get("Date", "")
+        
+        try:
+            date_obj = parsedate_to_datetime(date_raw)
+            if timezone.is_naive(date_obj):
+                date_obj = timezone.make_aware(date_obj)
+        except Exception:
+            date_obj = now_fn()
+        
+        date_str = date_obj.strftime("%Y-%m-%d %H:%M:%S")
+
+        # Extract sender domain
+        parsed = parseaddr(sender)
+        email_addr = parsed[1] if len(parsed) == 2 else ""
+        match = re.search(r"@([A-Za-z0-9.-]+)$", email_addr)
+        sender_domain = match.group(1).lower() if match else ""
+
+        # Walk parts for body (prefer HTML) else text/plain
+        body_html = ""
+        body_text = ""
+        
+        if eml.is_multipart():
+            for part in eml.walk():
+                ctype = part.get_content_type()
+                disp = (part.get("Content-Disposition") or "").lower()
+                
+                if "attachment" in disp:
+                    continue  # skip attachments
+                
+                try:
+                    payload = part.get_payload(decode=True)
+                    if payload is None:
+                        continue
+                    decoded = payload.decode(part.get_content_charset() or "utf-8", errors="ignore")
+                except Exception:
+                    continue
+                
+                if ctype == "text/html" and not body_html:
+                    body_html = decoded
+                elif ctype == "text/plain" and not body_text:
+                    body_text = decoded
+        else:
+            try:
+                payload = eml.get_payload(decode=True)
+                if payload:
+                    body_text = payload.decode(eml.get_content_charset() or "utf-8", errors="ignore")
+            except Exception:
+                body_text = raw_text
+
+        if body_html and not body_text:
+            # Provide plain text fallback from HTML
+            body_text = EmailBodyParser.html_to_text(body_html)
+
+        # Header hints similar to Gmail path (limited set for EML)
+        header_hints = {
+            "is_newsletter": any(h in eml for h in ["List-Id", "List-Unsubscribe", "X-Newsletter"]),
+            "is_bulk": EmailBodyParser.decode_header_value(eml.get("Precedence", "")).lower() == "bulk",
+            "is_noreply": "noreply" in sender.lower() or "no-reply" in sender.lower(),
+            "reply_to": EmailBodyParser.decode_header_value(eml.get("Reply-To", "")) or None,
+            "organization": EmailBodyParser.decode_header_value(eml.get("Organization", "")) or None,
+            "auto_submitted": EmailBodyParser.decode_header_value(eml.get("Auto-Submitted", "")).lower() not in ("", "no"),
+        }
+
+        # Combine headers for classification like Gmail version
+        header_text = []
+        for h_name, h_val in eml.items():
+            if h_name.lower() in {"list-id", "list-unsubscribe", "precedence", "reply-to", "organization"}:
+                header_text.append(f"{h_name}: {h_val}")
+        
+        body_for_classification = ("\n".join(header_text) + "\n\n" + (body_text or "")).strip()
+
+        return {
+            "thread_id": None,
+            "subject": subject,
+            "body": body_for_classification,
+            "body_html": body_html,
+            "date": date_str,
+            "timestamp": date_obj,
+            "labels": "",
+            "last_updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "sender": sender,
+            "sender_domain": sender_domain,
+            "header_hints": header_hints,
+        }
+
+
+class CompanyResolver:
+    """Resolves and extracts company names from email messages.
+    
+    This class implements multiple strategies for company name extraction:
+    - ATS domain/sender prefix matching
+    - Job board application confirmation parsing
+    - Domain-to-company mapping
+    - Known company list matching
+    - Regex pattern extraction from subject lines
+    - Entity extraction (spaCy NER)
+    - Display name fallback
+    """
+
+    def __init__(
+        self,
+        company_data: dict,
+        domain_mapper,
+        company_validator,
+        known_companies: set,
+        job_board_domains: list,
+        ats_domains: list,
+    ):
+        """Initialize CompanyResolver with configuration data and dependencies.
+        
+        Args:
+            company_data: Dictionary from companies.json with aliases, known companies
+            domain_mapper: DomainMapper instance for domain resolution
+            company_validator: CompanyValidator instance for validation
+            known_companies: Set of known company names (lowercase)
+            job_board_domains: List of job board domains
+            ats_domains: List of ATS domains
+        """
+        self.company_data = company_data
+        self.domain_mapper = domain_mapper
+        self.company_validator = company_validator
+        self.known_companies = known_companies
+        self.job_board_domains = job_board_domains
+        self.ats_domains = ats_domains
+
+    def extract_from_ats_sender(
+        self, sender: str, sender_domain
+    ):
+        """Extract company from ATS sender prefix (e.g., ngc@myworkday.com -> Northrop Grumman).
+        
+        Args:
+            sender: Full sender email (with optional display name)
+            sender_domain: Sender's email domain
+            
+        Returns:
+            Company name if found, None otherwise
+        """
+        if not sender_domain:
+            return None
+        
+        # Check if this is an ATS domain
+        is_ats = False
+        domain_lower = sender_domain.lower()
+        for ats_root in self.ats_domains:
+            if domain_lower == ats_root or domain_lower.endswith(f".{ats_root}"):
+                is_ats = True
+                break
+        
+        if not is_ats:
+            return None
+        
+        # Extract email address from "Display Name <email@domain.com>"
+        _, sender_email = parseaddr(sender)
+        if not sender_email or "@" not in sender_email:
+            return None
+        
+        sender_prefix = sender_email.split("@", maxsplit=1)[0].strip().lower()
+        
+        # Check if prefix matches an alias
+        aliases_lower = {k.lower(): v for k, v in self.company_data.get("aliases", {}).items()}
+        if sender_prefix in aliases_lower:
+            if DEBUG:
+                print(f"[DEBUG] ATS alias match: {sender_prefix} -> {aliases_lower[sender_prefix]}")
+            return aliases_lower[sender_prefix]
+        
+        return None
+
+    def extract_from_job_board_body(
+        self, body: str, subject: str, sender_email: str, sender_domain
+    ):
+        """Extract actual employer from job board application confirmation body.
+        
+        Works for Indeed, LinkedIn, Dice, etc. when subject contains "Application"
+        and sender is from a job board domain.
+        
+        Args:
+            body: Email body text (may be HTML)
+            subject: Email subject line
+            sender_email: Sender's email address
+            sender_domain: Sender's email domain
+            
+        Returns:
+            Extracted company name if found, None otherwise
+        """
+        if not body or not subject:
+            return None
+        
+        if not re.search(r'\bapplication\b', subject, re.IGNORECASE):
+            return None
+        
+        domain_lower = (sender_domain or "").lower()
+        
+        # Check if this is a job board domain
+        is_job_board = (
+            domain_lower in self.job_board_domains or
+            "indeedapply" in sender_email or
+            "application" in subject.lower()
+        )
+        
+        if not is_job_board:
+            return None
+        
+        if DEBUG:
+            print(f"[DEBUG] Job board confirmation detected, attempting body extraction")
+        
+        # Extract plain text body for pattern matching
+        body_plain = body
+        try:
+            if "<html" in body.lower() or "<style" in body.lower():
+                soup = BeautifulSoup(body, "html.parser")
+                for tag in soup(["style", "script"]):
+                    tag.decompose()
+                body_plain = soup.get_text(separator=" ", strip=True)
+        except Exception:
+            body_plain = body
+        
+        if not body_plain:
+            return None
+        
+        # Try pattern 1: "sent to COMPANY"
+        pattern1 = re.search(
+            r"(?:the following items were sent to|sent to)\s+([A-Z][A-Za-z0-9\s&.,'-]+?)\s*[.\n]",
+            body_plain,
+            re.IGNORECASE,
+        )
+        
+        if pattern1:
+            extracted = pattern1.group(1).strip()
+        else:
+            # Try pattern 2: "about your application" with company name before it
+            pattern2 = re.search(
+                r"<strong>\s*<a[^>]+>([A-Z][A-Za-z0-9\s&.,'-]+?)</a>\s*</strong>.*?about your application",
+                body,
+                re.IGNORECASE | re.DOTALL,
+            )
+            extracted = pattern2.group(1).strip() if pattern2 else None
+        
+        if not extracted:
+            return None
+        
+        # Clean up common trailing words
+        extracted = re.sub(
+            r"\s+(and|About|Your|Application|Details)$",
+            "",
+            extracted,
+            flags=re.IGNORECASE,
+        ).strip()
+        
+        # Remove trailing punctuation
+        extracted = extracted.rstrip(".,;:")
+        
+        if extracted and len(extracted) > 2 and self.company_validator.is_valid_company_name(extracted):
+            if DEBUG:
+                print(f"[DEBUG] Job board employer extraction SUCCESS: {extracted}")
+            return extracted
+        
+        return None
+
+    def extract_from_ats_display_name(
+        self, sender: str, check_known: bool = False
+    ):
+        """Extract company from ATS display name with validation.
+        
+        Args:
+            sender: Full sender string with display name
+            check_known: If True, only return if company is known or looks like a company
+            
+        Returns:
+            Company name if valid, None otherwise
+        """
+        if not sender:
+            return None
+        
+        display_name, _ = parseaddr(sender)
+        
+        # Clean up ATS-specific noise
+        cleaned = re.sub(
+            r"\b(Workday|Recruiting Team|Careers|Talent Acquisition Team|HR|Hiring|Notification|Notifications|Team|Portal)\b",
+            "",
+            display_name,
+            flags=re.I,
+        ).strip()
+        
+        # Remove ATS platform suffixes
+        cleaned = re.sub(
+            r'\s*@\s*(icims|workday|greenhouse|lever|indeed)\s*$',
+            '',
+            cleaned,
+            flags=re.I
+        ).strip()
+        
+        # Clean up multiple spaces
+        cleaned = re.sub(r'\s+', ' ', cleaned).strip()
+        
+        if not cleaned or len(cleaned) <= 2:
+            return None
+        
+        # If checking known companies, validate
+        if check_known:
+            # Check if it's a known company
+            if cleaned.lower() in {c.lower() for c in self.known_companies}:
+                return cleaned
+            
+            # Check if it looks like a company (not a person name)
+            words = cleaned.split()
+            is_likely_company = (
+                len(words) >= 3 or
+                any(w in cleaned for w in ['Corporation', 'Inc', 'LLC', 'Ltd', 'Group', 'Technologies', 'Systems']) or
+                any(len(w) > 12 for w in words)
+            )
+            
+            if is_likely_company:
+                return cleaned
+            
+            return None
+        
+        return cleaned
+
+    def extract_from_subject_patterns(
+        self, subject: str
+    ):
+        """Extract company and job title from subject using regex patterns.
+        
+        Args:
+            subject: Cleaned email subject line (reply/forward prefixes removed)
+            
+        Returns:
+            Tuple of (company, job_title) - either may be None
+        """
+        company = None
+        job_title = None
+        
+        # Special case: "applying for Field CTO position @ Claroty"
+        special_match = re.search(
+            r"applying for ([\w\s\-]+) position @ ([A-Z][\w\s&\-]+)",
+            subject
+        )
+        if special_match:
+            job_title = special_match.group(1).strip()
+            company = special_match.group(2).strip()
+            return company, job_title
+        
+        # General patterns for company extraction
+        patterns = [
+            (r"^([A-Z][a-zA-Z]+(?:\s+(?:[A-Z][a-zA-Z]+|&[A-Z]?))*?)(?:\s+application|\s+-)", re.IGNORECASE),
+            (r"application (?:to|for|with)\s+([A-Z][\w&-]+(?:\s+[\w&-]+){0,2})\b", re.IGNORECASE),
+            (r"(?:from|with|at)\s+([A-Z][\w&-]+(?:\s+[\w&-]+){0,2})\b", re.IGNORECASE),
+            (r"position\s+@\s+([A-Z][\w&-]+(?:\s+[\w&-]+){0,2})\b", re.IGNORECASE),
+            (r"^([A-Z][\w&-]+(?:\s+[\w&-]+){0,2}?)\s+(?:Job|Application|Interview)\b", re.IGNORECASE),
+            (r"-\s*([A-Z][\w&-]+(?:\s+[\w&-]+){0,2}?)\s*-\s*", 0),
+            (r"-\s+([A-Z][\w&-]+(?:\s+[\w&-]+){0,2})$", 0),
+            (r"(?:your application with|application with|interest in|position (?:here )?at)\s+([A-Z][\w&-]+(?:\s+[\w&-]+){0,2})\b", re.IGNORECASE),
+            (r"update on your ([A-Z][\w&-]+(?:\s+[\w&-]+){0,2}) application\b", re.IGNORECASE),
+            (r"thank you for your application with\s+([A-Z][\w&-]+(?:\s+[\w&-]+){0,2})\b", re.IGNORECASE),
+            (r"@\s*([A-Z][\w&-]+(?:\s+[\w&-]+){0,2})\b", re.IGNORECASE),
+        ]
+        
+        for pattern, flags in patterns:
+            match = re.search(pattern, subject, flags)
+            if match:
+                candidate = self.company_validator.normalize_company_name(match.group(1).strip())
+                
+                # Person-name safeguard
+                if self.company_validator.looks_like_person(candidate):
+                    if candidate.lower() not in {c.lower() for c in self.known_companies}:
+                        if DEBUG:
+                            print(f"[DEBUG] Rejected candidate company as person name: {candidate}")
+                        continue
+                
+                company = candidate
+                break
+        
+        return company, job_title
+
+    def canonicalize_company_name(
+        self, company: str, subject: str
+    ) -> str:
+        """Map company candidate to canonical known name or alias.
+        
+        Args:
+            company: Candidate company name
+            subject: Subject line for additional matching
+            
+        Returns:
+            Canonical company name if found, original otherwise
+        """
+        if not company:
+            return company
+        
+        cand_lower = company.lower()
+        subj_lower = subject.lower()
+        
+        # Check aliases first
+        aliases_lower = {k.lower(): v for k, v in self.company_data.get("aliases", {}).items()}
+        for alias_lower, canonical in aliases_lower.items():
+            alias_pattern = r'\b' + re.escape(alias_lower) + r'\b'
+            if re.search(alias_pattern, cand_lower) or re.search(alias_pattern, subj_lower):
+                if DEBUG:
+                    print(f"[DEBUG] Company alias matched: {alias_lower} -> {canonical}")
+                return canonical
+        
+        # Check known companies list for substrings
+        for known in self.company_data.get("known", []):
+            if known.lower() in cand_lower or known.lower() in subj_lower:
+                if DEBUG:
+                    print(f"[DEBUG] Known company matched: {known}")
+                return known
+        
+        return company
+
+
+class MetadataExtractor:
+    """Extract dates, job IDs, and other metadata from email messages."""
+
+    def __init__(self, rule_classifier=None, debug: bool = False):
+        """
+        Initialize MetadataExtractor.
+        
+        Args:
+            rule_classifier: RuleClassifier instance for accessing compiled patterns
+            debug: Enable debug logging
+        """
+        self._rule_classifier = rule_classifier
+        self._debug = debug
+
+    def extract_status_dates(self, body: str, received_date):
+        """
+        Extract key status dates from email body.
+        
+        For interview invites, sets interview_date to 7 days in the future
+        to mark as "upcoming" (user can manually update with actual date).
+        
+        Args:
+            body: Email body text
+            received_date: Date the email was received
+            
+        Returns:
+            Dictionary with response_date, rejection_date, interview_date, follow_up_dates
+        """
+        body_lower = body.lower()
+        dates = {
+            "response_date": None,
+            "rejection_date": None,
+            "interview_date": None,
+            "follow_up_dates": [],
+        }
+        
+        if not self._rule_classifier:
+            return dates
+        
+        # Use compiled patterns from RuleClassifier instance
+        interview_patterns = self._rule_classifier._msg_label_patterns.get("interview_invite", [])
+        rejection_patterns = self._rule_classifier._msg_label_patterns.get("rejection", [])
+        response_patterns = self._rule_classifier._msg_label_patterns.get("response", [])
+        followup_patterns = self._rule_classifier._msg_label_patterns.get("follow_up", [])
+        
+        if any(re.search(p, body_lower) for p in response_patterns):
+            dates["response_date"] = received_date
+        if any(re.search(p, body_lower) for p in rejection_patterns):
+            dates["rejection_date"] = received_date
+        if any(re.search(p, body_lower) for p in interview_patterns):
+            # Set to 7 days in future to mark as "upcoming interview"
+            dates["interview_date"] = (received_date + timedelta(days=7)).date()
+        if any(re.search(p, body_lower) for p in followup_patterns):
+            dates["follow_up_dates"] = received_date
+        return dates
+
+    @staticmethod
+    def extract_organizer_from_icalendar(body: str, debug: bool = False):
+        """
+        Extract organizer email from iCalendar data in message body.
+        
+        Teams/Zoom meeting invites often contain BASE64 encoded iCalendar data
+        with ORGANIZER field containing the sender's email address.
+        
+        Args:
+            body: Email body text (may contain BASE64 encoded iCalendar data)
+            debug: Enable debug logging
+            
+        Returns:
+            Tuple of (organizer_email, organizer_domain) or (None, None)
+        """
+        if not body:
+            return None, None
+        
+        # Look for BASE64 encoded iCalendar data
+        # Pattern: continuous BASE64 string (common in calendar invites)
+        base64_pattern = r'(?:[A-Za-z0-9+/]{60,}\n?)+'
+        matches = re.findall(base64_pattern, body)
+        
+        for match in matches:
+            try:
+                # Remove newlines and decode
+                base64_data = match.replace('\n', '').replace('\r', '')
+                decoded = base64.b64decode(base64_data).decode('utf-8', errors='ignore')
+                
+                # Check if this is iCalendar data
+                if 'BEGIN:VCALENDAR' in decoded or 'ORGANIZER' in decoded:
+                    # Extract ORGANIZER email
+                    # Format: ORGANIZER;CN=Name:mailto:email@domain.com
+                    organizer_match = re.search(
+                        r'ORGANIZER[^:]*:mailto:([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})',
+                        decoded,
+                        re.IGNORECASE
+                    )
+                    if organizer_match:
+                        email = organizer_match.group(1).lower()
+                        domain = email.split('@')[-1] if '@' in email else None
+                        if debug:
+                            print(f"[DEBUG] Extracted organizer from iCalendar: {email} (domain: {domain})")
+                        return email, domain
+            except Exception as e:
+                if debug:
+                    print(f"[DEBUG] Failed to decode/parse iCalendar data: {e}")
+                continue
+        
+        return None, None
+
+    @staticmethod
+    def extract_job_id(subject: str) -> str:
+        """
+        Extract job ID from subject line.
+        
+        Looks for patterns like:
+        - Job #12345
+        - Position #ABC-123
+        - jobId=XYZ789
+        
+        Args:
+            subject: Email subject line
+            
+        Returns:
+            Job ID string or empty string if not found
+        """
+        if not subject:
+            return ""
+        
+        id_match = re.search(r"(?:Job\s*#?|Position\s*#?|jobId=)([\w\-]+)", subject, re.IGNORECASE)
+        return id_match.group(1).strip() if id_match else ""
+
+
+# ======================================================================================
+# END OF CONSOLIDATED PARSER CLASSES
+# ======================================================================================
 
 # --- Load patterns.json ---
 if PATTERNS_PATH.exists():

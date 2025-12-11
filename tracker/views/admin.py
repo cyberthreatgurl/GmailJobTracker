@@ -437,7 +437,7 @@ def json_file_viewer(request):
 @login_required
 def reingest_admin(request):
     """Run the ingest_gmail command with options and show output."""
-    base_dir = Path(__file__).resolve().parents[1]
+    base_dir = Path(__file__).resolve().parents[2]
     day_choices = [
         ("ALL", "ALL"),
         (1, "1 day"),
@@ -500,7 +500,7 @@ def reingest_admin(request):
 @login_required
 def reingest_stream(request):
     """Stream output from ingest_gmail command for live updates in the UI."""
-    base_dir = Path(__file__).resolve().parents[1]
+    base_dir = Path(__file__).resolve().parents[2]
     days_back = request.GET.get("days_back")
     force = request.GET.get("force") == "true"
     reparse_all = request.GET.get("reparse_all") == "true"

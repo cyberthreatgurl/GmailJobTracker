@@ -23,11 +23,13 @@ class RuleClassifier:
         """Initialize RuleClassifier with patterns from patterns.json.
         
         Args:
-            patterns: Dictionary containing message_label_patterns and 
-                     message_label_excludes from patterns.json
+            patterns: Dictionary containing message_label_patterns, 
+                     message_label_excludes, special_cases, early_detection,
+                     and validation_rules from patterns.json
         """
         self.patterns = patterns
         self._compile_patterns()
+        self._compile_special_patterns()
 
     def _compile_patterns(self):
         """Compile regex patterns from patterns.json for efficient matching."""
@@ -76,6 +78,39 @@ class RuleClassifier:
                     print(f"⚠️  Invalid exclude pattern for {code_label}: {p} - {e}")
             self._msg_label_excludes[code_label] = compiled_excludes
 
+    def _compile_special_patterns(self):
+        """Compile special case, early detection, and validation patterns from patterns.json."""
+        # Special cases (subject-based rules)
+        special_cases = self.patterns.get("special_cases", {})
+        self._special_indeed_subject = self._compile_pattern_list(special_cases.get("indeed_application_subject", []))
+        self._special_assessment = self._compile_pattern_list(special_cases.get("assessment_complete", []))
+        self._special_incomplete_app = self._compile_pattern_list(special_cases.get("incomplete_application_reminder", []))
+        
+        # Early detection patterns
+        early_detection = self.patterns.get("early_detection", {})
+        self._early_scheduling = self._compile_pattern_list(early_detection.get("scheduling_language", []))
+        self._early_referral = self._compile_pattern_list(early_detection.get("referral_language", []))
+        self._early_rejection_override = self._compile_pattern_list(early_detection.get("rejection_override", []))
+        self._early_application_confirm = self._compile_pattern_list(early_detection.get("application_confirmation", []))
+        
+        # Validation rules
+        validation = self.patterns.get("validation_rules", {})
+        self._headhunter_contact_patterns = validation.get("head_hunter_contact_patterns", [])
+        signature_pattern = validation.get("head_hunter_signature_pattern", "")
+        self._headhunter_signature_rx = re.compile(signature_pattern, re.I) if signature_pattern else None
+        referral_lang = validation.get("referral_explicit_language", "")
+        self._referral_explicit_rx = re.compile(referral_lang, re.I) if referral_lang else None
+
+    def _compile_pattern_list(self, pattern_list):
+        """Helper to compile a list of regex patterns."""
+        compiled = []
+        for p in pattern_list:
+            try:
+                compiled.append(re.compile(p, re.I | re.DOTALL))
+            except re.error as e:
+                print(f"⚠️  Invalid pattern: {p} - {e}")
+        return compiled
+
     def classify(
         self,
         subject: str,
@@ -108,96 +143,60 @@ class RuleClassifier:
         s = f"{subject or ''} {body or ''}"
 
         # Special-case: Indeed application confirmation subjects
-        if subject and ("Indeed Application:" in subject or re.search(r"^\s*Indeed\s+Application:\s*", subject, re.I)):
+        if subject and any(rx.search(subject) for rx in self._special_indeed_subject):
             if DEBUG:
                 print("[DEBUG rule_label] Forcing job_application for Indeed Application subject")
             return "job_application"
 
         # Special-case: Assessment completion notifications -> "other"
         subject_text = subject or ""
-        if re.search(r"\bassessments?\s+complete\b", subject_text, re.I):
+        if any(rx.search(subject_text) for rx in self._special_assessment):
             if DEBUG:
                 print("[DEBUG rule_label] Forcing 'other' for assessment completion notification")
             return "other"
-        if re.search(r"\bassessment\s+(?:completion\s+)?status\b", subject_text, re.I):
-            if DEBUG:
-                print("[DEBUG rule_label] Forcing 'other' for assessment status notification")
-            return "other"
 
         # Special-case: Incomplete application reminders -> "other"
-        if re.search(r"\bstarted\s+applying\b.*\bdidn'?t\s+finish\b", s, re.I | re.DOTALL):
-            if DEBUG:
-                print("[DEBUG rule_label] Forcing 'other' for incomplete application reminder")
-            return "other"
-        if re.search(r"\bdon'?t\s+forget\s+to\s+finish\b.*\bapplication\b", s, re.I | re.DOTALL):
-            if DEBUG:
-                print("[DEBUG rule_label] Forcing 'other' for incomplete application reminder")
-            return "other"
-        if re.search(r"\bpick\s+up\s+where\s+you\s+left\s+off\b", s, re.I):
+        if any(rx.search(s) for rx in self._special_incomplete_app):
             if DEBUG:
                 print("[DEBUG rule_label] Forcing 'other' for incomplete application reminder")
             return "other"
 
-        # Early scheduling-language detection -> interview_invite
-        scheduling_rx_early = re.compile(
-            r"(?:please\s+)?(?:let\s+me\s+know\s+when\s+you(?:\s+would|(?:'re|\s+are))?\s+available)|"
-            r"(?:please\s+)?(?:provide|share|send)(?:\s+me)?(?:\s+with)?\s+your\s+availability|"
-            r"available\s+for\s+(?:a\s+)?(?:call|phone\s+call|conversation|interview)|"
-            r"would\s+like\s+to\s+discuss\s+(?:the\s+position|this\s+role|the\s+opportunity)|"
-            r"schedule\s+(?:a\s+)?(?:call|time|conversation|interview)|"
-            r"would\s+you\s+be\s+available",
-            re.I | re.DOTALL,
-        )
-        if scheduling_rx_early.search(s):
-            if DEBUG:
-                print("[DEBUG rule_label] Early scheduling-language match -> interview_invite")
-            return "interview_invite"
-
-        # Check rejection patterns BEFORE application confirmation
+        # Check rejection patterns EARLY (before scheduling detection)
+        # This prevents email threads with rejection + old scheduling language from being misclassified
         for rx in self._msg_label_patterns.get("rejection", []):
             if rx.search(s):
                 if DEBUG:
                     print(f"[DEBUG rule_label] Early rejection match: {rx.pattern[:80]}")
                 return "rejection"
 
+        # Early scheduling-language detection -> interview_invite
+        if any(rx.search(s) for rx in self._early_scheduling):
+            if DEBUG:
+                print("[DEBUG rule_label] Early scheduling-language match -> interview_invite")
+            return "interview_invite"
+
         # Early referral detection
-        referral_patterns = [
-            r"\b(has\s+referred\s+you|referred\s+you\s+for|employee\s+referral|internal\s+referral|someone\s+(?:from|at|in)\s+\w+.*\s+(?:has\s+)?referred\s+you)\b",
-            r"\b(referred\s+to\s+you\s+by|referred\s+by|referral\s+from)\b",
-        ]
-        for pattern in referral_patterns:
-            if re.search(pattern, s, re.I | re.DOTALL):
-                if DEBUG:
-                    print(f"[DEBUG rule_label] Early referral match -> referral")
-                return "referral"
+        if any(rx.search(s) for rx in self._early_referral):
+            if DEBUG:
+                print(f"[DEBUG rule_label] Early referral match -> referral")
+            return "referral"
 
         # Check for rejection signals BEFORE application confirmation
         # (to handle mixed messages like "thanks for applying, but we moved forward with others")
-        rejection_override_patterns = [
-            r"\b(?:move|moved|moving)\s+forward\s+with\s+(?:other|another)\s+candidate",
-            r"\b(?:decided|chosen|opted)\s+not\s+to\s+(?:move\s+forward|proceed)",
-            r"\b(?:unable|not\s+able)\s+to\s+(?:move\s+forward|proceed)",
-            r"\bother\s+(?:candidates|applicants)\b",
-            r"\bposition\s+(?:has\s+been\s+)?(?:closed|filled)\b",
-        ]
-        for pattern in rejection_override_patterns:
-            if re.search(pattern, s, re.I | re.DOTALL):
+        for rx in self._early_rejection_override:
+            if rx.search(s):
                 if DEBUG:
                     print(f"[DEBUG rule_label] Early rejection signal detected, checking rejection patterns")
                 # Verify with full rejection patterns
-                for rx in self._msg_label_patterns.get("rejection", []):
-                    if rx.search(s):
+                for pattern_rx in self._msg_label_patterns.get("rejection", []):
+                    if pattern_rx.search(s):
                         if DEBUG:
                             print(f"[DEBUG rule_label] Rejection confirmed -> rejection")
                         return "rejection"
                 break  # Exit after checking rejection patterns once
 
         # Explicit application-confirmation signals -> job_application
-        if re.search(
-            r"\b(we\s+have\s+received\s+your\s+application|we[''\u2019]?ve\s+received\s+your\s+application|we\s+have\s+received\s+your\s+application|thanks?\s+(?:you\s+)?for\s+applying|application\s+received|your\s+application\s+has\s+been\s+received|your\s+application\s+has\s+been\s+submitted|your\s+application\s+was\s+sent)\b",
-            s,
-            re.I | re.DOTALL,
-        ):
+        if any(rx.search(s) for rx in self._early_application_confirm):
             if DEBUG:
                 print("[DEBUG rule_label] Matched application-confirmation -> job_application")
             return "job_application"
@@ -259,36 +258,21 @@ class RuleClassifier:
 
                         # Additional strictness for head_hunter: require contact evidence
                         if label == "head_hunter":
-                            contact_patterns = [
-                                r"[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}",
-                                r"\+?\d{1,2}[-.\s]?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}",
-                                r"linkedin\.com/(?:in|pub)/[A-Za-z0-9_\-]+",
-                            ]
-                            signature_rx = re.compile(
-                                r"(?:Regards|Best regards|Sincerely|Best|Thanks|Thank you)[\s,]*[\r\n]+[A-Z][a-z]+",
-                                re.I
+                            has_contact = (
+                                any(re.search(p, s, re.I) for p in self._headhunter_contact_patterns)
+                                or (self._headhunter_signature_rx and self._headhunter_signature_rx.search(s))
                             )
-
-                            has_contact = any(re.search(p, s, re.I) for p in contact_patterns) or signature_rx.search(s)
                             if not has_contact:
                                 continue
                         else:
                             # For referral: require explicit referral language if no domain
                             if not d:
-                                if not re.search(r"\b(referred|referral|referred by|referrer)\b", s, re.I):
+                                if not (self._referral_explicit_rx and self._referral_explicit_rx.search(s)):
                                     continue
 
                     # Special case: job_application with scheduling language -> interview_invite
                     if label == "job_application":
-                        scheduling_rx = re.compile(
-                            r"(?:please\s+)?(?:let\s+me\s+know\s+when\s+you(?:\s+would|(?:'re|\s+are))?\s+available)|"
-                            r"available\s+for\s+(?:a\s+)?(?:call|phone\s+call|conversation|interview)|"
-                            r"would\s+like\s+to\s+discuss\s+(?:the\s+position|this\s+role|the\s+opportunity)|"
-                            r"schedule\s+(?:a\s+)?(?:call|time|conversation|interview)|"
-                            r"would\s+you\s+be\s+available",
-                            re.I | re.DOTALL,
-                        )
-                        if scheduling_rx.search(s):
+                        if any(rx.search(s) for rx in self._early_scheduling):
                             if DEBUG:
                                 print("[DEBUG rule_label] Matched scheduling language -> returning interview_invite")
                             return "interview_invite"

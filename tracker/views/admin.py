@@ -4,40 +4,29 @@ Extracted from monolithic views.py (Phase 5 refactoring).
 """
 
 import json
+import os
+import re
 import subprocess
 import sys
 from datetime import datetime
 from pathlib import Path
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import JsonResponse, StreamingHttpResponse
 from tracker.models import IngestionStats, Message
 from tracker.services import StatsService, CompanyService
+from tracker.views.helpers import sanitize_string, validate_domain
 from parser import ingest_message
-from scripts.import_gmail_filters import load_json, sanitize_to_regex_terms
+from scripts.import_gmail_filters import load_json, sanitize_to_regex_terms, make_or_pattern
 from gmail_auth import get_gmail_service
 
-
-import json
-import subprocess
-import sys
-from datetime import datetime
-from pathlib import Path
-from django.contrib.auth.decorators import login_required
-from django.views.decorators.csrf import csrf_exempt
-from django.shortcuts import render
-from django.http import JsonResponse, StreamingHttpResponse
-from tracker.models import IngestionStats, Message
-from tracker.services import StatsService, CompanyService
-from parser import ingest_message
-from scripts.import_gmail_filters import load_json, sanitize_to_regex_terms
-from gmail_auth import get_gmail_service
+python_path = sys.executable
 
 
 @login_required
 def log_viewer(request):
-    """Display and refresh log files from the logs directory."""
     """Display and refresh log files from the logs directory."""
     from django.conf import settings
 
@@ -777,6 +766,31 @@ def configure_settings(request):
     }
     return render(request, "tracker/configure_settings.html", ctx)
 
+
+@csrf_exempt
+@login_required
+def retrain_model(request):
+    """Trigger train_model.py script via subprocess and display its output."""
+    training_output = None
+    if request.method == "POST":
+        try:
+            result = subprocess.run(
+                [python_path, "train_model.py", "--verbose"],
+                capture_output=True,
+                text=True,
+                check=True,
+            )
+            training_output = result.stdout
+            # Optionally, save output to model/model_audit.json
+            with open("model/model_audit.json", "w", encoding="utf-8") as f:
+                json.dump({"training_output": training_output}, f)
+        except subprocess.CalledProcessError as e:
+            training_output = f"Retraining failed:\n{e.stderr}"
+    ctx = {
+        "metrics": {},
+        "training_output": training_output,
+    }
+    return render(request, "tracker/metrics.html", ctx)
 
 
 __all__ = ['log_viewer', 'retrain_model', 'json_file_viewer', 'reingest_admin', 'reingest_stream', 'configure_settings']

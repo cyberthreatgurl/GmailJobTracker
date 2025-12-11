@@ -116,11 +116,7 @@ class CompanyEditForm(forms.ModelForm):
 
     class Meta:
         model = Company
-        fields = ["domain", "ats"]
-        widgets = {
-            "domain": forms.TextInput(attrs={"placeholder": "company.com"}),
-            "ats": forms.TextInput(attrs={"placeholder": "jobs.company.com"}),
-        }
+        fields = ["name", "domain", "ats", "homepage", "contact_name", "contact_email", "status"]
         help_texts = {
             "domain": "Primary company domain",
             "ats": "Applicant Tracking System domain",

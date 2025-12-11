@@ -8,7 +8,7 @@ services:
     container_name: gmailtracker
     restart: unless-stopped
     ports:
-      - "8000:8000"
+      - "8001:8001"
     environment:
       - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY:-django-insecure-docker-default-key-change-me}
       - DEBUG=${DEBUG:-False}
@@ -37,7 +37,7 @@ services:
     networks:
       - gmailtracker-network
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000').read()"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8001').read()"]
       interval: 30s
       timeout: 10s
       retries: 3

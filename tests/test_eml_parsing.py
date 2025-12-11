@@ -97,6 +97,18 @@ def test_rand_alternative_candidate_rejection():
     assert result.get("label") == "rejection", result
 
 
+def test_armis_ats_body_extraction():
+    """Greenhouse ATS email should extract 'Armis' from body text.
+    
+    Subject: "Thank You For Applying!" contains no company name.
+    Body: "position here at Armis" should be extracted using ATS body patterns.
+    This tests the generic ATS body extraction for application confirmations.
+    """
+    result = _classify_fixture("Thank You For Applying!.eml")
+    assert result.get("company") == "Armis", f"Expected 'Armis' but got '{result.get('company')}'"
+    assert result.get("label") == "job_application", result
+
+
 def test_smoke_all_fixtures_do_not_crash():
     """Run all .eml fixtures to ensure parsing/classification doesn't crash."""
     emls = sorted(EMAIL_DIR.glob("*.eml"))

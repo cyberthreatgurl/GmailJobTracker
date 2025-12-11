@@ -1,0 +1,189 @@
+Delivered-To: kaver68@gmail.com
+Received: by 2002:a05:7108:7e8d:b0:497:b881:99c6 with SMTP id ce13csp1532131gdb;
+        Sun, 21 Sep 2025 12:06:39 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IG9Q/mXz+pArKJi8Fq/uMOIYhynozHdjnqg0TOvOmSEuq+Yvxo0PX3I5tE3dxN715USupMV
+X-Received: by 2002:a05:622a:5c15:b0:4b2:8ac4:ef6b with SMTP id d75a77b69052e-4c076040eb6mr110691831cf.78.1758481598924;
+        Sun, 21 Sep 2025 12:06:38 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1758481598; cv=none;
+        d=google.com; s=arc-20240605;
+        b=c/VXMzsmR7holKjhnuO5IhQnKGMDE7VpDCDvLLcxwZj9W0UIWH1JRDIEZbPDT8oPfT
+         RvcISW5EQh4lvt2/dL0tcdpW1Hzu2FGapi0BG2Ggj/7lwOJqBOe59Ui+O6acKwxMQjbm
+         pcM3DS+j6FcwTqoVEhdjGSYlBq2Hyle9ZbhLhnzP84HpsCNFHs7TjXP7VkWGFz83CBSg
+         ZWU+sDFXp/5BOSszY/LJ1yMmluxW/8grgwduuo2zaOPF3uIbV9zaB1uOxTx3MWNzhwDe
+         QZrkt8cEuQDaSnU7x2CkZIhgaKHoX8MVbIu0CvxxpzAiCFViIIQC8l7DIgPXjFaL/D68
+         Y4Hw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=feedback-id:list-unsubscribe-post:list-unsubscribe:mime-version
+         :subject:message-id:to:reply-to:from:date:dkim-signature
+         :dkim-signature;
+        bh=3jMRy4hO3XdpIyD5wP0sq8gKaSVXsotPFAeET8ri1/E=;
+        fh=G/VLhrQnXiN6LciSgCgIU9VM0fr+1O2AyqFGWpHCjzw=;
+        b=LpJUOiy4VLAy6EBocdodtcDXLKYX4zFV+c0dzBaG4DUZP7Fy/01C0RifY1h/EmFV1a
+         bGyfgqjotiAg4tPNOE7zMXWhRhJRpBUclo2F6B2eVdWbu/2VVT8HB6XFVeb9I1nEdmFA
+         DNZcjHbSJqK+CfUsf4ls7Pfxb4yxKX41BLA0LfJRAJoVoJvKx2gsvkrx/6KlYz3GH25C
+         tesE7mJy2PtRxLXaEmsNmjMgb3yYQuu/S21sZi3eFfx+UbHGeDE1zf0a5yM23vUOmdjE
+         so1hdX+k9hPw8nBje9GZbpMYzsQlY+REWh/sATW7et2jMghA4d1F2JjdvpD4+0JGer5g
+         DAQg==;
+        dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@myworkday.com header.s=aqnn7zvoufdbrvgmf6ymp3bxrwccbmf4 header.b=aFgSe1c7;
+       dkim=pass header.i=@amazonses.com header.s=6gbrjpgwjskckoa6a5zn6fwqkn67xbtw header.b="Qwd/PM3X";
+       spf=pass (google.com: domain of 010001996dabc883-497dd944-eb19-45cc-b314-2e3cd4f1993b-000000@us-east-1.bounce.myworkday.com designates 54.240.11.113 as permitted sender) smtp.mailfrom=010001996dabc883-497dd944-eb19-45cc-b314-2e3cd4f1993b-000000@us-east-1.bounce.myworkday.com;
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=myworkday.com
+Return-Path: <010001996dabc883-497dd944-eb19-45cc-b314-2e3cd4f1993b-000000@us-east-1.bounce.myworkday.com>
+Received: from a11-113.smtp-out.amazonses.com (a11-113.smtp-out.amazonses.com. [54.240.11.113])
+        by mx.google.com with ESMTPS id d75a77b69052e-4bf95dd03ebsi34837361cf.788.2025.09.21.12.06.38
+        for <kaver68@gmail.com>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Sun, 21 Sep 2025 12:06:38 -0700 (PDT)
+Received-SPF: pass (google.com: domain of 010001996dabc883-497dd944-eb19-45cc-b314-2e3cd4f1993b-000000@us-east-1.bounce.myworkday.com designates 54.240.11.113 as permitted sender) client-ip=54.240.11.113;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@myworkday.com header.s=aqnn7zvoufdbrvgmf6ymp3bxrwccbmf4 header.b=aFgSe1c7;
+       dkim=pass header.i=@amazonses.com header.s=6gbrjpgwjskckoa6a5zn6fwqkn67xbtw header.b="Qwd/PM3X";
+       spf=pass (google.com: domain of 010001996dabc883-497dd944-eb19-45cc-b314-2e3cd4f1993b-000000@us-east-1.bounce.myworkday.com designates 54.240.11.113 as permitted sender) smtp.mailfrom=010001996dabc883-497dd944-eb19-45cc-b314-2e3cd4f1993b-000000@us-east-1.bounce.myworkday.com;
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=myworkday.com
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
+	s=aqnn7zvoufdbrvgmf6ymp3bxrwccbmf4; d=myworkday.com; t=1758481598;
+	h=Date:From:Reply-To:To:Message-ID:Subject:MIME-Version:Content-Type:List-Unsubscribe:List-Unsubscribe-Post;
+	bh=Xy/nR2xjYtHKBq4DhccJ4lkQ+vt2bTJ6N7LwzxgoudE=;
+	b=aFgSe1c7EBw46t42SBmPLikc8za8AFWAbb9ohc+yG2PBc47vsCeLicaymc+A/H7O
+	NSRFDSR442Vo23qAhuAdwBLPqfLGzOf4UJUheOPKw7TjOG/6xAIcfVJcEFZX9AU+1O1
+	uFXZyNBaYbOwEiASYHIuC5iBTXE2dD566VJaBPm5lY8GXQ/0SSZ5GzbT39UeLpQaS8r
+	UX0jjHtYWWHmPjZBXWhwoMP9ZAX8hLO2KVKr0l+e+J2fuFmo3Kr49m8JYYxTuoCjpCr
+	1c826HlEnvtkACVq9kHegoE5SZIbCDp6LWzpEjd1PCNArwf/gxmDhfEJu7hjURrhJSX
+	NqNHkZ4G2Q==
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
+	s=6gbrjpgwjskckoa6a5zn6fwqkn67xbtw; d=amazonses.com; t=1758481598;
+	h=Date:From:Reply-To:To:Message-ID:Subject:MIME-Version:Content-Type:List-Unsubscribe:List-Unsubscribe-Post:Feedback-ID;
+	bh=Xy/nR2xjYtHKBq4DhccJ4lkQ+vt2bTJ6N7LwzxgoudE=;
+	b=Qwd/PM3XxlvW4XadqMDgtkIX0/zeGRtHWIHWq9p0q5BXK2kFBoCPewQ3ByYa5YhN
+	7I4I0HzPelQ3YONhazLqTBaNgw7NsfSEsD4oh/cP1kM/Mv+EPJI0Ar+0gHpusuwLxsw
+	gOrsa35EJmcdk2eGSZ/UNsOkpsyXYfrC4enYFAIk=
+Date: Sun, 21 Sep 2025 19:06:38 +0000
+From: trellix@myworkday.com
+Reply-To: DoNotReply@trellix.com
+To: kaver68@gmail.com
+Message-ID: <010001996dabc883-497dd944-eb19-45cc-b314-2e3cd4f1993b-000000@email.amazonses.com>
+Subject: Thank you for applying!
+MIME-Version: 1.0
+Content-Type: multipart/mixed; 
+	boundary="----=_Part_3748320_50608969.1758481598576"
+X-Workday-Security: false
+X-Workday-System: false
+X-Workday-Static-BP-Address: false
+List-Unsubscribe: List-Unsubscribe=One-Click
+List-Unsubscribe-Post: <https://cust-drogon-unsubscribe.us-west-2.myworkdaymessaging.com/drogon/unsubscribe/trellix/drogon-wd1-prod/a2b194bb781910000476d4558ec20013/c6c370694aa1900076f1ea5cf4400000/a2F2ZXI2OEBnbWFpbC5jb20=>
+Feedback-ID: trellix:a2b194bb781910000476d4558ec20013:1.us-east-1.Y1FoVVuOlFHZZVWUj8EIXloXFbgqMOcQt0AZuwDY0fU=:AmazonSES
+X-SES-Outgoing: 2025.09.21-54.240.11.113
+
+------=_Part_3748320_50608969.1758481598576
+Content-Type: multipart/related; 
+	boundary="----=_Part_3748319_1012155626.1758481598576"
+
+------=_Part_3748319_1012155626.1758481598576
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+<!doctype html><html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+      <title></title><style type="text/css">body, table {
+  font-family: Verdana, Arial, sans-serif;
+  font-size: 12px; width:100%;
+}
+div {
+  padding-top:5px;
+  padding-bottom:5px;
+}
+img 
+{
+  border:0px;
+}</style></head>
+   <body><div>Dear Kelly, <br/><br/>Thank you for submitting your application for the Sr. Threat
+      Intelligence Consultant . As a next step, we will review your experience and qualifications
+      against the positions' requirements. If your background appears to be a match for
+      the opportunity, a recruiter will be in touch with you to explore your career history
+      and discuss next steps.<br><br>Thank you again for your interest!<br><br>The Global Talent Acquisition Team <br/><br/></div><div><br>NOTE: This is an automated message generated by an un-monitored account. Please
+      do not reply to this message.</div>
+      	     <div>
+      	    <!--[if mso | IE]>
+      	      <table border="0" cellpadding="0" cellspacing="0" width="600" align="center"
+      style="width:600px;">
+      	        <tr>
+      	          <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;">
+      	      <![endif]-->
+      	    <div style="margin:0 auto;max-width:600px;">
+      	      <table cellpadding="0" cellspacing="0" style="font-size:0px;width:100%;" align="center"
+      border="0">
+      	        <tbody>
+      	          <tr>
+      	            <td style="text-align:center;vertical-align:top;font-size:0px;padding:20px
+      0px;"></td>
+      	          </tr>
+      	        </tbody>
+      	      </table>
+      	    </div>
+      	    <!--[if mso | IE]>
+      	      </td></tr></table>
+      	      <![endif]-->
+      	    <!--[if mso | IE]>
+      	      <table border="0" cellpadding="0" cellspacing="0" width="600" align="center"
+      style="width:600px;">
+      	        <tr>
+      	          <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;">
+      	      <![endif]-->
+      	    <div style="margin:0 auto;max-width:600px;">
+      	      <table cellpadding="0" cellspacing="0" style="font-size:0px;width:100%;" align="center"
+      border="0">
+      	        <tbody>
+      	          <tr>
+      	            <td style="text-align:center;vertical-align:top;font-size:0px;padding:20px
+      0px;"></td>
+      	          </tr>
+      	        </tbody>
+      	      </table>
+      	    </div>
+      	    <!--[if mso | IE]>
+      	      </td></tr></table>
+      	      <![endif]-->
+      
+      <!--[if mso | IE]>
+	      <table border="0" cellpadding="0" cellspacing="0" width="600" align="center" style="width:600px;">
+	        <tr>
+	          <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;">
+	      <![endif]-->
+      <div xmlns:wd="urn:com.workday/bsvc" style="margin:0 auto;max-width:600px;">
+         <table cellpadding="0" cellspacing="0" style="font-size:0px;width:100%;" align="center" border="0">
+            <tbody>
+               <tr>
+                  <td style="text-align:center;vertical-align:top;font-size:0px;padding:20px 0px;">
+                     <!--[if mso | IE]>
+	 <table border="0" cellpadding="0" cellspacing="0"><tr><td style="vertical-align:top;width:600px;">
+	      <![endif]-->
+                     <div aria-labelledby="mj-column-per-100" class="mj-column-per-100" style="vertical-align:top;display:inline-block;font-size:13px;text-align:left;width:100%;">
+                        <table cellpadding="0" cellspacing="0" width="100%" border="0">
+                           <tbody>
+                              <tr>
+                                 <td style="word-break:break-word;font-size:0px;padding-bottom:0px;" align="center">
+                                    <div style="cursor:auto;color:#98a0a6;font-family:Roboto;font-size:12px;font-weight:400;line-height:22px;">This email was intended for kaver68@gmail.com</div>
+                                 </td>
+                              </tr>
+                           </tbody>
+                        </table>
+                     </div>
+                     <!--[if mso | IE]>
+	      </td></tr></table>
+	      <![endif]-->
+                  </td>
+               </tr>
+            </tbody>
+         </table>
+      </div>
+      <!--[if mso | IE]>
+	      </td></tr></table>
+	      <![endif]-->
+   </body>
+</html>
+------=_Part_3748319_1012155626.1758481598576--
+
+------=_Part_3748320_50608969.1758481598576--

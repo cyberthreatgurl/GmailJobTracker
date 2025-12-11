@@ -92,6 +92,7 @@
     "workday.com"
   ],
   "domain_to_company": {
+    "aig.com": "AIG",
     "Personified": "personified.tech",
     "SailPoint Technologies": "Sail Point Technologies",
     "afs.com": "Accenture Federal Services",
@@ -339,6 +340,7 @@
     "Appdynamics",
     "Apple",
     "Arcfield",
+    "AIG",
     "Armis",
     "BCI",
     "Banduri",

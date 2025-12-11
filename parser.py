@@ -52,7 +52,7 @@ from tracker.models import (
 )
 
 # Import refactored components
-from parser_refactored import CompanyValidator
+from parser_refactored import CompanyValidator, RuleClassifier
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dashboard.settings")
 django.setup()
@@ -68,6 +68,7 @@ else:
 
 # Initialize refactored components
 _company_validator = CompanyValidator(PATTERNS)
+_rule_classifier = RuleClassifier(PATTERNS)
 
 # --- Load personal_domains.json ---
 PERSONAL_DOMAINS_PATH = Path(__file__).parent / "json" / "personal_domains.json"
@@ -102,267 +103,26 @@ LABEL_MAP = {
     "other": ["other"],  # Explicitly support 'other' patterns
 }
 
-_MSG_LABEL_PATTERNS = {}
-for code_label, json_keys in LABEL_MAP.items():
-    patterns = []
-    # Try message_labels first (new structure)
-    if "message_labels" in PATTERNS:
-        for key in json_keys:
-            if key in PATTERNS["message_labels"]:
-                pattern_list = PATTERNS["message_labels"][key]
-                if isinstance(pattern_list, list):
-                    patterns.extend(pattern_list)
-                elif isinstance(pattern_list, str):
-                    patterns.append(pattern_list)
-    # Fall back to top-level keys (legacy structure)
-    if not patterns:
-        for key in json_keys:
-            if key in PATTERNS:
-                pattern_list = PATTERNS[key]
-                if isinstance(pattern_list, list):
-                    patterns.extend(pattern_list)
-                elif isinstance(pattern_list, str):
-                    patterns.append(pattern_list)
-
-    # Compile patterns, skip "None"
-    compiled = []
-    for p in patterns:
-        if p != "None":
-            try:
-                compiled.append(re.compile(p, re.I))
-            except re.error as e:
-                print(f"⚠️  Invalid regex pattern for {code_label}: {p} - {e}")
-    _MSG_LABEL_PATTERNS[code_label] = compiled
-
-# Optional per-label negative patterns derived from Gmail's doesNotHaveTheWord
-_MSG_LABEL_EXCLUDES = {
-    k: [re.compile(p, re.I) for p in PATTERNS.get("message_label_excludes", {}).get(k, [])]
-    for k in (
-        "interview_invite",
-        "job_application",
-        "rejection",
-        "offer",
-        "noise",
-        "head_hunter",
-        "ignore",
-        "response",
-        "follow_up",
-        "ghosted",
-        "referral",
-    )
-}
+# Note: Pattern compilation moved to RuleClassifier class
+# _MSG_LABEL_PATTERNS and _MSG_LABEL_EXCLUDES are now maintained by _rule_classifier
 
 
 def rule_label(subject: str, body: str = "", sender_domain: str | None = None) -> str | None:
-    """Return a rule-based label from compiled regex patterns.
+    """Return a rule-based label from compiled regex patterns (delegates to RuleClassifier).
 
     Checks message text against label patterns in a prioritized order to
     reduce false positives (e.g., prefer noise over rejected for newsletters).
     Returns one of the known labels or None if no rule matches.
     """
-    s = f"{subject or ''} {body or ''}"
-    # Check labels in priority order (most specific → least specific)
-    # Rejection before application: catches "received application BUT unfortunately..."
-    # Interview before application: catches action-oriented "next steps"
-    # Application last: generic catch-all for confirmations
-    # Special-case: Indeed application confirmation subjects should never be
-    # treated as interview_invite even if body contains phrasing like
-    # "discuss the opportunity" or other interview-esque phrases present in
-    # generic Indeed templates. These are pure application submission notices.
-    # Broad match (handles stray zero-width or tracking chars before prefix)
-    if subject and ("Indeed Application:" in subject or re.search(r"^\s*Indeed\s+Application:\s*", subject, re.I)):
-        if DEBUG:
-            print("[DEBUG rule_label] Forcing job_application for Indeed Application subject")
-        return "job_application"
-
-    # Special-case: Assessment completion notifications should be classified as "other"
-    # rather than job_application. These are status updates, not application submissions.
-    # Check subject line specifically to avoid false positives from body text.
-    subject_text = subject or ""
-    if re.search(r"\bassessments?\s+complete\b", subject_text, re.I):
-        if DEBUG:
-            print("[DEBUG rule_label] Forcing 'other' for assessment completion notification (subject match)")
-        return "other"
-    if re.search(r"\bassessment\s+(?:completion\s+)?status\b", subject_text, re.I):
-        if DEBUG:
-            print("[DEBUG rule_label] Forcing 'other' for assessment status notification (subject match)")
-        return "other"
-
-    # Special-case: Incomplete application reminders should be classified as "other"
-    # rather than job_application. These are nudges to finish incomplete apps,
-    # not confirmations of submission.
-    # Patterns: "started applying... didn't finish", "Don't forget to finish"
-    if re.search(r"\bstarted\s+applying\b.*\bdidn'?t\s+finish\b", s, re.I | re.DOTALL):
-        if DEBUG:
-            print("[DEBUG rule_label] Forcing 'other' for incomplete application reminder")
-        return "other"
-    if re.search(r"\bdon'?t\s+forget\s+to\s+finish\b.*\bapplication\b", s, re.I | re.DOTALL):
-        if DEBUG:
-            print("[DEBUG rule_label] Forcing 'other' for incomplete application reminder")
-        return "other"
-    if re.search(r"\bpick\s+up\s+where\s+you\s+left\s+off\b", s, re.I):
-        if DEBUG:
-            print("[DEBUG rule_label] Forcing 'other' for incomplete application reminder")
-        return "other"
-
-    # Early scheduling-language detection: if the message contains explicit
-    # scheduling/call-availability phrases, prefer `interview_invite` because
-    # many recruiter/company messages that ask to set a time are true interview
-    # invites even if they also include application-confirmation wording.
-    scheduling_rx_early = re.compile(
-        r"(?:please\s+)?(?:let\s+me\s+know\s+when\s+you(?:\s+would|(?:'re|\s+are))?\s+available)|"
-        r"available\s+for\s+(?:a\s+)?(?:call|phone\s+call|conversation|interview)|"
-        r"would\s+like\s+to\s+discuss\s+(?:the\s+position|this\s+role|the\s+opportunity)|"
-        r"schedule\s+(?:a\s+)?(?:call|time|conversation|interview)|"
-        r"would\s+you\s+be\s+available",
-        re.I | re.DOTALL,
+    return _rule_classifier.classify(
+        subject=subject,
+        body=body,
+        sender_domain=sender_domain,
+        headhunter_domains=HEADHUNTER_DOMAINS,
+        job_board_domains=JOB_BOARD_DOMAINS,
+        is_ats_domain_fn=_is_ats_domain,
+        map_company_by_domain_fn=_map_company_by_domain,
     )
-    if scheduling_rx_early.search(s):
-        if DEBUG:
-            print("[DEBUG rule_label] Early scheduling-language match -> interview_invite")
-        return "interview_invite"
-
-    # Check rejection patterns BEFORE application confirmation to avoid misclassifying
-    # rejection emails that say "thank you for applying... but we're moving forward with others"
-    for rx in _MSG_LABEL_PATTERNS.get("rejection", []):
-        if rx.search(s):
-            if DEBUG:
-                print(f"[DEBUG rule_label] Early rejection match: {rx.pattern[:80]}")
-            return "rejection"
-
-    # Early referral detection: Check for explicit referral language before application confirmation
-    # to avoid misclassifying employee referrals as job applications
-    referral_patterns = [
-        r"\b(has\s+referred\s+you|referred\s+you\s+for|employee\s+referral|internal\s+referral|someone\s+(?:from|at|in)\s+\w+.*\s+(?:has\s+)?referred\s+you)\b",
-        r"\b(referred\s+to\s+you\s+by|referred\s+by|referral\s+from)\b",
-    ]
-    for pattern in referral_patterns:
-        if re.search(pattern, s, re.I | re.DOTALL):
-            if DEBUG:
-                print(f"[DEBUG rule_label] Early referral match -> referral")
-            return "referral"
-
-    # Explicit application-confirmation signals should be classified as job_application
-    # before we evaluate interview-like phrasing. This prevents ATS confirmation
-    # templates (which sometimes include ambiguous language) from being labeled
-    # as interview invites.
-    # Note: Use [''\u2019] to match both straight and curly apostrophes
-    if re.search(
-        r"\b(we\s+have\s+received\s+your\s+application|we[''\u2019]?ve\s+received\s+your\s+application|we\s+have\s+received\s+your\s+application|thanks?\s+(?:you\s+)?for\s+applying|application\s+received|your\s+application\s+has\s+been\s+received|your\s+application\s+has\s+been\s+submitted|your\s+application\s+was\s+sent)\b",
-        s,
-        re.I | re.DOTALL,
-    ):
-        if DEBUG:
-            print("[DEBUG rule_label] Matched application-confirmation -> job_application")
-        return "job_application"
-
-    for label in (
-        "offer",          # Most specific: offer, compensation, package
-        "rejection",      # Negative outcomes - CHECK BEFORE NOISE to avoid false negatives
-        "head_hunter",    # Recruiter blasts
-        "noise",          # Newsletters/OTP/promos
-        "job_application", # Application confirmations/status (prefer application confirmations over generic interview phrasing)
-        "interview_invite",  # Scheduling/availability
-        "other",          # Generic catch-all
-        "referral",       # Referrals/intros
-        "ghosted",
-        "blank",
-    ):
-        if DEBUG and label == "rejection":
-            print(f"[DEBUG rule_label] Checking '{label}' patterns...")
-        for rx in _MSG_LABEL_PATTERNS.get(label, []):
-            match = rx.search(s)
-            if match:
-                if DEBUG and label in ("rejection", "noise"):
-                    print(f"[DEBUG rule_label] Pattern MATCHED for '{label}': {rx.pattern[:80]}")
-                    print(f"  Matched text: '{match.group()}'")
-                # If any exclude pattern matches, skip this label
-                excludes = _MSG_LABEL_EXCLUDES.get(label, [])
-                if DEBUG and label == "noise" and excludes:
-                    print(f"[DEBUG rule_label] Checking {len(excludes)} exclusion patterns for noise...")
-                matched_excludes = [ex for ex in excludes if ex.search(s)]
-                if matched_excludes:
-                    if DEBUG:
-                        print(f"[DEBUG rule_label] Label '{label}' pattern matched but EXCLUDED by:")
-                        for ex in matched_excludes:
-                            print(f"  - {ex.pattern}")
-                    continue
-
-                # Conservative handling for head_hunter / referral labels.
-                # - For `head_hunter` require either a known headhunter sender domain
-                #   (from `companies.json`) OR explicit recruiter-contact evidence in
-                #   the message (email address, phone number, LinkedIn URL, or a
-                #   signature-like closing with a name). This reduces false
-                #   positives from job-board digests and automated postings.
-                # - For both labels: skip if sender domain appears to be an ATS,
-                #   job-board, or maps to a known company domain.
-                if label in ("head_hunter", "referral"):
-                    d = (sender_domain or "").lower()
-
-                    # Allow immediate return if domain is configured as headhunter
-                    try:
-                        if d and d in HEADHUNTER_DOMAINS:
-                            return label
-                    except Exception:
-                        # HEADHUNTER_DOMAINS may not be loaded yet at import-time;
-                        # fall through to conservative checks.
-                        pass
-
-                    # If domain maps to a company, or is an ATS/job-board, skip headhunter/referral
-                    try:
-                        if d and (_is_ats_domain(d) or d in JOB_BOARD_DOMAINS or _map_company_by_domain(d)):
-                            # treat as no match for head_hunter/referral here
-                            continue
-                    except Exception:
-                        pass
-
-                    # Additional strictness for `head_hunter`: require explicit
-                    # recruiter-contact evidence in the message when the sender
-                    # domain is not in the HEADHUNTER_DOMAINS list.
-                    if label == "head_hunter":
-                        contact_patterns = [
-                            r"[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}",
-                            r"\+?\d{1,2}[-.\s]?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}",
-                            r"linkedin\.com/(?:in|pub)/[A-Za-z0-9_\-]+",
-                        ]
-                        # simple signature cue: 'Regards/Best/Sincerely/Thanks' followed by a name
-                        signature_rx = re.compile(r"(?:Regards|Best regards|Sincerely|Best|Thanks|Thank you)[\s,]*[\r\n]+[A-Z][a-z]+", re.I)
-
-                        has_contact = any(re.search(p, s, re.I) for p in contact_patterns) or signature_rx.search(s)
-                        if not has_contact:
-                            # No contact evidence + not a known headhunter domain => skip
-                            continue
-                    else:
-                        # For `referral` we keep the previous conservative approach:
-                        # require explicit recruiter/referral language when sender domain
-                        # is not available or not in headhunter list.
-                        if not d:
-                            if not re.search(r"\b(referred|referral|referred by|referrer)\b", s, re.I):
-                                continue
-
-                    # Special case: if this match is a job_application but the
-                    # message contains scheduling language (call/availability/etc.),
-                    # prefer `interview_invite` because many ATS-confirmations are
-                    # purely submission notices while recruiter/company messages
-                    # that ask to schedule are effectively interview invites.
-                    if label == "job_application":
-                        scheduling_rx = re.compile(
-                            r"(?:please\s+)?(?:let\s+me\s+know\s+when\s+you(?:\s+would|(?:'re|\s+are))?\s+available)|"
-                            r"available\s+for\s+(?:a\s+)?(?:call|phone\s+call|conversation|interview)|"
-                            r"would\s+like\s+to\s+discuss\s+(?:the\s+position|this\s+role|the\s+opportunity)|"
-                            r"schedule\s+(?:a\s+)?(?:call|time|conversation|interview)|"
-                            r"would\s+you\s+be\s+available",
-                            re.I | re.DOTALL,
-                        )
-                        if scheduling_rx.search(s):
-                            if DEBUG:
-                                print("[DEBUG rule_label] Matched scheduling language -> returning interview_invite")
-                            return "interview_invite"
-
-                if DEBUG and label == "rejection":
-                    print(f"[DEBUG rule_label] About to return '{label}'")
-                return label
-    return None
 
 
 def predict_with_fallback(
@@ -1011,11 +771,11 @@ def extract_status_dates(body, received_date):
         "follow_up_dates": [],
     }
     
-    # Use compiled patterns from _MSG_LABEL_PATTERNS
-    interview_patterns = _MSG_LABEL_PATTERNS.get("interview_invite", [])
-    rejection_patterns = _MSG_LABEL_PATTERNS.get("rejected", [])
-    response_patterns = _MSG_LABEL_PATTERNS.get("response", [])
-    followup_patterns = _MSG_LABEL_PATTERNS.get("follow_up", [])
+    # Use compiled patterns from RuleClassifier instance
+    interview_patterns = _rule_classifier._msg_label_patterns.get("interview_invite", [])
+    rejection_patterns = _rule_classifier._msg_label_patterns.get("rejection", [])
+    response_patterns = _rule_classifier._msg_label_patterns.get("response", [])
+    followup_patterns = _rule_classifier._msg_label_patterns.get("follow_up", [])
     
     if any(re.search(p, body_lower) for p in response_patterns):
         dates["response_date"] = received_date

@@ -4,7 +4,7 @@ from parser import parse_raw_message, parse_subject
 
 def test_ares_opportunity_parses_as_interview():
     repo_root = pathlib.Path(__file__).parent
-    eml_path = repo_root / "email" / "ARES Opportunities.eml"
+    eml_path = repo_root / "emails" / "ARES Opportunities.eml"
     assert eml_path.exists(), f"Missing test fixture: {eml_path}"
 
     raw = eml_path.read_text(encoding="utf-8", errors="ignore")

@@ -55,14 +55,14 @@ USER gmailtracker
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000').read()" || exit 1
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8001').read()" || exit 1
 
 # Expose port
-EXPOSE 8000
+EXPOSE 8001
 
 # Entry point script
 COPY docker-entrypoint.sh /usr/local/bin/
 ENTRYPOINT ["docker-entrypoint.sh"]
 
 # Default command
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8001"]

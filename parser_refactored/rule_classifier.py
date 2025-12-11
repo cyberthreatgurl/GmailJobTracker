@@ -33,24 +33,28 @@ class RuleClassifier:
         """Compile regex patterns from patterns.json for efficient matching."""
         self._msg_label_patterns = {}
         
+        # Map code labels to patterns.json keys
+        label_key_map = {
+            "interview_invite": "interview",
+            "job_application": "application",
+            "rejection": "rejection",
+            "offer": "offer",
+            "noise": "noise",
+            "head_hunter": "head_hunter",
+            "ignore": "ignore",
+            "response": "response",
+            "follow_up": "follow_up",
+            "ghosted": "ghosted",
+            "referral": "referral",
+            "other": "other",
+            "blank": "blank",
+        }
+        
         # Compile positive patterns for each label
-        for code_label in (
-            "interview_invite",
-            "job_application",
-            "rejection",
-            "offer",
-            "noise",
-            "head_hunter",
-            "ignore",
-            "response",
-            "follow_up",
-            "ghosted",
-            "referral",
-            "other",
-            "blank",
-        ):
+        message_labels = self.patterns.get("message_labels", {})
+        for code_label, pattern_key in label_key_map.items():
             compiled = []
-            pattern_list = self.patterns.get("message_label_patterns", {}).get(code_label, [])
+            pattern_list = message_labels.get(pattern_key, [])
             for p in pattern_list:
                 if p != "None":
                     try:
@@ -60,22 +64,17 @@ class RuleClassifier:
             self._msg_label_patterns[code_label] = compiled
 
         # Compile negative patterns (excludes) for each label
-        self._msg_label_excludes = {
-            k: [re.compile(p, re.I) for p in self.patterns.get("message_label_excludes", {}).get(k, [])]
-            for k in (
-                "interview_invite",
-                "job_application",
-                "rejection",
-                "offer",
-                "noise",
-                "head_hunter",
-                "ignore",
-                "response",
-                "follow_up",
-                "ghosted",
-                "referral",
-            )
-        }
+        message_excludes = self.patterns.get("message_label_excludes", {})
+        self._msg_label_excludes = {}
+        for code_label, pattern_key in label_key_map.items():
+            exclude_list = message_excludes.get(pattern_key, [])
+            compiled_excludes = []
+            for p in exclude_list:
+                try:
+                    compiled_excludes.append(re.compile(p, re.I))
+                except re.error as e:
+                    print(f"⚠️  Invalid exclude pattern for {code_label}: {p} - {e}")
+            self._msg_label_excludes[code_label] = compiled_excludes
 
     def classify(
         self,
@@ -142,6 +141,7 @@ class RuleClassifier:
         # Early scheduling-language detection -> interview_invite
         scheduling_rx_early = re.compile(
             r"(?:please\s+)?(?:let\s+me\s+know\s+when\s+you(?:\s+would|(?:'re|\s+are))?\s+available)|"
+            r"(?:please\s+)?(?:provide|share|send)(?:\s+me)?(?:\s+with)?\s+your\s+availability|"
             r"available\s+for\s+(?:a\s+)?(?:call|phone\s+call|conversation|interview)|"
             r"would\s+like\s+to\s+discuss\s+(?:the\s+position|this\s+role|the\s+opportunity)|"
             r"schedule\s+(?:a\s+)?(?:call|time|conversation|interview)|"
@@ -170,6 +170,27 @@ class RuleClassifier:
                 if DEBUG:
                     print(f"[DEBUG rule_label] Early referral match -> referral")
                 return "referral"
+
+        # Check for rejection signals BEFORE application confirmation
+        # (to handle mixed messages like "thanks for applying, but we moved forward with others")
+        rejection_override_patterns = [
+            r"\b(?:move|moved|moving)\s+forward\s+with\s+(?:other|another)\s+candidate",
+            r"\b(?:decided|chosen|opted)\s+not\s+to\s+(?:move\s+forward|proceed)",
+            r"\b(?:unable|not\s+able)\s+to\s+(?:move\s+forward|proceed)",
+            r"\bother\s+(?:candidates|applicants)\b",
+            r"\bposition\s+(?:has\s+been\s+)?(?:closed|filled)\b",
+        ]
+        for pattern in rejection_override_patterns:
+            if re.search(pattern, s, re.I | re.DOTALL):
+                if DEBUG:
+                    print(f"[DEBUG rule_label] Early rejection signal detected, checking rejection patterns")
+                # Verify with full rejection patterns
+                for rx in self._msg_label_patterns.get("rejection", []):
+                    if rx.search(s):
+                        if DEBUG:
+                            print(f"[DEBUG rule_label] Rejection confirmed -> rejection")
+                        return "rejection"
+                break  # Exit after checking rejection patterns once
 
         # Explicit application-confirmation signals -> job_application
         if re.search(

@@ -21,6 +21,15 @@ Architecture:
     
     Now all classes are defined inline in this module, maintaining the same APIs
     and functionality while eliminating the need for a separate package.
+    
+    Phase 4 (Utility Refactoring): Extracted utility functions into tracker/utils/ modules
+    for better organization and reusability:
+    - tracker/utils/validation.py: Company validation utilities (is_valid_company_name, etc.)
+    - tracker/utils/email_parsing.py: Email/MIME parsing utilities (decode_mime_part, etc.)
+    - tracker/utils/helpers.py: General helpers (should_ignore, extract_confidence, etc.)
+    
+    Backward-compatible wrapper functions remain in this file; new code can import from
+    tracker.utils modules for cleaner dependencies.
 """
 import base64
 import hashlib
@@ -1644,6 +1653,7 @@ def parse_raw_message(raw_text: str) -> dict:
     return EmailBodyParser.parse_raw_eml(raw_text, now)
 
 
+# Phase 4: Also available in tracker/utils/helpers.py
 def log_ignored_message(msg_id, metadata, reason):
     """Upsert IgnoredMessage with reason for auditability and metrics."""
     IgnoredMessage.objects.update_or_create(
@@ -1659,6 +1669,8 @@ def log_ignored_message(msg_id, metadata, reason):
     )
 
 
+# Phase 4: Validation utilities moved to tracker/utils/validation.py
+# Keeping wrapper functions for backward compatibility
 def is_valid_company_name(name):
     """Reject company names that match known invalid prefixes from patterns.json.
     
@@ -1763,6 +1775,7 @@ def predict_company(subject, body):
         return None
 
 
+# Phase 4: Also available in tracker/utils/helpers.py
 def should_ignore(subject, _body):
     """Return True if subject/body matches ignore patterns."""
     subj_lower = subject.lower()
@@ -4246,6 +4259,7 @@ def ingest_message_from_eml(eml_content: str, fake_msg_id: str = None):
         return None
 
 
+# Phase 4: Also available as extract_confidence in tracker/utils/helpers.py
 def _conf(res) -> float:
     if not res:
         return 0.0

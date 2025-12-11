@@ -59,7 +59,6 @@ def main():
     # Environment variables (only if .env exists)
     if has_env:
         print("🔐 Checking environment variables...")
-        check_env_variable("GMAIL_JOBHUNT_LABEL_ID")
         check_env_variable("DJANGO_SECRET_KEY")
         print()
 

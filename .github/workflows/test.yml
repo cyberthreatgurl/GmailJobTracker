@@ -40,7 +40,6 @@ jobs:
         DJANGO_SECRET_KEY=test-secret-key-for-ci-do-not-use-in-production
         DEBUG=False
         ALLOWED_HOSTS=localhost,127.0.0.1
-        GMAIL_JOBHUNT_LABEL_ID=test_label_id
         EOF
     
     - name: Run Django migrations

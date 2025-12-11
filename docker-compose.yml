@@ -11,7 +11,6 @@ services:
       - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY:-django-insecure-docker-default-key-change-me}
       - DEBUG=${DEBUG:-False}
       - ALLOWED_HOSTS=${ALLOWED_HOSTS:-localhost,127.0.0.1}
-      - GMAIL_JOBHUNT_LABEL_ID=${GMAIL_JOBHUNT_LABEL_ID}
       - GMAIL_ROOT_FILTER_LABEL=${GMAIL_ROOT_FILTER_LABEL:-#job-hunt}
       - DATABASE_PATH=/app/db/job_tracker.db
       - LOG_LEVEL=${LOG_LEVEL:-INFO}

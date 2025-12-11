@@ -6,11 +6,6 @@ echo "🚀 Starting GmailJobTracker..."
 # Wait for environment to be ready
 echo "⏳ Checking environment..."
 
-# Check if required environment variables are set
-if [ -z "$GMAIL_JOBHUNT_LABEL_ID" ]; then
-    echo "⚠️  WARNING: GMAIL_JOBHUNT_LABEL_ID not set. Gmail ingestion will not work."
-fi
-
 # Check if credentials exist
 if [ ! -f "/app/json/credentials.json" ]; then
     echo "⚠️  WARNING: Gmail credentials.json not found. You'll need to mount it as a volume."

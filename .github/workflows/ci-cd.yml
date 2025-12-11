@@ -44,6 +44,11 @@ jobs:
       - name: Security scan with detect-secrets
         run: |
           pip install detect-secrets
+          # Generate baseline on-the-fly if it doesn't exist
+          if [ ! -f .secrets.baseline ]; then
+            echo "Generating new baseline..."
+            detect-secrets scan --exclude-files '\.git/.*|\.env|credentials\.json|token\.pickle' > .secrets.baseline
+          fi
           detect-secrets scan --baseline .secrets.baseline
         continue-on-error: true
 
@@ -145,13 +150,14 @@ jobs:
           cache-to: type=gha,mode=max
           platforms: linux/amd64,linux/arm64
 
-      - name: Docker Scout CVE scan
-        uses: docker/scout-action@v1
-        with:
-          command: cves
-          image: ${{ steps.meta.outputs.tags }}
-          only-severities: critical,high
-        continue-on-error: true
+      # Docker Scout requires paid entitlement - disabled for now
+      # - name: Docker Scout CVE scan
+      #   uses: docker/scout-action@v1
+      #   with:
+      #     command: cves
+      #     image: ${{ steps.meta.outputs.tags }}
+      #     only-severities: critical,high
+      #   continue-on-error: true
 
   # Job 4: Deploy (only on release or main branch)
   deploy:

@@ -19,21 +19,6 @@ from db import PATTERNS_PATH
 from scripts.import_gmail_filters import load_json
 
 
-import json
-import os
-from pathlib import Path
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect, get_object_or_404
-from django.http import JsonResponse
-from django.db.models import Q, Count, F, Case, When, Value
-from parser import parse_subject, normalize_company_name
-from tracker.models import Company, Message, ThreadTracking, UnresolvedCompany
-from tracker.services import CompanyService
-from db import PATTERNS_PATH
-from scripts.import_gmail_filters import load_json
-
-
 @login_required
 def delete_company(request, company_id):
     """Delete a company and all related messages/applications, then retrain model."""

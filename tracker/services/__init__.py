@@ -6,4 +6,6 @@ This package contains business logic services:
 - stats_service: Statistics and analytics calculations
 """
 
-__all__ = []
+from .message_service import MessageService
+
+__all__ = ['MessageService']

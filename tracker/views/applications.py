@@ -3,18 +3,15 @@
 Extracted from monolithic views.py (Phase 5 refactoring).
 """
 
-from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from tracker.models import Message
-from tracker.forms import ApplicationEditForm, ManualEntryForm
-from tracker.services import MessageService
-
-
+from django.db import models
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from tracker.models import Message
+from django.utils.timezone import now
 from tracker.forms import ApplicationEditForm, ManualEntryForm
+from tracker.models import Company, Message, ThreadTracking
 from tracker.services import MessageService
+from tracker.views.helpers import build_sidebar_context
 
 
 def edit_application(request, pk):

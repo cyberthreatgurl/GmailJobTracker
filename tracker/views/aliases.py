@@ -7,18 +7,14 @@ import json
 from pathlib import Path
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from tracker.models import Company
 
-
-import json
-from pathlib import Path
-from django.contrib.auth.decorators import login_required
-from django.views.decorators.csrf import csrf_exempt
-from django.shortcuts import render
-from django.http import JsonResponse
-from tracker.models import Company
+ALIAS_EXPORT_PATH = Path("json/alias_suggestions.json")
+ALIAS_LOG_PATH = Path("json/alias_log.json")
+ALIAS_REJECT_LOG_PATH = Path("json/alias_reject_log.json")
+PATTERNS_PATH = Path("json/patterns.json")
 
 
 @login_required

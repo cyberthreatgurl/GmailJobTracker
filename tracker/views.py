@@ -8,6 +8,9 @@ This module contains:
 
 These views operate entirely on local data (SQLite) and integrate with the
 ingestion/ML pipeline via helper modules where needed.
+
+Phase 2 Refactoring: Business logic extracted to tracker.services for better
+testability and code reuse. Views now delegate to service classes.
 """
 
 # --- Label Rule Debugger ---
@@ -18,6 +21,9 @@ import os
 import re
 from parser import extract_metadata, parse_raw_message
 from pathlib import Path
+
+# Phase 2: Import service classes for business logic
+from tracker.services import CompanyService, MessageService, StatsService
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -1024,113 +1030,11 @@ ALIAS_REJECT_LOG_PATH = Path("alias_rejections.csv")
 
 
 def build_sidebar_context():
-    """Compute sidebar metrics (companies, applications, weekly trends, upcoming interviews, latest stats)."""
-    # Exclude the user's own messages (replies) from counts
-    user_email = (os.environ.get("USER_EMAIL_ADDRESS") or "").strip()
-    # Load headhunter domains from companies.json (if available)
-    headhunter_domains = []
-    try:
-        companies_path = Path("json/companies.json")
-        if companies_path.exists():
-            with open(companies_path, "r", encoding="utf-8") as f:
-                data = json.load(f)
-                headhunter_domains = [
-                    d.strip().lower()
-                    for d in data.get("headhunter_domains", [])
-                    if d and isinstance(d, str)
-                ]
-    except Exception:
-        headhunter_domains = []
-
-    # Count companies with actual applications (ThreadTracking records)
-    companies_count = (
-        Company.objects.filter(threadtracking__isnull=False)
-        .exclude(status="headhunter")
-        .distinct()
-        .count()
-    )
-
-    # Build a Q for Message model context (direct sender field) for weekly stats
-    msg_hh_sender_q = Q()
-    for d in headhunter_domains:
-        msg_hh_sender_q |= Q(sender__icontains=f"@{d}")
-
-    # Total applications: count all ThreadTracking records (not just ml_label='job_application')
-    # ThreadTracking represents application threads (job_application, interview_invite, etc.)
-    applications_count = ThreadTracking.objects.exclude(company__status="headhunter").count()
-
-    # Weekly application count: Use Message model directly (more reliable than ThreadTracking)
-    # because not all job_application messages have corresponding ThreadTracking rows
-    week_cutoff = now() - timedelta(days=7)
-    applications_week_qs = Message.objects.filter(
-        ml_label__in=["job_application", "application"],
-        timestamp__gte=week_cutoff,
-        company__isnull=False,
-    )
-    # Exclude user's own messages
-    if user_email:
-        applications_week_qs = applications_week_qs.exclude(sender__icontains=user_email)
-    # Exclude headhunter companies and domains
-    applications_week_qs = applications_week_qs.exclude(company__status="headhunter")
-    if headhunter_domains:
-        applications_week_qs = applications_week_qs.exclude(msg_hh_sender_q)
-    # Count total application messages
-    applications_week = applications_week_qs.count()
-
-    # Count rejection messages this week (exclude headhunters and user's own replies)
-    rejections_qs = Message.objects.filter(
-        ml_label__in=["rejected", "rejection"],
-        timestamp__gte=now() - timedelta(days=7),
-        company__isnull=False,
-    )
-    if user_email:
-        rejections_qs = rejections_qs.exclude(sender__icontains=user_email)
-    # Exclude headhunter senders and head_hunter-labeled messages
-    if headhunter_domains:
-        rejections_qs = rejections_qs.exclude(msg_hh_sender_q)
-    rejections_qs = rejections_qs.exclude(ml_label="head_hunter")
-    rejections_week = rejections_qs.count()
-
-    # Count interview invitation messages this week
-    # Use distinct company_id to count companies with interviews (not individual messages or threads)
-    interviews_qs = Message.objects.filter(
-        ml_label="interview_invite",
-        timestamp__gte=now() - timedelta(days=7),
-        company__isnull=False,
-    )
-    if user_email:
-        interviews_qs = interviews_qs.exclude(sender__icontains=user_email)
-    # Exclude headhunter senders/domains for interviews as well
-    if headhunter_domains:
-        interviews_qs = interviews_qs.exclude(msg_hh_sender_q)
-    # Count distinct companies with interviews (multiple messages/threads from same company = 1 interview)
-    interviews_week = interviews_qs.values("company_id").distinct().count()
-
-    # Upcoming interviews: unify filters with interview list logic (exclude rejected/ghosted)
-    upcoming_interviews = (
-        ThreadTracking.objects.filter(
-            interview_date__gte=now(),
-            company__isnull=False,
-            interview_completed=False,
-        )
-        .exclude(status="ghosted")
-        .exclude(status="rejected")
-        .exclude(rejection_date__isnull=False)
-        .select_related("company")
-        .order_by("interview_date")[:10]
-    )
-
-    latest_stats = IngestionStats.objects.order_by("-date").first()
-    return {
-        "companies": companies_count,
-        "applications": applications_count,
-        "applications_count": applications_count,
-        "applications_week": applications_week,
-        "rejections_week": rejections_week,
-        "interviews_week": interviews_week,
-        "upcoming_interviews": upcoming_interviews,
-        "latest_stats": latest_stats,
-    }
+    """Compute sidebar metrics (companies, applications, weekly trends, upcoming interviews, latest stats).
+    
+    Phase 2: Delegates to StatsService for business logic.
+    """
+    return StatsService.get_sidebar_metrics()
 
 
 # --- Log Viewer Page ---

@@ -24,6 +24,17 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
     
+    - name: Download spaCy model
+      run: python -m spacy download en_core_web_sm
+    
+    - name: Setup test environment
+      run: |
+        mkdir -p db logs model json
+        touch json/patterns.json
+        touch json/companies.json
+        echo '{"known": [], "domain_to_company": {}}' > json/companies.json
+        echo '{"message_labels": {}}' > json/patterns.json
+    
     - name: Run tests
       env:
         DJANGO_SETTINGS_MODULE: dashboard.settings

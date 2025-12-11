@@ -19,7 +19,6 @@ class Command(RunserverCommand):
         
         # Define the env vars to display (in order)
         env_vars = [
-            ('GMAIL_JOBHUNT_LABEL_ID', 'Gmail Job Hunt Label ID'),
             ('GMAIL_ROOT_FILTER_LABEL', 'Gmail Root Filter Label'),
             ('USER_EMAIL_ADDRESS', 'User Email Address'),
             ('DEBUG', 'Debug Mode'),

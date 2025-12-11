@@ -2,7 +2,7 @@
 from django import forms
 from django.utils.timezone import now
 
-from tracker.models import ThreadTracking
+from tracker.models import ThreadTracking, Company
 
 
 class ApplicationEditForm(forms.ModelForm):
@@ -101,3 +101,27 @@ class UploadEmlForm(forms.Form):
     eml_file = forms.FileField(label=".eml file", help_text="Upload complete .eml file including headers")
     thread_id = forms.CharField(max_length=255, required=False, label="Thread ID override", help_text="Optional: force thread_id to use for this message")
     no_tt = forms.BooleanField(required=False, initial=False, label="Do not create ThreadTracking", help_text="When checked, do not auto-create a ThreadTracking record")
+
+
+class CompanyEditForm(forms.ModelForm):
+    """Form for editing Company details in label_companies view."""
+
+    # Add career_url as a non-model field
+    career_url = forms.URLField(
+        max_length=512,
+        required=False,
+        label="Career Page URL",
+        help_text="Company's job listings or career page",
+    )
+
+    class Meta:
+        model = Company
+        fields = ["domain", "ats"]
+        widgets = {
+            "domain": forms.TextInput(attrs={"placeholder": "company.com"}),
+            "ats": forms.TextInput(attrs={"placeholder": "jobs.company.com"}),
+        }
+        help_texts = {
+            "domain": "Primary company domain",
+            "ats": "Applicant Tracking System domain",
+        }

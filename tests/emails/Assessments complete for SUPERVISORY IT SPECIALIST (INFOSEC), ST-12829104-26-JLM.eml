@@ -1,0 +1,153 @@
+Delivered-To: kaver68@gmail.com
+Received: by 2002:a05:6a06:1da:b0:759:fe82:d5da with SMTP id q26csp1365197pin;
+        Thu, 20 Nov 2025 17:34:04 -0800 (PST)
+X-Google-Smtp-Source: AGHT+IEUm/A6YsRCQTsiJ68FhXfZLoGR33WHzlxpEssU5on57+JxrRhzGKVnq2JO90ZZKvm6IXvj
+X-Received: by 2002:a05:690e:191a:b0:642:375:6de2 with SMTP id 956f58d0204a3-643025b606dmr530095d50.14.1763688843815;
+        Thu, 20 Nov 2025 17:34:03 -0800 (PST)
+ARC-Seal: i=2; a=rsa-sha256; t=1763688843; cv=pass;
+        d=google.com; s=arc-20240605;
+        b=LDv3hHDo6q7//vt3RFmKGulLeYFqvRnWKS2dLP5reiFbPD7qI9SwOK8GObcoXYvyHp
+         k1LpNfXR1H2bfsTAjqxbP+k62FTp19+yjNrb1o2mTvXLRUSUitQ3dRxdGtf+CfuZTzh4
+         H0VHYlcAy7jCa5f2KsnZak/ja4qyoOU90aSVrg0MdtRHEm+GQ+dyofXK2VjGMLIuPByJ
+         8ZA3TUDBIi8kQZoyR99/WUcu4G0U7o2SrwokA4mBPsoQR3biuWFo937HCW4MIpRzwaxa
+         O8huUmQZhvQl+eDwiP1HgRKjl998Rn0AqVCQVH5adUzVtNg1lNZTqsK2tpTfLQPYSOW1
+         qfug==
+ARC-Message-Signature: i=2; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=request-id:client-request-id:content-transfer-encoding:mime-version
+         :usastaffing-notificationtoken:message-id:date:subject:to:reply-to
+         :from:sender:dkim-signature;
+        bh=OIXJgy2jL2nlfFThRRL3O0Q6KiyKcBIoXr1J1+M7MbI=;
+        fh=FpRgKkY1+uMlJoxPVrV7lMmCsS7tlD6Go7NfgkTbnMg=;
+        b=V3/n3Tk8maVfE5duAO4M9yrMPJj1C6TGLNCjtl4e4b8jH0hXTlp8X6XiPhb8Ki2cXR
+         uvMKG5yFnlaZsHPzMKVb8NlBTJlm3VhWsJfM1lV/gAvNBYA7N6IvZXUHaE/G4MT+vIoF
+         NVlKo8OA9kEoARiJWaqFbWtbjnAyK6sV7IaUKaSH3jjK5VLDuVcZh3o669I86muw+xiq
+         Z7KX1dmwqdq/A6PLrKfUA4+kXMYZ7qQa8VB+ATNMj4OA5xRaBfe2VedtYhaP7WXxWnlJ
+         g8WJu1TUMivMzosclOER2PLGbnBDRFu4pF6H8d6FvJifdoh/o8K++xFG/2oOcSKx8t3r
+         RnRQ==;
+        dara=google.com
+ARC-Authentication-Results: i=2; mx.google.com;
+       dkim=pass header.i=@usastaffing.gov header.s=selector1-azurecomm-prod-net header.b=8w6QxCTG;
+       arc=pass (i=1);
+       spf=pass (google.com: domain of usastaffingoffice@usastaffing.gov designates 40.93.2.24 as permitted sender) smtp.mailfrom=usastaffingoffice@usastaffing.gov;
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=usastaffing.gov
+Return-Path: <usastaffingoffice@usastaffing.gov>
+Received: from BL2PR02CU003.outbound.protection.outlook.com (mail-eastusazacs10211024.outbound.protection.outlook.com. [40.93.2.24])
+        by mx.google.com with ESMTPS id 00721157ae682-78a799e61a9si17595207b3.922.2025.11.20.17.34.03
+        for <kaver68@gmail.com>
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 20 Nov 2025 17:34:03 -0800 (PST)
+Received-SPF: pass (google.com: domain of usastaffingoffice@usastaffing.gov designates 40.93.2.24 as permitted sender) client-ip=40.93.2.24;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@usastaffing.gov header.s=selector1-azurecomm-prod-net header.b=8w6QxCTG;
+       arc=pass (i=1);
+       spf=pass (google.com: domain of usastaffingoffice@usastaffing.gov designates 40.93.2.24 as permitted sender) smtp.mailfrom=usastaffingoffice@usastaffing.gov;
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=usastaffing.gov
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=CwYQ97+GckfGcz/aeCN8GEiXgRTzZlZRsakDTHJ4sl7Jt6ZtVx36Go7+BQlSUu/r/vKK7hlSYEZndTGn82co7v7jbr5kSdx6w8JpEWxGavbMMemOKJxdH8l+AJBGjnLSsu4QKPbL+eCeHNbnUehGMO4h86UONt/K0rXY2RkysTqOTM2JFeO76QdjCmiJm4hzflOYFMQbrz0QA/bMkXcY+Ba1tQCdKYcfqo5AKuEZJvYa6B0Eo0FPkIuNTxslwU8v2N1IwC8WScyq3BFhHxtswRoBCoDMXMYogMa2WyRWUrkzl3+bOOmW1yAZ6FrA10tbUYcObV5/uF3JbesrE7Jssw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=OIXJgy2jL2nlfFThRRL3O0Q6KiyKcBIoXr1J1+M7MbI=;
+ b=ThRC2uMcWLjnpDNAZ2WnGWKnERV3t1nP4S8+gCT/Tc70gy/OkMJPX8E+uSm7QYhy1TmnvoBu507/dciPhJegAcdA4tATbVEHv2Q7MgHYOLAfDWgIATk18Pjd3Ld0VCO7Pponoz31xDzIEEPZBN5RMesiKyo4zprEYU/29YTxUnOOlt3FXPP0qfcRMpNyU1kGdz4E4CYBNQ4KMKSjayzE3oPbGbIdo0JPtOT4+QGKMzdcOi4MqLrxpVA/UzMJ7CLfyhfQfyNqcnV5YQKXvnPZ87lFziJIs7logna20S1abG3szIxzmeP6y+EQhtVdqNegW4qjfzORmIjb+OJ97Yqh/Q==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=none; dmarc=none;
+ dkim=none; arc=none
+Received: from substrate.office.com (2603:10b6:806:87::9) by
+ SA0PR19MB4367.namprd19.prod.outlook.com with HTTP via
+ MW4PR04CA0064.NAMPRD04.PROD.OUTLOOK.COM; Fri, 21 Nov 2025 01:34:02 +0000
+DKIM-Signature: v=1; a=rsa-sha256; d=usastaffing.gov;
+	s=selector1-azurecomm-prod-net; c=relaxed/relaxed; t=1763688842;
+	h=from:to:cc:subject:date:messageid;
+	bh=OIXJgy2jL2nlfFThRRL3O0Q6KiyKcBIoXr1J1+M7MbI=;
+	b=8w6QxCTGseFupeJOrByHao1yeP0QctNkqgNVn678wN+plxOBTUevXOpndEj8b7S0C1RJiNU6RIX
+	mp6jSNtWHXI5JCT3Y5s1ssBHr7JshB3ol2CkROfEh63yPMmv2XzlQIi4KShO95Lcx+2WnZmnctNax
+	/71Vpy3B4XNuefdRhRhaKOo15tMMPHYmtaAp8Gi77cS1Fu5/hi1mvgBIRn4sSMihTo70pqAdNdawN
+	vO7co3A94VRAiZR07+emg9orEqlAgmtLYngPH3IDqMb6IFvnltO5eQJ36eSxr5CoxjCyvdep/C/ql
+	Xr7gbMmmiJyzzXdIdOkBq798QWW8j5k4Q9ag==
+Sender: USA Staffing Office <usastaffingoffice@usastaffing.gov>
+From: USA Staffing Office <usastaffingoffice@usastaffing.gov>
+Reply-To: USA Staffing Office <usastaffingoffice@usastaffing.gov>
+To: kaver68 <kaver68@gmail.com>
+Subject: Assessments complete for SUPERVISORY IT SPECIALIST (INFOSEC),
+ ST-12829104-26-JLM
+Date: Fri, 21 Nov 2025 01:34:02 +0000
+Message-ID: <202511210133.86accc87eb6d4e18a891325db924c271-OBZG6ZD4IFBVGRKNIFEUYLLQOJXWILRQG5STCNJVMQ2S2ZLFMZRC2NBSMQYS2YRSMFSS2NDFHBTGIYTDGA2WEZBYPRZW25DQ@microsoft.com>
+USAStaffing-NotificationToken: c6fb0e5b-a1c0-4f50-923d-aca21ebfe5f5
+x-priority: 3
+MIME-Version: 1.0
+X-TsbHttpDeliveryResponseType: Success
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+X-MS-PublicTrafficType: Email
+client-request-id: 86accc87-eb6d-4e18-a891-325db924c271
+request-id: 86accc87-eb6d-4e18-a891-325db924c271
+Return-Path: usastaffingoffice@usastaffing.gov
+X-MS-TrafficTypeDiagnostic: SA0PR19MB4367:EE_ACSPROD
+X-MS-Exchange-SenderADCheck: 0
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;ARA:13230040|376014|61400799027|8096899003;
+X-Microsoft-Antispam-Message-Info:
+	=?utf-8?B?Rmh4VGg4YjdBMWpseE9iRFREZXVSWFdZOHdzSk9EUVY0YnNLelI3UmRoZjJM?=
+ =?utf-8?B?eHZQRDVXSENIV3dkeFU2a3ZRTjZDRy9oL1REb2kxV2JlQmdzVEI2M214Q2xp?=
+ =?utf-8?B?Nzh4SmtlMmNucnhUcEdVOGZCZHZBYWtwNXEvU3dRUDB4OW0wblloak9JNkVa?=
+ =?utf-8?B?aDk1SGJ4a0UxcjdlWkpHOFg3SngzdThhcUlJaTBxM0FHWi9BdXZac1didE53?=
+ =?utf-8?B?d1B3SlhGcTM4RWxRV3dPQ2JmdjJOWWwyVXNzeU5OSWxWQnZzR0VkQkRld3FU?=
+ =?utf-8?B?L1g2azlPdmpVMzdoTmU3d3VPcTVIbDdBSzlGWG5IVnB1bjZLbEFRYTVUUFdW?=
+ =?utf-8?B?ekRQSVAwQ2t6YW5Ccm4vcGtMdWVwd0ZQZ2ZVbDYwV05ZaFRtUFlsVkdvWlhx?=
+ =?utf-8?B?a3NpKzJCTllLeXRjZDJIbnJKSzdNdzMwRFJUeTBRL1dJd0hpOEhUbjBjRFZS?=
+ =?utf-8?B?QU5jU3RlOEwzd2dLcDdHNFA1NU5qVkhBMnZySzFBcXkvcWZVQmxvc0Rhaldi?=
+ =?utf-8?B?YUpuVEFXM3lEREk2OUxOOW9HTWorVENiakIvazRVeVpScE9ieVpKSlVzYmdL?=
+ =?utf-8?B?b3VoN3lJanRSMkdDUllocmF2aWdGa0piOG5iZTVzQmRreHlFdU9GVmc5elUx?=
+ =?utf-8?B?Qnl2U0xmak1uLzc5QlhjYnZHSksva3lrOFVvMVYxcmtneW9XdUIrTzdpNnJw?=
+ =?utf-8?B?Y1pUUGsyYXpQTWt5ai9WbmFvY3FlN0pQd2xyUllvdHljMFlsNzIrN1lydXow?=
+ =?utf-8?B?U0lJNWhCa1lNc1F3c21rQjVLQUxIUXpuUEdkU1ltWUt5MzdZNExnSHlOdHc3?=
+ =?utf-8?B?UFNldlp5RnJGMzVyR2lOS3dCamp1bzRHdllUTmdhWXllQ3k5RldHWFhYZzhy?=
+ =?utf-8?B?VWYzdXRhMWt4S0ZoOWlSUVlyN0kycytJVlFoZTk0NUxsdkgvUllkVG9oRzUr?=
+ =?utf-8?B?TGlZdW1xVDdMUWVPRExJNXdlUVZCQ0I4L3Z3TE04clhXT3BJblR2cU8zamZt?=
+ =?utf-8?B?RVVvMGs1RXNYTkJHY0psQm0yWEsrUTIzMUdWbU11dEIwY0YyMStmTXo4dE5x?=
+ =?utf-8?B?WE5keUZyYzlBbWtHdENxUEJFTzN0cnRRNkxLR1JWckdVbTZPMyt6OTN4OHFN?=
+ =?utf-8?B?bklOMC9uSyt1RnBNSkZGdjVsQzhzNldkbG9lZEJGbEhrWUZCSGczVzZ3QXow?=
+ =?utf-8?B?TlUxTkVIU1dhUGEwQ3FheWJVZkUwTmhkejJ3N3RGZEJmd0dXR2dwS3BxT0Ja?=
+ =?utf-8?B?U0FvSE43bHN5eE94dEcwSTVDQWFQNURZWlJUdUtYSE40bGlTNlBXbksyR2JE?=
+ =?utf-8?B?VEZVdjdlaUJaUWdlR0MxZEcyVFpHZjFiN0tBWGVSYTNCeXNmQVFCWEhlNVRY?=
+ =?utf-8?B?U1ZoUDk2Q1BSMi9TUmdIZW5md1FObzNGUTY4QWVNZHpwZGNXeHlsMVMrZUlp?=
+ =?utf-8?B?Y25MOUd5Q0ZRZU53T0ZrcXMxaVl1NFRSVXhYYVNKdkNPdkxKYmlFbXFITXQw?=
+ =?utf-8?B?R0RzU2tINEdiTDFESDJmN2s1cE9kbW1iVUtQaU55cjFBMVhNUXM5VXdBcjBo?=
+ =?utf-8?B?ZEdJT0crMGtSa1orVysxcjNFK0lQMXltOEpVL1lJNTQzWmZUSGRPNTJaOGV6?=
+ =?utf-8?B?bERQai8rbVpmRTdlSnJITEw1RFE1N2VSWXJBR2tGTUFuWHo4YVBMY1ZvbDJq?=
+ =?utf-8?B?Y1d5U2o0VXl6UFFtMzNsM2VRMmZubUdTVTllWHM3UFZzZnNDOVVRd1lUNzUr?=
+ =?utf-8?B?NVdhdnQ0RWZydUFzcHBqUXYwWVZKakc5R1BMSTc4Z0ZTWlkyajdYbHZYT3ha?=
+ =?utf-8?B?cm5wSlhrZUFtRWh1bm9rUU8rTkRyOEFQNTdzVUtqN2crdEZWajZmTm1Yd3Ux?=
+ =?utf-8?B?bHQwMEVTUmR2Y25PT1NjbzJxaTNaUFRtMWVDNFlNd0hwK2lLU3llVlBJMmJK?=
+ =?utf-8?B?dE1PRDhJU2pINnFoWlcxN3lmUDJSVHpqbGVlakl4RWVodVF4WFRFdWxKZmND?=
+ =?utf-8?B?NkNZbkhHWkxBPT0=?=
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:;PTR:;CAT:NONE;SFS:(13230040)(376014)(61400799027)(8096899003);DIR:OUT;SFP:1021;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	V03giZp5KgRYC90D16Go0fqjUBnHHz2B+LV/s+hNtrCzHPiKmh9Y77NSsaH3ORQFlm1dQGv3Qr0YxB0swppIZimfEsZ7KH8h9Dh+EoYfccBLtvTAnozkQn2Bks14KtBe1OF4TgBf6nrXrCPCQ3rRhjwYVUa7byVKSKmCHlRYPphQWb9jx1CZO2PmzGENNyaysjAuGgH92WEfn7Q5zpC08sJo4MhkzilqMZ7OkVw6ZIOu9wmUnXDVpXrp1J3dfoFJ0TDSWw5YKYDVw2gxnXeqjnvlCqNoBT6Yh1nd+czWAECgy5Upb5+Q0MOx/0UD/yTebXSK0snmVdQf1PC2ztsktOY0Fe/wM3WeU3dcsn1LUkaU9hm2fR1xSuFun37vDIs15TZ5oSjbj36tX58VfnWCrQ==
+X-OriginatorOrg: acsemailus2.onmicrosoft.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-AuthSource: HttpSubmission-SA0PR19MB4367
+X-MS-Exchange-CrossTenant-Id: 1bc54e25-0f54-4dde-8201-65dd97a87c44
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 21 Nov 2025 01:34:02.5115 (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id:
+	46d1364c-aebb-427e-954c-08de289e0d44
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA0PR19MB4367
+
+Hi Adrian,<br /><br />The job announcement for SUPERVISORY IT SPECIALIST (I=
+NFOSEC), ST-12829104-26-JLM at Naval Sea Systems Command required the compl=
+etion of USA Hire assessments as part of your job application.<br /><br /><=
+strong>Your assessment completion status</strong><br />Complete<br /><br />=
+<br /><hr /><br /><font color=3D"#3d4551"><strong>What determines my comple=
+tion status?</strong><br />If you did not just complete a testing session, =
+then your assessment responses were automatically reused from a previous te=
+sting session. For USA Hire assessments, your assessment responses will be =
+reused in most instances for one year from the date you previously complete=
+d the assessment. Reuse of responses enhances test security, streamlines co=
+ntent management, and reduces your burden by not requiring you to complete =
+repeat test sessions for each announcement to which you apply.<br /><br /><=
+strong>Need additional help?</strong><br />Replies to this message go to an=
+ unmonitored mailbox. For more information about the assessments or to subm=
+it an assistance request, <a href=3D"https://appsupport.usastaffing.gov/hc/=
+en-us/sections/28980562523540-USA-Hire-Assessments" target=3D"_blank">revie=
+w the following resources</a>.</font>=

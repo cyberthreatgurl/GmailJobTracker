@@ -15,11 +15,13 @@ from .rule_classifier import RuleClassifier
 from .domain_mapper import DomainMapper
 from .company_resolver import CompanyResolver
 from .email_body_parser import EmailBodyParser
+from .metadata_extractor import MetadataExtractor
 
 __all__ = [
-    'CompanyValidator',
-    'RuleClassifier',
-    'DomainMapper',
-    'CompanyResolver',
-    'EmailBodyParser',
+    "CompanyValidator",
+    "RuleClassifier",
+    "DomainMapper",
+    "CompanyResolver",
+    "EmailBodyParser",
+    "MetadataExtractor",
 ]

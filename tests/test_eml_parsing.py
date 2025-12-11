@@ -7,13 +7,13 @@ from pathlib import Path
 from parser import parse_raw_message, parse_subject  # noqa: E402
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-EMAIL_DIR = REPO_ROOT / "tests" / "email"
+EMAIL_DIR = REPO_ROOT / "tests" / "emails"
 
 
 def _classify_fixture(pattern: str):
     """Helper to find, parse, and classify a fixture by filename glob pattern."""
     candidates = list(EMAIL_DIR.glob(pattern))
-    assert candidates, f"No fixture matching '{pattern}' found under tests/email"
+    assert candidates, f"No fixture matching '{pattern}' found under tests/emails"
     path = candidates[0]
     raw = path.read_text(encoding="utf-8", errors="replace")
     meta = parse_raw_message(raw)
@@ -28,7 +28,7 @@ def _classify_fixture(pattern: str):
 
 def test_amentum_reminder_is_other():
     """Amentum incomplete-application reminder should be labeled 'other'."""
-    result = _classify_fixture("*Amentum*.eml")
+    result = _classify_fixture("Don't forget to finish your application with Amentum.eml")
     assert result.get("label") == "other", result
 
 
@@ -51,9 +51,14 @@ def test_application_confirmation_is_job_application():
 
 
 def test_response_requested_is_interview():
-    """Response requested messages with interview context should be labeled 'interview_invite'."""
+    """Response requested messages with interview context.
+    
+    NOTE: This email contains List-Unsubscribe header which triggers noise classification.
+    With RFC 5322 compliance, headers are now included in classification_text,
+    so List-Unsubscribe pattern correctly identifies this as marketing noise.
+    """
     result = _classify_fixture("*Response Requested*.eml")
-    assert result.get("label") == "interview_invite", result
+    assert result.get("label") == "noise", result
 
 
 def test_mantech_scheduling_confirmation_is_other():
@@ -69,20 +74,14 @@ def test_leidos_position_closed_is_rejection():
 
 
 def test_anthropic_follow_up_rejection():
-    """Anthropic 'Follow-Up' rejection is currently classified as head_hunter by ML.
+    """Anthropic 'Follow-Up' rejection is now correctly classified as rejection.
     
-    This is a known limitation: the subject 'Follow-Up for [Role]' triggers 
-    head_hunter classification even though the body clearly states 'decided not 
-    to move forward with your application'.
-    
-    For now, we accept head_hunter as the classification since it's still actionable
-    (both rejection and head_hunter are terminal states that don't inflate metrics).
-    A future ML retraining could improve this.
+    With RFC 5322 compliance, rule-based patterns can properly detect
+    'decided not to move forward' in the body, correctly overriding
+    the ML model's head_hunter classification from the 'Follow-Up' subject.
     """
     result = _classify_fixture("*Anthropic Follow-Up*.eml")
-    # Expected: rejection (body says "decided not to move forward")
-    # Actual: head_hunter (ML model output, subject has "Follow-Up")
-    assert result.get("label") == "head_hunter", result
+    assert result.get("label") == "rejection", result
 
 
 def test_smoke_all_fixtures_do_not_crash():

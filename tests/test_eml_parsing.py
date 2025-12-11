@@ -86,6 +86,17 @@ def test_anthropic_follow_up_rejection():
     assert result.get("label") == "rejection", result
 
 
+def test_rand_alternative_candidate_rejection():
+    """RAND rejection with 'alternative candidate' should be classified as rejection.
+    
+    Post-interview rejection using phrase "decided to move forward with an alternative candidate"
+    should be caught by rejection patterns that include 'alternative' as a variant of 'other'/'another'.
+    This ensures we don't miss rejections that use slightly different terminology.
+    """
+    result = _classify_fixture("*RAND* Research Lead*.eml")
+    assert result.get("label") == "rejection", result
+
+
 def test_smoke_all_fixtures_do_not_crash():
     """Run all .eml fixtures to ensure parsing/classification doesn't crash."""
     emls = sorted(EMAIL_DIR.glob("*.eml"))

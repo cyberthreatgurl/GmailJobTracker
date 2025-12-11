@@ -52,7 +52,13 @@ from tracker.models import (
 )
 
 # Import refactored components
-from parser_refactored import CompanyValidator, RuleClassifier, DomainMapper, CompanyResolver
+from parser_refactored import (
+    CompanyValidator,
+    RuleClassifier,
+    DomainMapper,
+    CompanyResolver,
+    EmailBodyParser,
+)
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dashboard.settings")
 django.setup()
@@ -301,18 +307,8 @@ def is_application_related(subject, body):
 
 
 def decode_part(data, encoding):
-    """Decode a MIME part body string using the provided encoding.
-
-    Supports base64, quoted-printable, and 7bit. Returns a decoded UTF-8 string.
-    """
-    if encoding == "base64":
-        return base64.urlsafe_b64decode(data).decode("utf-8", errors="ignore")
-    elif encoding == "quoted-printable":
-        return quopri.decodestring(data).decode("utf-8", errors="ignore")
-    elif encoding == "7bit":
-        return data  # usually already decoded
-    else:
-        return data
+    """Decode a MIME part body string using the provided encoding (delegates to EmailBodyParser)."""
+    return EmailBodyParser.decode_mime_part(data, encoding)
 
 
 # def extract_body(payload):
@@ -335,175 +331,18 @@ def decode_part(data, encoding):
 
 
 def extract_body_from_parts(parts):
-    """Extract the first HTML part's body from a Gmail message payload tree.
-
-    Walks nested multipart sections; prefers HTML and returns full HTML string.
-    Returns "Empty Body" or empty string when no body is found.
-    """
-    for part in parts:
-        mime_type = part.get("mimeType")
-        body_data = part.get("body", {}).get("data")
-        if mime_type == "text/html" and body_data:
-            decoded = base64.urlsafe_b64decode(body_data).decode("utf-8", errors="ignore")
-            if not decoded:
-                decoded = "Empty Body"
-                print("Decoded Body/HTML part is empty.")
-            return decoded  # preserve full HTML
-        elif "parts" in part:
-            result = extract_body_from_parts(part["parts"])
-            if result:
-                return result
-            else:
-                return "Empty Body"
-    return ""
+    """Extract the first HTML part's body from a Gmail message payload tree (delegates to EmailBodyParser)."""
+    return EmailBodyParser.extract_from_gmail_parts(parts)
 
 
 def _decode_header_value(raw_val: str) -> str:
-    """Decode RFC 2047 encoded header values to unicode.
-
-    Falls back gracefully on decode errors, always returns a str.
-    """
-    if not raw_val:
-        return ""
-    try:
-        parts = eml_decode_header(raw_val)
-        decoded_chunks = []
-        for text, enc in parts:
-            if isinstance(text, bytes):
-                try:
-                    decoded_chunks.append(text.decode(enc or "utf-8", errors="ignore"))
-                except Exception:
-                    decoded_chunks.append(text.decode("utf-8", errors="ignore"))
-            else:
-                decoded_chunks.append(text)
-        return "".join(decoded_chunks)
-    except Exception:
-        return raw_val
+    """Decode RFC 2047 encoded header values to unicode (delegates to EmailBodyParser)."""
+    return EmailBodyParser.decode_header_value(raw_val)
 
 
 def parse_raw_message(raw_text: str) -> dict:
-    """Parse a raw EML (RFC 822) message string and return metadata similar to extract_metadata.
-
-    This allows debugging/ingesting messages pasted into the UI or loaded from disk
-    without requiring a live Gmail API service call.
-
-    Returns dict with keys:
-      subject, body, body_html, timestamp, date(str), sender, sender_domain,
-      thread_id(None), labels(""), last_updated, header_hints
-    """
-    if not raw_text:
-        return {
-            "subject": "",
-            "body": "",
-            "body_html": "",
-            "timestamp": now(),
-            "date": now().strftime("%Y-%m-%d %H:%M:%S"),
-            "sender": "",
-            "sender_domain": "",
-            "thread_id": None,
-            "labels": "",
-            "last_updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "header_hints": {},
-        }
-
-    try:
-        eml = eml_from_string(raw_text)
-    except Exception:
-        # Return minimal structure if parsing fails (retain raw text as body)
-        return {
-            "subject": "(parse error)",
-            "body": raw_text,
-            "body_html": "",
-            "timestamp": now(),
-            "date": now().strftime("%Y-%m-%d %H:%M:%S"),
-            "sender": "",
-            "sender_domain": "",
-            "thread_id": None,
-            "labels": "",
-            "last_updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "header_hints": {},
-        }
-
-    subject = _decode_header_value(eml.get("Subject", ""))
-    sender = _decode_header_value(eml.get("From", ""))
-    date_raw = eml.get("Date", "")
-    try:
-        date_obj = parsedate_to_datetime(date_raw)
-        if timezone.is_naive(date_obj):
-            date_obj = timezone.make_aware(date_obj)
-    except Exception:
-        date_obj = now()
-    date_str = date_obj.strftime("%Y-%m-%d %H:%M:%S")
-
-    # Sender domain
-    parsed = parseaddr(sender)
-    email_addr = parsed[1] if len(parsed) == 2 else ""
-    match = re.search(r"@([A-Za-z0-9.-]+)$", email_addr)
-    sender_domain = match.group(1).lower() if match else ""
-
-    # Walk parts for body (prefer HTML) else text/plain
-    body_html = ""
-    body_text = ""
-    if eml.is_multipart():
-        for part in eml.walk():
-            ctype = part.get_content_type()
-            disp = (part.get("Content-Disposition") or "").lower()
-            if "attachment" in disp:
-                continue  # skip attachments
-            try:
-                payload = part.get_payload(decode=True)
-                if payload is None:
-                    continue
-                decoded = payload.decode(part.get_content_charset() or "utf-8", errors="ignore")
-            except Exception:
-                continue
-            if ctype == "text/html" and not body_html:
-                body_html = decoded
-            elif ctype == "text/plain" and not body_text:
-                body_text = decoded
-    else:
-        try:
-            payload = eml.get_payload(decode=True)
-            if payload:
-                body_text = payload.decode(eml.get_content_charset() or "utf-8", errors="ignore")
-        except Exception:
-            body_text = raw_text
-
-    if body_html and not body_text:
-        # Provide plain text fallback from HTML
-        body_text = BeautifulSoup(body_html, "html.parser").get_text(separator=" ", strip=True)
-
-    # Header hints similar to Gmail path (limited set for EML)
-    header_hints = {
-        "is_newsletter": any(h in eml for h in ["List-Id", "List-Unsubscribe", "X-Newsletter"]),
-        "is_bulk": _decode_header_value(eml.get("Precedence", "")).lower() == "bulk",
-        "is_noreply": "noreply" in sender.lower() or "no-reply" in sender.lower(),
-        "reply_to": _decode_header_value(eml.get("Reply-To", "")) or None,
-        "organization": _decode_header_value(eml.get("Organization", "")) or None,
-        "auto_submitted": _decode_header_value(eml.get("Auto-Submitted", "")).lower() not in ("", "no"),
-    }
-
-    # Combine headers for classification like Gmail version
-    header_text = []
-    for h_name, h_val in eml.items():
-        if h_name.lower() in {"list-id", "list-unsubscribe", "precedence", "reply-to", "organization"}:
-            header_text.append(f"{h_name}: {h_val}")
-    body_for_classification = ("\n".join(header_text) + "\n\n" + (body_text or "")).strip()
-
-    return {
-        "thread_id": None,
-        "subject": subject,
-        "body": body_for_classification,
-        "body_html": body_html,
-        "date": date_str,
-        "timestamp": date_obj,
-        "labels": "",
-        "last_updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "sender": sender,
-        "sender_domain": sender_domain,
-        "parser_version": PARSER_VERSION,
-        "header_hints": header_hints,
-    }
+    """Parse a raw EML (RFC 822) message string (delegates to EmailBodyParser)."""
+    return EmailBodyParser.parse_raw_eml(raw_text, now)
 
 
 def log_ignored_message(msg_id, metadata, reason):

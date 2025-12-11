@@ -4,21 +4,25 @@ Extracted from monolithic views.py (Phase 5 refactoring).
 """
 
 import json
+import logging
+import os
+import subprocess
+import sys
+from pathlib import Path
+from bs4 import BeautifulSoup
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect
+from django.db.models import Q, Count, F, Value, Case, When, ExpressionWrapper, IntegerField, CharField
+from django.db.models.functions import Coalesce, StrIndex, Substr, Lower
 from django.http import JsonResponse
-from django.db.models import Q, Count, F
-from tracker.models import Message, Company
-from tracker.services import MessageService
-
-
-import json
-from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
-from django.http import JsonResponse
-from django.db.models import Q, Count, F
-from tracker.models import Message, Company
+from django.utils.timezone import now
+from tracker.models import Company, Message, ThreadTracking, AuditEvent
 from tracker.services import MessageService
+from gmail_auth import get_gmail_service
+
+python_path = sys.executable
+logger = logging.getLogger(__name__)
 
 
 def label_applications(request):

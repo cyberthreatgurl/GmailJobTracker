@@ -52,7 +52,7 @@ from tracker.models import (
 )
 
 # Import refactored components
-from parser_refactored import CompanyValidator, RuleClassifier
+from parser_refactored import CompanyValidator, RuleClassifier, DomainMapper
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dashboard.settings")
 django.setup()
@@ -67,8 +67,10 @@ else:
     PATTERNS = {}
 
 # Initialize refactored components
+COMPANIES_PATH = Path(__file__).parent / "json" / "companies.json"
 _company_validator = CompanyValidator(PATTERNS)
 _rule_classifier = RuleClassifier(PATTERNS)
+_domain_mapper = DomainMapper(COMPANIES_PATH)
 
 # --- Load personal_domains.json ---
 PERSONAL_DOMAINS_PATH = Path(__file__).parent / "json" / "personal_domains.json"
@@ -2797,73 +2799,37 @@ def ingest_message(service, msg_id):
     return "inserted"
 
 
-COMPANIES_PATH = Path(__file__).parent / "json" / "companies.json"
-
-if COMPANIES_PATH.exists():
-    try:
-        with open(COMPANIES_PATH, "r", encoding="utf-8") as f:
-            company_data = json.load(f)
-    except json.JSONDecodeError as e:
-        print(f"[Error] Failed to parse companies.json: {e}")
-        company_data = {}
-    except Exception as e:
-        print(f"[Error] Unable to read companies.json: {e}")
-        company_data = {}
-    ATS_DOMAINS = [d.lower() for d in company_data.get("ats_domains", [])]
-    HEADHUNTER_DOMAINS = [d.lower() for d in company_data.get("headhunter_domains", [])]
-    JOB_BOARD_DOMAINS = [d.lower() for d in company_data.get("job_boards", [])]
-    KNOWN_COMPANIES = {c.lower() for c in company_data.get("known", [])}
-    KNOWN_COMPANIES_CASED = company_data.get("known", [])  # Keep original casing
-    DOMAIN_TO_COMPANY = {k.lower(): v for k, v in company_data.get("domain_to_company", {}).items()}
-    ALIASES = company_data.get("aliases", {})
-else:
-    ATS_DOMAINS = []
-    HEADHUNTER_DOMAINS = []
-    JOB_BOARD_DOMAINS = []
-    KNOWN_COMPANIES = set()
-    KNOWN_COMPANIES_CASED = []
-    DOMAIN_TO_COMPANY = {}
-    ALIASES = {}
+# Note: Company data loading moved to DomainMapper class
+# Access via _domain_mapper attributes for backward compatibility
+ATS_DOMAINS = _domain_mapper.ats_domains
+HEADHUNTER_DOMAINS = _domain_mapper.headhunter_domains
+JOB_BOARD_DOMAINS = _domain_mapper.job_board_domains
+KNOWN_COMPANIES = _domain_mapper.known_companies
+KNOWN_COMPANIES_CASED = _domain_mapper.known_companies_cased
+DOMAIN_TO_COMPANY = _domain_mapper.domain_to_company
+ALIASES = _domain_mapper.aliases
+company_data = _domain_mapper.company_data
 
 
-# Allow companies.json edits to be picked up at runtime without restarting the process.
-# We track the file mtime and reload DOMAIN_TO_COMPANY when it changes.
-try:
-    if COMPANIES_PATH.exists():
-        _DOMAIN_MAP_MTIME = COMPANIES_PATH.stat().st_mtime
-    else:
-        _DOMAIN_MAP_MTIME = None
-except Exception:
-    _DOMAIN_MAP_MTIME = None
+# Note: Domain map reloading moved to DomainMapper class
 
 
 def _reload_domain_map_if_needed():
-    """Reload all company data from `COMPANIES_PATH` if the file changed."""
+    """Reload all company data if companies.json has changed (delegates to DomainMapper)."""
     global DOMAIN_TO_COMPANY, ATS_DOMAINS, HEADHUNTER_DOMAINS, JOB_BOARD_DOMAINS
-    global KNOWN_COMPANIES, KNOWN_COMPANIES_CASED, ALIASES, company_data, _DOMAIN_MAP_MTIME
-    try:
-        if COMPANIES_PATH.exists():
-            mtime = COMPANIES_PATH.stat().st_mtime
-            if _DOMAIN_MAP_MTIME != mtime:
-                with open(COMPANIES_PATH, "r", encoding="utf-8") as f:
-                    data = json.load(f)
-                # Reload all company configuration data
-                company_data = data
-                ATS_DOMAINS = [d.lower() for d in data.get("ats_domains", [])]
-                HEADHUNTER_DOMAINS = [d.lower() for d in data.get("headhunter_domains", [])]
-                JOB_BOARD_DOMAINS = [d.lower() for d in data.get("job_boards", [])]
-                KNOWN_COMPANIES = {c.lower() for c in data.get("known", [])}
-                KNOWN_COMPANIES_CASED = data.get("known", [])
-                DOMAIN_TO_COMPANY = {k.lower(): v for k, v in data.get("domain_to_company", {}).items()}
-                ALIASES = data.get("aliases", {})
-                _DOMAIN_MAP_MTIME = mtime
-                if DEBUG:
-                    print(f"[INFO] Reloaded companies.json (mtime changed)")
-    except Exception as e:
-        # If reload fails for any reason, keep the existing mapping silently
-        if DEBUG:
-            print(f"[WARNING] Failed to reload companies.json: {e}")
-        pass
+    global KNOWN_COMPANIES, KNOWN_COMPANIES_CASED, ALIASES, company_data
+    
+    _domain_mapper.reload_if_needed()
+    
+    # Update global references for backward compatibility
+    DOMAIN_TO_COMPANY = _domain_mapper.domain_to_company
+    ATS_DOMAINS = _domain_mapper.ats_domains
+    HEADHUNTER_DOMAINS = _domain_mapper.headhunter_domains
+    JOB_BOARD_DOMAINS = _domain_mapper.job_board_domains
+    KNOWN_COMPANIES = _domain_mapper.known_companies
+    KNOWN_COMPANIES_CASED = _domain_mapper.known_companies_cased
+    ALIASES = _domain_mapper.aliases
+    company_data = _domain_mapper.company_data
 
 
 def ingest_message_from_eml(eml_content: str, fake_msg_id: str = None):
@@ -3172,32 +3138,14 @@ def _conf(res) -> float:
 
 # --- Helpers for domain handling ---
 def _is_ats_domain(domain: str) -> bool:
-    """Return True if domain equals or is a subdomain of any ATS root domain."""
-    if not domain:
-        return False
-    d = domain.lower()
-    for ats in ATS_DOMAINS:
-        if d == ats or d.endswith("." + ats):
-            return True
-    return False
+    """Return True if domain equals or is a subdomain of any ATS root domain (delegates to DomainMapper)."""
+    return _domain_mapper.is_ats_domain(domain)
 
 
 def _map_company_by_domain(domain: str) -> str | None:
-    """Resolve company by exact or subdomain match from DOMAIN_TO_COMPANY.
+    """Resolve company by exact or subdomain match (delegates to DomainMapper).
 
     Example: if mapping contains 'nsa.gov' -> 'National Security Agency', then
     'uwe.nsa.gov' will also map to that company.
     """
-    # ensure we have the latest mapping
-    _reload_domain_map_if_needed()
-    if not domain:
-        return None
-    d = domain.lower()
-    # Exact match first
-    if d in DOMAIN_TO_COMPANY:
-        return DOMAIN_TO_COMPANY[d]
-    # Subdomain suffix match
-    for root, company in DOMAIN_TO_COMPANY.items():
-        if d.endswith("." + root):
-            return company
-    return None
+    return _domain_mapper.map_company_by_domain(domain)

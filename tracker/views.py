@@ -143,94 +143,71 @@ def label_rule_debugger(request):
                                 if match:
                                     sender_domain = match.group(1).lower()
                 message_text = body or subject
+                
+                # Use the same classification pipeline as ingest_message
+                from parser import predict_with_fallback, predict_subject_type
+                
+                # Run the full classification pipeline (ML + rules)
+                result = predict_with_fallback(
+                    predict_subject_type,
+                    subject,
+                    body,
+                    sender=sender
+                )
+                
+                matched_label = result.get("label", "noise")
+                ml_label = result.get("ml_label") or result.get("label")
+                matched_confidence = result.get("confidence", 0.0)
+                fallback_type = result.get("fallback", "unknown")
+                
+                # Now find which patterns matched for highlighting
                 patterns_path = Path("json/patterns.json")
                 patterns = load_json(patterns_path, default={"message_labels": {}})
                 msg_labels = patterns.get("message_labels", {})
                 
-                # Match labels in PRIORITY ORDER (same as rule_label function in parser.py)
-                # Stop at the FIRST match to reflect actual ingestion behavior
-                # Note: "interview_invite" in patterns.json is stored as "interview"
-                # and "job_application" as "application"
-                label_priority = [
-                    "offer",
-                    "head_hunter",
-                    "noise",
-                    "rejection",
-                    "interview",  # Maps to interview_invite
-                    "application",  # Maps to job_application
-                    "referral",
-                    "ghosted",
-                    "blank",
-                    "other",
-                ]
-                
                 highlights_set = set()
                 matched_labels_set = set()
-                found_match = False
                 
-                for label in label_priority:
-                    if found_match:
-                        break  # Stop after first match
+                if matched_label:
+                    matched_labels_set.add(matched_label)
+                    # Map internal labels back to pattern.json keys
+                    label_map_reverse = {
+                        "interview_invite": "interview",
+                        "job_application": "application",
+                    }
+                    pattern_key = label_map_reverse.get(matched_label, matched_label)
                     
-                    rules = msg_labels.get(label, [])
+                    # Find which patterns matched for this label
+                    rules = msg_labels.get(pattern_key, [])
                     for rule in rules:
                         if rule == "None":
                             continue
-
-                        # Use the rule as a standard regex pattern
                         try:
-                            # Compile regex with case-insensitive flag
                             pattern = re.compile(rule, re.IGNORECASE)
                             match = pattern.search(message_text)
-
                             if match:
-                                # Found a match! Record it and stop checking
-                                matched_patterns.append(f"{label}: {rule}")
-                                matched_label = label
-                                matched_labels_set.add(label)
-                                found_match = True
-
-                                # Extract matched text for highlighting
+                                matched_patterns.append(f"{matched_label}: {rule}")
                                 matched_text = match.group(0)
                                 highlights_set.add(matched_text)
-
-                                # Also try to extract individual OR alternatives for highlighting
-                                # Split on | outside of character classes and groups
+                                
+                                # Extract OR alternatives for highlighting
                                 simple_split = rule.split("|")
                                 for alt in simple_split:
                                     clean_alt = alt.strip("()").strip()
                                     if clean_alt:
                                         try:
-                                            alt_pattern = re.compile(
-                                                clean_alt, re.IGNORECASE
-                                            )
+                                            alt_pattern = re.compile(clean_alt, re.IGNORECASE)
                                             alt_match = alt_pattern.search(message_text)
                                             if alt_match:
                                                 highlights_set.add(alt_match.group(0))
                                         except:
                                             pass
-                                
-                                break  # Stop checking rules for this label
-                        except re.error as e:
-                            # Invalid regex pattern - log but continue
-                            print(
-                                f"Invalid regex pattern for {label}: {rule} - Error: {e}"
-                            )
+                        except re.error:
                             continue
 
                 highlights = sorted(highlights_set, key=lambda s: s.lower())
                 matched_labels = sorted(matched_labels_set)
-                if not matched_labels:
-                    no_matches = True
-                
-                # Run ML classification to check original prediction
-                ml_label = None
-                try:
-                    from parser import predict_with_fallback, predict_subject_type
-                    ml_result = predict_with_fallback(predict_subject_type, subject, body, threshold=0.55, sender=sender)
-                    ml_label = ml_result.get("ml_label") or ml_result.get("label")
-                except Exception:
-                    pass
+                no_matches = not matched_label
                 
                 # Extract company name using parse_subject with sender info
                 try:
@@ -244,17 +221,39 @@ def label_rule_debugger(request):
                     extracted_company = ""
                     company_confidence = 0
                 
-                # Apply override logic - check if ML originally predicted head_hunter
+                # Apply the same override logic as ingest_message
                 override_note = None
+                
+                # 1. Check if ML originally predicted head_hunter (internal recruiter override)
                 if ml_label == "head_hunter" and sender_domain:
                     from parser import _map_company_by_domain, HEADHUNTER_DOMAINS
                     if sender_domain not in HEADHUNTER_DOMAINS:
                         mapped_company = _map_company_by_domain(sender_domain)
                         if mapped_company:
-                            override_note = f"Override: Internal recruiter from {mapped_company} - changed to 'other' (ML predicted head_hunter, rules decided {matched_label})"
-                            matched_label = "other"
-                            if "other" not in matched_labels_set:
-                                matched_labels.append("other")
+                            # Check if we should preserve meaningful labels or override to 'other'
+                            if matched_label == "job_application":
+                                # Check for ATS markers to validate real application
+                                body_lower = (body or "").lower()
+                                ats_markers = ["workday", "myworkday", "taleo", "icims", "indeed", "list-unsubscribe", "one-click"]
+                                has_ats_marker = any(marker in body_lower for marker in ats_markers)
+                                if not has_ats_marker:
+                                    override_note = f"Override: Internal recruiter from {mapped_company} - no ATS markers, changed to 'other'"
+                                    matched_label = "other"
+                                    if "other" not in matched_labels_set:
+                                        matched_labels.append("other")
+                            elif matched_label not in ("interview_invite", "rejection", "offer"):
+                                override_note = f"Override: Internal recruiter from {mapped_company} - changed to 'other' (ML predicted head_hunter)"
+                                matched_label = "other"
+                                if "other" not in matched_labels_set:
+                                    matched_labels.append("other")
+                
+                # 2. Check if sender domain is in personal domains list
+                if sender_domain:
+                    from parser import PERSONAL_DOMAINS
+                    if sender_domain.lower() in PERSONAL_DOMAINS:
+                        override_note = f"Override: Personal domain ({sender_domain}) - changed to 'noise'"
+                        matched_label = "noise"
+                        matched_labels = ["noise"]
                 
                 # Highlight words in message_text
                 # re is now imported globally

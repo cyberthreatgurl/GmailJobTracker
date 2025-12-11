@@ -109,6 +109,24 @@ def test_armis_ats_body_extraction():
     assert result.get("label") == "job_application", result
 
 
+def test_rand_scheduling_followup_is_other():
+    """RAND scheduling follow-up should be classified as 'other', not 'interview_invite'.
+    
+    Subject: "RE: [EXT] Re: RAND: Research Lead - Securing Frontier AI" (has RE: prefix)
+    Body: Contains scheduling language ("screening calls", "please let me know", "schedule")
+    Context: This is a follow-up email about finalizing interview times, not the initial invite.
+    
+    The RE: prefix indicates this is a reply in an existing thread. Scheduling language in
+    replies should not trigger interview_invite classification to avoid double-counting.
+    """
+    result = _classify_fixture("*RAND*AI2.eml")
+    label = result.get("label")
+    assert label == "other", (
+        f"Expected 'other' for scheduling follow-up but got '{label}'. "
+        "Scheduling language in replies should not be classified as interview_invite."
+    )
+
+
 def test_smoke_all_fixtures_do_not_crash():
     """Run all .eml fixtures to ensure parsing/classification doesn't crash."""
     emls = sorted(EMAIL_DIR.glob("*.eml"))

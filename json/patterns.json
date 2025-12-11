@@ -23,6 +23,13 @@
       "schedule\\s+(?:a\\s+)?(?:call|time|conversation|interview)",
       "would\\s+you\\s+be\\s+available"
     ],
+    "reply_indicators": [
+      "^\\s*RE:\\s+",
+      "^\\s*Re:\\s+",
+      "^\\s*FW:\\s+",
+      "^\\s*Fwd:\\s+",
+      "^\\s*FWD:\\s+"
+    ],
     "referral_language": [
       "\\b(has\\s+referred\\s+you|referred\\s+you\\s+for|employee\\s+referral|internal\\s+referral|someone\\s+(?:from|at|in)\\s+\\w+.*\\s+(?:has\\s+)?referred\\s+you)\\b",
       "\\b(referred\\s+to\\s+you\\s+by|referred\\s+by|referral\\s+from)\\b"

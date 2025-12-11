@@ -1,0 +1,276 @@
+Delivered-To: kaver68@gmail.com
+Received: by 2002:a05:7108:cf25:b0:40f:9ec9:a547 with SMTP id cq37csp627832gdc;
+        Tue, 13 May 2025 07:10:32 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IFVDo81hdXf9zhJdq62PNZfdbvo6pdu6gkFMAQ1I++iLnaPtvGxMyRsdKigpuUfzfQzCMJ3
+X-Received: by 2002:a05:6102:2b99:b0:4dd:add1:d7bf with SMTP id ada2fe7eead31-4deed35c730mr15863523137.11.1747145432074;
+        Tue, 13 May 2025 07:10:32 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1747145432; cv=none;
+        d=google.com; s=arc-20240605;
+        b=lC5IpLFvT0+A/TBEXqZFn8p2fk4QhcDz/TI/6PSHMFj2kdsd2UvlbaiBkwOD94qCiN
+         n9wCtulC/mhKwFZ+ZnmeZxhexOMreQxA7p4OYOYc+v1GZ1kUqkQDXf4Gic9fqDN0IJcA
+         bFF5W9xW8IAVb4BLEUiOgEAzpFcG+GnGJLU8Zp5rXacZxOo1aXZOiSIGwtqh0+HUJceO
+         4h8qob6VMMqjMjrgWCTG3w93AOTbdEqln43Pud+Nifv1d239VJ9bpDh6bZY6/92ksExE
+         y/0ymB8jtXRNLaX3Qa1fvn48fIB+XIS124qI7ZnfjI1hfX7n2nu2XA7pLvHOR6GQhkbw
+         uF+w==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=list-unsubscribe:feedback-id:list-unsubscribe-post:mime-version
+         :subject:message-id:to:reply-to:from:date:dkim-signature:dkim-filter;
+        bh=jO5cIlutOMczjBI7P8X0TqyLo+sU4x+iHXKPfJ4rAvk=;
+        fh=G/VLhrQnXiN6LciSgCgIU9VM0fr+1O2AyqFGWpHCjzw=;
+        b=fuxdCzO9xZb8PIKs7StaR5wUzWMq7g7dZCuAtQfMFQBQKg3tJnT2w6lOVvdKl6/YOv
+         EKCb3xb2o8y15tKObSbpDPFQLkjYQuLNtbT3ca+KJiaJK5ZUa/4IcS9ZFamH7tOK9Mof
+         qpggeSElGYZkmaltq3MqFP9pEvd0+W47P+Z99A88oOYobA9c7H9+go8l/BlCCHxw0/sz
+         608E7lZ2ATRHIzSq9R5zjIvxs0ibMCHjlvUOnDqmiq53OpM5lkZHUXzWTbuVVVg0AfLG
+         s+hONPAlje+Lk6f0jnCaQJxmieEdArf1hWMVc4KnMc3/Eg4DaDwHOq8/OoKZHt7Qga7d
+         qAFQ==;
+        dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@myworkday.com header.s=0s02jxp1 header.b=S5m8dWj7;
+       spf=pass (google.com: domain of trellix@myworkday.com designates 209.177.165.161 as permitted sender) smtp.mailfrom=trellix@myworkday.com;
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=myworkday.com
+Return-Path: <trellix@myworkday.com>
+Received: from wd1-az-mail-nat.myworkday.com (wd1-az-mail-nat.myworkday.com. [209.177.165.161])
+        by mx.google.com with ESMTPS id ada2fe7eead31-4deb200fa83si4189464137.412.2025.05.13.07.10.32
+        for <kaver68@gmail.com>
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 13 May 2025 07:10:32 -0700 (PDT)
+Received-SPF: pass (google.com: domain of trellix@myworkday.com designates 209.177.165.161 as permitted sender) client-ip=209.177.165.161;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@myworkday.com header.s=0s02jxp1 header.b=S5m8dWj7;
+       spf=pass (google.com: domain of trellix@myworkday.com designates 209.177.165.161 as permitted sender) smtp.mailfrom=trellix@myworkday.com;
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=myworkday.com
+Received: from wire-prod-hllbzqoc.prod-wire.pr501.cust.ash.wd (localhost [127.0.0.1])
+	by wire-prod-hllbzqoc.prod-wire.pr501.cust.ash.wd (Postfix) with ESMTP id C4296182D528
+	for <kaver68@gmail.com>; Tue, 13 May 2025 14:10:31 +0000 (UTC)
+DKIM-Filter: OpenDKIM Filter v2.11.0 wd1-az-mail-nat.myworkday.com DA9A3F00101D0
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=myworkday.com;
+	s=0s02jxp1; t=1747145431;
+	bh=jO5cIlutOMczjBI7P8X0TqyLo+sU4x+iHXKPfJ4rAvk=;
+	h=Date:From:Reply-To:To:Subject:List-Unsubscribe:From;
+	b=S5m8dWj7geJ0+B5HmyuqMZoiDQJ+J9GmEt7FaklgYWLftmukh1NiJpbx7LdE3wJVc
+	 BQfnC3gay9QN40I6bBkAFRJBqX7XuE7bMXXJVL5FdouqcQ0ODwb/KRTgug+jwnthhu
+	 qR56v/CJQGxnqg4qEw0AgB8hLvmtH1sKiiy7aQaQ=
+Date: Tue, 13 May 2025 07:10:31 -0700 (PDT)
+X-MSH: v 0.5.6
+From: trellix@myworkday.com
+Reply-To: DoNotReply@trellix.com
+To: kaver68@gmail.com
+Message-Id: <204314328.7639662.1747145431782@myworkday.com>
+Subject: Trellix career opportunity update on Manager, Threat Intelligence
+ Services
+MIME-Version: 1.0
+Content-Type: multipart/mixed; 
+	boundary="----=_Part_7639660_904723692.1747145431782"
+X-Workday-Security: false
+List-Unsubscribe-Post: <https://cust-drogon-unsubscribe.us-west-2.myworkdaymessaging.com/drogon/unsubscribe/trellix/drogon-wd1-prod/a2b194bb781910000476d4558ec20013/84066571cdd99001043f9c90353c0000/a2F2ZXI2OEBnbWFpbC5jb20=>
+X-Workday-Static-BP-Address: false
+Feedback-ID: trellix:a2b194bb781910000476d4558ec20013:000:workday
+List-Unsubscribe: List-Unsubscribe=One-Click
+X-Workday-System: false
+
+------=_Part_7639660_904723692.1747145431782
+Content-Type: multipart/related; 
+	boundary="----=_Part_7639661_876288602.1747145431782"
+
+------=_Part_7639661_876288602.1747145431782
+content-type: text/html; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+<!doctype html><html xmlns:v=3D"urn:schemas-microsoft-com:vml" xmlns:o=3D"u=
+rn:schemas-microsoft-com:office:office">
+   <head>
+      <meta http-equiv=3D"Content-Type" content=3D"text/html; charset=3DUTF=
+-8">
+      <title></title><style type=3D"text/css">body, table {
+  font-family: Verdana, Arial, sans-serif;
+  font-size: 12px; width:100%;
+}
+div {
+  padding-top:5px;
+  padding-bottom:5px;
+}
+img=20
+{
+  border:0px;
+}</style></head>
+   <body><div>Hello Kelly ,<br><br>Thank you for your interest in Manager, =
+Threat Intelligence Services .<br><br>In reviewing all candidate=E2=80=99s =
+backgrounds and career histories, we wanted to update
+      you that another candidate has been selected for this opportunity who=
+se experiences
+      more closely match the position=E2=80=99s requirements.<br><br>We app=
+reciate your interest in Trellix careers so please continue to explore our =
+opportunities
+      at https://careers.trellix.com/ .<br><br>We wish you continued succes=
+s in your career.<br><br>Best regards,<br>Trellix Global Talent Acquisition=
+ Team</div><div><br><hr><br>Trellix is committed to user privacy in our pro=
+ducts and services. For
+      more information, please review our privacy policy found on our <a hr=
+ef=3D"http://careers.trellix.com">Career
+      Site</a></div><div><br>NOTE: This is an automated message generated b=
+y an un-monitored account. Please
+      do not reply to this message.</div><div><br><br></div><div><img src=
+=3D"cid:mZVNDoSMrT"/></div>
+      =09     <div>
+      =09    <!--[if mso | IE]>
+      =09      <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" widt=
+h=3D"600" align=3D"center"
+      style=3D"width:600px;">
+      =09        <tr>
+      =09          <td style=3D"line-height:0px;font-size:0px;mso-line-heig=
+ht-rule:exactly;">
+      =09      <![endif]-->
+      =09    <div style=3D"margin:0 auto;max-width:600px;">
+      =09      <table cellpadding=3D"0" cellspacing=3D"0" style=3D"font-siz=
+e:0px;width:100%;" align=3D"center"
+      border=3D"0">
+      =09        <tbody>
+      =09          <tr>
+      =09            <td style=3D"text-align:center;vertical-align:top;font=
+-size:0px;padding:20px
+      0px;"></td>
+      =09          </tr>
+      =09        </tbody>
+      =09      </table>
+      =09    </div>
+      =09    <!--[if mso | IE]>
+      =09      </td></tr></table>
+      =09      <![endif]-->
+      =09    <!--[if mso | IE]>
+      =09      <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" widt=
+h=3D"600" align=3D"center"
+      style=3D"width:600px;">
+      =09        <tr>
+      =09          <td style=3D"line-height:0px;font-size:0px;mso-line-heig=
+ht-rule:exactly;">
+      =09      <![endif]-->
+      =09    <div style=3D"margin:0 auto;max-width:600px;">
+      =09      <table cellpadding=3D"0" cellspacing=3D"0" style=3D"font-siz=
+e:0px;width:100%;" align=3D"center"
+      border=3D"0">
+      =09        <tbody>
+      =09          <tr>
+      =09            <td style=3D"text-align:center;vertical-align:top;font=
+-size:0px;padding:20px
+      0px;"></td>
+      =09          </tr>
+      =09        </tbody>
+      =09      </table>
+      =09    </div>
+      =09    <!--[if mso | IE]>
+      =09      </td></tr></table>
+      =09      <![endif]-->
+     =20
+      <!--[if mso | IE]>
+=09      <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D"6=
+00" align=3D"center" style=3D"width:600px;">
+=09        <tr>
+=09          <td style=3D"line-height:0px;font-size:0px;mso-line-height-rul=
+e:exactly;">
+=09      <![endif]-->
+      <div xmlns:wd=3D"urn:com.workday/bsvc" style=3D"margin:0 auto;max-wid=
+th:600px;">
+         <table cellpadding=3D"0" cellspacing=3D"0" style=3D"font-size:0px;=
+width:100%;" align=3D"center" border=3D"0">
+            <tbody>
+               <tr>
+                  <td style=3D"text-align:center;vertical-align:top;font-si=
+ze:0px;padding:20px 0px;">
+                     <!--[if mso | IE]>
+=09 <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0"><tr><td style=
+=3D"vertical-align:top;width:600px;">
+=09      <![endif]-->
+                     <div aria-labelledby=3D"mj-column-per-100" class=3D"mj=
+-column-per-100" style=3D"vertical-align:top;display:inline-block;font-size=
+:13px;text-align:left;width:100%;">
+                        <table cellpadding=3D"0" cellspacing=3D"0" width=3D=
+"100%" border=3D"0">
+                           <tbody>
+                              <tr>
+                                 <td style=3D"word-break:break-word;font-si=
+ze:0px;padding-bottom:0px;" align=3D"center">
+                                    <div style=3D"cursor:auto;color:#98a0a6=
+;font-family:Roboto;font-size:12px;font-weight:400;line-height:22px;">This =
+email was intended for kaver68@gmail.com</div>
+                                 </td>
+                              </tr>
+                           </tbody>
+                        </table>
+                     </div>
+                     <!--[if mso | IE]>
+=09      </td></tr></table>
+=09      <![endif]-->
+                  </td>
+               </tr>
+            </tbody>
+         </table>
+      </div>
+      <!--[if mso | IE]>
+=09      </td></tr></table>
+=09      <![endif]-->
+   </body>
+</html>
+------=_Part_7639661_876288602.1747145431782
+content-type: image/png
+content-transfer-encoding: base64
+content-disposition: inline; filename=Trellix_Logo_new.png
+content-id: <mZVNDoSMrT>
+content-description: Trellix_Logo_new.png
+
+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
+rkJggg==
+------=_Part_7639661_876288602.1747145431782--
+
+------=_Part_7639660_904723692.1747145431782--

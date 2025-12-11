@@ -159,6 +159,12 @@
     ],
     "other": [
       "\\bthank\\syou\\sfor\\sscheduling\\b",
+      "\\bassessments?\\s+complete\\b",
+      "\\bassessment\\s+(?:completion\\s+)?status\\b",
+      "\\bcomplete\\s+(?:your|the)\\s+assessment\\b",
+      "\\byou\\s+passed\\s+(?:the|your)\\s+assessment\\b",
+      "\\bpassed\\s+the\\s+.*?\\s+(?:assessment|test)\\b",
+      "\\bassessment\\s+results?\\b",
       "\\bcontinue\\sto\\sapply\\b",
       "\\blog\\sback\\sinto\\syour\\scandidate\\shome\\saccount\\sand\\scomplete\\b",
       "\\bscheduled\\sa\\sconversation\\b",
@@ -173,8 +179,6 @@
       "\\bstarted\\sapplying\\b.*\\bdidn'?t\\sfinish\\b",
       "\\bdidn'?t\\sfinish\\b.*\\bapplication\\b",
       "\\bcongratulations.*\\bpassed\\b",
-      "\\byou\\s+passed\\s+the\\b",
-      "\\bpassed\\s+the\\s+.*?\\s(?:assessment|test)\\b",
       "\\bincomplete\\sapplication\\b",
       "\\bapplication\\sincomplete\\b",
       "\\bwe\\snoticed\\syou\\sstarted\\b",
@@ -253,6 +257,14 @@
         "\\bthank\\s+you\\s+for\\s+your\\s+interest.*application.*received\\b",
         "\\bwe.*reviewing\\s+your\\s+application\\b"
       ],
+      "application": [
+        "\\bincomplete\\s+application\\b",
+        "\\bapplication\\s+incomplete\\b",
+        "\\bdon'?t\\s+forget\\s+to\\s+finish\\b",
+        "\\bpick\\s+up\\s+where\\s+you\\s+left\\s+off\\b",
+        "\\bresume\\s+your\\s+application\\b",
+        "\\baction\\s+needed\\s+to\\s+complete\\b"
+      ],
       "interview_invite": [
         "\\bList-?Unsubscribe\\b",
         "\\bOne-Click\\b",
@@ -268,7 +280,10 @@
         "\\bwe\\s+will\\s+be\\s+in\\s+touch\\b",
         "\\bthis\\s+email\\s+was\\s+intended\\s+for\\b",
         "\\breply-?to:\\s*\\S*workday\\b",
-        "\\bthank\\s+you\\s+for\\s+applying\\b"
+        "\\bthank\\s+you\\s+for\\s+applying\\b",
+        "\\bapplication\\s+(?:has\\s+been\\s+)?(?:received|submitted)\\b",
+        "\\byour\\s+application\\s+(?:has\\s+been\\s+)?(?:received|submitted|was\\s+sent)\\b",
+        "\\bsubmission\\s+(?:received|confirmation)\\b"
       ]
     },
   "invalid_company_prefixes": [

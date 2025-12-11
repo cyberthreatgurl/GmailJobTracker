@@ -1,0 +1,92 @@
+Delivered-To: kaver68@gmail.com
+Received: by 2002:a05:7109:6f88:b0:409:341d:166a with SMTP id ju8csp2220698gdc;
+        Sun, 2 Mar 2025 17:58:03 -0800 (PST)
+X-Google-Smtp-Source: AGHT+IE9CXtmUSIBs0LI3w9zrvxYa4wJqNV4UuiQNcg+PA7AnMX08/e+bSbcfHI9VHMImqvWxVOy
+X-Received: by 2002:a05:6a20:c891:b0:1ee:dded:e74 with SMTP id adf61e73a8af0-1f2f4ddf867mr19788828637.29.1740967083300;
+        Sun, 02 Mar 2025 17:58:03 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1740967083; cv=none;
+        d=google.com; s=arc-20240605;
+        b=HkPW1CIkE3juhREi/MO+6+DbfCYEEFIcL2YFFXMJxcd8MjW+2WNK8sQm4xqBrrYmY/
+         V8dv4ECkMSZRO/SIV13fm7e91tmlXJ5b7/t0W+DA7CqzojWtlbZoopAvJeyf4KhFp5VI
+         ezNISBEn/RblEQ/8lghgem5bfXSJcE81+gKcOzydRFN5A6vkrg576XmlfYVIm0oVGIUc
+         eS/9woV0b9wL1T9AR3INOQzBldRLH0qV93SKLouazsHVIsswlUVSUap6F5FJrSPfUU5k
+         nWqvWLjnz598e1OnDIngaO5bksE0IbQppAmekPXN7JovR9Ugb5YgKaxeP8paqv9QGPp2
+         7GDg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=message-id:list-unsubscribe:to:from:subject:mime-version:date
+         :sender:dkim-signature:dkim-signature;
+        bh=8Kv8uynlOQPt2WwzTwW0CESz/QMdkseKhjIdFpunGMU=;
+        fh=G/VLhrQnXiN6LciSgCgIU9VM0fr+1O2AyqFGWpHCjzw=;
+        b=Ar7j5v+aedFTu0JwyaAOyhhmn9M+x3LyJfmMVZhfUx3nNmX/GeSEVtqo6UZsIGpKeO
+         EcoqLQtViccylS4+hSeNZ5ILxQz7UHFqmZGj1Esa2RtpYSvBj9RM/aEQu7iqwLxHZbY2
+         EaaKr2uf1KKdBjAxDCNk86ULTD+M9KRdrFolXvHdyn2INm2gJefnYy8lUQScSz6KiaC0
+         qfn/hUa/hiTpbFVHDD302I4iXY6pOtaFth7Ke1kTX1CfOENHdfziM6KZZoP0zw2SqmZC
+         koJ9lkYoAQz7yYFek/zOkfb5NndnQ+46ftLtOQ609PusgNsFEXZpgMmlNlS/lx+s5VZv
+         Ol+g==;
+        dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@us.greenhouse-mail.io header.s=mailgun header.b=O5rskjXH;
+       dkim=pass header.i=@mailgun.org header.s=mg header.b=jlXXYlOD;
+       spf=pass (google.com: domain of bounce+639ea8.eb6b8a-kaver68=gmail.com@us.greenhouse-mail.io designates 69.72.47.205 as permitted sender) smtp.mailfrom="bounce+639ea8.eb6b8a-kaver68=gmail.com@us.greenhouse-mail.io";
+       dmarc=pass (p=NONE sp=NONE dis=NONE) header.from=us.greenhouse-mail.io
+Return-Path: <bounce+639ea8.eb6b8a-kaver68=gmail.com@us.greenhouse-mail.io>
+Received: from mail-47-205.greenhouse.io (mail-47-205.greenhouse.io. [69.72.47.205])
+        by mx.google.com with UTF8SMTPS id 41be03b00d2f7-af18d2d9c9fsi7241281a12.373.2025.03.02.17.58.02
+        for <kaver68@gmail.com>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Sun, 02 Mar 2025 17:58:03 -0800 (PST)
+Received-SPF: pass (google.com: domain of bounce+639ea8.eb6b8a-kaver68=gmail.com@us.greenhouse-mail.io designates 69.72.47.205 as permitted sender) client-ip=69.72.47.205;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@us.greenhouse-mail.io header.s=mailgun header.b=O5rskjXH;
+       dkim=pass header.i=@mailgun.org header.s=mg header.b=jlXXYlOD;
+       spf=pass (google.com: domain of bounce+639ea8.eb6b8a-kaver68=gmail.com@us.greenhouse-mail.io designates 69.72.47.205 as permitted sender) smtp.mailfrom="bounce+639ea8.eb6b8a-kaver68=gmail.com@us.greenhouse-mail.io";
+       dmarc=pass (p=NONE sp=NONE dis=NONE) header.from=us.greenhouse-mail.io
+DKIM-Signature: a=rsa-sha256; v=1; c=relaxed/relaxed; d=us.greenhouse-mail.io; q=dns/txt; s=mailgun; t=1740967082; x=1740974282;
+ h=Message-Id: List-Unsubscribe: To: To: From: From: Subject: Subject: Content-Type: Mime-Version: Date: Sender: Sender: X-Feedback-Id;
+ bh=8Kv8uynlOQPt2WwzTwW0CESz/QMdkseKhjIdFpunGMU=;
+ b=O5rskjXHPW4W2D1GVFRU8f+WfRbLTOCYpJfx+FsuP/4q1wGUwN9QguATNQD7+SMuk2rMmE1wYWNR5vqsyUCyxlEZkm1nBzoDLgsxcvezA6T1oynhH8DAuw10xMIedliLQMkazTbNWs8Kld5oe5XnwnbggIPaG7n8MLJ2bOi0XgI=
+DKIM-Signature: a=rsa-sha256; v=1; c=relaxed/relaxed; d=mailgun.org; q=dns/txt; s=mg; t=1740967082; x=1740974282;
+ h=Message-Id: List-Unsubscribe: To: To: From: From: Subject: Subject: Content-Type: Mime-Version: Date: Sender: Sender: X-Feedback-Id;
+ bh=8Kv8uynlOQPt2WwzTwW0CESz/QMdkseKhjIdFpunGMU=;
+ b=jlXXYlODkbd4YM2WdHCuywY7GvZc0ZzeM1E0jt5oYIwe6o7/SkHU8ZgJuLvQ88Md3lQQuN9ZaCxjOQbdxgMRi504V4cjdxqhG2kjgUhikPWH+SvjZPBvPQBECSKF8Y4RFmP7N5U3pmiV8g6nzmFn6lX2nSbg8y5lq8TAWzoS6B8=
+X-Feedback-Id: no-reply@us.greenhouse-mail.io:CandidateAutoReply:5ff5c19deab70c1acacf09a2:mailgun
+X-Mailgun-Sending-Ip: 69.72.47.205
+X-Mailgun-Sending-Ip-Pool-Name: 
+X-Mailgun-Sending-Ip-Pool: 
+X-Mailgun-Sid: WyI0Y2ExNSIsImthdmVyNjhAZ21haWwuY29tIiwiZWI2YjhhIl0=
+Received: by 027f0abd256b with HTTP id 67c50caa88137dd64b6c651f; Mon, 03 Mar 2025
+ 01:58:02 GMT
+Sender: no-reply@us.greenhouse-mail.io
+Date: Mon, 03 Mar 2025 01:58:02 +0000
+Mime-Version: 1.0
+Content-Type: multipart/alternative;
+ boundary="10a1e17325aba689c450b65d0ef29cd38a721af4e475c7293cbcfb24f154"
+Subject: Thank You For Applying!
+From: no-reply@us.greenhouse-mail.io
+To: kaver68@gmail.com
+X-Mailgun-Tag: CandidateAutoReply
+List-Unsubscribe: 
+X-Mailgun-Variables: {"org_id": "4003271004", "person_id": "110651606004", "silo_id": "4"}
+Message-Id: <20250303015802.d5ed928c5c97be52@us.greenhouse-mail.io>
+
+--10a1e17325aba689c450b65d0ef29cd38a721af4e475c7293cbcfb24f154
+Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ascii
+
+Hi Adrian,
+
+We have received your application for our Head of Threat Intelligence position here at Armis. Thank you for considering us as a potential future employer. Once we have established a qualified fit for this position, a member of our recruiting team will reach out for further steps.
+
+Best Regards,
+
+Armis Recruiting Team
+--10a1e17325aba689c450b65d0ef29cd38a721af4e475c7293cbcfb24f154
+Content-Transfer-Encoding: 7bit
+Content-Type: text/html; charset=ascii
+
+Hi Adrian,<br /><br />
+<p><span style="font-weight: 400;">We have received your application for our Head of Threat Intelligence position here at Armis. Thank you for considering us as a potential future employer. Once we have established a qualified fit for this position, a member of our recruiting team will reach out for further steps.</span></p>
+<br />
+<p><span style="font-weight: 400;">Best Regards,</span></p>
+<p><span style="font-weight: 400;">Armis Recruiting Team</span></p>
+--10a1e17325aba689c450b65d0ef29cd38a721af4e475c7293cbcfb24f154--

@@ -4,21 +4,20 @@ Extracted from monolithic views.py (Phase 5 refactoring).
 """
 
 import json
+import os
+import re
+from collections import defaultdict
+from datetime import datetime, timedelta
+from pathlib import Path
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render
+from django.db import models
 from django.db.models import Q, Count, Case, When, Value, F, ExpressionWrapper, IntegerField, CharField, Exists, OuterRef
 from django.db.models.functions import Lower, TruncDate, Coalesce
-from tracker.models import Company, Message, ThreadTracking, IngestionStats
-from tracker.services import StatsService, MessageService
-
-
-import json
-from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
-from django.db.models import Q, Count, Case, When, Value, F, ExpressionWrapper, IntegerField, CharField, Exists, OuterRef
-from django.db.models.functions import Lower, TruncDate, Coalesce
-from tracker.models import Company, Message, ThreadTracking, IngestionStats
+from django.utils.timezone import now
+from tracker.models import Company, Message, ThreadTracking, IngestionStats, UnresolvedCompany
 from tracker.services import StatsService, MessageService
+from tracker.views.helpers import extract_body_content, build_sidebar_context
 
 
 @login_required

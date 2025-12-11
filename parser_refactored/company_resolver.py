@@ -279,7 +279,7 @@ class CompanyResolver:
             (r"^([A-Z][\w&-]+(?:\s+[\w&-]+){0,2}?)\s+(?:Job|Application|Interview)\b", re.IGNORECASE),
             (r"-\s*([A-Z][\w&-]+(?:\s+[\w&-]+){0,2}?)\s*-\s*", 0),
             (r"-\s+([A-Z][\w&-]+(?:\s+[\w&-]+){0,2})$", 0),
-            (r"(?:your application with|application with|interest in|position at)\s+([A-Z][\w&-]+(?:\s+[\w&-]+){0,2})\b", re.IGNORECASE),
+            (r"(?:your application with|application with|interest in|position (?:here )?at)\s+([A-Z][\w&-]+(?:\s+[\w&-]+){0,2})\b", re.IGNORECASE),
             (r"update on your ([A-Z][\w&-]+(?:\s+[\w&-]+){0,2}) application\b", re.IGNORECASE),
             (r"thank you for your application with\s+([A-Z][\w&-]+(?:\s+[\w&-]+){0,2})\b", re.IGNORECASE),
             (r"@\s*([A-Z][\w&-]+(?:\s+[\w&-]+){0,2})\b", re.IGNORECASE),

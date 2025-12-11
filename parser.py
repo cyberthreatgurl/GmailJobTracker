@@ -51,6 +51,16 @@ from tracker.models import (
     UnresolvedCompany,
 )
 
+# Import refactored components
+from parser_refactored import (
+    CompanyValidator,
+    RuleClassifier,
+    DomainMapper,
+    CompanyResolver,
+    EmailBodyParser,
+    MetadataExtractor,
+)
+
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dashboard.settings")
 django.setup()
 DEBUG = True
@@ -62,6 +72,21 @@ if PATTERNS_PATH.exists():
     PATTERNS = patterns_data
 else:
     PATTERNS = {}
+
+# Initialize refactored components
+COMPANIES_PATH = Path(__file__).parent / "json" / "companies.json"
+_company_validator = CompanyValidator(PATTERNS)
+_rule_classifier = RuleClassifier(PATTERNS)
+_domain_mapper = DomainMapper(COMPANIES_PATH)
+_company_resolver = CompanyResolver(
+    company_data=_domain_mapper.company_data,
+    domain_mapper=_domain_mapper,
+    company_validator=_company_validator,
+    known_companies=_domain_mapper.known_companies,
+    job_board_domains=_domain_mapper.job_board_domains,
+    ats_domains=_domain_mapper.ats_domains,
+)
+_metadata_extractor = MetadataExtractor(_rule_classifier, debug=DEBUG)
 
 # --- Load personal_domains.json ---
 PERSONAL_DOMAINS_PATH = Path(__file__).parent / "json" / "personal_domains.json"
@@ -96,267 +121,26 @@ LABEL_MAP = {
     "other": ["other"],  # Explicitly support 'other' patterns
 }
 
-_MSG_LABEL_PATTERNS = {}
-for code_label, json_keys in LABEL_MAP.items():
-    patterns = []
-    # Try message_labels first (new structure)
-    if "message_labels" in PATTERNS:
-        for key in json_keys:
-            if key in PATTERNS["message_labels"]:
-                pattern_list = PATTERNS["message_labels"][key]
-                if isinstance(pattern_list, list):
-                    patterns.extend(pattern_list)
-                elif isinstance(pattern_list, str):
-                    patterns.append(pattern_list)
-    # Fall back to top-level keys (legacy structure)
-    if not patterns:
-        for key in json_keys:
-            if key in PATTERNS:
-                pattern_list = PATTERNS[key]
-                if isinstance(pattern_list, list):
-                    patterns.extend(pattern_list)
-                elif isinstance(pattern_list, str):
-                    patterns.append(pattern_list)
-
-    # Compile patterns, skip "None"
-    compiled = []
-    for p in patterns:
-        if p != "None":
-            try:
-                compiled.append(re.compile(p, re.I))
-            except re.error as e:
-                print(f"⚠️  Invalid regex pattern for {code_label}: {p} - {e}")
-    _MSG_LABEL_PATTERNS[code_label] = compiled
-
-# Optional per-label negative patterns derived from Gmail's doesNotHaveTheWord
-_MSG_LABEL_EXCLUDES = {
-    k: [re.compile(p, re.I) for p in PATTERNS.get("message_label_excludes", {}).get(k, [])]
-    for k in (
-        "interview_invite",
-        "job_application",
-        "rejection",
-        "offer",
-        "noise",
-        "head_hunter",
-        "ignore",
-        "response",
-        "follow_up",
-        "ghosted",
-        "referral",
-    )
-}
+# Note: Pattern compilation moved to RuleClassifier class
+# _MSG_LABEL_PATTERNS and _MSG_LABEL_EXCLUDES are now maintained by _rule_classifier
 
 
 def rule_label(subject: str, body: str = "", sender_domain: str | None = None) -> str | None:
-    """Return a rule-based label from compiled regex patterns.
+    """Return a rule-based label from compiled regex patterns (delegates to RuleClassifier).
 
     Checks message text against label patterns in a prioritized order to
     reduce false positives (e.g., prefer noise over rejected for newsletters).
     Returns one of the known labels or None if no rule matches.
     """
-    s = f"{subject or ''} {body or ''}"
-    # Check labels in priority order (most specific → least specific)
-    # Rejection before application: catches "received application BUT unfortunately..."
-    # Interview before application: catches action-oriented "next steps"
-    # Application last: generic catch-all for confirmations
-    # Special-case: Indeed application confirmation subjects should never be
-    # treated as interview_invite even if body contains phrasing like
-    # "discuss the opportunity" or other interview-esque phrases present in
-    # generic Indeed templates. These are pure application submission notices.
-    # Broad match (handles stray zero-width or tracking chars before prefix)
-    if subject and ("Indeed Application:" in subject or re.search(r"^\s*Indeed\s+Application:\s*", subject, re.I)):
-        if DEBUG:
-            print("[DEBUG rule_label] Forcing job_application for Indeed Application subject")
-        return "job_application"
-
-    # Special-case: Assessment completion notifications should be classified as "other"
-    # rather than job_application. These are status updates, not application submissions.
-    # Check subject line specifically to avoid false positives from body text.
-    subject_text = subject or ""
-    if re.search(r"\bassessments?\s+complete\b", subject_text, re.I):
-        if DEBUG:
-            print("[DEBUG rule_label] Forcing 'other' for assessment completion notification (subject match)")
-        return "other"
-    if re.search(r"\bassessment\s+(?:completion\s+)?status\b", subject_text, re.I):
-        if DEBUG:
-            print("[DEBUG rule_label] Forcing 'other' for assessment status notification (subject match)")
-        return "other"
-
-    # Special-case: Incomplete application reminders should be classified as "other"
-    # rather than job_application. These are nudges to finish incomplete apps,
-    # not confirmations of submission.
-    # Patterns: "started applying... didn't finish", "Don't forget to finish"
-    if re.search(r"\bstarted\s+applying\b.*\bdidn'?t\s+finish\b", s, re.I | re.DOTALL):
-        if DEBUG:
-            print("[DEBUG rule_label] Forcing 'other' for incomplete application reminder")
-        return "other"
-    if re.search(r"\bdon'?t\s+forget\s+to\s+finish\b.*\bapplication\b", s, re.I | re.DOTALL):
-        if DEBUG:
-            print("[DEBUG rule_label] Forcing 'other' for incomplete application reminder")
-        return "other"
-    if re.search(r"\bpick\s+up\s+where\s+you\s+left\s+off\b", s, re.I):
-        if DEBUG:
-            print("[DEBUG rule_label] Forcing 'other' for incomplete application reminder")
-        return "other"
-
-    # Early scheduling-language detection: if the message contains explicit
-    # scheduling/call-availability phrases, prefer `interview_invite` because
-    # many recruiter/company messages that ask to set a time are true interview
-    # invites even if they also include application-confirmation wording.
-    scheduling_rx_early = re.compile(
-        r"(?:please\s+)?(?:let\s+me\s+know\s+when\s+you(?:\s+would|(?:'re|\s+are))?\s+available)|"
-        r"available\s+for\s+(?:a\s+)?(?:call|phone\s+call|conversation|interview)|"
-        r"would\s+like\s+to\s+discuss\s+(?:the\s+position|this\s+role|the\s+opportunity)|"
-        r"schedule\s+(?:a\s+)?(?:call|time|conversation|interview)|"
-        r"would\s+you\s+be\s+available",
-        re.I | re.DOTALL,
+    return _rule_classifier.classify(
+        subject=subject,
+        body=body,
+        sender_domain=sender_domain,
+        headhunter_domains=HEADHUNTER_DOMAINS,
+        job_board_domains=JOB_BOARD_DOMAINS,
+        is_ats_domain_fn=_is_ats_domain,
+        map_company_by_domain_fn=_map_company_by_domain,
     )
-    if scheduling_rx_early.search(s):
-        if DEBUG:
-            print("[DEBUG rule_label] Early scheduling-language match -> interview_invite")
-        return "interview_invite"
-
-    # Check rejection patterns BEFORE application confirmation to avoid misclassifying
-    # rejection emails that say "thank you for applying... but we're moving forward with others"
-    for rx in _MSG_LABEL_PATTERNS.get("rejection", []):
-        if rx.search(s):
-            if DEBUG:
-                print(f"[DEBUG rule_label] Early rejection match: {rx.pattern[:80]}")
-            return "rejection"
-
-    # Early referral detection: Check for explicit referral language before application confirmation
-    # to avoid misclassifying employee referrals as job applications
-    referral_patterns = [
-        r"\b(has\s+referred\s+you|referred\s+you\s+for|employee\s+referral|internal\s+referral|someone\s+(?:from|at|in)\s+\w+.*\s+(?:has\s+)?referred\s+you)\b",
-        r"\b(referred\s+to\s+you\s+by|referred\s+by|referral\s+from)\b",
-    ]
-    for pattern in referral_patterns:
-        if re.search(pattern, s, re.I | re.DOTALL):
-            if DEBUG:
-                print(f"[DEBUG rule_label] Early referral match -> referral")
-            return "referral"
-
-    # Explicit application-confirmation signals should be classified as job_application
-    # before we evaluate interview-like phrasing. This prevents ATS confirmation
-    # templates (which sometimes include ambiguous language) from being labeled
-    # as interview invites.
-    # Note: Use [''\u2019] to match both straight and curly apostrophes
-    if re.search(
-        r"\b(we\s+have\s+received\s+your\s+application|we[''\u2019]?ve\s+received\s+your\s+application|we\s+have\s+received\s+your\s+application|thanks?\s+(?:you\s+)?for\s+applying|application\s+received|your\s+application\s+has\s+been\s+received|your\s+application\s+has\s+been\s+submitted|your\s+application\s+was\s+sent)\b",
-        s,
-        re.I | re.DOTALL,
-    ):
-        if DEBUG:
-            print("[DEBUG rule_label] Matched application-confirmation -> job_application")
-        return "job_application"
-
-    for label in (
-        "offer",          # Most specific: offer, compensation, package
-        "rejection",      # Negative outcomes - CHECK BEFORE NOISE to avoid false negatives
-        "head_hunter",    # Recruiter blasts
-        "noise",          # Newsletters/OTP/promos
-        "job_application", # Application confirmations/status (prefer application confirmations over generic interview phrasing)
-        "interview_invite",  # Scheduling/availability
-        "other",          # Generic catch-all
-        "referral",       # Referrals/intros
-        "ghosted",
-        "blank",
-    ):
-        if DEBUG and label == "rejection":
-            print(f"[DEBUG rule_label] Checking '{label}' patterns...")
-        for rx in _MSG_LABEL_PATTERNS.get(label, []):
-            match = rx.search(s)
-            if match:
-                if DEBUG and label in ("rejection", "noise"):
-                    print(f"[DEBUG rule_label] Pattern MATCHED for '{label}': {rx.pattern[:80]}")
-                    print(f"  Matched text: '{match.group()}'")
-                # If any exclude pattern matches, skip this label
-                excludes = _MSG_LABEL_EXCLUDES.get(label, [])
-                if DEBUG and label == "noise" and excludes:
-                    print(f"[DEBUG rule_label] Checking {len(excludes)} exclusion patterns for noise...")
-                matched_excludes = [ex for ex in excludes if ex.search(s)]
-                if matched_excludes:
-                    if DEBUG:
-                        print(f"[DEBUG rule_label] Label '{label}' pattern matched but EXCLUDED by:")
-                        for ex in matched_excludes:
-                            print(f"  - {ex.pattern}")
-                    continue
-
-                # Conservative handling for head_hunter / referral labels.
-                # - For `head_hunter` require either a known headhunter sender domain
-                #   (from `companies.json`) OR explicit recruiter-contact evidence in
-                #   the message (email address, phone number, LinkedIn URL, or a
-                #   signature-like closing with a name). This reduces false
-                #   positives from job-board digests and automated postings.
-                # - For both labels: skip if sender domain appears to be an ATS,
-                #   job-board, or maps to a known company domain.
-                if label in ("head_hunter", "referral"):
-                    d = (sender_domain or "").lower()
-
-                    # Allow immediate return if domain is configured as headhunter
-                    try:
-                        if d and d in HEADHUNTER_DOMAINS:
-                            return label
-                    except Exception:
-                        # HEADHUNTER_DOMAINS may not be loaded yet at import-time;
-                        # fall through to conservative checks.
-                        pass
-
-                    # If domain maps to a company, or is an ATS/job-board, skip headhunter/referral
-                    try:
-                        if d and (_is_ats_domain(d) or d in JOB_BOARD_DOMAINS or _map_company_by_domain(d)):
-                            # treat as no match for head_hunter/referral here
-                            continue
-                    except Exception:
-                        pass
-
-                    # Additional strictness for `head_hunter`: require explicit
-                    # recruiter-contact evidence in the message when the sender
-                    # domain is not in the HEADHUNTER_DOMAINS list.
-                    if label == "head_hunter":
-                        contact_patterns = [
-                            r"[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}",
-                            r"\+?\d{1,2}[-.\s]?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}",
-                            r"linkedin\.com/(?:in|pub)/[A-Za-z0-9_\-]+",
-                        ]
-                        # simple signature cue: 'Regards/Best/Sincerely/Thanks' followed by a name
-                        signature_rx = re.compile(r"(?:Regards|Best regards|Sincerely|Best|Thanks|Thank you)[\s,]*[\r\n]+[A-Z][a-z]+", re.I)
-
-                        has_contact = any(re.search(p, s, re.I) for p in contact_patterns) or signature_rx.search(s)
-                        if not has_contact:
-                            # No contact evidence + not a known headhunter domain => skip
-                            continue
-                    else:
-                        # For `referral` we keep the previous conservative approach:
-                        # require explicit recruiter/referral language when sender domain
-                        # is not available or not in headhunter list.
-                        if not d:
-                            if not re.search(r"\b(referred|referral|referred by|referrer)\b", s, re.I):
-                                continue
-
-                    # Special case: if this match is a job_application but the
-                    # message contains scheduling language (call/availability/etc.),
-                    # prefer `interview_invite` because many ATS-confirmations are
-                    # purely submission notices while recruiter/company messages
-                    # that ask to schedule are effectively interview invites.
-                    if label == "job_application":
-                        scheduling_rx = re.compile(
-                            r"(?:please\s+)?(?:let\s+me\s+know\s+when\s+you(?:\s+would|(?:'re|\s+are))?\s+available)|"
-                            r"available\s+for\s+(?:a\s+)?(?:call|phone\s+call|conversation|interview)|"
-                            r"would\s+like\s+to\s+discuss\s+(?:the\s+position|this\s+role|the\s+opportunity)|"
-                            r"schedule\s+(?:a\s+)?(?:call|time|conversation|interview)|"
-                            r"would\s+you\s+be\s+available",
-                            re.I | re.DOTALL,
-                        )
-                        if scheduling_rx.search(s):
-                            if DEBUG:
-                                print("[DEBUG rule_label] Matched scheduling language -> returning interview_invite")
-                            return "interview_invite"
-
-                if DEBUG and label == "rejection":
-                    print(f"[DEBUG rule_label] About to return '{label}'")
-                return label
-    return None
 
 
 def predict_with_fallback(
@@ -525,18 +309,8 @@ def is_application_related(subject, body):
 
 
 def decode_part(data, encoding):
-    """Decode a MIME part body string using the provided encoding.
-
-    Supports base64, quoted-printable, and 7bit. Returns a decoded UTF-8 string.
-    """
-    if encoding == "base64":
-        return base64.urlsafe_b64decode(data).decode("utf-8", errors="ignore")
-    elif encoding == "quoted-printable":
-        return quopri.decodestring(data).decode("utf-8", errors="ignore")
-    elif encoding == "7bit":
-        return data  # usually already decoded
-    else:
-        return data
+    """Decode a MIME part body string using the provided encoding (delegates to EmailBodyParser)."""
+    return EmailBodyParser.decode_mime_part(data, encoding)
 
 
 # def extract_body(payload):
@@ -559,175 +333,18 @@ def decode_part(data, encoding):
 
 
 def extract_body_from_parts(parts):
-    """Extract the first HTML part's body from a Gmail message payload tree.
-
-    Walks nested multipart sections; prefers HTML and returns full HTML string.
-    Returns "Empty Body" or empty string when no body is found.
-    """
-    for part in parts:
-        mime_type = part.get("mimeType")
-        body_data = part.get("body", {}).get("data")
-        if mime_type == "text/html" and body_data:
-            decoded = base64.urlsafe_b64decode(body_data).decode("utf-8", errors="ignore")
-            if not decoded:
-                decoded = "Empty Body"
-                print("Decoded Body/HTML part is empty.")
-            return decoded  # preserve full HTML
-        elif "parts" in part:
-            result = extract_body_from_parts(part["parts"])
-            if result:
-                return result
-            else:
-                return "Empty Body"
-    return ""
+    """Extract the first HTML part's body from a Gmail message payload tree (delegates to EmailBodyParser)."""
+    return EmailBodyParser.extract_from_gmail_parts(parts)
 
 
 def _decode_header_value(raw_val: str) -> str:
-    """Decode RFC 2047 encoded header values to unicode.
-
-    Falls back gracefully on decode errors, always returns a str.
-    """
-    if not raw_val:
-        return ""
-    try:
-        parts = eml_decode_header(raw_val)
-        decoded_chunks = []
-        for text, enc in parts:
-            if isinstance(text, bytes):
-                try:
-                    decoded_chunks.append(text.decode(enc or "utf-8", errors="ignore"))
-                except Exception:
-                    decoded_chunks.append(text.decode("utf-8", errors="ignore"))
-            else:
-                decoded_chunks.append(text)
-        return "".join(decoded_chunks)
-    except Exception:
-        return raw_val
+    """Decode RFC 2047 encoded header values to unicode (delegates to EmailBodyParser)."""
+    return EmailBodyParser.decode_header_value(raw_val)
 
 
 def parse_raw_message(raw_text: str) -> dict:
-    """Parse a raw EML (RFC 822) message string and return metadata similar to extract_metadata.
-
-    This allows debugging/ingesting messages pasted into the UI or loaded from disk
-    without requiring a live Gmail API service call.
-
-    Returns dict with keys:
-      subject, body, body_html, timestamp, date(str), sender, sender_domain,
-      thread_id(None), labels(""), last_updated, header_hints
-    """
-    if not raw_text:
-        return {
-            "subject": "",
-            "body": "",
-            "body_html": "",
-            "timestamp": now(),
-            "date": now().strftime("%Y-%m-%d %H:%M:%S"),
-            "sender": "",
-            "sender_domain": "",
-            "thread_id": None,
-            "labels": "",
-            "last_updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "header_hints": {},
-        }
-
-    try:
-        eml = eml_from_string(raw_text)
-    except Exception:
-        # Return minimal structure if parsing fails (retain raw text as body)
-        return {
-            "subject": "(parse error)",
-            "body": raw_text,
-            "body_html": "",
-            "timestamp": now(),
-            "date": now().strftime("%Y-%m-%d %H:%M:%S"),
-            "sender": "",
-            "sender_domain": "",
-            "thread_id": None,
-            "labels": "",
-            "last_updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "header_hints": {},
-        }
-
-    subject = _decode_header_value(eml.get("Subject", ""))
-    sender = _decode_header_value(eml.get("From", ""))
-    date_raw = eml.get("Date", "")
-    try:
-        date_obj = parsedate_to_datetime(date_raw)
-        if timezone.is_naive(date_obj):
-            date_obj = timezone.make_aware(date_obj)
-    except Exception:
-        date_obj = now()
-    date_str = date_obj.strftime("%Y-%m-%d %H:%M:%S")
-
-    # Sender domain
-    parsed = parseaddr(sender)
-    email_addr = parsed[1] if len(parsed) == 2 else ""
-    match = re.search(r"@([A-Za-z0-9.-]+)$", email_addr)
-    sender_domain = match.group(1).lower() if match else ""
-
-    # Walk parts for body (prefer HTML) else text/plain
-    body_html = ""
-    body_text = ""
-    if eml.is_multipart():
-        for part in eml.walk():
-            ctype = part.get_content_type()
-            disp = (part.get("Content-Disposition") or "").lower()
-            if "attachment" in disp:
-                continue  # skip attachments
-            try:
-                payload = part.get_payload(decode=True)
-                if payload is None:
-                    continue
-                decoded = payload.decode(part.get_content_charset() or "utf-8", errors="ignore")
-            except Exception:
-                continue
-            if ctype == "text/html" and not body_html:
-                body_html = decoded
-            elif ctype == "text/plain" and not body_text:
-                body_text = decoded
-    else:
-        try:
-            payload = eml.get_payload(decode=True)
-            if payload:
-                body_text = payload.decode(eml.get_content_charset() or "utf-8", errors="ignore")
-        except Exception:
-            body_text = raw_text
-
-    if body_html and not body_text:
-        # Provide plain text fallback from HTML
-        body_text = BeautifulSoup(body_html, "html.parser").get_text(separator=" ", strip=True)
-
-    # Header hints similar to Gmail path (limited set for EML)
-    header_hints = {
-        "is_newsletter": any(h in eml for h in ["List-Id", "List-Unsubscribe", "X-Newsletter"]),
-        "is_bulk": _decode_header_value(eml.get("Precedence", "")).lower() == "bulk",
-        "is_noreply": "noreply" in sender.lower() or "no-reply" in sender.lower(),
-        "reply_to": _decode_header_value(eml.get("Reply-To", "")) or None,
-        "organization": _decode_header_value(eml.get("Organization", "")) or None,
-        "auto_submitted": _decode_header_value(eml.get("Auto-Submitted", "")).lower() not in ("", "no"),
-    }
-
-    # Combine headers for classification like Gmail version
-    header_text = []
-    for h_name, h_val in eml.items():
-        if h_name.lower() in {"list-id", "list-unsubscribe", "precedence", "reply-to", "organization"}:
-            header_text.append(f"{h_name}: {h_val}")
-    body_for_classification = ("\n".join(header_text) + "\n\n" + (body_text or "")).strip()
-
-    return {
-        "thread_id": None,
-        "subject": subject,
-        "body": body_for_classification,
-        "body_html": body_html,
-        "date": date_str,
-        "timestamp": date_obj,
-        "labels": "",
-        "last_updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "sender": sender,
-        "sender_domain": sender_domain,
-        "parser_version": PARSER_VERSION,
-        "header_hints": header_hints,
-    }
+    """Parse a raw EML (RFC 822) message string (delegates to EmailBodyParser)."""
+    return EmailBodyParser.parse_raw_eml(raw_text, now)
 
 
 def log_ignored_message(msg_id, metadata, reason):
@@ -746,21 +363,11 @@ def log_ignored_message(msg_id, metadata, reason):
 
 
 def is_valid_company_name(name):
-    """Reject company names that match known invalid prefixes from patterns.json."""
-    if not name:
-        return False
-
-    invalid_prefixes = PATTERNS.get("invalid_company_prefixes", [])
-    for prefix in invalid_prefixes:
-        try:
-            # Compile each prefix as regex, using re.IGNORECASE
-            if re.match(prefix, name, re.IGNORECASE):
-                return False
-        except re.error:
-            # If invalid regex, fallback to simple startswith
-            if name.lower().startswith(prefix.lower()):
-                return False
-    return True
+    """Reject company names that match known invalid prefixes from patterns.json.
+    
+    Delegates to CompanyValidator class (refactored).
+    """
+    return _company_validator.is_valid_company_name(name)
 
 
 def normalize_company_name(name: str) -> str:
@@ -770,28 +377,10 @@ def normalize_company_name(name: str) -> str:
     - Remove suffix fragments like "- Application ..." or trailing "Application"
     - Collapse repeated whitespace
     - Map known pseudo-companies like "Indeed Application" -> "Indeed"
+    
+    Delegates to CompanyValidator class (refactored).
     """
-    if not name:
-        return ""
-
-    n = name.strip()
-
-    # Remove common subject suffixes accidentally captured
-    n = re.sub(r"\s*-\s*Application.*$", "", n, flags=re.IGNORECASE)
-    n = re.sub(r"\bApplication\b\s*$", "", n, flags=re.IGNORECASE)
-
-    # Trim lingering separators/punctuation
-    n = re.sub(r"[\s\-:|•]+$", "", n)
-
-    # Collapse multiple internal spaces
-    n = re.sub(r"\s{2,}", " ", n)
-
-    # Known normalizations
-    lower = n.lower()
-    if lower == "indeed application":
-        return "Indeed"
-
-    return n
+    return _company_validator.normalize_company_name(name)
 
 
 def looks_like_person(name: str) -> bool:
@@ -802,29 +391,10 @@ def looks_like_person(name: str) -> bool:
     - No token contains digits, '&', '@', '.', or corporate suffix markers
     - Contains no common company suffix words (Inc, LLC, Corp, Company, Technologies, Systems)
     - If exactly two tokens and both are common first/last name shapes (<=12 chars) treat as person
+    
+    Delegates to CompanyValidator class (refactored).
     """
-    if not name:
-        return False
-    raw = name.strip()
-    if len(raw) > 40:  # Long strings unlikely to be just a person name
-        return False
-    tokens = raw.split()
-    if not (1 <= len(tokens) <= 3):
-        return False
-    corp_markers = {"inc", "llc", "ltd", "co", "corp", "corporation", "company", "technologies", "systems", "group"}
-    if any(t.lower().strip(".,") in corp_markers for t in tokens):
-        return False
-    # Reject if any token has non alpha (besides hyphen) or is ALLCAPS acronym
-    for t in tokens:
-        if not re.match(r"^[A-Z][a-z]+(?:-[A-Z][a-z]+)?$", t):
-            return False
-    # Two-token typical person pattern
-    if len(tokens) == 2 and all(len(t) <= 12 for t in tokens):
-        return True
-    # Single short token like "Kelly" should not be considered a company unless in known companies
-    if len(tokens) == 1 and len(tokens[0]) <= 10:
-        return True
-    return False
+    return _company_validator.looks_like_person(name)
 
 
 PARSER_VERSION = "1.0.0"
@@ -1038,36 +608,8 @@ def extract_metadata(service, msg_id):
 
 
 def extract_status_dates(body, received_date):
-    """
-    Extract key status dates from email body.
-    
-    For interview invites, sets interview_date to 7 days in the future
-    to mark as "upcoming" (user can manually update with actual date).
-    """
-    body_lower = body.lower()
-    dates = {
-        "response_date": None,
-        "rejection_date": None,
-        "interview_date": None,
-        "follow_up_dates": [],
-    }
-    
-    # Use compiled patterns from _MSG_LABEL_PATTERNS
-    interview_patterns = _MSG_LABEL_PATTERNS.get("interview_invite", [])
-    rejection_patterns = _MSG_LABEL_PATTERNS.get("rejected", [])
-    response_patterns = _MSG_LABEL_PATTERNS.get("response", [])
-    followup_patterns = _MSG_LABEL_PATTERNS.get("follow_up", [])
-    
-    if any(re.search(p, body_lower) for p in response_patterns):
-        dates["response_date"] = received_date
-    if any(re.search(p, body_lower) for p in rejection_patterns):
-        dates["rejection_date"] = received_date
-    if any(re.search(p, body_lower) for p in interview_patterns):
-        # Set to 7 days in future to mark as "upcoming interview"
-        dates["interview_date"] = (received_date + timedelta(days=7)).date()
-    if any(re.search(p, body_lower) for p in followup_patterns):
-        dates["follow_up_dates"] = received_date
-    return dates
+    """Extract status dates from body (delegates to MetadataExtractor)."""
+    return _metadata_extractor.extract_status_dates(body, received_date)
 
 
 def classify_message(body):
@@ -1088,49 +630,8 @@ def classify_message(body):
 
 
 def extract_organizer_from_icalendar(body):
-    """
-    Extract organizer email from iCalendar data in message body.
-    
-    Teams/Zoom meeting invites often contain BASE64 encoded iCalendar data
-    with ORGANIZER field containing the sender's email address.
-    
-    Returns: (organizer_email, organizer_domain) or (None, None)
-    """
-    if not body:
-        return None, None
-    
-    # Look for BASE64 encoded iCalendar data
-    # Pattern: continuous BASE64 string (common in calendar invites)
-    base64_pattern = r'(?:[A-Za-z0-9+/]{60,}\n?)+'
-    matches = re.findall(base64_pattern, body)
-    
-    for match in matches:
-        try:
-            # Remove newlines and decode
-            base64_data = match.replace('\n', '').replace('\r', '')
-            decoded = base64.b64decode(base64_data).decode('utf-8', errors='ignore')
-            
-            # Check if this is iCalendar data
-            if 'BEGIN:VCALENDAR' in decoded or 'ORGANIZER' in decoded:
-                # Extract ORGANIZER email
-                # Format: ORGANIZER;CN=Name:mailto:email@domain.com
-                organizer_match = re.search(
-                    r'ORGANIZER[^:]*:mailto:([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})',
-                    decoded,
-                    re.IGNORECASE
-                )
-                if organizer_match:
-                    email = organizer_match.group(1).lower()
-                    domain = email.split('@')[-1] if '@' in email else None
-                    if DEBUG:
-                        print(f"[DEBUG] Extracted organizer from iCalendar: {email} (domain: {domain})")
-                    return email, domain
-        except Exception as e:
-            if DEBUG:
-                print(f"[DEBUG] Failed to decode/parse iCalendar data: {e}")
-            continue
-    
-    return None, None
+    """Extract organizer from iCalendar (delegates to MetadataExtractor)."""
+    return MetadataExtractor.extract_organizer_from_icalendar(body, debug=DEBUG)
 
 
 def parse_subject(subject, body="", sender=None, sender_domain=None):
@@ -1618,9 +1119,8 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
         )
         job_title = title_match.group(1).strip() if title_match else ""
 
-    # Job ID
-    id_match = re.search(r"(?:Job\s*#?|Position\s*#?|jobId=)([\w\-]+)", subject_clean, re.IGNORECASE)
-    job_id = id_match.group(1).strip() if id_match else ""
+    # Job ID (delegate to MetadataExtractor)
+    job_id = MetadataExtractor.extract_job_id(subject_clean)
 
     # --- Hard-ignore check AFTER company extraction ---
     # If we found a valid company from known list or domain, override noise classification
@@ -3078,73 +2578,37 @@ def ingest_message(service, msg_id):
     return "inserted"
 
 
-COMPANIES_PATH = Path(__file__).parent / "json" / "companies.json"
-
-if COMPANIES_PATH.exists():
-    try:
-        with open(COMPANIES_PATH, "r", encoding="utf-8") as f:
-            company_data = json.load(f)
-    except json.JSONDecodeError as e:
-        print(f"[Error] Failed to parse companies.json: {e}")
-        company_data = {}
-    except Exception as e:
-        print(f"[Error] Unable to read companies.json: {e}")
-        company_data = {}
-    ATS_DOMAINS = [d.lower() for d in company_data.get("ats_domains", [])]
-    HEADHUNTER_DOMAINS = [d.lower() for d in company_data.get("headhunter_domains", [])]
-    JOB_BOARD_DOMAINS = [d.lower() for d in company_data.get("job_boards", [])]
-    KNOWN_COMPANIES = {c.lower() for c in company_data.get("known", [])}
-    KNOWN_COMPANIES_CASED = company_data.get("known", [])  # Keep original casing
-    DOMAIN_TO_COMPANY = {k.lower(): v for k, v in company_data.get("domain_to_company", {}).items()}
-    ALIASES = company_data.get("aliases", {})
-else:
-    ATS_DOMAINS = []
-    HEADHUNTER_DOMAINS = []
-    JOB_BOARD_DOMAINS = []
-    KNOWN_COMPANIES = set()
-    KNOWN_COMPANIES_CASED = []
-    DOMAIN_TO_COMPANY = {}
-    ALIASES = {}
+# Note: Company data loading moved to DomainMapper class
+# Access via _domain_mapper attributes for backward compatibility
+ATS_DOMAINS = _domain_mapper.ats_domains
+HEADHUNTER_DOMAINS = _domain_mapper.headhunter_domains
+JOB_BOARD_DOMAINS = _domain_mapper.job_board_domains
+KNOWN_COMPANIES = _domain_mapper.known_companies
+KNOWN_COMPANIES_CASED = _domain_mapper.known_companies_cased
+DOMAIN_TO_COMPANY = _domain_mapper.domain_to_company
+ALIASES = _domain_mapper.aliases
+company_data = _domain_mapper.company_data
 
 
-# Allow companies.json edits to be picked up at runtime without restarting the process.
-# We track the file mtime and reload DOMAIN_TO_COMPANY when it changes.
-try:
-    if COMPANIES_PATH.exists():
-        _DOMAIN_MAP_MTIME = COMPANIES_PATH.stat().st_mtime
-    else:
-        _DOMAIN_MAP_MTIME = None
-except Exception:
-    _DOMAIN_MAP_MTIME = None
+# Note: Domain map reloading moved to DomainMapper class
 
 
 def _reload_domain_map_if_needed():
-    """Reload all company data from `COMPANIES_PATH` if the file changed."""
+    """Reload all company data if companies.json has changed (delegates to DomainMapper)."""
     global DOMAIN_TO_COMPANY, ATS_DOMAINS, HEADHUNTER_DOMAINS, JOB_BOARD_DOMAINS
-    global KNOWN_COMPANIES, KNOWN_COMPANIES_CASED, ALIASES, company_data, _DOMAIN_MAP_MTIME
-    try:
-        if COMPANIES_PATH.exists():
-            mtime = COMPANIES_PATH.stat().st_mtime
-            if _DOMAIN_MAP_MTIME != mtime:
-                with open(COMPANIES_PATH, "r", encoding="utf-8") as f:
-                    data = json.load(f)
-                # Reload all company configuration data
-                company_data = data
-                ATS_DOMAINS = [d.lower() for d in data.get("ats_domains", [])]
-                HEADHUNTER_DOMAINS = [d.lower() for d in data.get("headhunter_domains", [])]
-                JOB_BOARD_DOMAINS = [d.lower() for d in data.get("job_boards", [])]
-                KNOWN_COMPANIES = {c.lower() for c in data.get("known", [])}
-                KNOWN_COMPANIES_CASED = data.get("known", [])
-                DOMAIN_TO_COMPANY = {k.lower(): v for k, v in data.get("domain_to_company", {}).items()}
-                ALIASES = data.get("aliases", {})
-                _DOMAIN_MAP_MTIME = mtime
-                if DEBUG:
-                    print(f"[INFO] Reloaded companies.json (mtime changed)")
-    except Exception as e:
-        # If reload fails for any reason, keep the existing mapping silently
-        if DEBUG:
-            print(f"[WARNING] Failed to reload companies.json: {e}")
-        pass
+    global KNOWN_COMPANIES, KNOWN_COMPANIES_CASED, ALIASES, company_data
+    
+    _domain_mapper.reload_if_needed()
+    
+    # Update global references for backward compatibility
+    DOMAIN_TO_COMPANY = _domain_mapper.domain_to_company
+    ATS_DOMAINS = _domain_mapper.ats_domains
+    HEADHUNTER_DOMAINS = _domain_mapper.headhunter_domains
+    JOB_BOARD_DOMAINS = _domain_mapper.job_board_domains
+    KNOWN_COMPANIES = _domain_mapper.known_companies
+    KNOWN_COMPANIES_CASED = _domain_mapper.known_companies_cased
+    ALIASES = _domain_mapper.aliases
+    company_data = _domain_mapper.company_data
 
 
 def ingest_message_from_eml(eml_content: str, fake_msg_id: str = None):
@@ -3453,32 +2917,14 @@ def _conf(res) -> float:
 
 # --- Helpers for domain handling ---
 def _is_ats_domain(domain: str) -> bool:
-    """Return True if domain equals or is a subdomain of any ATS root domain."""
-    if not domain:
-        return False
-    d = domain.lower()
-    for ats in ATS_DOMAINS:
-        if d == ats or d.endswith("." + ats):
-            return True
-    return False
+    """Return True if domain equals or is a subdomain of any ATS root domain (delegates to DomainMapper)."""
+    return _domain_mapper.is_ats_domain(domain)
 
 
 def _map_company_by_domain(domain: str) -> str | None:
-    """Resolve company by exact or subdomain match from DOMAIN_TO_COMPANY.
+    """Resolve company by exact or subdomain match (delegates to DomainMapper).
 
     Example: if mapping contains 'nsa.gov' -> 'National Security Agency', then
     'uwe.nsa.gov' will also map to that company.
     """
-    # ensure we have the latest mapping
-    _reload_domain_map_if_needed()
-    if not domain:
-        return None
-    d = domain.lower()
-    # Exact match first
-    if d in DOMAIN_TO_COMPANY:
-        return DOMAIN_TO_COMPANY[d]
-    # Subdomain suffix match
-    for root, company in DOMAIN_TO_COMPANY.items():
-        if d.endswith("." + root):
-            return company
-    return None
+    return _domain_mapper.map_company_by_domain(domain)

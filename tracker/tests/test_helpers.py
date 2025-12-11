@@ -8,6 +8,10 @@ class FakeMessageRecord:
             self.company = None
         if not hasattr(self, "company_source"):
             self.company_source = ""
+        if not hasattr(self, "ml_label"):
+            self.ml_label = None
+        if not hasattr(self, "confidence"):
+            self.confidence = None
 
     def save(self):
         pass

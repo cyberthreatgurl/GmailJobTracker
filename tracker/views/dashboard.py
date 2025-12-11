@@ -173,7 +173,7 @@ def dashboard(request):
 
     # Load plot series config from JSON file and validate
 
-    from .models import MessageLabel
+    from tracker.models import MessageLabel
 
     def is_valid_color(color):
         # Accept #RRGGBB, #RGB, or valid CSS color names

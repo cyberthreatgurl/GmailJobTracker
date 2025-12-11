@@ -34,12 +34,27 @@ jobs:
         touch json/companies.json
         echo '{"known": [], "domain_to_company": {}}' > json/companies.json
         echo '{"message_labels": {}}' > json/patterns.json
+        
+        # Create .env file
+        cat > .env << 'EOF'
+        DJANGO_SECRET_KEY=test-secret-key-for-ci-do-not-use-in-production
+        DEBUG=False
+        ALLOWED_HOSTS=localhost,127.0.0.1
+        GMAIL_JOBHUNT_LABEL_ID=test_label_id
+        EOF
+    
+    - name: Run Django migrations
+      env:
+        DJANGO_SETTINGS_MODULE: dashboard.settings
+      run: |
+        python manage.py migrate --noinput
     
     - name: Run tests
       env:
         DJANGO_SETTINGS_MODULE: dashboard.settings
       run: |
         pytest tests/test_eml_parsing.py -v --tb=short
+      continue-on-error: false
     
     - name: Upload test results
       if: always()
@@ -50,3 +65,4 @@ jobs:
           .pytest_cache/
           htmlcov/
         retention-days: 7
+        if-no-files-found: ignore

@@ -1,17 +1,15 @@
 """Views package for GmailJobTracker.
 
-Phase 5 Refactoring: Modularized from monolithic views.py (4,403 lines).
+Phase 5 Refactoring: In progress - modularizing from monolithic views.py (4,403 lines).
 
-This package systematically imports from new modules as they're migrated,
-falling back to views_legacy.py for functions not yet migrated.
+Importing successfully migrated modules and falling back to views_legacy for the rest.
 """
 
 # Import migrated modules
 from .helpers import *  # noqa: F401, F403
 from .api import *  # noqa: F401, F403
 
-# Import remaining functions from legacy views
-# pylint: disable=wildcard-import,unused-wildcard-import
+# Temporarily import all functions from views_legacy until extraction is complete
 from tracker.views_legacy import (  # noqa: F401
     label_rule_debugger,
     upload_eml,

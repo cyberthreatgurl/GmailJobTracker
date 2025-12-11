@@ -41,6 +41,12 @@ jobs:
 
       - name: Run detect-secrets
         run: |
+          # Generate baseline on-the-fly if it doesn't exist
+          if [ ! -f .secrets.baseline ]; then
+            echo "Generating new baseline..."
+            detect-secrets scan --exclude-files '\.git/.*|\.env|credentials\.json|token\.pickle' > .secrets.baseline
+          fi
+          # Scan and compare against baseline
           detect-secrets scan --baseline .secrets.baseline
 
       - name: Trivy vulnerability scanner

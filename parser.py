@@ -168,6 +168,19 @@ def rule_label(subject: str, body: str = "", sender_domain: str | None = None) -
             print("[DEBUG rule_label] Forcing job_application for Indeed Application subject")
         return "job_application"
 
+    # Special-case: Assessment completion notifications should be classified as "other"
+    # rather than job_application. These are status updates, not application submissions.
+    # Check subject line specifically to avoid false positives from body text.
+    subject_text = subject or ""
+    if re.search(r"\bassessments?\s+complete\b", subject_text, re.I):
+        if DEBUG:
+            print("[DEBUG rule_label] Forcing 'other' for assessment completion notification (subject match)")
+        return "other"
+    if re.search(r"\bassessment\s+(?:completion\s+)?status\b", subject_text, re.I):
+        if DEBUG:
+            print("[DEBUG rule_label] Forcing 'other' for assessment status notification (subject match)")
+        return "other"
+
     # Special-case: Incomplete application reminders should be classified as "other"
     # rather than job_application. These are nudges to finish incomplete apps,
     # not confirmations of submission.
@@ -209,6 +222,18 @@ def rule_label(subject: str, body: str = "", sender_domain: str | None = None) -
             if DEBUG:
                 print(f"[DEBUG rule_label] Early rejection match: {rx.pattern[:80]}")
             return "rejection"
+
+    # Early referral detection: Check for explicit referral language before application confirmation
+    # to avoid misclassifying employee referrals as job applications
+    referral_patterns = [
+        r"\b(has\s+referred\s+you|referred\s+you\s+for|employee\s+referral|internal\s+referral|someone\s+(?:from|at|in)\s+\w+.*\s+(?:has\s+)?referred\s+you)\b",
+        r"\b(referred\s+to\s+you\s+by|referred\s+by|referral\s+from)\b",
+    ]
+    for pattern in referral_patterns:
+        if re.search(pattern, s, re.I | re.DOTALL):
+            if DEBUG:
+                print(f"[DEBUG rule_label] Early referral match -> referral")
+            return "referral"
 
     # Explicit application-confirmation signals should be classified as job_application
     # before we evaluate interview-like phrasing. This prevents ATS confirmation
@@ -1619,19 +1644,44 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
             "ignore": True,
         }
 
-    # Override internal referrals: If label is "referral" or "interview_invite" but sender domain 
-    # matches company domain, this is an internal referral/introduction (employee introducing someone),
-    # so label as "other"
+    # Override internal introductions: If label is "referral" or "interview_invite" but sender domain 
+    # matches company domain AND it's a networking introduction (not a job referral), label as "other"
+    # Examples:
+    #   - "I'd like to introduce you to..." = internal introduction = other
+    #   - "Someone at [Company] has referred you for a job" = employee referral = referral (keep it)
     if label in ("referral", "interview_invite") and sender_domain and company:
         # Check if sender domain matches company domain
         company_domain = _map_company_by_domain(sender_domain)
         if company_domain and company_domain.lower() == company.lower():
-            # Additional check: if body contains "introduce" or "introduction", it's definitely internal
             body_lower = (body or "").lower()
-            if "introduce" in body_lower or "introduction" in body_lower or label == "referral":
+            subject_lower = (subject or "").lower()
+            
+            # Check if this is a networking introduction vs. job referral
+            is_networking_intro = (
+                "like to introduce" in body_lower or 
+                "i'd like to introduce" in body_lower or
+                "would like to introduce" in body_lower or
+                "want to introduce" in body_lower or
+                "introducing you" in body_lower
+            )
+            
+            # Check if this is explicitly a job referral (should NOT be overridden)
+            is_job_referral = (
+                "employee referral" in subject_lower or
+                "has referred you for" in body_lower or
+                "referred you for consideration" in body_lower or
+                "referred you for a position" in body_lower or
+                "referred you for an open position" in body_lower or
+                "referred you for this position" in body_lower
+            )
+            
+            # Only override if it's a networking intro and NOT a job referral
+            if is_networking_intro and not is_job_referral:
                 if DEBUG:
-                    print(f"[DEBUG] Internal referral/introduction detected: sender domain {sender_domain} matches company {company}, overriding to 'other'")
+                    print(f"[DEBUG] Internal introduction detected: sender domain {sender_domain} matches company {company}, overriding to 'other'")
                 label = "other"
+            elif DEBUG and is_job_referral:
+                print(f"[DEBUG] Employee job referral detected: keeping as 'referral' (from {sender_domain} at {company})")
 
     return {
         "company": normalize_company_name(company),
@@ -1805,7 +1855,7 @@ def ingest_message(service, msg_id):
         if DEBUG:
             print(f"[PATCH] Overriding label to 'other' and company to {company} for user-sent message.")
 
-    # If parse_subject detected internal referral and overrode label to 'other', apply to result
+    # If parse_subject detected internal introduction and overrode label to 'other', apply to result
     if parsed_subject.get("label") == "other" and isinstance(result, dict) and result.get("label") in ("referral", "interview_invite"):
         sender_domain = metadata.get("sender_domain")
         if sender_domain:
@@ -1816,7 +1866,7 @@ def ingest_message(service, msg_id):
                     result = dict(result)  # Create mutable copy
                     result["label"] = "other"
                     if DEBUG:
-                        print(f"[INTERNAL REFERRAL] Overriding result label to 'other' for internal referral: {sender_domain} matches {from_company}")
+                        print(f"[INTERNAL INTRODUCTION] Overriding result label to 'other' for internal introduction: {sender_domain} matches {from_company}")
 
     if parsed_subject.get("ignore"):
         if DEBUG:
@@ -1991,9 +2041,11 @@ def ingest_message(service, msg_id):
         else:
             company = ""
             company_source = "user_sent_to_company"
-        # Always force label to 'other'
+        # Force label to 'other' UNLESS already set to 'noise' by personal domain override
         if result:
-            result["label"] = "other"
+            current_label = result.get("label")
+            if current_label != "noise":
+                result["label"] = "other"
             if mapped_company:
                 result["company"] = mapped_company
                 result["predicted_company"] = mapped_company
@@ -3206,7 +3258,7 @@ def ingest_message_from_eml(eml_content: str, fake_msg_id: str = None):
     elif isinstance(parse_result, str):
         company = parse_result
     
-    # If parse_subject detected internal referral and overrode label to 'other', apply to result
+    # If parse_subject detected internal introduction and overrode label to 'other', apply to result
     if isinstance(parse_result, dict) and parse_result.get("label") == "other" and ml_label in ("referral", "interview_invite"):
         sender_domain = metadata.get("sender_domain")
         if sender_domain and company:
@@ -3214,7 +3266,7 @@ def ingest_message_from_eml(eml_content: str, fake_msg_id: str = None):
             if mapped_domain_company and mapped_domain_company.lower() == company.lower():
                 ml_label = "other"
                 if DEBUG:
-                    print(f"[EML INTERNAL REFERRAL] Overriding ml_label to 'other' for internal referral: {sender_domain} matches {company}")
+                    print(f"[EML INTERNAL INTRODUCTION] Overriding ml_label to 'other' for internal introduction: {sender_domain} matches {company}")
     
     # If ML originally predicted head_hunter but sender domain maps to actual company (internal recruiter),
     # override to 'other' only for generic spam, preserve meaningful labels

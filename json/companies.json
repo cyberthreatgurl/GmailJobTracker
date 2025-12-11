@@ -53,7 +53,6 @@
   },
   "ats_domains": [
     "adp.com",
-    "pinpointhq.com",
     "app.bamboohr.com",
     "applicantpro.com",
     "applicantstack.com",
@@ -80,6 +79,7 @@
     "otp.workday.com",
     "pageuppeople.com",
     "paylocity.com",
+    "pinpointhq.com",
     "proofpoint.com",
     "quantumworldit.com",
     "silkroad.com",
@@ -92,10 +92,10 @@
     "workday.com"
   ],
   "domain_to_company": {
-    "aig.com": "AIG",
     "Personified": "personified.tech",
     "SailPoint Technologies": "Sail Point Technologies",
     "afs.com": "Accenture Federal Services",
+    "aig.com": "AIG",
     "altamiracorp.com": "Altamira Technologies Corp.",
     "amentum.com": "Amentum",
     "amentum.mail.clinchtalent.com": "Amentum",
@@ -186,6 +186,7 @@
     "peerspot.com": "Peerspot",
     "peraton.com": "Peraton",
     "phase2.io": "Phase2 Technology",
+    "pinpoint.email": "Armis",
     "rand.org": "Rand",
     "rapid7.com": "Rapid7",
     "recruiting.facebook.com": "Meta",
@@ -211,8 +212,8 @@
     "tech-wizards.com": "Tech Wizards Inc.",
     "theswiftgroup.com": "The Swift Group",
     "tjx.com": "The TJX Companies",
-    "trustradius.com": "Trustradius",
     "trellix.com": "Trellix",
+    "trustradius.com": "Trustradius",
     "tylertech.com": "Tyler Technologies",
     "usajobs.gov": "Analysis and Resilience Center for Systemic Risk",
     "usastaffing.gov": "DHS Cybersecurity Service",
@@ -329,7 +330,8 @@
     "Northrop Grumman": "https://www.northropgrumman.com/careers/experienced-professionals",
     "Parsons": "https://jobs.parsons.com/",
     "Tech Wizards Inc.": "https://tech-wizards.applicantstack.com/x/openings",
-    "ECS": "https://ecstech.com/careers/"
+    "ECS": "https://ecstech.com/careers/",
+    "Armis": "https://armis.pinpointhq.com/"
   },
   "known": [
     "ARES Corporation",

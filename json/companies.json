@@ -52,8 +52,8 @@
     "wearemetronome": "Metronome"
   },
   "ats_domains": [
-    "app.bamboohr.com",
     "adp.com",
+    "app.bamboohr.com",
     "applicantpro.com",
     "applicantstack.com",
     "ashbyhq.com",
@@ -91,7 +91,6 @@
     "workday.com"
   ],
   "domain_to_company": {
-    "arcfield.com": "Arcfield",
     "Personified": "personified.tech",
     "SailPoint Technologies": "Sail Point Technologies",
     "afs.com": "Accenture Federal Services",
@@ -101,6 +100,7 @@
     "appdynamics.com": "Appdynamics",
     "applicantstack.com": "Applicantstack",
     "appreview.gem.com": "Anthropic",
+    "arcfield.com": "Arcfield",
     "arcgrioup.org": "Applied R",
     "arcgroup.org": "Analysis and Resilience Center for Systemic Risk",
     "arescorporation.com": "ARES Corporation",
@@ -168,6 +168,7 @@
     "navsea.navy.mil": "NSWC Dahlgren Division",
     "ngc.com": "Northrop Grumman",
     "nightwing.com": "Nightwing",
+    "nm.com": "Northwestern Mutual",
     "northropgrumman.careers": "Northrop Grumman",
     "northropgrumman.com": "Northrop Grumman",
     "northwesternmutual.com": "Adrian - Please",
@@ -179,6 +180,7 @@
     "palantir.com": "Palantir",
     "parsons.com": "Parsons",
     "partnerforces.com": "Partnerforces",
+    "peaktechnical.com": "employment",
     "peerspot.com": "Peerspot",
     "peraton.com": "Peraton",
     "phase2.io": "Phase2 Technology",

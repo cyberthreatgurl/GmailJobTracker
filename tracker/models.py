@@ -102,6 +102,7 @@ class Message(models.Model):
     # Gmail identifiers
     msg_id = models.CharField(max_length=255, unique=True)  # NEW: unique Gmail messageId
     thread_id = models.CharField(max_length=255, db_index=True)  # keep, but index for grouping
+    body_hash = models.CharField(max_length=64, db_index=True, null=True, blank=True)  # SHA256 hash for deduplication
 
     # Manual labeling for ML
     ml_label = models.CharField(max_length=50, null=True, blank=True)  # NEW

@@ -49,8 +49,8 @@ fi
 
 echo "✅ Initialization complete!"
 echo ""
-echo "🌐 Application will start on http://0.0.0.0:8000"
-echo "🔐 Admin panel: http://localhost:8000/admin"
+echo "🌐 Application will start on http://0.0.0.0:8001"
+echo "🔐 Admin panel: http://localhost:8001/admin"
 echo ""
 
 # Execute the main command

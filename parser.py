@@ -52,7 +52,7 @@ from tracker.models import (
 )
 
 # Import refactored components
-from parser_refactored import CompanyValidator, RuleClassifier, DomainMapper
+from parser_refactored import CompanyValidator, RuleClassifier, DomainMapper, CompanyResolver
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dashboard.settings")
 django.setup()
@@ -71,6 +71,14 @@ COMPANIES_PATH = Path(__file__).parent / "json" / "companies.json"
 _company_validator = CompanyValidator(PATTERNS)
 _rule_classifier = RuleClassifier(PATTERNS)
 _domain_mapper = DomainMapper(COMPANIES_PATH)
+_company_resolver = CompanyResolver(
+    company_data=_domain_mapper.company_data,
+    domain_mapper=_domain_mapper,
+    company_validator=_company_validator,
+    known_companies=_domain_mapper.known_companies,
+    job_board_domains=_domain_mapper.job_board_domains,
+    ats_domains=_domain_mapper.ats_domains,
+)
 
 # --- Load personal_domains.json ---
 PERSONAL_DOMAINS_PATH = Path(__file__).parent / "json" / "personal_domains.json"

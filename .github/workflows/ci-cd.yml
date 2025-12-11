@@ -159,58 +159,47 @@ jobs:
       #     only-severities: critical,high
       #   continue-on-error: true
 
-  # Job 4: Deploy to Local Docker Server
+  # Job 4: Deploy to Local Docker Server (requires self-hosted runner)
   deploy:
     name: Deploy to docker-server.shaw.local
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: build
     if: github.event_name == 'release' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup SSH
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.DOCKER_SERVER_SSH_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H docker-server.shaw.local >> ~/.ssh/known_hosts 2>/dev/null || true
-
       - name: Deploy to Docker Server
         env:
-          DOCKER_SERVER_HOST: docker-server.shaw.local
-          DOCKER_SERVER_USER: ${{ secrets.DOCKER_SERVER_USER || 'kelly' }}
-          DEPLOY_PATH: ${{ secrets.DOCKER_SERVER_DEPLOY_PATH || '/home/kelly/apps/GmailJobTracker' }}
+          DEPLOY_PATH: /home/kelly/apps/GmailJobTracker
         run: |
-          ssh -o StrictHostKeyChecking=no ${DOCKER_SERVER_USER}@${DOCKER_SERVER_HOST} << 'EOF'
-            set -e
-            cd ${DEPLOY_PATH}
-            
-            # Login to GitHub Container Registry
-            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-            
-            # Pull latest image
-            docker-compose pull
-            
-            # Stop and remove old containers
-            docker-compose down
-            
-            # Start new containers
-            docker-compose up -d
-            
-            # Cleanup old images
-            docker image prune -f
-            
-            echo "✅ Deployment complete!"
-          EOF
+          set -e
+          cd ${DEPLOY_PATH}
+          
+          # Login to GitHub Container Registry
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          
+          # Pull latest image
+          docker-compose pull
+          
+          # Stop and remove old containers
+          docker-compose down
+          
+          # Start new containers
+          docker-compose up -d
+          
+          # Cleanup old images
+          docker image prune -f
+          
+          echo "✅ Deployment complete!"
 
       - name: Verify Deployment
         env:
-          DOCKER_SERVER_HOST: docker-server.shaw.local
-          DOCKER_SERVER_USER: ${{ secrets.DOCKER_SERVER_USER || 'kelly' }}
-          DEPLOY_PATH: ${{ secrets.DOCKER_SERVER_DEPLOY_PATH || '/home/kelly/apps/GmailJobTracker' }}
+          DEPLOY_PATH: /home/kelly/apps/GmailJobTracker
         run: |
-          ssh ${DOCKER_SERVER_USER}@${DOCKER_SERVER_HOST} "cd ${DEPLOY_PATH} && docker-compose ps"
+          cd ${DEPLOY_PATH}
+          docker-compose ps
+          docker-compose logs --tail=20
 
       - name: Create deployment artifact (backup)
         run: |

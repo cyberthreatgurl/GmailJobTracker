@@ -180,13 +180,13 @@ jobs:
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
           
           # Pull latest image
-          docker-compose pull
+          docker compose pull
           
           # Stop and remove old containers
-          docker-compose down
+          docker compose down
           
           # Start new containers
-          docker-compose up -d
+          docker compose up -d
           
           # Cleanup old images
           docker image prune -f
@@ -198,8 +198,8 @@ jobs:
           DEPLOY_PATH: /home/kelly/apps/GmailJobTracker
         run: |
           cd ${DEPLOY_PATH}
-          docker-compose ps
-          docker-compose logs --tail=20
+          docker compose ps
+          docker compose logs --tail=20
 
       - name: Create deployment artifact (backup)
         run: |

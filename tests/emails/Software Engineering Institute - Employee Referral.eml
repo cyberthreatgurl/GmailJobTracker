@@ -1,0 +1,72 @@
+Delivered-To: kaver68@gmail.com
+Received: by 2002:a05:7108:3d85:b0:402:9177:9d1c with SMTP id hh5csp1103608gdb;
+        Wed, 26 Feb 2025 11:26:02 -0800 (PST)
+X-Google-Smtp-Source: AGHT+IGjLpKsZcM3FaW4F1T0zNwkfeSQL2nkQeOPel5iIO1QBdLXPk9NNC3Ik3uMwQBu6fhO6bV5
+X-Received: by 2002:a05:620a:f02:b0:7c0:9f12:2b87 with SMTP id af79cd13be357-7c23c049b43mr1113569785a.57.1740597962050;
+        Wed, 26 Feb 2025 11:26:02 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1740597962; cv=none;
+        d=google.com; s=arc-20240605;
+        b=MBfaZX2eNl7cTVfU3HxMopzuMai/k/K2DXtLrCelg39pNuCwaIdOezrjSLa9U1qf5V
+         OB83eYEA5SnLKsNiQJsoHLXGQZ9spYo5Z3XJBp9R7eMGyylgO18Bg7Hpb0lgGfFq4+JN
+         NxaxsnVnN0i8AMG56lcViK/Tu5BPih+7HDeBgGQCPbfuHnQaNtkRCDXU9TvQCc/Ui8bA
+         oLgWvJf2G6cZnzH04e9invqQQeGG8VWsNRb7IZj8lpf2WkTVplZpSbtTtuyZuAwz78Dx
+         FYHI2SZMm4+aKSZH0wkx5LJH+sT/6iEPrFFGhk354dYnzmX5qWn8PuBbDUsrp5DxWihw
+         tRSQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=precedence:auto-submitted:mime-version:subject:message-id:to:from
+         :date:dkim-signature:dkim-filter;
+        bh=VORqXi6B+zk0SaG6Yy2MTgiQSBm06lqXSndjrpkueDY=;
+        fh=G/VLhrQnXiN6LciSgCgIU9VM0fr+1O2AyqFGWpHCjzw=;
+        b=WmcLsMXUOb4M0FAqFhuSAxBzstMwp9FUyGn5r3s2X72XrTF8+HYQPN/e4C93bRKs8e
+         XbnMTP3/ANzqUWeyArZ8GxfJ5S0QwQbn8nbZysw64Pci21TBZiz5amAqT3Ni5d0PuiJ+
+         0fXN+SZlbBxE2AZ2rpEI0XcsRzxNKpllsF6844/4V4r4Vo9A/Z9UIbot7Jj9Km210DIR
+         BSLgp0hDZN4WpQ5WnoYciuSZE8kFT1hyvTHQSPteuN66M0lY8hD+dFt2RU2KIJ8xuJEe
+         1BaaNOrsEaAkuZc8aKX7oQai+wr6+xy9r6hl1asxNPYKNHSOJZ7lBPnwUU28vN6hrwne
+         YAjA==;
+        dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass (test mode) header.i=@sei.cmu.edu header.s=t52kn2igOmwp header.b=h161Ol9T;
+       spf=pass (google.com: domain of recruiting-team@sei.cmu.edu designates 147.72.252.17 as permitted sender) smtp.mailfrom=recruiting-team@sei.cmu.edu;
+       dmarc=pass (p=NONE sp=NONE dis=NONE) header.from=sei.cmu.edu
+Return-Path: <recruiting-team@sei.cmu.edu>
+Received: from veto.sei.cmu.edu (veto.sei.cmu.edu. [147.72.252.17])
+        by mx.google.com with ESMTPS id af79cd13be357-7c23c2c511dsi401801785a.209.2025.02.26.11.26.01
+        for <kaver68@gmail.com>
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 26 Feb 2025 11:26:02 -0800 (PST)
+Received-SPF: pass (google.com: domain of recruiting-team@sei.cmu.edu designates 147.72.252.17 as permitted sender) client-ip=147.72.252.17;
+Authentication-Results: mx.google.com;
+       dkim=pass (test mode) header.i=@sei.cmu.edu header.s=t52kn2igOmwp header.b=h161Ol9T;
+       spf=pass (google.com: domain of recruiting-team@sei.cmu.edu designates 147.72.252.17 as permitted sender) smtp.mailfrom=recruiting-team@sei.cmu.edu;
+       dmarc=pass (p=NONE sp=NONE dis=NONE) header.from=sei.cmu.edu
+Received: from delp.sei.cmu.edu (delp.sei.cmu.edu [10.64.21.31])
+	by veto.sei.cmu.edu (8.14.7/8.14.7) with ESMTP id 51QJQ1Mh004790
+	for <kaver68@gmail.com>; Wed, 26 Feb 2025 14:26:01 -0500
+DKIM-Filter: OpenDKIM Filter v2.11.0 veto.sei.cmu.edu 51QJQ1Mh004790
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=sei.cmu.edu;
+	s=t52kn2igOmwp; t=1740597961;
+	bh=VORqXi6B+zk0SaG6Yy2MTgiQSBm06lqXSndjrpkueDY=;
+	h=Date:From:To:Subject:From;
+	b=h161Ol9TrMWjt2XWf2MBdKCW1fdsby/JUuqmXDu3Lpp78BQa2t2Mht+iVQ34ahz9n
+	 b79W5DdMGvVZKG8U6s2ymQAancXycAZh1CHnCirOm/pdnhdzNeAiCkwX2mAO5U/sc1
+	 iPpbiPRVXPqHjOOb4PMN5EXlHQu/k15bu/IshsDI=
+Received: from sweetbriar.sei.cmu.edu (sweetbriar.sei.cmu.edu [10.64.29.38])
+	by delp.sei.cmu.edu (8.14.7/8.14.7) with ESMTP id 51QJQ07v014714
+	for <kaver68@gmail.com>; Wed, 26 Feb 2025 14:26:00 -0500
+Date: Wed, 26 Feb 2025 14:26:00 -0500 (EST)
+From: SEI Talent Acquisition Team <recruiting-team@sei.cmu.edu>
+To: kaver68@gmail.com
+Message-ID: <110669833.1161.1740597960194@sweetbriar.sei.cmu.edu>
+Subject: Software Engineering Institute - Employee Referral
+MIME-Version: 1.0
+Content-Type: multipart/alternative; 
+	boundary="----=_Part_1152_677680943.1740597911017"
+Auto-Submitted: auto-generated
+Precedence: bulk
+
+------=_Part_1152_677680943.1740597911017
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: 7bit
+
+Dear Adrian-Kelly,<br/>Someone from the <a href="https://www.sei.cmu.edu">Software Engineering Institute</a> has referred you for consideration for an open position. Thank you for your interest in our organization. A Talent Acquisition representative will be in touch in the next few days. Please reply to this email with any questions in the meantime. <br/><br/><br/>Best,<br/><br/>The SEI Talent Acquisition Team
+------=_Part_1152_677680943.1740597911017--

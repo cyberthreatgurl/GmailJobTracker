@@ -1,4 +1,52 @@
 {
+  "special_cases": {
+    "indeed_application_subject": [
+      "\\bIndeed\\s+Application:\\b",
+      "^\\s*Indeed\\s+Application:\\s*"
+    ],
+    "assessment_complete": [
+      "\\bassessments?\\s+complete\\b",
+      "\\bassessment\\s+(?:completion\\s+)?status\\b"
+    ],
+    "incomplete_application_reminder": [
+      "\\bstarted\\sapplying\\b.*\\bdidn'?t\\sfinish\\b",
+      "\\bdon'?t\\sforget\\sto\\sfinish\\b.*\\bapplication\\b",
+      "\\bpick\\sup\\swhere\\syou\\sleft\\soff\\b"
+    ]
+  },
+  "early_detection": {
+    "scheduling_language": [
+      "(?:please\\s+)?(?:let\\s+me\\s+know\\s+when\\s+you(?:\\s+would|(?:'re|\\s+are))?\\s+available)",
+      "(?:please\\s+)?(?:provide|share|send)(?:\\s+me)?(?:\\s+with)?\\s+your\\s+availability",
+      "available\\s+for\\s+(?:a\\s+)?(?:call|phone\\s+call|conversation|interview)",
+      "would\\s+like\\s+to\\s+discuss\\s+(?:the\\s+position|this\\s+role|the\\s+opportunity)",
+      "schedule\\s+(?:a\\s+)?(?:call|time|conversation|interview)",
+      "would\\s+you\\s+be\\s+available"
+    ],
+    "referral_language": [
+      "\\b(has\\s+referred\\s+you|referred\\s+you\\s+for|employee\\s+referral|internal\\s+referral|someone\\s+(?:from|at|in)\\s+\\w+.*\\s+(?:has\\s+)?referred\\s+you)\\b",
+      "\\b(referred\\s+to\\s+you\\s+by|referred\\s+by|referral\\s+from)\\b"
+    ],
+    "rejection_override": [
+      "\\b(?:move|moved|moving)\\s+forward\\s+with\\s+(?:other|another|an?\\s+alternative)\\s+candidate",
+      "\\b(?:decided|chosen|opted)\\s+not\\s+to\\s+(?:move\\s+forward|proceed)",
+      "\\b(?:unable|not\\s+able)\\s+to\\s+(?:move\\s+forward|proceed)",
+      "\\bother\\s+(?:candidates|applicants)\\b",
+      "\\bposition\\s+(?:has\\s+been\\s+)?(?:closed|filled)\\b"
+    ],
+    "application_confirmation": [
+      "\\b(we\\s+have\\s+received\\s+your\\s+application|we['\u2019]?ve\\s+received\\s+your\\s+application|thanks?\\s+(?:you\\s+)?for\\s+applying|application\\s+received|your\\s+application\\s+has\\s+been\\s+received|your\\s+application\\s+has\\s+been\\s+submitted|your\\s+application\\s+was\\s+sent)\\b"
+    ]
+  },
+  "validation_rules": {
+    "head_hunter_contact_patterns": [
+      "[\\w.+-]+@[\\w.-]+\\.[A-Za-z]{2,}",
+      "\\+?\\d{1,2}[-.\\s]?\\(?\\d{3}\\)?[-.\\s]?\\d{3}[-.\\s]?\\d{4}",
+      "linkedin\\.com/(?:in|pub)/[A-Za-z0-9_\\-]+"
+    ],
+    "head_hunter_signature_pattern": "(?:Regards|Best regards|Sincerely|Best|Thanks|Thank you)[\\s,]*[\\r\\n]+[A-Z][a-z]+",
+    "referral_explicit_language": "\\b(referred|referral|referred by|referrer)\\b"
+  },
   "message_labels": {
     "interview": [
       "\\bschedule.*interview\\b",
@@ -96,8 +144,8 @@
       "\\bdecided\\snot\\sto\\smove\\sforward\\b",
       "\\bhave\\sdecided\\snot\\sto\\smove\\sforward\\b",
       "\\b(chosen|opted)\\snot\\sto\\s(move\\sforward|proceed)\\b",
-      "\\bproceed(?:ing)?\\swith\\s(?:other|another)\\scandidate(?:s)?\\b",
-      "\\bmove\\sforward\\swith\\s(?:other|another)\\scandidate(?:s)?\\b",
+      "\\bproceed(?:ing)?\\swith\\s(?:other|another|an?\\salternative)\\scandidate(?:s)?\\b",
+      "\\bmove\\sforward\\swith\\s(?:other|another|an?\\salternative)\\scandidate(?:s)?\\b",
       "\\bposition\\s(?:has\\sbeen\\s)?filled\\b",
       "\\bno\\slonger\\s(?:considering|moving\\sforward)\\bs",
       "\\bwe\\s(?:are\\s)?pursuing\\s(?:other|another)\\scandidate(?:s)?\\b",
@@ -158,6 +206,7 @@
       "None"
     ],
     "other": [
+      "\\bIndeed\\s+Application:\\b",
       "\\bthank\\syou\\sfor\\sscheduling\\b",
       "\\bassessments?\\s+complete\\b",
       "\\bassessment\\s+(?:completion\\s+)?status\\b",

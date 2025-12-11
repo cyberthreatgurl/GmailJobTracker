@@ -1,0 +1,356 @@
+Delivered-To: kaver68@gmail.com
+Received: by 2002:a05:6a06:9414:20b0:761:e12b:7030 with SMTP id f20-n2csp291082pit;
+        Thu, 11 Dec 2025 09:23:37 -0800 (PST)
+X-Google-Smtp-Source: AGHT+IHlydux9pgoUt1fZvn4OfudcRDtLwxxF3RJW2bYSUVE8xc0yKfqeo8KfFWSQZ0kBWbiXCRY
+X-Received: by 2002:a05:7300:f60b:b0:2a4:3593:6470 with SMTP id 5a478bee46e88-2ac055777a2mr7163343eec.32.1765473817185;
+        Thu, 11 Dec 2025 09:23:37 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1765473817; cv=none;
+        d=google.com; s=arc-20240605;
+        b=ThvkH+ZEcQdaRuMtf6/eb1BEw1fp+wV3rIyfFI+4qzBW+hX5QeKr1rkcLZnBWlio2Z
+         Y6QUFqH49xCR5yhn8adG/RPn9LQBRqyAlOW2KOXLZmdNj6YP74cXpl1WLS+rFTBnKlDy
+         SotFaYVBTrX+VqtHdJVdCFe9iDU8VmwDUyrC7wX+nAh7ATGyI2+EU6ZZ1ANKwPFis4v4
+         p9wRAXNgkmC0N5fOTka+o/wdw3ciWK9FsUVGPIxuHOZaK0LQxROvsE9WDGOzxAuvu5dK
+         jpd9soSe1IQhiElKulD8kc2uSchq8NcIvmUCjXF1socjxgVswLl5GIn3b6B7gamABCck
+         Elog==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=list-unsubscribe:feedback-id:list-unsubscribe-post:mime-version
+         :subject:message-id:to:reply-to:from:date:dkim-signature;
+        bh=SlGOW+xkLCuFx/BjzDzgNyeGnLGIKYBoC97UJLS/uK0=;
+        fh=G/VLhrQnXiN6LciSgCgIU9VM0fr+1O2AyqFGWpHCjzw=;
+        b=dlspAPTu18PsXlg3qrw+F9T+Qz/Hvi0c3b2o1/50PyJXSHxOavSXAOSQ+kHlYpS7rx
+         1N1UIjRrTbQevYU/qzN+4tsOZ2rNZxKYGu2a5abWxGd3edVLurzoDJ1WYlSOegEIqhKF
+         DXbIvGzFhV3CWxgtcxINzu7t2htb9QkJeff6NxZ4zPzVFXXsT41pAeVCzXNyp9Qb080m
+         9BU/Scu/WzfOQGQI8p0mjfcNauthhQT+5X5mcysK05YbN7TpS89/NQ8F3+Jmh4hRxOki
+         ZUihJhl8ltHUHdTuT+MroBk+ZcJH8RNkhdWlpNliTwxbS4QTHnyPjLm7TjYSPqKVH0AO
+         zwvQ==;
+        dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@aig.com header.s=AIG21042022 header.b=WLwhQyUL;
+       spf=pass (google.com: domain of prvs=344067f709=hrss_automated_message_do_not_reply@aig.com designates 205.220.170.20 as permitted sender) smtp.mailfrom="prvs=344067f709=hrss_automated_message_do_not_reply@aig.com";
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=aig.com
+Return-Path: <prvs=344067f709=hrss_automated_message_do_not_reply@aig.com>
+Received: from mx0a-0000ed01.pphosted.com (mx0a-0000ed01.pphosted.com. [205.220.170.20])
+        by mx.google.com with ESMTPS id 5a478bee46e88-2ac190d5891si15087018eec.7.2025.12.11.09.23.36
+        for <kaver68@gmail.com>
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Thu, 11 Dec 2025 09:23:37 -0800 (PST)
+Received-SPF: pass (google.com: domain of prvs=344067f709=hrss_automated_message_do_not_reply@aig.com designates 205.220.170.20 as permitted sender) client-ip=205.220.170.20;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@aig.com header.s=AIG21042022 header.b=WLwhQyUL;
+       spf=pass (google.com: domain of prvs=344067f709=hrss_automated_message_do_not_reply@aig.com designates 205.220.170.20 as permitted sender) smtp.mailfrom="prvs=344067f709=hrss_automated_message_do_not_reply@aig.com";
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=aig.com
+Received: from pps.filterd (m0294201.ppops.net [127.0.0.1])
+	by mx0b-0000ed01.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 5BBG3xYE019168
+	for <kaver68@gmail.com>; Thu, 11 Dec 2025 17:23:36 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=aig.com; h=
+	content-type:date:from:list-unsubscribe:list-unsubscribe-post
+	:message-id:mime-version:reply-to:subject:to; s=AIG21042022; bh=
+	SlGOW+xkLCuFx/BjzDzgNyeGnLGIKYBoC97UJLS/uK0=; b=WLwhQyULjdTtYwEn
+	kQPC8K/xP6Swd1vE7PKehmHuFjgE5Z584pSQhxs1Rq1QS5+pRjIQbtzqYLK1Qow3
+	oBmB/eT+lxfb9g2k6TFPoiU0LlAeJ5mHlP3fTQUcHwPlG12t0KSToiDp2WYRGKp9
+	4BiMMvsCqRJXac/9JFd3/db7vRg5VK7FVomagz8geyaOYYEN3onovfJFJk7WRY8B
+	4tiGZtJCVhsxmBx9HeIuTYopGNfKzyB5ZH8MDBYDsorm05VAUSS96dLrO141m96M
+	8YQoVsXmllxvFub4rF7Hwf/hyql6VCftud1otnLYi4XNVMjjeaxAkfAWiSVAtbBX
+	1PoLwA==
+Received: from wd1-az-cust-mail-nat.myworkday.com (wd1-az-cust-mail-nat.myworkday.com [209.177.165.160])
+	by mx0b-0000ed01.pphosted.com (PPS) with ESMTP id 4avckd5sur-1
+	for <kaver68@gmail.com>; Thu, 11 Dec 2025 17:23:36 +0000 (GMT)
+Date: Thu, 11 Dec 2025 09:23:35 -0800 (PST)
+From: HRSS Do_Not_Reply_Automated_Message AIG
+ <HRSS_Automated_Message_Do_Not_Reply@aig.com>
+Reply-To: HRSS_Automated_Message_Do_Not_Reply@aig.com
+To: kaver68@gmail.com
+Message-ID: <1111593058.32787804.1765473815989@wire-prod-id51mhhw.prod-wire.pr501.cust.ash.wd>
+Subject: Thank you for applying to AIG
+MIME-Version: 1.0
+Content-Type: multipart/mixed; 
+	boundary="----=_Part_32787800_1576544226.1765473815989"
+X-Workday-Security: false
+List-Unsubscribe-Post: <https://cust-drogon-unsubscribe.us-west-2.myworkdaymessaging.com/drogon/unsubscribe/aig/drogon-wd1-prod/a2b194bb781910000476d4558ec20013/e53b24ce66999001a81af88b90260000/a2F2ZXI2OEBnbWFpbC5jb20=>
+X-Workday-Static-BP-Address: false
+Feedback-ID: aig:a2b194bb781910000476d4558ec20013:000:workday
+List-Unsubscribe: List-Unsubscribe=One-Click
+X-Workday-System: false
+X-Proofpoint-GUID: GnNgFEUQli9PN9_MfQZyQrbwIg5-R5Nw
+X-Authority-Analysis: v=2.4 cv=Qt9THFyd c=1 sm=1 tr=0 ts=693afe18 cx=c_pps
+ a=S+6xDODmvyomOyOkUiGRXA==:117 a=S+6xDODmvyomOyOkUiGRXA==:17
+ a=wP3pNCr1ah4A:10 a=NQcj25q2HTMA:10 a=sWKEhP36mHoA:10
+ a=VkNPw1HP01LnGYTKEx00:22 a=HNsDJU5oAAAA:8 a=LeGHFUTOAAAA:8 a=PC6CaRLCAAAA:8
+ a=pGLkceISAAAA:8 a=DHRRMAnDkyDGConU3l4A:9 a=8dd2FjoWkj6zfnUL:21
+ a=gKO2Hq4RSVkA:10 a=frz4AuCg-hUA:10 a=_W_S_7VecoQA:10 a=lqcHg5cX4UMA:10
+ a=QEXdDO2ut3YA:10 a=HXjIzolwW10A:10
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjUxMjA2MDAyNiBTYWx0ZWRfX9jYC5w8keXXl
+ tCamxmLJPeIu+UUc4QQ50foujMEp5h9XAEroFZoT2V0HNU2z/dNJ9tzedbMRkOt+7BdSL/IRWQk
+ bdhx+3G8fsb44q8obAH1Odkg7uYFoCNpZknkCW3ifrhU+P9WzBzJAs8T2ZFqePbIr7aiPGBovFl
+ MW0nN1CTccp6tSNiQSL64R3I5AVeX8eTa4PxhRXnypWUEHPJ3FI8KvHcV4PqQWkl7CFvi4jOTGB
+ UeigX0Tqtfmxxa1vMzhxxT4dVRPSJm1doHioLHF5vs9U3rmJRL7ddaM28WpP3fWsX1hI605MLpE
+ wguNaP7cssMFyLGUXt0xBJerA0m1//Pubfn4KwSTvqwY9Rli7QFWOyjikaDTlfuGT0oZFvEIiFj
+ X/g9D4E/nlqmj6oL3mw9Mv0F2QlxkA==
+X-Proofpoint-ORIG-GUID: GnNgFEUQli9PN9_MfQZyQrbwIg5-R5Nw
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1121,Hydra:6.1.9,FMLib:17.12.100.49
+ definitions=2025-12-11_02,2025-12-11_01,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=0
+ bulkscore=0 malwarescore=0 phishscore=0 impostorscore=0 clxscore=1015
+ adultscore=0 priorityscore=1501 lowpriorityscore=0 spamscore=0
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.19.0-2510240000 definitions=main-2512060026
+
+------=_Part_32787800_1576544226.1765473815989
+Content-Type: multipart/related; 
+	boundary="----=_Part_32787801_1580752484.1765473815989"
+
+------=_Part_32787801_1580752484.1765473815989
+content-type: text/html; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+<!doctype html><html xmlns:v=3D"urn:schemas-microsoft-com:vml" xmlns:o=3D"u=
+rn:schemas-microsoft-com:office:office">
+   <head>
+      <meta http-equiv=3D"Content-Type" content=3D"text/html; charset=3DUTF=
+-8">
+      <title></title><style type=3D"text/css">body, table {
+  font-family: Verdana, Arial, sans-serif;
+  font-size: 12px; width:100%;
+}
+div {
+  padding-top:5px;
+  padding-bottom:5px;
+}
+img=20
+{
+  border:0px;
+}</style></head>
+   <body><div><img src=3D"cid:AkYhFAvutV"/></div><div><br/><br><br/></div><=
+div>Thank you for your interest in career opportunities with AIG. Your appl=
+ication is
+      currently under review, and we will be in touch to let you know if yo=
+u have been selected
+      for next step in the process.<br><br>AIG is committed to being an Emp=
+loyer of Choice. You may have received a task to complete
+      and the Company would very much appreciate if you could review and pr=
+ovide the information
+      requested. This request is completely voluntary and the information t=
+hat you provide
+      would not be part of any decision with regards to your application, o=
+r, if hired,
+      your employment, and is kept confidential to only authorized individu=
+als.<br><br>In the meantime, you are able to track your application progres=
+s by logging into your
+      AIG job application account via our Workday <a href=3D"https://aig.wd=
+1.myworkdayjobs.com/aig">Job
+      Portal</a>. Please refer to our <a href=3D"https://sprcdn-assets.spri=
+nklr.com/248/9a22ec0e-f19c-4fba-9cf2-999db8981d00-2126176580/How_to_Manage_=
+Workday_Account_.pdf">Account
+      Management Guide</a> for assistance with your AIG account and/or appl=
+ication.<br><br>We are committed to candidate care. For further information=
+ about AIG career opportunities,
+      please visit www.aig.com/careers. At AIG, world-class opportunities t=
+ranslate into
+      exciting careers.</div><div><br/></div><div>Subject: Adrian Shaw =E2=
+=80=8E- JR2505367 Senior Cyber Threat Intelligence Analyst (CAND2500223678)=
+</div>
+      =09     <div>
+      =09    <!--[if mso | IE]>
+      =09      <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" widt=
+h=3D"600" align=3D"center"
+      style=3D"width:600px;">
+      =09        <tr>
+      =09          <td style=3D"line-height:0px;font-size:0px;mso-line-heig=
+ht-rule:exactly;">
+      =09      <![endif]-->
+      =09    <div style=3D"margin:0 auto;max-width:600px;">
+      =09      <table cellpadding=3D"0" cellspacing=3D"0" style=3D"font-siz=
+e:0px;width:100%;" align=3D"center"
+      border=3D"0">
+      =09        <tbody>
+      =09          <tr>
+      =09            <td style=3D"text-align:center;vertical-align:top;font=
+-size:0px;padding:20px
+      0px;"></td>
+      =09          </tr>
+      =09        </tbody>
+      =09      </table>
+      =09    </div>
+      =09    <!--[if mso | IE]>
+      =09      </td></tr></table>
+      =09      <![endif]-->
+      =09    <!--[if mso | IE]>
+      =09      <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" widt=
+h=3D"600" align=3D"center"
+      style=3D"width:600px;">
+      =09        <tr>
+      =09          <td style=3D"line-height:0px;font-size:0px;mso-line-heig=
+ht-rule:exactly;">
+      =09      <![endif]-->
+      =09    <div style=3D"margin:0 auto;max-width:600px;">
+      =09      <table cellpadding=3D"0" cellspacing=3D"0" style=3D"font-siz=
+e:0px;width:100%;" align=3D"center"
+      border=3D"0">
+      =09        <tbody>
+      =09          <tr>
+      =09            <td style=3D"text-align:center;vertical-align:top;font=
+-size:0px;padding:20px
+      0px;"></td>
+      =09          </tr>
+      =09        </tbody>
+      =09      </table>
+      =09    </div>
+      =09    <!--[if mso | IE]>
+      =09      </td></tr></table>
+      =09      <![endif]-->
+     =20
+      <!--[if mso | IE]>
+=09      <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D"6=
+00" align=3D"center" style=3D"width:600px;">
+=09        <tr>
+=09          <td style=3D"line-height:0px;font-size:0px;mso-line-height-rul=
+e:exactly;">
+=09      <![endif]-->
+      <div xmlns:wd=3D"urn:com.workday/bsvc" style=3D"margin:0 auto;max-wid=
+th:600px;">
+         <table cellpadding=3D"0" cellspacing=3D"0" style=3D"font-size:0px;=
+width:100%;" align=3D"center" border=3D"0">
+            <tbody>
+               <tr>
+                  <td style=3D"text-align:center;vertical-align:top;font-si=
+ze:0px;padding:20px 0px;">
+                     <!--[if mso | IE]>
+=09 <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0"><tr><td style=
+=3D"vertical-align:top;width:600px;">
+=09      <![endif]-->
+                     <div aria-labelledby=3D"mj-column-per-100" class=3D"mj=
+-column-per-100" style=3D"vertical-align:top;display:inline-block;font-size=
+:13px;text-align:left;width:100%;">
+                        <table cellpadding=3D"0" cellspacing=3D"0" width=3D=
+"100%" border=3D"0">
+                           <tbody>
+                              <tr>
+                                 <td style=3D"word-break:break-word;font-si=
+ze:0px;padding-bottom:0px;" align=3D"center">
+                                    <div style=3D"cursor:auto;color:#98a0a6=
+;font-family:Roboto;font-size:12px;font-weight:400;line-height:22px;">This =
+email was intended for kaver68@gmail.com</div>
+                                 </td>
+                              </tr>
+                           </tbody>
+                        </table>
+                     </div>
+                     <!--[if mso | IE]>
+=09      </td></tr></table>
+=09      <![endif]-->
+                  </td>
+               </tr>
+            </tbody>
+         </table>
+      </div>
+      <!--[if mso | IE]>
+=09      </td></tr></table>
+=09      <![endif]-->
+   </body>
+</html>
+------=_Part_32787801_1580752484.1765473815989
+content-type: image/png
+content-transfer-encoding: base64
+content-disposition: inline; filename=AIG-Email-Header-600x116__4_.png
+content-id: <AkYhFAvutV>
+content-description: AIG-Email-Header-600x116 (4).png
+
+iVBORw0KGgoAAAANSUhEUgAAAlgAAAB0CAIAAADW9dvvAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAL
+82lUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0w
+TXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRh
+LyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNS42LWMxNDAgNzkuMTYwNDUxLCAyMDE3LzA1LzA2
+LTAxOjA4OjIxICAgICAgICAiPiA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3Jn
+LzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0i
+IiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RF
+dnQ9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZUV2ZW50IyIgeG1s
+bnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMi
+IHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgeG1sbnM6cGhvdG9z
+aG9wPSJodHRwOi8vbnMuYWRvYmUuY29tL3Bob3Rvc2hvcC8xLjAvIiB4bWxuczp0aWZmPSJodHRw
+Oi8vbnMuYWRvYmUuY29tL3RpZmYvMS4wLyIgeG1sbnM6ZXhpZj0iaHR0cDovL25zLmFkb2JlLmNv
+bS9leGlmLzEuMC8iIHhtbG5zOnhtcD0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wLyIgeG1w
+TU06RG9jdW1lbnRJRD0iYWRvYmU6ZG9jaWQ6cGhvdG9zaG9wOjgxNDhkMTNkLTYzYzgtMDE0MS1h
+YTAzLWNkMjc1Y2FjOGQ3YyIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDoyMjg1MjNmYS1hYjM5
+LTRiMmMtODIzYS1lYWJiYjQ5ODk4MTkiIHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD0iRUZGRkVB
+MDFCMjAwM0U3NEU1QUNDMDk3RkMzOEFCNjkiIGRjOmZvcm1hdD0iaW1hZ2UvcG5nIiBwaG90b3No
+b3A6Q29sb3JNb2RlPSIzIiBwaG90b3Nob3A6SUNDUHJvZmlsZT0iIiB0aWZmOkltYWdlV2lkdGg9
+IjYwMCIgdGlmZjpJbWFnZUxlbmd0aD0iMTE2IiB0aWZmOlBob3RvbWV0cmljSW50ZXJwcmV0YXRp
+b249IjIiIHRpZmY6U2FtcGxlc1BlclBpeGVsPSIzIiB0aWZmOlhSZXNvbHV0aW9uPSI5Ni8xIiB0
+aWZmOllSZXNvbHV0aW9uPSI5Ni8xIiB0aWZmOlJlc29sdXRpb25Vbml0PSIyIiBleGlmOkV4aWZW
+ZXJzaW9uPSIwMjIxIiBleGlmOkNvbG9yU3BhY2U9IjY1NTM1IiBleGlmOlBpeGVsWERpbWVuc2lv
+bj0iNjAwIiBleGlmOlBpeGVsWURpbWVuc2lvbj0iMTE2IiB4bXA6Q3JlYXRlRGF0ZT0iMjAxOS0x
+MC0yM1QxNjo0MzozOSswMTowMCIgeG1wOk1vZGlmeURhdGU9IjIwMTktMTAtMjNUMTY6NDg6NTgr
+MDE6MDAiIHhtcDpNZXRhZGF0YURhdGU9IjIwMTktMTAtMjNUMTY6NDg6NTgrMDE6MDAiPiA8eG1w
+TU06SGlzdG9yeT4gPHJkZjpTZXE+IDxyZGY6bGkgc3RFdnQ6YWN0aW9uPSJzYXZlZCIgc3RFdnQ6
+aW5zdGFuY2VJRD0ieG1wLmlpZDo4YjcyYzZmNy0yN2M5LTRmZDItYjQzNC1kOTg1OWM4ZGNlMzMi
+IHN0RXZ0OndoZW49IjIwMTktMTAtMjNUMTY6NDg6NDkrMDE6MDAiIHN0RXZ0OnNvZnR3YXJlQWdl
+bnQ9IkFkb2JlIFBob3Rvc2hvcCBDQyAoTWFjaW50b3NoKSIgc3RFdnQ6Y2hhbmdlZD0iLyIvPiA8
+cmRmOmxpIHN0RXZ0OmFjdGlvbj0iY29udmVydGVkIiBzdEV2dDpwYXJhbWV0ZXJzPSJmcm9tIGlt
+YWdlL2pwZWcgdG8gYXBwbGljYXRpb24vdm5kLmFkb2JlLnBob3Rvc2hvcCIvPiA8cmRmOmxpIHN0
+RXZ0OmFjdGlvbj0iZGVyaXZlZCIgc3RFdnQ6cGFyYW1ldGVycz0iY29udmVydGVkIGZyb20gaW1h
+Z2UvanBlZyB0byBhcHBsaWNhdGlvbi92bmQuYWRvYmUucGhvdG9zaG9wIi8+IDxyZGY6bGkgc3RF
+dnQ6YWN0aW9uPSJzYXZlZCIgc3RFdnQ6aW5zdGFuY2VJRD0ieG1wLmlpZDoyYTkxZGJlYi1hMjhl
+LTRiOGUtYWM3YS00NTFjNDMxZWYxMmUiIHN0RXZ0OndoZW49IjIwMTktMTAtMjNUMTY6NDg6NDkr
+MDE6MDAiIHN0RXZ0OnNvZnR3YXJlQWdlbnQ9IkFkb2JlIFBob3Rvc2hvcCBDQyAoTWFjaW50b3No
+KSIgc3RFdnQ6Y2hhbmdlZD0iLyIvPiA8cmRmOmxpIHN0RXZ0OmFjdGlvbj0ic2F2ZWQiIHN0RXZ0
+Omluc3RhbmNlSUQ9InhtcC5paWQ6NzVjM2U2ODYtOWM4OS00NGM3LWEzODQtMTI2MjU4MDkwMzAx
+IiBzdEV2dDp3aGVuPSIyMDE5LTEwLTIzVDE2OjQ4OjU4KzAxOjAwIiBzdEV2dDpzb2Z0d2FyZUFn
+ZW50PSJBZG9iZSBQaG90b3Nob3AgQ0MgKE1hY2ludG9zaCkiIHN0RXZ0OmNoYW5nZWQ9Ii8iLz4g
+PHJkZjpsaSBzdEV2dDphY3Rpb249ImNvbnZlcnRlZCIgc3RFdnQ6cGFyYW1ldGVycz0iZnJvbSBh
+cHBsaWNhdGlvbi92bmQuYWRvYmUucGhvdG9zaG9wIHRvIGltYWdlL3BuZyIvPiA8cmRmOmxpIHN0
+RXZ0OmFjdGlvbj0iZGVyaXZlZCIgc3RFdnQ6cGFyYW1ldGVycz0iY29udmVydGVkIGZyb20gYXBw
+bGljYXRpb24vdm5kLmFkb2JlLnBob3Rvc2hvcCB0byBpbWFnZS9wbmciLz4gPHJkZjpsaSBzdEV2
+dDphY3Rpb249InNhdmVkIiBzdEV2dDppbnN0YW5jZUlEPSJ4bXAuaWlkOjIyODUyM2ZhLWFiMzkt
+NGIyYy04MjNhLWVhYmJiNDk4OTgxOSIgc3RFdnQ6d2hlbj0iMjAxOS0xMC0yM1QxNjo0ODo1OCsw
+MTowMCIgc3RFdnQ6c29mdHdhcmVBZ2VudD0iQWRvYmUgUGhvdG9zaG9wIENDIChNYWNpbnRvc2gp
+IiBzdEV2dDpjaGFuZ2VkPSIvIi8+IDwvcmRmOlNlcT4gPC94bXBNTTpIaXN0b3J5PiA8eG1wTU06
+RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDo3NWMzZTY4Ni05Yzg5LTQ0Yzct
+YTM4NC0xMjYyNTgwOTAzMDEiIHN0UmVmOmRvY3VtZW50SUQ9InhtcC5kaWQ6MmE5MWRiZWItYTI4
+ZS00YjhlLWFjN2EtNDUxYzQzMWVmMTJlIiBzdFJlZjpvcmlnaW5hbERvY3VtZW50SUQ9IkVGRkZF
+QTAxQjIwMDNFNzRFNUFDQzA5N0ZDMzhBQjY5Ii8+IDx0aWZmOkJpdHNQZXJTYW1wbGU+IDxyZGY6
+U2VxPiA8cmRmOmxpPjg8L3JkZjpsaT4gPHJkZjpsaT44PC9yZGY6bGk+IDxyZGY6bGk+ODwvcmRm
+OmxpPiA8L3JkZjpTZXE+IDwvdGlmZjpCaXRzUGVyU2FtcGxlPiA8L3JkZjpEZXNjcmlwdGlvbj4g
+PC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PiMi9TUAAAi7SURBVHic
+7d1/WFX1HcDx771cBUV+GGIIWfiDwIGKP0D8DbIEWSSVKaaOdGr4ozZEmW7PbLOnnh7nSJtpU9bQ
+RZku04dFapkulUg0SZ2aOHFU/khEQBEE5e6PQzceA7xenPdcPu/XX9/r/fI9B//g/ZxzzznXoHxS
+FAAAUhntvQMAANgTIQQAiEYIAQCiEUIAgGiEEAAgGiEEAIhGCAEAohFCAIBohBAAIBohBACIRggB
+AKIRQgCAaIQQACAaIQQAiEYIAQCiEUIAgGiEEAAgGiEEAIhGCAEAohFCAIBohBAAIBohBACIRggB
+AKIRQgCAaIQQACAaIQQAiEYIAQCiEUIAgGiEEAAgGiEEAIhGCAEAohFCAIBohBAAIBohBACIRggB
+AKIRQgCAaIQQACAaIQQAiGayy1bN59Ltst3/K0OXefbeBQDAHeOIEAAgmn2OCC3KK6rtuwMt5+Hu
+Yu9dAADYzs4h9Az8jX13oOVa5WleAJCDU6MAANEIIQBANEIIABDNzp8R6oq7m4tr+7aV12oqrjj8
+JTwAACs5TAjjonvNnDw47cXsk6cv3nZy1uuTXdu3VUq99tc9n+wtbGamp3u7yeMGJMT2Dgvt6u5W
+f/3n5fKqzw6c2ZxzeMOWQ5XXau7K/gMA9MkxQmgwGF5aFBca7Hf+4pXktE23nf+zn/5Eu6thy7Yj
+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
+QgCAaP8DGLohGA8CEN8AAAAASUVORK5CYII=
+------=_Part_32787801_1580752484.1765473815989--
+
+------=_Part_32787800_1576544226.1765473815989--

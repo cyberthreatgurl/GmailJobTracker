@@ -413,9 +413,9 @@ def label_companies(request):
                 form = CompanyEditForm(request.POST, instance=selected_company)
                 if form.is_valid():
                     # Get cleaned data before saving
-                    career_url_input = form.cleaned_data.get("career_url", "").strip()
-                    domain_input = form.cleaned_data.get("domain", "").strip()
-                    ats_input = form.cleaned_data.get("ats", "").strip()
+                    career_url_input = (form.cleaned_data.get("career_url") or "").strip()
+                    domain_input = (form.cleaned_data.get("domain") or "").strip()
+                    ats_input = (form.cleaned_data.get("ats") or "").strip()
                     company_name = selected_company.name
                     
                     # Save to companies.json
@@ -428,17 +428,24 @@ def label_companies(request):
                                 ) as f:
                                     companies_json_data = json.load(f)
 
-                                # Save career URL to JobSites
+                                # Track if any changes were made
+                                changes_made = False
+                                
+                                # Save career URL to JobSites only if not already present
                                 if career_url_input:
                                     if "JobSites" not in companies_json_data:
                                         companies_json_data["JobSites"] = {}
-                                    companies_json_data["JobSites"][company_name] = career_url_input
+                                    if company_name not in companies_json_data["JobSites"]:
+                                        companies_json_data["JobSites"][company_name] = career_url_input
+                                        changes_made = True
                                 
-                                # Save domain to domain_to_company
+                                # Save domain to domain_to_company only if not already present
                                 if domain_input:
                                     if "domain_to_company" not in companies_json_data:
                                         companies_json_data["domain_to_company"] = {}
-                                    companies_json_data["domain_to_company"][domain_input] = company_name
+                                    if domain_input not in companies_json_data["domain_to_company"]:
+                                        companies_json_data["domain_to_company"][domain_input] = company_name
+                                        changes_made = True
                                 
                                 # Save ATS domain to ats_domains if not already present
                                 if ats_input:
@@ -446,16 +453,19 @@ def label_companies(request):
                                         companies_json_data["ats_domains"] = []
                                     if ats_input not in companies_json_data["ats_domains"]:
                                         companies_json_data["ats_domains"].append(ats_input)
+                                        changes_made = True
 
-                                with open(
-                                    companies_json_path, "w", encoding="utf-8"
-                                ) as f:
-                                    json.dump(
-                                        companies_json_data,
-                                        f,
-                                        indent=2,
-                                        ensure_ascii=False,
-                                    )
+                                # Only write to file if changes were made
+                                if changes_made:
+                                    with open(
+                                        companies_json_path, "w", encoding="utf-8"
+                                    ) as f:
+                                        json.dump(
+                                            companies_json_data,
+                                            f,
+                                            indent=2,
+                                            ensure_ascii=False,
+                                        )
                         except Exception as e:
                             messages.warning(request, f"⚠️ Failed to save to companies.json: {e}")
                     form.save()
@@ -572,8 +582,8 @@ def manage_domains(request):
     from collections import Counter, defaultdict
     
     # Paths to JSON files
-    companies_path = Path(__file__).parent.parent / "json" / "companies.json"
-    personal_domains_path = Path(__file__).parent.parent / "json" / "personal_domains.json"
+    companies_path = Path(__file__).parent.parent.parent / "json" / "companies.json"
+    personal_domains_path = Path(__file__).parent.parent.parent / "json" / "personal_domains.json"
     
     # Load existing classifications
     companies_data = {}
@@ -1044,6 +1054,8 @@ def manage_domains(request):
                     return redirect(f"{request.path}?filter={request.GET.get('filter', 'unlabeled')}")
                 except Exception as e:
                     messages.error(request, f"⚠️ Error saving domain label: {e}")
+                    logger.exception("Error in label_single")
+                    return redirect(f"{request.path}?filter={request.GET.get('filter', 'unlabeled')}")
     
     # Reload JSON data to ensure we have the latest classifications
     # (Important after POST operations that modify the files)
@@ -1155,13 +1167,8 @@ def manage_domains(request):
             return label
         domains_info.sort(key=label_sort_key, reverse=(sort_order == "desc"))
     else:  # sort_by == "domain" (default)
-        # Sort alphabetically with base domains before subdomains
-        def domain_sort_key(d):
-            domain = d["domain"]
-            parts = domain.split('.')
-            # Reverse the parts so "com.example.a" sorts correctly
-            return tuple(reversed(parts)) + (domain,)
-        domains_info.sort(key=domain_sort_key, reverse=(sort_order == "desc"))
+        # Sort alphabetically by full domain name
+        domains_info.sort(key=lambda d: d["domain"].lower(), reverse=(sort_order == "desc"))
     
     # Calculate stats
     all_domains = list(domain_counter.keys())

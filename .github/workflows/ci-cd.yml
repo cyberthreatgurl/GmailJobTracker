@@ -11,6 +11,7 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
+  DOCKER_BUILDKIT: 1
 
 jobs:
   # Job 1: Lint and Code Quality
@@ -136,7 +137,7 @@ jobs:
             type=sha,prefix={{branch}}-
             type=raw,value=latest,enable={{is_default_branch}}
 
-      - name: Build and push Docker image
+      - name: Build and push Docker image (cached)
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -144,7 +145,12 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          no-cache: true
+          build-args: |
+            BUILDKIT_INLINE_CACHE=1
+          cache-from: |
+            type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+            type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:main
+          cache-to: type=inline
           platforms: linux/amd64,linux/arm64
 
       # Docker Scout requires paid entitlement - disabled for now
@@ -191,19 +197,26 @@ jobs:
           
           # Login to GitHub Container Registry
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-          
-          # Pull latest image
+
+          # Use immutable tag for deployment
+          export IMAGE_TAG=main-${GITHUB_SHA}
+          echo "Deploying image tag: ${IMAGE_TAG}"
+
+          # Pull image for the specific commit
           docker compose pull
           
           # Stop and remove old containers
           docker compose down
           
-          # Start new containers
+          # Start new containers (immutable tag)
           docker compose up -d
           
           # Cleanup old images
           docker image prune -f
           
+          # Post-deploy checks: show running images and service status
+          docker compose images
+          docker compose ps --all
           echo "✅ Deployment complete!"
 
       - name: Verify Deployment

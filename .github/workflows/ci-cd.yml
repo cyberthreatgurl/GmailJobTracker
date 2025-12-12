@@ -199,11 +199,12 @@ jobs:
           # Login to GitHub Container Registry
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-          # Use immutable tag for deployment
-          export IMAGE_TAG=main-${GITHUB_SHA}
+          # Use branch tag for deployment (main or develop)
+          # The metadata-action creates tags like 'main' and 'sha-SHORTSHA'
+          export IMAGE_TAG=main
           echo "Deploying image tag: ${IMAGE_TAG}"
 
-          # Pull image for the specific commit
+          # Pull image for the current branch
           docker compose pull
           
           # Stop and remove old containers

@@ -82,3 +82,6 @@ backups/
 remind/
 update_copilot/
 
+
+# pip-tools compiled requirements (DO commit these for reproducibility)
+# requirements.txt and requirements-dev.txt are auto-generated from .in files

@@ -24,9 +24,9 @@ services:
       - ./model:/app/model
       # Configuration volumes (json files are included in the image, mount directory to override)
       - ./json:/app/json
-      # Gmail OAuth credentials (authenticate locally first, then copy to server)
-      - ./credentials.json:/app/credentials.json:ro
-      - ./token.pickle:/app/token.pickle
+      # Gmail OAuth credentials via existing directory mounts:
+      # - token.pickle -> model/token.pickle
+      # - credentials.json -> json/credentials.json
     networks:
       - gmailtracker-network
     healthcheck:

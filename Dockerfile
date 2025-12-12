@@ -15,6 +15,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements and install Python dependencies
+# Cache bust: 2025-12-11
 COPY requirements.txt .
 RUN pip install --no-cache-dir --user -r requirements.txt
 

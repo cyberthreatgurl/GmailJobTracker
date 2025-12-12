@@ -225,6 +225,18 @@ def insert_email_text(message_id, subject, body):
     conn = get_db_connection()
 
     c = conn.cursor()
+    
+    # Ensure table exists (in case init_db wasn't run)
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS email_text (
+            message_id TEXT PRIMARY KEY,
+            subject TEXT,
+            body TEXT
+        )
+        """
+    )
+    
     c.execute(
         """
         INSERT OR REPLACE INTO email_text (message_id, subject, body)

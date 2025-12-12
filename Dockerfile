@@ -2,9 +2,6 @@
 # Stage 1: Build dependencies
 FROM python:3.11-slim AS builder
 
-# Set PATH to suppress pip warnings
-ENV PATH=/root/.local/bin:$PATH
-
 WORKDIR /app
 
 # Install build dependencies
@@ -17,7 +14,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Copy requirements and install Python dependencies
 # Cache bust: 2025-12-11
 COPY requirements.txt .
-RUN pip install --no-cache-dir --user -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Stage 2: Runtime
 FROM python:3.11-slim
@@ -25,7 +22,6 @@ FROM python:3.11-slim
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    PATH=/root/.local/bin:$PATH \
     DJANGO_SETTINGS_MODULE=dashboard.settings
 
 WORKDIR /app
@@ -36,7 +32,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy Python dependencies from builder
-COPY --from=builder /root/.local /root/.local
+COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
 
 # Copy application code
 COPY . .

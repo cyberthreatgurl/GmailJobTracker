@@ -83,6 +83,11 @@
                     All ({{ stats.total }})
                 </a>
             </div>
+                        {% if debug_counts %}
+                        <div class="mt-2">
+                            <small class="text-muted">Debug: Job Board badge={{ debug_counts.job_board_badge_count }}, DB distinct={{ debug_counts.job_board_db_count }}</small>
+                        </div>
+                        {% endif %}
         </div>
     </div>
 

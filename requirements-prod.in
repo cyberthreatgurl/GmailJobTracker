@@ -1,0 +1,24 @@
+# Production Dependencies for GmailJobTracker
+# Use: pip-compile requirements-prod.in -o requirements.txt
+
+# Core Application Dependencies
+Django==4.2.25
+python-dotenv==1.2.1
+beautifulsoup4==4.14.2
+google-api-python-client==2.184.0
+google-auth-oauthlib==1.2.2
+requests==2.32.5
+
+# Django Extensions
+django-crispy-forms==2.4
+
+# Data Science & ML
+pandas==2.3.3
+numpy==2.3.3
+scikit-learn==1.7.2
+scipy==1.16.2
+spacy==3.8.7
+en_core_web_sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl#sha256=1932429db727d4bff3deed6b34cfc05df17794f4a52eeb26cf8928f7c1a0fb85
+
+# Utilities
+matplotlib==3.10.6

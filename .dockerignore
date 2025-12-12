@@ -35,6 +35,10 @@ json/credentials.json
 json/token.json
 token.pickle
 
+# Email test files (may contain personal information)
+tests/emails/
+*.eml
+
 # Data directories (will be mounted as volumes)
 db/
 logs/

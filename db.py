@@ -279,6 +279,31 @@ def insert_or_update_application(data):
     conn = get_db_connection()
     c = conn.cursor()
 
+    # Ensure table exists (in case init_db wasn't run)
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS applications (
+            thread_id TEXT PRIMARY KEY,
+            company TEXT,
+            predicted_company TEXT,
+            job_title TEXT,
+            job_id TEXT,
+            first_sent TEXT,
+            response_date TEXT,
+            follow_up_dates TEXT,
+            rejection_date TEXT,
+            interview_date TEXT,
+            status TEXT,
+            labels TEXT,
+            subject TEXT,
+            sender TEXT,
+            sender_domain TEXT,
+            company_job_index TEXT,
+            last_updated TEXT
+        )
+        """
+    )
+
     # Add last_updated timestamp
     data["last_updated"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 

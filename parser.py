@@ -1405,11 +1405,18 @@ else:
     PERSONAL_DOMAINS = {'gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'aol.com', 'icloud.com'}
 
 # Compile application patterns for efficient matching
+# Include both message_labels.application AND early_detection.application_confirmation
 APPLICATION_PATTERNS = []
+app_pattern_sources = []
 if "message_labels" in PATTERNS and "application" in PATTERNS["message_labels"]:
+    app_pattern_sources.extend(PATTERNS["message_labels"]["application"])
+if "early_detection" in PATTERNS and "application_confirmation" in PATTERNS["early_detection"]:
+    app_pattern_sources.extend(PATTERNS["early_detection"]["application_confirmation"])
+
+if app_pattern_sources:
     APPLICATION_PATTERNS = [
         re.compile(pattern, re.IGNORECASE)
-        for pattern in PATTERNS["message_labels"]["application"]
+        for pattern in app_pattern_sources
     ]
 # Map from label names used in code to JSON keys
 LABEL_MAP = {

@@ -22,13 +22,8 @@ services:
       - ./db:/app/db
       - ./logs:/app/logs
       - ./model:/app/model
-      - ./json/credentials.json:/app/json/credentials.json:ro
-      - ./json/token.json:/app/json/token.json
-      # Configuration volumes
-      - ./json/patterns.json:/app/json/patterns.json
-      - ./json/companies.json:/app/json/companies.json
-      - ./json/alias_candidates.json:/app/json/alias_candidates.json:ro
-      - ./json/alias_suggestions.json:/app/json/alias_suggestions.json:ro
+      # Configuration volumes (json files are included in the image, mount directory to override)
+      - ./json:/app/json
     networks:
       - gmailtracker-network
     healthcheck:

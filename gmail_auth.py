@@ -56,10 +56,15 @@ def get_gmail_service():
                 return None
             print("No valid token found. Starting authentication flow...")
             flow = InstalledAppFlow.from_client_secrets_file(credentials_path, SCOPES)
-            creds = flow.run_local_server(port=0)
+            # Request offline access to get a refresh token that never expires
+            creds = flow.run_local_server(
+                port=0,
+                access_type='offline',
+                prompt='consent'  # Force consent screen to ensure refresh token is issued
+            )
             with open(token_path, "wb") as token:
                 pickle.dump(creds, token)
-            print("Authentication successful, token saved")
+            print("Authentication successful, token saved with refresh token")
     except Exception as e:
         print(f"Error during credential flow: {e}")
         return None

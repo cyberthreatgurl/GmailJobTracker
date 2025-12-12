@@ -4,17 +4,17 @@ FROM python:3.11-slim AS builder
 
 WORKDIR /app
 
-# Install build dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    gcc \
-    g++ \
-    git \
+# Install build dependencies (single layer, cleaned)
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends gcc g++ git \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements and install Python dependencies
-# Cache bust: 2025-12-11
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY requirements.txt ./
+# Speed up pip by caching wheels with BuildKit
+# Requires DOCKER_BUILDKIT=1
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install -r requirements.txt
 
 # Stage 2: Runtime
 FROM python:3.11-slim
@@ -26,9 +26,9 @@ ENV PYTHONUNBUFFERED=1 \
 
 WORKDIR /app
 
-# Install runtime dependencies only
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    sqlite3 \
+# Install runtime dependencies only (single layer, cleaned)
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends sqlite3 \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy Python dependencies from builder
@@ -43,7 +43,9 @@ RUN mkdir -p /app/db /app/logs /app/model /app/staticfiles /app/json && \
     chmod -R 755 /app/db /app/logs /app/model /app/staticfiles /app/json
 
 # Download spaCy model
-RUN python -m spacy download en_core_web_sm
+# Cache the model to speed up rebuilds
+RUN --mount=type=cache,target=/root/.cache/pip \
+    python -m spacy download en_core_web_sm
 
 # Collect static files
 RUN python manage.py collectstatic --noinput

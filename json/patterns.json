@@ -168,6 +168,9 @@
     ],
     "noise": [
       "\\bnewsletter\\b",
+      "\\bprofile\\s+submitted\\b",
+      "\\bwe\\s+have\\s+received\\s+(?:the\\s+)?profile\\b",
+      "\\breceived\\s+(?:the\\s+)?profile\\s+you\\s+submitted\\b",
       "\\bprescription\\b",
       "\\bpayment\\b",
       "\\bdigest\\b",

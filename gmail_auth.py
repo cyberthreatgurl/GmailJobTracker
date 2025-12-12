@@ -54,17 +54,29 @@ def get_gmail_service():
             if not os.path.exists(credentials_path):
                 print(f"Error: {credentials_path} not found. Please provide OAuth credentials.")
                 return None
-            print("No valid token found. Starting authentication flow...")
+            print("\n" + "="*70)
+            print("GMAIL AUTHENTICATION REQUIRED")
+            print("="*70)
+            print("Starting OAuth flow. A browser window should open automatically.")
+            print("If the browser doesn't open, copy the URL from below.")
+            print("="*70 + "\n")
+            
             flow = InstalledAppFlow.from_client_secrets_file(credentials_path, SCOPES)
             # Request offline access to get a refresh token that never expires
+            # open_browser=False to avoid issues in VS Code/SSH terminals
             creds = flow.run_local_server(
                 port=0,
                 access_type='offline',
-                prompt='consent'  # Force consent screen to ensure refresh token is issued
+                prompt='consent',  # Force consent screen to ensure refresh token is issued
+                open_browser=False  # Print URL instead of trying to open browser
             )
+            
             with open(token_path, "wb") as token:
                 pickle.dump(creds, token)
-            print("Authentication successful, token saved with refresh token")
+            print("\n" + "="*70)
+            print("✅ Authentication successful! Token saved with refresh token.")
+            print(f"Token location: {os.path.abspath(token_path)}")
+            print("="*70)
     except Exception as e:
         print(f"Error during credential flow: {e}")
         return None

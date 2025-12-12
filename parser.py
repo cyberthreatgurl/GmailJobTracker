@@ -589,7 +589,7 @@ class RuleClassifier:
                         print(f"[DEBUG rule_label] Pattern MATCHED for '{label}': {rx.pattern[:80]}")
                         print(f"  Matched text: '{match.group()}'")
                     
-                    # Check exclude patterns
+                    # Check exclude patterns from patterns.json
                     excludes = self._msg_label_excludes.get(label, [])
                     if DEBUG and label == "noise" and excludes:
                         print(f"[DEBUG rule_label] Checking {len(excludes)} exclusion patterns for noise...")
@@ -1505,12 +1505,9 @@ def predict_with_fallback(
         except Exception:
             is_ats_or_company = False
 
-        ats_markers = ["workday", "myworkday", "taleo", "icims", "indeed", "list-unsubscribe", "one-click", "reply-to"]
-        has_ats_marker = any(m in body_lower for m in ats_markers)
-
-        if (is_ats_or_company or has_ats_marker) and is_application_related(subject, body):
+        if is_ats_or_company and is_application_related(subject, body):
             if DEBUG:
-                print("[DEBUG predict_with_fallback] OVERRIDING ML -> job_application because ATS/company cues + application patterns present (rl was None)")
+                print("[DEBUG predict_with_fallback] OVERRIDING ML -> job_application due to ATS/company domain + application patterns (rl was None)")
             return {"label": "job_application", "confidence": 1.0, "fallback": "rules_override", "ml_label": ml.get("label") if ml else None}
 
     # Targeted override: If rules detect a job_application and sender/domain or
@@ -1525,12 +1522,9 @@ def predict_with_fallback(
         except Exception:
             is_ats_or_company = False
 
-        ats_markers = ["workday", "myworkday", "taleo", "icims", "indeed", "list-unsubscribe", "one-click", "reply-to"]
-        has_ats_marker = any(m in body_lower for m in ats_markers)
-
-        if is_ats_or_company or has_ats_marker:
+        if is_ats_or_company:
             if DEBUG:
-                print("[DEBUG predict_with_fallback] OVERRIDING ML for job_application due to ATS/company cues")
+                print("[DEBUG predict_with_fallback] OVERRIDING ML for job_application due to ATS/company domain")
             return {"label": "job_application", "confidence": 1.0, "fallback": "rules_override", "ml_label": ml.get("label") if ml else None}
 
     # Targeted rule: If rules detected a rejection or an interview-invite
@@ -1547,12 +1541,9 @@ def predict_with_fallback(
         except Exception:
             is_ats_or_company = False
 
-        ats_markers = ["workday", "myworkday", "taleo", "icims", "indeed", "list-unsubscribe", "one-click", "reply-to", "talent.icims"]
-        has_ats_marker = any(m in body_lower for m in ats_markers)
-
-        if (is_ats_or_company or has_ats_marker) and is_application_related(subject, body):
+        if is_ats_or_company and is_application_related(subject, body):
             if DEBUG:
-                print(f"[DEBUG predict_with_fallback] OVERRIDING ML with rule {rl} because ATS cues + application patterns present")
+                print(f"[DEBUG predict_with_fallback] OVERRIDING ML with rule {rl} due to ATS/company domain + application patterns")
             return {"label": rl, "confidence": 1.0, "fallback": "rules_override", "ml_label": ml.get("label") if ml else None}
     
     # Allow 'other' to override when ML is trying to force job_application for reminder nudges
@@ -1609,8 +1600,7 @@ def is_application_related(subject, body):
     """
     if not APPLICATION_PATTERNS:
         return False
-    
-    text = f"{subject} {body}".lower()
+    text = f"{subject or ''} {body or ''}".lower()
     return any(pattern.search(text) for pattern in APPLICATION_PATTERNS)
 
 
@@ -2861,6 +2851,9 @@ def ingest_message(service, msg_id):
             if DEBUG:
                 print(f"[RE-INGEST] Downgrading interview_invite -> other (offer-related: {subject})")
             result["label"] = "other"
+
+        # Classification adjustments should be driven by patterns.json, not hard-coded here.
+        # We intentionally avoid duplicating application-confirmation logic in code.
     
     # Upgrade: Calendar meeting invites with meeting details should be interview_invite
     # if they're from a company and have meeting/interview/call language
@@ -2999,8 +2992,10 @@ def ingest_message(service, msg_id):
             if DEBUG:
                 print(f"Headhunter domain detected: {sender_domain} → HeadHunter")
 
-        # 1. Domain mapping (if not ATS and not headhunter) with subdomain support
-        if not company and sender_domain and not is_ats:
+        # 1. Domain mapping (applies to all non-headhunter domains, including ATS)
+        #    Some ATS send confirmations from vendor domains; we still want
+        #    to resolve to the hiring company's domain mapping when available.
+        if not company and sender_domain:
             mapped = _map_company_by_domain(sender_domain)
             if mapped:
                 company = mapped

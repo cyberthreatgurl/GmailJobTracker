@@ -290,7 +290,13 @@
         "^X-Auto-Response-Suppress:\\s*All\\b",
         "^Precedence:\\s*(?:bulk|list|junk)\\b",
         "^Return-Path:\\s*<?no-?reply@",
-        "^Reply-To:\\s*<?no-?reply@"
+        "^Reply-To:\\s*<?no-?reply@",
+        "^X-Workday-Notification:\\s*\\w+",
+        "^X-ICIMS-Notification:\\s*\\w+",
+        "^X-AutoReply:\\s*Yes\\b",
+        "^Auto-Reply:\\s*Yes\\b",
+        "^X-Loop:\\s*auto\\b",
+        "^X-Notification-Type:\\s*(?:Submission|Application)\\b"
       ],
       "head_hunter": [
         "\\bnewsletter\\b",
@@ -325,7 +331,13 @@
         "^X-Auto-Response-Suppress:\\s*All\\b",
         "^Precedence:\\s*(?:bulk|list|junk)\\b",
         "^Return-Path:\\s*<?no-?reply@",
-        "^Reply-To:\\s*<?no-?reply@"
+        "^Reply-To:\\s*<?no-?reply@",
+        "^X-Workday-Notification:\\s*\\w+",
+        "^X-ICIMS-Notification:\\s*\\w+",
+        "^X-AutoReply:\\s*Yes\\b",
+        "^Auto-Reply:\\s*Yes\\b",
+        "^X-Loop:\\s*auto\\b",
+        "^X-Notification-Type:\\s*(?:Submission|Application)\\b"
       ],
       "referral": [
         "\\bnewsletter\\b",
@@ -376,7 +388,13 @@
         "^X-Auto-Response-Suppress:\\s*All\\b",
         "^Precedence:\\s*(?:bulk|list|junk)\\b",
         "^Return-Path:\\s*<?no-?reply@",
-        "^Reply-To:\\s*<?no-?reply@"
+        "^Reply-To:\\s*<?no-?reply@",
+        "^X-Workday-Notification:\\s*\\w+",
+        "^X-ICIMS-Notification:\\s*\\w+",
+        "^X-AutoReply:\\s*Yes\\b",
+        "^Auto-Reply:\\s*Yes\\b",
+        "^X-Loop:\\s*auto\\b",
+        "^X-Notification-Type:\\s*(?:Submission|Application)\\b"
       ]
     },
   "invalid_company_prefixes": [

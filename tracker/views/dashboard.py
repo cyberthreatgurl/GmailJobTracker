@@ -11,12 +11,11 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from django.contrib.auth.decorators import login_required
 from django.db import models
-from django.db.models import Q, Count, Case, When, Value, F, ExpressionWrapper, IntegerField, CharField, Exists, OuterRef
-from django.db.models.functions import Lower, TruncDate, Coalesce
+from django.db.models import Q, Count
+from django.db.models.functions import Lower, TruncDate
 from django.shortcuts import render
 from django.utils.timezone import now
 from tracker.models import Company, Message, ThreadTracking, IngestionStats, UnresolvedCompany
-from tracker.services import StatsService, MessageService
 from tracker.views.helpers import extract_body_content, build_sidebar_context
 
 
@@ -66,6 +65,8 @@ def dashboard(request):
                 ]
     except Exception:
         headhunter_domains = []
+
+    # First-time flag will be added to ctx near render
 
     # ✅ Recent messages with company preloaded
     messages = Message.objects.select_related("company").order_by("-timestamp")[:100]
@@ -179,9 +180,7 @@ def dashboard(request):
         # Accept #RRGGBB, #RGB, or valid CSS color names
         if re.match(r"^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$", color):
             return True
-        # Accept common color names (basic validation)
         css_colors = {
-            "red",
             "blue",
             "green",
             "yellow",
@@ -721,6 +720,8 @@ def dashboard(request):
         "selected_company": selected_company,
     }
     # Ensure single source of truth for sidebar cards like Applications This Week
+    # First-time user flag: show onboarding modal if no messages exist
+    ctx["is_first_time"] = (Message.objects.count() == 0)
     ctx.update(build_sidebar_context())
     return render(request, "tracker/dashboard.html", ctx)
 
@@ -772,15 +773,15 @@ def company_threads(request):
 @login_required
 def metrics(request):
     """Display model metrics, training audit, and ingestion stats visualizations."""
-    metrics = {}
+    model_metrics = {}
     training_output = None
     metrics_path = Path("model/model_info.json")
     if metrics_path.exists():
         try:
             with open(metrics_path, "r", encoding="utf-8") as f:
-                metrics = json.load(f)
+                model_metrics = json.load(f)
         except Exception:
-            metrics = {}
+            model_metrics = {}
     # Optionally, show last training output
     output_path = Path("model/model_audit.json")
     if output_path.exists():
@@ -836,12 +837,12 @@ def metrics(request):
         "unknown",
     }
     label_breakdown = None
-    if "labels" in metrics and isinstance(metrics["labels"], list):
+    if isinstance(model_metrics, dict) and isinstance(model_metrics.get("labels"), list):
         real_labels = [
-            label for label in metrics["labels"] if label.lower() in valid_labels
+            label for label in model_metrics["labels"] if label.lower() in valid_labels
         ]
         extra_labels = [
-            label for label in metrics["labels"] if label.lower() not in valid_labels
+            label for label in model_metrics["labels"] if label.lower() not in valid_labels
         ]
         label_breakdown = {
             "real_count": len(real_labels),
@@ -851,7 +852,7 @@ def metrics(request):
         }
 
     ctx = {
-        "metrics": metrics,
+        "metrics": model_metrics,
         "training_output": training_output,
         "label_breakdown": label_breakdown,
         "chart_labels": chart_labels,

@@ -139,6 +139,28 @@
     </select>
   </form>
   <h1>📊 Gmail Job Tracker Dashboard</h1>
+  {% if is_first_time %}
+  <div id="first-time-modal" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:1000;">
+    <div style="background:#fff; padding:24px; max-width:560px; width:90%; border-radius:8px; box-shadow:0 10px 25px rgba(0,0,0,0.2);">
+      <h2 style="margin-top:0;">Welcome new user!</h2>
+      <p style="margin-bottom:12px;">You'll need to ensure that you have downloaded your <b>credentials.json</b> file from Google Cloud. Then, update the <b>.env</b> file as needed.</p>
+      <p style="margin-bottom:18px;">Click <b>OK</b> to begin ingestion of email from Google. Click <b>Cancel</b> to allow you to double-check the above.</p>
+      <div style="display:flex; gap:12px; justify-content:flex-end;">
+        <button id="ft-cancel" style="padding:8px 14px; background:#e5e7eb; border:1px solid #d1d5db; border-radius:6px;">Cancel</button>
+        <a id="ft-ok" href="{% url 'reingest_admin' %}" style="padding:8px 14px; background:#2563eb; color:#fff; text-decoration:none; border-radius:6px;">OK</a>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function(){
+      var modal = document.getElementById('first-time-modal');
+      var cancelBtn = document.getElementById('ft-cancel');
+      if (cancelBtn && modal) {
+        cancelBtn.addEventListener('click', function(){ modal.style.display='none'; });
+      }
+    })();
+  </script>
+  {% endif %}
   <div style="display: flex; gap: 2rem; flex-wrap: wrap; margin-bottom: 1.5rem;">
     <div style="background: #f1f5f9; border-radius: 8px; padding: 1.1rem 1.5rem; min-width: 220px; flex: 0 0 auto; box-shadow: 0 1px 2px rgba(0,0,0,0.04); border-left: 4px solid #2563eb;">
       <div style="font-size: 1.1rem; color: #1e40af; font-weight: 600; margin-bottom: 0.2rem;">Applications This Week</div>

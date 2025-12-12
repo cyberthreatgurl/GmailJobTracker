@@ -28,6 +28,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2025-12-12] - Domain Management Job Boards Alignment
+
+### Changed
+
+- Align Job Boards badge and table with JSON canonical source.
+- Table is augmented from `json/companies.json` `job_boards`, showing all domains even with zero counts.
+- Badge count now uses `len(job_boards)` from JSON for consistency.
+
+### Added
+
+- Tests verifying alignment:
+	- `tests/test_manage_domains_job_board_count.py` ensures JSON job boards render in the response context.
+	- `tests/test_manage_domains_badge_count.py` asserts the badge equals the JSON count.
+
+### Fixed
+
+- Resolves the discrepancy tracked in Issue #28 (badge vs. table count).
+
+
 ### 🔹 3. **Update `CHANGELOG.md`**
 
 Add an entry like:

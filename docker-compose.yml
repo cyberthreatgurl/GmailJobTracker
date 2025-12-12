@@ -1,6 +1,6 @@
 services:
   web:
-    image: ghcr.io/cyberthreatgurl/gmailjobtracker:latest
+    image: ghcr.io/cyberthreatgurl/gmailjobtracker:${IMAGE_TAG:-latest}
     container_name: gmailtracker
     restart: unless-stopped
     ports:

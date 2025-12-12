@@ -42,7 +42,10 @@
       "\\bposition\\s+(?:has\\s+been\\s+)?(?:closed|filled)\\b"
     ],
     "application_confirmation": [
-      "\\b(we\\s+have\\s+received\\s+your\\s+application|we['\u2019]?ve\\s+received\\s+your\\s+application|thanks?\\s+(?:you\\s+)?for\\s+applying|application\\s+received|your\\s+application\\s+has\\s+been\\s+received|your\\s+application\\s+has\\s+been\\s+submitted|your\\s+application\\s+was\\s+sent)\\b"
+      "\\b(we\\s+have\\s+received\\s+your\\s+application|we['’]?ve\\s+received\\s+your\\s+application|thanks?\\s+(?:you\\s+)?for\\s+applying|application\\s+received|your\\s+application\\s+has\\s+been\\s+received|your\\s+application\\s+has\\s+been\\s+submitted|your\\s+application\\s+was\\s+sent)\\b",
+      "\\bthank\\s+you\\s+for\\s+your\\s+application\\b",
+      "\\bwe\\s+will\\s+review\\s+your\\s+(?:application|submission)\\b",
+      "\\bthis\\s+is\\s+an\\s+automated\\s+email\\s+response\\b"
     ]
   },
   "validation_rules": {
@@ -68,8 +71,6 @@
       "\\bwould\\slike\\sto\\sschedule\\b",
       "\\bwould\\slike\\sto\\sset\\sup\\b",
       "\\bset\\sup\\s+(?:a\\s+)?(?:call|time|meeting|interview|conversation)\\b",
-      "\\binterview\\sconfirmation\\b",
-      "\\bconfirmation\\b.*\\binterview\\b",
       "\\byour\\sinterview\\sis\\sscheduled\\b",
       "\\byou'?ve\\sscheduled\\b.*\\binterview\\b",
       "\\binterview\\savailability\\b",
@@ -77,17 +78,6 @@
       "\\blet\\s+me\\s+know\\s+when\\s+you\\s+(?:would\\s+)?(?:be\\s+)?available\\b",
       "\\blet\\s+me\\s+know\\s+when\\s+you('?re|are)\\s+available\\b",
       "\\bavailable\\s+for\\s+(?:a\\s+)?(?:call|phone\\s+call|conversation)\\b",
-      "\\bthis\\s+is\\s+an\\s+automated\\s+(?:email|response)\\b",
-      "\\bdo\\s+not\\s+reply\\b",
-      "\\breply-?to:\\s*\\S*workday\\b",
-      "\\bauto-?submitted\\b",
-      "\\bsubmission\\s+(?:received|confirmation)\\b",
-      "\\byour\\s+application\\s+(?:has\\s+been\\s+)?(?:received|submitted|was\\s+sent)\\b",
-      "\\bthank\\s+you\\s+for\\s+applying\\b",
-      "\\bwe\\s+(?:have\\s+)?received\\s+your\\s+(?:application|resume|submission)\\b",
-      "\\bworkday\\b",
-      "\\bmyworkday\\b",
-      "\\btalent\\.icims\\b",
       "\\bschedule\\s+(?:a\\s+)?(?:call|time|conversation)\\b",
       "\\bwould\\s+like\\s+to\\s+discuss\\s+the\\s+position\\b",
       "\\bi\\s+would\\s+like\\s+to\\s+discuss\\b",
@@ -384,6 +374,10 @@
         "\\bapplication\\s+(?:has\\s+been\\s+)?(?:received|submitted)\\b",
         "\\byour\\s+application\\s+(?:has\\s+been\\s+)?(?:received|submitted|was\\s+sent)\\b",
         "\\bsubmission\\s+(?:received|confirmation)\\b",
+        "\\bthis\\s+is\\s+an\\s+automated\\s+email\\s+response\\b",
+        "\\bwe\\s+will\\s+review\\s+your\\s+submission\\b",
+        "\\bwe\\s+(?:have\\s+)?received\\s+your\\s+(?:application|resume|submission)\\b",
+        "\\byour\\s+resume\\s+(?:has\\s+been\\s+)?(?:received|submitted)\\b",
         "^Auto-Submitted:\\s*(?:auto-generated|auto-replied)\\b",
         "^X-Auto-Response-Suppress:\\s*All\\b",
         "^Precedence:\\s*(?:bulk|list|junk)\\b",

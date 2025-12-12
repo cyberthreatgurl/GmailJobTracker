@@ -94,6 +94,7 @@
   ],
   "domain_to_company": {
     "Personified": "personified.tech",
+    "Valiant Solutions": "valiantsolutions.com",
     "SailPoint Technologies": "Sail Point Technologies",
     "afs.com": "Accenture Federal Services",
     "aig.com": "AIG",
@@ -320,6 +321,7 @@
     "Shentel": "https://www.shentel.com/en/careers",
     "SimVentions": "https://www.simventions.com/careers/",
     "Snap": "https://careers.snap.com/",
+    "Valiant Solutions": "https://careers-valiantsolutions.icims.com/jobs",
     "Splunk": "https://www.splunk.com/en_us/careers/",
     "Starbucks": "https://careers.starbucks.com/",
     "STI": "https://www.jsfirm.com/Strategic-Technology-Institute,-Inc/16178/company-jobs",
@@ -337,6 +339,7 @@
     "Armis": "https://armis.pinpointhq.com/"
   },
   "known": [
+    "Valiant Solutions",
     "ARES Corporation",
     "Amazon",
     "Amentum",

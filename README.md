@@ -46,6 +46,21 @@ A local-only Django application that transforms your Gmail into an intelligent j
 
 ## 🚀 Quick Start (5 Minutes)
 
+### ⚠️ Gmail Authentication (Do This First!)
+
+**Before running in Docker**, authenticate with Gmail on a machine with a browser:
+
+```bash
+# On your LOCAL machine (not in Docker):
+python gmail_auth.py
+# This opens a browser for Google OAuth and saves token.pickle
+
+# Copy credentials to your Docker server:
+scp credentials.json token.pickle user@docker-server:~/apps/GmailJobTracker/
+```
+
+> 🔒 **Security**: `token.pickle` contains OAuth tokens. Keep it secure—it's in `.gitignore`.
+
 ### Prerequisites
 
 - Python 3.10+ (tested on 3.12)

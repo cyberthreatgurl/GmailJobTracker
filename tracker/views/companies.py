@@ -602,8 +602,48 @@ def manage_domains(request):
     job_boards = set(companies_data.get("job_boards", []))
     personal_domains = set(personal_domains_data.get("domains", []))
     
+    # Debug: compute counts for Job Boards vs rendered list to investigate Issue #28
+    try:
+        job_board_domains_db = (
+            Company.objects.filter(status="job_board", domain__isnull=False)
+            .values_list("domain", flat=True)
+            .distinct()
+        )
+        job_board_domains_db = set(job_board_domains_db)
+    except Exception:
+        job_board_domains_db = set()
+
+    try:
+        job_board_badge_count = len(job_boards) if isinstance(job_boards, set) else 0
+    except Exception:
+        job_board_badge_count = 0
+
+    # Write a small debug log entry for comparison
+    try:
+        dbg_path = Path("logs") / "manage_domains_debug.log"
+        dbg_path.parent.mkdir(parents=True, exist_ok=True)
+        entry = {
+            "ts": now().isoformat(),
+            "user": getattr(getattr(request, "user", None), "username", "unknown"),
+            "job_board_badge_count": job_board_badge_count,
+            "job_board_db_distinct": sorted(job_board_domains_db),
+            "job_board_db_count": len(job_board_domains_db),
+        }
+        # Also print to console to confirm execution path
+        print("[manage_domains debug]", entry)
+        with open(dbg_path, "a", encoding="utf-8") as df:
+            df.write(json.dumps(entry, ensure_ascii=False) + "\n")
+    except Exception:
+        pass
+
     # Handle POST requests for labeling
     reingest_summary = None
+    # Expose debug counts in context for immediate UI verification
+    debug_counts = {
+        "job_board_badge_count": job_board_badge_count,
+        "job_board_db_count": len(job_board_domains_db),
+    }
+
     if request.method == "POST":
         action = request.POST.get("action")
         label_type = request.POST.get("label_type")
@@ -1155,6 +1195,20 @@ def manage_domains(request):
     elif current_filter == "headhunter":
         domains_info = [d for d in domains_info if d["label"] == "headhunter"]
     elif current_filter == "job_boards":
+        # Option A: Use job_boards from JSON as canonical source
+        jb_set = set(job_boards)
+        # Augment existing info with any missing job board domains (ensure visibility even if no messages yet)
+        existing_domains = {d["domain"] for d in domains_info}
+        for jb in jb_set:
+            if jb not in existing_domains:
+                domains_info.append({
+                    "domain": jb,
+                    "count": 0,
+                    "label": "job_boards",
+                    "company_name": None,
+                    "sample_senders": []
+                })
+        # Filter to job boards
         domains_info = [d for d in domains_info if d["label"] == "job_boards"]
     # "all" shows everything
     
@@ -1170,7 +1224,7 @@ def manage_domains(request):
         # Sort alphabetically by full domain name
         domains_info.sort(key=lambda d: d["domain"].lower(), reverse=(sort_order == "desc"))
     
-    # Calculate stats
+    # Calculate stats; align Job Boards badge to JSON canonical list
     all_domains = list(domain_counter.keys())
     stats = {
         "total": len(all_domains),
@@ -1179,7 +1233,7 @@ def manage_domains(request):
         "company": len(domain_to_company),
         "ats": len(ats_domains),
         "headhunter": len(headhunter_domains),
-        "job_boards": len(job_boards),
+        "job_boards": len(set(job_boards)),
     }
     
     ctx = {
@@ -1191,6 +1245,8 @@ def manage_domains(request):
         "sort_by": sort_by,
         "sort_order": sort_order,
     }
+    # Include debug counts
+    ctx["debug_counts"] = debug_counts
     return render(request, "tracker/manage_domains.html", ctx)
 
 __all__ = ['delete_company', 'label_companies', 'merge_companies', 'manage_domains']

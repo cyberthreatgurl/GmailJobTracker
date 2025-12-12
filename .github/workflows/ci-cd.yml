@@ -188,6 +188,9 @@ jobs:
           
           cd ${DEPLOY_PATH}
           
+          # Create volume directories with correct ownership
+          mkdir -p db logs model json
+          
           # Login to GitHub Container Registry
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
           

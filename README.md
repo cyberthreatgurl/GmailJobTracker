@@ -62,7 +62,9 @@ python -m venv .venv
 .venv\Scripts\activate  # Windows | source .venv/bin/activate (Linux/macOS)
 
 # 2. Install dependencies
-pip install -r requirements.txt
+pip install -r requirements.txt  # Production only
+# OR for development (includes testing/linting tools):
+# pip install -r requirements-dev.txt
 python -m spacy download en_core_web_sm
 
 # 3. Initialize database (Django models + legacy tables)
@@ -482,7 +484,32 @@ See [markdown/BACKLOG.md](markdown/BACKLOG.md) for detailed roadmap.
 
 ---
 
-## 📧 Support
+## � Dependency Management
+
+The project uses **pip-tools** for dependency management:
+
+- **`requirements-prod.in`** - Direct production dependencies only
+- **`requirements.txt`** - Compiled production requirements (auto-generated)
+- **`requirements-dev.in`** - Development/testing tools
+- **`requirements-dev.txt`** - Compiled dev requirements (auto-generated)
+
+**To update dependencies:**
+
+```bash
+pip install pip-tools
+pip-compile requirements-prod.in -o requirements.txt
+pip-compile requirements-dev.in -o requirements-dev.txt
+```
+
+This approach:
+
+- ✅ Keeps Docker images smaller (no dev tools in production)
+- ✅ Pins all transitive dependencies for reproducibility
+- ✅ Makes it clear which packages you directly depend on
+
+---
+
+## �📧 Support
 
 - **Issues:** [GitHub Issues](https://github.com/<your-username>/GmailJobTracker/issues)
 - **Discussions:** [GitHub Discussions](https://github.com/<your-username>/GmailJobTracker/discussions)

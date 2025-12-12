@@ -1,0 +1,138 @@
+Delivered-To: kaver68@gmail.com
+Received: by 2002:ac4:b181:0:b0:761:e12b:7030 with SMTP id i1csp365164pic;
+        Fri, 12 Dec 2025 09:31:14 -0800 (PST)
+X-Google-Smtp-Source: AGHT+IGdmxFLucOsY0BX3r2ly5aHT5hbdKith0XrWIV2KpoXr6QGwGgtWAkWtFbFA7OZMrX5QafF
+X-Received: by 2002:a05:690c:6208:b0:78d:687c:8571 with SMTP id 00721157ae682-78e66bd7806mr24854047b3.0.1765560674021;
+        Fri, 12 Dec 2025 09:31:14 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1765560674; cv=none;
+        d=google.com; s=arc-20240605;
+        b=EUK15VTiyH1v+R4if0vT6ugrBva9wy9khnXRQSjaweZenSSiGUmF/6zJF+Gt9woh+u
+         BMERfVMKDYAwMaPogmnJ+8/3Q2te+9apGupY0XID8U+YCbES6fDgARVaNHTd0ZXgvSEB
+         /euDWNqWSPEskHKqwOsNA6MdDQfZOVPgIcmm18aCXqlioAlMNQB4QIXWz/K1z3hhU40N
+         dWqdrFzUrc/Mubbr89oJFBPTYRVIlF/8VULsyUCbr3NVuq0HVFSZtKH2X/VdTfpW95Q1
+         BtFvc+c2LS5rPIujhYn7T5SrhQ6lucibNcEZ8Tl/AvbMx9zvbrEoqu2j1Xkpj7rGVQ1M
+         2Awg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=list-unsubscribe:mime-version:subject:message-id:to:reply-to:from
+         :date:dkim-signature;
+        bh=lNn/VlzUzob+JuBM/uQTxq4G3E7p94pPBB4g1QujTS4=;
+        fh=G/VLhrQnXiN6LciSgCgIU9VM0fr+1O2AyqFGWpHCjzw=;
+        b=hT1NcV4DOqAc+lwuawo12VcX94HwRpl77j3jClvGsUPjH+T3bbn3eqpZQgdTIwb8VW
+         Kp/dOpl4o1Y4PPK14nQQqwtiM+mIdXXZOSwj8N6jwIoFdqiUcW/1XcHPKYmu24nXilB/
+         hI5nP+jIby4b5MV95kB/O1nQGnzhNxe3HohVK9TAd1NRTXYdxFBXOFbDnQgjrOzwRap+
+         w3IEYs7SyA+dfVBBuKsiNY6JANy+xtgsaK13GRXiUCInILCW9n/PRgCj5y6eTAJwWVue
+         21n9HIUBvyW41tZyANFJWK73N+OX628cOfhzbdoWb7mA4XdbhZBE3SK1+j/b8tLzlxXr
+         6KqA==;
+        dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@talent.icims.com header.s=scph1117 header.b=FBhY2W9w;
+       spf=pass (google.com: domain of msprvs1=20441yqmjmmbv=bounces-131558-2694@bounces.icims.com designates 162.247.166.168 as permitted sender) smtp.mailfrom="msprvs1=20441YqMjmMBV=bounces-131558-2694@bounces.icims.com";
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=talent.icims.com
+Return-Path: <msprvs1=20441YqMjmMBV=bounces-131558-2694@bounces.icims.com>
+Received: from icims-talentplatform-166168.email.icims.tools (icims-talentplatform-166168.email.icims.tools. [162.247.166.168])
+        by mx.google.com with ESMTPS id 00721157ae682-78e6a4312absi34987617b3.143.2025.12.12.09.31.13
+        for <kaver68@gmail.com>
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Fri, 12 Dec 2025 09:31:14 -0800 (PST)
+Received-SPF: pass (google.com: domain of msprvs1=20441yqmjmmbv=bounces-131558-2694@bounces.icims.com designates 162.247.166.168 as permitted sender) client-ip=162.247.166.168;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@talent.icims.com header.s=scph1117 header.b=FBhY2W9w;
+       spf=pass (google.com: domain of msprvs1=20441yqmjmmbv=bounces-131558-2694@bounces.icims.com designates 162.247.166.168 as permitted sender) smtp.mailfrom="msprvs1=20441YqMjmMBV=bounces-131558-2694@bounces.icims.com";
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=talent.icims.com
+Return-Path: <msprvs1=20441YqMjmMBV=bounces-131558-2694@bounces.icims.com>
+X-MSFBL: ESeGAf0+LQkV7xRNqz0lH14NRK/y+xnEM1d7U3QVCq0=|eyJzdWJhY2NvdW50X2l
+	kIjoiMjY5NCIsImN1c3RvbWVyX2lkIjoiMTMxNTU4IiwidGVuYW50X2lkIjoic3B
+	jIiwibWVzc2FnZV9pZCI6IjY5M2E2MTUxM2M2OWRkNTYyOTA1IiwiciI6ImthdmV
+	yNjhAZ21haWwuY29tIn0=
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=talent.icims.com;
+	s=scph1117; t=1765560673; i=@talent.icims.com;
+	bh=lNn/VlzUzob+JuBM/uQTxq4G3E7p94pPBB4g1QujTS4=;
+	h=Date:From:To:Message-ID:Subject:Content-Type:List-Unsubscribe:
+	 X-CSA-Complaints:From:To:Cc:Subject;
+	b=FBhY2W9wKg5PdRi7YeT+q5DJhlH6mHm7XiRdDVQcrH7Fam3KSr1lteie1HvRhOCIT
+	 jTuf6XQFOsrY2Dby2/6w1XRm5za+KX23nSHJtWTP+NsAOGP8pTzxYH3k8xkvsXSztK
+	 Em2u9qPU37eALOSkWwGsA0j521LF8r23xirrGHFU=
+Received: from [10.90.7.27] ([10.90.7.27])
+	by i-03b55cc7e3c433eb8.mta1vrest.sd.prd.sparkpost (ecelerity 5.1.0.74719 r(msys-ecelerity:tags/5.1.0.22)) with REST
+	id 50/9A-20728-1615C396; Fri, 12 Dec 2025 17:31:13 +0000
+Date: Fri, 12 Dec 2025 12:31:12 -0500 (EST)
+From: 
+	"Valiant Solutions @ icims" <valiantsolutions+autoreply@talent.icims.com>
+Reply-To: 
+	"Valiant Solutions @ icims" <valiantsolutions+autoreply@talent.icims.com>
+To: kaver68@gmail.com
+Message-ID: <1903795899.74513.1765560672945@ip-10-47-161-182.ec2.internal>
+Subject: Instructions for Completing Your Form Later
+MIME-Version: 1.0
+Content-Type: multipart/alternative; 
+	boundary="----=_Part_74511_960414582.1765560672943"
+List-Unsubscribe: <mailto:valiantsolutions+autoreply+5C00148771@talent.icims.com?subject=unsubscribe&contactId=257967>, <https://valiantsolutions.icims.com/icims2/?r=5C00148771&contactId=257967&process=1>
+X-iRecruiter-Type: TX
+X-iCIMS-Type: TX
+X-iCIMS-Priority: Auto
+X-iRecruiter-Source: valiantsolutions
+X-iCIMS-Message-Id: 257967.huQT/fVgPJbqOHbxkE/bs1T8ABp4aHV80TYZwPotP1o=
+X-CSA-Complaints: csa-complaints@eco.de
+X-MSYS-API: { "options" : { "open_tracking" : true, "click_tracking" : true, "transactional":  true, "ip_pool": "prd_us_transactional" } }
+
+------=_Part_74511_960414582.1765560672943
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="UTF-8"
+
+Dear Adrian,=0D=0A=C2=A0=0D=0AYou can return to the form you recently saved=
+ by accessing the following URL:=0D=0A=C2=A0=0D=0Ahttps://tracking.icims.co=
+m/f/a/Zeg7SsxBubgeFZapckip7Q~~/AAIB5hA~/8lFj2Sk_Cm-63iR7hYKvg_zGTzudF9QfQCX=
+q6ISO2N5bhWClNk8HbY3ivY4lM8d3KrM305VpqPJwlEt0A_7Oz71roegyGgPkCjCRAvpF94NaWX=
+9pm-uYGZyHPDc_lc6cVlcqdsGmxkAUtT0E_0zrQ0GTKmqVFQwrfNyc2bj3vOBSctidklfd7M8jy=
+pOygZro=0D=0ALogin Name: Scoop1=0D=0A=C2=A0=0D=0AIf you do not know your pa=
+ssword, you can reset it here: <a href=3D"https://tracking.icims.com/f/a/VK=
+nj30pK_wGdNCi7XkWWjA~~/AAIB5hA~/fIg4ouo5Xy7E8NuhzPhXGaWveOVSqXMoccw-6dmPg0f=
+EOfNglTPX_MdtmVPfA9aCqtx4w3wF9IHlNIzzaoegUfbEpwe3x2nc3dbAwIaNbfiM4ft5PFvkJv=
+Zdf3LHWgklbaHDtOOqxlnCw-0P3csEOa6YYlhqxR1XtGIxUcjk59Arcl-2HLLNlCb8kYg4JFazu=
+y3dF2pi5DniZleh_M-t0pQpjgeGo3J2o5qxGqSOUcJsh1Sdamrz8gUbxdU8WMnhgHInzMC-BrRr=
+BKNtfZb5dhfOW-uDm_g9uugNQtlAs5nGjxJ4EMjBIBR3ElW3KPF99BuXj0-hv7xxgkwMN-rsM04=
+Q7ACw9Mp4bNjgb0L4Qp2ACAfn8mdjFl38HRQKlXCLL8b88zDklg2t5Khvl8C4Dlk9JqzBnGS1jZ=
+RF7_MN4vtx-t5E_tNHvksbXs2j_DAIFWEpL-vjNG6UD25_aKtHprvOPPvOOcvOV5C055jKE_nza=
+6WXN5zuPkfbo5-2DuCdhwmlhPgcY8W7PfY7ehv14g~~>.=0D=0A=C2=A0=0D=0AThis is an a=
+utomated alert =E2=80=93 please do not reply.=0D=0A=C2=A0=0D=0A=C2=A0=0D=0A=
+=C2=A0=0D=0AIf you no longer wish to receive e-mail from=C2=A0Valiant Solut=
+ions, click here: https://tracking.icims.com/f/a/4GpFFP8M-3XwmQwz-jdYwA~~/A=
+AIB5hA~/lf5wdO-3d2CYPN8swLItDn39LrnMY2RkHN2u6AiIjPkPjCL_GNdsrYdyhSwJ2ieX4YI=
+icrizrvTu1wlQmGlGrUfP6XOUkv93UXV6g7Tq34yHQivvYzC6Tl3vgfN5cpAqfPwxQ4X8J-31Xc=
+OF81Ti4zV4SDNriCiZJF7A58qe1HCvGNOEeymT2uS07I5VV1XHuv_EK2IDcHprhtrxIILmlw~~ =
+&#169; Valiant Solutions, LLC; 1650 Tysons Blvd., Suite 810=0D=0AMcLean, VA=
+ 22102/n=0D=0A
+------=_Part_74511_960414582.1765560672943
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/html; charset="UTF-8"
+
+<p style=3D"margin: 0px;">Dear Adrian,</p> <p style=3D"margin: 0px;">&nbsp;=
+</p> <p style=3D"margin: 0px;">You can return to the form you recently  sav=
+ed by accessing the following URL:</p> <p style=3D"margin: 0px;">&nbsp;</p>=
+ <p style=3D"margin: 0px;"><a href=3D"https://tracking.icims.com/f/a/Zeg7Ss=
+xBubgeFZapckip7Q~~/AAIB5hA~/8lFj2Sk_Cm-63iR7hYKvg_zGTzudF9QfQCXq6ISO2N5bhWC=
+lNk8HbY3ivY4lM8d3KrM305VpqPJwlEt0A_7Oz71roegyGgPkCjCRAvpF94NaWX9pm-uYGZyHPD=
+c_lc6cVlcqdsGmxkAUtT0E_0zrQ0GTKmqVFQwrfNyc2bj3vOBSctidklfd7M8jypOygZro">Cli=
+ck to Complete</a></p> <p style=3D"margin: 0px;">Login  Name: Scoop1</p> <p=
+ style=3D"margin: 0px;">&nbsp;</p> <p style=3D"margin: 0px;">If you do not =
+know your password, you can  reset it here: <a href=3D"https://tracking.ici=
+ms.com/f/a/QiRoPVNmPWTnxmBnKfSxnw~~/AAIB5hA~/OIS9q-SumOuBnRd56yi89Rt6A3zg5v=
+SmqRmLluNqz-MH_XSia0emEEXRdKbk_dUBGd3uwbYhWlMXR1gp04nNnGP4x3YlDF8Tq4yXfXu1-=
+iLOR4ZLDrqlJWJnkUnJZknD-6QnLlZcwjjGAURDRUxLgtHQ5q-cI-qZP9OJpofr21IIfs9D55uS=
+1pe9oN476NAQjWdQrQJuAIpp5M3til4tY0AYJoahnAaOxIK5JeYgemagVoBY_HUWmOPzkwYe9hg=
+4gzfXI5IuimLekZBXIdhNiPxm8n7SqDmLbaLyJvP7nxU~">https://careers-valiantsolut=
+ions.icims.com/jobs/password=3Ful=3D148493&v=3D77ac20f8d260d8d7dba8fcc34007=
+819c4f8af85eea97fe0a039a375cba0fb19b&t=3D1765560672927&hashed=3D-435594529<=
+/a>.</p> <p style=3D"margin: 0px;">&nbsp;</p> <p style=3D"margin: 0px;"><em=
+>This is an automated alert &ndash; please do not reply.</em></p><p style=
+=3D"margin: 0px;">&nbsp;</p><p style=3D"margin: 0px;">&nbsp;</p><p style=3D=
+"margin: 0px;">&nbsp;</p><p style=3D"margin: 0px;"><em><span style=3D"font-=
+size: xx-small;">If you no longer wish to receive    e-mail  from&nbsp;Vali=
+ant Solutions,  click here: https://valiantsolutions.icims.com/icims2/=3Fr=
+=3D5C00148771&contactId=3D257967&hashed=3D1111735020.</span></em></p><br><b=
+r><center> &#169; Valiant Solutions, LLC; 1650 Tysons Blvd., Suite 810=0D=
+=0AMcLean, VA 22102</center>=0D=0A<img border=3D"0" width=3D"1" height=3D"1=
+" alt=3D"" src=3D"https://tracking.icims.com/q/aNNwWugpqvvBdQb9MMSXzw~~/AAI=
+B5hA~/LJFEw_FFSoLf5s9UtnDCJ59KRJCBiWRph4M87YhtaWX2CGu9_CzcSDh8zX601pUc2Ep9p=
+96dDqNLQq30kmMoMg~~">=0D=0A=0D=0A
+------=_Part_74511_960414582.1765560672943--

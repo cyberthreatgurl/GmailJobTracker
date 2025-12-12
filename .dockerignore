@@ -84,5 +84,8 @@ remind/
 update_copilot/
 scripts/
 
-# Keep validation script
+# Keep required scripts for runtime
+!scripts/__init__.py
 !scripts/validate_companies.py
+!scripts/import_gmail_filters.py
+!scripts/ingest_eml.py

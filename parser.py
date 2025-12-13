@@ -2994,10 +2994,10 @@ def ingest_message(service, msg_id):
 
         # 0. Headhunter domain check (highest priority)
         if is_headhunter:
-            company = "HeadHunter"
+            company = None
             company_source = "headhunter_domain"
             if DEBUG:
-                print(f"Headhunter domain detected: {sender_domain} → HeadHunter")
+                print(f"Headhunter domain detected: {sender_domain} → (no company)")
 
         # 1. Domain mapping (applies to all non-headhunter domains, including ATS)
         #    Some ATS send confirmations from vendor domains; we still want

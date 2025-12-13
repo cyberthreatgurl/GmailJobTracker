@@ -583,7 +583,14 @@
     }
 
     function updateCompanyBreakdown(startStr, endStr) {
+      console.log('=== updateCompanyBreakdown called ===');
       console.log('Filtering by date range:', startStr, 'to', endStr);
+      console.log('Raw data counts:', {
+        rejections: rejectionCompanies?.length,
+        applications: applicationCompanies?.length,
+        ghosted: ghostedCompanies?.length,
+        interviews: interviewCompanies?.length
+      });
 
       // Derive date range from datasets if not provided
       const startDateInput = document.getElementById('startDateInput');
@@ -613,6 +620,29 @@
       // Normalize bounds to day numbers for reliable comparisons
       const startNum = toDayNumber(startStr);
       const endNum = toDayNumber(endStr);
+
+      console.log('Date range converted:', {
+        startStr, endStr,
+        startNum, endNum,
+        startDate: new Date(startNum),
+        endDate: new Date(endNum)
+      });
+
+      // Log sample data for debugging
+      if (interviewCompanies && interviewCompanies.length > 0) {
+        console.log('Sample interview data:', interviewCompanies.slice(0, 3).map(item => ({
+          company: item.company__name,
+          date: item.interview_date,
+          dateNum: toDayNumber(item.interview_date)
+        })));
+      }
+      if (ghostedCompanies && ghostedCompanies.length > 0) {
+        console.log('Sample ghosted data:', ghostedCompanies.slice(0, 3).map(item => ({
+          company: item.company__name,
+          date: item.sent_date,
+          dateNum: toDayNumber(item.sent_date)
+        })));
+      }
 
       // Filter companies by date range, keep id+name (inclusive bounds)
       const rejections = rejectionCompanies

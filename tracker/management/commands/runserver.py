@@ -77,7 +77,25 @@ class Command(RunserverCommand):
         return super().inner_run(*args, **options)
     
     def _display_recent_commits(self):
-        """Display the last 6 commits (recent fixes/features)."""
+        """Display build version and recent commits."""
+        version_file = os.path.join(
+            os.path.dirname(os.path.dirname(
+                os.path.dirname(os.path.dirname(__file__))
+            )),
+            'VERSION'
+        )
+        
+        # Try reading VERSION file (Docker deployments)
+        if os.path.exists(version_file):
+            try:
+                with open(version_file, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                    self._display_version_info(content)
+                    return
+            except (OSError, IOError):
+                pass
+        
+        # Fall back to git command (local development)
         try:
             result = subprocess.run(
                 ['git', 'log', '--oneline', '-6'],
@@ -88,30 +106,69 @@ class Command(RunserverCommand):
                     os.path.dirname(os.path.dirname(__file__))
                 ))
             )
-            
             if result.stdout.strip():
-                self.stderr.write(self.style.SUCCESS('=' * 70))
-                self.stderr.write(
-                    self.style.SUCCESS('Recent Commits (Last 6 Issues Fixed)')
+                self._display_version_info(
+                    f"RECENT_COMMITS:\n{result.stdout.strip()}"
                 )
-                self.stderr.write(self.style.SUCCESS('=' * 70))
-                
-                for line in result.stdout.strip().split('\n'):
-                    if line:
-                        # Split hash and message
-                        parts = line.split(' ', 1)
-                        if len(parts) == 2:
-                            commit_hash, message = parts
-                            # Truncate message if too long
-                            if len(message) > 55:
-                                message = message[:52] + '...'
-                            self.stderr.write(
-                                f"  {self.style.WARNING(commit_hash)} {message}"
-                            )
-                        else:
-                            self.stderr.write(f"  {line}")
-                
-                self.stderr.write(self.style.SUCCESS('=' * 70 + '\n'))
         except (subprocess.CalledProcessError, FileNotFoundError):
-            # Silently skip if git is not available or not a git repo
             pass
+    
+    def _display_version_info(self, content):
+        """Parse and display version information."""
+        lines = content.strip().split('\n')
+        build_info = {}
+        commits = []
+        in_commits = False
+        
+        for line in lines:
+            if line.startswith('RECENT_COMMITS:'):
+                in_commits = True
+                continue
+            elif in_commits:
+                if line.strip():
+                    commits.append(line)
+            elif '=' in line and not in_commits:
+                key, value = line.split('=', 1)
+                build_info[key] = value
+        
+        # Display build metadata if available
+        if build_info:
+            self.stderr.write(self.style.SUCCESS('=' * 70))
+            self.stderr.write(self.style.SUCCESS('Build Information'))
+            self.stderr.write(self.style.SUCCESS('=' * 70))
+            
+            if 'VERSION' in build_info:
+                self.stderr.write(
+                    f"  Version: {self.style.WARNING(build_info['VERSION'])}"
+                )
+            if 'VCS_REF' in build_info:
+                self.stderr.write(
+                    f"  Commit: {self.style.WARNING(build_info['VCS_REF'])}"
+                )
+            if 'BUILD_DATE' in build_info:
+                self.stderr.write(f"  Built: {build_info['BUILD_DATE']}")
+            
+            self.stderr.write(self.style.SUCCESS('=' * 70 + '\n'))
+        
+        # Display recent commits
+        if commits:
+            self.stderr.write(self.style.SUCCESS('=' * 70))
+            self.stderr.write(
+                self.style.SUCCESS('Recent Commits (Last 6 Issues Fixed)')
+            )
+            self.stderr.write(self.style.SUCCESS('=' * 70))
+            
+            for line in commits[:6]:
+                if line:
+                    parts = line.split(' ', 1)
+                    if len(parts) == 2:
+                        commit_hash, message = parts
+                        if len(message) > 55:
+                            message = message[:52] + '...'
+                        self.stderr.write(
+                            f"  {self.style.WARNING(commit_hash)} {message}"
+                        )
+                    else:
+                        self.stderr.write(f"  {line}")
+            
+            self.stderr.write(self.style.SUCCESS('=' * 70 + '\n'))

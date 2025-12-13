@@ -1,0 +1,43 @@
+# GmailJobTracker - Automated Ghosted Company Marking
+#
+# This cron job runs the mark_ghosted management command to identify and mark
+# companies that haven't responded within the configured threshold (default 30 days).
+#
+# IMPORTANT: Replace /home/kelly/apps/GmailJobTracker with your actual path
+# IMPORTANT: Ensure docker compose is accessible in PATH or use full path
+
+# Option 1: Daily at 2 AM (Recommended for active job searching)
+# Marks companies as ghosted every day, keeping the dashboard current
+0 2 * * * cd /home/kelly/apps/GmailJobTracker && docker compose exec -T web python manage.py mark_ghosted >> /var/log/gmailtracker-ghosted.log 2>&1
+
+# Option 2: Weekly on Sunday at 2 AM (Less frequent, lower overhead)
+# Uncomment this line and comment out Option 1 if you prefer weekly updates
+# 0 2 * * 0 cd /home/kelly/apps/GmailJobTracker && docker compose exec -T web python manage.py mark_ghosted >> /var/log/gmailtracker-ghosted.log 2>&1
+
+# Cron Format Reference:
+# ┌───────────── minute (0 - 59)
+# │ ┌───────────── hour (0 - 23)
+# │ │ ┌───────────── day of month (1 - 31)
+# │ │ │ ┌───────────── month (1 - 12)
+# │ │ │ │ ┌───────────── day of week (0 - 6) (Sunday=0)
+# │ │ │ │ │
+# * * * * * command
+
+# Installation Instructions:
+# 1. Copy this file to your server
+# 2. Edit paths to match your installation directory
+# 3. Install: crontab -e
+# 4. Add the desired schedule line (Option 1 or Option 2)
+# 5. Save and exit
+# 6. Verify: crontab -l
+
+# Manual Execution:
+# To run manually at any time:
+#   docker compose exec web python manage.py mark_ghosted
+
+# Troubleshooting:
+# - Check logs: tail -f /var/log/gmailtracker-ghosted.log
+# - Verify cron is running: systemctl status cron
+# - Test command manually first to ensure it works
+# - Use full paths for docker and docker-compose if needed
+#   Example: /usr/bin/docker compose exec -T web python manage.py mark_ghosted

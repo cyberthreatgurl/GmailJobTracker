@@ -673,6 +673,14 @@ def dashboard(request):
         }
         for item in ghosted_companies_qs
     ]
+    
+    # Debug logging for ghosted companies
+    if len(ghosted_companies) == 0:
+        print(f"[DEBUG] Ghosted companies query returned 0 results")
+        print(f"[DEBUG] hh_company_list count: {len(hh_company_list) if hh_company_list else 0}")
+        print(f"[DEBUG] company_filter_id: {company_filter_id}")
+    else:
+        print(f"[DEBUG] Found {len(ghosted_companies)} ghosted companies")
 
     # Convert to JSON strings for template
     rejection_companies_json = json.dumps(rejection_companies)

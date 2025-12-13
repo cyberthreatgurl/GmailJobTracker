@@ -2,6 +2,7 @@
 Custom runserver command that displays .env configuration on startup.
 """
 import os
+import subprocess
 from django.core.management.commands.runserver import Command as RunserverCommand
 
 
@@ -69,5 +70,48 @@ class Command(RunserverCommand):
         
         self.stderr.write(self.style.SUCCESS('=' * 70 + '\n'))
         
+        # Display recent commit history
+        self._display_recent_commits()
+        
         # Call the parent class's inner_run to start the server
         return super().inner_run(*args, **options)
+    
+    def _display_recent_commits(self):
+        """Display the last 6 commits (recent fixes/features)."""
+        try:
+            result = subprocess.run(
+                ['git', 'log', '--oneline', '-6'],
+                capture_output=True,
+                text=True,
+                check=True,
+                cwd=os.path.dirname(os.path.dirname(
+                    os.path.dirname(os.path.dirname(__file__))
+                ))
+            )
+            
+            if result.stdout.strip():
+                self.stderr.write(self.style.SUCCESS('=' * 70))
+                self.stderr.write(
+                    self.style.SUCCESS('Recent Commits (Last 6 Issues Fixed)')
+                )
+                self.stderr.write(self.style.SUCCESS('=' * 70))
+                
+                for line in result.stdout.strip().split('\n'):
+                    if line:
+                        # Split hash and message
+                        parts = line.split(' ', 1)
+                        if len(parts) == 2:
+                            commit_hash, message = parts
+                            # Truncate message if too long
+                            if len(message) > 55:
+                                message = message[:52] + '...'
+                            self.stderr.write(
+                                f"  {self.style.WARNING(commit_hash)} {message}"
+                            )
+                        else:
+                            self.stderr.write(f"  {line}")
+                
+                self.stderr.write(self.style.SUCCESS('=' * 70 + '\n'))
+        except (subprocess.CalledProcessError, FileNotFoundError):
+            # Silently skip if git is not available or not a git repo
+            pass

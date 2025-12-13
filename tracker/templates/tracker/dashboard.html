@@ -633,8 +633,15 @@
         })
         .map(item => ({ id: item.company_id, name: item.company__name }));
       
-      // Ghosted: Always show ALL ghosted companies regardless of date filter (current state)
-      const ghosted = ghostedCompanies.map(item => ({ id: item.company_id, name: item.company__name }));
+      // Ghosted: Filter by date range like other metrics for consistency
+      const ghosted = (ghostedCompanies || []).filter(item => {
+        const d = toDayNumber(item.sent_date);
+        const matched = !isNaN(d) && !isNaN(startNum) && !isNaN(endNum) && d >= startNum && d <= endNum;
+        if (matched) console.log('Ghosted matched:', item.company__name, item.sent_date);
+        return matched;
+      }).map(item => ({ id: item.company_id, name: item.company__name }));
+      
+      console.log('Filtered ghosted companies:', ghosted.length);
       
       const interviews = interviewCompanies
         .filter(item => {

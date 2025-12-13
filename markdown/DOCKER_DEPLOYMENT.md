@@ -68,7 +68,16 @@ python manage.py createsuperuser
 exit
 ```
 
-### 5. Access the Application
+### 5. Initial Data Setup
+
+```bash
+# Mark companies as ghosted (identifies companies that haven't responded)
+docker-compose exec web python manage.py mark_ghosted
+
+# This should be run periodically - see "Scheduled Tasks" section below
+```
+
+### 6. Access the Application
 
 - **Dashboard:** <http://localhost:8000>
 - **Admin Panel:** <http://localhost:8000/admin>
@@ -383,6 +392,49 @@ Or update `docker-compose.yml` command:
 ```yaml
 command: gunicorn dashboard.wsgi:application --bind 0.0.0.0:8000 --workers 4
 ```
+
+## ⏰ Scheduled Tasks (Required)
+
+### Mark Ghosted Companies
+
+The `mark_ghosted` command identifies companies that haven't responded within the configured threshold (default 30 days). This **must be run periodically** to keep the dashboard current.
+
+**Setup Automated Cron Job:**
+
+```bash
+# 1. Edit crontab
+crontab -e
+
+# 2. Add one of these lines:
+
+# Option 1: Daily at 2 AM (Recommended for active job searching)
+0 2 * * * cd /home/kelly/apps/GmailJobTracker && docker compose exec -T web python manage.py mark_ghosted >> /var/log/gmailtracker-ghosted.log 2>&1
+
+# Option 2: Weekly on Sunday at 2 AM (Less frequent)
+0 2 * * 0 cd /home/kelly/apps/GmailJobTracker && docker compose exec -T web python manage.py mark_ghosted >> /var/log/gmailtracker-ghosted.log 2>&1
+
+# 3. Save and exit
+# 4. Verify: crontab -l
+```
+
+**Manual Execution:**
+
+```bash
+# Run anytime to update ghosted status
+docker compose exec web python manage.py mark_ghosted
+```
+
+**Configuration:**
+
+Set the ghosted threshold in `.env`:
+
+```bash
+GHOSTED_DAYS_THRESHOLD=30  # Mark as ghosted after 30 days of no response
+```
+
+**Pre-configured Cron Template:**
+
+See `cron/ghosted-marker.cron` for a ready-to-use cron configuration with detailed comments.
 
 ## 🔄 Backup & Restore
 

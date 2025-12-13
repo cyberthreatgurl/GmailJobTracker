@@ -38,6 +38,21 @@ COPY --from=builder /usr/local/bin /usr/local/bin
 # Copy application code
 COPY . .
 
+# Generate VERSION file with build metadata during Docker build
+# This captures git info at build time without including .git in final image
+ARG BUILD_DATE
+ARG VCS_REF
+ARG VERSION
+RUN printf "BUILD_DATE=%s\nVCS_REF=%s\nVERSION=%s\n" \
+    "${BUILD_DATE:-$(date -u +'%Y-%m-%dT%H:%M:%SZ')}" \
+    "${VCS_REF:-$(git rev-parse --short HEAD 2>/dev/null || echo 'unknown')}" \
+    "${VERSION:-$(git describe --tags --always 2>/dev/null || echo 'dev')}" \
+    > /app/VERSION && \
+    if [ -d .git ]; then \
+        echo "\nRECENT_COMMITS:" >> /app/VERSION && \
+        git log --oneline -6 >> /app/VERSION 2>/dev/null || echo "No git history" >> /app/VERSION; \
+    fi
+
 # Create necessary directories with proper permissions
 RUN mkdir -p /app/db /app/logs /app/model /app/staticfiles /app/json && \
     chmod -R 755 /app/db /app/logs /app/model /app/staticfiles /app/json

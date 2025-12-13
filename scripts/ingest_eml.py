@@ -231,14 +231,9 @@ def ingest_eml_bytes(raw_bytes: bytes, apply: bool = False, create_tt: bool = Tr
     # Run classification using the same pipeline as re-ingest / parser, if available
     try:
         if parse_raw_message and predict_with_fallback and predict_subject_type:
-            # Build a raw text representation for parser.parse_raw_message
-            try:
-                raw_text = raw_bytes.decode('utf-8', errors='ignore')
-            except Exception:
-                raw_text = (text or '')
-
-            parsed = parse_raw_message(raw_text) if parse_raw_message else None
-            body_for_classify = (parsed.get('body') if parsed else (text or ''))
+            # Use the already-extracted clean body (text or html) instead of re-parsing
+            # to avoid including delivery headers (Return-Path, Received, etc.)
+            body_for_classify = text or html or ''
 
             ml = predict_with_fallback(predict_subject_type, subject or '', body_for_classify or '', threshold=0.6, sender=from_addr or '')
             if ml and isinstance(ml, dict):

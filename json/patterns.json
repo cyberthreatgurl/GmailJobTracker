@@ -44,8 +44,7 @@
     "application_confirmation": [
       "\\b(we\\s+have\\s+received\\s+your\\s+application|we['’]?ve\\s+received\\s+your\\s+application|thanks?\\s+(?:you\\s+)?for\\s+applying|application\\s+received|your\\s+application\\s+has\\s+been\\s+received|your\\s+application\\s+has\\s+been\\s+submitted|your\\s+application\\s+was\\s+sent)\\b",
       "\\bthank\\s+you\\s+for\\s+your\\s+application\\b",
-      "\\bwe\\s+will\\s+review\\s+your\\s+(?:application|submission)\\b",
-      "\\bthis\\s+is\\s+an\\s+automated\\s+email\\s+response\\b"
+      "\\bwe\\s+will\\s+review\\s+your\\s+(?:application|submission)\\b"
     ]
   },
   "validation_rules": {

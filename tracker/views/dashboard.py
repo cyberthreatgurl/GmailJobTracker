@@ -7,7 +7,7 @@ import json
 import os
 import re
 from collections import defaultdict
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from pathlib import Path
 from django.contrib.auth.decorators import login_required
 from django.db import models
@@ -599,25 +599,24 @@ def dashboard(request):
             company_id=company_filter_id
         )
 
-    interview_companies = [
-        {
-            "company_id": item["company_id"],
-            "company__name": item["company__name"],
-            "interview_date": item["interview_date"].strftime("%Y-%m-%d"),
-        }
-        for item in interview_companies_qs
-    ]
-
-    # 2) Message-based interview invites (only for threads WITHOUT an interview_date in ThreadTracking for the same company)
-    # This prevents double-counting: if user set interview_date in ThreadTracking for a company, don't count the message too
-    # Build a set of (thread_id, company_id) tuples that have interview_date in ThreadTracking
-    tt_with_interview = ThreadTracking.objects.filter(
-        interview_date__isnull=False,
-        company__isnull=False
-    ).values('thread_id', 'company_id')
+    # Use a dict to track the most recent interview per company (deduplicate by company_id)
+    interview_by_company = {}
     
-    # Create a set for fast lookup: {(thread_id, company_id), ...}
-    tracked_thread_companies = {(item['thread_id'], item['company_id']) for item in tt_with_interview}
+    for item in interview_companies_qs:
+        company_id = item["company_id"]
+        interview_date = item["interview_date"]
+        # Keep the most recent interview_date per company
+        if company_id not in interview_by_company or interview_date > interview_by_company[company_id]["interview_date"]:
+            interview_by_company[company_id] = {
+                "company_id": company_id,
+                "company__name": item["company__name"],
+                "interview_date": interview_date,
+            }
+
+    # 2) Message-based interview invites (only for companies WITHOUT a ThreadTracking interview_date)
+    # This prevents double-counting: if company has ThreadTracking.interview_date, don't add message-based entry
+    # Build a set of company_ids that already have interview_date in ThreadTracking
+    tracked_companies = set(interview_by_company.keys())
     
     # Get all interview messages (support both 'interview_invite' and 'interview')
     msg_interviews_qs = Message.objects.filter(
@@ -636,18 +635,35 @@ def dashboard(request):
     if company_filter_id:
         msg_interviews_qs = msg_interviews_qs.filter(company_id=company_filter_id)
 
-    # Filter out messages that already have ThreadTracking with interview_date for the same company
-    # Use message timestamp as the interview_date surrogate for display and client-side filtering
+    # Add message-based interviews, keeping only the most recent per company
+    # Skip companies that already have ThreadTracking interview_date
     for msg in msg_interviews_qs:
-        # Skip if this (thread_id, company_id) combination already has a ThreadTracking interview_date
-        if (msg.thread_id, msg.company_id) not in tracked_thread_companies:
-            interview_companies.append(
-                {
-                    "company_id": msg.company_id,
-                    "company__name": msg.company.name,
-                    "interview_date": msg.timestamp.strftime("%Y-%m-%d"),
-                }
-            )
+        company_id = msg.company_id
+        msg_date = msg.timestamp.date()
+        
+        # Skip if this company already has a ThreadTracking interview
+        if company_id in tracked_companies:
+            continue
+            
+        # Keep the most recent message-based interview per company
+        if company_id not in interview_by_company or msg_date > interview_by_company[company_id]["interview_date"]:
+            interview_by_company[company_id] = {
+                "company_id": company_id,
+                "company__name": msg.company.name,
+                "interview_date": msg_date,
+            }
+
+    # Convert to list, format dates as strings
+    interview_companies = [
+        {
+            "company_id": item["company_id"],
+            "company__name": item["company__name"],
+            "interview_date": item["interview_date"].strftime("%Y-%m-%d") 
+                if isinstance(item["interview_date"], date) 
+                else str(item["interview_date"]),
+        }
+        for item in interview_by_company.values()
+    ]
 
     ghosted_companies = [
         {

@@ -195,10 +195,6 @@
         "\\bdo\\s+not\\s+reply\\b",
         "\\breply-?to:\\s*\\S*workday\\b",
         "\\bauto-?submitted\\b",
-        "\\bsubmission\\s+(?:received|confirmation)\\b",
-        "\\byour\\s+application\\s+(?:has\\s+been\\s+)?(?:received|submitted|was\\s+sent)\\b",
-        "\\bthank\\s+you\\s+for\\s+applying\\b",
-        "\\bwe\\s+(?:have\\s+)?received\\s+your\\s+(?:application|resume|submission)\\b",
         "\\bworkday\\b",
         "\\bmyworkday\\b",
         "\\btalent\\.icims\\b"

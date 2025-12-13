@@ -1,0 +1,405 @@
+Received: from pps.filterd (m0325757.ppops.net [127.0.0.1])
+	by mx0a-000cda51.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 52D7S6vW007719
+	for <kaver68@gmail.com>; Thu, 13 Mar 2025 07:28:10 GMT
+Received: by 2002:a05:7108:5592:b0:409:341d:166a with SMTP id bh18csp720802gdb;
+        Thu, 13 Mar 2025 00:28:11 -0700 (PDT)
+Received: from mx0a-000cda51.pphosted.com (mx0a-000cda51.pphosted.com. [205.220.163.213])
+        by mx.google.com with ESMTPS id e9e14a558f8ab-3d47a8477a0si5870545ab.147.2025.03.13.00.28.11
+        for <kaver68@gmail.com>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Thu, 13 Mar 2025 00:28:11 -0700 (PDT)
+Received: from wire-prod-t9yjtg90.prod-wire.pr502.cust.pdx.wd
+ ([209.177.169.160])
+	by cmsmtp with ESMTPSA
+	id sczBteHQGqAfLsczCtgv4P; Thu, 13 Mar 2025 07:28:10 +0000
+Received: from smtp-us.ser.proofpoint.com (pmta-usw.ser.proofpoint.com [50.112.124.217])
+	by mx0a-000cda51.pphosted.com (PPS) with ESMTPS id 45b0k18b9u-4
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT)
+	for <kaver68@gmail.com>; Thu, 13 Mar 2025 07:28:10 +0000 (GMT)
+Reply-To: <workday@proofpoint.com>
+From: "MyWorkday@Proofpoint" <donotreply@proofpoint.com>
+To: <kaver68@gmail.com>
+Subject: Proofpoint - Thank you for applying!
+Date: Thu, 13 Mar 2025 03:28:09 -0400
+Message-ID: <658869981.9558899.1741850889868@wire-prod-t9yjtg90.prod-wire.pr502.cust.pdx.wd>
+MIME-Version: 1.0
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_D88A_01DBC50D.CA8A4E70"
+X-Mailer: SER-77d3b8670635b760820a9c8bc2ee8c256d380afc5a4dc444d4b354d03aa0b81c
+X-Google-Smtp-Source: AGHT+IF+MHHLc2lSM5o55EU/7pwyn4B2lF1n9vmw/3nu10jpii1LS5BgP6WsuwNQOayTOUy5qMy1
+X-Received: by 2002:a05:6e02:10:b0:3d3:fa8d:be6e with SMTP id e9e14a558f8ab-3d468997e76mr100343705ab.14.1741850891422;
+        Thu, 13 Mar 2025 00:28:11 -0700 (PDT)
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@proofpoint.com header.s=ser-pfpt-20230525 header.b="7n/ca0LZ";
+       spf=pass (google.com: domain of donotreply@proofpoint.com designates 205.220.163.213 as permitted sender) smtp.mailfrom=donotreply@proofpoint.com;
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=proofpoint.com
+List-Unsubscribe:  List-Unsubscribe=One-Click
+X-Workday-Security: false
+X-Workday-Static-BP-Address: false
+X-Workday-System: false
+thread-index: AQIPnIQqhYt3FK3HtccJewKtRuRGJw==
+X-Authority-Analysis: v=2.4 cv=bvFMBFai c=1 sm=1 tr=0 ts=67d2890a cx=c_pps a=BSg0rn7YetKSVKAoZuCW0A==:117 a=BSg0rn7YetKSVKAoZuCW0A==:17 a=IkcTkHD0fZMA:10 a=Vs1iUdzkB0EA:10 a=NQcj25q2HTMA:10 a=7j0FZ4iXMVMA:10 a=g8TUdU_LZmEA:10 a=3g80flMcAAAA:8
+ a=J1bDO-emAAAA:8 a=HNsDJU5oAAAA:8 a=3j4BkbkPAAAA:8 a=0NS-x_NrAAAA:8 a=BkpHzsgbAAAA:8 a=JqEG_dyiAAAA:8 a=jU4qhlNgAAAA:8 a=SSmOFEACAAAA:8 a=pGLkceISAAAA:8 a=YcTGs8Yd76vb5xzWalsA:9 a=9hgEvo6T5d_H_t_M:21 a=gKO2Hq4RSVkA:10 a=frz4AuCg-hUA:10 a=_W_S_7VecoQA:10
+ a=QEXdDO2ut3YA:10 a=O23WzTs1fjcA:10 a=DqJYxgmhk6moR-_7_KoZ:22 a=3urWGuTZa-U-TZ_dHwj2:22 a=muK9suA625VCvLKJiCvl:22
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1093,Hydra:6.0.680,FMLib:17.12.68.34
+ definitions=2025-03-13_03,2025-03-11_02,2024-11-22_01
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 mlxlogscore=999 bulkscore=0
+ adultscore=0 spamscore=0 phishscore=0 mlxscore=0 malwarescore=0
+ suspectscore=0 classifier=spam authscore=0 authtc=n/a authcc=
+ route=outbound adjust=0 reason=mlx scancount=1 engine=8.21.0-2502280000
+ definitions=main-2503130057
+X-OlkEid: 00000000F5FCF72FD40EDE41AB4D877D434A2D1E070034AD76187591974DBF6C4F76951C873A01000000000000000D12B7DE8A61614B990C5B0614641214000000000C0E0000049791D512AD524B801E3FD62875AA75
+X-Proofpoint-GUID: 9GM8PwZeeHY_U58I53eek9H-JJTEVbwq
+X-Proofpoint-ORIG-GUID: 9GM8PwZeeHY_U58I53eek9H-JJTEVbwq
+X-Cloudmark-MID: sczBteHQGqAfLsczCtgv4P
+X-Proofpoint-CID: b75fca93-f96e-3b20-a8a5-0caf5d7fb431
+
+This is a multipart message in MIME format.
+
+------=_NextPart_000_D88A_01DBC50D.CA8A4E70
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: 8bit
+
+
+
+  <https://wd5.myworkdaycdn.com/wday/email/proofpoint/2c2f7f3d-4e12-4053-3065-3b25474e497f?__token__=exp=1836199683~hmac=40467872E1D4F859A5E621210336D3C6E03982DFABB6132B819B58FB9078E633>
+
+
+  <https://wd5.myworkdaycdn.com/wday/email/proofpoint/383c664b-363b-484f-172e-09072a47203d?__token__=exp=1836199683~hmac=F10CAF6D1629B894CA82FEBF20F121D4B5CA30A09F3C6B682A44C69D71AD053C>
+
+
+Dear Adrian
+
+Thank you for submitting your resume to Proofpoint for consideration.
+
+We are fortunate to have many qualified candidates apply to each of our 
+positions. We have reviewed the qualifications of each candidate and after 
+careful consideration, we have determined that the credentials of other 
+candidates may better fit our needs at this time for the Sr. Manager, Threat 
+Research opening.
+
+Should your qualifications match the requirements of other openings you've 
+applied to, you will be contacted by our Recruiting Team.
+
+Feel free to explore our job openings as they are constantly changing:
+
+https://proofpoint.wd5.myworkdayjobs.com/ProofpointCareers
+
+
+Please accept our best wishes and thank you for your interest in Proofpoint
+
+Warm Regards,
+Proofpoint Talent Acquisition Team
+
+
+ <http://www.facebook.com/proofpoint>  	 <http://www.instagram.com> 
+<http://www.twitter.com/proofpoint> 
+<https://www.linkedin.com/company/proofpoint>
+
+
+This email was intended for kaver68@gmail.com
+Proofpoint, Inc. • 925 W. Maude Avenue, Sunnyvale, CA 94085
+
+------=_NextPart_000_D88A_01DBC50D.CA8A4E70
+Content-Type: text/html;
+	charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+<!doctype html><html lang=3Den xmlns=3D"http://www.w3.org/1999/xhtml" =
+xmlns:v=3D"urn:schemas-microsoft-com:vml" =
+xmlns:o=3D"urn:schemas-microsoft-com:office:office"><head><title></title>=
+<!--[if !mso]><!-- --><meta http-equiv=3D"X-UA-Compatible" =
+content=3D"IE=3Dedge"><!--<![endif]--><meta http-equiv=3D"Content-Type" =
+content=3D"text/html; charset=3DUTF-8"><meta name=3D"viewport" =
+content=3D"width=3Ddevice-width, initial-scale=3D1"><style =
+type=3D"text/css"> #outlook a { padding:0; }  body { =
+margin:0;padding:0;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100=
+%; }  table, td { =
+border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt; }  =
+img { border:0;height:auto;line-height:100%; =
+outline:none;text-decoration:none;-ms-interpolation-mode:bicubic; }   p =
+{ display:block;margin:13px 0; } </style> <!--[if mso]> <xml> =
+<o:OfficeDocumentSettings>  =
+<o:AllowPNG/><o:PixelsPerInch>96</o:PixelsPerInch> =
+</o:OfficeDocumentSettings> </xml> <![endif]--> <!--[if lte mso 11]> =
+<style type=3D"text/css"> .mj-outlook-group-fix { width:100% !important; =
+} </style><![endif]--><!--[if !mso]><!--><link =
+href=3D"https://fonts.googleapis.com/css2?family=3DArvo" =
+rel=3D"stylesheet" type=3D"text/css">
+<link href=3D"https://fonts.googleapis.com/css2?family=3DLato" =
+rel=3D"stylesheet" type=3D"text/css">
+<link href=3D"https://fonts.googleapis.com/css2?family=3DLora" =
+rel=3D"stylesheet" type=3D"text/css">
+<link href=3D"https://fonts.googleapis.com/css2?family=3DMerriweather" =
+rel=3D"stylesheet" type=3D"text/css">
+<link =
+href=3D"https://fonts.googleapis.com/css2?family=3DMerriweather+Sans" =
+rel=3D"stylesheet" type=3D"text/css">
+<link href=3D"https://fonts.googleapis.com/css2?family=3DNoticia+Text" =
+rel=3D"stylesheet" type=3D"text/css">
+<link href=3D"https://fonts.googleapis.com/css2?family=3DOpen+Sans" =
+rel=3D"stylesheet" type=3D"text/css">
+<link =
+href=3D"https://fonts.googleapis.com/css2?family=3DPlayfair+Display" =
+rel=3D"stylesheet" type=3D"text/css">
+<link href=3D"https://fonts.googleapis.com/css2?family=3DRoboto" =
+rel=3D"stylesheet" type=3D"text/css">
+<link =
+href=3D"https://fonts.googleapis.com/css2?family=3DSource+Sans+Pro" =
+rel=3D"stylesheet" type=3D"text/css"><style type=3D"text/css">
+@import url(https://fonts.googleapis.com/css2?family=3DArvo);
+@import url(https://fonts.googleapis.com/css2?family=3DLato);
+@import url(https://fonts.googleapis.com/css2?family=3DLora);
+@import url(https://fonts.googleapis.com/css2?family=3DMerriweather);
+@import =
+url(https://fonts.googleapis.com/css2?family=3DMerriweather+Sans);
+@import url(https://fonts.googleapis.com/css2?family=3DNoticia+Text);
+@import url(https://fonts.googleapis.com/css2?family=3DOpen+Sans);
+@import =
+url(https://fonts.googleapis.com/css2?family=3DPlayfair+Display);
+@import url(https://fonts.googleapis.com/css2?family=3DRoboto);
+@import =
+url(https://fonts.googleapis.com/css2?family=3DSource+Sans+Pro);</style><=
+!--<![endif]--><style type=3D"text/css">
+@media only screen and (max-width:600px){
+.mj-column-per-33-333333333333336 {
+width:unset !important;
+max-width:unset;
+display:block !important;
+}
+.mj-column-per-100-0 {
+width:unset !important;
+max-width:unset;
+display:block !important;
+}}</style><style type=3D"text/css">  .emphasis { =
+color:#a33600;font-weight:700; }  .emphasis-2 { =
+color:#537824;font-weight:700; }  .emphasis-3 { =
+color:#005cb9;font-weight:700; }</style></head><body =
+style=3D"background-color:#f0f1f2;"><div =
+style=3D"background-color:#f0f1f2;" ><!--[if mso | IE]><table =
+align=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" =
+style=3D"width:600px;" width=3D"600px" ><tr><td =
+style=3D"line-height:0px;font-size:0px;mso-line-height-url:exactly;"><![e=
+ndif]--><div style=3D"margin:0px auto;max-width:600px;"><table =
+align=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" =
+role=3D"presentation" style=3D"width:100%;" ><tbody><tr><td =
+style=3D"direction:ltr;font-size:0px;padding:0px;text-align:center;displa=
+y:table;width:100%;"><!--[if mso | IE]><table role=3D"presentation" =
+border=3D"0" cellpadding=3D"0" cellspacing=3D"0" ><![endif]--><!--[if =
+mso | IE]><tr><![endif]--><!--[if mso | IE]><td =
+style=3D"vertical-align:middle;width:200px;background-color:#ffffff;" =
+><![endif]--><div =
+style=3D"font-size:0px;text-align:left;display:table-cell;direction:ltr;v=
+ertical-align:middle;width:33%;background-color:#ffffff;padding:0;" =
+class=3D"mj-column-per-33-333333333333336 mj-outlook-group-fix" ><table =
+border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentation" =
+style=3D"vertical-align:middle;background-color:#ffffff;padding:0;" =
+width=3D"100%" ><tr><td align=3D"center" =
+style=3D"font-size:0px;word-break:break-word;direction:ltr;" ><table =
+border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentation" =
+style=3D"border-collapse:collapse;border-spacing:0px;" ><tbody><tr><td =
+style=3D"width:200px;"><img =
+src=3D"https://wd5.myworkdaycdn.com/wday/email/proofpoint/2c2f7f3d-4e12-4=
+053-3065-3b25474e497f?__token__=3Dexp=3D1836199683~hmac=3D40467872E1D4F85=
+9A5E621210336D3C6E03982DFABB6132B819B58FB9078E633" =
+style=3D"border:0;display:block;outline:none;text-decoration:none;height:=
+auto;width:100%;font-size:13px;" width=3D"200" height=3D"auto" =
+></img></td></tr></tbody></table></td></tr></table></div><!--[if mso | =
+IE]></td><![endif]--><!--[if mso | IE]><td =
+style=3D"vertical-align:top;width:200px;background-color:#ffffff;" =
+><![endif]--><div =
+style=3D"font-size:0px;text-align:left;display:table-cell;direction:ltr;v=
+ertical-align:top;width:33%;background-color:#ffffff;padding:0;" =
+class=3D"mj-column-per-33-333333333333336 mj-outlook-group-fix" ><table =
+border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentation" =
+style=3D"vertical-align:top;background-color:#ffffff;padding:0;" =
+width=3D"100%" ></table></div><!--[if mso | IE]></td><![endif]--><!--[if =
+mso | IE]><td =
+style=3D"vertical-align:top;width:200px;background-color:#ffffff;" =
+><![endif]--><div =
+style=3D"font-size:0px;text-align:left;display:table-cell;direction:ltr;v=
+ertical-align:top;width:33%;background-color:#ffffff;padding:0;" =
+class=3D"mj-column-per-33-333333333333336 mj-outlook-group-fix" ><table =
+border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentation" =
+style=3D"vertical-align:top;background-color:#ffffff;padding:0;" =
+width=3D"100%" ></table></div><!--[if mso | IE]></td><![endif]--><!--[if =
+mso | IE]><![endif]--><!--[if mso | =
+IE]></table><![endif]--></td></tr></tbody></table></div><!--[if mso | =
+IE]></td></tr></table><![endif]--><!--[if mso | IE]><table =
+align=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" =
+style=3D"width:600px;" width=3D"600px" ><tr><td =
+style=3D"line-height:0px;font-size:0px;mso-line-height-url:exactly;"><![e=
+ndif]--><div style=3D"margin:0px auto;max-width:600px;"><table =
+align=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" =
+role=3D"presentation" style=3D"width:100%;" ><tbody><tr><td =
+style=3D"direction:ltr;font-size:0px;padding:0px;text-align:center;displa=
+y:table;width:100%;"><!--[if mso | IE]><table role=3D"presentation" =
+border=3D"0" cellpadding=3D"0" cellspacing=3D"0" ><![endif]--><!--[if =
+mso | IE]><tr><![endif]--><!--[if mso | IE]><td =
+style=3D"vertical-align:middle;width:600px;background-color:#ffffff;" =
+><![endif]--><div =
+style=3D"font-size:0px;text-align:left;display:table-cell;direction:ltr;v=
+ertical-align:middle;width:100%;background-color:#ffffff;padding:0;" =
+class=3D"mj-column-per-100-0 mj-outlook-group-fix" ><table border=3D"0" =
+cellpadding=3D"0" cellspacing=3D"0" role=3D"presentation" =
+style=3D"vertical-align:middle;background-color:#ffffff;padding:0;" =
+width=3D"100%" ><tr><td align=3D"center" =
+style=3D"font-size:0px;word-break:break-word;direction:ltr;" ><table =
+border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentation" =
+style=3D"border-collapse:collapse;border-spacing:0px;" ><tbody><tr><td =
+style=3D"width:600px;"><img =
+src=3D"https://wd5.myworkdaycdn.com/wday/email/proofpoint/383c664b-363b-4=
+84f-172e-09072a47203d?__token__=3Dexp=3D1836199683~hmac=3DF10CAF6D1629B89=
+4CA82FEBF20F121D4B5CA30A09F3C6B682A44C69D71AD053C" =
+style=3D"border:0;display:block;outline:none;text-decoration:none;height:=
+auto;width:100%;font-size:13px;" width=3D"600" height=3D"auto" =
+></img></td></tr></tbody></table></td></tr></table></div><!--[if mso | =
+IE]></td><![endif]--><!--[if mso | IE]><![endif]--><!--[if mso | =
+IE]></table><![endif]--></td></tr></tbody></table></div><!--[if mso | =
+IE]></td></tr></table><![endif]--><!--[if mso | IE]><table =
+align=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" =
+style=3D"width:600px;" width=3D"600px" ><tr><td =
+style=3D"line-height:0px;font-size:0px;mso-line-height-url:exactly;"><![e=
+ndif]--><div style=3D"margin:0px auto;max-width:600px;"><table =
+align=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" =
+role=3D"presentation" style=3D"width:100%;" ><tbody><tr><td =
+style=3D"direction:ltr;font-size:0px;padding:0px;text-align:center;displa=
+y:table;width:100%;"><!--[if mso | IE]><table role=3D"presentation" =
+border=3D"0" cellpadding=3D"0" cellspacing=3D"0" ><![endif]--><!--[if =
+mso | IE]><tr><![endif]--><!--[if mso | IE]><td =
+style=3D"vertical-align:top;width:600px;background-color:#ffffff;" =
+><![endif]--><div =
+style=3D"font-size:0px;text-align:left;display:table-cell;direction:ltr;v=
+ertical-align:top;width:100%;background-color:#ffffff;padding:25px;" =
+class=3D"mj-column-per-100-0 mj-outlook-group-fix" ><table border=3D"0" =
+cellpadding=3D"0" cellspacing=3D"0" role=3D"presentation" =
+style=3D"vertical-align:top;background-color:#ffffff;padding:25px;" =
+width=3D"100%" ><tr><td align=3D"left" =
+style=3D"font-size:0px;word-break:break-word;direction:ltr;" ><div =
+style=3D"font-family:Arial, Helvetica, =
+sans-serif;font-size:14px;line-height:1.4;text-align:left;color:#333333;w=
+ord-break:break-word;">Dear Adrian <br/><br/>Thank you for submitting =
+your resume to Proofpoint for consideration. <br/><br/>We are fortunate =
+to have many qualified candidates apply to each of our positions. We =
+have reviewed the qualifications of each candidate and after careful =
+consideration, we have determined that the credentials of other =
+candidates may better fit our needs at this time for the Sr. Manager, =
+Threat Research opening. <br/><br/>Should your qualifications match the =
+requirements of other openings you've applied to, you will be contacted =
+by our Recruiting Team. <br/><br/>Feel free to explore our job openings =
+as they are constantly changing: <br/><div =
+style=3D"word-break:break-all">https://proofpoint.wd5.myworkdayjobs.com/P=
+roofpointCareers</div> <br/><br/>Please accept our best wishes and thank =
+you for your interest in Proofpoint <br/><br/>Warm =
+Regards,<br>Proofpoint Talent Acquisition =
+Team</div></td></tr></table></div><!--[if mso | =
+IE]></td><![endif]--><!--[if mso | IE]><![endif]--><!--[if mso | =
+IE]></table><![endif]--></td></tr></tbody></table></div><!--[if mso | =
+IE]></td></tr></table><![endif]--><!--[if mso | IE]><table =
+align=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" =
+style=3D"width:600px;" width=3D"600px" ><tr><td =
+style=3D"line-height:0px;font-size:0px;mso-line-height-url:exactly;"><![e=
+ndif]--><div style=3D"margin:0px auto;max-width:600px;"><table =
+align=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" =
+role=3D"presentation" style=3D"width:100%;" ><tbody><tr><td =
+style=3D"direction:ltr;font-size:0px;padding:0px;text-align:center;displa=
+y:table;width:100%;"><!--[if mso | IE]><table role=3D"presentation" =
+border=3D"0" cellpadding=3D"0" cellspacing=3D"0" ><![endif]--><!--[if =
+mso | IE]><tr><![endif]--><!--[if mso | IE]><td =
+style=3D"vertical-align:middle;width:600px;background-color:#ffffff;" =
+><![endif]--><div =
+style=3D"font-size:0px;text-align:left;display:table-cell;direction:ltr;v=
+ertical-align:middle;width:100%;background-color:#ffffff;padding:25px;" =
+class=3D"mj-column-per-100-0 mj-outlook-group-fix" ><table border=3D"0" =
+cellpadding=3D"0" cellspacing=3D"0" role=3D"presentation" =
+style=3D"vertical-align:middle;background-color:#ffffff;padding:25px;" =
+width=3D"100%" ><tr><td align=3D"center" =
+style=3D"font-size:0px;word-break:break-word;direction:ltr;" =
+><table><tbody><tr>
+<td style=3D"margin:0 5px;" ><a =
+href=3D"http://www.facebook.com/proofpoint" =
+style=3D"display:inline-block;width:40px;height:40px;background:#009ada;m=
+argin:0 5px;border-radius:6px;overflow:hidden;" target=3D"_blank" >
+<img =
+src=3D"https://wd5.myworkday.com/wday/asset/notification-designer/images/=
+facebook_inverted_80.png" =
+style=3D"border:0;display:block;outline:none;text-decoration:none;width:4=
+0px;height:40px;" width=3D"40" height=3D"40" >
+</a></td>
+<td style=3D"margin:0 5px;" ><a href=3D"http://www.instagram.com" =
+style=3D"display:inline-block;width:40px;height:40px;background:#009ada;m=
+argin:0 5px;border-radius:6px;overflow:hidden;" target=3D"_blank" >
+<img =
+src=3D"https://wd5.myworkday.com/wday/asset/notification-designer/images/=
+instagram_inverted_80.png" =
+style=3D"border:0;display:block;outline:none;text-decoration:none;width:4=
+0px;height:40px;" width=3D"40" height=3D"40" >
+</a></td>
+<td style=3D"margin:0 5px;" ><a =
+href=3D"http://www.twitter.com/proofpoint" =
+style=3D"display:inline-block;width:40px;height:40px;background:#009ada;m=
+argin:0 5px;border-radius:6px;overflow:hidden;" target=3D"_blank" >
+<img =
+src=3D"https://wd5.myworkday.com/wday/asset/notification-designer/images/=
+twitter_inverted_80.png" =
+style=3D"border:0;display:block;outline:none;text-decoration:none;width:4=
+0px;height:40px;" width=3D"40" height=3D"40" >
+</a></td>
+<td style=3D"margin:0 5px;" ><a =
+href=3D"https://www.linkedin.com/company/proofpoint" =
+style=3D"display:inline-block;width:40px;height:40px;background:#009ada;m=
+argin:0 5px;border-radius:6px;overflow:hidden;" target=3D"_blank" >
+<img =
+src=3D"https://wd5.myworkday.com/wday/asset/notification-designer/images/=
+linkedin_inverted_80.png" =
+style=3D"border:0;display:block;outline:none;text-decoration:none;width:4=
+0px;height:40px;" width=3D"40" height=3D"40" >
+</a></td></tr></tbody></table></td></tr></table></div><!--[if mso | =
+IE]></td><![endif]--><!--[if mso | IE]><![endif]--><!--[if mso | =
+IE]></table><![endif]--></td></tr></tbody></table></div><!--[if mso | =
+IE]></td></tr></table><![endif]--></div><!--[if mso | IE]><table =
+border=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D"600" =
+align=3D"center" style=3D"width:600px;"><tr><td =
+style=3D"line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![=
+endif]--><div style=3D"margin:auto;max-width:600px;">
+<table border=3D"0" align=3D"center" style=3D"font-size:0px;width:100%;" =
+cellspacing=3D"0" cellpadding=3D"0">
+<tbody>
+<tr>
+<td =
+style=3D"text-align:center;vertical-align:top;font-size:0px;padding:20px =
+0px;">
+
+<!--[if mso | IE]><table role=3D"presentation" border=3D"0" =
+cellpadding=3D"0" cellspacing=3D"0"><tr><td =
+style=3D"vertical-align:top;width:600px;"><![endif]-->
+
+<div =
+style=3D"vertical-align:top;display:inline-block;font-size:13px;text-alig=
+n:left;width:100%;"class=3D"mj-column-per-100" =
+aria-labelledby=3D"mj-column-per-100"><table border=3D"0" width=3D"100%" =
+cellspacing=3D"0" cellpadding=3D"0" >
+<tbody>
+<tr>
+<td align=3D"center" =
+style=3D"word-break:break-word;font-size:0px;padding-bottom:0px;"><div =
+style=3D"cursor:auto;color:#98a0a6;font-family:Roboto;font-size:12px;font=
+-weight:400;line-height:22px;">This email was intended for =
+kaver68@gmail.com <br>Proofpoint, Inc. <span>&#8226;</span> 925 W. Maude =
+Avenue, Sunnyvale, CA 94085 </div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td></tr></table><![endif]-->
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td></tr></table><![endif]--></body></html>
+
+------=_NextPart_000_D88A_01DBC50D.CA8A4E70--

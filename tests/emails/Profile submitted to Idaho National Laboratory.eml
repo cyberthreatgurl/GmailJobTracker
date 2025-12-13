@@ -1,0 +1,142 @@
+Delivered-To: kaver68@gmail.com
+Received: by 2002:ac4:b181:0:b0:761:e12b:7030 with SMTP id i1csp554515pic;
+        Fri, 12 Dec 2025 15:13:39 -0800 (PST)
+X-Google-Smtp-Source: AGHT+IEkFFvt8V1w+GD72HOoa5s254Gx3wB4SoSK1A0uOkjOYmlP9YuJ/+MD7RJibtThVlEVsLCe
+X-Received: by 2002:a05:6214:3008:b0:880:80b3:e29c with SMTP id 6a1803df08f44-8887feff44amr62005426d6.14.1765581219286;
+        Fri, 12 Dec 2025 15:13:39 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1765581219; cv=none;
+        d=google.com; s=arc-20240605;
+        b=TP6yXRKwx6jXSu96K6uZuds+cmlypwu1VwSaO1xnLCg9wu3P6NIXg21TTnx/DexNFI
+         I52/QdXHrTibMJzMshFlLjWfF87CKrzvhq/hlvMkHVo45tujIzya7CqKkEUkUPIXSceH
+         Tzm2Vdg7crhGrsWO7hTtHVQWfeYNikXc8O2hW/TjPUnaFbHVf5w+R9asd/iRxAbOrJIQ
+         UZR69FgQXwcx1EbJpyOXcqg6sgamZiZQRIbLtXvomrpiNfHkO8iRdyumSGAh0QfJ7rId
+         rOOvyIz7kM1PEY9CZRLQPpXktGj+yniiKwU2mlTQjLbVzo483wMRH7IzXEBc2YQnKioz
+         cDjQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=importance:mime-version:subject:message-id:to:from:date
+         :dkim-signature:dkim-filter;
+        bh=5hpU3lvajMswI4UDwffTNppWm+LrAk+eU3SztzECmic=;
+        fh=WVga5B8RSfzcEBjifkomPaHgNzsk/Bb0UeVZbF/0O2Q=;
+        b=eEcPAyucofx3WWLZYeSVISwTIiFjTySy/chgkb660UGlHEz3xifJ1pM1WKEQ+vX3UF
+         KIorjo1PC2KP6c1aL86+ATvUvZMYtUZNnBg1hs0dLGvmrNEMDNkfB6ggpZgck60aJom/
+         n99QTjrS6h4X5j5FadhsAyuLSvsNQP41wSnustoN9UnThEijTrS8jEpNy7syjO0Ncdu6
+         EKWVC2H0fDqwAnj1LjBa8ldsVTtdgrQKDymZ2WHkoEbDCrNsJxT1o4gs+nvBB1CeFsTC
+         BxFS5aabw2xqdhAdBn9+kpNxwjhcuLwqFE9kt4zzO8euQJilcrkOusG7dCqxdfc0YD/s
+         2kbQ==;
+        dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@inl.gov header.s=dktaleo180222 header.b=A6zL7Loo;
+       spf=pass (google.com: domain of staffing@inl.gov designates 155.248.8.180 as permitted sender) smtp.mailfrom=staffing@inl.gov;
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=inl.gov
+Return-Path: <staffing@inl.gov>
+Received: from lfigrelay.taleo.net (lfigrelay.taleo.net. [155.248.8.180])
+        by mx.google.com with ESMTPS id 6a1803df08f44-889a863fc7bsi4758706d6.371.2025.12.12.15.13.39
+        for <kaver68@gmail.com>
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 12 Dec 2025 15:13:39 -0800 (PST)
+Received-SPF: pass (google.com: domain of staffing@inl.gov designates 155.248.8.180 as permitted sender) client-ip=155.248.8.180;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@inl.gov header.s=dktaleo180222 header.b=A6zL7Loo;
+       spf=pass (google.com: domain of staffing@inl.gov designates 155.248.8.180 as permitted sender) smtp.mailfrom=staffing@inl.gov;
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=inl.gov
+Received: from lfig1a-app-007.a.lfig.oraclevcn.com (host-10-144-56-172.n.lfig.oraclevcn.com [10.144.56.172])
+	by lfigrelay.taleo.net (Postfix) with ESMTPS id DC6CE81462
+	for <kaver68@gmail.com>; Fri, 12 Dec 2025 18:13:38 -0500 (EST)
+DKIM-Filter: OpenDKIM Filter v2.11.0 lfigrelay.taleo.net DC6CE81462
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=inl.gov;
+	s=dktaleo180222; t=1765581218; x=1766013218;
+	bh=5hpU3lvajMswI4UDwffTNppWm+LrAk+eU3SztzECmic=;
+	h=Date:From:To:Subject:From;
+	b=A6zL7LoolWssG7ihCYfNSLTE9KifjM54tJjy/gI8rSwld+mlLppGbfFfjr9FHGe4n
+	 IyEz6np4eFKHu8XG2hsvDretjQ8Dye8MukZF+/94KMYWA0wzVezuKcaFPfgHRDs3QG
+	 0Vu83EjktGDLbNFNZJZ5oS97L5uoLe/Jd1HhtYQk=
+Received: from lfig1a-app-007.a.lfig.oraclevcn.com (localhost [127.0.0.1])
+	by lfig1a-app-007.a.lfig.oraclevcn.com (Postfix) with ESMTP id D60BC800E8
+	for <kaver68@gmail.com>; Fri, 12 Dec 2025 18:13:38 -0500 (EST)
+Date: Fri, 12 Dec 2025 18:13:38 -0500 (EST)
+From: Idaho National Laboratory <staffing@inl.gov>
+To: kaver68@gmail.com, Adrian Shaw <kaver68@gmail.com>
+Message-ID: <461728572.4441.1765581218876@127.0.0.1>
+Subject: Profile submitted to Idaho National Laboratory
+MIME-Version: 1.0
+Content-Type: multipart/mixed; 
+	boundary="----=_Part_4440_1228582421.1765581218874"
+X-Priority: 3
+X-MSMail-Priority: Normal
+Importance: normal
+X-Spam-Status: No, score=3.7 required=15.0 tests=DOTGOV_IMAGE,
+	HTML_IMAGE_ONLY_28,HTML_IMAGE_RATIO_02,HTML_MESSAGE,MIME_HTML_ONLY,
+	MISSING_MIMEOLE,T_HTML_ATTACH,T_OBFU_HTML_ATTACH,T_REMOTE_IMAGE
+	autolearn=no autolearn_force=no version=3.4.6
+X-Spam-Level: ***
+X-Spam-Checker-Version: SpamAssassin 3.4.6
+
+------=_Part_4440_1228582421.1765581218874
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/><title></title>
+</head>
+<body style='font-family: Arial, Times New Roman, Verdana, Sans-Serif; padding: 5px 5px 5px 5px; margin: 0px; border-style: none; background-color: #ffffff'>
+<div><p style="MARGIN-BOTTOM: 0px; MARGIN-TOP: 0px"><img style="FONT-SIZE: 12pt; FONT-FAMILY: arial, &quot;times new roman&quot;, verdana, sans-serif" alt="" src="https://dmztheme19.inl.gov/SiteAssets/Stationery_Bgrnd-Header.png" width="794" height="192" />&nbsp;</p></div><div><div>
+<div><span style="font-family:arial">Dear Adrian,</span></div>
+<div><span style="font-family:arial">&nbsp;&nbsp;</span></div>
+<div><span style="font-family:arial">We have received the profile you submitted to our company. Please review our current job opportunities and apply online to be considered for employment.</span></div>
+<div><span style="font-family:arial"><br />
+</span></div>
+<div><span style="font-family:arial">If you would like to review your candidate file,&nbsp;</span><a href="https://inl.taleo.net/enterprise/2023PRD.2.1.22.3.0/akira/pub/fckeditor/editor/%7BCareerSection.ProfilerUrl%7D" style="font-family: arial;">click here</a><span style="font-family:arial">.</span></div>
+<div><span style="font-family:arial"><br />
+</span></div>
+<div><span style="font-family:arial">We thank you for your interest in Idaho National Laboratory.&nbsp; &nbsp;</span></div>
+<div><span style="font-family:arial">&nbsp;</span></div>
+<div><span style="font-family:arial">Best regards,</span></div>
+<div><span style="font-family:arial"><br />
+</span></div>
+<div><span style="font-family:arial">Talent Acquisition</span></div>
+<div><span style="font-family:arial">Idaho National Laboratory&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</span></div>
+<div><span style="font-family:arial"><br />
+</span></div>
+<div><span style="font-family:arial">Please Note:&nbsp; This message was automatically generated.&nbsp; Please do not respond.</span></div>
+</div></div><div><div><span style="font-family:arial"><span style="font-size:+0"><span style="font-size:0"><span style="font-size:1em"><img alt="" src="https://dmztheme19.inl.gov/SiteAssets/Stationery_Bgrnd-Footer.png" width="861" height="158" /><br />
+</span></span></span></span>&nbsp;</div></div></body>
+</html>
+
+------=_Part_4440_1228582421.1765581218874
+Content-Type: application/octet-stream; name=this_message_in_html.html
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename=this_message_in_html.html
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/><title></title>
+</head>
+<body style='font-family: Arial, Times New Roman, Verdana, Sans-Serif; padding: 5px 5px 5px 5px; margin: 0px; border-style: none; background-color: #ffffff'>
+<div><p style="MARGIN-BOTTOM: 0px; MARGIN-TOP: 0px"><img style="FONT-SIZE: 12pt; FONT-FAMILY: arial, &quot;times new roman&quot;, verdana, sans-serif" alt="" src="https://dmztheme19.inl.gov/SiteAssets/Stationery_Bgrnd-Header.png" width="794" height="192" />&nbsp;</p></div><div><div>
+<div><span style="font-family:arial">Dear Adrian,</span></div>
+<div><span style="font-family:arial">&nbsp;&nbsp;</span></div>
+<div><span style="font-family:arial">We have received the profile you submitted to our company. Please review our current job opportunities and apply online to be considered for employment.</span></div>
+<div><span style="font-family:arial"><br />
+</span></div>
+<div><span style="font-family:arial">If you would like to review your candidate file,&nbsp;</span><a href="https://inl.taleo.net/enterprise/2023PRD.2.1.22.3.0/akira/pub/fckeditor/editor/%7BCareerSection.ProfilerUrl%7D" style="font-family: arial;">click here</a><span style="font-family:arial">.</span></div>
+<div><span style="font-family:arial"><br />
+</span></div>
+<div><span style="font-family:arial">We thank you for your interest in Idaho National Laboratory.&nbsp; &nbsp;</span></div>
+<div><span style="font-family:arial">&nbsp;</span></div>
+<div><span style="font-family:arial">Best regards,</span></div>
+<div><span style="font-family:arial"><br />
+</span></div>
+<div><span style="font-family:arial">Talent Acquisition</span></div>
+<div><span style="font-family:arial">Idaho National Laboratory&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</span></div>
+<div><span style="font-family:arial"><br />
+</span></div>
+<div><span style="font-family:arial">Please Note:&nbsp; This message was automatically generated.&nbsp; Please do not respond.</span></div>
+</div></div><div><div><span style="font-family:arial"><span style="font-size:+0"><span style="font-size:0"><span style="font-size:1em"><img alt="" src="https://dmztheme19.inl.gov/SiteAssets/Stationery_Bgrnd-Footer.png" width="861" height="158" /><br />
+</span></span></span></span>&nbsp;</div></div></body>
+</html>
+
+------=_Part_4440_1228582421.1765581218874--

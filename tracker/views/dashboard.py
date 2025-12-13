@@ -599,14 +599,14 @@ def dashboard(request):
             company_id=company_filter_id
         )
 
-    # Use a dict to track the most recent interview per company (deduplicate by company_id)
+    # Use a dict to track the earliest interview per company (deduplicate by company_id)
     interview_by_company = {}
     
     for item in interview_companies_qs:
         company_id = item["company_id"]
         interview_date = item["interview_date"]
-        # Keep the most recent interview_date per company
-        if company_id not in interview_by_company or interview_date > interview_by_company[company_id]["interview_date"]:
+        # Keep the EARLIEST interview_date per company (first contact)
+        if company_id not in interview_by_company or interview_date < interview_by_company[company_id]["interview_date"]:
             interview_by_company[company_id] = {
                 "company_id": company_id,
                 "company__name": item["company__name"],
@@ -645,8 +645,8 @@ def dashboard(request):
         if company_id in tracked_companies:
             continue
             
-        # Keep the most recent message-based interview per company
-        if company_id not in interview_by_company or msg_date > interview_by_company[company_id]["interview_date"]:
+        # Keep the EARLIEST message-based interview per company (first contact)
+        if company_id not in interview_by_company or msg_date < interview_by_company[company_id]["interview_date"]:
             interview_by_company[company_id] = {
                 "company_id": company_id,
                 "company__name": msg.company.name,

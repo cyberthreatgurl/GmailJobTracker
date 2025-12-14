@@ -585,14 +585,14 @@ class RuleClassifier:
             for rx in self._msg_label_patterns.get(label, []):
                 match = rx.search(s)
                 if match:
-                    if DEBUG and label in ("rejection", "noise"):
+                    if DEBUG and label in ("rejection", "noise", "head_hunter"):
                         print(f"[DEBUG rule_label] Pattern MATCHED for '{label}': {rx.pattern[:80]}")
                         print(f"  Matched text: '{match.group()}'")
                     
                     # Check exclude patterns from patterns.json
                     excludes = self._msg_label_excludes.get(label, [])
-                    if DEBUG and label == "noise" and excludes:
-                        print(f"[DEBUG rule_label] Checking {len(excludes)} exclusion patterns for noise...")
+                    if DEBUG and label in ("noise", "head_hunter") and excludes:
+                        print(f"[DEBUG rule_label] Checking {len(excludes)} exclusion patterns for {label}...")
                     
                     matched_excludes = [ex for ex in excludes if ex.search(s)]
                     if matched_excludes:
@@ -3071,7 +3071,8 @@ def ingest_message(service, msg_id):
                                 print(f"Indeed employer extraction: {company}")
 
         # 2. Subject/body parse (if not resolved by domain or Indeed extraction)
-        if not company:
+        # Skip for headhunters - they should not have a company assigned
+        if not company and not is_headhunter:
             parsed_company = parsed_subject.get("company", "") or ""
             if parsed_company and is_valid_company_name(parsed_company):
                 company = normalize_company_name(parsed_company)
@@ -3080,7 +3081,8 @@ def ingest_message(service, msg_id):
                     print(f"Subject/body parse used: {company}")
 
         # 3. ML/NER extraction (if still unresolved)
-        if not company:
+        # Skip for headhunters - they should not have a company assigned
+        if not company and not is_headhunter:
             try:
                 predicted = predict_company(subject, body)
                 if (
@@ -3341,9 +3343,9 @@ def ingest_message(service, msg_id):
                     existing.company_source = company_source
                 if DEBUG:
                     print(f"[RE-INGEST] User reply/forward to job domain updated: label={result['label'] if result else 'N/A'}, company={company_obj.name if company_obj else 'None'}")
-        # Update company (including clearing it for reviewed noise messages)
-        elif skip_company_assignment and existing.reviewed:
-            # Reviewed noise messages should have no company
+        # Update company (including clearing it for noise messages)
+        elif skip_company_assignment:
+            # Noise messages (reviewed or not) should have no company
             existing.company = None
             existing.company_source = ""
         elif company_obj:

@@ -196,7 +196,13 @@
         "\\bauto-?submitted\\b",
         "\\bworkday\\b",
         "\\bmyworkday\\b",
-        "\\btalent\\.icims\\b"
+        "\\btalent\\.icims\\b",
+        "\\byour\\s+message\\s+is\\s+on\\s+its\\s+way\\s+to\\b",
+        "\\bthank\\s+you\\s+for\\s+taking\\s+action\\b",
+        "\\brepresentative\\s+[A-Z][a-z]+\\s+[A-Z][a-z]+\\b",
+        "\\bsenator\\s+[A-Z][a-z]+\\s+[A-Z][a-z]+\\b",
+        "\\bcongressman\\s+[A-Z][a-z]+\\s+[A-Z][a-z]+\\b",
+        "\\bcongresswoman\\s+[A-Z][a-z]+\\s+[A-Z][a-z]+\\b"
       ],
     "referral": [
       "\\blike\\sto\\sintroduce\\b",

@@ -3334,6 +3334,7 @@ def ingest_message(service, msg_id):
                 if result:
                     existing.ml_label = result["label"]
                     existing.confidence = result["confidence"]
+                    existing.classification_source = result.get("fallback") or "ml"
                 # Update company normally
                 if skip_company_assignment and existing.reviewed:
                     existing.company = None
@@ -3384,6 +3385,7 @@ def ingest_message(service, msg_id):
         if result and not (user_email and sender_email.startswith(user_email)):
             existing.ml_label = result["label"]
             existing.confidence = result["confidence"]
+            existing.classification_source = result.get("fallback") or "ml"
         
         # Only auto-mark as reviewed if not already reviewed AND meets high-confidence criteria
         # This preserves manual review status during re-ingestion
@@ -3632,6 +3634,7 @@ def ingest_message(service, msg_id):
                 timestamp=metadata["timestamp"],
                 ml_label="other",
                 confidence=result["confidence"] if result else 0.0,
+                classification_source="rule",
                 reviewed=reviewed,
                 company=company_obj if mapped_company else None,
                 company_source="user_sent_to_company",
@@ -3648,6 +3651,7 @@ def ingest_message(service, msg_id):
                 timestamp=metadata["timestamp"],
                 ml_label=result["label"],
                 confidence=result["confidence"],
+                classification_source=result.get("fallback") or "ml",
                 reviewed=reviewed,
                 company=company_obj,
                 company_source=company_source,

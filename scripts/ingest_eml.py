@@ -45,7 +45,10 @@ from tracker.models import Company, Message, ThreadTracking, UnresolvedCompany
 try:
     from parser import parse_raw_message, predict_with_fallback, extract_status_dates
     from ml_subject_classifier import predict_subject_type
-except Exception:
+except Exception as e:
+    import traceback
+    print(f"WARNING: Failed to import classification functions: {e}", file=sys.stderr)
+    traceback.print_exc(file=sys.stderr)
     parse_raw_message = None
     predict_with_fallback = None
     predict_subject_type = None
@@ -239,6 +242,7 @@ def ingest_eml_bytes(raw_bytes: bytes, apply: bool = False, create_tt: bool = Tr
             if ml and isinstance(ml, dict):
                 ml_label = ml.get('label')
                 ml_conf = float(ml.get('confidence', 0.0) or 0.0)
+                classification_source = ml.get('fallback') or 'ml'
                 
                 # If classified as noise, clear company assignment
                 if ml_label == "noise":
@@ -248,10 +252,12 @@ def ingest_eml_bytes(raw_bytes: bytes, apply: bool = False, create_tt: bool = Tr
                 # Persist to Message
                 msg_rec.ml_label = ml_label
                 msg_rec.confidence = ml_conf
+                msg_rec.classification_source = classification_source
                 msg_rec.save()
 
                 details['ml_label'] = ml_label
                 details['ml_confidence'] = ml_conf
+                details['classification_source'] = classification_source
 
                 # Extract and persist status dates (rejection/interview) using parser helper
                 try:

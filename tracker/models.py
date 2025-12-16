@@ -108,6 +108,7 @@ class Message(models.Model):
     ml_label = models.CharField(max_length=50, null=True, blank=True)  # NEW
     confidence = models.FloatField(null=True, blank=True)  # ✅ NEW
     reviewed = models.BooleanField(default=False)  # NEW
+    classification_source = models.CharField(max_length=20, null=True, blank=True)  # 'ml', 'rule', 'rules_override', 'rules'
 
     def save(self, *args, **kwargs):
         """Override save to ensure reviewed noise messages have no company."""

@@ -431,29 +431,59 @@ def label_companies(request):
                                 # Track if any changes were made
                                 changes_made = False
                                 
-                                # Save career URL to JobSites only if not already present
+                                # Update career URL in JobSites
+                                if "JobSites" not in companies_json_data:
+                                    companies_json_data["JobSites"] = {}
+                                
+                                current_value = companies_json_data["JobSites"].get(company_name)
                                 if career_url_input:
-                                    if "JobSites" not in companies_json_data:
-                                        companies_json_data["JobSites"] = {}
-                                    if company_name not in companies_json_data["JobSites"]:
+                                    # Set or update the career URL
+                                    if current_value != career_url_input:
                                         companies_json_data["JobSites"][company_name] = career_url_input
                                         changes_made = True
-                                
-                                # Save domain to domain_to_company only if not already present
-                                if domain_input:
-                                    if "domain_to_company" not in companies_json_data:
-                                        companies_json_data["domain_to_company"] = {}
-                                    if domain_input not in companies_json_data["domain_to_company"]:
-                                        companies_json_data["domain_to_company"][domain_input] = company_name
+                                else:
+                                    # Remove career URL if field is cleared
+                                    if company_name in companies_json_data["JobSites"]:
+                                        del companies_json_data["JobSites"][company_name]
                                         changes_made = True
                                 
-                                # Save ATS domain to ats_domains if not already present
+                                # Update domain in domain_to_company
+                                if "domain_to_company" not in companies_json_data:
+                                    companies_json_data["domain_to_company"] = {}
+                                
+                                # Find and remove old domain mapping for this company
+                                old_domain = None
+                                for dom, comp in list(companies_json_data["domain_to_company"].items()):
+                                    if comp == company_name:
+                                        old_domain = dom
+                                        break
+                                
+                                if domain_input:
+                                    # Set or update the domain mapping
+                                    if old_domain and old_domain != domain_input:
+                                        # Remove old mapping
+                                        del companies_json_data["domain_to_company"][old_domain]
+                                        changes_made = True
+                                    if domain_input not in companies_json_data["domain_to_company"] or companies_json_data["domain_to_company"][domain_input] != company_name:
+                                        companies_json_data["domain_to_company"][domain_input] = company_name
+                                        changes_made = True
+                                else:
+                                    # Remove domain mapping if field is cleared
+                                    if old_domain:
+                                        del companies_json_data["domain_to_company"][old_domain]
+                                        changes_made = True
+                                
+                                # Update ATS domain in ats_domains
+                                if "ats_domains" not in companies_json_data:
+                                    companies_json_data["ats_domains"] = []
+                                
                                 if ats_input:
-                                    if "ats_domains" not in companies_json_data:
-                                        companies_json_data["ats_domains"] = []
+                                    # Add ATS domain if not already present
                                     if ats_input not in companies_json_data["ats_domains"]:
                                         companies_json_data["ats_domains"].append(ats_input)
                                         changes_made = True
+                                # Note: We don't remove ATS domains when cleared because they might be shared
+                                # by multiple companies. Manual removal from companies.json is needed.
 
                                 # Only write to file if changes were made
                                 if changes_made:

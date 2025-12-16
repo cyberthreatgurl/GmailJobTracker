@@ -505,6 +505,11 @@
               <td>
                 {% if msg.ml_label %}
                   <span class="label-badge">{{ msg.ml_label }}</span>
+                  {% if msg.classification_source %}
+                    <span style="font-size: 0.65rem; color: #6b7280; margin-left: 0.35rem; background: #f3f4f6; padding: 0.1rem 0.3rem; border-radius: 3px;" title="How this message was classified">
+                      {% if msg.classification_source == 'ml' %}ML{% elif msg.classification_source == 'rule' %}Rule{% elif msg.classification_source == 'rules_override' %}Rule+{% else %}{{ msg.classification_source }}{% endif %}
+                    </span>
+                  {% endif %}
                 {% else %}
                   <span style="color: #9ca3af;">None</span>
                 {% endif %}

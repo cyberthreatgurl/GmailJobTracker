@@ -161,18 +161,6 @@
     })();
   </script>
   {% endif %}
-  <div style="display: flex; gap: 2rem; flex-wrap: wrap; margin-bottom: 1.5rem;">
-    <div style="background: #f1f5f9; border-radius: 8px; padding: 1.1rem 1.5rem; min-width: 220px; flex: 0 0 auto; box-shadow: 0 1px 2px rgba(0,0,0,0.04); border-left: 4px solid #2563eb;">
-      <div style="font-size: 1.1rem; color: #1e40af; font-weight: 600; margin-bottom: 0.2rem;">Applications This Week</div>
-  <div style="font-size: 1.3rem; font-weight: bold; color: #2563eb;">{{ applications_week }}</div>
-    </div>
-    <div style="background: #fef3c7; border-radius: 8px; padding: 1.1rem 1.5rem; min-width: 220px; flex: 0 0 auto; box-shadow: 0 1px 2px rgba(0,0,0,0.04); border-left: 4px solid #f59e0b; cursor: pointer; transition: transform 0.2s;" id="ghostedCard" onclick="toggleGhostedSection()">
-      <div style="font-size: 1.1rem; color: #b45309; font-weight: 600; margin-bottom: 0.2rem;">👻 Companies Ghosted</div>
-  <div style="font-size: 1.3rem; font-weight: bold; color: #d97706;" id="ghostedCardCount">{{ ghosted_count }}</div>
-      <div style="font-size: 0.75rem; color: #92400e; margin-top: 0.3rem; font-style: italic;">Click to view list</div>
-    </div>
-    <!-- You can add more summary cards here if desired -->
-  </div>
   <div class="charts-row">
     <!-- Removed Message Ingestion Activity (Last 30 Days) plot -->
     <div class="chart-card expanded" id="activityCard">
@@ -225,21 +213,56 @@
   <div style="margin-top: 2rem;">
   {% if selected_company %}
     <div style="margin-bottom:1.5rem;">
-      <h2 style="font-size:1rem; color:#2563eb; margin-bottom:0.5rem;">Messages for {{ selected_company.name }}</h2>
-      <ul style="background:#f9fafb; border-radius:6px; border:1px solid #e5e7eb; padding:1rem; font-size:0.85rem;">
-        {% for msg in messages %}
-          {% if msg.company and msg.company.id == selected_company.id %}
-            <li style="margin-bottom:0.7rem;">
-              <span style="color:#374151; font-weight:600;">{{ msg.timestamp|date:'Y-m-d H:i' }}</span>
-              <span style="color:#6b7280; margin-left:0.5rem;">{{ msg.subject }}</span>
-              <span style="color:#0d9488; margin-left:0.5rem;">[{{ msg.ml_label|default:'unlabeled' }}]</span>
-              <div style="margin-top:0.2rem; color:#525252;">{{ msg.cleaned_body_html|safe }}</div>
-            </li>
-          {% endif %}
-        {% empty %}
-          <li style="color:#9ca3af;">No messages for this company.</li>
-        {% endfor %}
-      </ul>
+      <h2 style="font-size:1rem; color:#2563eb; margin-bottom:0.5rem;">Threads for {{ selected_company.name }}</h2>
+      <table style="width:100%; border-collapse:collapse; background:#fff; border-radius:6px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,0.07);">
+        <thead>
+          <tr style="background:#f3f4f6;">
+            <th style="padding:0.5rem; text-align:left; font-size:0.85rem; color:#374151;">Initial Date</th>
+            <th style="padding:0.5rem; text-align:left; font-size:0.85rem; color:#374151;">Subject</th>
+            <th style="padding:0.5rem; text-align:left; font-size:0.85rem; color:#374151;">Label</th>
+            <th style="padding:0.5rem; text-align:left; font-size:0.85rem; color:#374151;">Thread</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for thread in threads_by_subject %}
+            {% with first_msg=thread.messages.0 %}
+            <tr class="thread-row" style="border-bottom:1px solid #e5e7eb;">
+              <td style="padding:0.5rem; font-size:0.85rem;">{{ first_msg.timestamp|date:"Y-m-d H:i" }}</td>
+              <td style="padding:0.5rem; font-weight:600; color:#2563eb; font-size:0.85rem;">{{ thread.subject }}</td>
+              <td style="padding:0.5rem; font-size:0.85rem;">
+                <span style="background:#e0e7ff; color:#3730a3; border-radius:4px; padding:0.2rem 0.5rem; font-size:0.75rem;">
+                  {{ first_msg.ml_label|default:"N/A" }}
+                </span>
+              </td>
+              <td style="padding:0.5rem; font-size:0.85rem;">
+                <details class="thread-details">
+                  <summary style="cursor:pointer; font-weight:500; color:#2563eb;">Show Thread ({{ thread.messages|length }})</summary>
+                  <ul style="margin:0.5rem 0 0 0; padding:0; list-style:none; font-size:0.85rem;">
+                    {% for msg in thread.messages %}
+                      <li style="border-bottom:1px solid #e5e7eb; padding:0.5rem 0;">
+                        <div style="color:#6b7280; font-size:0.8rem; margin-bottom:0.2rem;">
+                          <strong>{{ msg.timestamp|date:"Y-m-d H:i" }}</strong> — {{ msg.sender }}
+                          <span style="background:#f3f4f6; color:#374151; border-radius:4px; padding:0.15rem 0.4rem; font-size:0.75rem; margin-left:0.5rem;">{{ msg.ml_label|default:"N/A" }}</span>
+                        </div>
+                        <div style="color:#374151; font-size:0.85rem; white-space:pre-line;">
+                          {% if msg.body_html %}
+                            {{ msg.body_html|safe }}
+                          {% else %}
+                            {{ msg.body|linebreaksbr }}
+                          {% endif %}
+                        </div>
+                      </li>
+                    {% endfor %}
+                  </ul>
+                </details>
+              </td>
+            </tr>
+            {% endwith %}
+          {% empty %}
+            <tr><td colspan="4" style="color:#9ca3af; text-align:center; padding:1rem; font-size:0.85rem;">No threads found for this company.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
   {% endif %}
   <h2>Companies by Activity Type (filtered entirely by the date range above)</h2>
@@ -278,19 +301,19 @@
         </ul>
       </div>
 
-      <!-- Ghosted By (Initially Hidden, Toggle via Card Click) -->
-      <div id="ghostedSection" style="flex: 1; min-width: 250px; background: #f5f5f5; padding: 1rem; border-radius: 8px; border-left: 4px solid #737373; display: none;">
+      <!-- Ghosted By (Always Visible - Shows Current Total) -->
+      <div id="ghostedSection" style="flex: 1; min-width: 250px; background: #f5f5f5; padding: 1rem; border-radius: 8px; border-left: 4px solid #737373;">
         <h3 style="color: #404040; margin: 0 0 0.75rem 0; font-size: 1rem; font-weight: 600; display:flex; align-items:center; gap:0.5rem;">
-          <span>👻 Ghosted By (<span id="ghostedCount">{{ initial_ghosted_companies|length }}</span>)</span>
+          <span>👻 Ghosted By (<span id="ghostedCount">{{ ghosted_count }}</span>)</span>
           <button class="copy-btn" onclick="copyCompanyList('ghostedList', this)">Copy</button>
         </h3>
         <ul id="ghostedList" style="margin: 0; padding-left: 1.25rem; list-style: disc; color: #525252; font-size: 0.9rem; line-height: 1.6;">
-          {% if initial_ghosted_companies %}
-            {% for c in initial_ghosted_companies %}
+          {% if ghosted_companies_list %}
+            {% for c in ghosted_companies_list %}
               <li style="font-size:0.8rem;"><a href="/label_companies/?company={{ c.id }}" style="text-decoration:none; color:inherit;">{{ c.name }}</a></li>
             {% endfor %}
           {% else %}
-            <li style="color: #9ca3af; font-size:0.8rem;">No data in selected range</li>
+            <li style="color: #9ca3af; font-size:0.8rem;">No companies currently ghosted</li>
           {% endif %}
         </ul>
       </div>
@@ -759,18 +782,6 @@
   if (ghostedCardCount) ghostedCardCount.textContent = String(uniqueGhosted.length);
     }
 
-    // Toggle ghosted section visibility
-    function toggleGhostedSection() {
-      const section = document.getElementById('ghostedSection');
-      if (!section) return;
-      
-      if (section.style.display === 'none') {
-        section.style.display = 'block';
-      } else {
-        section.style.display = 'none';
-      }
-    }
-
     // Copy helper
     function copyCompanyList(listId, btnEl) {
       const listEl = document.getElementById(listId);
@@ -810,5 +821,17 @@
         initLists();
       }
     })();
+
+    // Auto-close other thread details when one is opened
+    document.addEventListener('click', function(e) {
+      if (e.target.tagName === 'SUMMARY') {
+        const allDetails = document.querySelectorAll('.thread-details');
+        allDetails.forEach(details => {
+          if (details !== e.target.parentElement && details.open) {
+            details.open = false;
+          }
+        });
+      }
+    });
   </script>
 {% endblock %}

@@ -69,7 +69,7 @@ class StatsService:
             company__status="headhunter"
         ).count()
 
-        # Weekly application count
+        # Weekly application count (total applications)
         week_cutoff = now() - timedelta(days=7)
         applications_week_qs = Message.objects.filter(
             ml_label__in=["job_application", "application"],

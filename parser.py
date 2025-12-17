@@ -517,6 +517,15 @@ class RuleClassifier:
                 print("[DEBUG rule_label] Forcing 'other' for incomplete application reminder")
             return "other"
 
+        # Check application confirmation patterns FIRST (before rejection)
+        # This ensures "Thank you for applying" emails are not misclassified as rejections
+        # due to explanatory text like "if archived, that means you were not selected"
+        for rx in self._msg_label_patterns.get("job_application", []):
+            if rx.search(s):
+                if DEBUG:
+                    print(f"[DEBUG rule_label] Early application confirmation match: {rx.pattern[:80]}")
+                return "job_application"
+
         # Check rejection patterns EARLY (before scheduling detection)
         # This prevents email threads with rejection + old scheduling language from being misclassified
         for rx in self._msg_label_patterns.get("rejection", []):

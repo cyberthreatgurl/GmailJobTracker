@@ -11,7 +11,7 @@ from datetime import date, datetime, timedelta
 from pathlib import Path
 from django.contrib.auth.decorators import login_required
 from django.db import models
-from django.db.models import Q, Count
+from django.db.models import Q, Count, Min, Max
 from django.db.models.functions import Lower, TruncDate
 from django.shortcuts import render
 from django.utils.timezone import now
@@ -498,25 +498,20 @@ def dashboard(request):
 
     # Use Message table directly for application companies (same as chart and sidebar)
     # This ensures consistency across all dashboard metrics
-    application_companies_qs = (
-        Message.objects.filter(
-            ml_label__in=["job_application", "application"],
-            company__isnull=False,
-        )
-        .select_related("company")
-        .annotate(sent_date=TruncDate("timestamp"))
-        .values("company_id", "company__name", "sent_date")
-        .order_by("-sent_date")
+    # Group by company and count applications per company, track earliest date
+    application_companies_base = Message.objects.filter(
+        ml_label__in=["job_application", "application"],
+        company__isnull=False,
     )
     # Exclude user's own messages
     user_email = (os.environ.get("USER_EMAIL_ADDRESS") or "").strip()
     if user_email:
-        application_companies_qs = application_companies_qs.exclude(
+        application_companies_base = application_companies_base.exclude(
             sender__icontains=user_email
         )
     # Exclude headhunter companies
     if hh_company_list:
-        application_companies_qs = application_companies_qs.exclude(
+        application_companies_base = application_companies_base.exclude(
             company_id__in=hh_company_list
         )
     # Exclude headhunter domain senders
@@ -524,11 +519,18 @@ def dashboard(request):
         msg_hh_q = Q()
         for d in headhunter_domains:
             msg_hh_q |= Q(sender__icontains=f"@{d}")
-        application_companies_qs = application_companies_qs.exclude(msg_hh_q)
+        application_companies_base = application_companies_base.exclude(msg_hh_q)
     if company_filter_id:
-        application_companies_qs = application_companies_qs.filter(
+        application_companies_base = application_companies_base.filter(
             company_id=company_filter_id
         )
+    
+    # Get individual application messages (not aggregated) so JavaScript can filter and count by date
+    application_companies_qs = (
+        application_companies_base
+        .values("id", "company_id", "company__name", "timestamp")
+        .order_by("-timestamp")
+    )
 
     ghosted_companies_qs = (
         ThreadTracking.objects.filter(
@@ -571,9 +573,10 @@ def dashboard(request):
 
     application_companies = [
         {
+            "id": item["id"],
             "company_id": item["company_id"],
             "company__name": item["company__name"],
-            "sent_date": item["sent_date"].strftime("%Y-%m-%d"),
+            "sent_date": item["timestamp"].strftime("%Y-%m-%d"),
         }
         for item in application_companies_qs
     ]
@@ -689,14 +692,18 @@ def dashboard(request):
     interview_companies_json = json.dumps(interview_companies)
 
     # Server-side initial fallback lists (unique by company for full available range)
-    def unique_by_company(items, id_key="company_id", name_key="company__name"):
+    def unique_by_company(items, id_key="company_id", name_key="company__name", count_key=None):
         seen = set()
         out = []
         for it in items:
             cid = it.get(id_key)
             cname = it.get(name_key)
             if cid is not None and cid not in seen and cname:
-                out.append({"id": cid, "name": cname})
+                item_dict = {"id": cid, "name": cname}
+                # Include count if available
+                if count_key and count_key in it:
+                    item_dict["count"] = it[count_key]
+                out.append(item_dict)
                 seen.add(cid)
         # sort by name for a stable display
         out.sort(key=lambda x: (x["name"] or "").lower())

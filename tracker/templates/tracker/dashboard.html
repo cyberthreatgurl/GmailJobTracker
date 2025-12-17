@@ -270,7 +270,7 @@
         <ul id="applicationList" style="margin: 0; padding-left: 1.25rem; list-style: disc; color: #1e3a8a; font-size: 0.9rem; line-height: 1.6;">
           {% if initial_application_companies %}
             {% for c in initial_application_companies %}
-              <li style="font-size:0.8rem;"><a href="/label_companies/?company={{ c.id }}" style="text-decoration:none; color:inherit;">{{ c.name }}</a></li>
+              <li style="font-size:0.8rem;"><a href="/label_companies/?company={{ c.id }}" style="text-decoration:none; color:inherit;">{{ c.name }}{% if c.count %} ({{ c.count }}){% endif %}</a></li>
             {% endfor %}
           {% else %}
             <li style="color: #9ca3af; font-size:0.8rem;">No data in selected range</li>
@@ -654,6 +654,7 @@
         })
         .map(item => ({ id: item.company_id, name: item.company__name }));
       
+      // Filter applications by date range, then group by company with counts
       const applications = applicationCompanies
         .filter(item => {
           const d = toDayNumber(item.sent_date);

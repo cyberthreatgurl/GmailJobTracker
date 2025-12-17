@@ -446,6 +446,7 @@ class RuleClassifier:
         self._reply_indicators = self._compile_pattern_list(early_detection.get("reply_indicators", []))
         self._early_referral = self._compile_pattern_list(early_detection.get("referral_language", []))
         self._early_rejection_override = self._compile_pattern_list(early_detection.get("rejection_override", []))
+        self._early_status_update = self._compile_pattern_list(early_detection.get("status_update", []))
         self._early_application_confirm = self._compile_pattern_list(early_detection.get("application_confirmation", []))
         
         # Validation rules
@@ -559,6 +560,12 @@ class RuleClassifier:
                             print(f"[DEBUG rule_label] Rejection confirmed -> rejection")
                         return "rejection"
                 break  # Exit after checking rejection patterns once
+
+        # Status update messages (follow-up/still under review) -> other (checked BEFORE application confirmation)
+        if any(rx.search(s) for rx in self._early_status_update):
+            if DEBUG:
+                print("[DEBUG rule_label] Matched status-update -> other")
+            return "other"
 
         # Explicit application-confirmation signals -> job_application
         if any(rx.search(s) for rx in self._early_application_confirm):
@@ -3389,10 +3396,11 @@ def ingest_message(service, msg_id):
         
         # Only auto-mark as reviewed if not already reviewed AND meets high-confidence criteria
         # This preserves manual review status during re-ingestion
+        # Exclude "other" and "noise" from auto-review as they are typically status updates or non-actionable
         if not existing.reviewed and (
             result
             and result.get("confidence", 0.0) >= 0.85
-            and result.get("label") != "noise"
+            and result.get("label") not in ("noise", "other")
             and company_obj is not None
             and is_valid_company(company)
         ):

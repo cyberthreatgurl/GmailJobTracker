@@ -31,8 +31,10 @@
     <ul class="stats">
   <li>Total Companies: {{ companies }}</li>
   <li>Total Applications: {{ applications_count|default:applications }}</li>
+      <li>Applications This Week: {{ applications_week }}</li>
       <li>Rejections This Week: {{ rejections_week }}</li>
       <li>Interviews This Week: {{ interviews_week }}</li>
+      <li>Companies Ghosted: {{ ghosted_count }}</li>
     </ul>
   </div>
 
@@ -64,31 +66,26 @@
     {% endif %}
   </div>
 
-  <!-- Labeling Tool: Label Messages & Companies -->
-  <div class="card">
-    <h2>🏷️ Labeling Tool</h2>
-    <a href="{% url 'label_messages' %}" class="button" style="width:100%; background:#2563eb; color:white; font-weight:600; border-radius:6px; padding:0.6rem 0; text-align:center; margin-bottom:0.5rem;">Label Messages</a>
-    <a href="{% url 'label_companies' %}" class="button" style="width:100%; background:#2563eb; color:white; font-weight:600; border-radius:6px; padding:0.6rem 0; text-align:center;">Label Companies</a>
-  </div>
 
   <!-- Quick Actions -->
   <div class="card">
     <h2>⚙️ Quick Actions</h2>
     <div style="display:flex; flex-direction:column; gap:0.5rem;">
-      <a href="{% url 'manual_entry' %}" class="button" style="width:100%; background:#059669; color:white; font-weight:600; border-radius:6px; padding:0.6rem 0; text-align:center;">📝 Manual Entry</a>
-      <a href="/admin/tracker/message/upload-eml/" class="button" style="width:100%; background:#059669; color:white; font-weight:600; border-radius:6px; padding:0.6rem 0; text-align:center;">📧 Upload .eml File</a>
-      <a href="{% url 'metrics' %}" class="button" style="width:100%; background:#2563eb; color:white; font-weight:600; border-radius:6px; padding:0.6rem 0; text-align:center;">View Metrics</a>
-      <a href="{% url 'company_threads' %}" class="button" style="width:100%; background:#2563eb; color:white; font-weight:600; border-radius:6px; padding:0.6rem 0; text-align:center;">Company Threads</a>
-      <a href="{% url 'json_file_viewer' %}" class="button" style="width:100%; background:#2563eb; color:white; font-weight:600; border-radius:6px; padding:0.6rem 0; text-align:center;">JSON File Viewer</a>
-      <a href="{% url 'configure_settings' %}" class="button" style="width:100%; background:#2563eb; color:white; font-weight:600; border-radius:6px; padding:0.6rem 0; text-align:center;">Configure Settings</a>
-      <a href="{% url 'manage_domains' %}" class="button" style="width:100%; background:#7c3aed; color:white; font-weight:600; border-radius:6px; padding:0.6rem 0; text-align:center;">🌐 Domain Management</a>
-
-  <a href="{% url 'label_rule_debugger' %}" class="button" style="width:100%; background:#059669; color:white; font-weight:600; border-radius:6px; padding:0.6rem 0; text-align:center; margin-top:0.5em;">Label Rule Debugger</a>
-  <a href="{% url 'log_viewer' %}" class="button" style="width:100%; background:#a16207; color:white; font-weight:600; border-radius:6px; padding:0.6rem 0; text-align:center;">Log Viewer</a>
-      <form method="post" action="{% url 'retrain_model' %}" style="margin:0;">
-        {% csrf_token %}
-        <button type="submit" class="button" style="width:100%; background:#2563eb; color:white; font-weight:600; border-radius:6px; padding:0.6rem 0; text-align:center;">Retrain Model</button>
-      </form>
+      <select id="quickActionSelect" style="width:100%; padding:0.6rem; border:1px solid #d1d5db; border-radius:6px; font-size:0.9rem; background:white;" onchange="if(this.value) window.location.href = this.value;">
+        <option value="">-- Select Action --</option>
+        <option value="{% url 'manual_entry' %}">📝 Manual Entry</option>
+        <option value="/admin/tracker/message/upload-eml/">📧 Upload .eml File</option>
+        <option value="{% url 'label_messages' %}">🏷️ Label Messages</option>
+        <option value="{% url 'label_companies' %}">🏷️ Label Companies</option>
+        <option value="{% url 'metrics' %}">View Metrics</option>
+        <option value="{% url 'company_threads' %}">Company Threads</option>
+        <option value="{% url 'json_file_viewer' %}">JSON File Viewer</option>
+        <option value="{% url 'configure_settings' %}">Configure Settings</option>
+        <option value="{% url 'manage_domains' %}">🌐 Domain Management</option>
+        <option value="{% url 'label_rule_debugger' %}">Label Rule Debugger</option>
+        <option value="{% url 'log_viewer' %}">Log Viewer</option>
+        <option value="{% url 'retrain_model' %}">🤖 Retrain Model</option>
+      </select>
     </div>
   </div>
 </div>

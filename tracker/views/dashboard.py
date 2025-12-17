@@ -74,6 +74,22 @@ def dashboard(request):
         raw_html = msg.body or ""
         msg.cleaned_body_html = extract_body_content(raw_html)
 
+    # Prepare thread data for selected company (like company_threads view)
+    threads_by_subject = []
+    if selected_company:
+        msgs = Message.objects.filter(
+            company=selected_company, reviewed=True
+        ).order_by("thread_id", "timestamp")
+        # Group messages by subject
+        thread_dict = defaultdict(list)
+        for msg in msgs:
+            thread_dict[msg.subject].append(msg)
+        # Convert to list of dicts with subject and messages
+        threads_by_subject = [
+            {"subject": subj, "messages": msgs_list}
+            for subj, msgs_list in thread_dict.items()
+        ]
+
     # ✅ Group messages by thread_id with company preloaded
     threads = defaultdict(list)
     seen = set()
@@ -548,6 +564,22 @@ def dashboard(request):
     if company_filter_id:
         ghosted_companies_qs = ghosted_companies_qs.filter(company_id=company_filter_id)
 
+    # Separate unfiltered query for CURRENT total ghosted companies (sidebar stat)
+    # This ignores date filters and company filters to show absolute current ghosted count
+    all_ghosted_companies_qs = (
+        ThreadTracking.objects.filter(
+            Q(status="ghosted") | Q(ml_label="ghosted"), company__isnull=False
+        )
+        .exclude(ml_label="noise")
+        .select_related("company")
+        .values("company_id", "company__name")
+        .distinct()
+    )
+    if hh_company_list:
+        all_ghosted_companies_qs = all_ghosted_companies_qs.exclude(
+            company_id__in=hh_company_list
+        )
+
     # Convert date objects to strings for JSON serialization
 
     # Combine Application-based and Message-based rejections
@@ -714,13 +746,22 @@ def dashboard(request):
     initial_ghosted_companies = unique_by_company(ghosted_companies)
     initial_interview_companies = unique_by_company(interview_companies)
 
-    # Cumulative ghosted count (total unique companies currently ghosted)
-    ghosted_count = len(initial_ghosted_companies)
+    # Generate unfiltered ghosted companies list for sidebar (ignores date/company filters)
+    ghosted_companies_list = [
+        {"id": item["company_id"], "name": item["company__name"]}
+        for item in all_ghosted_companies_qs
+    ]
+    # Sort alphabetically by company name
+    ghosted_companies_list.sort(key=lambda x: (x["name"] or "").lower())
+
+    # Cumulative ghosted count (total unique companies currently ghosted - UNFILTERED)
+    ghosted_count = len(ghosted_companies_list)
 
     ctx = {
         "companies_list": companies_list,
         "messages": messages,
         "threads": thread_list,
+        "threads_by_subject": threads_by_subject,
         "latest_stats": latest_stats,
         "chart_labels": chart_labels,
         "chart_inserted": chart_inserted,
@@ -746,6 +787,7 @@ def dashboard(request):
         "initial_application_companies": initial_application_companies,
         "initial_ghosted_companies": initial_ghosted_companies,
         "initial_interview_companies": initial_interview_companies,
+        "ghosted_companies_list": ghosted_companies_list,
         "ghosted_count": ghosted_count,
         "all_companies": all_companies,
         "selected_company": selected_company,

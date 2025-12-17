@@ -6,6 +6,9 @@
     "capitalone": "Capital One",
     "RMC": "Resource Management Concepts",
     "BAE": "BAE Systems",
+    "CFA": "CFA Institute",
+    "cfainstitute": "CFA Institute",
+    "osv_cfainstitute": "CFA Institute",
     "UIC Alaska": "Bowhead",
     "CapitalOne": "Capital One",
     "CapitalOneHRWorkday": "Capital One",
@@ -95,6 +98,7 @@
   "domain_to_company": {
     "afs.com": "Accenture Federal Services",
     "aig.com": "AIG",
+    "cfainstitute.org": "CFA Institute",
     "altamiracorp.com": "Altamira Technologies Corp.",
     "amentum.com": "Amentum",
     "amentum.mail.clinchtalent.com": "Amentum",
@@ -234,6 +238,7 @@
     "encodeinc.com",
     "etalentnetwork.com",
     "exarcainc.com",
+    "clearedconnections.com",
     "galaxyinfotechinc.com",
     "gctus.com",
     "globalsolgroup.com",
@@ -284,6 +289,7 @@
   ],
   "JobSites": {
     "Amazon": "https://www.amazon.jobs/en/",
+    "CFA Institute": "https://osv_cfainstitute.wd5.myworkdayjobs.com/Careers",
     "Arcfield": "https://careers.arcfield.com/careers-home",
     "Tech Wizards": "https://tech-wizards.applicantstack.com/x/openings",
     "Amentum": "https://www.amentumcareers.com/jobs/",
@@ -341,6 +347,7 @@
   },
   "known": [
     "Valiant Solutions",
+    "CFA Institute",
     "ARES Corporation",
     "Amazon",
     "Amentum",

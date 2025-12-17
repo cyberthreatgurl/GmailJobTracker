@@ -9,6 +9,8 @@ A local-only Django application that transforms your Gmail into an intelligent j
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
+**🚀 New Users:** Get started in 15 minutes → **[GETTING_STARTED.md](GETTING_STARTED.md)**
+
 ---
 
 ## ✨ Features
@@ -44,69 +46,55 @@ A local-only Django application that transforms your Gmail into an intelligent j
 
 ---
 
-## 🚀 Quick Start (5 Minutes)
+## 🚀 Quick Start
 
-### ⚠️ Gmail Authentication (Do This First!)
+### New Users: Start Here!
 
-**Before running in Docker**, authenticate with Gmail on a machine with a browser:
+**📘 Complete Setup Guide:** See **[GETTING_STARTED.md](GETTING_STARTED.md)** for step-by-step instructions (15-20 minutes)
 
-```bash
-# On your LOCAL machine (not in Docker):
-python gmail_auth.py
-# This opens a browser for Google OAuth and saves model/token.pickle
-
-# Copy credentials to your Docker server:
-scp json/credentials.json kelly@docker-server:~/apps/GmailJobTracker/json/
-scp model/token.pickle kelly@docker-server:~/apps/GmailJobTracker/model/
-```
-
-> 🔒 **Security**: `token.pickle` contains OAuth tokens. Keep it secure—it's in `.gitignore`.
-
-### Prerequisites
-
-- Python 3.10+ (tested on 3.12)
-- Gmail account with API access
-- Git
-
-### Installation
+### Experienced Users: Express Install
 
 ```bash
-# 1. Clone and setup
-git clone https://github.com/<your-username>/GmailJobTracker.git
+# 1. Clone repository
+git clone https://github.com/cyberthreatgurl/GmailJobTracker.git
 cd GmailJobTracker
-python -m venv .venv
-.venv\Scripts\activate  # Windows | source .venv/bin/activate (Linux/macOS)
 
-# 2. Install dependencies
-pip install -r requirements.txt  # Production only
-# OR for development (includes testing/linting tools):
-# pip install -r requirements-dev.txt
+# 2. Setup virtual environment
+python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
+
+# 3. Install dependencies
+pip install -r requirements.txt
 python -m spacy download en_core_web_sm
 
-# 3. Initialize database (Django models + legacy tables)
-python manage.py migrate
-python manage.py init_legacy_db
-
-# (Optional) Create an admin user for the dashboard
-python manage.py createsuperuser
-
-# 4. Configure Gmail OAuth
-# Place your credentials.json in json/ (see INSTALL.md section 4)
-
-# 5. Edit .env file
+# 4. Configure environment
 cp .env.example .env
-# Add your GMAIL_JOBHUNT_LABEL_ID
+# Edit .env: Set GMAIL_ROOT_FILTER_LABEL and USER_EMAIL_ADDRESS
 
-# 6. Ingest messages
+# 5. Setup Gmail API (see GETTING_STARTED.md section 2)
+# Place credentials.json in json/ directory
+
+# 6. Initialize database
+python manage.py migrate
+
+# 7. Authenticate with Gmail
+python gmail_auth.py
+
+# 8. Ingest recent emails
 python manage.py ingest_gmail --days-back 7
 
-# 7. Start dashboard
+# 9. Start server
 python manage.py runserver
 ```
 
 **Visit:** <http://127.0.0.1:8000/>
 
-**Full setup guide:** See [INSTALL.md](INSTALL.md) for detailed instructions.
+### Documentation
+
+- **📘 [GETTING_STARTED.md](GETTING_STARTED.md)** - Complete beginner's guide
+- **📖 [INSTALL.MD](INSTALL.md)** - Advanced installation options
+- **🐳 [DOCKER_README.md](DOCKER_README.md)** - Docker deployment guide
+- **🔧 [CONTRIBUTING.md](CONTRIBUTING.md)** - Development guidelines
 
 ---
 

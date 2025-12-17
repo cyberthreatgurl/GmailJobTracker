@@ -41,6 +41,12 @@
       "\\bother\\s+(?:candidates|applicants)\\b",
       "\\bposition\\s+(?:has\\s+been\\s+)?(?:closed|filled)\\b"
     ],
+    "status_update": [
+      "\\b(?:still|currently|remains)\\s+under\\s+review\\b",
+      "\\bapplication\\s+(?:is\\s+)?(?:still|currently|remains)\\s+under\\s+review\\b",
+      "\\bjust\\s+wanted\\s+to\\s+follow\\s+up\\b.*\\bapplication\\b.*\\bunder\\s+review\\b",
+      "\\bstatus\\s+of\\s+your\\s+application\\b"
+    ],
     "application_confirmation": [
       "\\b(we\\s+have\\s+received\\s+your\\s+application|we['’]?ve\\s+received\\s+your\\s+application|thanks?\\s+(?:you\\s+)?for\\s+applying|application\\s+received|your\\s+application\\s+has\\s+been\\s+received|your\\s+application\\s+has\\s+been\\s+submitted|your\\s+application\\s+was\\s+sent)\\b",
       "\\bthank\\s+you\\s+for\\s+your\\s+application\\b",
@@ -241,6 +247,10 @@
       "\\blog\\sback\\sinto\\syour\\scandidate\\shome\\saccount\\sand\\scomplete\\b",
       "\\bscheduled\\sa\\sconversation\\b",
       "\\blook\\sforward\\sto\\s(?:speaking|discussing)\\b",
+      "\\b(?:still|currently)\\s+under\\s+review\\b",
+      "\\bapplication\\s+(?:is\\s+)?(?:still|currently|remains)\\s+under\\s+review\\b",
+      "\\bstatus\\s+of\\s+your\\s+application\\b",
+      "\\bwe\\s+just\\s+wanted\\s+to\\s+follow\\s+up\\b",
       "\\bfinish\\syour\\sapplication",
       "\\bhelp\\syou\\sget\\sstarted",
       "\\bDon'?t\\sforget\\sto\\sfinish\\syour\\sapplication\\b",

@@ -507,11 +507,11 @@ def reingest_stream(request):
 
     cmd = [
         sys.executable,
+        "-u",  # unbuffered
         "manage.py",
         "ingest_gmail",
         "--metrics-before",
         "--metrics-after",
-        "-u",  # unbuffered
     ]
     if days_back and days_back != "ALL":
         cmd += ["--days-back", str(days_back)]

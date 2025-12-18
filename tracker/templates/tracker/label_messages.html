@@ -286,6 +286,24 @@
 
 {% block content %}
   <h1>🏷️ Label Messages - Bulk Mode</h1>
+
+  <!-- Message Modal -->
+  {% if messages %}
+  <div id="messageModal" style="position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:9999;">
+    <div style="background:white; border-radius:12px; padding:1.5rem 2rem; max-width:500px; box-shadow:0 10px 25px rgba(0,0,0,0.3);">
+      <div style="margin-bottom:1rem;">
+        {% for message in messages %}
+          <div style="padding:0.75rem; margin-bottom:0.5rem; border-radius:6px; {% if 'success' in message.tags %}background:#d1fae5; color:#065f46;{% elif 'info' in message.tags %}background:#dbeafe; color:#1e40af;{% elif 'error' in message.tags %}background:#fee2e2; color:#991b1b;{% else %}background:#f3f4f6; color:#374151;{% endif %}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+      <button onclick="document.getElementById('messageModal').style.display='none'" style="width:100%; padding:0.75rem; background:#2563eb; color:white; border:none; border-radius:6px; font-weight:600; font-size:1rem; cursor:pointer;">
+        OK
+      </button>
+    </div>
+  </div>
+  {% endif %}
       
   <!-- Progress Banner -->
   <div class="progress-banner">

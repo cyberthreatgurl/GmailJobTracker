@@ -131,6 +131,11 @@
       "\\breviewing\\s+your\\s+application\\b"
     ],
     "rejection": [
+      "\\bemail_jobs_application_rejected",
+      "\\bX-LinkedIn-Template:\\s*email_jobs_application_rejected",
+      "\\byour\\s+application\\s+to\\b.{0,200}\\b(?:not\\s+selected|not\\s+moving\\s+forward|decided\\s+not\\s+to|chosen|declined|rejected|unfortunately|regret|no\\s+longer)",
+      "\\byour\\s+application\\s+to\\b.{0,200}(?:another\\s+candidate|other\\s+candidate|different\\s+candidate|filled\\s+the\\s+position)",
+      "\\byour\\s+update\\s+from\\b.{0,200}\\b(?:not\\s+selected|not\\s+moving\\s+forward|decided\\s+not\\s+to|chosen|declined|rejected|unfortunately|regret)",
       "another\\scandidate\\shas\\sbeen\\sselected",
       "\\bnot\\sbeen\\sreferred\\b",
       "\\bcancelled\\b",

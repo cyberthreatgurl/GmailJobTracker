@@ -1,6 +1,7 @@
 {
   "aliases": {
     "AFS": "Accenture Federal Services",
+    "Wireless Research Group": "Wireless Research Group, LLC",
     "ARC": "Analysis and Resilience Center for Systemic Risk",
     "ARES": "ARES Corporation",
     "capitalone": "Capital One",
@@ -93,10 +94,12 @@
     "ultipro.com",
     "us.greenhouse-jobs.com",
     "us.greenhouse-mail.io",
-    "workday.com"
+    "workday.com",
+    "linkedin.com"
   ],
   "domain_to_company": {
     "afs.com": "Accenture Federal Services",
+    "wrglabs.com": "Wireless Research Group, LLC",
     "aig.com": "AIG",
     "cfainstitute.org": "CFA Institute",
     "altamiracorp.com": "Altamira Technologies Corp.",
@@ -234,6 +237,7 @@
   },
   "headhunter_domains": [
     "agreeya.com",
+    "expansiagroup.com",
     "axelon.com",
     "encodeinc.com",
     "etalentnetwork.com",
@@ -347,6 +351,7 @@
   },
   "known": [
     "Valiant Solutions",
+    "Wireless Research Group, LLC",
     "CFA Institute",
     "ARES Corporation",
     "Amazon",

@@ -517,7 +517,17 @@ class RuleClassifier:
                 print("[DEBUG rule_label] Forcing 'other' for incomplete application reminder")
             return "other"
 
-        # Check application confirmation patterns FIRST (before rejection)
+        # Check rejection patterns FIRST (before application confirmation)
+        # This is critical because rejection emails often contain "your application to" language
+        # that would otherwise match the broad application confirmation patterns
+        # Example: "Your application to X at Company" in a rejection email
+        for rx in self._msg_label_patterns.get("rejection", []):
+            if rx.search(s):
+                if DEBUG:
+                    print(f"[DEBUG rule_label] Early rejection match: {rx.pattern[:80]}")
+                return "rejection"
+
+        # Check application confirmation patterns (after rejection check)
         # This ensures "Thank you for applying" emails are not misclassified as rejections
         # due to explanatory text like "if archived, that means you were not selected"
         for rx in self._msg_label_patterns.get("job_application", []):
@@ -525,14 +535,6 @@ class RuleClassifier:
                 if DEBUG:
                     print(f"[DEBUG rule_label] Early application confirmation match: {rx.pattern[:80]}")
                 return "job_application"
-
-        # Check rejection patterns EARLY (before scheduling detection)
-        # This prevents email threads with rejection + old scheduling language from being misclassified
-        for rx in self._msg_label_patterns.get("rejection", []):
-            if rx.search(s):
-                if DEBUG:
-                    print(f"[DEBUG rule_label] Early rejection match: {rx.pattern[:80]}")
-                return "rejection"
 
         # Check if this is a reply/follow-up email (RE:, Re:, FW:, Fwd:, etc.)
         is_reply = subject and any(rx.search(subject) for rx in self._reply_indicators)

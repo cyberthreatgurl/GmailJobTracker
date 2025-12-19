@@ -45,7 +45,7 @@ class ReingestUITest(TestCase):
             "selected_messages": [str(msg.id)],
         }
 
-        # Patch parser.ingest_message to simulate a parser run that would set interview_invite
+        # Patch both Gmail service and parser.ingest_message
         def fake_ingest(service, msg_id):
             m = Message.objects.get(msg_id=msg_id)
             m.ml_label = "interview_invite"
@@ -53,9 +53,10 @@ class ReingestUITest(TestCase):
             m.save()
             return True
 
-        with patch("parser.ingest_message", side_effect=fake_ingest):
-            resp = self.client.post(url, data, follow=True)
-            self.assertIn(resp.status_code, (200, 302))
+        with patch("gmail_auth.get_gmail_service", return_value=object()):
+            with patch("parser.ingest_message", side_effect=fake_ingest):
+                resp = self.client.post(url, data, follow=True)
+                self.assertIn(resp.status_code, (200, 302))
 
         # Refresh and verify label updated and reviewed is False (UI cleared + suppression)
         msg.refresh_from_db()

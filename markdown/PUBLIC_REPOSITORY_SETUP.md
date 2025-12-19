@@ -52,12 +52,15 @@ Review all workflow files in `.github/workflows/` and list every secret:
 grep -r "secrets\." .github/workflows/
 ```
 
-Common secrets in this repository:
-- `AZURE_CREDENTIALS` - Azure service principal credentials
-- `AZURE_SUBSCRIPTION_ID` - Azure subscription ID
-- `AZURE_RESOURCE_GROUP` - Target resource group
-- Database credentials (if any)
-- API keys or tokens
+**Current secrets in this repository (as of Dec 2025):**
+- ✅ `secrets.GITHUB_TOKEN` - Automatically provided by GitHub (safe, no action needed)
+- ✅ No deployment secrets currently used
+- ✅ No custom API keys or credentials
+
+**If you add deployment workflows in the future, you may need:**
+- Azure/AWS credentials (if deploying to cloud)
+- Database credentials (if using hosted database)
+- API keys for external services
 
 #### 1.2 Document Current Workflow Behavior
 
@@ -118,28 +121,41 @@ env:
 
 ---
 
-### Phase 3: Create Protected Environments
+### Phase 3: Create Protected Environments (Optional - Public Repos Only)
 
-Environments add an extra security layer by requiring approval before deployments.
+**⚠️ Important:** Environment protection rules (required reviewers) are only available for:
+- Public repositories (all GitHub accounts)
+- Private repositories on GitHub Pro/Team/Enterprise
+
+**If your repo is currently private on a free account:** Skip to Phase 6 and make it public first, then return here to configure environments.
 
 #### 3.1 Create Production Environment
 
 1. Go to **Repository Settings** → **Environments**
 2. Click **New environment**
-3. Name it `production`
-4. Click **Configure environment**
+3. Name it `production` and click **Configure environment**
+   - This automatically opens the environment configuration page
 
-#### 3.2 Configure Environment Protection Rules
+#### 3.2 Configure Deployment Branches (Available Now)
+
+**Deployment Branches:**
+1. Under "Deployment branches and tags", click dropdown
+2. Select **Selected branches and tags**
+3. Click **Add deployment branch or tag rule**
+4. Enter pattern: `main` (or `refs/heads/main`)
+5. Click **Add rule**
+6. This prevents deployments from forks or unauthorized branches
+
+#### 3.3 Configure Environment Protection Rules (Only After Going Public)
+
+**After making repository public**, you'll see a new section called "Deployment protection rules":
 
 **Required Reviewers:**
 1. Under "Deployment protection rules", enable **Required reviewers**
 2. Add your GitHub username and any trusted collaborators
 3. Set "Wait timer" to 0 minutes (or add delay if desired)
 
-**Deployment Branches:**
-1. Under "Deployment branches", select **Selected branches**
-2. Add rule for `main` branch only
-3. This prevents deployments from forks or unauthorized branches
+**Note:** This section will NOT appear until the repository is public (on free accounts).
 
 #### 3.3 Add Environment Secrets
 
@@ -277,19 +293,75 @@ Protect `main` branch from unauthorized changes:
 
 #### 6.1 Final Pre-Publication Checklist
 
-- [ ] All secrets moved to GitHub Secrets (none in code)
-- [ ] Workflows use `secrets.*` references only
-- [ ] Protected environments configured with reviewers
-- [ ] Branch protection rules enabled on `main`
-- [ ] No sensitive data in commit history (use `git filter-branch` if needed)
-- [ ] No credentials in issues, PRs, or discussions
-- [ ] `.gitignore` excludes all credential files
-- [ ] README updated with public-facing information
+**✅ Already Complete (Dec 2025):**
+- [x] All secrets moved to GitHub Secrets (only `GITHUB_TOKEN` used, auto-provided)
+- [x] Workflows use `secrets.*` references only
+- [x] `.gitignore` excludes all credential files (`credentials.json`, `token.pickle`, `.env`)
+- [x] No deployment workflows that need protection (CI/CD only builds/tests)
 
-#### 6.2 Make Repository Public
+**⚠️ Still Need to Do:**
+- [ ] Run local secret scan with `detect-secrets` (see command below)
+- [ ] Review commit history for any accidentally committed secrets
+- [ ] README already public-facing ✅
+- [ ] Configure environment deployment branches (limit to `main`)
+
+**📝 After Going Public (features unlock automatically):**
+- [ ] Verify secret scanning is enabled (auto-enabled for public repos)
+- [ ] Enable push protection if available
+- [ ] Add required reviewers to `production` environment
+- [ ] Test environment approval workflow
+- [ ] Add deployment secrets to environment (if needed)
+- [ ] Update deployment workflows to use `environment:` protection
+
+**Quick local secret check:**
+```bash
+pip install detect-secrets
+detect-secrets scan --exclude-files '\.git/.*|\.env|credentials\.json|token\.pickle'
+```
+
+#### 6.2 Enable Secret Scanning (After Going Public)
+
+**⚠️ Important:** Secret scanning is only available for:
+- Public repositories (all accounts) - **Enabled automatically**
+- Private repositories on GitHub Advanced Security plans
+
+**If your repo is private on a free account:** Secret scanning features will automatically become available AFTER you make the repository public.
+
+**Steps after making repository public:**
+
+1. Go to **Repository Settings** → **Security** (left sidebar)
+2. Look for **Code security and analysis** section (appears after going public)
+3. Verify **Secret scanning** is enabled (auto-enabled for public repos)
+4. Enable **Push protection** if available (prevents accidental secret commits)
+
+**Alternative: Check for secrets before going public:**
+
+```bash
+# Install detect-secrets (already in your requirements-dev.txt)
+pip install detect-secrets
+
+# Scan your repository
+detect-secrets scan --exclude-files '\.git/.*|\.env|credentials\.json|token\.pickle'
+
+# Review any findings
+# False positives are OK - just verify they're not real credentials
+```
+
+#### 6.3 Make Repository Public
 
 1. Go to **Repository Settings** → **General**
 2. Scroll to **Danger Zone**
+3. Click **Change visibility**
+4. Select **Make public**
+5. Type repository name to confirm
+6. Click **I understand, change repository visibility**
+
+**What happens immediately:**
+- Repository code becomes publicly visible
+- Workflow **definitions** become public (in `.github/workflows/`)
+- Workflow **runs** and logs remain private to collaborators
+- Secrets remain encrypted and inaccessible
+- Your current workflows continue working normally (only use `GITHUB_TOKEN`)
 3. Click **Change visibility**
 4. Select **Make public**
 5. Type repository name to confirm
@@ -504,14 +576,17 @@ jobs:
 
 ---
 
-## Verification Steps
-
-### After Making Repository Public
-
-#### 1. Verify Secrets Are Not Exposed
+**Before going public, run local scans:**
 
 ```bash
-# Search for common secret patterns in your codebase
+# Your repository already has detect-secrets in CI/CD
+# Run the same check locally:
+pip install detect-secrets
+
+# Scan for secrets in codebase
+detect-secrets scan --exclude-files '\.git/.*|\.env|credentials\.json|token\.pickle'
+
+# Search for common secret patterns manually
 git grep -i "password\s*="
 git grep -i "api.key"
 git grep -i "secret\s*="
@@ -519,6 +594,15 @@ git grep -E "[A-Za-z0-9]{32,}"  # Long strings that might be keys
 
 # Check commit history for leaked secrets
 git log -p --all | grep -i "password"
+```
+
+**After making repository public:**
+
+GitHub will automatically enable secret scanning (for public repos):
+1. Go to **Settings** → **Security**
+2. Look for **Code security and analysis** section (now visible)
+3. Verify **Secret scanning** is enabled
+4. Enable **Push protection** if available
 ```
 
 Use GitHub's built-in secret scanning:

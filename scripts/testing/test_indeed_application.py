@@ -1,4 +1,5 @@
 """Test Indeed application confirmation email classification."""
+
 import os
 import sys
 
@@ -7,6 +8,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../.
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dashboard.settings")
 
 import django
+
 django.setup()
 
 from ml_subject_classifier import predict_subject_type, rule_label
@@ -39,10 +41,10 @@ print(f"   Confidence: {result['confidence']:.4f}")
 print(f"   Method: {result.get('method', 'N/A')}")
 
 # Validation
-expected = 'job_application'  # or 'application'
-actual = result['label']
+expected = "job_application"  # or 'application'
+actual = result["label"]
 
-if actual not in ('job_application', 'application'):
+if actual not in ("job_application", "application"):
     print(f"\n❌ FAILURE: Expected '{expected}' or 'application', got '{actual}'")
     print("\nThis indicates the pattern matching is not working correctly.")
     print("Check patterns.json 'application' patterns and priority order.")

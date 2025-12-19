@@ -3,6 +3,7 @@
 Finds all messages labeled as 'rejected' and updates them to 'rejection'.
 Also checks patterns.json and code for inconsistencies.
 """
+
 import os
 import sys
 
@@ -30,7 +31,7 @@ def main():
     print("LABEL CONSOLIDATION: rejected → rejection")
     print("=" * 80)
     print()
-    print(f'Current state:')
+    print(f"Current state:")
     print(f'  Messages labeled "rejected": {rejected_count}')
     print(f'  Messages labeled "rejection": {rejection_count}')
     print()
@@ -42,7 +43,7 @@ def main():
     # Show sample messages
     print(f'Sample "rejected" messages to be updated:')
     for msg in rejected[:10]:
-        print(f'  - {msg.msg_id}: {msg.subject[:70]}')
+        print(f"  - {msg.msg_id}: {msg.subject[:70]}")
     print()
 
     # Update all rejected → rejection
@@ -53,11 +54,15 @@ def main():
     # Check ThreadTracking
     thread_rejected = ThreadTracking.objects.filter(ml_label="rejected")
     thread_rejected_count = thread_rejected.count()
-    
+
     if thread_rejected_count > 0:
-        print(f'Found {thread_rejected_count} ThreadTracking entries with "rejected" label')
+        print(
+            f'Found {thread_rejected_count} ThreadTracking entries with "rejected" label'
+        )
         thread_updated = thread_rejected.update(ml_label="rejection")
-        print(f"✓ Updated {thread_updated} ThreadTracking entries from 'rejected' → 'rejection'")
+        print(
+            f"✓ Updated {thread_updated} ThreadTracking entries from 'rejected' → 'rejection'"
+        )
         print()
 
     # Final state

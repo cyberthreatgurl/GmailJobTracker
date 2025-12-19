@@ -43,4 +43,6 @@ def test_job_board_badge_matches_table_rows(db, settings):
     ctx_domains = resp.context.get("domains") or []
     rendered_domains = {d.get("domain") for d in ctx_domains}
     for dom in seed_domains:
-        assert dom in rendered_domains, f"Expected domain {dom} to be in response context domains"
+        assert (
+            dom in rendered_domains
+        ), f"Expected domain {dom} to be in response context domains"

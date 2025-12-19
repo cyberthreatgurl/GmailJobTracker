@@ -67,4 +67,3 @@ def backfill_dates():
 
 if __name__ == "__main__":
     backfill_dates()
-

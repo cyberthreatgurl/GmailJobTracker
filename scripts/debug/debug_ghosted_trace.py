@@ -84,4 +84,3 @@ else:
 print(f"\n  Current app.status: '{app.status}'")
 print(f"  Current app.ml_label: '{app.ml_label}'")
 print(f"  Current company.status: '{app.company.status}'")
-

@@ -21,6 +21,7 @@ OPTIONAL_FILES = {
     "company_aliases.json": BASE_DIR / "json" / "company_aliases.json",
 }
 
+
 def check_json_syntax():
     print("\n JSON syntax check (root .json files):")
     json_files = list(BASE_DIR.glob("json/*.json"))
@@ -35,19 +36,23 @@ def check_json_syntax():
             print(f" {jf.name}: valid JSON")
         except json.JSONDecodeError as e:
             all_ok = False
-            print(f" {jf.name}: invalid JSON — {e.msg} (line {e.lineno}, col {e.colno})")
+            print(
+                f" {jf.name}: invalid JSON — {e.msg} (line {e.lineno}, col {e.colno})"
+            )
         except Exception as e:
             all_ok = False
             print(f" {jf.name}: error reading file — {e}")
     if all_ok:
         print(" All root JSON files are valid.")
-        
+
+
 def check_file(path, label, required=True):
     if path.exists():
         print(f" {label}: Found at {path}")
     else:
         status = " MISSING" if required else " Optional but missing"
         print(f"{status}: {label} ({path})")
+
 
 def check_django_migrations():
     print("\n Django Migrations:")
@@ -56,12 +61,13 @@ def check_django_migrations():
             ["python", "manage.py", "showmigrations", "--plan"],
             capture_output=True,
             text=True,
-            check=True
+            check=True,
         )
         print(" Migration plan retrieved.")
         print(result.stdout)
     except Exception as e:
         print(f" Failed to check migrations: {e}")
+
 
 def check_oauth_credentials():
     print("\n OAuth Credentials:")
@@ -69,6 +75,7 @@ def check_oauth_credentials():
     creds_path = BASE_DIR / "json" / "credentials.json"
     check_file(token_path, "token.json", required=False)
     check_file(creds_path, "credentials.json", required=False)
+
 
 def check_directory_permissions():
     print("\n Directory Permissions:")
@@ -80,6 +87,7 @@ def check_directory_permissions():
         else:
             print(f" Not writable: {path}")
 
+
 def check_git_status():
     print("\n Git Status:")
     try:
@@ -87,18 +95,16 @@ def check_git_status():
             ["git", "rev-parse", "--abbrev-ref", "HEAD"],
             capture_output=True,
             text=True,
-            check=True
+            check=True,
         ).stdout.strip()
         commit = subprocess.run(
-            ["git", "rev-parse", "HEAD"],
-            capture_output=True,
-            text=True,
-            check=True
+            ["git", "rev-parse", "HEAD"], capture_output=True, text=True, check=True
         ).stdout.strip()
         print(f" Git branch: {branch}")
         print(f" Latest commit: {commit}")
     except Exception as e:
         print(f" Git status unavailable: {e}")
+
 
 def main():
     print(" Checking environment readiness...\n")
@@ -120,6 +126,7 @@ def main():
 
     print("\n Done. Review terms above to complete setup.")
 
+
 def check_detect_secrets():
     print("\n Secret Scanning (detect-secrets):")
     baseline_path = BASE_DIR / ".secrets.baseline"
@@ -131,7 +138,7 @@ def check_detect_secrets():
                 ["detect-secrets", "scan", "--baseline", str(baseline_path)],
                 capture_output=True,
                 text=True,
-                check=True
+                check=True,
             )
             print(" Scan completed. No new secrets detected.")
         except subprocess.CalledProcessError as e:
@@ -141,15 +148,22 @@ def check_detect_secrets():
         print(" .secrets.baseline not found. Generating new baseline...")
         try:
             result = subprocess.run(
-                ["detect-secrets", "scan", "--all-files", "--output", str(baseline_path)],
+                [
+                    "detect-secrets",
+                    "scan",
+                    "--all-files",
+                    "--output",
+                    str(baseline_path),
+                ],
                 capture_output=True,
                 text=True,
-                check=True
+                check=True,
             )
             print(" New .secrets.baseline created.")
         except subprocess.CalledProcessError as e:
             print(" Failed to create .secrets.baseline.")
             print(e.stdout or e.stderr)
-            
+
+
 if __name__ == "__main__":
     main()

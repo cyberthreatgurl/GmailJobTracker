@@ -120,7 +120,9 @@ def reingest_messages(messages: List[Message], args):
         from parser import ingest_message
     except Exception as e:
         ingest_message = None
-        print(f"⚠️ Warning: failed to import parser.ingest_message: {e}; live re-ingest will be skipped and fallback used where possible")
+        print(
+            f"⚠️ Warning: failed to import parser.ingest_message: {e}; live re-ingest will be skipped and fallback used where possible"
+        )
 
     print(f"\n🔄 Re-ingesting {len(messages)} messages...\n")
 
@@ -173,37 +175,40 @@ def reingest_messages(messages: List[Message], args):
             # display the thread even when live fetch fails.
             errmsg = str(e)
             if (not args.no_fallback) and (
-                "Requested entity was not found" in errmsg
-                or "404" in errmsg
+                "Requested entity was not found" in errmsg or "404" in errmsg
             ):
                 # Attempt fallback creation from existing Message
                 try:
                     tt, created = ThreadTracking.objects.get_or_create(
                         thread_id=msg.thread_id,
                         defaults={
-                            'company': msg.company,
-                            'company_source': msg.company_source or 'reingest_fallback',
-                            'job_title': '',
-                            'job_id': '',
-                            'status': msg.ml_label or 'interview',
-                            'sent_date': msg.timestamp.date() if msg.timestamp else None,
-                            'rejection_date': None,
-                            'interview_date': None,
-                            'ml_label': msg.ml_label,
-                            'ml_confidence': getattr(msg, 'confidence', None),
-                            'reviewed': False,
+                            "company": msg.company,
+                            "company_source": msg.company_source or "reingest_fallback",
+                            "job_title": "",
+                            "job_id": "",
+                            "status": msg.ml_label or "interview",
+                            "sent_date": (
+                                msg.timestamp.date() if msg.timestamp else None
+                            ),
+                            "rejection_date": None,
+                            "interview_date": None,
+                            "ml_label": msg.ml_label,
+                            "ml_confidence": getattr(msg, "confidence", None),
+                            "reviewed": False,
                         },
                     )
 
                     if created:
-                        results['success'].append(
+                        results["success"].append(
                             {
-                                'msg_id': msg_id,
-                                'subject': subject,
-                                'old_company': old_company,
-                                'new_company': msg.company.name if msg.company else 'None',
-                                'fallback_created': True,
-                                'thread_id': tt.thread_id,
+                                "msg_id": msg_id,
+                                "subject": subject,
+                                "old_company": old_company,
+                                "new_company": (
+                                    msg.company.name if msg.company else "None"
+                                ),
+                                "fallback_created": True,
+                                "thread_id": tt.thread_id,
                             }
                         )
                         if args.verbose:
@@ -211,8 +216,12 @@ def reingest_messages(messages: List[Message], args):
                                 f"⚠️ FALLBACK Created TT [{i:3}/{len(messages)}] thread={tt.thread_id} | {subject[:60]}"
                             )
                     else:
-                        results['unchanged'].append(
-                            {'msg_id': msg_id, 'subject': subject, 'company': old_company}
+                        results["unchanged"].append(
+                            {
+                                "msg_id": msg_id,
+                                "subject": subject,
+                                "company": old_company,
+                            }
                         )
                         if args.verbose:
                             print(
@@ -222,7 +231,11 @@ def reingest_messages(messages: List[Message], args):
                     continue
                 except Exception as e2:
                     results["error"].append(
-                        {"msg_id": msg_id, "subject": subject, "error": f"fallback failed: {e2}"}
+                        {
+                            "msg_id": msg_id,
+                            "subject": subject,
+                            "error": f"fallback failed: {e2}",
+                        }
                     )
                     if args.verbose:
                         print(f"❌ FALLBACK ERROR [{i:3}/{len(messages)}] {e2}")

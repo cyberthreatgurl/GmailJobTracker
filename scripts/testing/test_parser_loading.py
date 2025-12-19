@@ -5,7 +5,7 @@ import os
 import django
 
 # Configure Django
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'dashboard.settings')
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dashboard.settings")
 django.setup()
 
 import parser
@@ -22,5 +22,5 @@ for label, excludes in parser._MSG_LABEL_EXCLUDES.items():
 
 print("\nPattern structure check:")
 print(f"  PATTERNS has 'message_labels' key: {'message_labels' in parser.PATTERNS}")
-if 'message_labels' in parser.PATTERNS:
+if "message_labels" in parser.PATTERNS:
     print(f"  message_labels has {len(parser.PATTERNS['message_labels'])} labels")

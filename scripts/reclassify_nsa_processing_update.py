@@ -34,14 +34,18 @@ TARGET_PHRASE = "NSA Employment Processing Update"
 def find_candidate_messages():
     """Return list of Message IDs matching the target phrase (case-insensitive)."""
     return list(
-        Message.objects.filter(subject__icontains=TARGET_PHRASE).values_list("id", "msg_id")
+        Message.objects.filter(subject__icontains=TARGET_PHRASE).values_list(
+            "id", "msg_id"
+        )
     )
 
 
 def find_ignored_candidates():
     """Return list of IgnoredMessage msg_ids matching the target phrase."""
     return list(
-        IgnoredMessage.objects.filter(subject__icontains=TARGET_PHRASE).values_list("msg_id", flat=True)
+        IgnoredMessage.objects.filter(subject__icontains=TARGET_PHRASE).values_list(
+            "msg_id", flat=True
+        )
     )
 
 
@@ -66,8 +70,12 @@ def reingest(gmail_ids: List[str]):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Reclassify NSA Employment Processing Update messages")
-    parser.add_argument("--apply", action="store_true", help="Perform re-ingest (default is dry-run)")
+    parser = argparse.ArgumentParser(
+        description="Reclassify NSA Employment Processing Update messages"
+    )
+    parser.add_argument(
+        "--apply", action="store_true", help="Perform re-ingest (default is dry-run)"
+    )
     args = parser.parse_args()
 
     print("== Reclassify NSA Employment Processing Update ==")
@@ -86,7 +94,9 @@ def main():
         if g_id not in gmail_ids:
             gmail_ids.append(g_id)
 
-    print(f"Found {len(msg_rows)} existing Message row(s) and {len(ignored_ids)} IgnoredMessage row(s).")
+    print(
+        f"Found {len(msg_rows)} existing Message row(s) and {len(ignored_ids)} IgnoredMessage row(s)."
+    )
     print(f"Total unique Gmail IDs to re-ingest: {len(gmail_ids)}\n")
 
     # Show a preview table
@@ -102,7 +112,9 @@ def main():
     successes, failures = reingest(gmail_ids)
     print(f"\nDone. Successes={successes} Failures={failures}")
     if successes > 0:
-        print("Re-ingested messages will now be classified with updated rejection rule.")
+        print(
+            "Re-ingested messages will now be classified with updated rejection rule."
+        )
 
 
 if __name__ == "__main__":

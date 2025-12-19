@@ -22,7 +22,7 @@ print(f"COMPANY: {company.name} (ID: {company.id})")
 print(f"{'='*80}\n")
 
 # Check Applications
-apps = ThreadTracking.objects.filter(company_id=38).order_by('-sent_date')
+apps = ThreadTracking.objects.filter(company_id=38).order_by("-sent_date")
 print(f"APPLICATIONS: {apps.count()}\n")
 for app in apps:
     print(f"  Thread: {app.thread_id}")
@@ -36,7 +36,7 @@ for app in apps:
     print()
 
 # Check Messages
-messages = Message.objects.filter(company_id=38).order_by('-timestamp')
+messages = Message.objects.filter(company_id=38).order_by("-timestamp")
 print(f"\nMESSAGES: {messages.count()}\n")
 for msg in messages:
     print(f"  msg_id: {msg.msg_id}")
@@ -48,7 +48,7 @@ for msg in messages:
     print()
 
 # Check specifically for interview-related labels
-interview_messages = messages.filter(ml_label__in=['interview_invite', 'interview'])
+interview_messages = messages.filter(ml_label__in=["interview_invite", "interview"])
 print(f"\nINTERVIEW MESSAGES: {interview_messages.count()}\n")
 for msg in interview_messages:
     print(f"  ⚠️  {msg.ml_label}: {msg.subject[:70]}")
@@ -76,4 +76,3 @@ elif apps_with_interview.exists():
 else:
     print("✓ No obvious interview indicators found")
     print("  Need to check dashboard query logic")
-

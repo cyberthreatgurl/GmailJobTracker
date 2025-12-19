@@ -9,7 +9,9 @@ from django.utils.timezone import now
 class Company(models.Model):
     name = models.CharField(max_length=255)
     domain = models.CharField(max_length=255, blank=True)
-    ats = models.CharField(max_length=255, blank=True, null=True)  # New field for ATS domain
+    ats = models.CharField(
+        max_length=255, blank=True, null=True
+    )  # New field for ATS domain
     homepage = models.URLField(max_length=512, blank=True, null=True)
     contact_name = models.CharField(max_length=255, blank=True, null=True)
     contact_email = models.EmailField(max_length=255, blank=True, null=True)
@@ -90,8 +92,12 @@ class MessageLabel(models.Model):
 
 
 class Message(models.Model):
-    company = models.ForeignKey(Company, null=True, blank=True, on_delete=models.SET_NULL)
-    company_source = models.CharField(max_length=50, null=True, blank=True)  # ✅ Add this
+    company = models.ForeignKey(
+        Company, null=True, blank=True, on_delete=models.SET_NULL
+    )
+    company_source = models.CharField(
+        max_length=50, null=True, blank=True
+    )  # ✅ Add this
     sender = models.CharField(max_length=255)
     subject = models.TextField()
     body = models.TextField()
@@ -100,15 +106,23 @@ class Message(models.Model):
     timestamp = models.DateTimeField()
 
     # Gmail identifiers
-    msg_id = models.CharField(max_length=255, unique=True)  # NEW: unique Gmail messageId
-    thread_id = models.CharField(max_length=255, db_index=True)  # keep, but index for grouping
-    body_hash = models.CharField(max_length=64, db_index=True, null=True, blank=True)  # SHA256 hash for deduplication
+    msg_id = models.CharField(
+        max_length=255, unique=True
+    )  # NEW: unique Gmail messageId
+    thread_id = models.CharField(
+        max_length=255, db_index=True
+    )  # keep, but index for grouping
+    body_hash = models.CharField(
+        max_length=64, db_index=True, null=True, blank=True
+    )  # SHA256 hash for deduplication
 
     # Manual labeling for ML
     ml_label = models.CharField(max_length=50, null=True, blank=True)  # NEW
     confidence = models.FloatField(null=True, blank=True)  # ✅ NEW
     reviewed = models.BooleanField(default=False)  # NEW
-    classification_source = models.CharField(max_length=20, null=True, blank=True)  # 'ml', 'rule', 'rules_override', 'rules'
+    classification_source = models.CharField(
+        max_length=20, null=True, blank=True
+    )  # 'ml', 'rule', 'rules_override', 'rules'
 
     def save(self, *args, **kwargs):
         """Override save to ensure reviewed noise messages have no company."""
@@ -212,7 +226,9 @@ class ProcessedMessage(models.Model):
 
 class GmailFilterImportLog(models.Model):
     uploaded_at = models.DateTimeField(auto_now_add=True, db_index=True)
-    uploaded_by = models.ForeignKey("auth.User", on_delete=models.SET_NULL, null=True, blank=True)
+    uploaded_by = models.ForeignKey(
+        "auth.User", on_delete=models.SET_NULL, null=True, blank=True
+    )
     original_filename = models.CharField(max_length=255, blank=True)
     labels_updated = models.IntegerField(default=0)
     excludes_updated = models.IntegerField(default=0)
@@ -247,7 +263,9 @@ class ModelTrainingRun(models.Model):
 
 # Optionally, per-label metrics for each run
 class ModelTrainingLabelMetric(models.Model):
-    run = models.ForeignKey(ModelTrainingRun, on_delete=models.CASCADE, related_name="label_metrics")
+    run = models.ForeignKey(
+        ModelTrainingRun, on_delete=models.CASCADE, related_name="label_metrics"
+    )
     label = models.CharField(max_length=64)
     precision = models.FloatField(null=True, blank=True)
     recall = models.FloatField(null=True, blank=True)

@@ -1,4 +1,5 @@
 """Show final upcoming interviews list."""
+
 import os
 import sys
 import django
@@ -9,11 +10,15 @@ django.setup()
 
 from tracker.models import ThreadTracking
 
-upcoming = ThreadTracking.objects.filter(
-    interview_date__gte='2025-11-08',
-    interview_completed=False,
-    company__isnull=False
-).select_related('company').order_by('interview_date')
+upcoming = (
+    ThreadTracking.objects.filter(
+        interview_date__gte="2025-11-08",
+        interview_completed=False,
+        company__isnull=False,
+    )
+    .select_related("company")
+    .order_by("interview_date")
+)
 
 print("=" * 70)
 print("📅 UPCOMING INTERVIEWS - DASHBOARD VIEW")

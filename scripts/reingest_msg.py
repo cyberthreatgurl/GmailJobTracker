@@ -10,6 +10,7 @@ This will:
 
 Note: Requires valid `model/token.pickle` and `json/credentials.json` for Gmail OAuth.
 """
+
 import os
 import sys
 from pathlib import Path
@@ -39,7 +40,9 @@ if __name__ == "__main__":
         print(f"Message not found with msg_id={target_msg_id}")
         sys.exit(1)
 
-    print(f"Before: msg_id={m.msg_id}, reviewed={m.reviewed}, ml_label={m.ml_label}, confidence={m.confidence}")
+    print(
+        f"Before: msg_id={m.msg_id}, reviewed={m.reviewed}, ml_label={m.ml_label}, confidence={m.confidence}"
+    )
     m.reviewed = False
     m.save()
     print("Cleared reviewed flag; attempting re-ingest from Gmail...")
@@ -54,7 +57,9 @@ if __name__ == "__main__":
         print(f"Re-ingest result: {res}")
         # Show refreshed DB state
         m.refresh_from_db()
-        print(f"After: msg_id={m.msg_id}, reviewed={m.reviewed}, ml_label={m.ml_label}, confidence={m.confidence}")
+        print(
+            f"After: msg_id={m.msg_id}, reviewed={m.reviewed}, ml_label={m.ml_label}, confidence={m.confidence}"
+        )
     except Exception as e:
         print(f"Re-ingest failed: {e}")
         raise

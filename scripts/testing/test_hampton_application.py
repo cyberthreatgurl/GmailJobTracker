@@ -1,4 +1,5 @@
 """Test Millennium Hampton VA application email."""
+
 import os
 import sys
 
@@ -7,6 +8,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../.
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dashboard.settings")
 
 import django
+
 django.setup()
 
 from parser import parse_subject
@@ -28,8 +30,8 @@ print(f"   Company: {parsed['company']}")
 print(f"   Label: {parsed['label']}")
 
 # Validation
-expected = 'Millennium Corporation'
-actual = parsed['company']
+expected = "Millennium Corporation"
+actual = parsed["company"]
 
 if actual != expected:
     print(f"\n❌ FAILURE: Expected '{expected}', got '{actual}'")

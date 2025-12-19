@@ -31,7 +31,7 @@ for label in ("offer", "rejected", "interview_invite", "job_application"):
         if match:
             context_start = max(0, match.start() - 30)
             context_end = min(len(s), match.end() + 30)
-            context = s[context_start:context_end].replace('\n', ' ')
+            context = s[context_start:context_end].replace("\n", " ")
             print(f"  ✓ MATCH: '{match.group()}' in context: ...{context}...")
             print(f"    → Would return '{label}' and stop")
             break

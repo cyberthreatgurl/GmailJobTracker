@@ -57,7 +57,6 @@ def fix_pattern(pattern):
     if pattern == "None":
         return pattern
 
-
     # Remove HTML entities
     pattern = pattern.replace(r"&quot;", "")
     pattern = pattern.replace(r"&amp;", "&")

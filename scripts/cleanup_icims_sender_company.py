@@ -26,6 +26,7 @@ import re
 from email.utils import parseaddr
 
 import django
+
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dashboard.settings")
 django.setup()
 
@@ -62,7 +63,9 @@ def clean_sender_display_name(sender: str) -> str:
         flags=re.I,
     ).strip()
     # Remove ATS platform suffixes (e.g., "@ icims", "@ Workday", etc.)
-    cleaned = re.sub(r"\s*@\s*(icims|workday|greenhouse|lever|indeed)\s*$", "", cleaned, flags=re.I).strip()
+    cleaned = re.sub(
+        r"\s*@\s*(icims|workday|greenhouse|lever|indeed)\s*$", "", cleaned, flags=re.I
+    ).strip()
     return cleaned
 
 
@@ -82,11 +85,11 @@ qs = qs.filter(company_source__in=["subject_parse", "", None])
 
 # Heuristic: likely ATS messages
 qs = qs.filter(
-    Q(sender__icontains="@icims.") |
-    Q(sender__icontains="@workday.") |
-    Q(sender__icontains="@greenhouse-") |
-    Q(sender__icontains="@lever.") |
-    Q(sender__icontains="@indeed.")
+    Q(sender__icontains="@icims.")
+    | Q(sender__icontains="@workday.")
+    | Q(sender__icontains="@greenhouse-")
+    | Q(sender__icontains="@lever.")
+    | Q(sender__icontains="@indeed.")
 ).order_by("-timestamp")
 
 proposed = []
@@ -107,7 +110,9 @@ for msg in qs:
 print(f"Found {len(proposed)} messages with a better company candidate from sender.")
 
 for i, (msg, new_name) in enumerate(proposed, 1):
-    print(f"\n{i}. {msg.timestamp:%Y-%m-%d %H:%M} | current='{msg.company.name}', new='{new_name}'")
+    print(
+        f"\n{i}. {msg.timestamp:%Y-%m-%d %H:%M} | current='{msg.company.name}', new='{new_name}'"
+    )
     print(f"   Subject: {msg.subject[:90]}")
     print(f"   Sender:  {msg.sender}")
 

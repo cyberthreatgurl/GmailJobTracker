@@ -14,8 +14,19 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.shortcuts import render, redirect
 from bs4 import BeautifulSoup
 
-from parser import extract_metadata, parse_raw_message, predict_with_fallback, predict_subject_type, parse_subject, normalize_company_name
-from scripts.import_gmail_filters import load_json, make_or_pattern, sanitize_to_regex_terms
+from parser import (
+    extract_metadata,
+    parse_raw_message,
+    predict_with_fallback,
+    predict_subject_type,
+    parse_subject,
+    normalize_company_name,
+)
+from scripts.import_gmail_filters import (
+    load_json,
+    make_or_pattern,
+    sanitize_to_regex_terms,
+)
 from gmail_auth import get_gmail_service
 from tracker.forms import UploadEmlForm
 from scripts.ingest_eml import ingest_eml_bytes
@@ -87,31 +98,28 @@ def label_rule_debugger(request):
                                 if match:
                                     sender_domain = match.group(1).lower()
                 message_text = body or subject
-                
+
                 # Use the same classification pipeline as ingest_message
                 from parser import predict_with_fallback, predict_subject_type
-                
+
                 # Run the full classification pipeline (ML + rules)
                 result = predict_with_fallback(
-                    predict_subject_type,
-                    subject,
-                    body,
-                    sender=sender
+                    predict_subject_type, subject, body, sender=sender
                 )
-                
+
                 matched_label = result.get("label", "noise")
                 ml_label = result.get("ml_label") or result.get("label")
                 matched_confidence = result.get("confidence", 0.0)
                 fallback_type = result.get("fallback", "unknown")
-                
+
                 # Now find which patterns matched for highlighting
                 patterns_path = Path("json/patterns.json")
                 patterns = load_json(patterns_path, default={"message_labels": {}})
                 msg_labels = patterns.get("message_labels", {})
-                
+
                 highlights_set = set()
                 matched_labels_set = set()
-                
+
                 if matched_label:
                     matched_labels_set.add(matched_label)
                     # Map internal labels back to pattern.json keys
@@ -120,7 +128,7 @@ def label_rule_debugger(request):
                         "job_application": "application",
                     }
                     pattern_key = label_map_reverse.get(matched_label, matched_label)
-                    
+
                     # Find which patterns matched for this label
                     rules = msg_labels.get(pattern_key, [])
                     for rule in rules:
@@ -133,14 +141,16 @@ def label_rule_debugger(request):
                                 matched_patterns.append(f"{matched_label}: {rule}")
                                 matched_text = match.group(0)
                                 highlights_set.add(matched_text)
-                                
+
                                 # Extract OR alternatives for highlighting
                                 simple_split = rule.split("|")
                                 for alt in simple_split:
                                     clean_alt = alt.strip("()").strip()
                                     if clean_alt:
                                         try:
-                                            alt_pattern = re.compile(clean_alt, re.IGNORECASE)
+                                            alt_pattern = re.compile(
+                                                clean_alt, re.IGNORECASE
+                                            )
                                             alt_match = alt_pattern.search(message_text)
                                             if alt_match:
                                                 highlights_set.add(alt_match.group(0))
@@ -152,10 +162,12 @@ def label_rule_debugger(request):
                 highlights = sorted(highlights_set, key=lambda s: s.lower())
                 matched_labels = sorted(matched_labels_set)
                 no_matches = not matched_label
-                
+
                 # Extract company name using parse_subject with sender info
                 try:
-                    parsed = parse_subject(subject, body, sender=sender, sender_domain=sender_domain)
+                    parsed = parse_subject(
+                        subject, body, sender=sender, sender_domain=sender_domain
+                    )
                     extracted_company = parsed.get("company", "")
                     company_confidence = parsed.get("confidence", 0)
                     if extracted_company:
@@ -164,13 +176,14 @@ def label_rule_debugger(request):
                     # Company extraction failed - continue without it
                     extracted_company = ""
                     company_confidence = 0
-                
+
                 # Apply the same override logic as ingest_message
                 override_note = None
-                
+
                 # 1. Check if ML originally predicted head_hunter (internal recruiter override)
                 if ml_label == "head_hunter" and sender_domain:
                     from parser import _map_company_by_domain, HEADHUNTER_DOMAINS
+
                     if sender_domain not in HEADHUNTER_DOMAINS:
                         mapped_company = _map_company_by_domain(sender_domain)
                         if mapped_company:
@@ -178,27 +191,42 @@ def label_rule_debugger(request):
                             if matched_label == "job_application":
                                 # Check for ATS markers to validate real application
                                 body_lower = (body or "").lower()
-                                ats_markers = ["workday", "myworkday", "taleo", "icims", "indeed", "list-unsubscribe", "one-click"]
-                                has_ats_marker = any(marker in body_lower for marker in ats_markers)
+                                ats_markers = [
+                                    "workday",
+                                    "myworkday",
+                                    "taleo",
+                                    "icims",
+                                    "indeed",
+                                    "list-unsubscribe",
+                                    "one-click",
+                                ]
+                                has_ats_marker = any(
+                                    marker in body_lower for marker in ats_markers
+                                )
                                 if not has_ats_marker:
                                     override_note = f"Override: Internal recruiter from {mapped_company} - no ATS markers, changed to 'other'"
                                     matched_label = "other"
                                     if "other" not in matched_labels_set:
                                         matched_labels.append("other")
-                            elif matched_label not in ("interview_invite", "rejection", "offer"):
+                            elif matched_label not in (
+                                "interview_invite",
+                                "rejection",
+                                "offer",
+                            ):
                                 override_note = f"Override: Internal recruiter from {mapped_company} - changed to 'other' (ML predicted head_hunter)"
                                 matched_label = "other"
                                 if "other" not in matched_labels_set:
                                     matched_labels.append("other")
-                
+
                 # 2. Check if sender domain is in personal domains list
                 if sender_domain:
                     from parser import PERSONAL_DOMAINS
+
                     if sender_domain.lower() in PERSONAL_DOMAINS:
                         override_note = f"Override: Personal domain ({sender_domain}) - changed to 'noise'"
                         matched_label = "noise"
                         matched_labels = ["noise"]
-                
+
                 # Highlight words in message_text
                 # re is now imported globally
 
@@ -212,7 +240,7 @@ def label_rule_debugger(request):
                     return text
 
                 message_text = highlight_text(message_text, highlights)
-                
+
                 result = {
                     "subject": subject,
                     "body": body,
@@ -244,7 +272,6 @@ def label_rule_debugger(request):
     return render(request, "tracker/label_rule_debugger.html", ctx)
 
 
-
 @staff_member_required
 def upload_eml(request):
     """Admin/dashboard upload endpoint to ingest a local .eml file via UI."""
@@ -253,23 +280,31 @@ def upload_eml(request):
     if request.method == "POST":
         form = UploadEmlForm(request.POST, request.FILES)
         if form.is_valid():
-            uploaded = request.FILES['eml_file']
+            uploaded = request.FILES["eml_file"]
             raw = uploaded.read()
-            thread_override = form.cleaned_data.get('thread_id') or None
-            no_tt = form.cleaned_data.get('no_tt')
+            thread_override = form.cleaned_data.get("thread_id") or None
+            no_tt = form.cleaned_data.get("no_tt")
             # Call ingest helper with apply=True
-            resp = ingest_eml_bytes(raw, apply=True, create_tt=(not no_tt), thread_id_override=thread_override)
-            if resp.get('success'):
+            resp = ingest_eml_bytes(
+                raw,
+                apply=True,
+                create_tt=(not no_tt),
+                thread_id_override=thread_override,
+            )
+            if resp.get("success"):
                 result = resp
             else:
-                error = resp.get('message')
+                error = resp.get("message")
         else:
-            error = 'Invalid form submission'
+            error = "Invalid form submission"
     else:
         form = UploadEmlForm()
 
-    return render(request, 'tracker/upload_eml.html', {'form': form, 'result': result, 'error': error})
-
+    return render(
+        request,
+        "tracker/upload_eml.html",
+        {"form": form, "result": result, "error": error},
+    )
 
 
 @login_required
@@ -430,5 +465,4 @@ def gmail_filters_labels_compare(request):
     return render(request, "tracker/gmail_filters_labels_compare.html", ctx)
 
 
-
-__all__ = ['label_rule_debugger', 'upload_eml', 'gmail_filters_labels_compare']
+__all__ = ["label_rule_debugger", "upload_eml", "gmail_filters_labels_compare"]

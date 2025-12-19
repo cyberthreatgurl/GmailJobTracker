@@ -5,7 +5,10 @@ from .utils import propagate_message_label_to_thread
 
 
 def label_message_and_propagate(
-    msg: Message, label: str, confidence: Optional[float] = None, overwrite_reviewed: bool = False
+    msg: Message,
+    label: str,
+    confidence: Optional[float] = None,
+    overwrite_reviewed: bool = False,
 ) -> None:
     """Set a Message's ml_label and confidence, save, and propagate to ThreadTracking.
 

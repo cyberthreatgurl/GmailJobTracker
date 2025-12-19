@@ -8,8 +8,7 @@ from pathlib import Path
 FUNCTION_RANGES = {
     # API module
     "ingestion_status_api": (3480, 3500),
-    
-    # Helpers module  
+    # Helpers module
     "build_sidebar_context": (1032, 1040),
     "extract_body_content": (2017, 2030),
     "validate_regex_pattern": (2866, 2904),
@@ -18,20 +17,23 @@ FUNCTION_RANGES = {
     "_parse_pasted_gmail_spec": (3501, 3555),
 }
 
+
 def extract_lines(filepath, start, end):
     """Extract lines from start to end (inclusive)."""
-    with open(filepath, 'r', encoding='utf-8') as f:
+    with open(filepath, "r", encoding="utf-8") as f:
         lines = f.readlines()
-    return ''.join(lines[start-1:end])
+    return "".join(lines[start - 1 : end])
+
 
 def main():
     legacy_file = Path("tracker/views_legacy.py")
-    
+
     for func_name, (start, end) in FUNCTION_RANGES.items():
         print(f"{func_name}: lines {start}-{end}")
         code = extract_lines(legacy_file, start, end)
         print(code[:200])
         print("---")
+
 
 if __name__ == "__main__":
     main()

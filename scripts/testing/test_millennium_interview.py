@@ -1,4 +1,5 @@
 """Test Millennium Corporation interview email classification and extraction."""
+
 import os
 import sys
 
@@ -7,6 +8,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../.
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dashboard.settings")
 
 import django
+
 django.setup()
 
 import parser  # noqa: F401 - local parser module, not stdlib
@@ -31,7 +33,9 @@ print("MILLENNIUM CORPORATION INTERVIEW EMAIL TEST")
 print("=" * 60)
 
 # Test rule-based classification first
-result = predict_with_fallback(predict_subject_type, subject, body, threshold=0.55, sender=sender)
+result = predict_with_fallback(
+    predict_subject_type, subject, body, threshold=0.55, sender=sender
+)
 print(f"\n✅ Classification:")
 print(f"   Label: {result['label']}")
 print(f"   Confidence: {result['confidence']:.4f}")
@@ -43,8 +47,12 @@ print(f"   Company: {parsed['company']}")
 print(f"   Job title: {parsed['job_title']}")
 
 # Validation
-assert result['label'] == 'interview_invite', f"Expected 'interview_invite', got '{result['label']}'"
-assert parsed['company'] == 'Millennium Corporation', f"Expected 'Millennium Corporation', got '{parsed['company']}'"
+assert (
+    result["label"] == "interview_invite"
+), f"Expected 'interview_invite', got '{result['label']}'"
+assert (
+    parsed["company"] == "Millennium Corporation"
+), f"Expected 'Millennium Corporation', got '{parsed['company']}'"
 
 print("\n" + "=" * 60)
 print("✅ ALL TESTS PASSED!")

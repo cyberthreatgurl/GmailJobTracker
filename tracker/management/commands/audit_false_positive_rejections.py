@@ -23,7 +23,9 @@ def load_patterns_with_legacy_rejection(patterns_path: Path) -> dict:
 def compile_patterns(patterns: dict) -> dict:
     compiled = {}
     for label, pats in patterns.get("message_labels", {}).items():
-        compiled[label] = [re.compile(p, re.IGNORECASE) for p in pats if p and p != "None"]
+        compiled[label] = [
+            re.compile(p, re.IGNORECASE) for p in pats if p and p != "None"
+        ]
     return compiled
 
 
@@ -131,7 +133,9 @@ class Command(BaseCommand):
                 if after == "rejected":
                     term_now_rej += 1
 
-        self.stdout.write("\n=== False-positive rejections (legacy rules) → current label deltas ===")
+        self.stdout.write(
+            "\n=== False-positive rejections (legacy rules) → current label deltas ==="
+        )
         total = sum(counts_by_subject.values())
         self.stdout.write(f"Total deltas: {total}")
 

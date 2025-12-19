@@ -13,4 +13,3 @@ for app in noise_ghosted:
     print(f"  - {app.company.name} | sent: {app.sent_date}")
 
 # These should be excluded from dashboard metrics now
-

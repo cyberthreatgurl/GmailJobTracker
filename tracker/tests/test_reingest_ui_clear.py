@@ -12,7 +12,9 @@ from tracker.models import Company, Message, ThreadTracking
 class ReingestUITest(TestCase):
     def setUp(self):
         now = timezone.now()
-        self.company = Company.objects.create(name="TestCo", domain="testco.com", first_contact=now, last_contact=now)
+        self.company = Company.objects.create(
+            name="TestCo", domain="testco.com", first_contact=now, last_contact=now
+        )
         self.user = User.objects.create_superuser("admin", "admin@example.com", "pass")
         self.client = Client()
         self.client.force_login(self.user)
@@ -68,4 +70,9 @@ class ReingestUITest(TestCase):
         self.assertTrue(audit_path.exists(), "Audit log should exist")
         content = audit_path.read_text(encoding="utf-8")
         lines = [l for l in content.splitlines() if l.strip()]
-        self.assertTrue(any('G-UI-1' in l or 'G-UI-1' in json.loads(l).get('msg_id', '') for l in lines))
+        self.assertTrue(
+            any(
+                "G-UI-1" in l or "G-UI-1" in json.loads(l).get("msg_id", "")
+                for l in lines
+            )
+        )

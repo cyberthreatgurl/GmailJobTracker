@@ -4,7 +4,7 @@ Phase 4 Refactoring: Extracted utility functions from parser.py into organized m
 
 Modules:
     validation: Company name validation and normalization utilities
-    email_parsing: Email/MIME parsing and decoding utilities  
+    email_parsing: Email/MIME parsing and decoding utilities
     helpers: General helper functions for pattern matching and logging
     label_propagation: Label propagation utilities for ThreadTracking
 

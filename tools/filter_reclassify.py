@@ -24,18 +24,18 @@ total = 0
 changes = 0
 ws_only = 0
 
-with IN.open("r", encoding="utf-8", newline='') as inf:
+with IN.open("r", encoding="utf-8", newline="") as inf:
     reader = csv.DictReader(inf)
     fieldnames = reader.fieldnames
 
     # Try opening output files; if they're locked, fall back to alternate names.
     def _open_out(path: Path):
         try:
-            return path.open("w", encoding="utf-8", newline='')
+            return path.open("w", encoding="utf-8", newline="")
         except PermissionError:
             alt = path.with_name(path.stem + ".new" + path.suffix)
             print(f"Warning: could not open {path!s}, writing to {alt!s} instead")
-            return alt.open("w", encoding="utf-8", newline='')
+            return alt.open("w", encoding="utf-8", newline="")
 
     with _open_out(OUT_CHANGES) as outf, _open_out(OUT_WS) as outws:
         change_writer = csv.DictWriter(outf, fieldnames=fieldnames)
@@ -84,5 +84,7 @@ with IN.open("r", encoding="utf-8", newline='') as inf:
 
 print(f"Total rows processed: {total}")
 print(f"Rows with whitespace-only label differences: {ws_only} -> {OUT_WS}")
-print(f"Rows with real changes (label or significant confidence change): {changes} -> {OUT_CHANGES}")
+print(
+    f"Rows with real changes (label or significant confidence change): {changes} -> {OUT_CHANGES}"
+)
 print("Done.")

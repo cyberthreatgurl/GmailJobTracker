@@ -30,7 +30,9 @@ class Command(BaseCommand):
         qs = Message.objects.filter(ml_label="job_alert")
         total = qs.count()
         if total == 0:
-            self.stdout.write(self.style.SUCCESS("No messages with ml_label='job_alert' found."))
+            self.stdout.write(
+                self.style.SUCCESS("No messages with ml_label='job_alert' found.")
+            )
         else:
             self.stdout.write(f"Found {total} messages with ml_label='job_alert'.")
 
@@ -41,25 +43,39 @@ class Command(BaseCommand):
             if total:
                 if to_noise:
                     updated = qs.update(ml_label="noise")
-                    self.stdout.write(self.style.SUCCESS(f"Updated {updated} messages: job_alert -> noise"))
+                    self.stdout.write(
+                        self.style.SUCCESS(
+                            f"Updated {updated} messages: job_alert -> noise"
+                        )
+                    )
                 else:
                     updated = qs.update(ml_label=None)
-                    self.stdout.write(self.style.SUCCESS(f"Cleared ml_label on {updated} messages (set to NULL)"))
+                    self.stdout.write(
+                        self.style.SUCCESS(
+                            f"Cleared ml_label on {updated} messages (set to NULL)"
+                        )
+                    )
 
             # Remove MessageLabel row if present
             try:
                 ml = MessageLabel.objects.get(label="job_alert")
                 if dry_run:
-                    self.stdout.write(self.style.WARNING("Would delete MessageLabel('job_alert')"))
+                    self.stdout.write(
+                        self.style.WARNING("Would delete MessageLabel('job_alert')")
+                    )
                 else:
                     ml.delete()
-                    self.stdout.write(self.style.SUCCESS("Deleted MessageLabel('job_alert')"))
+                    self.stdout.write(
+                        self.style.SUCCESS("Deleted MessageLabel('job_alert')")
+                    )
             except MessageLabel.DoesNotExist:
                 pass
 
             if dry_run:
                 transaction.savepoint_rollback(sid)
-                self.stdout.write(self.style.WARNING("Dry run complete; no changes were committed."))
+                self.stdout.write(
+                    self.style.WARNING("Dry run complete; no changes were committed.")
+                )
             else:
                 transaction.savepoint_commit(sid)
                 self.stdout.write(self.style.SUCCESS("Completed job_alert cleanup."))

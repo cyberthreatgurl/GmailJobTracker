@@ -39,7 +39,11 @@ class FunctionAnalyzer(ast.NodeVisitor):
             if isinstance(dec, ast.Name):
                 decorators.append(dec.id)
             elif isinstance(dec, ast.Attribute):
-                decorators.append(f"{dec.value.id}.{dec.attr}" if isinstance(dec.value, ast.Name) else dec.attr)
+                decorators.append(
+                    f"{dec.value.id}.{dec.attr}"
+                    if isinstance(dec.value, ast.Name)
+                    else dec.attr
+                )
 
         self.functions[node.name] = {
             "line": node.lineno,
@@ -72,9 +76,15 @@ class FunctionAnalyzer(ast.NodeVisitor):
                 self.functions[self.current_function]["calls"].add(func_name)
 
                 # Track model access
-                if func_name.endswith(".objects") or func_name.endswith(".filter") or func_name.endswith(".all"):
+                if (
+                    func_name.endswith(".objects")
+                    or func_name.endswith(".filter")
+                    or func_name.endswith(".all")
+                ):
                     model_name = func_name.split(".")[0]
-                    self.functions[self.current_function]["models_accessed"].add(model_name)
+                    self.functions[self.current_function]["models_accessed"].add(
+                        model_name
+                    )
 
         self.generic_visit(node)
 
@@ -83,7 +93,12 @@ class FunctionAnalyzer(ast.NodeVisitor):
             # Check if returns render/redirect/JsonResponse
             if isinstance(node.value, ast.Call):
                 if isinstance(node.value.func, ast.Name):
-                    if node.value.func.id in ["render", "redirect", "JsonResponse", "HttpResponse"]:
+                    if node.value.func.id in [
+                        "render",
+                        "redirect",
+                        "JsonResponse",
+                        "HttpResponse",
+                    ]:
                         self.functions[self.current_function]["returns_response"] = True
 
         self.generic_visit(node)
@@ -109,15 +124,27 @@ def analyze_large_file(filepath: Path) -> Dict:
                 # This is a view function
                 if "api" in func_name.lower() or "json" in func_name.lower():
                     groups["API Views"].append(func_name)
-                elif any(keyword in func_name.lower() for keyword in ["company", "companies"]):
+                elif any(
+                    keyword in func_name.lower() for keyword in ["company", "companies"]
+                ):
                     groups["Company Views"].append(func_name)
-                elif any(keyword in func_name.lower() for keyword in ["message", "label"]):
+                elif any(
+                    keyword in func_name.lower() for keyword in ["message", "label"]
+                ):
                     groups["Message/Label Views"].append(func_name)
-                elif any(keyword in func_name.lower() for keyword in ["domain", "pattern"]):
+                elif any(
+                    keyword in func_name.lower() for keyword in ["domain", "pattern"]
+                ):
                     groups["Domain/Config Views"].append(func_name)
-                elif any(keyword in func_name.lower() for keyword in ["ingest", "reingest", "gmail"]):
+                elif any(
+                    keyword in func_name.lower()
+                    for keyword in ["ingest", "reingest", "gmail"]
+                ):
                     groups["Ingestion Views"].append(func_name)
-                elif any(keyword in func_name.lower() for keyword in ["metric", "stat", "dashboard"]):
+                elif any(
+                    keyword in func_name.lower()
+                    for keyword in ["metric", "stat", "dashboard"]
+                ):
                     groups["Dashboard/Metrics Views"].append(func_name)
                 else:
                     groups["Other Views"].append(func_name)
@@ -175,14 +202,16 @@ def suggest_file_split(filepath: Path, threshold: int = 500):
         "views_domain.py": groups.get("Domain/Config Views", []),
         "views_ingestion.py": groups.get("Ingestion Views", []),
         "views_dashboard.py": groups.get("Dashboard/Metrics Views", []),
-        "views_api.py": groups.get("API Views", []) + groups.get("API Endpoints (CSRF Exempt)", []),
+        "views_api.py": groups.get("API Views", [])
+        + groups.get("API Endpoints (CSRF Exempt)", []),
     }
 
     # Helpers/utils split
     util_groups = {
         "utils/validators.py": groups.get("Validation/Sanitization Helpers", []),
         "utils/parsers.py": groups.get("Parsing Helpers", []),
-        "utils/helpers.py": groups.get("View Helpers", []) + groups.get("Utility Functions", []),
+        "utils/helpers.py": groups.get("View Helpers", [])
+        + groups.get("Utility Functions", []),
     }
 
     print("📦 Suggested View Modules:")
@@ -222,7 +251,9 @@ def suggest_file_split(filepath: Path, threshold: int = 500):
 def generate_refactor_plan(project_root: Path, output_file: str = "refactor_plan.txt"):
     """Generate detailed refactoring plan for all large files."""
     py_files = list(project_root.rglob("*.py"))
-    py_files = [f for f in py_files if ".venv" not in str(f) and "__pycache__" not in str(f)]
+    py_files = [
+        f for f in py_files if ".venv" not in str(f) and "__pycache__" not in str(f)
+    ]
 
     large_files = []
     for py_file in py_files:
@@ -281,9 +312,15 @@ def main():
     import argparse
 
     parser = argparse.ArgumentParser(description="Suggest refactoring for large files")
-    parser.add_argument("--file", help="Specific file to analyze (e.g., tracker/views.py)")
-    parser.add_argument("--threshold", type=int, default=500, help="Line threshold for splitting")
-    parser.add_argument("--plan", action="store_true", help="Generate full refactoring plan")
+    parser.add_argument(
+        "--file", help="Specific file to analyze (e.g., tracker/views.py)"
+    )
+    parser.add_argument(
+        "--threshold", type=int, default=500, help="Line threshold for splitting"
+    )
+    parser.add_argument(
+        "--plan", action="store_true", help="Generate full refactoring plan"
+    )
     args = parser.parse_args()
 
     project_root = Path(__file__).resolve().parents[1]

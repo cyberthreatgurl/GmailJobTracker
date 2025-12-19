@@ -1,19 +1,20 @@
 """Parser for CHANGELOG.md entries following Keep a Changelog format."""
+
 import re
 from collections import defaultdict
 
 
-def parse_changelog(path='CHANGELOG.md'):
+def parse_changelog(path="CHANGELOG.md"):
     """Parse CHANGELOG.md and return list of entries by version/section."""
-    with open(path, 'r', encoding='utf-8') as f:
+    with open(path, "r", encoding="utf-8") as f:
         lines = f.readlines()
 
     changelog = []
     current_entry = {}
     current_section = None
 
-    version_pattern = re.compile(r'^## \[(\d+\.\d+\.\d+)\] - (\d{4}-\d{2}-\d{2})')
-    section_pattern = re.compile(r'^### (\w+)')
+    version_pattern = re.compile(r"^## \[(\d+\.\d+\.\d+)\] - (\d{4}-\d{2}-\d{2})")
+    section_pattern = re.compile(r"^### (\w+)")
 
     for line in lines:
         line = line.strip()
@@ -25,9 +26,9 @@ def parse_changelog(path='CHANGELOG.md'):
             if current_entry:
                 changelog.append(current_entry)
             current_entry = {
-                'version': version_match.group(1),
-                'date': version_match.group(2),
-                'sections': defaultdict(list),
+                "version": version_match.group(1),
+                "date": version_match.group(2),
+                "sections": defaultdict(list),
             }
             current_section = None
             continue
@@ -38,7 +39,7 @@ def parse_changelog(path='CHANGELOG.md'):
             continue
 
         if current_section and current_entry:
-            current_entry['sections'][current_section].append(line.lstrip('- ').strip())
+            current_entry["sections"][current_section].append(line.lstrip("- ").strip())
 
     if current_entry:
         changelog.append(current_entry)

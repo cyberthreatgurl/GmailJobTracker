@@ -42,7 +42,9 @@ class Command(BaseCommand):
     help = "Ingest Gmail messages and populate job applications"
 
     def add_arguments(self, parser):
-        parser.add_argument("--limit-msg", type=str, help="Only ingest this single message ID")
+        parser.add_argument(
+            "--limit-msg", type=str, help="Only ingest this single message ID"
+        )
         parser.add_argument("--query", type=str, help="Custom Gmail search query")
         parser.add_argument(
             "--days-back",
@@ -50,7 +52,9 @@ class Command(BaseCommand):
             default=7,
             help="How many days back to fetch (default: 7)",
         )
-        parser.add_argument("--force", action="store_true", help="Re-process already seen messages")
+        parser.add_argument(
+            "--force", action="store_true", help="Re-process already seen messages"
+        )
         parser.add_argument(
             "--reparse-all",
             action="store_true",
@@ -79,7 +83,9 @@ class Command(BaseCommand):
                 log_console("\n--- End BEFORE Metrics ---\n")
 
             service = get_gmail_service()
-            stats, _ = IngestionStats.objects.get_or_create(date=datetime.today().date())
+            stats, _ = IngestionStats.objects.get_or_create(
+                date=datetime.today().date()
+            )
 
             # Single message mode
             if options.get("limit_msg"):
@@ -103,24 +109,32 @@ class Command(BaseCommand):
                 log_console(f"Using custom query: {custom_query}")
 
             # Fetch all messages from entire Gmail account (no label filtering)
-            all_msgs = fetch_all_messages(service, after_date=after_date, custom_query=custom_query)
-            
+            all_msgs = fetch_all_messages(
+                service, after_date=after_date, custom_query=custom_query
+            )
+
             all_msgs_by_id = {m["id"]: m for m in all_msgs}
             log_console(f"Total messages fetched: {len(all_msgs_by_id)}")
 
             # If --reparse-all, skip ProcessedMessage filtering and reprocess everything
             if options.get("reparse_all"):
                 self.stdout.write(
-                    self.style.WARNING("Re-parsing and re-ingesting ALL messages (ignoring ProcessedMessage table)!")
+                    self.style.WARNING(
+                        "Re-parsing and re-ingesting ALL messages (ignoring ProcessedMessage table)!"
+                    )
                 )
             elif not options.get("force"):
                 processed_ids = set(
-                    ProcessedMessage.objects.filter(gmail_id__in=all_msgs_by_id.keys()).values_list(
-                        "gmail_id", flat=True
-                    )
+                    ProcessedMessage.objects.filter(
+                        gmail_id__in=all_msgs_by_id.keys()
+                    ).values_list("gmail_id", flat=True)
                 )
-                new_msgs = {k: v for k, v in all_msgs_by_id.items() if k not in processed_ids}
-                log_console(f"Found {len(all_msgs_by_id)} messages, {len(new_msgs)} are new")
+                new_msgs = {
+                    k: v for k, v in all_msgs_by_id.items() if k not in processed_ids
+                }
+                log_console(
+                    f"Found {len(all_msgs_by_id)} messages, {len(new_msgs)} are new"
+                )
                 all_msgs_by_id = new_msgs
 
             if not all_msgs_by_id:
@@ -146,7 +160,10 @@ class Command(BaseCommand):
                         )
                         .execute()
                     )
-                    headers = {h["name"]: h["value"] for h in msg_meta.get("payload", {}).get("headers", [])}
+                    headers = {
+                        h["name"]: h["value"]
+                        for h in msg_meta.get("payload", {}).get("headers", [])
+                    }
                     subject = headers.get("Subject", "") or ""
                     date = headers.get("Date", "") or ""
 
@@ -172,7 +189,11 @@ class Command(BaseCommand):
                         elif isinstance(ret, int):
                             inserted_flag = ret > 0
                         elif isinstance(ret, dict):
-                            inserted_flag = bool(ret.get("inserted") or ret.get("created") or ret.get("saved"))
+                            inserted_flag = bool(
+                                ret.get("inserted")
+                                or ret.get("created")
+                                or ret.get("saved")
+                            )
                         else:
                             inserted_flag = True
 

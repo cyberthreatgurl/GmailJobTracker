@@ -31,7 +31,6 @@ def manage_aliases(request):
     return render(request, "tracker/manage_aliases.html", ctx)
 
 
-
 @csrf_exempt
 def approve_bulk_aliases(request):
     """Persist approved alias→company mappings into patterns.json and log approvals."""
@@ -55,7 +54,6 @@ def approve_bulk_aliases(request):
             json.dump(patterns, f, indent=2)
 
         return redirect("manage_aliases")
-
 
 
 @csrf_exempt
@@ -83,5 +81,4 @@ def reject_alias(request):
         return redirect("manage_aliases")
 
 
-
-__all__ = ['manage_aliases', 'approve_bulk_aliases', 'reject_alias']
+__all__ = ["manage_aliases", "approve_bulk_aliases", "reject_alias"]

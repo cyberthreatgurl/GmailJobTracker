@@ -1,4 +1,5 @@
 """Helper functions for database operations and company name resolution."""
+
 # db_helpers.py
 import sqlite3
 
@@ -10,7 +11,7 @@ def build_company_job_index(company, job_title, job_id):
     def normalize(text):
         if not text:
             return ""
-        return re.sub(r'\s+', ' ', text.strip().lower())
+        return re.sub(r"\s+", " ", text.strip().lower())
 
     return f"{normalize(company)}::{normalize(job_title)}::{normalize(job_id)}"
 

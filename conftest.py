@@ -1,4 +1,5 @@
 """Pytest configuration for GmailJobTracker tests."""
+
 # Ensure project root is on sys.path for imports during pytest collection
 import os
 import sys

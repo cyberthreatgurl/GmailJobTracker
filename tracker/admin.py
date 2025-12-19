@@ -102,10 +102,11 @@ class CompanyAdmin(admin.ModelAdmin):
 
 class EMLUploadForm(forms.Form):
     """Form for uploading .eml files to ingest into the database."""
+
     eml_file = forms.FileField(
         label="Select .eml file",
         help_text="Upload an email message in .eml format to ingest into the tracker",
-        widget=forms.FileInput(attrs={'accept': '.eml'})
+        widget=forms.FileInput(attrs={"accept": ".eml"}),
     )
 
 
@@ -126,54 +127,70 @@ class MessageAdmin(admin.ModelAdmin):
     ]
     search_fields = ["subject", "sender", "body"]
     readonly_fields = ["msg_id", "thread_id", "timestamp", "sender"]
-    
+
     def get_urls(self):
         """Add custom URL for .eml file upload."""
         urls = super().get_urls()
         custom_urls = [
-            path('upload-eml/', self.admin_site.admin_view(self.upload_eml_view), name='tracker_message_upload_eml'),
+            path(
+                "upload-eml/",
+                self.admin_site.admin_view(self.upload_eml_view),
+                name="tracker_message_upload_eml",
+            ),
         ]
         return custom_urls + urls
-    
+
     def upload_eml_view(self, request):
         """View to handle .eml file upload and ingestion."""
-        if request.method == 'POST':
+        if request.method == "POST":
             form = EMLUploadForm(request.POST, request.FILES)
             if form.is_valid():
-                eml_file = request.FILES['eml_file']
+                eml_file = request.FILES["eml_file"]
                 try:
                     # Read the .eml file content
-                    eml_content = eml_file.read().decode('utf-8', errors='ignore')
-                    
+                    eml_content = eml_file.read().decode("utf-8", errors="ignore")
+
                     # Import the ingestion function
                     from parser import ingest_message_from_eml
-                    
+
                     # Ingest the message
                     result = ingest_message_from_eml(eml_content)
-                    
-                    if result == 'inserted':
-                        messages.success(request, f'Successfully ingested email from file: {eml_file.name}')
-                    elif result == 'skipped':
-                        messages.warning(request, f'Email already exists in database: {eml_file.name}')
-                    elif result == 'ignored':
-                        messages.info(request, f'Email was ignored (blank body or newsletter): {eml_file.name}')
+
+                    if result == "inserted":
+                        messages.success(
+                            request,
+                            f"Successfully ingested email from file: {eml_file.name}",
+                        )
+                    elif result == "skipped":
+                        messages.warning(
+                            request,
+                            f"Email already exists in database: {eml_file.name}",
+                        )
+                    elif result == "ignored":
+                        messages.info(
+                            request,
+                            f"Email was ignored (blank body or newsletter): {eml_file.name}",
+                        )
                     else:
-                        messages.error(request, f'Failed to ingest email from file: {eml_file.name}')
-                    
-                    return redirect('..')
+                        messages.error(
+                            request,
+                            f"Failed to ingest email from file: {eml_file.name}",
+                        )
+
+                    return redirect("..")
                 except Exception as e:
-                    messages.error(request, f'Error processing .eml file: {str(e)}')
+                    messages.error(request, f"Error processing .eml file: {str(e)}")
         else:
             form = EMLUploadForm()
-        
+
         context = {
-            'form': form,
-            'title': 'Upload .eml File',
-            'site_title': self.admin_site.site_title,
-            'site_header': self.admin_site.site_header,
-            'has_permission': True,
+            "form": form,
+            "title": "Upload .eml File",
+            "site_title": self.admin_site.site_title,
+            "site_header": self.admin_site.site_header,
+            "has_permission": True,
         }
-        return render(request, 'admin/message_upload_eml.html', context)
+        return render(request, "admin/message_upload_eml.html", context)
 
     def save_model(self, request, obj, form, change):
         """When a Message's ml_label is changed manually in admin, keep ThreadTracking in sync.
@@ -202,7 +219,10 @@ class MessageAdmin(admin.ModelAdmin):
                     tt.save()
                 else:
                     # Create ThreadTracking for application-like labels when company is available
-                    if new_label in ("job_application", "interview_invite") and obj.company:
+                    if (
+                        new_label in ("job_application", "interview_invite")
+                        and obj.company
+                    ):
                         try:
                             ThreadTracking.objects.create(
                                 thread_id=obj.thread_id,
@@ -211,7 +231,9 @@ class MessageAdmin(admin.ModelAdmin):
                                 job_title="",
                                 job_id="",
                                 status="application",
-                                sent_date=(obj.timestamp.date() if obj.timestamp else None),
+                                sent_date=(
+                                    obj.timestamp.date() if obj.timestamp else None
+                                ),
                                 ml_label=new_label,
                                 ml_confidence=(obj.confidence or 0.0),
                             )

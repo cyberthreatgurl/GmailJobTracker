@@ -27,7 +27,6 @@ def edit_application(request, pk):
     return render(request, "tracker/edit.html", {"form": form})
 
 
-
 def flagged_applications(request):
     """List applications that need attention (unresolved/low-confidence company attribution)."""
     flagged = ThreadTracking.objects.filter(
@@ -36,7 +35,6 @@ def flagged_applications(request):
     ).order_by("-first_sent")[:100]
 
     return render(request, "tracker/flagged.html", {"applications": flagged})
-
 
 
 @login_required
@@ -152,5 +150,4 @@ def manual_entry(request):
     return render(request, "tracker/manual_entry.html", ctx)
 
 
-
-__all__ = ['edit_application', 'flagged_applications', 'manual_entry']
+__all__ = ["edit_application", "flagged_applications", "manual_entry"]

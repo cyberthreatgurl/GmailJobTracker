@@ -100,9 +100,7 @@ class CompanyValidator:
         try:
             # Find messages where company_id is set but company doesn't exist
             # We need to do this with raw SQL or careful checking
-            all_messages_with_company = Message.objects.filter(
-                company_id__isnull=False
-            )
+            all_messages_with_company = Message.objects.filter(company_id__isnull=False)
             total = all_messages_with_company.count()
 
             if total > 0:
@@ -250,9 +248,7 @@ class CompanyValidator:
                 # Check date consistency
                 if company.first_contact and company.last_contact:
                     if company.first_contact > company.last_contact:
-                        company_issues.append(
-                            "first_contact is after last_contact"
-                        )
+                        company_issues.append("first_contact is after last_contact")
 
                 # Check confidence value
                 if company.confidence is not None:
@@ -314,9 +310,7 @@ class CompanyValidator:
             # Check ThreadTracking as well
             threads_missing_source = ThreadTracking.objects.filter(
                 company__isnull=False, company_source__isnull=True
-            ) | ThreadTracking.objects.filter(
-                company__isnull=False, company_source=""
-            )
+            ) | ThreadTracking.objects.filter(company__isnull=False, company_source="")
 
             if threads_missing_source.exists():
                 count = threads_missing_source.count()
@@ -479,9 +473,7 @@ class CompanyValidator:
 
 def main():
     """Main entry point"""
-    parser = argparse.ArgumentParser(
-        description="Validate company database integrity"
-    )
+    parser = argparse.ArgumentParser(description="Validate company database integrity")
     parser.add_argument(
         "--verbose",
         "-v",

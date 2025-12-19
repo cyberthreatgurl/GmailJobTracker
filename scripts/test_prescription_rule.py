@@ -3,9 +3,11 @@
 Test why prescription messages aren't matching the noise rule.
 """
 import os
+
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dashboard.settings")
 
 import django
+
 django.setup()
 
 from ml_subject_classifier import predict_subject_type, rule_label
@@ -23,7 +25,7 @@ print("=" * 80)
 
 # Load patterns
 patterns_path = Path("json/patterns.json")
-with open(patterns_path, 'r', encoding='utf-8') as f:
+with open(patterns_path, "r", encoding="utf-8") as f:
     patterns = json.load(f)
 
 print("\nNoise patterns from patterns.json:")
@@ -50,6 +52,7 @@ print(f"  Method: {result.get('method', 'unknown')}")
 
 # Check if pattern matches manually
 import re
+
 text = f"{subject} {body}".lower()
 print("\n" + "=" * 80)
 print("MANUAL PATTERN TESTING")

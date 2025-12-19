@@ -1,4 +1,5 @@
 """Test usastaffing.gov company extraction from the sample email"""
+
 import re
 from bs4 import BeautifulSoup
 
@@ -22,7 +23,9 @@ sample_subject = "Application for SUPERVISORY IT SPECIALIST (INFOSEC), ST-128291
 # Extract plain text
 body_plain = sample_body
 try:
-    if body and ("<html" in body.lower() or "<style" in body.lower() or "<br" in body.lower()):
+    if body and (
+        "<html" in body.lower() or "<style" in body.lower() or "<br" in body.lower()
+    ):
         soup = BeautifulSoup(body, "html.parser")
         for tag in soup(["style", "script"]):
             tag.decompose()
@@ -33,7 +36,7 @@ except Exception as e:
 
 print("Plain text body:")
 print(body_plain)
-print("\n" + "="*80 + "\n")
+print("\n" + "=" * 80 + "\n")
 
 # Test the pattern
 usastaffing_pattern = re.search(
@@ -48,9 +51,11 @@ if usastaffing_pattern:
     print(f"Extracted company: {extracted}")
 else:
     print("❌ NO MATCH")
-    
+
     # Try to debug - show what patterns exist
     print("\nSearching for 'at the' patterns:")
-    at_the_matches = re.findall(r"at the\s+([A-Za-z0-9\s&.,'-]+)", body_plain, re.IGNORECASE)
+    at_the_matches = re.findall(
+        r"at the\s+([A-Za-z0-9\s&.,'-]+)", body_plain, re.IGNORECASE
+    )
     for match in at_the_matches:
         print(f"  - {match}")

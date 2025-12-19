@@ -1,4 +1,5 @@
 """Check Viasat messages from nurture.icims.com"""
+
 import os
 import django
 
@@ -10,8 +11,8 @@ from tracker.models import Message
 
 # Find all messages from viasat@nurture.icims.com
 viasat_messages = Message.objects.filter(
-    sender__icontains='viasat@nurture.icims.com'
-).order_by('-timestamp')
+    sender__icontains="viasat@nurture.icims.com"
+).order_by("-timestamp")
 
 print(f"Found {viasat_messages.count()} Viasat messages from nurture.icims.com\n")
 

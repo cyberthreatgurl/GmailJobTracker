@@ -25,4 +25,3 @@ home_depot = [g for g in ghosted_qs if "Home Depot" in str(g.get("company__name"
 print(f"\nThe Home Depot in results: {len(home_depot)}")
 if home_depot:
     print(f"  {home_depot[0]}")
-

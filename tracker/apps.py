@@ -10,5 +10,5 @@ class TrackerConfig(AppConfig):
 
 
 class TrackerConfig(AppConfig):
-    default_auto_field = 'django.db.models.BigAutoField'
-    name = 'tracker'
+    default_auto_field = "django.db.models.BigAutoField"
+    name = "tracker"

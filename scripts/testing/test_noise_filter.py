@@ -34,4 +34,3 @@ old_qs = (
 
 print(f"\nOld query count (with noise): {old_qs.count()}")
 print(f"Difference: {old_qs.count() - ghosted_qs.count()} applications filtered out")
-

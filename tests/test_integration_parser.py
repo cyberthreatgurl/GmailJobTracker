@@ -5,6 +5,7 @@ These tests focus on increasing coverage of untested code paths,
 particularly around company extraction, metadata processing,
 and the full ingestion pipeline.
 """
+
 import pytest
 from unittest.mock import Mock, patch, MagicMock
 from datetime import datetime, timedelta
@@ -66,14 +67,16 @@ class TestCompanyNameValidation:
         """Normalization should preserve the core company name."""
         assert normalize_company_name("Booz Allen Hamilton") == "Booz Allen Hamilton"
         # Corp suffix is NOT removed by this function
-        assert normalize_company_name("Northrop Grumman Corp") == "Northrop Grumman Corp"
+        assert (
+            normalize_company_name("Northrop Grumman Corp") == "Northrop Grumman Corp"
+        )
 
     def test_looks_like_person_identifies_names(self):
         """Personal names should be identified correctly."""
         assert looks_like_person("John Smith") is True
         assert looks_like_person("Jane Doe") is True
         assert looks_like_person("Maria Garcia-Lopez") is True
-        
+
     def test_looks_like_person_rejects_companies(self):
         """Company names should not look like person names."""
         assert looks_like_person("Google LLC") is False
@@ -87,8 +90,7 @@ class TestCompanyPrediction:
     def test_predict_company_from_clear_subject(self):
         """Company should be extracted from clear subject lines."""
         result = predict_company(
-            subject="Application Confirmation - Google",
-            body="Thank you for applying."
+            subject="Application Confirmation - Google", body="Thank you for applying."
         )
         # Function may return company name if pattern matches
         assert result is None or isinstance(result, str)
@@ -104,50 +106,47 @@ class TestCompanyPrediction:
         Thank you for your application to Software Engineer at Microsoft.
         You applied through our career portal.
         """
-        result = predict_company(
-            subject="Application Received",
-            body=body
-        )
+        result = predict_company(subject="Application Received", body=body)
         assert result is None or isinstance(result, str)
 
 
 class TestMessageCorrelation:
     """Test message correlation and duplicate detection."""
 
-    @patch('parser.Message')
+    @patch("parser.Message")
     def test_is_correlated_message_finds_recent_sender(self, mock_message):
         """Messages from same sender within 30 days should correlate."""
         now = datetime.now()
         recent_date = now - timedelta(days=15)
-        
+
         # Mock a recent message from same sender
         mock_msg = Mock()
         mock_msg.timestamp = recent_date
         mock_message.objects.filter.return_value.first.return_value = mock_msg
-        
+
         result = is_correlated_message(
             sender_email="recruiter@company.com",
             sender_domain="company.com",
-            msg_date=now
+            msg_date=now,
         )
         # Should find the correlation
         assert result is True or result is False  # Function returns bool
 
-    @patch('parser.Message')
+    @patch("parser.Message")
     def test_is_correlated_message_ignores_old_messages(self, mock_message):
         """Messages older than 30 days should not correlate."""
         now = datetime.now()
         old_date = now - timedelta(days=60)
-        
+
         # Mock an old message
         mock_msg = Mock()
         mock_msg.timestamp = old_date
         mock_message.objects.filter.return_value.first.return_value = mock_msg
-        
+
         result = is_correlated_message(
             sender_email="recruiter@company.com",
             sender_domain="company.com",
-            msg_date=now
+            msg_date=now,
         )
         # Should not correlate with very old messages
         assert result is True or result is False
@@ -163,7 +162,7 @@ class TestStatusDateExtraction:
         Thank you for applying on January 10, 2025.
         We received your application and will review it.
         """
-        
+
         result = extract_status_dates(body, received_date)
         assert isinstance(result, dict)
         # Should have keys for various date types
@@ -176,7 +175,7 @@ class TestStatusDateExtraction:
         We regret to inform you that on January 25, 2025,
         we decided to move forward with other candidates.
         """
-        
+
         result = extract_status_dates(body, received_date)
         assert isinstance(result, dict)
 
@@ -184,7 +183,7 @@ class TestStatusDateExtraction:
         """Body without dates should return empty or default results."""
         received_date = datetime(2025, 1, 15)
         body = "Thank you for your interest."
-        
+
         result = extract_status_dates(body, received_date)
         assert isinstance(result, dict)
 
@@ -224,6 +223,7 @@ class TestICalendarParsing:
         """Valid iCalendar data should extract organizer."""
         # Note: This function expects BASE64 encoded iCalendar, not plain text
         import base64
+
         ical_text = """BEGIN:VCALENDAR
 VERSION:2.0
 PRODID:-//Test//Test//EN
@@ -235,7 +235,7 @@ DTEND:20250115T110000Z
 END:VEVENT
 END:VCALENDAR"""
         ical_body = base64.b64encode(ical_text.encode()).decode()
-        
+
         result = extract_organizer_from_icalendar(ical_body)
         # Function returns tuple (email, domain)
         assert isinstance(result, tuple)
@@ -252,6 +252,7 @@ END:VCALENDAR"""
     def test_extract_organizer_handles_missing_organizer(self):
         """iCalendar without organizer should return None."""
         import base64
+
         ical_text = """BEGIN:VCALENDAR
 VERSION:2.0
 PRODID:-//Test//Test//EN
@@ -261,7 +262,7 @@ DTSTART:20250115T100000Z
 END:VEVENT
 END:VCALENDAR"""
         ical_body = base64.b64encode(ical_text.encode()).decode()
-        
+
         result = extract_organizer_from_icalendar(ical_body)
         # Function returns tuple (None, None) when organizer not found
         assert result == (None, None)
@@ -348,7 +349,7 @@ Message-ID: <test123@example.com>
 This is the email body.
 """
         result = parse_raw_message(raw_email)
-        
+
         assert isinstance(result, dict)
         assert "subject" in result
         assert result["subject"] == "Test Email"
@@ -375,7 +376,7 @@ Content-Type: text/html; charset="utf-8"
 --boundary123--
 """
         result = parse_raw_message(raw_email)
-        
+
         assert isinstance(result, dict)
         assert "subject" in result
         assert "body" in result
@@ -392,7 +393,7 @@ Date: Tue, 10 Dec 2025 10:00:00 -0800
 Body text
 """
         result = parse_raw_message(raw_email)
-        
+
         assert "sender_domain" in result
         assert result["sender_domain"] == "company.com"
 
@@ -406,7 +407,7 @@ Date: Tue, 10 Dec 2025 10:00:00 -0800
 Body
 """
         result = parse_raw_message(raw_email)
-        
+
         assert isinstance(result, dict)
         assert "subject" in result
         # Subject should be decoded
@@ -414,9 +415,9 @@ Body
     def test_parse_raw_message_handles_malformed_email(self):
         """Malformed emails should be handled gracefully."""
         raw_email = "This is not a valid email format"
-        
+
         result = parse_raw_message(raw_email)
-        
+
         # Should return dict even for malformed input
         assert isinstance(result, dict)
 
@@ -430,7 +431,7 @@ Date: Tue, 10 Dec 2025 10:00:00 -0800
 Body
 """
         result = parse_raw_message(raw_email)
-        
+
         # Function extracts various metadata fields
         assert "subject" in result
         assert "sender" in result
@@ -446,7 +447,7 @@ Date: Tue, 10 Dec 2025 10:00:00 -0800
 This is the email body with important keywords.
 """
         result = parse_raw_message(raw_email)
-        
+
         # Should have both body and classification_text after RFC 5322 fix
         assert "body" in result
         assert "classification_text" in result or "body" in result

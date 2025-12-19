@@ -41,6 +41,7 @@ with IN.open("r", encoding="utf-8", newline="") as inf:
         new_counter[new] += 1
         method_counter[method] += 1
 
+
 def write_counter(counter, outpath, headers):
     with outpath.open("w", encoding="utf-8", newline="") as outf:
         w = csv.writer(outf)
@@ -51,10 +52,21 @@ def write_counter(counter, outpath, headers):
             else:
                 w.writerow([k, v])
 
-write_counter(pair_counter, OUT_DIR / "disagreement_by_pair.csv", ["old_label", "new_label", "count"])
-write_counter(old_counter, OUT_DIR / "disagreement_by_old_label.csv", ["old_label", "count"])
-write_counter(new_counter, OUT_DIR / "disagreement_by_new_label.csv", ["new_label", "count"])
-write_counter(method_counter, OUT_DIR / "disagreement_by_method.csv", ["method", "count"])
+
+write_counter(
+    pair_counter,
+    OUT_DIR / "disagreement_by_pair.csv",
+    ["old_label", "new_label", "count"],
+)
+write_counter(
+    old_counter, OUT_DIR / "disagreement_by_old_label.csv", ["old_label", "count"]
+)
+write_counter(
+    new_counter, OUT_DIR / "disagreement_by_new_label.csv", ["new_label", "count"]
+)
+write_counter(
+    method_counter, OUT_DIR / "disagreement_by_method.csv", ["method", "count"]
+)
 
 print(f"Processed {total} reviewed-disagreement rows")
 print("Top 20 label-pair disagreements:")
@@ -62,15 +74,15 @@ for (old, new), cnt in pair_counter.most_common(20):
     pct = cnt / total * 100 if total else 0
     print(f"{cnt:5d} ({pct:5.2f}%)  {old!r}  ->  {new!r}")
 
-print('\nTop old labels (how many reviewed messages disagree):')
+print("\nTop old labels (how many reviewed messages disagree):")
 for lbl, cnt in old_counter.most_common(10):
     print(f"{cnt:5d}  {lbl!r}")
 
-print('\nTop new (ML) labels suggested:')
+print("\nTop new (ML) labels suggested:")
 for lbl, cnt in new_counter.most_common(10):
     print(f"{cnt:5d}  {lbl!r}")
 
-print('\nDisagreements by method:')
+print("\nDisagreements by method:")
 for m, cnt in method_counter.most_common():
     print(f"{cnt:5d}  {m!r}")
 

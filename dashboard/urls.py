@@ -24,10 +24,10 @@ from django.urls import include, path
 from tracker.admin import custom_admin_site
 
 urlpatterns = [
-    path('accounts/login/', auth_views.LoginView.as_view(), name='login'),
+    path("accounts/login/", auth_views.LoginView.as_view(), name="login"),
     path("admin/", custom_admin_site.urls),
     path("__reload__/", include("django_browser_reload.urls")),
-    path('', include('tracker.urls')),
+    path("", include("tracker.urls")),
 ]
 
 # Serve static files during development

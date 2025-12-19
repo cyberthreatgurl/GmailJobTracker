@@ -7,6 +7,7 @@ Finds messages with:
 
 Reclassifies to "other" and removes ThreadTracking entries (meetings != interviews).
 """
+
 import os
 import re
 import sys
@@ -29,9 +30,11 @@ def main():
         subject__iregex=r"(meeting with|meeting invitation|teams meeting)"
     )
 
-    body_patterns = Message.objects.filter(ml_label="interview_invite").filter(
-        body__iregex=r"(microsoft teams|zoom meeting|join.*meeting)"
-    ).exclude(subject__icontains="interview")
+    body_patterns = (
+        Message.objects.filter(ml_label="interview_invite")
+        .filter(body__iregex=r"(microsoft teams|zoom meeting|join.*meeting)")
+        .exclude(subject__icontains="interview")
+    )
 
     # Combine querysets
     meetings = (meeting_patterns | body_patterns).distinct()
@@ -77,7 +80,7 @@ def main():
         # We need to find the thread from a related Message first
         try:
             # Get the thread_id from this message
-            thread_id = msg.thread_id if hasattr(msg, 'thread_id') else None
+            thread_id = msg.thread_id if hasattr(msg, "thread_id") else None
             if thread_id:
                 threads = ThreadTracking.objects.filter(thread_id=thread_id)
                 if threads.exists():

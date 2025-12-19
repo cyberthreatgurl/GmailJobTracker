@@ -57,9 +57,13 @@ class Command(BaseCommand):
         # Optionally clear ThreadTracking.reviewed for affected threads
         apps_updated = 0
         if clear_apps:
-            thread_ids = qs.exclude(thread_id__isnull=True).values_list("thread_id", flat=True)
+            thread_ids = qs.exclude(thread_id__isnull=True).values_list(
+                "thread_id", flat=True
+            )
             if thread_ids:
-                apps_updated = ThreadTracking.objects.filter(thread_id__in=list(thread_ids)).update(reviewed=False)
+                apps_updated = ThreadTracking.objects.filter(
+                    thread_id__in=list(thread_ids)
+                ).update(reviewed=False)
 
         # Write audit log
         log_dir = os.path.join(os.getcwd(), "logs")
@@ -74,7 +78,9 @@ class Command(BaseCommand):
                         "msg_id": m.msg_id,
                         "db_id": m.pk,
                         "thread_id": m.thread_id,
-                        "company_id": m.company.id if getattr(m, "company", None) else None,
+                        "company_id": (
+                            m.company.id if getattr(m, "company", None) else None
+                        ),
                     }
                 )
         except Exception:
@@ -112,7 +118,17 @@ class Command(BaseCommand):
                     import traceback
 
                     with open(audit_path, "a", encoding="utf-8") as fh:
-                        fh.write(json.dumps({"ts": datetime.utcnow().isoformat(), "error": "DB write failed", "trace": traceback.format_exc()}, ensure_ascii=False) + "\n")
+                        fh.write(
+                            json.dumps(
+                                {
+                                    "ts": datetime.utcnow().isoformat(),
+                                    "error": "DB write failed",
+                                    "trace": traceback.format_exc(),
+                                },
+                                ensure_ascii=False,
+                            )
+                            + "\n"
+                        )
                 except Exception:
                     pass
         except Exception as e:
@@ -122,7 +138,9 @@ class Command(BaseCommand):
 
                 fallback = {
                     "timestamp": datetime.utcnow().isoformat() + "Z",
-                    "user": os.environ.get("USERNAME") or os.environ.get("USER") or "unknown",
+                    "user": os.environ.get("USERNAME")
+                    or os.environ.get("USER")
+                    or "unknown",
                     "error": str(e),
                     "trace": traceback.format_exc(),
                     "pid": os.getpid(),
@@ -132,4 +150,6 @@ class Command(BaseCommand):
             except Exception:
                 self.stderr.write(f"Failed to write audit log: {e}")
 
-        self.stdout.write(f"Cleared reviewed for {updated} messages (matched={matched}). apps_updated={apps_updated}")
+        self.stdout.write(
+            f"Cleared reviewed for {updated} messages (matched={matched}). apps_updated={apps_updated}"
+        )

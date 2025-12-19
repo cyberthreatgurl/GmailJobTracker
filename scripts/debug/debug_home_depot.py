@@ -40,4 +40,3 @@ if last_msg:
     print(f"\nLast message date: {last_msg.timestamp}")
     print(f"Cutoff date (30 days ago): {cutoff_dt}")
     print(f"Last activity > cutoff? {last_msg.timestamp > cutoff_dt}")
-

@@ -139,13 +139,13 @@ def rule_label(subject: str, body: str = "") -> str | None:
     # Use keys that exist in patterns.json -> message_labels
     # and order them to minimize false positives.
     priority_order = [
-        "offer",           # most specific
-        "head_hunter",     # recruiter blasts over noise
-        "noise",           # newsletters, OTP, promos
-        "rejection",       # explicit negatives
-        "interview",       # interview scheduling/confirmation
-        "application",     # generic acknowledgements
-        "referral",        # intros/referrals
+        "offer",  # most specific
+        "head_hunter",  # recruiter blasts over noise
+        "noise",  # newsletters, OTP, promos
+        "rejection",  # explicit negatives
+        "interview",  # interview scheduling/confirmation
+        "application",  # generic acknowledgements
+        "referral",  # intros/referrals
         "response",
         "follow_up",
         "ghosted",
@@ -279,7 +279,9 @@ def predict_subject_type(
     confidence = float(proba[idx])
     predicted_label = _decode_label(idx)
     if DEBUG:
-        print(f"[DEBUG] ML predicted: label={predicted_label}, confidence={confidence:.3f}")
+        print(
+            f"[DEBUG] ML predicted: label={predicted_label}, confidence={confidence:.3f}"
+        )
 
     # Skip head_hunter label for user's own messages (env gated)
     if predicted_label == "head_hunter" and is_user_message and exclude_user_hh:
@@ -322,5 +324,7 @@ def predict_subject_type(
         "label": mapped_label,
         "confidence": confidence,
         "ignore": mapped_label in ignore_labels,
-        "method": "ml_only" if mapped_label == predicted_label else "ml_only_suppressed",
+        "method": (
+            "ml_only" if mapped_label == predicted_label else "ml_only_suppressed"
+        ),
     }

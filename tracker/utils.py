@@ -25,7 +25,9 @@ def propagate_message_label_to_thread(message: Message) -> Optional[ThreadTracki
                 if message.ml_label and tt.ml_label != message.ml_label:
                     tt.ml_label = message.ml_label
                     changed = True
-                if message.confidence is not None and (tt.ml_confidence is None or tt.ml_confidence != message.confidence):
+                if message.confidence is not None and (
+                    tt.ml_confidence is None or tt.ml_confidence != message.confidence
+                ):
                     tt.ml_confidence = message.confidence
                     changed = True
                 if changed:
@@ -33,7 +35,10 @@ def propagate_message_label_to_thread(message: Message) -> Optional[ThreadTracki
                 return tt
 
             # No ThreadTracking exists; create when appropriate
-            if message.ml_label in ("job_application", "interview_invite") and message.company:
+            if (
+                message.ml_label in ("job_application", "interview_invite")
+                and message.company
+            ):
                 tt = ThreadTracking.objects.create(
                     thread_id=thread_id,
                     company=message.company,

@@ -65,4 +65,3 @@ print(f"\nLast activity for 526: {last_activity_by_company.get(526)}")
 print(f"Cutoff: {cutoff_dt}")
 if 526 in last_activity_by_company:
     print(f"Last activity > cutoff? {last_activity_by_company[526] > cutoff_dt}")
-

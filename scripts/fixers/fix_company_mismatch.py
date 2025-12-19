@@ -80,4 +80,3 @@ if fixed_count > 0:
     print("Run check_company_mismatch.py to verify the fix.")
 else:
     print("\n✓ No mismatches found - database is clean!")
-

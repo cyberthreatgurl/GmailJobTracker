@@ -9,10 +9,12 @@ BACKUP_PATH = BASE_DIR / "job_tracker.db.bak"
 MIGRATIONS_DIR = BASE_DIR / "tracker" / "migrations"
 MODEL_DIR = BASE_DIR / "model"
 
+
 def run(cmd, dry_run=False):
     print(f"🔧 Running: {cmd}")
     if not dry_run:
         subprocess.run(cmd, shell=True, check=True, cwd=BASE_DIR)
+
 
 def delete_db(dry_run=False, backup=False):
     if DB_PATH.exists():
@@ -26,6 +28,7 @@ def delete_db(dry_run=False, backup=False):
             print(f"Deleted {DB_PATH.name}")
     else:
         print("No database file found — skipping.")
+
 
 def clean_migrations(dry_run=False):
     for file in MIGRATIONS_DIR.glob("*.py"):
@@ -42,6 +45,7 @@ def clean_migrations(dry_run=False):
             shutil.rmtree(pycache)
     print("Migrations cleaned.")
 
+
 def preserve_models():
     if MODEL_DIR.exists():
         print("ML model files preserved:")
@@ -50,9 +54,11 @@ def preserve_models():
     else:
         print("No model directory found — skipping.")
 
+
 def rebuild(dry_run=False):
     run("python manage.py makemigrations tracker", dry_run)
     run("python manage.py migrate", dry_run)
+
 
 def show_help():
     help_text = (
@@ -60,10 +66,10 @@ def show_help():
         "Options:\n"
         "  --dry-run     Preview actions without executing them\n"
         "  --backup-db   Save a copy of job_tracker.db before deletion\n"
-        "  --help        Show this help message\n"     
+        "  --help        Show this help message\n"
     )
     print(help_text)
-    
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(add_help=False)
@@ -81,4 +87,3 @@ if __name__ == "__main__":
         preserve_models()
         rebuild(dry_run=args.dry_run)
         print("✅ Reset complete." if not args.dry_run else "🧪 Dry run complete.")
-        

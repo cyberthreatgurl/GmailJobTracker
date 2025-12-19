@@ -19,7 +19,11 @@ from tracker.models import IngestionStats, Message
 from tracker.services import StatsService, CompanyService
 from tracker.views.helpers import sanitize_string, validate_domain
 from parser import ingest_message
-from scripts.import_gmail_filters import load_json, sanitize_to_regex_terms, make_or_pattern
+from scripts.import_gmail_filters import (
+    load_json,
+    sanitize_to_regex_terms,
+    make_or_pattern,
+)
 from gmail_auth import get_gmail_service
 
 python_path = sys.executable
@@ -52,9 +56,7 @@ def log_viewer(request):
     return render(request, "tracker/log_viewer.html", ctx)
 
 
-
 @csrf_exempt
-
 @login_required
 def json_file_viewer(request):
     """View and edit JSON configuration files (patterns.json, companies.json)"""
@@ -433,7 +435,6 @@ def json_file_viewer(request):
     return render(request, "tracker/json_file_viewer.html", ctx)
 
 
-
 @login_required
 def reingest_admin(request):
     """Run the ingest_gmail command with options and show output."""
@@ -494,7 +495,6 @@ def reingest_admin(request):
             ctx["error"] = f"Failed to run ingestion: {e}"
 
     return render(request, "tracker/reingest_admin.html", ctx)
-
 
 
 @login_required
@@ -810,14 +810,18 @@ def system_info(request):
         __description__ = "unknown"
 
     # Get Python version
-    python_version = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
+    python_version = (
+        f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
+    )
 
     # Get Django version
     import django
+
     django_version = django.get_version()
 
     # Get database info
     from django.conf import settings
+
     db_path = settings.DATABASES.get("default", {}).get("NAME", "unknown")
 
     # Get model info if available
@@ -851,4 +855,12 @@ def system_info(request):
     return render(request, "tracker/system_info.html", ctx)
 
 
-__all__ = ['log_viewer', 'retrain_model', 'json_file_viewer', 'reingest_admin', 'reingest_stream', 'configure_settings', 'system_info']
+__all__ = [
+    "log_viewer",
+    "retrain_model",
+    "json_file_viewer",
+    "reingest_admin",
+    "reingest_stream",
+    "configure_settings",
+    "system_info",
+]

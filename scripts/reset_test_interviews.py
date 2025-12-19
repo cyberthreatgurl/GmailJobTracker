@@ -1,4 +1,5 @@
 """Reset recent interview records for testing."""
+
 import os
 import sys
 import django
@@ -11,9 +12,9 @@ django.setup()
 from tracker.models import ThreadTracking
 
 # Reset interviews with date 2025-11-15 to not completed
-reset_count = ThreadTracking.objects.filter(
-    interview_date=date(2025, 11, 15)
-).update(interview_completed=False)
+reset_count = ThreadTracking.objects.filter(interview_date=date(2025, 11, 15)).update(
+    interview_completed=False
+)
 
 print(f"✓ Reset {reset_count} interviews to 'not completed'")
 
@@ -21,7 +22,7 @@ print(f"✓ Reset {reset_count} interviews to 'not completed'")
 upcoming = ThreadTracking.objects.filter(
     interview_date__gte=date(2025, 11, 8),
     interview_completed=False,
-    company__isnull=False
+    company__isnull=False,
 ).select_related("company")
 
 print(f"\n📅 Upcoming Interviews ({upcoming.count()}):")

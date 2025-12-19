@@ -73,4 +73,3 @@ print("=" * 80)
 print("Application.company should match the company of messages in that thread.")
 print("This mismatch suggests a bug in the ingestion logic where Application.company")
 print("is set to a different company than the messages in the thread.")
-

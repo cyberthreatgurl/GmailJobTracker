@@ -45,7 +45,14 @@ def load_personal_domains():
             pass
 
     # fallback sensible defaults
-    return {"gmail.com", "yahoo.com", "outlook.com", "hotmail.com", "aol.com", "icloud.com"}
+    return {
+        "gmail.com",
+        "yahoo.com",
+        "outlook.com",
+        "hotmail.com",
+        "aol.com",
+        "icloud.com",
+    }
 
 
 def domain_of(email_or_sender: str):
@@ -99,10 +106,12 @@ def companies_with_only_personal_messages(personal_domains):
         if thread_count > 0:
             continue
 
-        candidates.append({
-            "company": company,
-            "message_count": msgs.count(),
-        })
+        candidates.append(
+            {
+                "company": company,
+                "message_count": msgs.count(),
+            }
+        )
 
     return candidates
 
@@ -119,7 +128,9 @@ def run(dry_run=True, apply_changes=False, assume_yes=False):
     print("\nSummary:\n")
     print(f"- DomainToCompany entries with personal domains: {len(dtc_matches)}")
     print(f"- Company rows whose `domain` is a personal domain: {len(comp_matches)}")
-    print(f"- Companies with only personal-sender messages and no threads: {len(orphan_candidates)}")
+    print(
+        f"- Companies with only personal-sender messages and no threads: {len(orphan_candidates)}"
+    )
 
     if dtc_matches:
         print("\nDomainToCompany examples:")
@@ -129,13 +140,17 @@ def run(dry_run=True, apply_changes=False, assume_yes=False):
     if comp_matches:
         print("\nCompanies with personal `domain` examples:")
         for c in comp_matches[:10]:
-            print(f"  - {c.name} (domain={c.domain}) msgs={Message.objects.filter(company=c).count()} threads={ThreadTracking.objects.filter(company=c).count()}")
+            print(
+                f"  - {c.name} (domain={c.domain}) msgs={Message.objects.filter(company=c).count()} threads={ThreadTracking.objects.filter(company=c).count()}"
+            )
 
     if orphan_candidates:
         print("\nCompanies likely created from personal messages (candidates):")
         for idx, ent in enumerate(orphan_candidates[:50], 1):
             c = ent["company"]
-            print(f"{idx:3}. {c.id} - {c.name} domain={c.domain} msgs={ent['message_count']}")
+            print(
+                f"{idx:3}. {c.id} - {c.name} domain={c.domain} msgs={ent['message_count']}"
+            )
 
     if dry_run and not apply_changes:
         print("\nDRY RUN: No changes will be made. Use --apply to make changes.")
@@ -155,7 +170,9 @@ def run(dry_run=True, apply_changes=False, assume_yes=False):
             dtc_deleted = 0
             if dtc_matches:
                 domains = [d.domain for d in dtc_matches]
-                dtc_deleted = DomainToCompany.objects.filter(domain__in=domains).delete()[0]
+                dtc_deleted = DomainToCompany.objects.filter(
+                    domain__in=domains
+                ).delete()[0]
 
             # For companies whose domain is personal: if they have no non-personal messages and no threads, delete; else null out domain
             comp_deleted = 0
@@ -191,7 +208,9 @@ def run(dry_run=True, apply_changes=False, assume_yes=False):
             print(f"\nApplied changes:")
             print(f" - DomainToCompany rows deleted: {dtc_deleted}")
             print(f" - Company rows deleted: {comp_deleted + orphan_deleted}")
-            print(f" - Company domains cleared (kept company rows): {comp_domain_nullified}")
+            print(
+                f" - Company domains cleared (kept company rows): {comp_domain_nullified}"
+            )
 
     except Exception as e:
         print(f"Error applying changes: {e}")
@@ -200,7 +219,9 @@ def run(dry_run=True, apply_changes=False, assume_yes=False):
 
 def main():
     parser = argparse.ArgumentParser(description="Cleanup personal-domain artifacts")
-    parser.add_argument("--apply", action="store_true", help="Apply changes (default is dry-run)")
+    parser.add_argument(
+        "--apply", action="store_true", help="Apply changes (default is dry-run)"
+    )
     parser.add_argument("--yes", action="store_true", help="Assume yes for prompts")
 
     args = parser.parse_args()

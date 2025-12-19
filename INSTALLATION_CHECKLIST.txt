@@ -52,7 +52,7 @@ Commands:
 STEP 2: Create .env File
 ──────────────────────────────────────────────────────────────────────────
 □ Copy .env.example to .env
-□ Edit .env and set GMAIL_JOBHUNT_LABEL_ID
+
 □ Optional: Set DJANGO_SECRET_KEY
 
 Commands:
@@ -60,7 +60,7 @@ Commands:
   notepad .env
 
 Required in .env:
-  GMAIL_JOBHUNT_LABEL_ID=Label_YOUR_LABEL_ID_HERE
+
 
 Generate secret key (optional):
   python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"

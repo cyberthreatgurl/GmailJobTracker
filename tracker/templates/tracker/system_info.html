@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block title %}System Information - GmailJobTracker{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+  <h1 class="text-3xl font-bold mb-6">System Information</h1>
+
+  <!-- Application Info -->
+  <div class="bg-white shadow-md rounded-lg p-6 mb-6">
+    <h2 class="text-xl font-semibold mb-4 text-gray-700">Application</h2>
+    <div class="grid grid-cols-2 gap-4">
+      <div>
+        <span class="font-medium text-gray-600">Version:</span>
+        <span class="text-gray-900">{{ app_version }}</span>
+      </div>
+      <div>
+        <span class="font-medium text-gray-600">Version Info:</span>
+        <span class="text-gray-900">{{ app_version_info|join:"." }}</span>
+      </div>
+      <div class="col-span-2">
+        <span class="font-medium text-gray-600">Description:</span>
+        <span class="text-gray-900">{{ app_description }}</span>
+      </div>
+      <div class="col-span-2">
+        <span class="font-medium text-gray-600">Author:</span>
+        <span class="text-gray-900">{{ app_author }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Environment Info -->
+  <div class="bg-white shadow-md rounded-lg p-6 mb-6">
+    <h2 class="text-xl font-semibold mb-4 text-gray-700">Environment</h2>
+    <div class="grid grid-cols-2 gap-4">
+      <div>
+        <span class="font-medium text-gray-600">Python Version:</span>
+        <span class="text-gray-900">{{ python_version }}</span>
+      </div>
+      <div>
+        <span class="font-medium text-gray-600">Django Version:</span>
+        <span class="text-gray-900">{{ django_version }}</span>
+      </div>
+      <div class="col-span-2">
+        <span class="font-medium text-gray-600">Database:</span>
+        <span class="text-gray-900 text-sm break-all">{{ db_path }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Data Stats -->
+  <div class="bg-white shadow-md rounded-lg p-6 mb-6">
+    <h2 class="text-xl font-semibold mb-4 text-gray-700">Data Statistics</h2>
+    <div class="grid grid-cols-2 gap-4">
+      <div>
+        <span class="font-medium text-gray-600">Total Messages:</span>
+        <span class="text-gray-900">{{ message_count|default:"0" }}</span>
+      </div>
+      <div>
+        <span class="font-medium text-gray-600">Last Ingestion:</span>
+        <span class="text-gray-900">
+          {% if last_ingestion %}
+            {{ last_ingestion.ingestion_date|date:"Y-m-d" }}
+          {% else %}
+            Never
+          {% endif %}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ML Model Info -->
+  {% if model_info %}
+  <div class="bg-white shadow-md rounded-lg p-6 mb-6">
+    <h2 class="text-xl font-semibold mb-4 text-gray-700">ML Model</h2>
+    <div class="grid grid-cols-2 gap-4">
+      {% if model_info.last_trained %}
+      <div>
+        <span class="font-medium text-gray-600">Last Trained:</span>
+        <span class="text-gray-900">{{ model_info.last_trained }}</span>
+      </div>
+      {% endif %}
+      {% if model_info.training_samples %}
+      <div>
+        <span class="font-medium text-gray-600">Training Samples:</span>
+        <span class="text-gray-900">{{ model_info.training_samples }}</span>
+      </div>
+      {% endif %}
+      {% if model_info.model_type %}
+      <div>
+        <span class="font-medium text-gray-600">Model Type:</span>
+        <span class="text-gray-900">{{ model_info.model_type }}</span>
+      </div>
+      {% endif %}
+      {% if model_info.accuracy %}
+      <div>
+        <span class="font-medium text-gray-600">Accuracy:</span>
+        <span class="text-gray-900">{{ model_info.accuracy }}%</span>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Links -->
+  <div class="bg-white shadow-md rounded-lg p-6">
+    <h2 class="text-xl font-semibold mb-4 text-gray-700">Resources</h2>
+    <ul class="space-y-2">
+      <li>
+        <a href="https://github.com/cyberthreatgurl/GmailJobTracker" 
+           target="_blank" 
+           class="text-blue-600 hover:underline">
+          📦 GitHub Repository
+        </a>
+      </li>
+      <li>
+        <a href="https://github.com/cyberthreatgurl/GmailJobTracker/releases/tag/v{{ app_version }}" 
+           target="_blank" 
+           class="text-blue-600 hover:underline">
+          📋 Release Notes
+        </a>
+      </li>
+      <li>
+        <a href="https://github.com/cyberthreatgurl/GmailJobTracker/issues" 
+           target="_blank" 
+           class="text-blue-600 hover:underline">
+          🐛 Report Issues
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Back Button -->
+  <div class="mt-6">
+    <a href="{% url 'dashboard' %}" 
+       class="inline-block bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
+      ← Back to Dashboard
+    </a>
+  </div>
+</div>
+{% endblock %}

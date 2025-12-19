@@ -45,6 +45,8 @@ django==4.2.25
     #   -r requirements-prod.in
     #   django-crispy-forms
     #   django-tailwind
+django-browser-reload==1.16.0
+    # via -r requirements-prod.in
 django-crispy-forms==2.4
     # via -r requirements-prod.in
 django-tailwind==4.1.0

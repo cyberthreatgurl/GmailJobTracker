@@ -19,7 +19,13 @@ from django.db.models import Q, Count, F, Case, When, Value
 from django.db.models.functions import Lower
 from django.utils.timezone import now
 from parser import parse_subject, normalize_company_name
-from tracker.models import Company, Message, ThreadTracking, UnresolvedCompany, AuditEvent
+from tracker.models import (
+    Company,
+    Message,
+    ThreadTracking,
+    UnresolvedCompany,
+    AuditEvent,
+)
 from tracker.services import CompanyService
 from tracker.forms import CompanyEditForm
 from tracker.views.helpers import build_sidebar_context

@@ -237,7 +237,15 @@ class MessageService:
             # Update company if extraction found a new one
             new_company_name = result.get('company')
             if new_company_name:
-                company, _ = Company.objects.get_or_create(name=new_company_name)
+                from django.utils.timezone import now
+                company, _ = Company.objects.get_or_create(
+                    name=new_company_name,
+                    defaults={
+                        "first_contact": msg.timestamp if msg.timestamp else now(),
+                        "last_contact": msg.timestamp if msg.timestamp else now(),
+                        "confidence": result.get('confidence', 0.0),
+                    }
+                )
                 msg.company = company
             
             msg.save()

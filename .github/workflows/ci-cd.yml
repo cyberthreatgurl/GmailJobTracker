@@ -87,7 +87,7 @@ jobs:
           echo '{"message_labels": {}}' > json/patterns.json
 
       - name: Setup Gmail credentials (if available)
-        if: ${{ secrets.GMAIL_CREDENTIALS_JSON != '' }}
+        if: secrets.GMAIL_CREDENTIALS_JSON != ''
         run: |
           echo '${{ secrets.GMAIL_CREDENTIALS_JSON }}' > json/credentials.json
         continue-on-error: true

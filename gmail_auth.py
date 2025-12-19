@@ -75,7 +75,7 @@ def get_gmail_service():
             # Request offline access to get a refresh token that never expires
             # open_browser=False to avoid issues in VS Code/SSH terminals
             creds = flow.run_local_server(
-                port=0,
+                port=8080,  # Fixed port for consistent OAuth redirect URI
                 access_type="offline",
                 prompt="consent",  # Force consent screen to ensure refresh token is issued
                 open_browser=False,  # Print URL instead of trying to open browser

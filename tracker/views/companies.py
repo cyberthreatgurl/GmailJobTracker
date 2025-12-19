@@ -4,6 +4,7 @@ Extracted from monolithic views.py (Phase 5 refactoring).
 """
 
 import json
+import logging
 import os
 import re
 import subprocess
@@ -16,8 +17,9 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from django.db.models import Q, Count, F, Case, When, Value
 from django.db.models.functions import Lower
+from django.utils.timezone import now
 from parser import parse_subject, normalize_company_name
-from tracker.models import Company, Message, ThreadTracking, UnresolvedCompany
+from tracker.models import Company, Message, ThreadTracking, UnresolvedCompany, AuditEvent
 from tracker.services import CompanyService
 from tracker.forms import CompanyEditForm
 from tracker.views.helpers import build_sidebar_context
@@ -26,6 +28,7 @@ from scripts.import_gmail_filters import load_json
 
 # Module-level constants
 python_path = sys.executable
+logger = logging.getLogger(__name__)
 
 
 @login_required

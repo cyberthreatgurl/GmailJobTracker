@@ -14,8 +14,14 @@ from .models import ATSDomain, Company, CompanyAlias, DomainToCompany, KnownComp
 def export_companies(sender, **kwargs):
     known = list(KnownCompany.objects.values_list("name", flat=True))
     ats_domains = list(ATSDomain.objects.values_list("domain", flat=True))
-    domain_to_company = {d["domain"]: d["company"] for d in DomainToCompany.objects.values("domain", "company")}
-    aliases = {a["alias"]: a["company"] for a in CompanyAlias.objects.values("alias", "company")}
+    domain_to_company = {
+        d["domain"]: d["company"]
+        for d in DomainToCompany.objects.values("domain", "company")
+    }
+    aliases = {
+        a["alias"]: a["company"]
+        for a in CompanyAlias.objects.values("alias", "company")
+    }
 
     data = {
         "ats_domains": ats_domains,
@@ -50,6 +56,8 @@ def sync_domain_to_company_on_company_save(sender, instance: Company, **kwargs):
     if "." not in domain:
         return
     # Upsert mapping
-    obj, _ = DomainToCompany.objects.update_or_create(domain=domain, defaults={"company": name})
+    obj, _ = DomainToCompany.objects.update_or_create(
+        domain=domain, defaults={"company": name}
+    )
     # Trigger export
     export_companies(sender=DomainToCompany)

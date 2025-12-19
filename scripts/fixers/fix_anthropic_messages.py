@@ -55,4 +55,3 @@ if apps.exists():
 
 print()
 print("Done! You can now view the messages on the label companies page.")
-

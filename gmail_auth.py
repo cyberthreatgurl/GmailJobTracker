@@ -24,10 +24,18 @@ def get_gmail_service():
     Returns a `googleapiclient.discovery.Resource` or None on failure.
     """
     creds = None
-    
+
     # Support both old (json/) and new (root) paths for backward compatibility
-    token_path = "token.pickle" if os.path.exists("token.pickle") else os.path.join("model", "token.pickle")
-    credentials_path = "credentials.json" if os.path.exists("credentials.json") else os.path.join("json", "credentials.json")
+    token_path = (
+        "token.pickle"
+        if os.path.exists("token.pickle")
+        else os.path.join("model", "token.pickle")
+    )
+    credentials_path = (
+        "credentials.json"
+        if os.path.exists("credentials.json")
+        else os.path.join("json", "credentials.json")
+    )
 
     try:
         if os.path.exists(token_path):
@@ -48,35 +56,37 @@ def get_gmail_service():
                 print("Token refreshed successfully")
             else:
                 creds = None
-        
+
         # If no valid credentials, need to authenticate (requires browser)
         if not creds:
             if not os.path.exists(credentials_path):
-                print(f"Error: {credentials_path} not found. Please provide OAuth credentials.")
+                print(
+                    f"Error: {credentials_path} not found. Please provide OAuth credentials."
+                )
                 return None
-            print("\n" + "="*70)
+            print("\n" + "=" * 70)
             print("GMAIL AUTHENTICATION REQUIRED")
-            print("="*70)
+            print("=" * 70)
             print("Starting OAuth flow. A browser window should open automatically.")
             print("If the browser doesn't open, copy the URL from below.")
-            print("="*70 + "\n")
-            
+            print("=" * 70 + "\n")
+
             flow = InstalledAppFlow.from_client_secrets_file(credentials_path, SCOPES)
             # Request offline access to get a refresh token that never expires
             # open_browser=False to avoid issues in VS Code/SSH terminals
             creds = flow.run_local_server(
                 port=0,
-                access_type='offline',
-                prompt='consent',  # Force consent screen to ensure refresh token is issued
-                open_browser=False  # Print URL instead of trying to open browser
+                access_type="offline",
+                prompt="consent",  # Force consent screen to ensure refresh token is issued
+                open_browser=False,  # Print URL instead of trying to open browser
             )
-            
+
             with open(token_path, "wb") as token:
                 pickle.dump(creds, token)
-            print("\n" + "="*70)
+            print("\n" + "=" * 70)
             print("✅ Authentication successful! Token saved with refresh token.")
             print(f"Token location: {os.path.abspath(token_path)}")
-            print("="*70)
+            print("=" * 70)
     except Exception as e:
         print(f"Error during credential flow: {e}")
         return None

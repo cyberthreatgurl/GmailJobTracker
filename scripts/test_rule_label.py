@@ -1,10 +1,13 @@
 """Test rule_label function to verify noise pattern matching."""
+
 import sys
 import os
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import django
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'dashboard.settings')
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dashboard.settings")
 django.setup()
 
 from parser import rule_label
@@ -27,10 +30,19 @@ text = f"{subject} {body}"
 print(f"Combined text: {text}")
 print()
 
-newsletter_pattern = re.compile(r'\bnewsletter\b', re.I)
-digest_pattern = re.compile(r'\bdigest\b', re.I)
-referral_pattern = re.compile(r'(\breferral\b| \breferred\b|\brefer\b|\brecommendation\b|\brecommended\b|introduction\b|\sconnect\syou\swith\b |\bconnecting\syou\swith\b)', re.I)
+newsletter_pattern = re.compile(r"\bnewsletter\b", re.I)
+digest_pattern = re.compile(r"\bdigest\b", re.I)
+referral_pattern = re.compile(
+    r"(\breferral\b| \breferred\b|\brefer\b|\brecommendation\b|\brecommended\b|introduction\b|\sconnect\syou\swith\b |\bconnecting\syou\swith\b)",
+    re.I,
+)
 
-print(f"Newsletter match: {bool(newsletter_pattern.search(text))} -> {newsletter_pattern.search(text).group(0) if newsletter_pattern.search(text) else None}")
-print(f"Digest match: {bool(digest_pattern.search(text))} -> {digest_pattern.search(text).group(0) if digest_pattern.search(text) else None}")
-print(f"Referral match: {bool(referral_pattern.search(text))} -> {referral_pattern.search(text).group(0) if referral_pattern.search(text) else None}")
+print(
+    f"Newsletter match: {bool(newsletter_pattern.search(text))} -> {newsletter_pattern.search(text).group(0) if newsletter_pattern.search(text) else None}"
+)
+print(
+    f"Digest match: {bool(digest_pattern.search(text))} -> {digest_pattern.search(text).group(0) if digest_pattern.search(text) else None}"
+)
+print(
+    f"Referral match: {bool(referral_pattern.search(text))} -> {referral_pattern.search(text).group(0) if referral_pattern.search(text) else None}"
+)

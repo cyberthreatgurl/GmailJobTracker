@@ -1,4 +1,5 @@
 """Check Millennium Corporation messages and thread tracking."""
+
 import os
 import sys
 import django
@@ -13,7 +14,7 @@ from tracker.models import Message, ThreadTracking
 print("=" * 70)
 print("MILLENNIUM CORPORATION MESSAGES")
 print("=" * 70)
-msgs = Message.objects.filter(company__name='Millennium Corporation')
+msgs = Message.objects.filter(company__name="Millennium Corporation")
 print(f"\nFound {msgs.count()} message(s)\n")
 
 for m in msgs[:10]:
@@ -29,7 +30,7 @@ for m in msgs[:10]:
 print("=" * 70)
 print("MILLENNIUM CORPORATION THREAD TRACKING")
 print("=" * 70)
-threads = ThreadTracking.objects.filter(company__name='Millennium Corporation')
+threads = ThreadTracking.objects.filter(company__name="Millennium Corporation")
 print(f"\nFound {threads.count()} thread(s)\n")
 
 for t in threads[:10]:
@@ -44,7 +45,9 @@ for t in threads[:10]:
 # Check if there are orphaned messages (Message exists but no ThreadTracking)
 if msgs.count() > 0 and threads.count() == 0:
     print("⚠️  WARNING: Message(s) exist but no ThreadTracking record!")
-    print("   This means the message was ingested but didn't create an application record.")
+    print(
+        "   This means the message was ingested but didn't create an application record."
+    )
     print("\n   Possible reasons:")
     print("   - Message classified as 'noise' or 'headhunter'")
     print("   - Message is a follow-up in an existing thread (not first message)")

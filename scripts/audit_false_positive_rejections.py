@@ -29,7 +29,9 @@ def load_patterns_with_legacy_rejection(patterns_path: Path) -> dict:
 def compile_patterns(patterns: dict) -> dict:
     compiled = {}
     for label, pats in patterns.get("message_labels", {}).items():
-        compiled[label] = [re.compile(p, re.IGNORECASE) for p in pats if p and p != "None"]
+        compiled[label] = [
+            re.compile(p, re.IGNORECASE) for p in pats if p and p != "None"
+        ]
     return compiled
 
 
@@ -104,7 +106,7 @@ def audit_unfortunately(limit: int | None = None):
     compiled_legacy = compile_patterns(legacy_patterns)
 
     qs = Message.objects.filter(
-        (Message._meta.get_field('subject').get_internal_type() and True)
+        (Message._meta.get_field("subject").get_internal_type() and True)
     ).order_by("-timestamp")
     # Above silly filter is a placeholder; we'll just scan all and test substring
     if limit:
@@ -126,13 +128,15 @@ def audit_unfortunately(limit: int | None = None):
         if after == "rejected":
             now_rej += 1
         if len(examples) < 10:
-            examples.append({
-                "id": m.id,
-                "subj": (m.subject or "")[:120],
-                "before": before,
-                "after": after,
-                "ts": m.timestamp.isoformat() if m.timestamp else None
-            })
+            examples.append(
+                {
+                    "id": m.id,
+                    "subj": (m.subject or "")[:120],
+                    "before": before,
+                    "after": after,
+                    "ts": m.timestamp.isoformat() if m.timestamp else None,
+                }
+            )
 
     print("\n=== 'Unfortunately' audit ===")
     print(f"Messages containing 'unfortunately': {total}")
@@ -140,7 +144,9 @@ def audit_unfortunately(limit: int | None = None):
     print(f"Current DB labeled rejected:      {now_rej}")
     print("\nExamples:")
     for ex in examples:
-        print(f"  id={ex['id']} before={ex['before']} after={ex['after']} ts={ex['ts']} subj={ex['subj']}")
+        print(
+            f"  id={ex['id']} before={ex['before']} after={ex['after']} ts={ex['ts']} subj={ex['subj']}"
+        )
 
 
 if __name__ == "__main__":

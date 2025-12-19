@@ -24,8 +24,12 @@ class Command(BaseCommand):
             action="store_true",
             help="Show what would change without saving",
         )
-        parser.add_argument("--company-id", type=int, help="Restrict to a specific company id")
-        parser.add_argument("--verbose", action="store_true", help="Print detailed listings")
+        parser.add_argument(
+            "--company-id", type=int, help="Restrict to a specific company id"
+        )
+        parser.add_argument(
+            "--verbose", action="store_true", help="Print detailed listings"
+        )
 
     def handle(self, *args, **opts):
         dry_run = opts.get("dry_run", False)
@@ -40,7 +44,9 @@ class Command(BaseCommand):
                 with open(companies_path, "r", encoding="utf-8") as f:
                     data = json.load(f)
                     headhunter_domains = [
-                        (d or "").strip().lower() for d in data.get("headhunter_domains", []) if isinstance(d, str)
+                        (d or "").strip().lower()
+                        for d in data.get("headhunter_domains", [])
+                        if isinstance(d, str)
                     ]
         except Exception:
             headhunter_domains = []
@@ -49,12 +55,18 @@ class Command(BaseCommand):
         hh_company_q = Q(status="headhunter") | Q(name__iexact="HeadHunter")
         for d in headhunter_domains:
             hh_company_q |= Q(domain__iendswith=d)
-        hh_company_ids = list(Company.objects.filter(hh_company_q).values_list("id", flat=True))
+        hh_company_ids = list(
+            Company.objects.filter(hh_company_q).values_list("id", flat=True)
+        )
 
         # Message-based filter: sender domain indicates headhunter or company is headhunter
         msg_hh_q = Q(ml_label__in=BLOCKED_LABELS) & (
             Q(company_id__in=hh_company_ids)
-            | Q(sender__iregex=r"@(" + "|".join(map(lambda s: s.replace(".", r"\."), headhunter_domains)) + ")")
+            | Q(
+                sender__iregex=r"@("
+                + "|".join(map(lambda s: s.replace(".", r"\."), headhunter_domains))
+                + ")"
+            )
         )
 
         qs = Message.objects.filter(msg_hh_q)
@@ -62,7 +74,9 @@ class Command(BaseCommand):
             qs = qs.filter(company_id=company_id)
 
         count = qs.count()
-        self.stdout.write(self.style.NOTICE(f"Found {count} headhunter messages with blocked labels."))
+        self.stdout.write(
+            self.style.NOTICE(f"Found {count} headhunter messages with blocked labels.")
+        )
 
         if verbose and count:
             for m in qs.select_related("company").order_by("-timestamp")[:200]:
@@ -88,7 +102,9 @@ class Command(BaseCommand):
                 m.reviewed = True
                 if label_message_and_propagate:
                     # We're setting reviewed and the label together; force the update
-                    label_message_and_propagate(m, "head_hunter", confidence=1.0, overwrite_reviewed=True)
+                    label_message_and_propagate(
+                        m, "head_hunter", confidence=1.0, overwrite_reviewed=True
+                    )
                 else:
                     m.ml_label = "head_hunter"
                     m.save(update_fields=["ml_label", "reviewed"])
@@ -96,4 +112,6 @@ class Command(BaseCommand):
             except Exception:
                 # continue on individual failure
                 continue
-        self.stdout.write(self.style.SUCCESS(f"Updated {updated} messages to head_hunter."))
+        self.stdout.write(
+            self.style.SUCCESS(f"Updated {updated} messages to head_hunter.")
+        )

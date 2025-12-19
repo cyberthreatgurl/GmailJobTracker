@@ -13,7 +13,7 @@ from tracker.services import StatsService
 
 def build_sidebar_context():
     """Compute sidebar metrics (companies, applications, weekly trends, upcoming interviews, latest stats).
-    
+
     Phase 2: Delegates to StatsService for business logic.
     """
     return StatsService.get_sidebar_metrics()
@@ -216,10 +216,10 @@ def _parse_pasted_gmail_spec(text: str):
 
 
 __all__ = [
-    'build_sidebar_context',
-    'extract_body_content',
-    'validate_regex_pattern',
-    'sanitize_string',
-    'validate_domain',
-    '_parse_pasted_gmail_spec',
+    "build_sidebar_context",
+    "extract_body_content",
+    "validate_regex_pattern",
+    "sanitize_string",
+    "validate_domain",
+    "_parse_pasted_gmail_spec",
 ]

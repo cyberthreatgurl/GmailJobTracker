@@ -21,6 +21,4 @@ class Command(BaseCommand):
         self.stdout.write(
             self.style.SUCCESS("✅ Legacy database schema initialized successfully")
         )
-        self.stdout.write(
-            "Created tables: email_text, applications, follow_ups, meta"
-        )
+        self.stdout.write("Created tables: email_text, applications, follow_ups, meta")

@@ -10,6 +10,7 @@ Behavior:
 - When applying, files are moved into `logs/archive/` (created if needed). Optionally
   pass `--compress` to gzip files after moving.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -37,12 +38,43 @@ class Command(BaseCommand):
     help = "Archive audit log files to logs/archive/ (dry-run default)."
 
     def add_arguments(self, parser: argparse.ArgumentParser):
-        parser.add_argument("--source", dest="source", default="logs/clear_reviewed_audit.log", help="Audit log prefix/file to archive")
-        parser.add_argument("--archive-dir", dest="archive_dir", default="logs/archive", help="Directory to move archived files into")
-        parser.add_argument("--apply", dest="apply", action="store_true", help="Actually move files (dry-run otherwise)")
-        parser.add_argument("--older-than", dest="older_than", type=int, default=0, help="Only archive files older than N days (default: 0 -> any age)")
-        parser.add_argument("--all", dest="all_files", action="store_true", help="Include the main audit file and any matching prefix files, not just backups")
-        parser.add_argument("--compress", dest="compress", action="store_true", help="Gzip files after moving them into the archive")
+        parser.add_argument(
+            "--source",
+            dest="source",
+            default="logs/clear_reviewed_audit.log",
+            help="Audit log prefix/file to archive",
+        )
+        parser.add_argument(
+            "--archive-dir",
+            dest="archive_dir",
+            default="logs/archive",
+            help="Directory to move archived files into",
+        )
+        parser.add_argument(
+            "--apply",
+            dest="apply",
+            action="store_true",
+            help="Actually move files (dry-run otherwise)",
+        )
+        parser.add_argument(
+            "--older-than",
+            dest="older_than",
+            type=int,
+            default=0,
+            help="Only archive files older than N days (default: 0 -> any age)",
+        )
+        parser.add_argument(
+            "--all",
+            dest="all_files",
+            action="store_true",
+            help="Include the main audit file and any matching prefix files, not just backups",
+        )
+        parser.add_argument(
+            "--compress",
+            dest="compress",
+            action="store_true",
+            help="Gzip files after moving them into the archive",
+        )
 
     def handle(self, *args, **opts):
         source = opts.get("source")
@@ -76,13 +108,17 @@ class Command(BaseCommand):
             self.stdout.write("No files matched the archive criteria.")
             return
 
-        self.stdout.write(f"Found {len(selected)} files to archive (older_than={older_than} days, include_all={include_all}).")
+        self.stdout.write(
+            f"Found {len(selected)} files to archive (older_than={older_than} days, include_all={include_all})."
+        )
 
         for p in selected:
             self.stdout.write(f" - {p}")
 
         if not apply_changes:
-            self.stdout.write("Dry-run: no files will be moved. Use --apply to perform the archival.")
+            self.stdout.write(
+                "Dry-run: no files will be moved. Use --apply to perform the archival."
+            )
             return
 
         # Ensure archive dir exists

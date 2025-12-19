@@ -9,7 +9,9 @@ from parser import (
 
 
 class Command(BaseCommand):
-    help = "Parse a raw Gmail message source and print the extracted fields (no DB write)."
+    help = (
+        "Parse a raw Gmail message source and print the extracted fields (no DB write)."
+    )
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -53,7 +55,9 @@ class Command(BaseCommand):
             )
             meta = parse_raw_message(raw)
         except Exception as e:
-            self.stderr.write(f"Unexpected parse error ({e}); treating input as raw EML")
+            self.stderr.write(
+                f"Unexpected parse error ({e}); treating input as raw EML"
+            )
             meta = parse_raw_message(raw)
 
         if not meta:
@@ -65,13 +69,20 @@ class Command(BaseCommand):
         sender = meta.get("sender", "")
         thread_id = meta.get("thread_id", "")
         # Core classification pipeline
-        parsed = parse_subject(subject, body, sender=sender, sender_domain=meta.get("sender_domain")) or {}
+        parsed = (
+            parse_subject(
+                subject, body, sender=sender, sender_domain=meta.get("sender_domain")
+            )
+            or {}
+        )
         company = parsed.get("company")  # company resolution handled in parse_subject
         ml_result = predict_subject_type(subject, body, sender=sender)
         label = ml_result.get("label") if isinstance(ml_result, dict) else None
-        confidence = float(
-            ml_result.get("confidence", ml_result.get("proba", 0.0))
-        ) if isinstance(ml_result, dict) else 0.0
+        confidence = (
+            float(ml_result.get("confidence", ml_result.get("proba", 0.0)))
+            if isinstance(ml_result, dict)
+            else 0.0
+        )
         result = {
             "subject": subject,
             "body": body,

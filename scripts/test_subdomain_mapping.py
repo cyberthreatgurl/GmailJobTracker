@@ -4,6 +4,7 @@
 Runs parse_subject on a synthetic NSA subdomain email to confirm mapping.
 """
 import os
+
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dashboard.settings")
 import django
 

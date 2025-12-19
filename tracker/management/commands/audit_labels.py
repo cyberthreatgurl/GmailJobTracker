@@ -25,7 +25,9 @@ class Command(BaseCommand):
             metavar="CSV_PATH",
             help="Compare current labels against ground truth CSV (columns: msg_id,label)",
         )
-        parser.add_argument("--limit", type=int, help="Limit the number of messages processed for speed")
+        parser.add_argument(
+            "--limit", type=int, help="Limit the number of messages processed for speed"
+        )
         parser.add_argument(
             "--days",
             type=int,
@@ -72,7 +74,9 @@ class Command(BaseCommand):
                         r["timestamp"],
                     ]
                 )
-        self.stdout.write(self.style.SUCCESS(f"Exported {qs.count()} reviewed messages to {path}"))
+        self.stdout.write(
+            self.style.SUCCESS(f"Exported {qs.count()} reviewed messages to {path}")
+        )
 
     def _compare_against_csv(self, path: str, limit=None, days=None):
         # Load ground truth from CSV: expecting columns msg_id,label
@@ -85,7 +89,9 @@ class Command(BaseCommand):
                 if mid and lab:
                     gt[mid] = lab
         if not gt:
-            self.stdout.write(self.style.WARNING("No ground truth loaded from CSV (msg_id,label)"))
+            self.stdout.write(
+                self.style.WARNING("No ground truth loaded from CSV (msg_id,label)")
+            )
             return
 
         qs = Message.objects.filter(msg_id__in=list(gt.keys()))
@@ -115,7 +121,9 @@ class Command(BaseCommand):
             confusion[(gt_label, pred)] += 1
 
         acc = (correct / total) if total else 0.0
-        self.stdout.write(self.style.NOTICE(f"Compared {total} messages; accuracy={acc:.3f}"))
+        self.stdout.write(
+            self.style.NOTICE(f"Compared {total} messages; accuracy={acc:.3f}")
+        )
         self.stdout.write("Per-label accuracy:")
         for lab, n in per_label_total.most_common():
             a = (per_label_correct[lab] / n) if n else 0.0

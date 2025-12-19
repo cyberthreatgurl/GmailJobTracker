@@ -148,4 +148,3 @@ print("  ✓ Simplified queries for charts/graphs")
 print()
 print("Without it, you'd need complex aggregation queries on Messages")
 print("for every dashboard load, which would be slower and more complex.")
-

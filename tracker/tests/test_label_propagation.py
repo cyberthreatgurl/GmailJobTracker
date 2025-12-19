@@ -13,7 +13,9 @@ from tracker.admin import MessageAdmin, custom_admin_site
 class LabelPropagationTests(TestCase):
     def setUp(self):
         now = timezone.now()
-        self.company = Company.objects.create(name="TestCo", domain="testco.com", first_contact=now, last_contact=now)
+        self.company = Company.objects.create(
+            name="TestCo", domain="testco.com", first_contact=now, last_contact=now
+        )
         self.user = User.objects.create_superuser("admin", "admin@example.com", "pass")
         self.client = Client()
         self.client.force_login(self.user)
@@ -55,15 +57,20 @@ class LabelPropagationTests(TestCase):
         )
 
         # Patch the predict function used by the management command to return a deterministic label
-        with patch("tracker.management.commands.reclassify_messages.predict_subject_type", return_value={
-            "label": "job_application",
-            "confidence": 0.95,
-            "method": "test",
-        }):
+        with patch(
+            "tracker.management.commands.reclassify_messages.predict_subject_type",
+            return_value={
+                "label": "job_application",
+                "confidence": 0.95,
+                "method": "test",
+            },
+        ):
             call_command("reclassify_messages", "--limit", "1")
 
         tt = ThreadTracking.objects.filter(thread_id="T-MGMT-1").first()
-        self.assertIsNotNone(tt, "ThreadTracking should be created by reclassify management command")
+        self.assertIsNotNone(
+            tt, "ThreadTracking should be created by reclassify management command"
+        )
         self.assertEqual(tt.ml_label, "job_application")
 
     def test_bulk_label_view_propagates(self):

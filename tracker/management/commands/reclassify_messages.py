@@ -63,7 +63,9 @@ class Command(BaseCommand):
         changed = 0
 
         for i, msg in enumerate(qs.iterator(), 1):
-            result = predict_subject_type(msg.subject, msg.body or "", sender=msg.sender)
+            result = predict_subject_type(
+                msg.subject, msg.body or "", sender=msg.sender
+            )
 
             old_label = msg.ml_label
             old_conf = msg.confidence or 0.0
@@ -97,18 +99,35 @@ class Command(BaseCommand):
                         msg.company_source = ""
                         if label_message_and_propagate:
                             # Respect the CLI flag --overwrite-reviewed when applying labels
-                            label_message_and_propagate(msg, new_label, float(new_conf), overwrite_reviewed=overwrite_reviewed)
+                            label_message_and_propagate(
+                                msg,
+                                new_label,
+                                float(new_conf),
+                                overwrite_reviewed=overwrite_reviewed,
+                            )
                         else:
                             msg.ml_label = new_label
                             msg.confidence = new_conf
-                            msg.save(update_fields=["ml_label", "confidence", "company", "company_source"])
+                            msg.save(
+                                update_fields=[
+                                    "ml_label",
+                                    "confidence",
+                                    "company",
+                                    "company_source",
+                                ]
+                            )
                     else:
                         if label_message_and_propagate:
-                            label_message_and_propagate(msg, new_label, float(new_conf), overwrite_reviewed=overwrite_reviewed)
+                            label_message_and_propagate(
+                                msg,
+                                new_label,
+                                float(new_conf),
+                                overwrite_reviewed=overwrite_reviewed,
+                            )
                         else:
                             msg.ml_label = new_label
                             msg.confidence = new_conf
-                            msg.save(update_fields=["ml_label", "confidence"]) 
+                            msg.save(update_fields=["ml_label", "confidence"])
 
                     updated += 1
 
@@ -117,9 +136,15 @@ class Command(BaseCommand):
                     self.stdout.write(f"  Progress: {i}/{total}...")
 
         if dry_run:
-            self.stdout.write(self.style.WARNING(f"[DRY RUN] Would update {changed}/{total} messages"))
+            self.stdout.write(
+                self.style.WARNING(f"[DRY RUN] Would update {changed}/{total} messages")
+            )
         else:
-            self.stdout.write(self.style.SUCCESS(f"✅ Re-classified {changed}/{total} messages ({updated} saved)"))
+            self.stdout.write(
+                self.style.SUCCESS(
+                    f"✅ Re-classified {changed}/{total} messages ({updated} saved)"
+                )
+            )
 
         # Check confidence distribution
         confidence_stats = (
@@ -151,5 +176,9 @@ class Command(BaseCommand):
         if msg:
             self.stdout.write(f"\nSubject: {msg.subject}")
             self.stdout.write(f"Current: {msg.ml_label} ({msg.confidence:.2f})")
-            result = predict_subject_type(msg.subject, msg.body or "", sender=msg.sender)
-            self.stdout.write(f"New prediction: {result['label']} ({result['confidence']:.2f}) [{result['method']}]")
+            result = predict_subject_type(
+                msg.subject, msg.body or "", sender=msg.sender
+            )
+            self.stdout.write(
+                f"New prediction: {result['label']} ({result['confidence']:.2f}) [{result['method']}]"
+            )

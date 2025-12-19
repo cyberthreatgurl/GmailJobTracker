@@ -42,16 +42,22 @@ class Command(BaseCommand):
         batch_size = options["batch_size"]
         delete_marked = options["delete_marked"]
 
-        self.stdout.write(self.style.WARNING("\n=== Newsletter/Bulk Mail Re-Ingestion ===\n"))
+        self.stdout.write(
+            self.style.WARNING("\n=== Newsletter/Bulk Mail Re-Ingestion ===\n")
+        )
 
         if dry_run:
-            self.stdout.write(self.style.NOTICE("DRY RUN MODE - No changes will be made\n"))
+            self.stdout.write(
+                self.style.NOTICE("DRY RUN MODE - No changes will be made\n")
+            )
 
         # Get Gmail service
         try:
             service = get_gmail_service()
         except Exception as e:
-            self.stdout.write(self.style.ERROR(f"Failed to authenticate with Gmail: {e}"))
+            self.stdout.write(
+                self.style.ERROR(f"Failed to authenticate with Gmail: {e}")
+            )
             return
 
         # Get all messages from database (newest first to catch recent newsletters)
@@ -60,7 +66,9 @@ class Command(BaseCommand):
             messages = messages[:limit]
 
         total_count = messages.count()
-        self.stdout.write(f"Re-ingesting {total_count} messages to check for newsletters...\n")
+        self.stdout.write(
+            f"Re-ingesting {total_count} messages to check for newsletters...\n"
+        )
 
         ignored_count = 0
         deleted_count = 0
@@ -95,12 +103,13 @@ class Command(BaseCommand):
                     # Check if this is application-related using patterns.json
                     # (ATS systems add List-Unsubscribe headers even to transactional emails)
                     is_app_related = is_application_related(
-                        metadata["subject"],
-                        metadata.get("body", "")[:500]
+                        metadata["subject"], metadata.get("body", "")[:500]
                     )
 
                     # Check if should be ignored (skip if application-related)
-                    should_ignore = (not is_app_related) and (is_newsletter or (is_bulk and is_noreply))
+                    should_ignore = (not is_app_related) and (
+                        is_newsletter or (is_bulk and is_noreply)
+                    )
 
                     if should_ignore:
                         reason_parts = []
@@ -134,17 +143,21 @@ class Command(BaseCommand):
                                     )
                                 else:
                                     self.stdout.write(
-                                        self.style.SUCCESS(f"    ✓ Marked ignored in IgnoredMessage")
+                                        self.style.SUCCESS(
+                                            f"    ✓ Marked ignored in IgnoredMessage"
+                                        )
                                     )
 
                 except Exception as e:
                     error_count += 1
                     error_str = str(e)
-                    
+
                     # Provide user-friendly error messages
                     if "Invalid id value" in error_str or "404" in error_str:
                         self.stdout.write(
-                            self.style.WARNING(f"  ⊗ Skipped {msg.msg_id}: Message deleted by user or no longer exists in Gmail")
+                            self.style.WARNING(
+                                f"  ⊗ Skipped {msg.msg_id}: Message deleted by user or no longer exists in Gmail"
+                            )
                         )
                     else:
                         self.stdout.write(

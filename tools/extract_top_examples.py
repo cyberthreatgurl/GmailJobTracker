@@ -32,12 +32,22 @@ with IN.open("r", encoding="utf-8", newline="") as inf:
 rows.sort(key=lambda r: r.get("timestamp") or "", reverse=True)
 
 with OUT.open("w", encoding="utf-8", newline="") as outf:
-    fieldnames = ["message_id","thread_id","timestamp","subject","old_label","old_conf","new_label","new_conf","method"]
+    fieldnames = [
+        "message_id",
+        "thread_id",
+        "timestamp",
+        "subject",
+        "old_label",
+        "old_conf",
+        "new_label",
+        "new_conf",
+        "method",
+    ]
     w = csv.DictWriter(outf, fieldnames=fieldnames)
     w.writeheader()
     for row in rows[:N]:
         out = {k: row.get(k, "") for k in fieldnames}
-        out["subject"] = (out["subject"] or "").replace('\n',' ')[:300]
+        out["subject"] = (out["subject"] or "").replace("\n", " ")[:300]
         w.writerow(out)
 
 print(f"Wrote {min(N, len(rows))} examples -> {OUT}")

@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 """Test company extraction from Hampton email."""
 import os
+
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dashboard.settings")
 
 import django
+
 django.setup()
 
 from parser import parse_subject
@@ -53,5 +55,5 @@ cleaned = re.sub(
 print(f"Cleaned (removing ATS terms): '{cleaned}'")
 
 # Check if @ icims should be removed
-cleaned_at = re.sub(r'\s*@\s*icims\s*$', '', cleaned, flags=re.I).strip()
+cleaned_at = re.sub(r"\s*@\s*icims\s*$", "", cleaned, flags=re.I).strip()
 print(f"After removing @ icims: '{cleaned_at}'")

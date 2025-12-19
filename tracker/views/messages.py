@@ -12,7 +12,17 @@ from pathlib import Path
 from bs4 import BeautifulSoup
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q, Count, F, Value, Case, When, ExpressionWrapper, IntegerField, CharField
+from django.db.models import (
+    Q,
+    Count,
+    F,
+    Value,
+    Case,
+    When,
+    ExpressionWrapper,
+    IntegerField,
+    CharField,
+)
 from django.db.models.functions import Coalesce, StrIndex, Substr, Lower
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
@@ -46,7 +56,6 @@ def label_applications(request):
     return render(request, "tracker/label_applications.html", ctx)
 
 
-
 @login_required
 def label_messages(request):
     """Bulk message labeling interface with checkboxes"""
@@ -64,7 +73,9 @@ def label_messages(request):
             careers_url = (request.POST.get("careers_url") or "").strip()
 
             if not any([company_name, company_domain, ats_domain, careers_url]):
-                messages.warning(request, "⚠️ Please provide at least one field to add/update.")
+                messages.warning(
+                    request, "⚠️ Please provide at least one field to add/update."
+                )
                 return redirect(request.get_full_path())
 
             cfg_path = Path("json/companies.json")
@@ -95,8 +106,12 @@ def label_messages(request):
                 domain_key = company_domain.lower()
                 existing = companies_cfg["domain_to_company"].get(domain_key)
                 if not existing:
-                    companies_cfg["domain_to_company"][domain_key] = company_name or existing or ""
-                    added.append(f"domain_to_company: {domain_key} → {companies_cfg['domain_to_company'][domain_key]}")
+                    companies_cfg["domain_to_company"][domain_key] = (
+                        company_name or existing or ""
+                    )
+                    added.append(
+                        f"domain_to_company: {domain_key} → {companies_cfg['domain_to_company'][domain_key]}"
+                    )
                 elif company_name and existing != company_name:
                     companies_cfg["domain_to_company"][domain_key] = company_name
                     updated.append(f"domain_to_company: {domain_key} → {company_name}")
@@ -124,11 +139,17 @@ def label_messages(request):
                     with open(cfg_path, "w", encoding="utf-8") as f:
                         json.dump(companies_cfg, f, ensure_ascii=False, indent=2)
                     if added:
-                        messages.success(request, "✅ Added entries: " + "; ".join(added))
+                        messages.success(
+                            request, "✅ Added entries: " + "; ".join(added)
+                        )
                     if updated:
-                        messages.info(request, "ℹ️ Updated entries: " + "; ".join(updated))
+                        messages.info(
+                            request, "ℹ️ Updated entries: " + "; ".join(updated)
+                        )
                 else:
-                    messages.info(request, "No changes needed; companies.json already up to date.")
+                    messages.info(
+                        request, "No changes needed; companies.json already up to date."
+                    )
             except Exception as e:  # pylint: disable=broad-except
                 messages.error(request, f"❌ Failed to write companies.json: {e}")
 
@@ -148,7 +169,9 @@ def label_messages(request):
                         msg = Message.objects.get(pk=msg_id)
                         # Use centralized helper to save+propagate label changes
                         # This is a manual/admin action — allow overwriting reviewed flags
-                        label_message_and_propagate(msg, bulk_label, confidence=1.0, overwrite_reviewed=True)
+                        label_message_and_propagate(
+                            msg, bulk_label, confidence=1.0, overwrite_reviewed=True
+                        )
                         if msg.thread_id:
                             touched_threads.add(msg.thread_id)
                         updated_count += 1
@@ -227,8 +250,8 @@ def label_messages(request):
             selected_ids = request.POST.getlist("selected_messages")
 
             if selected_ids:
-                updated_count = (
-                    Message.objects.filter(pk__in=selected_ids).update(reviewed=True)
+                updated_count = Message.objects.filter(pk__in=selected_ids).update(
+                    reviewed=True
                 )
 
                 messages.success(
@@ -263,7 +286,12 @@ def label_messages(request):
 
             if selected_ids:
                 try:
-                    from parser import ingest_message, parse_subject, predict_with_fallback, predict_subject_type
+                    from parser import (
+                        ingest_message,
+                        parse_subject,
+                        predict_with_fallback,
+                        predict_subject_type,
+                    )
 
                     service = get_gmail_service()
                     success_count = 0
@@ -279,9 +307,13 @@ def label_messages(request):
                                 msg.reviewed = False
                                 msg.save(update_fields=["reviewed"])
                                 if msg.thread_id:
-                                    ThreadTracking.objects.filter(thread_id=msg.thread_id).update(reviewed=False)
+                                    ThreadTracking.objects.filter(
+                                        thread_id=msg.thread_id
+                                    ).update(reviewed=False)
                             except Exception:
-                                logger.exception(f"Failed to clear reviewed for db id {db_id}")
+                                logger.exception(
+                                    f"Failed to clear reviewed for db id {db_id}"
+                                )
 
                             # Audit: record UI-initiated clear for traceability (selected reingest)
                             try:
@@ -289,17 +321,27 @@ def label_messages(request):
                                 audit_path.parent.mkdir(parents=True, exist_ok=True)
                                 entry = {
                                     "ts": now().isoformat(),
-                                    "user": request.user.username if hasattr(request, "user") else "unknown",
+                                    "user": (
+                                        request.user.username
+                                        if hasattr(request, "user")
+                                        else "unknown"
+                                    ),
                                     "action": "ui_reingest_clear",
                                     "source": "reingest_selected",
                                     "db_id": db_id,
                                     "msg_id": gmail_msg_id,
                                     "thread_id": msg.thread_id if msg else None,
-                                    "company_id": msg.company.id if getattr(msg, "company", None) else None,
+                                    "company_id": (
+                                        msg.company.id
+                                        if getattr(msg, "company", None)
+                                        else None
+                                    ),
                                     "pid": os.getpid(),
                                 }
                                 with open(audit_path, "a", encoding="utf-8") as af:
-                                    af.write(json.dumps(entry, ensure_ascii=False) + "\n")
+                                    af.write(
+                                        json.dumps(entry, ensure_ascii=False) + "\n"
+                                    )
                                 # Also persist to DB for easier querying
                                 try:
                                     AuditEvent.objects.create(
@@ -314,17 +356,27 @@ def label_messages(request):
                                         pid=entry.get("pid"),
                                     )
                                 except Exception:
-                                    logger.exception("Failed to write AuditEvent DB record for ui_reingest_clear (selected)")
+                                    logger.exception(
+                                        "Failed to write AuditEvent DB record for ui_reingest_clear (selected)"
+                                    )
                             except Exception as e:
-                                logger.exception("Failed to write audit log for UI reingest clear (selected)")
+                                logger.exception(
+                                    "Failed to write audit log for UI reingest clear (selected)"
+                                )
                                 try:
                                     import traceback
 
-                                    audit_path = Path("logs") / "clear_reviewed_audit.log"
+                                    audit_path = (
+                                        Path("logs") / "clear_reviewed_audit.log"
+                                    )
                                     audit_path.parent.mkdir(parents=True, exist_ok=True)
                                     entry = {
                                         "ts": now().isoformat(),
-                                        "user": request.user.username if hasattr(request, "user") else "unknown",
+                                        "user": (
+                                            request.user.username
+                                            if hasattr(request, "user")
+                                            else "unknown"
+                                        ),
                                         "action": "ui_reingest_clear",
                                         "source": "reingest_selected",
                                         "db_id": db_id,
@@ -333,9 +385,13 @@ def label_messages(request):
                                         "trace": traceback.format_exc(),
                                     }
                                     with open(audit_path, "a", encoding="utf-8") as af:
-                                        af.write(json.dumps(entry, ensure_ascii=False) + "\n")
+                                        af.write(
+                                            json.dumps(entry, ensure_ascii=False) + "\n"
+                                        )
                                 except Exception:
-                                    logger.exception("Also failed to write error audit for UI reingest clear (selected)")
+                                    logger.exception(
+                                        "Also failed to write error audit for UI reingest clear (selected)"
+                                    )
 
                             # Suppress auto-mark-reviewed during this UI-initiated re-ingest
                             try:
@@ -348,50 +404,87 @@ def label_messages(request):
                                         predict_subject_type,
                                         msg.subject,
                                         msg.body or "",
-                                        sender=msg.sender
+                                        sender=msg.sender,
                                     )
                                     ml_label = result_dict.get("label", "noise")
                                     ml_confidence = result_dict.get("confidence", 0.0)
-                                    
+
                                     # Re-parse company
-                                    sender_domain = msg.sender.split("@")[-1].split(">")[0] if "@" in msg.sender else ""
+                                    sender_domain = (
+                                        msg.sender.split("@")[-1].split(">")[0]
+                                        if "@" in msg.sender
+                                        else ""
+                                    )
                                     parse_result = parse_subject(
                                         msg.subject,
                                         msg.body or "",
                                         msg.sender,
-                                        sender_domain
+                                        sender_domain,
                                     )
-                                    
+
                                     # Extract company
                                     company = None
                                     if isinstance(parse_result, dict):
-                                        company = parse_result.get("company") or parse_result.get("predicted_company")
+                                        company = parse_result.get(
+                                            "company"
+                                        ) or parse_result.get("predicted_company")
                                     elif isinstance(parse_result, str):
                                         company = parse_result
-                                    
+
                                     # Apply internal referral override
-                                    if isinstance(parse_result, dict) and parse_result.get("label") == "other" and ml_label in ("referral", "interview_invite"):
+                                    if (
+                                        isinstance(parse_result, dict)
+                                        and parse_result.get("label") == "other"
+                                        and ml_label in ("referral", "interview_invite")
+                                    ):
                                         from parser import _map_company_by_domain
+
                                         if sender_domain and company:
-                                            mapped_domain_company = _map_company_by_domain(sender_domain)
-                                            if mapped_domain_company and mapped_domain_company.lower() == company.lower():
+                                            mapped_domain_company = (
+                                                _map_company_by_domain(sender_domain)
+                                            )
+                                            if (
+                                                mapped_domain_company
+                                                and mapped_domain_company.lower()
+                                                == company.lower()
+                                            ):
                                                 ml_label = "other"
-                                    
+
                                     # Apply internal recruiter override - check original ML prediction
                                     # Only override to 'other' for generic spam, preserve meaningful labels
-                                    original_ml_label = result_dict.get("ml_label") or result_dict.get("label")
+                                    original_ml_label = result_dict.get(
+                                        "ml_label"
+                                    ) or result_dict.get("label")
                                     if original_ml_label == "head_hunter":
-                                        from parser import _map_company_by_domain, HEADHUNTER_DOMAINS
-                                        if sender_domain and sender_domain not in HEADHUNTER_DOMAINS:
-                                            mapped_company = _map_company_by_domain(sender_domain)
-                                            if mapped_company and ml_label not in ("interview_invite", "rejection", "job_application", "offer"):
+                                        from parser import (
+                                            _map_company_by_domain,
+                                            HEADHUNTER_DOMAINS,
+                                        )
+
+                                        if (
+                                            sender_domain
+                                            and sender_domain not in HEADHUNTER_DOMAINS
+                                        ):
+                                            mapped_company = _map_company_by_domain(
+                                                sender_domain
+                                            )
+                                            if mapped_company and ml_label not in (
+                                                "interview_invite",
+                                                "rejection",
+                                                "job_application",
+                                                "offer",
+                                            ):
                                                 ml_label = "other"
-                                    
+
                                     # Check if sender domain is in personal domains list - override to noise
                                     from parser import PERSONAL_DOMAINS
-                                    if sender_domain and sender_domain.lower() in PERSONAL_DOMAINS:
+
+                                    if (
+                                        sender_domain
+                                        and sender_domain.lower() in PERSONAL_DOMAINS
+                                    ):
                                         ml_label = "noise"
-                                    
+
                                     # Update message
                                     msg.ml_label = ml_label
                                     msg.confidence = ml_confidence
@@ -402,7 +495,7 @@ def label_messages(request):
                                                 "first_contact": msg.timestamp,
                                                 "last_contact": msg.timestamp,
                                                 "confidence": ml_confidence,
-                                            }
+                                            },
                                         )
                                         msg.company = company_obj
                                     msg.save()
@@ -450,7 +543,9 @@ def label_messages(request):
 
             if selected_ids:
                 # Update Message.reviewed=False
-                updated_count = Message.objects.filter(pk__in=selected_ids).update(reviewed=False)
+                updated_count = Message.objects.filter(pk__in=selected_ids).update(
+                    reviewed=False
+                )
 
                 # Also clear ThreadTracking.reviewed for affected threads
                 thread_ids = (
@@ -459,7 +554,9 @@ def label_messages(request):
                     .values_list("thread_id", flat=True)
                 )
                 if thread_ids:
-                    apps_updated = ThreadTracking.objects.filter(thread_id__in=list(thread_ids)).update(reviewed=False)
+                    apps_updated = ThreadTracking.objects.filter(
+                        thread_id__in=list(thread_ids)
+                    ).update(reviewed=False)
                 else:
                     apps_updated = 0
 
@@ -469,7 +566,10 @@ def label_messages(request):
                     + (f" and {apps_updated} application(s)" if apps_updated else ""),
                 )
             else:
-                messages.warning(request, "⚠️ Please select one or more messages to clear review state")
+                messages.warning(
+                    request,
+                    "⚠️ Please select one or more messages to clear review state",
+                )
 
             return redirect(request.get_full_path())
 
@@ -491,7 +591,9 @@ def label_messages(request):
         "yes",
     )  # checkbox filter
     # Sorting params (default to date desc when not provided)
-    sort = (request.GET.get("sort") or "").strip()  # subject, company, confidence, sender_domain, date
+    sort = (
+        request.GET.get("sort") or ""
+    ).strip()  # subject, company, confidence, sender_domain, date
     order = (request.GET.get("order") or "").strip()  # asc, desc
     # Focus support
     focus_msg_id = request.GET.get("focus") or request.GET.get("focus_msg_id")
@@ -750,5 +852,4 @@ def label_messages(request):
     return render(request, "tracker/label_messages.html", ctx)
 
 
-
-__all__ = ['label_applications', 'label_messages']
+__all__ = ["label_applications", "label_messages"]

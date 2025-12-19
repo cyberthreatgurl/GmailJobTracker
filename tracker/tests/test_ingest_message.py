@@ -59,7 +59,9 @@ def test_subject_with_job_title_at_company(monkeypatch, fake_stats, fake_message
 
     monkeypatch.setattr("parser.parse_subject", parse_subject)
 
-    monkeypatch.setattr("parser.build_company_job_index", lambda *a, **k: "claroty_field_cto")
+    monkeypatch.setattr(
+        "parser.build_company_job_index", lambda *a, **k: "claroty_field_cto"
+    )
     monkeypatch.setattr("parser.get_stats", lambda: fake_stats)
 
     result = ingest_message(None, "m11")
@@ -233,7 +235,9 @@ def test_ingest_skipped(monkeypatch, fake_stats, fake_message_model):
     assert fake_stats.total_skipped == 1
 
 
-def test_thank_you_message_does_not_set_interview_date(monkeypatch, fake_stats, fake_message_model):
+def test_thank_you_message_does_not_set_interview_date(
+    monkeypatch, fake_stats, fake_message_model
+):
     """Regression test: a simple 'thank you for applying' message should not create an interview_date.
 
     This prevents false positives where automated acknowledgement/rejection emails are interpreted
@@ -283,7 +287,12 @@ def test_thank_you_message_does_not_set_interview_date(monkeypatch, fake_stats, 
     # Minimal subject parsing result to allow application creation
     monkeypatch.setattr(
         "parser.parse_subject",
-        lambda *a, **k: {"company": "ExampleCo", "job_title": "Engineer", "job_id": "", "predicted_company": "ExampleCo"},
+        lambda *a, **k: {
+            "company": "ExampleCo",
+            "job_title": "Engineer",
+            "job_id": "",
+            "predicted_company": "ExampleCo",
+        },
     )
 
     monkeypatch.setattr("parser.insert_email_text", lambda *a, **k: None)
@@ -698,7 +707,9 @@ def test_ingest_record_shape(monkeypatch, fake_stats, fake_message_model):
         },
     )
 
-    monkeypatch.setattr("parser.build_company_job_index", lambda *a, **k: "testcorp_engineer_123")
+    monkeypatch.setattr(
+        "parser.build_company_job_index", lambda *a, **k: "testcorp_engineer_123"
+    )
     monkeypatch.setattr("parser.get_stats", lambda: fake_stats)
 
     result = ingest_message(None, "m10")

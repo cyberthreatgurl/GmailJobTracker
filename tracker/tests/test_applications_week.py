@@ -5,6 +5,7 @@ from datetime import timedelta
 from tracker.models import Company, ThreadTracking, Message
 from tracker.views import build_sidebar_context
 
+
 @pytest.mark.django_db
 def test_applications_week_distinct_company_count():
     """Ensure Applications This Week counts distinct companies with a true job application in last 7 days.
@@ -156,5 +157,6 @@ def test_applications_week_distinct_company_count():
 
     ctx = build_sidebar_context()
 
-    assert ctx["applications_week"] == 6, (
-        f"Expected 6 distinct companies with applications in last 7 days, got {ctx['applications_week']}" )
+    assert (
+        ctx["applications_week"] == 6
+    ), f"Expected 6 distinct companies with applications in last 7 days, got {ctx['applications_week']}"

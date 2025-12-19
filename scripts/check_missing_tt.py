@@ -4,8 +4,9 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'dashboard.settings')
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dashboard.settings")
 import django
+
 django.setup()
 
 from tracker.models import Message, ThreadTracking
@@ -32,7 +33,7 @@ for thread_id in missing_threads:
         print(f"  confidence: {msg.confidence}")
         print(f"  timestamp: {msg.timestamp}")
         print(f"  sender: {msg.sender[:50]}")
-        
+
         # Check if ThreadTracking exists
         tt = ThreadTracking.objects.filter(thread_id=thread_id).first()
         if tt:

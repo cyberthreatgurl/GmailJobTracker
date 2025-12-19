@@ -17,18 +17,23 @@ def _classify_fixture(pattern: str):
     path = candidates[0]
     raw = path.read_text(encoding="utf-8", errors="replace")
     meta = parse_raw_message(raw)
-    result = parse_subject(
-        meta.get("subject", ""),
-        meta.get("body", ""),
-        sender=meta.get("sender", ""),
-        sender_domain=meta.get("sender_domain"),
-    ) or {}
+    result = (
+        parse_subject(
+            meta.get("subject", ""),
+            meta.get("body", ""),
+            sender=meta.get("sender", ""),
+            sender_domain=meta.get("sender_domain"),
+        )
+        or {}
+    )
     return result
 
 
 def test_amentum_reminder_is_other():
     """Amentum incomplete-application reminder should be labeled 'other'."""
-    result = _classify_fixture("Don't forget to finish your application with Amentum.eml")
+    result = _classify_fixture(
+        "Don't forget to finish your application with Amentum.eml"
+    )
     assert result.get("label") == "other", result
 
 
@@ -52,7 +57,7 @@ def test_application_confirmation_is_job_application():
 
 def test_response_requested_is_interview():
     """Response requested messages with interview scheduling context.
-    
+
     NOTE: This email contains List-Unsubscribe header BUT the content is a legitimate
     interview scheduling request from a recruiter ("please provide availability for next week").
     It's from talent.icims.com (ATS) and sent by a named recruiter at Millennium Corporation.
@@ -77,7 +82,7 @@ def test_leidos_position_closed_is_rejection():
 
 def test_anthropic_follow_up_rejection():
     """Anthropic 'Follow-Up' rejection is now correctly classified as rejection.
-    
+
     With RFC 5322 compliance, rule-based patterns can properly detect
     'decided not to move forward' in the body, correctly overriding
     the ML model's head_hunter classification from the 'Follow-Up' subject.
@@ -88,7 +93,7 @@ def test_anthropic_follow_up_rejection():
 
 def test_rand_alternative_candidate_rejection():
     """RAND rejection with 'alternative candidate' should be classified as rejection.
-    
+
     Post-interview rejection using phrase "decided to move forward with an alternative candidate"
     should be caught by rejection patterns that include 'alternative' as a variant of 'other'/'another'.
     This ensures we don't miss rejections that use slightly different terminology.
@@ -99,23 +104,25 @@ def test_rand_alternative_candidate_rejection():
 
 def test_armis_ats_body_extraction():
     """Greenhouse ATS email should extract 'Armis' from body text.
-    
+
     Subject: "Thank You For Applying!" contains no company name.
     Body: "position here at Armis" should be extracted using ATS body patterns.
     This tests the generic ATS body extraction for application confirmations.
     """
     result = _classify_fixture("Thank You For Applying!.eml")
-    assert result.get("company") == "Armis", f"Expected 'Armis' but got '{result.get('company')}'"
+    assert (
+        result.get("company") == "Armis"
+    ), f"Expected 'Armis' but got '{result.get('company')}'"
     assert result.get("label") == "job_application", result
 
 
 def test_rand_scheduling_followup_is_other():
     """RAND scheduling follow-up should be classified as 'other', not 'interview_invite'.
-    
+
     Subject: "RE: [EXT] Re: RAND: Research Lead - Securing Frontier AI" (has RE: prefix)
     Body: Contains scheduling language ("screening calls", "please let me know", "schedule")
     Context: This is a follow-up email about finalizing interview times, not the initial invite.
-    
+
     The RE: prefix indicates this is a reply in an existing thread. Scheduling language in
     replies should not trigger interview_invite classification to avoid double-counting.
     """
@@ -129,11 +136,11 @@ def test_rand_scheduling_followup_is_other():
 
 def test_trellix_rejection_extracts_company():
     """Trellix rejection email should extract 'Trellix' not 'Manager'.
-    
+
     Subject: "Trellix career opportunity update on Manager, Threat Intelligence Services"
     From: trellix@myworkday.com (ATS domain with sender alias)
     Body: Contains "interest in Manager" which could be misinterpreted
-    
+
     Should extract 'Trellix' from ATS sender alias, not 'Manager' from body text.
     Trellix is a single-word company name that should not be cleared as a person name.
     """

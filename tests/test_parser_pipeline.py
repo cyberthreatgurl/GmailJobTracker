@@ -3,6 +3,7 @@ Additional integration tests targeting critical parser.py functions.
 
 Focus on rule_label function and edge cases to increase coverage.
 """
+
 import pytest
 from parser import rule_label
 
@@ -17,7 +18,7 @@ class TestRuleLabelFunction:
         Thank you for your interest in our position.
         Unfortunately, we have decided to move forward with other candidates.
         """
-        
+
         result = rule_label(subject, body)
         # Should detect rejection
         assert result == "rejection" or result is None
@@ -29,7 +30,7 @@ class TestRuleLabelFunction:
         We would like to schedule a time to speak with you about the position.
         Please let us know your availability for an interview.
         """
-        
+
         result = rule_label(subject, body)
         # May detect interview or return None if no strong match
         assert result in ["interview_invite", None]
@@ -41,7 +42,7 @@ class TestRuleLabelFunction:
         List-Unsubscribe: <mailto:unsub@example.com>
         This is a newsletter with the latest job postings.
         """
-        
+
         result = rule_label(subject, body)
         # Should detect noise due to List-Unsubscribe
         assert result == "noise" or result is None
@@ -53,7 +54,7 @@ class TestRuleLabelFunction:
         Thank you for applying to the Software Engineer position.
         We have received your application and will review it shortly.
         """
-        
+
         result = rule_label(subject, body)
         # Should detect application confirmation
         assert result == "job_application" or result is None
@@ -66,9 +67,7 @@ class TestRuleLabelFunction:
     def test_rule_label_checks_sender_domain(self):
         """Sender domain should influence classification."""
         result = rule_label(
-            "Job Alert",
-            "New jobs matching your criteria",
-            sender_domain="indeed.com"
+            "Job Alert", "New jobs matching your criteria", sender_domain="indeed.com"
         )
         # May classify differently based on sender domain
         assert result is None or isinstance(result, str)
@@ -81,7 +80,7 @@ class TestRuleLabelEdgeCases:
         """Very long body text should be handled efficiently."""
         subject = "Test"
         body = "A" * 100000  # 100k characters
-        
+
         result = rule_label(subject, body)
         # Should not crash or timeout
         assert result is None or isinstance(result, str)
@@ -95,7 +94,7 @@ class TestRuleLabelEdgeCases:
         Cordialement,
         L'équipe de recrutement
         """
-        
+
         result = rule_label(subject, body)
         assert result is None or isinstance(result, str)
 
@@ -109,7 +108,7 @@ class TestRuleLabelEdgeCases:
         </body>
         </html>
         """
-        
+
         result = rule_label(subject, body)
         # Should still detect rejection despite HTML
         assert result == "rejection" or result is None
@@ -118,7 +117,7 @@ class TestRuleLabelEdgeCases:
         """Pattern matching should be case-insensitive."""
         subject = "INTERVIEW REQUEST"
         body = "WE WOULD LIKE TO SCHEDULE AN INTERVIEW WITH YOU."
-        
+
         result = rule_label(subject, body)
         # Should still detect patterns in uppercase
         assert result in ["interview_invite", None]
@@ -132,7 +131,7 @@ class TestCompanyResolution:
         result = rule_label(
             "Application Status",
             "Your application is being reviewed.",
-            sender_domain="greenhouse.io"
+            sender_domain="greenhouse.io",
         )
         assert result is None or isinstance(result, str)
 
@@ -141,7 +140,7 @@ class TestCompanyResolution:
         result = rule_label(
             "New Job Matches",
             "5 new jobs match your profile.",
-            sender_domain="indeed.com"
+            sender_domain="indeed.com",
         )
         # May be classified as noise or other
         assert result is None or isinstance(result, str)
@@ -157,7 +156,7 @@ class TestRuleLabelPatternCoverage:
         Congratulations! We are pleased to extend an offer of employment.
         Your starting salary will be $120,000 per year.
         """
-        
+
         result = rule_label(subject, body)
         # May detect offer or other
         assert result is None or isinstance(result, str)
@@ -169,7 +168,7 @@ class TestRuleLabelPatternCoverage:
         Your interview has been scheduled for January 15, 2025 at 2:00 PM.
         We look forward to speaking with you.
         """
-        
+
         result = rule_label(subject, body)
         assert result is None or isinstance(result, str)
 
@@ -180,7 +179,7 @@ class TestRuleLabelPatternCoverage:
         This is an automated response. Your message has been received.
         We will respond within 2 business days.
         """
-        
+
         result = rule_label(subject, body)
         assert result is None or isinstance(result, str)
 
@@ -192,7 +191,7 @@ class TestRuleLabelPatternCoverage:
         Unfortunately, we decided to move forward with other candidates.
         However, we encourage you to apply for other positions.
         """
-        
+
         result = rule_label(subject, body)
         # Rejection should take precedence
         assert result in ["rejection", None]
@@ -205,7 +204,7 @@ class TestRuleLabelPatternCoverage:
         From: HR <hr@company.com>
         Thank you for your application.
         """
-        
+
         result = rule_label(subject, body)
         assert result is None or isinstance(result, str)
 
@@ -216,7 +215,7 @@ class TestRuleLabelPatternCoverage:
         Thank you for your response. We can schedule the interview
         for next Tuesday at 10 AM.
         """
-        
+
         result = rule_label(subject, body)
         assert result is None or isinstance(result, str)
 
@@ -227,7 +226,7 @@ class TestRuleLabelPatternCoverage:
         Just wanted to follow up on my previous application.
         Have you had a chance to review my resume?
         """
-        
+
         result = rule_label(subject, body)
         assert result is None or isinstance(result, str)
 
@@ -240,7 +239,7 @@ class TestRuleLabelPatternCoverage:
         DTSTART:20250115T140000Z
         END:VCALENDAR
         """
-        
+
         result = rule_label(subject, body)
         # May detect interview
         assert result is None or isinstance(result, str)
@@ -253,7 +252,7 @@ class TestRuleLabelPatternCoverage:
         a great fit for this exciting opportunity at our client.
         Let me know if you're interested!
         """
-        
+
         result = rule_label(subject, body)
         # May be classified as head_hunter or noise
         assert result is None or isinstance(result, str)
@@ -265,7 +264,7 @@ class TestRuleLabelPatternCoverage:
         The position you applied for has been closed.
         We have filled the role with another candidate.
         """
-        
+
         result = rule_label(subject, body)
         # Should likely be rejection
         assert result in ["rejection", None]

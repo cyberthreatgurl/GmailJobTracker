@@ -61,4 +61,3 @@ print("   - Forwarded/reply chains incorrectly parsed as separate applications?"
 print("   - Headhunter/recruiter emails about Guidehouse positions?")
 print("   - LinkedIn/job board notifications about Guidehouse?")
 print("\n3. Check the senders and subjects to identify the source")
-

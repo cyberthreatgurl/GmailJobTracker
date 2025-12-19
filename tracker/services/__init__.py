@@ -10,4 +10,4 @@ from .company_service import CompanyService
 from .message_service import MessageService
 from .stats_service import StatsService
 
-__all__ = ['MessageService', 'CompanyService', 'StatsService']
+__all__ = ["MessageService", "CompanyService", "StatsService"]

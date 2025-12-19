@@ -18,7 +18,9 @@ class Command(BaseCommand):
             action="store_true",
             help="Show what would be deleted without applying changes",
         )
-        parser.add_argument("--verbose", action="store_true", help="Print detailed listing and triggers")
+        parser.add_argument(
+            "--verbose", action="store_true", help="Print detailed listing and triggers"
+        )
         parser.add_argument(
             "--company-id",
             type=int,
@@ -40,9 +42,15 @@ class Command(BaseCommand):
                 with open(companies_path, "r", encoding="utf-8") as f:
                     data = json.load(f)
                     headhunter_domains = [
-                        d.strip().lower() for d in data.get("headhunter_domains", []) if d and isinstance(d, str)
+                        d.strip().lower()
+                        for d in data.get("headhunter_domains", [])
+                        if d and isinstance(d, str)
                     ]
-                    ats_domains = [d.strip().lower() for d in data.get("ats_domains", []) if d and isinstance(d, str)]
+                    ats_domains = [
+                        d.strip().lower()
+                        for d in data.get("ats_domains", [])
+                        if d and isinstance(d, str)
+                    ]
                     # Map of domain -> canonical company name
                     raw_map = data.get("domain_to_company", {}) or {}
                     # Normalize keys to lowercase
@@ -52,37 +60,54 @@ class Command(BaseCommand):
                         if isinstance(k, str) and isinstance(v, str)
                     }
             except Exception as e:
-                self.stdout.write(self.style.WARNING(f"Warning: could not read companies.json: {e}"))
+                self.stdout.write(
+                    self.style.WARNING(f"Warning: could not read companies.json: {e}")
+                )
 
         # Identify headhunter companies strictly by their own domain or name
         hh_company_q = Q(name__iexact="HeadHunter")
         for d in headhunter_domains:
             hh_company_q |= Q(domain__iendswith=d)
-        hh_company_ids = list(Company.objects.filter(hh_company_q).values_list("id", flat=True))
+        hh_company_ids = list(
+            Company.objects.filter(hh_company_q).values_list("id", flat=True)
+        )
 
         # Detect headhunter-origin threads via Message: same thread_id and HH sender or HH label
         msg_hh_q = Q(ml_label="head_hunter")
         for d in headhunter_domains:
             msg_hh_q |= Q(sender__icontains=f"@{d}")
-        hh_thread_exists = Exists(Message.objects.filter(thread_id=OuterRef("thread_id")).filter(msg_hh_q))
+        hh_thread_exists = Exists(
+            Message.objects.filter(thread_id=OuterRef("thread_id")).filter(msg_hh_q)
+        )
 
         # Detect Glassdoor noreply threads
         glassdoor_thread_exists = Exists(
-            Message.objects.filter(thread_id=OuterRef("thread_id"), sender__icontains="noreply@glassdoor.com")
+            Message.objects.filter(
+                thread_id=OuterRef("thread_id"),
+                sender__icontains="noreply@glassdoor.com",
+            )
         )
 
         # Base queryset
         apps_qs = (
             ThreadTracking.objects.select_related("company")
-            .annotate(hh_thread=hh_thread_exists, glassdoor_thread=glassdoor_thread_exists)
-            .filter(Q(company_id__in=hh_company_ids) | Q(hh_thread=True) | Q(glassdoor_thread=True))
+            .annotate(
+                hh_thread=hh_thread_exists, glassdoor_thread=glassdoor_thread_exists
+            )
+            .filter(
+                Q(company_id__in=hh_company_ids)
+                | Q(hh_thread=True)
+                | Q(glassdoor_thread=True)
+            )
         )
         if company_id_filter:
             apps_qs = apps_qs.filter(company_id=company_id_filter)
 
         # Env gates for user-sender exclusion
         user_email = (os.environ.get("USER_EMAIL_ADDRESS") or "").strip().lower()
-        exclude_user_hh = os.environ.get("HEADHUNTER_EXCLUDE_USER_SENDER", "false").strip().lower() in {
+        exclude_user_hh = os.environ.get(
+            "HEADHUNTER_EXCLUDE_USER_SENDER", "false"
+        ).strip().lower() in {
             "1",
             "true",
             "yes",
@@ -135,13 +160,15 @@ class Command(BaseCommand):
             tqs = Message.objects.filter(thread_id=app.thread_id).filter(msg_hh_q)
             if exclude_user_hh and user_email:
                 tqs = tqs.exclude(sender__icontains=user_email)
-            hh_triggers = list(tqs.values("id", "msg_id", "sender", "ml_label", "timestamp"))
+            hh_triggers = list(
+                tqs.values("id", "msg_id", "sender", "ml_label", "timestamp")
+            )
 
             # Collect Glassdoor triggers
             glassdoor_triggers = list(
-                Message.objects.filter(thread_id=app.thread_id, sender__icontains="noreply@glassdoor.com").values(
-                    "id", "msg_id", "sender", "ml_label", "timestamp"
-                )
+                Message.objects.filter(
+                    thread_id=app.thread_id, sender__icontains="noreply@glassdoor.com"
+                ).values("id", "msg_id", "sender", "ml_label", "timestamp")
             )
 
             # Combine and return all triggers
@@ -163,8 +190,12 @@ class Command(BaseCommand):
             """
             company = getattr(app, "company", None)
             app_company_name = (company.name or "").strip().lower() if company else ""
-            app_company_domain = (company.domain or "").lower().strip() if company else ""
-            if app_company_domain and any(app_company_domain.endswith(d) for d in headhunter_domains):
+            app_company_domain = (
+                (company.domain or "").lower().strip() if company else ""
+            )
+            if app_company_domain and any(
+                app_company_domain.endswith(d) for d in headhunter_domains
+            ):
                 return False
             if not trig_msgs:
                 return False
@@ -214,7 +245,11 @@ class Command(BaseCommand):
                 reasons.append("company is headhunter (name/domain match)")
 
             # Check for Glassdoor triggers
-            glassdoor_count = sum(1 for m in trig_msgs if "noreply@glassdoor.com" in (m.get("sender") or "").lower())
+            glassdoor_count = sum(
+                1
+                for m in trig_msgs
+                if "noreply@glassdoor.com" in (m.get("sender") or "").lower()
+            )
             if glassdoor_count:
                 reasons.append(f"{glassdoor_count} Glassdoor noreply message(s)")
 
@@ -242,24 +277,34 @@ class Command(BaseCommand):
                         app.company.name if app.company else "<none>",
                     )
                     summary_counter[key] = summary_counter.get(key, 0) + 1
-                for (cid, cname), n in sorted(summary_counter.items(), key=lambda x: (-x[1], x[0][1])):
+                for (cid, cname), n in sorted(
+                    summary_counter.items(), key=lambda x: (-x[1], x[0][1])
+                ):
                     self.stdout.write(f"  {n} × company '{cname}' (id={cid})")
 
-                self.stdout.write(self.style.NOTICE("\nListing matching Application rows (dry-run):"))
+                self.stdout.write(
+                    self.style.NOTICE("\nListing matching Application rows (dry-run):")
+                )
                 for app, trig in apps_to_delete:
                     self.stdout.write(
                         f"  id={app.id} thread={app.thread_id} company_id={app.company_id} company='{app.company.name}' sent_date={app.sent_date}"
                     )
                     print_triggers_for_app(app, trig)
                 if apps_excluded_safe:
-                    self.stdout.write(self.style.WARNING("\nExcluded (safe triggers: same-company/corporate/ATS):"))
+                    self.stdout.write(
+                        self.style.WARNING(
+                            "\nExcluded (safe triggers: same-company/corporate/ATS):"
+                        )
+                    )
                     for app, _ in apps_excluded_safe[:20]:
                         self.stdout.write(
                             f"  [excluded] id={app.id} thread={app.thread_id} company='{app.company.name}'"
                         )
 
             self.stdout.write(
-                self.style.NOTICE(f"Dry run: {to_delete_count} headhunter application(s) would be deleted.")
+                self.style.NOTICE(
+                    f"Dry run: {to_delete_count} headhunter application(s) would be deleted."
+                )
             )
             return
 
@@ -276,10 +321,14 @@ class Command(BaseCommand):
                         app.company.name if app.company else "<none>",
                     )
                     summary_counter[key] = summary_counter.get(key, 0) + 1
-                for (cid, cname), n in sorted(summary_counter.items(), key=lambda x: (-x[1], x[0][1])):
+                for (cid, cname), n in sorted(
+                    summary_counter.items(), key=lambda x: (-x[1], x[0][1])
+                ):
                     self.stdout.write(f"  {n} × company '{cname}' (id={cid})")
 
-                self.stdout.write(self.style.WARNING("\nDeleting the following Application rows:"))
+                self.stdout.write(
+                    self.style.WARNING("\nDeleting the following Application rows:")
+                )
                 for app, trig in apps_to_delete:
                     self.stdout.write(
                         f"  id={app.id} thread={app.thread_id} company_id={app.company_id} company='{app.company.name}' sent_date={app.sent_date}"
@@ -290,4 +339,6 @@ class Command(BaseCommand):
             deleted_info = ThreadTracking.objects.filter(id__in=to_delete_ids).delete()
             deleted = deleted_info[0]
 
-        self.stdout.write(self.style.SUCCESS(f"Deleted {deleted} headhunter application(s)."))
+        self.stdout.write(
+            self.style.SUCCESS(f"Deleted {deleted} headhunter application(s).")
+        )

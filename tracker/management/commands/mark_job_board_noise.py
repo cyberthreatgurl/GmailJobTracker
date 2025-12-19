@@ -24,15 +24,21 @@ class Command(BaseCommand):
             self.stdout.write(self.style.ERROR("json/companies.json not found"))
             return
         data = json.loads(p.read_text(encoding="utf-8"))
-        job_board_domains = [d.lower() for d in data.get("job_boards", []) if isinstance(d, str) and d]
+        job_board_domains = [
+            d.lower() for d in data.get("job_boards", []) if isinstance(d, str) and d
+        ]
         if not job_board_domains:
-            self.stdout.write(self.style.WARNING("No job_boards configured in companies.json"))
+            self.stdout.write(
+                self.style.WARNING("No job_boards configured in companies.json")
+            )
             return
 
         self.stdout.write(f"Found {len(job_board_domains)} job board domains to check")
 
         # Candidate messages: those not already labeled 'noise'
-        qs = Message.objects.exclude(ml_label="noise").only("id", "sender", "thread_id", "ml_label")
+        qs = Message.objects.exclude(ml_label="noise").only(
+            "id", "sender", "thread_id", "ml_label"
+        )
         to_change = []
         for m in qs:
             addr = parseaddr(m.sender or "")[1] or ""
@@ -51,8 +57,14 @@ class Command(BaseCommand):
         if not apply_changes:
             # Dry-run: list a few examples
             for m, dom in to_change[:20]:
-                self.stdout.write(f"Would mark Message id={m.id} sender={m.sender} domain={dom} (current label={m.ml_label})")
-            self.stdout.write(self.style.WARNING("Dry-run: no changes applied. Re-run with --apply to modify database."))
+                self.stdout.write(
+                    f"Would mark Message id={m.id} sender={m.sender} domain={dom} (current label={m.ml_label})"
+                )
+            self.stdout.write(
+                self.style.WARNING(
+                    "Dry-run: no changes applied. Re-run with --apply to modify database."
+                )
+            )
             return
 
         updated_msgs = 0
@@ -63,7 +75,9 @@ class Command(BaseCommand):
             try:
                 # Use central helper to save and propagate label change
                 # This is an administrative bulk operation — allow overwriting reviewed messages
-                label_message_and_propagate(m, "noise", confidence=0.99, overwrite_reviewed=True)
+                label_message_and_propagate(
+                    m, "noise", confidence=0.99, overwrite_reviewed=True
+                )
                 updated_msgs += 1
                 # propagate helper will update existing ThreadTracking; count if present
                 if m.thread_id:
@@ -71,6 +85,12 @@ class Command(BaseCommand):
                     if tt and tt.ml_label == "noise":
                         updated_apps += 1
             except Exception as e:
-                self.stdout.write(self.style.ERROR(f"Failed to update Message id={m.id}: {e}"))
+                self.stdout.write(
+                    self.style.ERROR(f"Failed to update Message id={m.id}: {e}")
+                )
 
-        self.stdout.write(self.style.SUCCESS(f"Updated {updated_msgs} Message(s) and {updated_apps} ThreadTracking(s)"))
+        self.stdout.write(
+            self.style.SUCCESS(
+                f"Updated {updated_msgs} Message(s) and {updated_apps} ThreadTracking(s)"
+            )
+        )

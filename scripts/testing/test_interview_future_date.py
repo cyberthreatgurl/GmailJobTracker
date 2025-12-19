@@ -1,4 +1,5 @@
 """Test that interview emails get future interview_date values."""
+
 import os
 import sys
 import django
@@ -11,15 +12,16 @@ django.setup()
 
 # Import after Django setup
 import parser as parser_module
+
 extract_status_dates = parser_module.extract_status_dates
 
 
 def test_interview_date_future():
     """Test that interview invites get future dates (7 days ahead)."""
-    
+
     # Simulate email received on Nov 8, 2025
     received_date = datetime(2025, 11, 8, 10, 0, 0)
-    
+
     # Body with interview pattern
     body = """
     Hi,
@@ -31,17 +33,17 @@ def test_interview_date_future():
     Best regards,
     Hiring Team
     """
-    
+
     dates = extract_status_dates(body, received_date)
     interview_date = dates["interview_date"]
     expected_date = (received_date + timedelta(days=7)).date()
-    
+
     print(f"Received date: {received_date.date()}")
     print(f"Interview date: {interview_date}")
     print(f"Expected date: {expected_date}")
     print(f"Is future date? {interview_date > received_date.date()}")
     print(f"Matches expected (7 days ahead)? {interview_date == expected_date}")
-    
+
     if interview_date == expected_date and interview_date > received_date.date():
         print("\n✅ SUCCESS: Interview date correctly set to 7 days in future!")
     else:

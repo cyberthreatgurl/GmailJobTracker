@@ -7,6 +7,7 @@ By default the command runs as a dry-run and prints what it would import. Pass
 `--apply` to persist entries into the DB. When applying, a timestamped backup
 of the source file is created automatically.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -37,10 +38,31 @@ class Command(BaseCommand):
     help = "Import NDJSON audit lines into AuditEvent (dry-run by default)."
 
     def add_arguments(self, parser: argparse.ArgumentParser):
-        parser.add_argument("--file", dest="file", default="logs/clear_reviewed_audit.log", help="Path to NDJSON audit file")
-        parser.add_argument("--apply", dest="apply", action="store_true", help="Actually persist imports to DB")
-        parser.add_argument("--limit", dest="limit", type=int, default=0, help="Limit number of lines processed (0 == all)")
-        parser.add_argument("--skip-existing", dest="skip_existing", action="store_true", help="Skip entries that appear to already exist")
+        parser.add_argument(
+            "--file",
+            dest="file",
+            default="logs/clear_reviewed_audit.log",
+            help="Path to NDJSON audit file",
+        )
+        parser.add_argument(
+            "--apply",
+            dest="apply",
+            action="store_true",
+            help="Actually persist imports to DB",
+        )
+        parser.add_argument(
+            "--limit",
+            dest="limit",
+            type=int,
+            default=0,
+            help="Limit number of lines processed (0 == all)",
+        )
+        parser.add_argument(
+            "--skip-existing",
+            dest="skip_existing",
+            action="store_true",
+            help="Skip entries that appear to already exist",
+        )
 
     def handle(self, *args, **options):
         path = options["file"]
@@ -70,7 +92,9 @@ class Command(BaseCommand):
                     continue
 
                 # Map known fields
-                created_at = _parse_iso(obj.get("created_at") or obj.get("timestamp") or obj.get("ts"))
+                created_at = _parse_iso(
+                    obj.get("created_at") or obj.get("timestamp") or obj.get("ts")
+                )
                 user = obj.get("user") or obj.get("username") or obj.get("actor")
                 action = obj.get("action") or obj.get("type") or "clear_reviewed"
                 source = obj.get("source") or obj.get("origin")
@@ -121,7 +145,9 @@ class Command(BaseCommand):
             # Dry run: list a summary and exit
             self.stdout.write("Dry-run mode (no DB writes). Use --apply to persist.")
             for i, cand in enumerate(to_create[:50], start=1):
-                self.stdout.write(f"{i}: action={cand['action']} user={cand.get('user')} msg_id={cand.get('msg_id')} db_id={cand.get('db_id')}")
+                self.stdout.write(
+                    f"{i}: action={cand['action']} user={cand.get('user')} msg_id={cand.get('msg_id')} db_id={cand.get('db_id')}"
+                )
             if len(to_create) > 50:
                 self.stdout.write(f"... and {len(to_create)-50} more entries (trimmed)")
             return
@@ -145,13 +171,23 @@ class Command(BaseCommand):
                     existing_q = None
                     if cand.get("pid") is not None:
                         existing_q = AuditEvent.objects.filter(pid=cand["pid"])
-                    elif cand.get("created_at") is not None and cand.get("action") and cand.get("msg_id"):
-                        existing_q = AuditEvent.objects.filter(created_at=cand["created_at"], action=cand["action"], msg_id=cand["msg_id"])
+                    elif (
+                        cand.get("created_at") is not None
+                        and cand.get("action")
+                        and cand.get("msg_id")
+                    ):
+                        existing_q = AuditEvent.objects.filter(
+                            created_at=cand["created_at"],
+                            action=cand["action"],
+                            msg_id=cand["msg_id"],
+                        )
 
                     if existing_q is not None and existing_q.exists():
                         skipped += 1
                         if not skip_existing:
-                            self.stdout.write(f"Skipping existing (dedupe) action={cand['action']} msg_id={cand.get('msg_id')} pid={cand.get('pid')}")
+                            self.stdout.write(
+                                f"Skipping existing (dedupe) action={cand['action']} msg_id={cand.get('msg_id')} pid={cand.get('pid')}"
+                            )
                         continue
 
                     ae = AuditEvent(
@@ -176,6 +212,10 @@ class Command(BaseCommand):
                     created += 1
                 except Exception as e:
                     errors += 1
-                    self.stderr.write(f"Failed to create AuditEvent for {cand.get('msg_id') or cand.get('db_id')}: {e}")
+                    self.stderr.write(
+                        f"Failed to create AuditEvent for {cand.get('msg_id') or cand.get('db_id')}: {e}"
+                    )
 
-        self.stdout.write(f"Import complete: created={created} skipped={skipped} errors={errors}")
+        self.stdout.write(
+            f"Import complete: created={created} skipped={skipped} errors={errors}"
+        )

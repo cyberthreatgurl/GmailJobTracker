@@ -4,6 +4,7 @@ import shutil
 import pytest
 from django.urls import reverse
 
+
 @pytest.mark.django_db
 def test_quick_add_company_updates_json(client, admin_user):
     """Posting to label_messages with update_company_registry should modify companies.json (append entries)."""
@@ -24,7 +25,7 @@ def test_quick_add_company_updates_json(client, admin_user):
             "company_name": "TestCorp",
             "company_domain": "testcorp.com",
             "ats_domain": "lever.co",
-            "careers_url": "https://careers.testcorp.com/jobs"
+            "careers_url": "https://careers.testcorp.com/jobs",
         }
         resp = client.post(url, payload, follow=True)
         assert resp.status_code == 200

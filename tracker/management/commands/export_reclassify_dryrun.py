@@ -50,25 +50,31 @@ class Command(BaseCommand):
             qs = qs[:limit]
 
         total = qs.count()
-        self.stdout.write(f"[DRY RUN] Exporting predictions for {total} messages to {out_path}...")
+        self.stdout.write(
+            f"[DRY RUN] Exporting predictions for {total} messages to {out_path}..."
+        )
 
-        with open(out_path, "w", encoding="utf-8", newline='') as csvfile:
+        with open(out_path, "w", encoding="utf-8", newline="") as csvfile:
             writer = csv.writer(csvfile)
-            writer.writerow([
-                "message_id",
-                "thread_id",
-                "timestamp",
-                "reviewed",
-                "subject",
-                "old_label",
-                "old_conf",
-                "new_label",
-                "new_conf",
-                "method",
-            ])
+            writer.writerow(
+                [
+                    "message_id",
+                    "thread_id",
+                    "timestamp",
+                    "reviewed",
+                    "subject",
+                    "old_label",
+                    "old_conf",
+                    "new_label",
+                    "new_conf",
+                    "method",
+                ]
+            )
 
             for i, msg in enumerate(qs.iterator(), 1):
-                result = predict_subject_type(msg.subject, msg.body or "", sender=msg.sender)
+                result = predict_subject_type(
+                    msg.subject, msg.body or "", sender=msg.sender
+                )
                 new_label = result.get("label")
                 new_conf = result.get("confidence", 0.0)
                 method = result.get("method", "unknown")
@@ -92,22 +98,28 @@ class Command(BaseCommand):
                 # timestamp (ISO format)
                 ts_val = ""
                 try:
-                    ts_val = msg.timestamp.isoformat().strip() if getattr(msg, "timestamp", None) is not None else ""
+                    ts_val = (
+                        msg.timestamp.isoformat().strip()
+                        if getattr(msg, "timestamp", None) is not None
+                        else ""
+                    )
                 except Exception:
                     ts_val = str(getattr(msg, "timestamp", "")).strip()
 
-                writer.writerow([
-                    msg.id,
-                    thread_id_val,
-                    ts_val,
-                    str(bool(msg.reviewed)),
-                    subject_val,
-                    old_label_val,
-                    old_conf_val,
-                    new_label_val,
-                    new_conf_val,
-                    method_val,
-                ])
+                writer.writerow(
+                    [
+                        msg.id,
+                        thread_id_val,
+                        ts_val,
+                        str(bool(msg.reviewed)),
+                        subject_val,
+                        old_label_val,
+                        old_conf_val,
+                        new_label_val,
+                        new_conf_val,
+                        method_val,
+                    ]
+                )
 
                 if i % 200 == 0:
                     self.stdout.write(f"  Progress: {i}/{total}...")

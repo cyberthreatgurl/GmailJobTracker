@@ -35,7 +35,7 @@ jobs:
           pip install -r requirements-dev.txt
 
       - name: Run Black (code formatter check)
-        run: black --check .
+        run: black --check . --exclude '/(\.git|\.venv|venv|ENV|env|node_modules|migrations|staticfiles)/'
         continue-on-error: true
 
       - name: Run Flake8 (linter)

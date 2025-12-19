@@ -17,9 +17,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
-- `GMAIL_JOBHUNT_LABEL_ID` environment variable (no longer needed)
+- `GMAIL_JOBHUNT_LABEL_ID` environment variable and all associated code/documentation
 - `MAIL_ROOT_FILTER_LABEL` environment variable (no longer needed)
 - `get_jobhunt_label_ids()` function from ingest_gmail.py
+- `scripts/get_label_id.py` helper script (no longer needed)
+- All GMAIL_JOBHUNT_LABEL_ID setup instructions from documentation
 
 ### Fixed
 

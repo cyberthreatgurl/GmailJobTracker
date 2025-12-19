@@ -21,7 +21,6 @@ This document tracks the changes made to prepare GmailJobTracker for GitHub dist
 - **File:** `.env.example`
 - **Created:** Template with all environment variables
 - **Includes:**
-  - Required: `GMAIL_JOBHUNT_LABEL_ID`
   - Optional: `DJANGO_SECRET_KEY`, `DEBUG`, `ALLOWED_HOSTS`
   - ML configuration: `AUTO_REVIEW_CONFIDENCE`, `ML_CONFIDENCE_THRESHOLD`
   - Ingestion settings: `DEFAULT_DAYS_BACK`, `MAX_MESSAGES_PER_BATCH`

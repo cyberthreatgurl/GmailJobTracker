@@ -117,7 +117,7 @@ Configure in GitHub repository settings (Settings → Secrets and variables → 
 
 Set in `.env` file (not in repo, used locally):
 - See `.env.example` for all variables
-- Required: `GMAIL_JOBHUNT_LABEL_ID`, `DJANGO_SECRET_KEY`
+- Required: `DJANGO_SECRET_KEY`
 
 ## 📦 Docker Registry
 

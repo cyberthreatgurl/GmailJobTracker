@@ -20,7 +20,6 @@ class Command(RunserverCommand):
         
         # Define the env vars to display (in order)
         env_vars = [
-            ('GMAIL_ROOT_FILTER_LABEL', 'Gmail Root Filter Label'),
             ('USER_EMAIL_ADDRESS', 'User Email Address'),
             ('DEBUG', 'Debug Mode'),
             ('ALLOWED_HOSTS', 'Allowed Hosts'),

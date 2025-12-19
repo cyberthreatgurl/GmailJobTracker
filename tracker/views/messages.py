@@ -396,7 +396,14 @@ def label_messages(request):
                                     msg.ml_label = ml_label
                                     msg.confidence = ml_confidence
                                     if company:
-                                        company_obj, _ = Company.objects.get_or_create(name=company)
+                                        company_obj, _ = Company.objects.get_or_create(
+                                            name=company,
+                                            defaults={
+                                                "first_contact": msg.timestamp,
+                                                "last_contact": msg.timestamp,
+                                                "confidence": ml_confidence,
+                                            }
+                                        )
                                         msg.company = company_obj
                                     msg.save()
                                     result = "skipped"  # Mark as processed

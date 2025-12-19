@@ -110,13 +110,6 @@ def display_next_steps():
     if not env_path.exists():
         print("\n   2. Configure environment variables:")
         print("      - Edit .env file")
-        print("      - Add GMAIL_JOBHUNT_LABEL_ID (see INSTALL.md)")
-    else:
-        with open(env_path, encoding="utf-8") as f:
-            content = f.read()
-            if "GMAIL_JOBHUNT_LABEL_ID=" in content and "Label_" not in content:
-                print("\n   2. Configure Gmail label:")
-                print("      - Edit .env and set GMAIL_JOBHUNT_LABEL_ID")
 
     print("\n   3. Run environment check:")
     print("      python check_env.py")

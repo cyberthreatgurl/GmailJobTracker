@@ -64,7 +64,6 @@ python validate_deployment.py
 
 # 2. Configure environment (if not done)
 Copy-Item .env.example .env
-# Edit .env and set GMAIL_JOBHUNT_LABEL_ID
 
 # 3. Install and start
 .\docker.ps1 install
@@ -81,7 +80,6 @@ python validate_deployment.py
 
 # 2. Configure environment (if not done)
 cp .env.example .env
-# Edit .env and set GMAIL_JOBHUNT_LABEL_ID
 
 # 3. Install and start
 make install
@@ -270,7 +268,7 @@ docker-compose restart web
 Run through this checklist to ensure everything is working:
 
 - [ ] `python validate_deployment.py` passes
-- [ ] `.env` file configured with `GMAIL_JOBHUNT_LABEL_ID`
+- [ ] `.env` file configured
 - [ ] `json/credentials.json` exists
 - [ ] Docker and Docker Compose installed
 - [ ] Can run `make install` or `.\docker.ps1 install`

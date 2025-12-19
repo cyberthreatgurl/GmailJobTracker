@@ -7,9 +7,9 @@ A local-only Django application that transforms your Gmail into an intelligent j
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![Django 5.2](https://img.shields.io/badge/django-5.2-green.svg)](https://www.djangoproject.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](markdown/CONTRIBUTING.md)
 
-**🚀 New Users:** Get started in 15 minutes → **[GETTING_STARTED.md](GETTING_STARTED.md)**
+**🚀 New Users:** Get started in 15 minutes → **[GETTING_STARTED.md](markdown/GETTING_STARTED.md)**
 
 ---
 
@@ -50,7 +50,7 @@ A local-only Django application that transforms your Gmail into an intelligent j
 
 ### New Users: Start Here!
 
-**📘 Complete Setup Guide:** See **[GETTING_STARTED.md](GETTING_STARTED.md)** for step-by-step instructions (15-20 minutes)
+**📘 Complete Setup Guide:** See **[GETTING_STARTED.md](markdown/GETTING_STARTED.md)** for step-by-step instructions (15-20 minutes)
 
 ### Experienced Users: Express Install
 
@@ -95,7 +95,7 @@ python manage.py runserver
 ### Documentation
 
 - **📘 [GETTING_STARTED.md](markdown/GETTING_STARTED.md)** - Complete beginner's guide
-- **📖 [INSTALL.MD](markkown/INSTALL.md)** - Advanced installation options
+- **📖 [INSTALL.md](markdown/INSTALL.md)** - Advanced installation options
 - **🐳 [DOCKER_README.md](markdown/DOCKER_README.md)** - Docker deployment guide
 - **🔧 [CONTRIBUTING.md](markdown/CONTRIBUTING.md)** - Development guidelines
 
@@ -249,8 +249,8 @@ Manually assign companies to messages where resolution failed.
 
 ## 📚 Documentation
 
-- **[INSTALL.md](INSTALL.md)** - Detailed setup instructions
-- **[CONTRIBUTING.md](CONTRIBUTING.md)** - Contribution guidelines
+- **[INSTALL.md](markdown/INSTALL.md)** - Detailed setup instructions
+- **[CONTRIBUTING.md](markdown/CONTRIBUTING.md)** - Contribution guidelines
 - **[markdown/EXTRACTION_LOGIC.md](markdown/EXTRACTION_LOGIC.md)** - Company/job parsing details
 - **[markdown/LABEL_MESSAGES_BULK.md](markdown/LABEL_MESSAGES_BULK.md)** - Bulk labeling guide
 - **[markdown/SECURITY.md](markdown/SECURITY.md)** - Security practices
@@ -414,13 +414,13 @@ GmailJobTracker/
 4. Run tests: `pytest`
 5. Submit PR
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
+See [CONTRIBUTING.md](markdown/CONTRIBUTING.md) for detailed guidelines.
 
 ---
 
 ## 🤝 Contributing
 
-Contributions welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for:
+Contributions welcome! See [CONTRIBUTING.md](markdown/CONTRIBUTING.md) for:
 
 - Code style guidelines
 - Testing requirements

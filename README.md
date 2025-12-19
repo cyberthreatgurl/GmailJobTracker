@@ -74,16 +74,19 @@ cp .env.example .env
 # 5. Setup Gmail API (see GETTING_STARTED.md section 2)
 # Place credentials.json in json/ directory
 
-# 6. Initialize database
+# 6. Create User Account
+python manage.py createsuperuser
+
+# 7. Initialize database
 python manage.py migrate
 
-# 7. Authenticate with Gmail
+# 8. Authenticate with Gmail
 python gmail_auth.py
 
-# 8. Ingest recent emails
+# 9. Ingest recent emails
 python manage.py ingest_gmail --days-back 7
 
-# 9. Start server
+# 10. Start server
 python manage.py runserver
 ```
 
@@ -91,10 +94,10 @@ python manage.py runserver
 
 ### Documentation
 
-- **📘 [GETTING_STARTED.md](GETTING_STARTED.md)** - Complete beginner's guide
-- **📖 [INSTALL.MD](INSTALL.md)** - Advanced installation options
-- **🐳 [DOCKER_README.md](DOCKER_README.md)** - Docker deployment guide
-- **🔧 [CONTRIBUTING.md](CONTRIBUTING.md)** - Development guidelines
+- **📘 [GETTING_STARTED.md](markdown/GETTING_STARTED.md)** - Complete beginner's guide
+- **📖 [INSTALL.MD](markkown/INSTALL.md)** - Advanced installation options
+- **🐳 [DOCKER_README.md](markdown/DOCKER_README.md)** - Docker deployment guide
+- **🔧 [CONTRIBUTING.md](markdown/CONTRIBUTING.md)** - Development guidelines
 
 ---
 
@@ -116,53 +119,44 @@ python manage.py runserver
 
 ## 🏗️ Architecture
 
-┌─────────────────────────────────────────────────────────────┐
-│                    Gmail API (OAuth2)                       │
-└────────────┬────────────────────────────────────────────────┘
-             │ Read-only message access
-             ▼
-┌─────────────────────────────────────────────────────────────┐
-│              Ingestion Pipeline (parser.py)                 │
-│  • Extract metadata (subject, body, sender, thread_id)      │
-│  • HTML parsing (BeautifulSoup4)                            │
-│  • Duplicate detection (ProcessedMessage table)             │
-└────────────┬────────────────────────────────────────────────┘
-             │
-             ▼
-┌─────────────────────────────────────────────────────────────┐
-│      Hybrid ML + Regex Classifier (80-90% accuracy)         │
-│  • TF-IDF vectorization (subject + body)                    │
-│  • Logistic Regression + calibration                        │
-│  • Rule-based fallback (patterns.json)                      │
-│  • Confidence scoring (0.0-1.0)                             │
-└────────────┬────────────────────────────────────────────────┘
-             │
-             ▼
-┌─────────────────────────────────────────────────────────────┐
-│      Company Resolution (4-tier fallback)                   │
-│  1. Known whitelist (companies.json)                        │
-│  2. Domain mapping (ATS-aware)                              │
-│  3. ML prediction (spaCy NER)                               │
-│  4. Body regex fallback                                     │
-└────────────┬────────────────────────────────────────────────┘
-             │
-             ▼
-┌─────────────────────────────────────────────────────────────┐
-│              SQLite Database (local only)                   │
-│  • Company (canonical names + confidence)                   │
-│  • Application (thread-level grouping)                      │
-│  • Message (message-level, with ML labels)                  │
-│  • IngestionStats (daily insert/ignore/skip counts)         │
-└────────────┬────────────────────────────────────────────────┘
-             │
-             ▼
-┌─────────────────────────────────────────────────────────────┐
-│              Django Dashboard (port 8000)                   │
-│  • Bulk labeling interface (auto-retrain every 20 labels)   │
-│  • Company detail view (threaded messages)                  │
-│  • Metrics dashboard (weekly/monthly stats)                 │
-│  • Admin panel (manual company assignment)                  │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    A[Gmail API OAuth2] -->|Read-only message access| B[Ingestion Pipeline]
+    B -->|parser.py| C[Hybrid ML + Regex Classifier]
+    C -->|Classification| D[Company Resolution]
+    D -->|Extract company| E[SQLite Database]
+    E -->|Store & retrieve| F[Django Dashboard]
+    
+    B1[Extract metadata<br/>subject, body, sender, thread_id] -.-> B
+    B2[HTML parsing BeautifulSoup4] -.-> B
+    B3[Duplicate detection] -.-> B
+    
+    C1[TF-IDF vectorization] -.-> C
+    C2[Logistic Regression + calibration] -.-> C
+    C3[Rule-based fallback patterns.json] -.-> C
+    C4[Confidence scoring 0.0-1.0] -.-> C
+    
+    D1[1. Known whitelist companies.json] -.-> D
+    D2[2. Domain mapping ATS-aware] -.-> D
+    D3[3. ML prediction spaCy NER] -.-> D
+    D4[4. Body regex fallback] -.-> D
+    
+    E1[Company table] -.-> E
+    E2[Message table] -.-> E
+    E3[ThreadTracking table] -.-> E
+    E4[IngestionStats table] -.-> E
+    
+    F1[Bulk labeling interface] -.-> F
+    F2[Company detail view] -.-> F
+    F3[Metrics dashboard] -.-> F
+    F4[Admin panel] -.-> F
+    
+    style A fill:#e1f5ff
+    style C fill:#fff4e1
+    style D fill:#ffe1f5
+    style E fill:#e1ffe1
+    style F fill:#f5e1ff
+```
 
 **Data Flow:**
 

@@ -134,9 +134,9 @@ STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # Additional static file directories
-STATICFILES_DIRS = [
-    BASE_DIR / "theme" / "static",
-]
+# Only add theme/static if it exists (prevents Docker warning)
+_THEME_STATIC = BASE_DIR / "theme" / "static"
+STATICFILES_DIRS = [_THEME_STATIC] if _THEME_STATIC.exists() else []
 
 # Tailwind CSS Configuration
 TAILWIND_APP_NAME = "theme"

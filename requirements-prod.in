@@ -12,6 +12,7 @@ requests==2.32.5
 # Django Extensions
 django-crispy-forms==2.4
 django-tailwind==4.1.0
+django-browser-reload==1.16.0
 
 # Data Science & ML
 pandas==2.3.3

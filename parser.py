@@ -2072,7 +2072,11 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
         for ats_root in ATS_DOMAINS:
             if domain_lower == ats_root or domain_lower.endswith(f".{ats_root}"):
                 is_ats_domain = True
+                if DEBUG:
+                    print(f"[DEBUG] ATS domain detected: {domain_lower} matches {ats_root}")
                 break
+    if DEBUG:
+        print(f"[DEBUG] is_ats_domain={is_ats_domain}, company={repr(company)}, sender={repr(sender)}")
     if not company and is_ats_domain and sender:
         # First try to extract from sender email prefix (e.g., ngc@myworkday.com)
         # Use parseaddr to extract the actual email address from "Display Name <email@domain.com>"

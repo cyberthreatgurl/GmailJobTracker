@@ -1,77 +1,77 @@
 {# tracker/templates/tracker/_sidebar.html #}
-<div class="sidebar" style="max-width: 240px; min-width: 200px; flex: 0 0 220px;">
+<div class="max-w-60 min-w-[200px] flex-none">
   <!-- Main Dashboard Button -->
-  <div style="margin-bottom:1.2rem;">
-    <a href="{% url 'dashboard' %}" class="button" style="display:block; width:100%; background:#2563eb; color:white; font-weight:600; border-radius:6px; padding:0.7rem 0; text-align:center; font-size:1.1rem;">🏠 Dashboard</a>
+  <div class="mb-5">
+    <a href="{% url 'dashboard' %}" class="block w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg py-3 text-center text-lg transition-colors">🏠 Dashboard</a>
   </div>
 
   <!-- Ingest New Messages - Prominent Action -->
-  <div style="margin-bottom:1.2rem; position:relative;">
-    <a href="{% url 'reingest_admin' %}" class="button" style="display:block; width:100%; background:#059669; color:white; font-weight:600; border-radius:6px; padding:0.7rem 0; text-align:center; font-size:1rem;">📥 Ingest New Messages</a>
-    <div id="ingestion-indicator" style="display:none; position:absolute; top:-8px; right:-8px; background:#ef4444; color:white; border-radius:50%; width:16px; height:16px; animation:pulse 2s infinite;">
-      <span style="display:block; width:100%; height:100%; border-radius:50%; background:#ef4444; animation:ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;"></span>
+  <div class="mb-5 relative">
+    <a href="{% url 'reingest_admin' %}" class="block w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg py-3 text-center transition-colors">📥 Ingest New Messages</a>
+    <div id="ingestion-indicator" class="hidden absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-4 h-4 animate-pulse">
+      <span class="block w-full h-full rounded-full bg-red-500 animate-ping"></span>
     </div>
   </div>
 
   <!-- Upcoming Interviews at the top -->
-  <div class="card">
-    <h2>🗓️ Upcoming Interviews</h2>
-    <ul>
+  <div class="bg-white p-4 rounded-lg mb-4 shadow-sm">
+    <h2 class="text-sm font-semibold mb-3 text-gray-800">🗓️ Upcoming Interviews</h2>
+    <ul class="list-none pl-0 m-0">
       {% for interview in upcoming_interviews %}
-        <li>{{ interview.company.name }} — {{ interview.interview_date|date:"Y-m-d" }}</li>
+        <li class="py-2 text-xs text-gray-600">{{ interview.company.name }} — {{ interview.interview_date|date:"Y-m-d" }}</li>
       {% empty %}
-        <li>No upcoming interviews</li>
+        <li class="py-2 text-xs text-gray-600">No upcoming interviews</li>
       {% endfor %}
     </ul>
   </div>
 
   <!-- Summary Stats -->
-  <div class="card">
-    <h2>📊 Summary</h2>
-    <ul class="stats">
-  <li>Total Companies: {{ companies }}</li>
-  <li>Total Applications: {{ applications_count|default:applications }}</li>
-      <li>Applications This Week: {{ applications_week }}</li>
-      <li>Rejections This Week: {{ rejections_week }}</li>
-      <li>Interviews This Week: {{ interviews_week }}</li>
-      <li>Companies Ghosted: {{ ghosted_count }}</li>
+  <div class="bg-white p-4 rounded-lg mb-4 shadow-sm">
+    <h2 class="text-sm font-semibold mb-3 text-gray-800">📊 Summary</h2>
+    <ul class="list-none pl-0 m-0">
+      <li class="flex justify-between py-2 text-xs text-gray-600 border-b border-gray-100">Total Companies: <span>{{ companies }}</span></li>
+      <li class="flex justify-between py-2 text-xs text-gray-600 border-b border-gray-100">Total Applications: <span>{{ applications_count|default:applications }}</span></li>
+      <li class="flex justify-between py-2 text-xs text-gray-600 border-b border-gray-100">Applications This Week: <span>{{ applications_week }}</span></li>
+      <li class="flex justify-between py-2 text-xs text-gray-600 border-b border-gray-100">Rejections This Week: <span>{{ rejections_week }}</span></li>
+      <li class="flex justify-between py-2 text-xs text-gray-600 border-b border-gray-100">Interviews This Week: <span>{{ interviews_week }}</span></li>
+      <li class="flex justify-between py-2 text-xs text-gray-600">Companies Ghosted: <span>{{ ghosted_count }}</span></li>
     </ul>
   </div>
 
   <!-- Ingestion Stats -->
-  <div class="card">
-    <h2>Ingestion Stats (Today)</h2>
+  <div class="bg-white p-4 rounded-lg mb-4 shadow-sm">
+    <h2 class="text-sm font-semibold mb-3 text-gray-800">Ingestion Stats (Today)</h2>
     {% if latest_stats %}
-      <ul class="stats">
+      <ul class="list-none pl-0 m-0">
         {% if latest_stats.total_inserted == 0 %}
-        <div style="background:#fee2e2; padding:0.5rem; border-radius:4px; margin-top:0.5rem; font-size:0.75rem;">
+        <div class="bg-red-50 p-2 rounded mt-2 text-xs text-red-800">
           ⚠️ No new messages ingested today.
         </div>
         {% endif %}
-        <li>📥 Fetched: <strong>{{ latest_stats.total_fetched }}</strong></li>
-        <li>✅ Inserted: <strong>{{ latest_stats.total_inserted }}</strong></li>
-        <li>🚫 Ignored: <strong>{{ latest_stats.total_ignored }}</strong></li>
-        <li>⏭️ Skipped: <strong>{{ latest_stats.total_skipped }}</strong></li>
-        <li>📊 Success Rate: 
+        <li class="flex justify-between py-2 text-xs text-gray-600 border-b border-gray-100">📥 Fetched: <strong>{{ latest_stats.total_fetched }}</strong></li>
+        <li class="flex justify-between py-2 text-xs text-gray-600 border-b border-gray-100">✅ Inserted: <strong>{{ latest_stats.total_inserted }}</strong></li>
+        <li class="flex justify-between py-2 text-xs text-gray-600 border-b border-gray-100">🚫 Ignored: <strong>{{ latest_stats.total_ignored }}</strong></li>
+        <li class="flex justify-between py-2 text-xs text-gray-600 border-b border-gray-100">⏭️ Skipped: <strong>{{ latest_stats.total_skipped }}</strong></li>
+        <li class="flex justify-between py-2 text-xs text-gray-600">📊 Success Rate: 
           <strong>
             {{ latest_stats.total_inserted|floatformat:2 }} /
             {{ latest_stats.total_inserted|add:latest_stats.total_ignored|add:latest_stats.total_skipped }}
           </strong>
         </li>
       </ul>
-      <p class="timestamp">Last updated: {{ latest_stats.date }}</p>
-      <p class="timestamp">Last sync: {{ latest_stats.last_updated|date:"Y-m-d H:i" }}</p>
+      <p class="text-[0.7rem] text-gray-400 mt-2">Last updated: {{ latest_stats.date }}</p>
+      <p class="text-[0.7rem] text-gray-400 mt-1">Last sync: {{ latest_stats.last_updated|date:"Y-m-d H:i" }}</p>
     {% else %}
-      <p style="font-size:0.75rem;">No ingestion stats available yet.</p>
+      <p class="text-xs text-gray-500">No ingestion stats available yet.</p>
     {% endif %}
   </div>
 
 
   <!-- Quick Actions -->
-  <div class="card">
-    <h2>⚙️ Quick Actions</h2>
-    <div style="display:flex; flex-direction:column; gap:0.5rem;">
-      <select id="quickActionSelect" style="width:100%; padding:0.6rem; border:1px solid #d1d5db; border-radius:6px; font-size:0.9rem; background:white;" onchange="if(this.value) window.location.href = this.value;">
+  <div class="bg-white p-4 rounded-lg mb-4 shadow-sm">
+    <h2 class="text-sm font-semibold mb-3 text-gray-800">⚙️ Quick Actions</h2>
+    <div class="flex flex-col gap-2">
+      <select id="quickActionSelect" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" onchange="if(this.value) window.location.href = this.value;">
         <option value="">-- Select Action --</option>
         <option value="{% url 'manual_entry' %}">📝 Manual Entry</option>
         <option value="/admin/tracker/message/upload-eml/">📧 Upload .eml File</option>
@@ -101,16 +101,6 @@
       opacity: 0;
     }
   }
-  #ingestion-status-text {
-    font-size: 0.75rem;
-    padding: 0.5rem;
-    background: #fef3c7;
-    border-radius: 6px;
-    margin-bottom: 0.5rem;
-    text-align: center;
-    font-weight: 600;
-    color: #92400e;
-  }
 </style>
 
 <script>
@@ -123,16 +113,18 @@
         const statusText = document.getElementById('ingestion-status-text');
         
         if (data.is_running) {
-          indicator.style.display = 'block';
+          indicator.classList.remove('hidden');
           if (!statusText) {
             // Create status text if it doesn't exist
             const textDiv = document.createElement('div');
             textDiv.id = 'ingestion-status-text';
+            textDiv.className = 'text-xs p-2 bg-amber-50 rounded-lg mb-2 text-center font-semibold text-amber-800';
             textDiv.textContent = '⚡ Ingestion in progress...';
-            document.querySelector('.sidebar').insertBefore(textDiv, document.querySelector('.sidebar').firstChild);
+            const sidebar = document.querySelector('.max-w-60') || document.querySelector('.sidebar');
+            sidebar.insertBefore(textDiv, sidebar.firstChild);
           }
         } else {
-          indicator.style.display = 'none';
+          indicator.classList.add('hidden');
           if (statusText) {
             statusText.remove();
           }

@@ -8,6 +8,10 @@
     "RMC": "Resource Management Concepts",
     "BAE": "BAE Systems",
     "CFA": "CFA Institute",
+    "General Dynamics": "General Dynamics Information Technology",
+    "GDIT": "General Dynamics Information Technology",
+    "Amazon.jobs": "Amazon",
+    "mclaren": "McLaren",
     "cfainstitute": "CFA Institute",
     "osv_cfainstitute": "CFA Institute",
     "UIC Alaska": "Bowhead",
@@ -98,6 +102,8 @@
     "linkedin.com"
   ],
   "domain_to_company": {
+    "mclaren.com": "McLaren",
+    "obsidian.global": "Obsidian",
     "afs.com": "Accenture Federal Services",
     "wrglabs.com": "Wireless Research Group, LLC",
     "aig.com": "AIG",
@@ -233,7 +239,8 @@
     "venturegloballng.com": "Venture Global LNG",
     "victorops.com": "Victorops",
     "wearemetronome.com": "Metronome",
-    "westinghousenuclear.com": "Westinghouse Nuclear"
+    "westinghousenuclear.com": "Westinghouse Nuclear",
+    "banduri.com": "Banduri"
   },
   "headhunter_domains": [
     "agreeya.com",
@@ -292,7 +299,9 @@
     "usajobs.gov"
   ],
   "JobSites": {
+    "General Dynamics Information Technology": "https://www.gdit.com/careers/" ,
     "Amazon": "https://www.amazon.jobs/en/",
+    "McLaren": "https://mclarencareers.mclaren.com/careers/SearchJobs",
     "CFA Institute": "https://osv_cfainstitute.wd5.myworkdayjobs.com/Careers",
     "Arcfield": "https://careers.arcfield.com/careers-home",
     "Tech Wizards": "https://tech-wizards.applicantstack.com/x/openings",
@@ -350,6 +359,9 @@
     "Armis": "https://armis.pinpointhq.com/"
   },
   "known": [
+    "Obsidian",
+    "McLaren",
+    "BAE Systems",
     "Valiant Solutions",
     "Wireless Research Group, LLC",
     "CFA Institute",
@@ -421,6 +433,7 @@
     "Nightwing",
     "Northrop Grumman",
     "Northwestern Mutual",
+    "General Dynamics Information Technology",
     "Nozomi",
     "DHS Cybersecurity Service",
     "PCAOB",

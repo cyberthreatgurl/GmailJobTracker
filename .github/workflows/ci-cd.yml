@@ -99,8 +99,9 @@ jobs:
 
       - name: Run tests with coverage
         run: |
-          pytest --cov=tracker --cov=. --cov-report=xml --cov-report=html
+          pytest --cov=tracker --cov=. --cov-report=xml --cov-report=html -v
         continue-on-error: true
+        timeout-minutes: 10
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4

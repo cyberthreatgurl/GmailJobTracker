@@ -54,4 +54,3 @@ if guidehouse_new.count() == 0 and guidehouse_old.count() > 0:
     print("✅ Fix successful! Guidehouse Federal no longer appears in interview query")
 else:
     print("⚠️  Check results above")
-

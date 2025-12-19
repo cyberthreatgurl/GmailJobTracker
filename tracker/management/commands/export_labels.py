@@ -17,12 +17,16 @@ class Command(BaseCommand):
             writer.writerow(["type", "id", "subject", "body", "ml_label"])
 
             # --- Applications ---
-            for app in ThreadTracking.objects.filter(reviewed=True, ml_label__isnull=False):
+            for app in ThreadTracking.objects.filter(
+                reviewed=True, ml_label__isnull=False
+            ):
                 writer.writerow(
                     [
                         "application",
                         app.id,
-                        getattr(app, "subject", ""),  # some apps may not have subject field
+                        getattr(
+                            app, "subject", ""
+                        ),  # some apps may not have subject field
                         "",  # Applications don’t have body text
                         app.ml_label,
                     ]
@@ -30,4 +34,6 @@ class Command(BaseCommand):
 
             # --- Messages ---
             for msg in Message.objects.filter(reviewed=True, ml_label__isnull=False):
-                writer.writerow(["message", msg.id, msg.subject, msg.body, msg.ml_label])
+                writer.writerow(
+                    ["message", msg.id, msg.subject, msg.body, msg.ml_label]
+                )

@@ -92,15 +92,29 @@ class ManualEntryForm(forms.Form):
 
         # Validate interview date is required for interview type
         if entry_type == "interview" and not interview_date:
-            self.add_error("interview_date", "Interview date is required for interview entries.")
+            self.add_error(
+                "interview_date", "Interview date is required for interview entries."
+            )
 
         return cleaned_data
 
 
 class UploadEmlForm(forms.Form):
-    eml_file = forms.FileField(label=".eml file", help_text="Upload complete .eml file including headers")
-    thread_id = forms.CharField(max_length=255, required=False, label="Thread ID override", help_text="Optional: force thread_id to use for this message")
-    no_tt = forms.BooleanField(required=False, initial=False, label="Do not create ThreadTracking", help_text="When checked, do not auto-create a ThreadTracking record")
+    eml_file = forms.FileField(
+        label=".eml file", help_text="Upload complete .eml file including headers"
+    )
+    thread_id = forms.CharField(
+        max_length=255,
+        required=False,
+        label="Thread ID override",
+        help_text="Optional: force thread_id to use for this message",
+    )
+    no_tt = forms.BooleanField(
+        required=False,
+        initial=False,
+        label="Do not create ThreadTracking",
+        help_text="When checked, do not auto-create a ThreadTracking record",
+    )
 
 
 class CompanyEditForm(forms.ModelForm):
@@ -116,7 +130,15 @@ class CompanyEditForm(forms.ModelForm):
 
     class Meta:
         model = Company
-        fields = ["name", "domain", "ats", "homepage", "contact_name", "contact_email", "status"]
+        fields = [
+            "name",
+            "domain",
+            "ats",
+            "homepage",
+            "contact_name",
+            "contact_email",
+            "status",
+        ]
         help_texts = {
             "domain": "Primary company domain",
             "ats": "Applicant Tracking System domain",

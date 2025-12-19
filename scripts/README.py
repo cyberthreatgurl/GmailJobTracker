@@ -4,7 +4,7 @@ Code Quality Scripts - Quick Start Guide
 
 Your concerns addressed:
 1. Dead code detection ✅
-2. Redundant code detection ✅  
+2. Redundant code detection ✅
 3. Oversized files analysis ✅
 
 FILES CREATED
@@ -22,7 +22,7 @@ QUICK START
 -----------
 
 1. Run comprehensive analysis:
-   
+
    python scripts/run_all_checks.py
 
    This generates:
@@ -31,13 +31,13 @@ QUICK START
    - Console output with findings
 
 2. Review your views.py (3951 lines):
-   
+
    python scripts/suggest_refactoring.py --file tracker/views.py
 
    Shows exactly how to split into smaller modules.
 
 3. Check for unused imports (safe):
-   
+
    python scripts/clean_imports.py --dry-run
 
    Shows what would be removed without making changes.

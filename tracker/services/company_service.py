@@ -183,9 +183,7 @@ class CompanyService:
             return []
 
         try:
-            with open(
-                CompanyService.ALIAS_EXPORT_PATH, "r", encoding="utf-8"
-            ) as f:
+            with open(CompanyService.ALIAS_EXPORT_PATH, "r", encoding="utf-8") as f:
                 return json.load(f)
         except (json.JSONDecodeError, IOError):
             return []
@@ -239,7 +237,9 @@ class CompanyService:
             return (False, f"Failed to approve aliases: {str(e)}", 0)
 
     @staticmethod
-    def reject_alias(alias: str, timestamp: Optional[str] = None) -> Tuple[bool, Optional[str]]:
+    def reject_alias(
+        alias: str, timestamp: Optional[str] = None
+    ) -> Tuple[bool, Optional[str]]:
         """
         Add an alias to the ignore list in patterns.json.
 
@@ -293,9 +293,7 @@ class CompanyService:
         """
         stats = {
             "total_companies": Company.objects.count(),
-            "companies_with_apps": Company.objects.filter(
-                threadtracking__isnull=False
-            )
+            "companies_with_apps": Company.objects.filter(threadtracking__isnull=False)
             .distinct()
             .count(),
             "by_status": {},

@@ -28,7 +28,12 @@ class Command(BaseCommand):
     help = "Check ThreadTracking health for application messages and optionally autofix missing rows."
 
     def add_arguments(self, parser):
-        parser.add_argument("--days", type=int, default=7, help="How many days back to check (default 7)")
+        parser.add_argument(
+            "--days",
+            type=int,
+            default=7,
+            help="How many days back to check (default 7)",
+        )
         parser.add_argument(
             "--autofix",
             action="store_true",
@@ -70,7 +75,9 @@ class Command(BaseCommand):
 
         # Find messages missing ThreadTracking
         missing: List[Message] = []
-        for m in msg_qs.only("thread_id", "company_id", "subject", "timestamp", "ml_label", "confidence"):
+        for m in msg_qs.only(
+            "thread_id", "company_id", "subject", "timestamp", "ml_label", "confidence"
+        ):
             if not ThreadTracking.objects.filter(thread_id=m.thread_id).exists():
                 missing.append(m)
 
@@ -98,14 +105,22 @@ class Command(BaseCommand):
         self.stdout.write("=" * 80)
         self.stdout.write("ThreadTracking Health Report")
         self.stdout.write("=" * 80)
-        self.stdout.write(f"Window: last {days} day(s) (from {cutoff_dt:%Y-%m-%d %H:%M} UTC)")
+        self.stdout.write(
+            f"Window: last {days} day(s) (from {cutoff_dt:%Y-%m-%d %H:%M} UTC)"
+        )
         self.stdout.write(f"Application messages: {total_app_msgs}")
-        self.stdout.write(f"Distinct companies (Message-based): {distinct_msg_companies}")
-        self.stdout.write(f"Distinct companies (ThreadTracking-based): {distinct_tt_companies}")
+        self.stdout.write(
+            f"Distinct companies (Message-based): {distinct_msg_companies}"
+        )
+        self.stdout.write(
+            f"Distinct companies (ThreadTracking-based): {distinct_tt_companies}"
+        )
         self.stdout.write("")
 
         if missing:
-            self.stdout.write(f"Missing ThreadTracking for {len(missing)} application message(s):")
+            self.stdout.write(
+                f"Missing ThreadTracking for {len(missing)} application message(s):"
+            )
             for m in missing[:50]:  # limit output
                 self.stdout.write(
                     f"  - {m.company.name if m.company else 'Unknown'} | {m.timestamp.date()} | {m.subject[:70]}"
@@ -122,10 +137,19 @@ class Command(BaseCommand):
             self.stdout.write(f"Autofix: created {created} ThreadTracking record(s)")
 
         # Log file
-        self._write_log(days, total_app_msgs, distinct_msg_companies, distinct_tt_companies, len(missing), created)
+        self._write_log(
+            days,
+            total_app_msgs,
+            distinct_msg_companies,
+            distinct_tt_companies,
+            len(missing),
+            created,
+        )
 
         # Exit code
-        if exit_nonzero and (missing or distinct_msg_companies != distinct_tt_companies):
+        if exit_nonzero and (
+            missing or distinct_msg_companies != distinct_tt_companies
+        ):
             raise SystemExit(1)
 
     # --- helpers ---
@@ -141,7 +165,11 @@ class Command(BaseCommand):
             p = Path("json/companies.json")
             if p.exists():
                 data = json.loads(p.read_text(encoding="utf-8"))
-                return [d.strip().lower() for d in data.get("headhunter_domains", []) if isinstance(d, str) and d]
+                return [
+                    d.strip().lower()
+                    for d in data.get("headhunter_domains", [])
+                    if isinstance(d, str) and d
+                ]
         except Exception:
             pass
         return []
@@ -184,7 +212,14 @@ class Command(BaseCommand):
         return created
 
     @staticmethod
-    def _write_log(days: int, total_msgs: int, msg_companies: int, tt_companies: int, missing: int, created: int):
+    def _write_log(
+        days: int,
+        total_msgs: int,
+        msg_companies: int,
+        tt_companies: int,
+        missing: int,
+        created: int,
+    ):
         try:
             logs_dir = Path("logs")
             logs_dir.mkdir(parents=True, exist_ok=True)

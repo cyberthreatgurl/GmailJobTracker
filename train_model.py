@@ -94,7 +94,9 @@ if "body" in df.columns:
     df = df[df["body"].fillna("").str.strip() != ""]
     after = len(df)
     if before != after:
-        print(f"[Info] Filtered out {before-after} messages with blank/whitespace-only bodies.")
+        print(
+            f"[Info] Filtered out {before-after} messages with blank/whitespace-only bodies."
+        )
 
 # --- Merge ultra-rare classes (no upsampling - class weights handle imbalance) ---
 MIN_SAMPLES_PER_CLASS = 10
@@ -122,7 +124,9 @@ if df.empty:
     raise SystemExit("[Error] No training data available")
 
 # Combine subject + body
-df["text"] = (df.get("subject", "").fillna("") + " " + df.get("body", "").fillna("")).str.strip()
+df["text"] = (
+    df.get("subject", "").fillna("") + " " + df.get("body", "").fillna("")
+).str.strip()
 
 # Filter out classes with < 2 samples (can't stratify)
 min_samples = 2
@@ -139,8 +143,12 @@ print(f"Training with {len(y_filtered)} samples across {y_filtered.nunique()} cl
 X_subject = df_filtered["subject"].fillna("")
 X_body = df_filtered["body"].fillna("")
 
-subject_vec = TfidfVectorizer(lowercase=True, ngram_range=(1, 2), max_df=0.9, min_df=2, max_features=10000)
-body_vec = TfidfVectorizer(lowercase=True, ngram_range=(1, 2), max_df=0.9, min_df=2, max_features=40000)
+subject_vec = TfidfVectorizer(
+    lowercase=True, ngram_range=(1, 2), max_df=0.9, min_df=2, max_features=10000
+)
+body_vec = TfidfVectorizer(
+    lowercase=True, ngram_range=(1, 2), max_df=0.9, min_df=2, max_features=40000
+)
 
 X_subject_vec = subject_vec.fit_transform(X_subject)
 X_body_vec = body_vec.fit_transform(X_body)
@@ -182,9 +190,15 @@ if args.verbose:
 
     # Show effective training weights per class (illustrates balancing effect of class weights)
     try:
-        sw_df = _pd.DataFrame({"label": _pd.Series(ytr).reset_index(drop=True), "weight": sample_weights})
-        eff_weights = sw_df.groupby("label")["weight"].sum().sort_values(ascending=False)
-        print(f"[Info] Effective training class weights (sum of sample weights):\n{eff_weights}")
+        sw_df = _pd.DataFrame(
+            {"label": _pd.Series(ytr).reset_index(drop=True), "weight": sample_weights}
+        )
+        eff_weights = (
+            sw_df.groupby("label")["weight"].sum().sort_values(ascending=False)
+        )
+        print(
+            f"[Info] Effective training class weights (sum of sample weights):\n{eff_weights}"
+        )
     except Exception:
         pass
 
@@ -199,7 +213,10 @@ joblib.dump(body_vec, "model/body_vectorizer.pkl")
 
 # Save model info for metrics page
 # Filter out HTML/CSS artifacts and keep only meaningful features
-all_features = subject_vec.get_feature_names_out().tolist() + body_vec.get_feature_names_out().tolist()
+all_features = (
+    subject_vec.get_feature_names_out().tolist()
+    + body_vec.get_feature_names_out().tolist()
+)
 
 
 def is_meaningful_feature(feature):

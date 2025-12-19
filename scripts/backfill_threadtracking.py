@@ -4,8 +4,9 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'dashboard.settings')
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dashboard.settings")
 import django
+
 django.setup()
 
 from tracker.models import Message, ThreadTracking, Company
@@ -19,9 +20,7 @@ print("=" * 80)
 job_app_messages = Message.objects.filter(
     ml_label__in=["job_application", "application"],
     company__isnull=False,
-).exclude(
-    company__status="headhunter"
-)
+).exclude(company__status="headhunter")
 
 print(f"\nTotal job_application messages: {job_app_messages.count()}")
 
@@ -52,16 +51,16 @@ for msg in missing_tt:
         job_title = ""
         job_id = ""
         subject = msg.subject or ""
-        
+
         # Try to extract job title from subject
         if ":" in subject:
             parts = subject.split(":", 1)
             if len(parts) == 2:
                 job_title = parts[1].strip()[:255]
-        
+
         if not job_title:
             job_title = subject[:255] if subject else "Unknown"
-        
+
         tt, created = ThreadTracking.objects.get_or_create(
             thread_id=msg.thread_id,
             defaults={
@@ -78,13 +77,15 @@ for msg in missing_tt:
                 "reviewed": msg.reviewed,
             },
         )
-        
+
         if created:
             created_count += 1
-            print(f"  ✓ Created ThreadTracking for {msg.company.name} - {msg.subject[:40]}")
+            print(
+                f"  ✓ Created ThreadTracking for {msg.company.name} - {msg.subject[:40]}"
+            )
         else:
             print(f"  ⚠️  ThreadTracking already exists for {msg.company.name}")
-            
+
     except Exception as e:
         print(f"  ❌ Failed to create ThreadTracking for {msg.subject[:40]}: {e}")
 

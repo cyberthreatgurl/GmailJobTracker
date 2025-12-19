@@ -15,7 +15,13 @@ from django.db.models import Q, Count, Min, Max
 from django.db.models.functions import Lower, TruncDate
 from django.shortcuts import render
 from django.utils.timezone import now
-from tracker.models import Company, Message, ThreadTracking, IngestionStats, UnresolvedCompany
+from tracker.models import (
+    Company,
+    Message,
+    ThreadTracking,
+    IngestionStats,
+    UnresolvedCompany,
+)
 from tracker.views.helpers import extract_body_content, build_sidebar_context
 
 
@@ -77,9 +83,9 @@ def dashboard(request):
     # Prepare thread data for selected company (like company_threads view)
     threads_by_subject = []
     if selected_company:
-        msgs = Message.objects.filter(
-            company=selected_company, reviewed=True
-        ).order_by("thread_id", "timestamp")
+        msgs = Message.objects.filter(company=selected_company, reviewed=True).order_by(
+            "thread_id", "timestamp"
+        )
         # Group messages by subject
         thread_dict = defaultdict(list)
         for msg in msgs:
@@ -337,7 +343,7 @@ def dashboard(request):
                 for d in headhunter_domains:
                     msg_hh_q |= Q(sender__icontains=f"@{d}")
                 apps_msg_q = apps_msg_q.exclude(msg_hh_q)
-            
+
             # Group by day and count total application messages
             apps_by_day = (
                 apps_msg_q.annotate(day=TruncDate("timestamp"))
@@ -346,7 +352,7 @@ def dashboard(request):
             )
             # Map application count per day
             apps_map = {r["day"]: r["count"] for r in apps_by_day}
-            
+
             data = [apps_map.get(d, 0) for d in app_date_list]
         elif ml_label == "rejected":
             # Rejections per day: combine Application-based and Message-based (fallback) counts
@@ -510,10 +516,13 @@ def dashboard(request):
     # Exclude messages whose thread already has an Application with rejection_date
     # to prevent double-counting (same as we do for interviews)
     application_rejection_threads = set(
-        ThreadTracking.objects.filter(rejection_date__isnull=False)
-        .values_list("thread_id", flat=True)
+        ThreadTracking.objects.filter(rejection_date__isnull=False).values_list(
+            "thread_id", flat=True
+        )
     )
-    msg_rejections_qs = msg_rejections_qs.exclude(thread_id__in=application_rejection_threads)
+    msg_rejections_qs = msg_rejections_qs.exclude(
+        thread_id__in=application_rejection_threads
+    )
 
     # Get message-based rejections with company info
     msg_rejection_data = msg_rejections_qs.select_related("company").values(
@@ -548,13 +557,11 @@ def dashboard(request):
         application_companies_base = application_companies_base.filter(
             company_id=company_filter_id
         )
-    
+
     # Get individual application messages (not aggregated) so JavaScript can filter and count by date
-    application_companies_qs = (
-        application_companies_base
-        .values("id", "company_id", "company__name", "timestamp")
-        .order_by("-timestamp")
-    )
+    application_companies_qs = application_companies_base.values(
+        "id", "company_id", "company__name", "timestamp"
+    ).order_by("-timestamp")
 
     ghosted_companies_qs = (
         ThreadTracking.objects.filter(
@@ -644,12 +651,15 @@ def dashboard(request):
 
     # Use a dict to track the earliest interview per company (deduplicate by company_id)
     interview_by_company = {}
-    
+
     for item in interview_companies_qs:
         company_id = item["company_id"]
         interview_date = item["interview_date"]
         # Keep the EARLIEST interview_date per company (first contact)
-        if company_id not in interview_by_company or interview_date < interview_by_company[company_id]["interview_date"]:
+        if (
+            company_id not in interview_by_company
+            or interview_date < interview_by_company[company_id]["interview_date"]
+        ):
             interview_by_company[company_id] = {
                 "company_id": company_id,
                 "company__name": item["company__name"],
@@ -660,12 +670,12 @@ def dashboard(request):
     # This prevents double-counting: if company has ThreadTracking.interview_date, don't add message-based entry
     # Build a set of company_ids that already have interview_date in ThreadTracking
     tracked_companies = set(interview_by_company.keys())
-    
+
     # Get all interview messages (support both 'interview_invite' and 'interview')
     msg_interviews_qs = Message.objects.filter(
         ml_label__in=["interview_invite", "interview"], company__isnull=False
-    ).select_related('company')
-    
+    ).select_related("company")
+
     if user_email:
         msg_interviews_qs = msg_interviews_qs.exclude(sender__icontains=user_email)
     if headhunter_domains:
@@ -683,13 +693,16 @@ def dashboard(request):
     for msg in msg_interviews_qs:
         company_id = msg.company_id
         msg_date = msg.timestamp.date()
-        
+
         # Skip if this company already has a ThreadTracking interview
         if company_id in tracked_companies:
             continue
-            
+
         # Keep the EARLIEST message-based interview per company (first contact)
-        if company_id not in interview_by_company or msg_date < interview_by_company[company_id]["interview_date"]:
+        if (
+            company_id not in interview_by_company
+            or msg_date < interview_by_company[company_id]["interview_date"]
+        ):
             interview_by_company[company_id] = {
                 "company_id": company_id,
                 "company__name": msg.company.name,
@@ -701,9 +714,11 @@ def dashboard(request):
         {
             "company_id": item["company_id"],
             "company__name": item["company__name"],
-            "interview_date": item["interview_date"].strftime("%Y-%m-%d") 
-                if isinstance(item["interview_date"], date) 
-                else str(item["interview_date"]),
+            "interview_date": (
+                item["interview_date"].strftime("%Y-%m-%d")
+                if isinstance(item["interview_date"], date)
+                else str(item["interview_date"])
+            ),
         }
         for item in interview_by_company.values()
     ]
@@ -716,11 +731,13 @@ def dashboard(request):
         }
         for item in ghosted_companies_qs
     ]
-    
+
     # Debug logging for ghosted companies
     if len(ghosted_companies) == 0:
         print(f"[DEBUG] Ghosted companies query returned 0 results")
-        print(f"[DEBUG] hh_company_list count: {len(hh_company_list) if hh_company_list else 0}")
+        print(
+            f"[DEBUG] hh_company_list count: {len(hh_company_list) if hh_company_list else 0}"
+        )
         print(f"[DEBUG] company_filter_id: {company_filter_id}")
     else:
         print(f"[DEBUG] Found {len(ghosted_companies)} ghosted companies")
@@ -732,7 +749,9 @@ def dashboard(request):
     interview_companies_json = json.dumps(interview_companies)
 
     # Server-side initial fallback lists (unique by company for full available range)
-    def unique_by_company(items, id_key="company_id", name_key="company__name", count_key=None):
+    def unique_by_company(
+        items, id_key="company_id", name_key="company__name", count_key=None
+    ):
         seen = set()
         out = []
         for it in items:
@@ -802,7 +821,7 @@ def dashboard(request):
     }
     # Ensure single source of truth for sidebar cards like Applications This Week
     # First-time user flag: show onboarding modal if no messages exist
-    ctx["is_first_time"] = (Message.objects.count() == 0)
+    ctx["is_first_time"] = Message.objects.count() == 0
     ctx.update(build_sidebar_context())
     return render(request, "tracker/dashboard.html", ctx)
 
@@ -848,7 +867,6 @@ def company_threads(request):
         "threads_by_subject": threads_by_subject,
     }
     return render(request, "tracker/company_threads.html", ctx)
-
 
 
 @login_required
@@ -918,12 +936,16 @@ def metrics(request):
         "unknown",
     }
     label_breakdown = None
-    if isinstance(model_metrics, dict) and isinstance(model_metrics.get("labels"), list):
+    if isinstance(model_metrics, dict) and isinstance(
+        model_metrics.get("labels"), list
+    ):
         real_labels = [
             label for label in model_metrics["labels"] if label.lower() in valid_labels
         ]
         extra_labels = [
-            label for label in model_metrics["labels"] if label.lower() not in valid_labels
+            label
+            for label in model_metrics["labels"]
+            if label.lower() not in valid_labels
         ]
         label_breakdown = {
             "real_count": len(real_labels),
@@ -944,5 +966,4 @@ def metrics(request):
     return render(request, "tracker/metrics.html", ctx)
 
 
-
-__all__ = ['dashboard', 'company_threads', 'metrics']
+__all__ = ["dashboard", "company_threads", "metrics"]

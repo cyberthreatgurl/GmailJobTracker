@@ -8,9 +8,7 @@ from pathlib import Path
 
 
 class Command(BaseCommand):
-    help = (
-        "Audit ThreadTracking rows that have `interview_date` set but look like false-positives."
-    )
+    help = "Audit ThreadTracking rows that have `interview_date` set but look like false-positives."
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -54,14 +52,18 @@ class Command(BaseCommand):
                     try:
                         preserve_ids.add(int(part))
                     except ValueError:
-                        self.stdout.write(self.style.WARNING(f"Ignored invalid preserve id: {part}"))
+                        self.stdout.write(
+                            self.style.WARNING(f"Ignored invalid preserve id: {part}")
+                        )
 
         ts = datetime.utcnow().strftime("%Y%m%d-%H%M%S")
         if not out:
             out = f"scripts/audit_interview_report_{ts}.json"
         backup_path = f"scripts/audit_interview_backup_{ts}.json"
 
-        self.stdout.write(f"Scanning ThreadTracking rows with interview_date set (threshold={threshold})...")
+        self.stdout.write(
+            f"Scanning ThreadTracking rows with interview_date set (threshold={threshold})..."
+        )
 
         # Load known companies from json to avoid flagging legitimate companies
         known_companies = set()
@@ -94,13 +96,18 @@ class Command(BaseCommand):
                 reason.append("completed")
 
             # messages in thread with interview labels
-            messages = list(Message.objects.filter(thread_id=tt.thread_id).order_by("timestamp"))
+            messages = list(
+                Message.objects.filter(thread_id=tt.thread_id).order_by("timestamp")
+            )
             msg_labels = [m.ml_label for m in messages if getattr(m, "ml_label", None)]
             if any(l in ("interview_invite", "interview") for l in msg_labels):
                 keep = True
                 reason.append("message_labeled")
 
-            if tt.ml_label in ("interview_invite", "interview") and (tt.ml_confidence or 0) >= threshold:
+            if (
+                tt.ml_label in ("interview_invite", "interview")
+                and (tt.ml_confidence or 0) >= threshold
+            ):
                 keep = True
                 reason.append(f"ml_confident({tt.ml_confidence:.2f})")
 
@@ -112,7 +119,9 @@ class Command(BaseCommand):
                 "company_id": tt.company.id if tt.company_id else None,
                 "company_name": getattr(tt.company, "name", None),
                 "sent_date": tt.sent_date.isoformat() if tt.sent_date else None,
-                "interview_date": tt.interview_date.isoformat() if tt.interview_date else None,
+                "interview_date": (
+                    tt.interview_date.isoformat() if tt.interview_date else None
+                ),
                 "ml_label": tt.ml_label,
                 "ml_confidence": float(tt.ml_confidence or 0),
                 "status": tt.status,
@@ -147,22 +156,28 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS(f"Wrote audit report to: {out}"))
 
         if not candidates:
-            self.stdout.write(self.style.SUCCESS("No flagged rows found. Nothing to apply."))
+            self.stdout.write(
+                self.style.SUCCESS("No flagged rows found. Nothing to apply.")
+            )
             return
 
         # Always write a backup of all interview_date rows before any apply
         full_rows = []
         for tt in q.order_by("id"):
-            full_rows.append({
-                "id": tt.id,
-                "thread_id": tt.thread_id,
-                "company_id": tt.company.id if tt.company_id else None,
-                "company_name": getattr(tt.company, "name", None),
-                "sent_date": tt.sent_date.isoformat() if tt.sent_date else None,
-                "interview_date": tt.interview_date.isoformat() if tt.interview_date else None,
-                "ml_label": tt.ml_label,
-                "ml_confidence": float(tt.ml_confidence or 0),
-            })
+            full_rows.append(
+                {
+                    "id": tt.id,
+                    "thread_id": tt.thread_id,
+                    "company_id": tt.company.id if tt.company_id else None,
+                    "company_name": getattr(tt.company, "name", None),
+                    "sent_date": tt.sent_date.isoformat() if tt.sent_date else None,
+                    "interview_date": (
+                        tt.interview_date.isoformat() if tt.interview_date else None
+                    ),
+                    "ml_label": tt.ml_label,
+                    "ml_confidence": float(tt.ml_confidence or 0),
+                }
+            )
         with open(backup_path, "w", encoding="utf-8") as fh:
             json.dump({"backup_ts": ts, "rows": full_rows}, fh, indent=2, default=str)
 
@@ -172,17 +187,33 @@ class Command(BaseCommand):
             cleared_ids = []
             for item in candidates:
                 if item["id"] in preserve_ids:
-                    self.stdout.write(self.style.WARNING(f"Preserving id {item['id']} per --preserve"))
+                    self.stdout.write(
+                        self.style.WARNING(f"Preserving id {item['id']} per --preserve")
+                    )
                     continue
                 tt = ThreadTracking.objects.get(id=item["id"])
                 tt.interview_date = None
                 tt.save()
                 cleared_ids.append(item["id"])
 
-            self.stdout.write(self.style.SUCCESS(f"Cleared interview_date on {len(cleared_ids)} rows."))
+            self.stdout.write(
+                self.style.SUCCESS(
+                    f"Cleared interview_date on {len(cleared_ids)} rows."
+                )
+            )
             apply_report = f"scripts/audit_interview_apply_{ts}.json"
             with open(apply_report, "w", encoding="utf-8") as fh:
-                json.dump({"cleared_ids": cleared_ids, "preserved": list(preserve_ids)}, fh, indent=2)
-            self.stdout.write(self.style.SUCCESS(f"Wrote apply report to: {apply_report}"))
+                json.dump(
+                    {"cleared_ids": cleared_ids, "preserved": list(preserve_ids)},
+                    fh,
+                    indent=2,
+                )
+            self.stdout.write(
+                self.style.SUCCESS(f"Wrote apply report to: {apply_report}")
+            )
         else:
-            self.stdout.write(self.style.WARNING("Dry-run: no changes applied. Use --apply to clear flagged rows."))
+            self.stdout.write(
+                self.style.WARNING(
+                    "Dry-run: no changes applied. Use --apply to clear flagged rows."
+                )
+            )

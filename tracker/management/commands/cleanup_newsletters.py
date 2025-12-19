@@ -37,16 +37,22 @@ class Command(BaseCommand):
         limit = options["limit"]
         batch_size = options["batch_size"]
 
-        self.stdout.write(self.style.WARNING("\n=== Newsletter/Bulk Mail Cleanup ===\n"))
+        self.stdout.write(
+            self.style.WARNING("\n=== Newsletter/Bulk Mail Cleanup ===\n")
+        )
 
         if dry_run:
-            self.stdout.write(self.style.NOTICE("DRY RUN MODE - No changes will be made\n"))
+            self.stdout.write(
+                self.style.NOTICE("DRY RUN MODE - No changes will be made\n")
+            )
 
         # Get Gmail service
         try:
             service = get_gmail_service()
         except Exception as e:
-            self.stdout.write(self.style.ERROR(f"Failed to authenticate with Gmail: {e}"))
+            self.stdout.write(
+                self.style.ERROR(f"Failed to authenticate with Gmail: {e}")
+            )
             return
 
         # Get all messages from database
@@ -64,7 +70,9 @@ class Command(BaseCommand):
         # Process in batches to avoid rate limits
         for i in range(0, total_count, batch_size):
             batch = list(messages[i : i + batch_size])
-            self.stdout.write(f"Processing batch {i // batch_size + 1} ({i + 1}-{i + len(batch)} of {total_count})...")
+            self.stdout.write(
+                f"Processing batch {i // batch_size + 1} ({i + 1}-{i + len(batch)} of {total_count})..."
+            )
 
             for msg in batch:
                 checked_count += 1
@@ -80,13 +88,15 @@ class Command(BaseCommand):
                     is_noreply = header_hints.get("is_noreply", False)
 
                     if is_newsletter or (is_bulk and is_noreply):
-                        newsletter_messages.append({
-                            "msg": msg,
-                            "is_newsletter": is_newsletter,
-                            "is_bulk": is_bulk,
-                            "is_noreply": is_noreply,
-                            "header_hints": header_hints,
-                        })
+                        newsletter_messages.append(
+                            {
+                                "msg": msg,
+                                "is_newsletter": is_newsletter,
+                                "is_bulk": is_bulk,
+                                "is_noreply": is_noreply,
+                                "header_hints": header_hints,
+                            }
+                        )
 
                         reason_parts = []
                         if is_newsletter:
@@ -97,18 +107,18 @@ class Command(BaseCommand):
                             reason_parts.append("noreply")
                         reason = " + ".join(reason_parts)
 
-                        self.stdout.write(
-                            f"  ✓ Found: {msg.subject[:60]} ({reason})"
-                        )
+                        self.stdout.write(f"  ✓ Found: {msg.subject[:60]} ({reason})")
 
                 except Exception as e:
                     error_count += 1
                     error_str = str(e)
-                    
+
                     # Provide user-friendly error messages
                     if "Invalid id value" in error_str or "404" in error_str:
                         self.stdout.write(
-                            self.style.WARNING(f"  ⊗ Skipped {msg.msg_id}: Message deleted by user or no longer exists in Gmail")
+                            self.style.WARNING(
+                                f"  ⊗ Skipped {msg.msg_id}: Message deleted by user or no longer exists in Gmail"
+                            )
                         )
                     else:
                         self.stdout.write(
@@ -137,7 +147,9 @@ class Command(BaseCommand):
         )
 
         if not newsletter_messages:
-            self.stdout.write(self.style.SUCCESS("No newsletter/bulk messages to clean up!"))
+            self.stdout.write(
+                self.style.SUCCESS("No newsletter/bulk messages to clean up!")
+            )
             return
 
         # Show details

@@ -83,7 +83,9 @@ def find_dead_code(project_root: Path) -> Dict[str, List[Tuple[str, int]]]:
 
     # Scan all Python files
     py_files = list(project_root.rglob("*.py"))
-    py_files = [f for f in py_files if ".venv" not in str(f) and "__pycache__" not in str(f)]
+    py_files = [
+        f for f in py_files if ".venv" not in str(f) and "__pycache__" not in str(f)
+    ]
 
     for py_file in py_files:
         analyzer = analyze_file(py_file)
@@ -129,7 +131,10 @@ def find_dead_code(project_root: Path) -> Dict[str, List[Tuple[str, int]]]:
                     if name in analyzer.decorators:
                         decorators = analyzer.decorators[name]
                         # Skip if has routing/admin decorators
-                        if any(d in ["login_required", "csrf_exempt", "admin.register"] for d in decorators):
+                        if any(
+                            d in ["login_required", "csrf_exempt", "admin.register"]
+                            for d in decorators
+                        ):
                             continue
 
                 dead_code[filepath].append((name, line))
@@ -142,7 +147,9 @@ def find_duplicate_code(project_root: Path, min_lines: int = 5) -> List[Dict]:
     print("🔍 Analyzing for duplicate code...")
 
     py_files = list(project_root.rglob("*.py"))
-    py_files = [f for f in py_files if ".venv" not in str(f) and "__pycache__" not in str(f)]
+    py_files = [
+        f for f in py_files if ".venv" not in str(f) and "__pycache__" not in str(f)
+    ]
 
     # Extract code blocks (functions)
     code_blocks = []
@@ -160,29 +167,37 @@ def find_duplicate_code(project_root: Path, min_lines: int = 5) -> List[Dict]:
             for i, line in enumerate(lines, 1):
                 if re.match(r"^\s*def\s+(\w+)", line):
                     if func_lines:
-                        code_blocks.append({
-                            "file": str(py_file.relative_to(project_root)),
-                            "name": func_name,
-                            "start": func_start,
-                            "lines": func_lines,
-                            "hash": hash("".join(func_lines).strip())
-                        })
+                        code_blocks.append(
+                            {
+                                "file": str(py_file.relative_to(project_root)),
+                                "name": func_name,
+                                "start": func_start,
+                                "lines": func_lines,
+                                "hash": hash("".join(func_lines).strip()),
+                            }
+                        )
                     match = re.match(r"^\s*def\s+(\w+)", line)
                     func_name = match.group(1)
                     func_start = i
                     func_lines = [line]
                     in_function = True
                 elif in_function:
-                    if line.strip() and not line[0].isspace() and not line.startswith("def"):
+                    if (
+                        line.strip()
+                        and not line[0].isspace()
+                        and not line.startswith("def")
+                    ):
                         # End of function
                         if len(func_lines) >= min_lines:
-                            code_blocks.append({
-                                "file": str(py_file.relative_to(project_root)),
-                                "name": func_name,
-                                "start": func_start,
-                                "lines": func_lines,
-                                "hash": hash("".join(func_lines).strip())
-                            })
+                            code_blocks.append(
+                                {
+                                    "file": str(py_file.relative_to(project_root)),
+                                    "name": func_name,
+                                    "start": func_start,
+                                    "lines": func_lines,
+                                    "hash": hash("".join(func_lines).strip()),
+                                }
+                            )
                         in_function = False
                         func_lines = []
                     else:
@@ -200,11 +215,13 @@ def find_duplicate_code(project_root: Path, min_lines: int = 5) -> List[Dict]:
     duplicates = []
     for blocks in hash_groups.values():
         if len(blocks) > 1:
-            duplicates.append({
-                "count": len(blocks),
-                "locations": [(b["file"], b["name"], b["start"]) for b in blocks],
-                "line_count": len(blocks[0]["lines"])
-            })
+            duplicates.append(
+                {
+                    "count": len(blocks),
+                    "locations": [(b["file"], b["name"], b["start"]) for b in blocks],
+                    "line_count": len(blocks[0]["lines"]),
+                }
+            )
 
     return sorted(duplicates, key=lambda x: x["line_count"], reverse=True)
 
@@ -214,7 +231,9 @@ def analyze_file_complexity(project_root: Path) -> List[Dict]:
     print("🔍 Analyzing file complexity...")
 
     py_files = list(project_root.rglob("*.py"))
-    py_files = [f for f in py_files if ".venv" not in str(f) and "__pycache__" not in str(f)]
+    py_files = [
+        f for f in py_files if ".venv" not in str(f) and "__pycache__" not in str(f)
+    ]
 
     file_stats = []
     for py_file in py_files:
@@ -223,7 +242,9 @@ def analyze_file_complexity(project_root: Path) -> List[Dict]:
                 lines = f.readlines()
 
             total_lines = len(lines)
-            code_lines = sum(1 for line in lines if line.strip() and not line.strip().startswith("#"))
+            code_lines = sum(
+                1 for line in lines if line.strip() and not line.strip().startswith("#")
+            )
 
             analyzer = analyze_file(py_file)
             if analyzer:
@@ -234,15 +255,19 @@ def analyze_file_complexity(project_root: Path) -> List[Dict]:
                 num_functions = num_classes = num_imports = 0
 
             rel_path = py_file.relative_to(project_root)
-            file_stats.append({
-                "file": str(rel_path),
-                "total_lines": total_lines,
-                "code_lines": code_lines,
-                "functions": num_functions,
-                "classes": num_classes,
-                "imports": num_imports,
-                "avg_lines_per_function": code_lines // num_functions if num_functions > 0 else 0
-            })
+            file_stats.append(
+                {
+                    "file": str(rel_path),
+                    "total_lines": total_lines,
+                    "code_lines": code_lines,
+                    "functions": num_functions,
+                    "classes": num_classes,
+                    "imports": num_imports,
+                    "avg_lines_per_function": (
+                        code_lines // num_functions if num_functions > 0 else 0
+                    ),
+                }
+            )
 
         except Exception as e:
             print(f"⚠️ Error analyzing {py_file}: {e}")
@@ -255,7 +280,9 @@ def find_unused_imports(project_root: Path) -> Dict[str, List[str]]:
     print("🔍 Analyzing for unused imports...")
 
     py_files = list(project_root.rglob("*.py"))
-    py_files = [f for f in py_files if ".venv" not in str(f) and "__pycache__" not in str(f)]
+    py_files = [
+        f for f in py_files if ".venv" not in str(f) and "__pycache__" not in str(f)
+    ]
 
     unused = {}
     for py_file in py_files:
@@ -303,18 +330,22 @@ def generate_report(project_root: Path, output_file: str = "code_quality_report.
     print("=" * 60)
 
     report = {
-        "timestamp": Path(output_file).stat().st_mtime if Path(output_file).exists() else None,
+        "timestamp": (
+            Path(output_file).stat().st_mtime if Path(output_file).exists() else None
+        ),
         "dead_code": {},
         "duplicates": [],
         "file_complexity": [],
-        "unused_imports": {}
+        "unused_imports": {},
     }
 
     # 1. Dead code analysis
     dead_code = find_dead_code(project_root)
     report["dead_code"] = dead_code
     if dead_code:
-        print(f"\n⚠️ Found {sum(len(v) for v in dead_code.values())} potentially unused definitions:")
+        print(
+            f"\n⚠️ Found {sum(len(v) for v in dead_code.values())} potentially unused definitions:"
+        )
         for filepath, items in sorted(dead_code.items())[:10]:
             print(f"\n  {filepath}:")
             for name, line in items[:5]:
@@ -343,14 +374,18 @@ def generate_report(project_root: Path, output_file: str = "code_quality_report.
     print(f"{'File':<40} {'Lines':<10} {'Functions':<10} {'Classes':<10}")
     print("-" * 70)
     for stat in file_stats[:10]:
-        print(f"{stat['file']:<40} {stat['total_lines']:<10} {stat['functions']:<10} {stat['classes']:<10}")
+        print(
+            f"{stat['file']:<40} {stat['total_lines']:<10} {stat['functions']:<10} {stat['classes']:<10}"
+        )
 
     # Highlight oversized files
     oversized = [s for s in file_stats if s["total_lines"] > 1000]
     if oversized:
         print(f"\n⚠️ {len(oversized)} files exceed 1000 lines (consider splitting):")
         for stat in oversized[:5]:
-            print(f"  - {stat['file']}: {stat['total_lines']} lines, {stat['functions']} functions")
+            print(
+                f"  - {stat['file']}: {stat['total_lines']} lines, {stat['functions']} functions"
+            )
 
     # 4. Unused imports
     unused_imports = find_unused_imports(project_root)
@@ -379,7 +414,9 @@ def main():
     import argparse
 
     parser = argparse.ArgumentParser(description="Analyze code quality")
-    parser.add_argument("--output", default="code_quality_report.json", help="Output report file")
+    parser.add_argument(
+        "--output", default="code_quality_report.json", help="Output report file"
+    )
     parser.add_argument("--verbose", action="store_true", help="Verbose output")
     args = parser.parse_args()
 

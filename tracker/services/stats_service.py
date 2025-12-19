@@ -82,7 +82,9 @@ class StatsService:
                 sender__icontains=user_email
             )
         # Exclude headhunter companies and domains
-        applications_week_qs = applications_week_qs.exclude(company__status="headhunter")
+        applications_week_qs = applications_week_qs.exclude(
+            company__status="headhunter"
+        )
         if headhunter_domains:
             applications_week_qs = applications_week_qs.exclude(msg_hh_sender_q)
         applications_week = applications_week_qs.count()
@@ -242,7 +244,9 @@ class StatsService:
                 label for label in metrics["labels"] if label.lower() in valid_labels
             ]
             extra_labels = [
-                label for label in metrics["labels"] if label.lower() not in valid_labels
+                label
+                for label in metrics["labels"]
+                if label.lower() not in valid_labels
             ]
             label_breakdown = {
                 "real_count": len(real_labels),

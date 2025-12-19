@@ -20,11 +20,24 @@ if not IN.exists():
 
 total = 0
 rows = 0
-with IN.open("r", encoding="utf-8", newline="") as inf, OUT.open("w", encoding="utf-8", newline="") as outf:
+with IN.open("r", encoding="utf-8", newline="") as inf, OUT.open(
+    "w", encoding="utf-8", newline=""
+) as outf:
     r = csv.DictReader(inf)
     fieldnames = r.fieldnames or []
     # keep only a subset of fields for the disagreements file
-    out_fields = ["message_id", "thread_id", "timestamp", "reviewed", "subject", "old_label", "old_conf", "new_label", "new_conf", "method"]
+    out_fields = [
+        "message_id",
+        "thread_id",
+        "timestamp",
+        "reviewed",
+        "subject",
+        "old_label",
+        "old_conf",
+        "new_label",
+        "new_conf",
+        "method",
+    ]
     w = csv.DictWriter(outf, fieldnames=out_fields)
     w.writeheader()
 

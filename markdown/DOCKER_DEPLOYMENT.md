@@ -98,7 +98,6 @@ docker run -d \
   -v $(pwd)/db:/app/db \
   -v $(pwd)/logs:/app/logs \
   -v $(pwd)/json/credentials.json:/app/json/credentials.json:ro \
-  -e GMAIL_JOBHUNT_LABEL_ID=your_label_id \
   gmailtracker:latest
 ```
 
@@ -108,7 +107,6 @@ docker run -d \
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `GMAIL_JOBHUNT_LABEL_ID` | *required* | Gmail label ID for job emails |
 | `GMAIL_ROOT_FILTER_LABEL` | `#job-hunt` | Parent label for organizing sub-labels |
 | `DJANGO_SECRET_KEY` | *auto-generated* | Django secret key |
 | `DEBUG` | `False` | Enable debug mode |

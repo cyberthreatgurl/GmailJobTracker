@@ -76,9 +76,6 @@ notepad .env
 
 **Edit `.env` and set AT MINIMUM:**
 ```bash
-# REQUIRED: Your Gmail label ID (get from Gmail settings)
-GMAIL_JOBHUNT_LABEL_ID=Label_1234567890
-
 # RECOMMENDED: Generate a new secret key
 DJANGO_SECRET_KEY=your-random-secret-key-here
 
@@ -108,41 +105,6 @@ DJANGO_SECRET_KEY=django-insecure-xy9#2k$mz@4n8v!p7q&r3s*t6u+w-a=b%c^d_e(f)g{h|i
 ```
 
 **⚠️ Important:** Keep this secret! Never share it or commit it to git.
-
-**How to get GMAIL_JOBHUNT_LABEL_ID:**
-
-1. **Open Gmail** in your web browser
-2. **Go to Settings** (gear icon → "See all settings")
-3. **Click "Labels" tab**
-4. **Find or create** a label for job hunting emails (e.g., "JobHunt")
-5. **Get the Label ID** using one of these methods:
-
-**Method 1: Using Gmail API (Easiest)**
-```powershell
-# After you have credentials.json set up, run:
-python -c "from gmail_auth import get_gmail_service; service = get_gmail_service(); labels = service.users().labels().list(userId='me').execute(); [print(f\"{l['name']}: {l['id']}\") for l in labels['labels']]"
-```
-
-This will list all your labels with their IDs. Look for your job hunting label.
-
-**Method 2: Using Google APIs Explorer**
-1. Go to: https://developers.google.com/gmail/api/reference/rest/v1/users.labels/list
-2. Click "Try this API" on the right
-3. Set `userId` to `me`
-4. Click "Execute"
-5. Find your label in the response and copy the `id` field
-
-**Method 3: Manual inspection (Advanced)**
-1. Use browser developer tools while viewing Gmail
-2. Inspect network requests when clicking your label
-3. Look for `labelId` in the API calls
-
-**Example Label ID:**
-```
-GMAIL_JOBHUNT_LABEL_ID=Label_1234567890123456789
-```
-
-The ID typically starts with `Label_` followed by numbers.
 
 #### B. Add Gmail Credentials
 

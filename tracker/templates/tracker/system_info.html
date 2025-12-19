@@ -60,7 +60,7 @@
         <span class="font-medium text-gray-600">Last Ingestion:</span>
         <span class="text-gray-900">
           {% if last_ingestion %}
-            {{ last_ingestion.ingestion_date|date:"Y-m-d" }}
+            {{ last_ingestion.date|date:"Y-m-d" }}
           {% else %}
             Never
           {% endif %}

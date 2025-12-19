@@ -793,4 +793,62 @@ def retrain_model(request):
     return render(request, "tracker/metrics.html", ctx)
 
 
-__all__ = ['log_viewer', 'retrain_model', 'json_file_viewer', 'reingest_admin', 'reingest_stream', 'configure_settings']
+@login_required
+def system_info(request):
+    """Display system information including version, environment, and dependencies."""
+    try:
+        from __version__ import (
+            __version__,
+            __version_info__,
+            __author__,
+            __description__,
+        )
+    except ImportError:
+        __version__ = "unknown"
+        __version_info__ = (0, 0, 0)
+        __author__ = "unknown"
+        __description__ = "unknown"
+
+    # Get Python version
+    python_version = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
+
+    # Get Django version
+    import django
+    django_version = django.get_version()
+
+    # Get database info
+    from django.conf import settings
+    db_path = settings.DATABASES.get("default", {}).get("NAME", "unknown")
+
+    # Get model info if available
+    model_info = {}
+    model_info_path = Path("model/model_info.json")
+    if model_info_path.exists():
+        try:
+            with open(model_info_path, "r", encoding="utf-8") as f:
+                model_info = json.load(f)
+        except Exception:
+            pass
+
+    # Get message count
+    message_count = Message.objects.count()
+
+    # Get last ingestion
+    last_ingestion = IngestionStats.objects.order_by("-date").first()
+
+    ctx = {
+        "app_version": __version__,
+        "app_version_info": __version_info__,
+        "app_author": __author__,
+        "app_description": __description__,
+        "python_version": python_version,
+        "django_version": django_version,
+        "db_path": db_path,
+        "model_info": model_info,
+        "message_count": message_count,
+        "last_ingestion": last_ingestion,
+    }
+    return render(request, "tracker/system_info.html", ctx)
+
+
+__all__ = ['log_viewer', 'retrain_model', 'json_file_viewer', 'reingest_admin', 'reingest_stream', 'configure_settings', 'system_info']

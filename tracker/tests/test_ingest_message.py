@@ -309,8 +309,6 @@ def test_ingest_subject_parse(monkeypatch, fake_stats, fake_message_model):
     assert captured_record["status"] == "applied"
 
 
-
-
 def test_ingest_ml_fallback(monkeypatch, fake_stats, fake_message_model):
     queryset, manager = fake_message_model
     captured_record = {}

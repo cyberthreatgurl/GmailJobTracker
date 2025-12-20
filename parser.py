@@ -4007,6 +4007,9 @@ def ingest_message(service, msg_id):
                         f"[RE-INGEST HEADHUNTER] Forcing label to head_hunter (was: {result.get('label')})"
                     )
                 result["label"] = "head_hunter"
+                # Clear company for headhunters
+                existing.company = None
+                existing.company_source = "headhunter_domain"
 
         # Forwarded message detection for re-ingestion: override label to "other"
         subject_for_check = metadata.get("subject", "").strip()
@@ -4071,7 +4074,8 @@ def ingest_message(service, msg_id):
 
         # ✅ Also update Application record during re-ingestion if dates are missing
         ml_label = result.get("label") if result else None
-        if company_obj and ml_label:
+        # Skip ThreadTracking updates for headhunters (they shouldn't have ThreadTracking)
+        if company_obj and ml_label and ml_label != "head_hunter":
             try:
                 app = ThreadTracking.objects.filter(
                     thread_id=metadata["thread_id"]

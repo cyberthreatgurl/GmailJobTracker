@@ -6,6 +6,18 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ---
 
+## [1.0.11] - 2025-12-22
+
+### Fixed
+- Head_hunter messages from personal domains (gmail.com, yahoo.com, etc.) now preserve head_hunter label instead of being overridden to noise
+- Head_hunter messages no longer incorrectly assigned company names (they have no single company association)
+
+### Changed
+- Skip company assignment for head_hunter messages - headhunters recruit for multiple companies
+- Improved debug output to show actual label type when skipping company assignment
+
+---
+
 ## [2025-11-22] - Removed Gmail Label Dependencies
 
 ### Changed

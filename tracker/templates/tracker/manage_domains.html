@@ -52,14 +52,14 @@
 
     <!-- Search and Filter Controls -->
     <div class="mb-6 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-        <form method="get" class="flex-1 max-w-2xl">
+        <form method="get" class="w-full sm:w-auto">
             <div class="flex gap-2">
                 <input type="hidden" name="filter" value="{{ current_filter }}">
                 <input type="hidden" name="sort" value="{{ sort_by }}">
                 <input type="hidden" name="order" value="{{ sort_order }}">
-                <div class="relative flex-1">
+                <div class="relative">
                     <input type="search" name="search" 
-                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm" 
+                           class="w-full sm:w-80 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm" 
                            placeholder="Search domains..." 
                            value="{{ search_query }}">
                 </div>
@@ -84,32 +84,39 @@
     <div class="mb-6 border-b border-gray-200">
         <nav class="-mb-px flex flex-wrap gap-2" aria-label="Tabs">
             <a href="?filter=unlabeled{% if search_query %}&search={{ search_query }}{% endif %}&sort={{ sort_by }}&order={{ sort_order }}" 
-               class="px-4 py-3 text-sm font-medium rounded-t-lg transition-colors {% if current_filter == 'unlabeled' %}bg-blue-50 text-blue-700 border-b-2 border-blue-500{% else %}text-gray-600 hover:text-gray-900 hover:bg-gray-50{% endif %}">
-                Unlabeled <span class="ml-2 px-2 py-0.5 text-xs rounded-full {% if current_filter == 'unlabeled' %}bg-blue-100 text-blue-700{% else %}bg-gray-100 text-gray-600{% endif %}">{{ stats.unlabeled }}</span>
+               class="px-4 py-3 text-sm font-medium rounded-t-lg transition-colors {% if current_filter == 'unlabeled' %}bg-blue-100 text-blue-800 border-b-2 border-blue-600{% else %}bg-blue-50 text-blue-700 hover:bg-blue-100{% endif %}"
+               style="{% if current_filter == 'unlabeled' %}background-color: #dbeafe; color: #1e40af; border-bottom: 2px solid #2563eb;{% else %}background-color: #eff6ff; color: #1d4ed8;{% endif %} padding: 0.75rem 1rem; font-size: 0.875rem; font-weight: 500; border-radius: 0.5rem 0.5rem 0 0; text-decoration: none; display: inline-flex; align-items: center;">
+                Unlabeled <span style="margin-left: 0.5rem; padding: 0.125rem 0.5rem; font-size: 0.75rem; border-radius: 9999px; background-color: #bfdbfe; color: #1e40af; font-weight: 600;">{{ stats.unlabeled }}</span>
             </a>
             <a href="?filter=personal{% if search_query %}&search={{ search_query }}{% endif %}&sort={{ sort_by }}&order={{ sort_order }}" 
-               class="px-4 py-3 text-sm font-medium rounded-t-lg transition-colors {% if current_filter == 'personal' %}bg-gray-50 text-gray-700 border-b-2 border-gray-500{% else %}text-gray-600 hover:text-gray-900 hover:bg-gray-50{% endif %}">
-                Personal <span class="ml-2 px-2 py-0.5 text-xs rounded-full {% if current_filter == 'personal' %}bg-gray-100 text-gray-700{% else %}bg-gray-100 text-gray-600{% endif %}">{{ stats.personal }}</span>
+               class="px-4 py-3 text-sm font-medium rounded-t-lg transition-colors {% if current_filter == 'personal' %}bg-gray-200 text-gray-900 border-b-2 border-gray-600{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}"
+               style="{% if current_filter == 'personal' %}background-color: #e5e7eb; color: #111827; border-bottom: 2px solid #4b5563;{% else %}background-color: #f3f4f6; color: #374151;{% endif %} padding: 0.75rem 1rem; font-size: 0.875rem; font-weight: 500; border-radius: 0.5rem 0.5rem 0 0; text-decoration: none; display: inline-flex; align-items: center;">
+                Personal <span style="margin-left: 0.5rem; padding: 0.125rem 0.5rem; font-size: 0.75rem; border-radius: 9999px; background-color: #d1d5db; color: #1f2937; font-weight: 600;">{{ stats.personal }}</span>
             </a>
             <a href="?filter=company{% if search_query %}&search={{ search_query }}{% endif %}&sort={{ sort_by }}&order={{ sort_order }}" 
-               class="px-4 py-3 text-sm font-medium rounded-t-lg transition-colors {% if current_filter == 'company' %}bg-cyan-50 text-cyan-700 border-b-2 border-cyan-500{% else %}text-gray-600 hover:text-gray-900 hover:bg-gray-50{% endif %}">
-                Company <span class="ml-2 px-2 py-0.5 text-xs rounded-full {% if current_filter == 'company' %}bg-cyan-100 text-cyan-700{% else %}bg-gray-100 text-gray-600{% endif %}">{{ stats.company }}</span>
+               class="px-4 py-3 text-sm font-medium rounded-t-lg transition-colors {% if current_filter == 'company' %}bg-cyan-100 text-cyan-900 border-b-2 border-cyan-600{% else %}bg-cyan-50 text-cyan-700 hover:bg-cyan-100{% endif %}"
+               style="{% if current_filter == 'company' %}background-color: #cffafe; color: #164e63; border-bottom: 2px solid #0891b2;{% else %}background-color: #ecfeff; color: #0e7490;{% endif %} padding: 0.75rem 1rem; font-size: 0.875rem; font-weight: 500; border-radius: 0.5rem 0.5rem 0 0; text-decoration: none; display: inline-flex; align-items: center;">
+                Company <span style="margin-left: 0.5rem; padding: 0.125rem 0.5rem; font-size: 0.75rem; border-radius: 9999px; background-color: #a5f3fc; color: #164e63; font-weight: 600;">{{ stats.company }}</span>
             </a>
             <a href="?filter=ats{% if search_query %}&search={{ search_query }}{% endif %}&sort={{ sort_by }}&order={{ sort_order }}" 
-               class="px-4 py-3 text-sm font-medium rounded-t-lg transition-colors {% if current_filter == 'ats' %}bg-green-50 text-green-700 border-b-2 border-green-500{% else %}text-gray-600 hover:text-gray-900 hover:bg-gray-50{% endif %}">
-                ATS <span class="ml-2 px-2 py-0.5 text-xs rounded-full {% if current_filter == 'ats' %}bg-green-100 text-green-700{% else %}bg-gray-100 text-gray-600{% endif %}">{{ stats.ats }}</span>
+               class="px-4 py-3 text-sm font-medium rounded-t-lg transition-colors {% if current_filter == 'ats' %}bg-green-100 text-green-900 border-b-2 border-green-600{% else %}bg-green-50 text-green-700 hover:bg-green-100{% endif %}"
+               style="{% if current_filter == 'ats' %}background-color: #dcfce7; color: #14532d; border-bottom: 2px solid #16a34a;{% else %}background-color: #f0fdf4; color: #15803d;{% endif %} padding: 0.75rem 1rem; font-size: 0.875rem; font-weight: 500; border-radius: 0.5rem 0.5rem 0 0; text-decoration: none; display: inline-flex; align-items: center;">
+                ATS <span style="margin-left: 0.5rem; padding: 0.125rem 0.5rem; font-size: 0.75rem; border-radius: 9999px; background-color: #bbf7d0; color: #14532d; font-weight: 600;">{{ stats.ats }}</span>
             </a>
             <a href="?filter=headhunter{% if search_query %}&search={{ search_query }}{% endif %}&sort={{ sort_by }}&order={{ sort_order }}" 
-               class="px-4 py-3 text-sm font-medium rounded-t-lg transition-colors {% if current_filter == 'headhunter' %}bg-yellow-50 text-yellow-700 border-b-2 border-yellow-500{% else %}text-gray-600 hover:text-gray-900 hover:bg-gray-50{% endif %}">
-                Headhunter <span class="ml-2 px-2 py-0.5 text-xs rounded-full {% if current_filter == 'headhunter' %}bg-yellow-100 text-yellow-700{% else %}bg-gray-100 text-gray-600{% endif %}">{{ stats.headhunter }}</span>
+               class="px-4 py-3 text-sm font-medium rounded-t-lg transition-colors {% if current_filter == 'headhunter' %}bg-orange-100 text-orange-900 border-b-2 border-orange-600{% else %}bg-orange-50 text-orange-700 hover:bg-orange-100{% endif %}"
+               style="{% if current_filter == 'headhunter' %}background-color: #ffedd5; color: #7c2d12; border-bottom: 2px solid #ea580c;{% else %}background-color: #fff7ed; color: #c2410c;{% endif %} padding: 0.75rem 1rem; font-size: 0.875rem; font-weight: 500; border-radius: 0.5rem 0.5rem 0 0; text-decoration: none; display: inline-flex; align-items: center;">
+                Headhunter <span style="margin-left: 0.5rem; padding: 0.125rem 0.5rem; font-size: 0.75rem; border-radius: 9999px; background-color: #fed7aa; color: #7c2d12; font-weight: 600;">{{ stats.headhunter }}</span>
             </a>
             <a href="?filter=job_boards{% if search_query %}&search={{ search_query }}{% endif %}&sort={{ sort_by }}&order={{ sort_order }}" 
-               class="px-4 py-3 text-sm font-medium rounded-t-lg transition-colors {% if current_filter == 'job_boards' %}bg-red-50 text-red-700 border-b-2 border-red-500{% else %}text-gray-600 hover:text-gray-900 hover:bg-gray-50{% endif %}">
-                Job Boards <span class="ml-2 px-2 py-0.5 text-xs rounded-full {% if current_filter == 'job_boards' %}bg-red-100 text-red-700{% else %}bg-gray-100 text-gray-600{% endif %}">{{ stats.job_boards }}</span>
+               class="px-4 py-3 text-sm font-medium rounded-t-lg transition-colors {% if current_filter == 'job_boards' %}bg-red-100 text-red-900 border-b-2 border-red-600{% else %}bg-red-50 text-red-700 hover:bg-red-100{% endif %}"
+               style="{% if current_filter == 'job_boards' %}background-color: #fee2e2; color: #7f1d1d; border-bottom: 2px solid #dc2626;{% else %}background-color: #fef2f2; color: #b91c1c;{% endif %} padding: 0.75rem 1rem; font-size: 0.875rem; font-weight: 500; border-radius: 0.5rem 0.5rem 0 0; text-decoration: none; display: inline-flex; align-items: center;">
+                Job Boards <span style="margin-left: 0.5rem; padding: 0.125rem 0.5rem; font-size: 0.75rem; border-radius: 9999px; background-color: #fecaca; color: #7f1d1d; font-weight: 600;">{{ stats.job_boards }}</span>
             </a>
             <a href="?filter=all{% if search_query %}&search={{ search_query }}{% endif %}&sort={{ sort_by }}&order={{ sort_order }}" 
-               class="px-4 py-3 text-sm font-medium rounded-t-lg transition-colors {% if current_filter == 'all' %}bg-gray-50 text-gray-900 border-b-2 border-gray-700{% else %}text-gray-600 hover:text-gray-900 hover:bg-gray-50{% endif %}">
-                All <span class="ml-2 px-2 py-0.5 text-xs rounded-full {% if current_filter == 'all' %}bg-gray-100 text-gray-700{% else %}bg-gray-100 text-gray-600{% endif %}">{{ stats.total }}</span>
+               class="px-4 py-3 text-sm font-medium rounded-t-lg transition-colors {% if current_filter == 'all' %}bg-indigo-100 text-indigo-900 border-b-2 border-indigo-600{% else %}bg-indigo-50 text-indigo-700 hover:bg-indigo-100{% endif %}"
+               style="{% if current_filter == 'all' %}background-color: #e0e7ff; color: #312e81; border-bottom: 2px solid #4f46e5;{% else %}background-color: #eef2ff; color: #4338ca;{% endif %} padding: 0.75rem 1rem; font-size: 0.875rem; font-weight: 500; border-radius: 0.5rem 0.5rem 0 0; text-decoration: none; display: inline-flex; align-items: center;">
+                All <span style="margin-left: 0.5rem; padding: 0.125rem 0.5rem; font-size: 0.75rem; border-radius: 9999px; background-color: #c7d2fe; color: #312e81; font-weight: 600;">{{ stats.total }}</span>
             </a>
         </nav>
         {% if debug_counts %}
@@ -124,92 +131,83 @@
         <input type="hidden" name="current_filter" value="{{ current_filter }}">
         <input type="hidden" name="search_query" value="{{ search_query }}">
         
-        <!-- Re-ingest Messages Card -->
-        <div class="mb-6 bg-yellow-50 border border-yellow-200 rounded-lg shadow-sm">
-            <div class="p-6">
-                <h5 class="text-lg font-semibold text-gray-900 mb-3 flex items-center">
-                    <svg class="w-5 h-5 mr-2 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
+
+        <!-- Action Cards -->
+        <div class="mb-4" style="max-width: 1200px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+            <!-- Re-ingest Messages Card -->
+            <div class="bg-yellow-50 border border-yellow-200 rounded-lg shadow-sm p-3">
+                <h5 class="text-sm font-semibold text-gray-900 mb-1.5 flex items-center">
+                    <svg class="w-4 h-4 mr-2 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"/>
                     </svg>
                     Re-ingest Messages
                 </h5>
-                <p class="text-sm text-gray-600 mb-4">
-                    After labeling domains, re-ingest messages to apply the new classifications.
+                <p class="text-xs text-gray-600 mb-2">
+                    After labeling domains, re-ingest messages to apply new classifications.
                 </p>
-                <div class="flex flex-col sm:flex-row gap-4 items-start sm:items-end">
-                    <div class="flex-1 max-w-md">
-                        <label for="reingest_filter" class="block text-sm font-medium text-gray-700 mb-2">Re-ingest messages from:</label>
-                        <select name="reingest_filter" id="reingest_filter" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent shadow-sm">
-                            <option value="current_filter">Current filter ({{ domains|length }} domain(s))</option>
-                            <option value="personal">Personal domains only</option>
-                            <option value="selected">Selected domains below</option>
-                            <option value="all_labeled">All labeled domains</option>
-                        </select>
-                    </div>
-                    <button type="submit" name="action" value="reingest_domains" class="px-6 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 transition-colors font-medium shadow-sm whitespace-nowrap">
-                        🔄 Re-ingest Messages
+                <div class="flex flex-col gap-2">
+                    <select name="reingest_filter" id="reingest_filter" class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-yellow-500 focus:border-transparent">
+                        <option value="current_filter">Current filter ({{ domains|length }} domain(s))</option>
+                        <option value="personal">Personal domains only</option>
+                        <option value="selected">Selected domains below</option>
+                        <option value="all_labeled">All labeled domains</option>
+                    </select>
+                    <button type="submit" name="action" value="reingest_domains" class="w-full px-4 py-1.5 text-sm bg-yellow-600 text-white rounded-md hover:bg-yellow-700 focus:ring-2 focus:ring-yellow-500 focus:ring-offset-1 transition-colors font-medium">
+                        🔄 Re-ingest
                     </button>
-                    <p class="text-xs text-gray-500 sm:ml-4">
-                        <strong>Note:</strong> May take several minutes for large datasets.
-                    </p>
                 </div>
             </div>
-        </div>
 
-        <!-- Sync Database Card -->
-        <div class="mb-6 bg-cyan-50 border border-cyan-200 rounded-lg shadow-sm">
-            <div class="p-6">
-                <h5 class="text-lg font-semibold text-gray-900 mb-3 flex items-center">
-                    <svg class="w-5 h-5 mr-2 text-cyan-600" fill="currentColor" viewBox="0 0 20 20">
+            <!-- Sync Database Card -->
+            <div class="bg-cyan-50 border border-cyan-200 rounded-lg shadow-sm p-3">
+                <h5 class="text-sm font-semibold text-gray-900 mb-1.5 flex items-center">
+                    <svg class="w-4 h-4 mr-2 text-cyan-600" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/>
                     </svg>
-                    Sync Database to JSON
+                    Sync to companies.json
                 </h5>
-                <p class="text-sm text-gray-600 mb-4">
-                    Sync company domains from the database to companies.json. This adds domains from the Label Companies page to the configuration file.
+                <p class="text-xs text-gray-600 mb-2">
+                    Export company/headhunter domains from database to configuration file.
                 </p>
-                <div class="flex flex-col sm:flex-row gap-4 items-start">
-                    <button type="submit" name="action" value="sync_db_to_json" class="px-6 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 transition-colors font-medium shadow-sm">
-                        📥 Sync Domains to companies.json
-                    </button>
-                    <p class="text-xs text-gray-500 sm:ml-4">
-                        <strong>Note:</strong> Only syncs domains labeled as Company or Headhunter. Personal/receipt domains are skipped.
-                    </p>
-                </div>
+                <button type="submit" name="action" value="sync_db_to_json" class="w-full px-4 py-1.5 text-sm bg-cyan-600 text-white rounded-md hover:bg-cyan-700 focus:ring-2 focus:ring-cyan-500 focus:ring-offset-1 transition-colors font-medium">
+                    📥 Sync to JSON
+                </button>
+            </div>
             </div>
         </div>
 
         <!-- Bulk Action Buttons -->
-        <div class="mb-6 bg-gray-50 p-4 rounded-lg border border-gray-200">
-            <div class="flex flex-wrap gap-3 items-center">
-                <span class="text-sm font-medium text-gray-700 flex-shrink-0">Bulk Actions:</span>
-                <button type="submit" name="action" value="bulk_label" data-label-type="personal" class="label-btn flex-shrink-0 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors font-medium shadow-sm text-sm whitespace-nowrap">
-                    Mark as Personal
+        <div class="mb-4 bg-gray-50 p-3 rounded-lg border border-gray-200" style="max-width: 1200px;">
+            <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;">
+                <span class="text-sm font-medium text-gray-700" style="margin-right: 0.5rem;">Bulk Actions:</span>
+                <button type="submit" name="action" value="bulk_label" data-label-type="personal" class="label-btn" style="padding: 0.375rem 0.75rem; background-color: #4b5563; color: white; border-radius: 0.375rem; font-weight: 500; font-size: 0.875rem; cursor: pointer; border: none;">
+                    Personal
                 </button>
-                <button type="submit" name="action" value="bulk_label" data-label-type="company" class="label-btn flex-shrink-0 px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 transition-colors font-medium shadow-sm text-sm whitespace-nowrap">
-                    Mark as Company
+                <button type="submit" name="action" value="bulk_label" data-label-type="company" class="label-btn" style="padding: 0.375rem 0.75rem; background-color: #0891b2; color: white; border-radius: 0.375rem; font-weight: 500; font-size: 0.875rem; cursor: pointer; border: none;">
+                    Company
                 </button>
-                <button type="submit" name="action" value="bulk_label" data-label-type="ats" class="label-btn flex-shrink-0 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors font-medium shadow-sm text-sm whitespace-nowrap">
-                    Mark as ATS
+                <button type="submit" name="action" value="bulk_label" data-label-type="ats" class="label-btn" style="padding: 0.375rem 0.75rem; background-color: #059669; color: white; border-radius: 0.375rem; font-weight: 500; font-size: 0.875rem; cursor: pointer; border: none;">
+                    ATS
                 </button>
-                <button type="submit" name="action" value="bulk_label" data-label-type="headhunter" class="label-btn flex-shrink-0 px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 transition-colors font-medium shadow-sm text-sm whitespace-nowrap">
-                    Mark as Headhunter
+                <button type="submit" name="action" value="bulk_label" data-label-type="headhunter" class="label-btn" style="padding: 0.375rem 0.75rem; background-color: #d97706; color: white; border-radius: 0.375rem; font-weight: 500; font-size: 0.875rem; cursor: pointer; border: none;">
+                    Headhunter
                 </button>
-                <button type="submit" name="action" value="bulk_label" data-label-type="job_boards" class="label-btn flex-shrink-0 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors font-medium shadow-sm text-sm whitespace-nowrap">
-                    Mark as Job Board
+                <button type="submit" name="action" value="bulk_label" data-label-type="job_boards" class="label-btn" style="padding: 0.375rem 0.75rem; background-color: #dc2626; color: white; border-radius: 0.375rem; font-weight: 500; font-size: 0.875rem; cursor: pointer; border: none;">
+                    Job Board
                 </button>
-                <div class="border-l border-gray-300 h-8 flex-shrink-0"></div>
-                <button type="button" id="select-all" class="flex-shrink-0 px-4 py-2 bg-white text-gray-700 rounded-lg hover:bg-gray-100 border border-gray-300 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors font-medium shadow-sm text-sm whitespace-nowrap">
+                <span style="border-left: 1px solid #d1d5db; height: 1.5rem; margin: 0 0.5rem;"></span>
+                <button type="button" id="select-all" style="padding: 0.375rem 0.75rem; background-color: white; color: #374151; border: 1px solid #d1d5db; border-radius: 0.375rem; font-weight: 500; font-size: 0.875rem; cursor: pointer;">
                     Select All
                 </button>
-                <button type="button" id="deselect-all" class="flex-shrink-0 px-4 py-2 bg-white text-gray-700 rounded-lg hover:bg-gray-100 border border-gray-300 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors font-medium shadow-sm text-sm whitespace-nowrap">
+                <button type="button" id="deselect-all" style="padding: 0.375rem 0.75rem; background-color: white; color: #374151; border: 1px solid #d1d5db; border-radius: 0.375rem; font-weight: 500; font-size: 0.875rem; cursor: pointer;">
                     Deselect All
                 </button>
             </div>
         </div>
 
         <!-- Domains Table -->
-        <div class="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
+        <div class="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden" style="max-width: 1200px;">
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">

@@ -180,30 +180,32 @@
         </div>
 
         <!-- Bulk Action Buttons -->
-        <div class="mb-6 flex flex-wrap gap-3 items-center bg-gray-50 p-4 rounded-lg border border-gray-200">
-            <span class="text-sm font-medium text-gray-700">Bulk Actions:</span>
-            <button type="submit" name="action" value="bulk_label" data-label-type="personal" class="label-btn px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors font-medium shadow-sm text-sm">
-                Mark as Personal
-            </button>
-            <button type="submit" name="action" value="bulk_label" data-label-type="company" class="label-btn px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 transition-colors font-medium shadow-sm text-sm">
-                Mark as Company
-            </button>
-            <button type="submit" name="action" value="bulk_label" data-label-type="ats" class="label-btn px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors font-medium shadow-sm text-sm">
-                Mark as ATS
-            </button>
-            <button type="submit" name="action" value="bulk_label" data-label-type="headhunter" class="label-btn px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 transition-colors font-medium shadow-sm text-sm">
-                Mark as Headhunter
-            </button>
-            <button type="submit" name="action" value="bulk_label" data-label-type="job_boards" class="label-btn px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors font-medium shadow-sm text-sm">
-                Mark as Job Board
-            </button>
-            <span class="border-l border-gray-300 h-8 mx-2"></span>
-            <button type="button" id="select-all" class="px-4 py-2 bg-white text-gray-700 rounded-lg hover:bg-gray-100 border border-gray-300 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors font-medium shadow-sm text-sm">
-                Select All
-            </button>
-            <button type="button" id="deselect-all" class="px-4 py-2 bg-white text-gray-700 rounded-lg hover:bg-gray-100 border border-gray-300 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors font-medium shadow-sm text-sm">
-                Deselect All
-            </button>
+        <div class="mb-6 bg-gray-50 p-4 rounded-lg border border-gray-200">
+            <div class="flex flex-wrap gap-3 items-center">
+                <span class="text-sm font-medium text-gray-700 flex-shrink-0">Bulk Actions:</span>
+                <button type="submit" name="action" value="bulk_label" data-label-type="personal" class="label-btn flex-shrink-0 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors font-medium shadow-sm text-sm whitespace-nowrap">
+                    Mark as Personal
+                </button>
+                <button type="submit" name="action" value="bulk_label" data-label-type="company" class="label-btn flex-shrink-0 px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 transition-colors font-medium shadow-sm text-sm whitespace-nowrap">
+                    Mark as Company
+                </button>
+                <button type="submit" name="action" value="bulk_label" data-label-type="ats" class="label-btn flex-shrink-0 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors font-medium shadow-sm text-sm whitespace-nowrap">
+                    Mark as ATS
+                </button>
+                <button type="submit" name="action" value="bulk_label" data-label-type="headhunter" class="label-btn flex-shrink-0 px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 transition-colors font-medium shadow-sm text-sm whitespace-nowrap">
+                    Mark as Headhunter
+                </button>
+                <button type="submit" name="action" value="bulk_label" data-label-type="job_boards" class="label-btn flex-shrink-0 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors font-medium shadow-sm text-sm whitespace-nowrap">
+                    Mark as Job Board
+                </button>
+                <div class="border-l border-gray-300 h-8 flex-shrink-0"></div>
+                <button type="button" id="select-all" class="flex-shrink-0 px-4 py-2 bg-white text-gray-700 rounded-lg hover:bg-gray-100 border border-gray-300 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors font-medium shadow-sm text-sm whitespace-nowrap">
+                    Select All
+                </button>
+                <button type="button" id="deselect-all" class="flex-shrink-0 px-4 py-2 bg-white text-gray-700 rounded-lg hover:bg-gray-100 border border-gray-300 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors font-medium shadow-sm text-sm whitespace-nowrap">
+                    Deselect All
+                </button>
+            </div>
         </div>
 
         <!-- Domains Table -->

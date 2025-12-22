@@ -1983,7 +1983,7 @@ def looks_like_person(name: str) -> bool:
     return _company_validator.looks_like_person(name)
 
 
-PARSER_VERSION = "1.0.10"
+PARSER_VERSION = "1.0.11"
 
 # --- ML Model Paths ---
 # Message classification is handled by ml_subject_classifier.py (imported on line 27)

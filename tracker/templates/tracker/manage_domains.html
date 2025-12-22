@@ -1,94 +1,122 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container-fluid mt-4">
-    <div class="row">
-        <div class="col-12">
-            <h2>Domain Configuration</h2>
-            <p class="text-muted">
-                Classify email domains to improve message classification accuracy. 
-                Domains are automatically extracted from ingested messages.
-            </p>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header Section -->
+    <div class="mb-8">
+        <h2 class="text-3xl font-bold text-gray-900 mb-2">Domain Configuration</h2>
+        <p class="text-gray-600">
+            Classify email domains to improve message classification accuracy. 
+            Domains are automatically extracted from ingested messages.
+        </p>
+    </div>
+
+    <!-- Success Message -->
+    {% if message %}
+    <div class="mb-6 bg-green-50 border-l-4 border-green-400 p-4 rounded-md">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center">
+                <svg class="h-5 w-5 text-green-400 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                </svg>
+                <p class="text-sm text-green-700">{{ message }}</p>
+            </div>
+            <button type="button" onclick="this.parentElement.parentElement.remove()" class="text-green-400 hover:text-green-600">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
         </div>
     </div>
-
-    {% if message %}
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        {{ message }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
     {% endif %}
 
+    <!-- Error Message -->
     {% if error %}
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        {{ error }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    <div class="mb-6 bg-red-50 border-l-4 border-red-400 p-4 rounded-md">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center">
+                <svg class="h-5 w-5 text-red-400 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                </svg>
+                <p class="text-sm text-red-700">{{ error }}</p>
+            </div>
+            <button type="button" onclick="this.parentElement.parentElement.remove()" class="text-red-400 hover:text-red-600">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
     </div>
     {% endif %}
 
 
-
-    <div class="row mb-3">
-        <div class="col-md-6">
-            <form method="get" class="d-flex gap-2">
+    <!-- Search and Filter Controls -->
+    <div class="mb-6 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+        <form method="get" class="flex-1 max-w-2xl">
+            <div class="flex gap-2">
                 <input type="hidden" name="filter" value="{{ current_filter }}">
                 <input type="hidden" name="sort" value="{{ sort_by }}">
                 <input type="hidden" name="order" value="{{ sort_order }}">
-                <input type="search" name="search" class="form-control" 
-                       placeholder="Search domains..." value="{{ search_query }}">
-                <button type="submit" class="btn btn-primary">🔍 Search</button>
+                <div class="relative flex-1">
+                    <input type="search" name="search" 
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm" 
+                           placeholder="Search domains..." 
+                           value="{{ search_query }}">
+                </div>
+                <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors font-medium shadow-sm">
+                    🔍 Search
+                </button>
                 {% if search_query %}
                     <a href="?filter={{ current_filter }}&sort={{ sort_by }}&order={{ sort_order }}" 
-                       class="btn btn-outline-secondary">Clear</a>
+                       class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium border border-gray-300">
+                        Clear
+                    </a>
                 {% endif %}
-            </form>
-        </div>
-        <div class="col-md-6 text-end">
-            <small class="text-muted">
-                Showing {{ domains|length }} domain(s)
-                {% if search_query %}matching "{{ search_query }}"{% endif %}
-            </small>
+            </div>
+        </form>
+        <div class="text-sm text-gray-600">
+            Showing <span class="font-semibold">{{ domains|length }}</span> domain(s)
+            {% if search_query %}matching "<span class="font-semibold">{{ search_query }}</span>"{% endif %}
         </div>
     </div>
 
-    <div class="row mb-3">
-        <div class="col-12">
-            <div class="btn-group" role="group">
-                <a href="?filter=unlabeled{% if search_query %}&search={{ search_query }}{% endif %}&sort={{ sort_by }}&order={{ sort_order }}" 
-                   class="btn btn-outline-primary {% if current_filter == 'unlabeled' %}active{% endif %}">
-                    Unlabeled ({{ stats.unlabeled }})
-                </a>
-                <a href="?filter=personal{% if search_query %}&search={{ search_query }}{% endif %}&sort={{ sort_by }}&order={{ sort_order }}" 
-                   class="btn btn-outline-secondary {% if current_filter == 'personal' %}active{% endif %}">
-                    Personal ({{ stats.personal }})
-                </a>
-                <a href="?filter=company{% if search_query %}&search={{ search_query }}{% endif %}&sort={{ sort_by }}&order={{ sort_order }}" 
-                   class="btn btn-outline-info {% if current_filter == 'company' %}active{% endif %}">
-                    Company ({{ stats.company }})
-                </a>
-                <a href="?filter=ats{% if search_query %}&search={{ search_query }}{% endif %}&sort={{ sort_by }}&order={{ sort_order }}" 
-                   class="btn btn-outline-success {% if current_filter == 'ats' %}active{% endif %}">
-                    ATS ({{ stats.ats }})
-                </a>
-                <a href="?filter=headhunter{% if search_query %}&search={{ search_query }}{% endif %}&sort={{ sort_by }}&order={{ sort_order }}" 
-                   class="btn btn-outline-warning {% if current_filter == 'headhunter' %}active{% endif %}">
-                    Headhunter ({{ stats.headhunter }})
-                </a>
-                <a href="?filter=job_boards{% if search_query %}&search={{ search_query }}{% endif %}&sort={{ sort_by }}&order={{ sort_order }}" 
-                   class="btn btn-outline-danger {% if current_filter == 'job_boards' %}active{% endif %}">
-                    Job Boards ({{ stats.job_boards }})
-                </a>
-                <a href="?filter=all{% if search_query %}&search={{ search_query }}{% endif %}&sort={{ sort_by }}&order={{ sort_order }}" 
-                   class="btn btn-outline-dark {% if current_filter == 'all' %}active{% endif %}">
-                    All ({{ stats.total }})
-                </a>
-            </div>
-                        {% if debug_counts %}
-                        <div class="mt-2">
-                            <small class="text-muted">Debug: Job Board badge={{ debug_counts.job_board_badge_count }}, DB distinct={{ debug_counts.job_board_db_count }}</small>
-                        </div>
-                        {% endif %}
+    <!-- Filter Tabs -->
+    <div class="mb-6 border-b border-gray-200">
+        <nav class="-mb-px flex flex-wrap gap-2" aria-label="Tabs">
+            <a href="?filter=unlabeled{% if search_query %}&search={{ search_query }}{% endif %}&sort={{ sort_by }}&order={{ sort_order }}" 
+               class="px-4 py-3 text-sm font-medium rounded-t-lg transition-colors {% if current_filter == 'unlabeled' %}bg-blue-50 text-blue-700 border-b-2 border-blue-500{% else %}text-gray-600 hover:text-gray-900 hover:bg-gray-50{% endif %}">
+                Unlabeled <span class="ml-2 px-2 py-0.5 text-xs rounded-full {% if current_filter == 'unlabeled' %}bg-blue-100 text-blue-700{% else %}bg-gray-100 text-gray-600{% endif %}">{{ stats.unlabeled }}</span>
+            </a>
+            <a href="?filter=personal{% if search_query %}&search={{ search_query }}{% endif %}&sort={{ sort_by }}&order={{ sort_order }}" 
+               class="px-4 py-3 text-sm font-medium rounded-t-lg transition-colors {% if current_filter == 'personal' %}bg-gray-50 text-gray-700 border-b-2 border-gray-500{% else %}text-gray-600 hover:text-gray-900 hover:bg-gray-50{% endif %}">
+                Personal <span class="ml-2 px-2 py-0.5 text-xs rounded-full {% if current_filter == 'personal' %}bg-gray-100 text-gray-700{% else %}bg-gray-100 text-gray-600{% endif %}">{{ stats.personal }}</span>
+            </a>
+            <a href="?filter=company{% if search_query %}&search={{ search_query }}{% endif %}&sort={{ sort_by }}&order={{ sort_order }}" 
+               class="px-4 py-3 text-sm font-medium rounded-t-lg transition-colors {% if current_filter == 'company' %}bg-cyan-50 text-cyan-700 border-b-2 border-cyan-500{% else %}text-gray-600 hover:text-gray-900 hover:bg-gray-50{% endif %}">
+                Company <span class="ml-2 px-2 py-0.5 text-xs rounded-full {% if current_filter == 'company' %}bg-cyan-100 text-cyan-700{% else %}bg-gray-100 text-gray-600{% endif %}">{{ stats.company }}</span>
+            </a>
+            <a href="?filter=ats{% if search_query %}&search={{ search_query }}{% endif %}&sort={{ sort_by }}&order={{ sort_order }}" 
+               class="px-4 py-3 text-sm font-medium rounded-t-lg transition-colors {% if current_filter == 'ats' %}bg-green-50 text-green-700 border-b-2 border-green-500{% else %}text-gray-600 hover:text-gray-900 hover:bg-gray-50{% endif %}">
+                ATS <span class="ml-2 px-2 py-0.5 text-xs rounded-full {% if current_filter == 'ats' %}bg-green-100 text-green-700{% else %}bg-gray-100 text-gray-600{% endif %}">{{ stats.ats }}</span>
+            </a>
+            <a href="?filter=headhunter{% if search_query %}&search={{ search_query }}{% endif %}&sort={{ sort_by }}&order={{ sort_order }}" 
+               class="px-4 py-3 text-sm font-medium rounded-t-lg transition-colors {% if current_filter == 'headhunter' %}bg-yellow-50 text-yellow-700 border-b-2 border-yellow-500{% else %}text-gray-600 hover:text-gray-900 hover:bg-gray-50{% endif %}">
+                Headhunter <span class="ml-2 px-2 py-0.5 text-xs rounded-full {% if current_filter == 'headhunter' %}bg-yellow-100 text-yellow-700{% else %}bg-gray-100 text-gray-600{% endif %}">{{ stats.headhunter }}</span>
+            </a>
+            <a href="?filter=job_boards{% if search_query %}&search={{ search_query }}{% endif %}&sort={{ sort_by }}&order={{ sort_order }}" 
+               class="px-4 py-3 text-sm font-medium rounded-t-lg transition-colors {% if current_filter == 'job_boards' %}bg-red-50 text-red-700 border-b-2 border-red-500{% else %}text-gray-600 hover:text-gray-900 hover:bg-gray-50{% endif %}">
+                Job Boards <span class="ml-2 px-2 py-0.5 text-xs rounded-full {% if current_filter == 'job_boards' %}bg-red-100 text-red-700{% else %}bg-gray-100 text-gray-600{% endif %}">{{ stats.job_boards }}</span>
+            </a>
+            <a href="?filter=all{% if search_query %}&search={{ search_query }}{% endif %}&sort={{ sort_by }}&order={{ sort_order }}" 
+               class="px-4 py-3 text-sm font-medium rounded-t-lg transition-colors {% if current_filter == 'all' %}bg-gray-50 text-gray-900 border-b-2 border-gray-700{% else %}text-gray-600 hover:text-gray-900 hover:bg-gray-50{% endif %}">
+                All <span class="ml-2 px-2 py-0.5 text-xs rounded-full {% if current_filter == 'all' %}bg-gray-100 text-gray-700{% else %}bg-gray-100 text-gray-600{% endif %}">{{ stats.total }}</span>
+            </a>
+        </nav>
+        {% if debug_counts %}
+        <div class="mt-2 px-4">
+            <small class="text-xs text-gray-500">Debug: Job Board badge={{ debug_counts.job_board_badge_count }}, DB distinct={{ debug_counts.job_board_db_count }}</small>
         </div>
+        {% endif %}
     </div>
 
     <form method="post" action="{% url 'manage_domains' %}">
@@ -96,274 +124,302 @@
         <input type="hidden" name="current_filter" value="{{ current_filter }}">
         <input type="hidden" name="search_query" value="{{ search_query }}">
         
-        <div class="row mb-3">
-            <div class="col-12">
-                <div class="card bg-light">
-                    <div class="card-body">
-                        <h5 class="card-title">🔄 Re-ingest Messages</h5>
-                        <p class="card-text mb-2">
-                            After labeling domains, re-ingest messages to apply the new classifications.
-                        </p>
-                        <div class="row align-items-end">
-                            <div class="col-md-4">
-                                <label for="reingest_filter" class="form-label">Re-ingest messages from:</label>
-                                <select name="reingest_filter" id="reingest_filter" class="form-select">
-                                    <option value="current_filter">Current filter ({{ domains|length }} domain(s))</option>
-                                    <option value="personal">Personal domains only</option>
-                                    <option value="selected">Selected domains below</option>
-                                    <option value="all_labeled">All labeled domains</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <button type="submit" name="action" value="reingest_domains" class="btn btn-warning">
-                                    🔄 Re-ingest Messages
-                                </button>
-                            </div>
-                            <div class="col-md-5">
-                                <small class="text-muted">
-                                    <strong>Note:</strong> May take several minutes for large datasets.
-                                </small>
-                            </div>
-                        </div>
+        <!-- Re-ingest Messages Card -->
+        <div class="mb-6 bg-yellow-50 border border-yellow-200 rounded-lg shadow-sm">
+            <div class="p-6">
+                <h5 class="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"/>
+                    </svg>
+                    Re-ingest Messages
+                </h5>
+                <p class="text-sm text-gray-600 mb-4">
+                    After labeling domains, re-ingest messages to apply the new classifications.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 items-start sm:items-end">
+                    <div class="flex-1 max-w-md">
+                        <label for="reingest_filter" class="block text-sm font-medium text-gray-700 mb-2">Re-ingest messages from:</label>
+                        <select name="reingest_filter" id="reingest_filter" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent shadow-sm">
+                            <option value="current_filter">Current filter ({{ domains|length }} domain(s))</option>
+                            <option value="personal">Personal domains only</option>
+                            <option value="selected">Selected domains below</option>
+                            <option value="all_labeled">All labeled domains</option>
+                        </select>
                     </div>
+                    <button type="submit" name="action" value="reingest_domains" class="px-6 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 transition-colors font-medium shadow-sm whitespace-nowrap">
+                        🔄 Re-ingest Messages
+                    </button>
+                    <p class="text-xs text-gray-500 sm:ml-4">
+                        <strong>Note:</strong> May take several minutes for large datasets.
+                    </p>
                 </div>
             </div>
         </div>
 
-        <div class="row mb-3">
-            <div class="col-12">
-                <div class="card bg-info bg-opacity-10 border-info">
-                    <div class="card-body">
-                        <h5 class="card-title">📥 Sync Database to JSON</h5>
-                        <p class="card-text mb-2">
-                            Sync company domains from the database to companies.json. This adds domains from the Label Companies page to the configuration file.
-                        </p>
-                        <div class="row align-items-end">
-                            <div class="col-md-6">
-                                <button type="submit" name="action" value="sync_db_to_json" class="btn btn-info">
-                                    📥 Sync Domains to companies.json
-                                </button>
-                            </div>
-                            <div class="col-md-6">
-                                <small class="text-muted">
-                                    <strong>Note:</strong> Only syncs domains labeled as Company or Headhunter. Personal/receipt domains are skipped.
-                                </small>
-                            </div>
-                        </div>
-                    </div>
+        <!-- Sync Database Card -->
+        <div class="mb-6 bg-cyan-50 border border-cyan-200 rounded-lg shadow-sm">
+            <div class="p-6">
+                <h5 class="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-cyan-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                    </svg>
+                    Sync Database to JSON
+                </h5>
+                <p class="text-sm text-gray-600 mb-4">
+                    Sync company domains from the database to companies.json. This adds domains from the Label Companies page to the configuration file.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 items-start">
+                    <button type="submit" name="action" value="sync_db_to_json" class="px-6 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 transition-colors font-medium shadow-sm">
+                        📥 Sync Domains to companies.json
+                    </button>
+                    <p class="text-xs text-gray-500 sm:ml-4">
+                        <strong>Note:</strong> Only syncs domains labeled as Company or Headhunter. Personal/receipt domains are skipped.
+                    </p>
                 </div>
             </div>
         </div>
 
-        <div class="row mb-3">
-            <div class="col-12">
-                <button type="submit" name="action" value="bulk_label" data-label-type="personal" class="btn btn-secondary label-btn">
-                    Mark Selected as Personal
-                </button>
-                <button type="submit" name="action" value="bulk_label" data-label-type="company" class="btn btn-info label-btn">
-                    Mark Selected as Company
-                </button>
-                <button type="submit" name="action" value="bulk_label" data-label-type="ats" class="btn btn-success label-btn">
-                    Mark Selected as ATS
-                </button>
-                <button type="submit" name="action" value="bulk_label" data-label-type="headhunter" class="btn btn-warning label-btn">
-                    Mark Selected as Headhunter
-                </button>
-                <button type="submit" name="action" value="bulk_label" data-label-type="job_boards" class="btn btn-danger label-btn">
-                    Mark Selected as Job Board
-                </button>
-                <span class="mx-2">|</span>
-                <button type="button" id="select-all" class="btn btn-outline-secondary">
-                    Select All
-                </button>
-                <button type="button" id="deselect-all" class="btn btn-outline-secondary">
-                    Deselect All
-                </button>
-            </div>
+        <!-- Bulk Action Buttons -->
+        <div class="mb-6 flex flex-wrap gap-3 items-center bg-gray-50 p-4 rounded-lg border border-gray-200">
+            <span class="text-sm font-medium text-gray-700">Bulk Actions:</span>
+            <button type="submit" name="action" value="bulk_label" data-label-type="personal" class="label-btn px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors font-medium shadow-sm text-sm">
+                Mark as Personal
+            </button>
+            <button type="submit" name="action" value="bulk_label" data-label-type="company" class="label-btn px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 transition-colors font-medium shadow-sm text-sm">
+                Mark as Company
+            </button>
+            <button type="submit" name="action" value="bulk_label" data-label-type="ats" class="label-btn px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors font-medium shadow-sm text-sm">
+                Mark as ATS
+            </button>
+            <button type="submit" name="action" value="bulk_label" data-label-type="headhunter" class="label-btn px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 transition-colors font-medium shadow-sm text-sm">
+                Mark as Headhunter
+            </button>
+            <button type="submit" name="action" value="bulk_label" data-label-type="job_boards" class="label-btn px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors font-medium shadow-sm text-sm">
+                Mark as Job Board
+            </button>
+            <span class="border-l border-gray-300 h-8 mx-2"></span>
+            <button type="button" id="select-all" class="px-4 py-2 bg-white text-gray-700 rounded-lg hover:bg-gray-100 border border-gray-300 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors font-medium shadow-sm text-sm">
+                Select All
+            </button>
+            <button type="button" id="deselect-all" class="px-4 py-2 bg-white text-gray-700 rounded-lg hover:bg-gray-100 border border-gray-300 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors font-medium shadow-sm text-sm">
+                Deselect All
+            </button>
         </div>
 
-        <div class="table-responsive">
-            <table class="table table-striped table-hover">
-                <thead>
-                    <tr>
-                        <th style="width: 50px;">
-                            <input type="checkbox" id="select-all-checkbox">
-                        </th>
-                        <th>
-                            <a href="?filter={{ current_filter }}{% if search_query %}&search={{ search_query }}{% endif %}&sort=domain&order={% if sort_by == 'domain' and sort_order == 'asc' %}desc{% else %}asc{% endif %}" 
-                               class="text-decoration-none text-dark">
-                                Domain 
-                                {% if sort_by == 'domain' %}
-                                    {% if sort_order == 'asc' %}↑{% else %}↓{% endif %}
+        <!-- Domains Table -->
+        <div class="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left">
+                                <input type="checkbox" id="select-all-checkbox" class="w-4 h-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 focus:ring-2 cursor-pointer">
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <a href="?filter={{ current_filter }}{% if search_query %}&search={{ search_query }}{% endif %}&sort=domain&order={% if sort_by == 'domain' and sort_order == 'asc' %}desc{% else %}asc{% endif %}" 
+                                   class="flex items-center hover:text-gray-700 transition-colors">
+                                    Domain 
+                                    {% if sort_by == 'domain' %}
+                                        {% if sort_order == 'asc' %}
+                                            <svg class="w-4 h-4 ml-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd"/></svg>
+                                        {% else %}
+                                            <svg class="w-4 h-4 ml-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+                                        {% endif %}
+                                    {% endif %}
+                                </a>
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <a href="?filter={{ current_filter }}{% if search_query %}&search={{ search_query }}{% endif %}&sort=count&order={% if sort_by == 'count' and sort_order == 'asc' %}desc{% else %}asc{% endif %}" 
+                                   class="flex items-center hover:text-gray-700 transition-colors">
+                                    Count 
+                                    {% if sort_by == 'count' %}
+                                        {% if sort_order == 'asc' %}
+                                            <svg class="w-4 h-4 ml-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd"/></svg>
+                                        {% else %}
+                                            <svg class="w-4 h-4 ml-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+                                        {% endif %}
+                                    {% endif %}
+                                </a>
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <a href="?filter={{ current_filter }}{% if search_query %}&search={{ search_query }}{% endif %}&sort=label&order={% if sort_by == 'label' and sort_order == 'asc' %}desc{% else %}asc{% endif %}" 
+                                   class="flex items-center hover:text-gray-700 transition-colors">
+                                    Label 
+                                    {% if sort_by == 'label' %}
+                                        {% if sort_order == 'asc' %}
+                                            <svg class="w-4 h-4 ml-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd"/></svg>
+                                        {% else %}
+                                            <svg class="w-4 h-4 ml-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+                                        {% endif %}
+                                    {% endif %}
+                                </a>
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sample Senders</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for domain_info in domains %}
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <input type="checkbox" name="domains" value="{{ domain_info.domain }}" 
+                                       class="domain-checkbox w-4 h-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 focus:ring-2 cursor-pointer">
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="text-sm font-medium text-gray-900">{{ domain_info.domain }}</span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                    {{ domain_info.count }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {% if domain_info.label == 'personal' %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">Personal</span>
+                                {% elif domain_info.label == 'company' %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-cyan-100 text-cyan-800">Company</span>
+                                {% elif domain_info.label == 'ats' %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">ATS</span>
+                                {% elif domain_info.label == 'headhunter' %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Headhunter</span>
+                                {% elif domain_info.label == 'job_boards' %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Job Board</span>
+                                {% else %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">Unlabeled</span>
                                 {% endif %}
-                            </a>
-                        </th>
-                        <th>
-                            <a href="?filter={{ current_filter }}{% if search_query %}&search={{ search_query }}{% endif %}&sort=count&order={% if sort_by == 'count' and sort_order == 'asc' %}desc{% else %}asc{% endif %}" 
-                               class="text-decoration-none text-dark">
-                                Message Count 
-                                {% if sort_by == 'count' %}
-                                    {% if sort_order == 'asc' %}↑{% else %}↓{% endif %}
+                                {% if domain_info.company_name %}
+                                    <br><span class="text-xs text-gray-500">→ {{ domain_info.company_name }}</span>
                                 {% endif %}
-                            </a>
-                        </th>
-                        <th>
-                            <a href="?filter={{ current_filter }}{% if search_query %}&search={{ search_query }}{% endif %}&sort=label&order={% if sort_by == 'label' and sort_order == 'asc' %}desc{% else %}asc{% endif %}" 
-                               class="text-decoration-none text-dark">
-                                Current Label 
-                                {% if sort_by == 'label' %}
-                                    {% if sort_order == 'asc' %}↑{% else %}↓{% endif %}
-                                {% endif %}
-                            </a>
-                        </th>
-                        <th>Sample Senders</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for domain_info in domains %}
-                    <tr>
-                        <td>
-                            <input type="checkbox" name="domains" value="{{ domain_info.domain }}" 
-                                   class="domain-checkbox">
-                        </td>
-                        <td>
-                            <strong>{{ domain_info.domain }}</strong>
-                        </td>
-                        <td>
-                            <span class="badge bg-secondary">{{ domain_info.count }}</span>
-                        </td>
-                        <td>
-                            {% if domain_info.label == 'personal' %}
-                                <span class="badge bg-secondary">Personal</span>
-                            {% elif domain_info.label == 'company' %}
-                                <span class="badge bg-info">Company</span>
-                            {% elif domain_info.label == 'ats' %}
-                                <span class="badge bg-success">ATS</span>
-                            {% elif domain_info.label == 'headhunter' %}
-                                <span class="badge bg-warning">Headhunter</span>
-                            {% elif domain_info.label == 'job_boards' %}
-                                <span class="badge bg-danger">Job Board</span>
-                            {% else %}
-                                <span class="badge bg-light text-dark">Unlabeled</span>
-                            {% endif %}
-                            {% if domain_info.company_name %}
-                                <br><small class="text-muted">→ {{ domain_info.company_name }}</small>
-                            {% endif %}
-                        </td>
-                        <td>
-                            <small class="text-muted">
-                                {% for sender in domain_info.sample_senders %}
-                                    {{ sender }}<br>
-                                {% endfor %}
-                            </small>
-                        </td>
-                        <td>
-                            <div class="btn-group btn-group-sm" role="group">
-                                <button type="button" class="btn btn-sm btn-outline-secondary quick-label" 
-                                        data-domain="{{ domain_info.domain }}" data-label="personal" title="Personal">P</button>
-                                <button type="button" class="btn btn-sm btn-outline-info quick-label" 
-                                        data-domain="{{ domain_info.domain }}" data-label="company" title="Company">C</button>
-                                <button type="button" class="btn btn-sm btn-outline-success quick-label" 
-                                        data-domain="{{ domain_info.domain }}" data-label="ats" title="ATS">A</button>
-                                <button type="button" class="btn btn-sm btn-outline-warning quick-label" 
-                                        data-domain="{{ domain_info.domain }}" data-label="headhunter" title="Headhunter">H</button>
-                                <button type="button" class="btn btn-sm btn-outline-danger quick-label" 
-                                        data-domain="{{ domain_info.domain }}" data-label="job_boards" title="Job Board">J</button>
-                            </div>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="6" class="text-center text-muted">
-                            No domains found for this filter.
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="text-sm text-gray-500 space-y-1">
+                                    {% for sender in domain_info.sample_senders %}
+                                        <div>{{ sender }}</div>
+                                    {% endfor %}
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex gap-1">
+                                    <button type="button" class="quick-label px-2 py-1 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded transition-colors" 
+                                            data-domain="{{ domain_info.domain }}" data-label="personal" title="Personal">P</button>
+                                    <button type="button" class="quick-label px-2 py-1 text-xs font-medium text-cyan-700 bg-cyan-100 hover:bg-cyan-200 rounded transition-colors" 
+                                            data-domain="{{ domain_info.domain }}" data-label="company" title="Company">C</button>
+                                    <button type="button" class="quick-label px-2 py-1 text-xs font-medium text-green-700 bg-green-100 hover:bg-green-200 rounded transition-colors" 
+                                            data-domain="{{ domain_info.domain }}" data-label="ats" title="ATS">A</button>
+                                    <button type="button" class="quick-label px-2 py-1 text-xs font-medium text-yellow-700 bg-yellow-100 hover:bg-yellow-200 rounded transition-colors" 
+                                            data-domain="{{ domain_info.domain }}" data-label="headhunter" title="Headhunter">H</button>
+                                    <button type="button" class="quick-label px-2 py-1 text-xs font-medium text-red-700 bg-red-100 hover:bg-red-200 rounded transition-colors" 
+                                            data-domain="{{ domain_info.domain }}" data-label="job_boards" title="Job Board">J</button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="px-6 py-12 text-center">
+                                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+                                </svg>
+                                <p class="mt-2 text-sm text-gray-500">No domains found for this filter.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </form>
 
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5>Domain Classification Guide</h5>
+    <!-- Classification Guide -->
+    <div class="mt-8 bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            <h5 class="text-lg font-semibold text-gray-900">Domain Classification Guide</h5>
+        </div>
+        <div class="px-6 py-4">
+            <dl class="space-y-4">
+                <div>
+                    <dt class="text-sm font-semibold text-gray-900 mb-1">Personal</dt>
+                    <dd class="text-sm text-gray-600">
+                        Personal email domains (gmail.com, yahoo.com, family domains, etc.). 
+                        User replies to these domains will be automatically classified as "noise".
+                    </dd>
                 </div>
-                <div class="card-body">
-                    <dl class="row">
-                        <dt class="col-sm-2">Personal</dt>
-                        <dd class="col-sm-10">
-                            Personal email domains (gmail.com, yahoo.com, family domains, etc.). 
-                            User replies to these domains will be automatically classified as "noise".
-                        </dd>
-
-                        <dt class="col-sm-2">Company</dt>
-                        <dd class="col-sm-10">
-                            Corporate email domains that map to specific companies (e.g., microsoft.com → Microsoft).
-                            Used for company resolution during message ingestion.
-                        </dd>
-
-                        <dt class="col-sm-2">ATS</dt>
-                        <dd class="col-sm-10">
-                            Applicant Tracking System domains (greenhouse.io, lever.co, workday.com, etc.).
-                            Messages from these domains may have special parsing rules.
-                        </dd>
-
-                        <dt class="col-sm-2">Headhunter</dt>
-                        <dd class="col-sm-10">
-                            Recruiting agency domains. Messages from these domains are typically classified as "head_hunter".
-                        </dd>
-
-                        <dt class="col-sm-2">Job Boards</dt>
-                        <dd class="col-sm-10">
-                            Job board and career site domains (indeed.com, linkedin.com, glassdoor.com, etc.).
-                            Messages from these domains are typically automated notifications about job postings.
-                        </dd>
-                    </dl>
+                <div>
+                    <dt class="text-sm font-semibold text-gray-900 mb-1">Company</dt>
+                    <dd class="text-sm text-gray-600">
+                        Corporate email domains that map to specific companies (e.g., microsoft.com → Microsoft).
+                        Used for company resolution during message ingestion.
+                    </dd>
                 </div>
-            </div>
+                <div>
+                    <dt class="text-sm font-semibold text-gray-900 mb-1">ATS</dt>
+                    <dd class="text-sm text-gray-600">
+                        Applicant Tracking System domains (greenhouse.io, lever.co, workday.com, etc.).
+                        Messages from these domains may have special parsing rules.
+                    </dd>
+                </div>
+                <div>
+                    <dt class="text-sm font-semibold text-gray-900 mb-1">Headhunter</dt>
+                    <dd class="text-sm text-gray-600">
+                        Recruiting agency domains. Messages from these domains are typically classified as "head_hunter".
+                    </dd>
+                </div>
+                <div>
+                    <dt class="text-sm font-semibold text-gray-900 mb-1">Job Boards</dt>
+                    <dd class="text-sm text-gray-600">
+                        Job board and career site domains (indeed.com, linkedin.com, glassdoor.com, etc.).
+                        Messages from these domains are typically automated notifications about job postings.
+                    </dd>
+                </div>
+            </dl>
         </div>
     </div>
 
+    <!-- Re-ingestion Summary -->
     {% if reingest_summary %}
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="card border-success">
-                <div class="card-header bg-success text-white">
-                    <h5>✅ Re-ingestion Complete</h5>
+    <div class="mt-8 bg-white rounded-lg shadow-md border border-green-200 overflow-hidden">
+        <div class="bg-green-50 px-6 py-4 border-b border-green-200">
+            <h5 class="text-lg font-semibold text-green-900 flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                </svg>
+                Re-ingestion Complete
+            </h5>
+        </div>
+        <div class="px-6 py-4">
+            <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                <div>
+                    <dt class="font-medium text-gray-700">Domains Processed:</dt>
+                    <dd class="text-gray-900 mt-1">{{ reingest_summary.domains_processed }}</dd>
                 </div>
-                <div class="card-body">
-                    <dl class="row mb-0">
-                        <dt class="col-sm-3">Domains Processed:</dt>
-                        <dd class="col-sm-9">{{ reingest_summary.domains_processed }}</dd>
-                        
-                        <dt class="col-sm-3">Messages Re-ingested:</dt>
-                        <dd class="col-sm-9">{{ reingest_summary.messages_processed }}</dd>
-                        
-                        <dt class="col-sm-3">Updated to Noise:</dt>
-                        <dd class="col-sm-9">{{ reingest_summary.updated_to_noise }}</dd>
-                        
-                        <dt class="col-sm-3">Kept as Other:</dt>
-                        <dd class="col-sm-9">{{ reingest_summary.kept_as_other }}</dd>
-                        
-                        <dt class="col-sm-3">Errors:</dt>
-                        <dd class="col-sm-9">{{ reingest_summary.errors }}</dd>
-                        
-                        {% if reingest_summary.sample_updates %}
-                        <dt class="col-sm-3">Sample Updates:</dt>
-                        <dd class="col-sm-9">
-                            <ul class="list-unstyled mb-0">
-                                {% for sample in reingest_summary.sample_updates %}
-                                <li><small>{{ sample }}</small></li>
-                                {% endfor %}
-                            </ul>
-                        </dd>
-                        {% endif %}
-                    </dl>
+                <div>
+                    <dt class="font-medium text-gray-700">Messages Re-ingested:</dt>
+                    <dd class="text-gray-900 mt-1">{{ reingest_summary.messages_processed }}</dd>
                 </div>
-            </div>
+                <div>
+                    <dt class="font-medium text-gray-700">Updated to Noise:</dt>
+                    <dd class="text-gray-900 mt-1">{{ reingest_summary.updated_to_noise }}</dd>
+                </div>
+                <div>
+                    <dt class="font-medium text-gray-700">Kept as Other:</dt>
+                    <dd class="text-gray-900 mt-1">{{ reingest_summary.kept_as_other }}</dd>
+                </div>
+                <div>
+                    <dt class="font-medium text-gray-700">Errors:</dt>
+                    <dd class="text-gray-900 mt-1">{{ reingest_summary.errors }}</dd>
+                </div>
+                {% if reingest_summary.sample_updates %}
+                <div class="sm:col-span-2">
+                    <dt class="font-medium text-gray-700 mb-2">Sample Updates:</dt>
+                    <dd>
+                        <ul class="list-disc list-inside space-y-1 text-xs text-gray-600">
+                            {% for sample in reingest_summary.sample_updates %}
+                            <li>{{ sample }}</li>
+                            {% endfor %}
+                        </ul>
+                    </dd>
+                </div>
+                {% endif %}
+            </dl>
         </div>
     </div>
     {% endif %}

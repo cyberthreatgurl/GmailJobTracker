@@ -105,15 +105,15 @@ python manage.py runserver
 
 ### Dashboard Overview
 
-![Dashboard] (images/Dashboard.png)
+![Dashboard](images/Dashboard.png)
 
 ### Dashboard with Date Filter
 
-![Dashboard with Date Filter] (images/dash_filter.png)
+![Dashboard with Date Filter](images/dash_filter.png)
 
 ### Bulk Labeling Interface
 
-![Bulk Message Labeling] (images/label_messages.png)
+![Bulk Message Labeling](images/label_messages.png)
 
 ### Company Detail View
 
@@ -121,7 +121,7 @@ python manage.py runserver
 
 ### CLI View
 
-![Starting up the web interface] (/images/cli.png)
+![Starting up the web interface](/images/cli.png)
 
 
 ---

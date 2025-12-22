@@ -31,8 +31,9 @@
       "^\\s*FWD:\\s+"
     ],
     "referral_language": [
-      "\\b(has\\s+referred\\s+you|referred\\s+you\\s+for|employee\\s+referral|internal\\s+referral|someone\\s+(?:from|at|in)\\s+\\w+.*\\s+(?:has\\s+)?referred\\s+you)\\b",
-      "\\b(referred\\s+to\\s+you\\s+by|referred\\s+by|referral\\s+from)\\b"
+      "\\b((?:has|just)\\s+referred\\s+you|referred\\s+you\\s+(?:for|to)|employee\\s+referral|internal\\s+referral|someone\\s+(?:from|at|in)\\s+\\w+.*\\s+(?:has\\s+)?referred\\s+you)\\b",
+      "\\b(referred\\s+to\\s+you\\s+by|referred\\s+by|referral\\s+from)\\b",
+      "\\b(?:congratulations|congrats).*\\s+(?:been\\s+)?referred\\s+(?:you\\s+)?to\\s+(?:work\\s+at|join)\\b"
     ],
     "rejection_override": [
       "\\b(?:move|moved|moving)\\s+forward\\s+with\\s+(?:other|another|an?\\s+alternative)\\s+candidate",
@@ -220,7 +221,9 @@
       "(\\breferral\\b| \\breferred\\b|\\brefer\\b|\\brecommendation\\b|\\brecommended\\b|introduction\\b|\\sconnect\\syou\\swith\\b|\\bconnecting\\syou\\swith\\b)",
       "\\breferral\\b.*\\bbonus\\b",
       "(\\brefer\\b|\\breferred\\b)(?s:.*?)(?:\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}\\b|\\b\\d{3}[-.\\s]\\d{3}[-.\\s]\\d{4}\\b)",
-      "\\b(referred to you by|referred by|referral from|Referral from)\\b"
+      "\\b(referred to you by|referred by|referral from|Referral from)\\b",
+      "\\b(?:just|has)\\s+referred\\s+you\\s+to\\b",
+      "\\bcongratulations.*referred.*to\\s+(?:work\\s+at|join)\\b"
     ],
     "head_hunter": [
         "(?i)\\b(?:recruiter|recruiting|recruitment(?: team| consultant| agency)?|staffing(?: practice| agency| firm)?|head[- ]hunter|talent acquisition|talent-acquisition|sourcing)\\b",

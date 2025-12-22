@@ -103,6 +103,7 @@
   ],
   "domain_to_company": {
     "mclaren.com": "McLaren",
+    "lanterncare.com": "Lantern",
     "obsidian.global": "Obsidian",
     "afs.com": "Accenture Federal Services",
     "wrglabs.com": "Wireless Research Group, LLC",
@@ -399,6 +400,7 @@
     "Corelight",
     "BAE",
     "CrowdStrike",
+    "Lantern",
     "Delta Dental",
     "DirectViz Solutions",
     "Draper",

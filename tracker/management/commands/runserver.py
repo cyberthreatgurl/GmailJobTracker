@@ -3,7 +3,10 @@ Custom runserver command that displays .env configuration on startup.
 """
 
 import os
+import pickle
 import subprocess
+from datetime import datetime, timezone
+from pathlib import Path
 from django.core.management.commands.runserver import Command as RunserverCommand
 
 
@@ -71,6 +74,9 @@ class Command(RunserverCommand):
             )
 
         self.stderr.write(self.style.SUCCESS("=" * 70 + "\n"))
+
+        # Display Gmail authentication status
+        self._display_gmail_auth_status()
 
         # Display recent commit history
         self._display_recent_commits()
@@ -172,3 +178,116 @@ class Command(RunserverCommand):
                         self.stderr.write(f"  {line}")
 
             self.stderr.write(self.style.SUCCESS("=" * 70 + "\n"))
+
+    def _display_gmail_auth_status(self):
+        """Check and display Gmail API authentication status."""
+        self.stderr.write(self.style.SUCCESS("=" * 70))
+        self.stderr.write(self.style.SUCCESS("Gmail API Authentication Status"))
+        self.stderr.write(self.style.SUCCESS("=" * 70))
+
+        project_root = Path(__file__).resolve().parents[4]
+        credentials_path = project_root / "json" / "credentials.json"
+        token_path = project_root / "model" / "token.pickle"
+
+        # Check credentials.json
+        if credentials_path.exists():
+            try:
+                import json
+
+                with open(credentials_path, "r", encoding="utf-8") as f:
+                    creds_data = json.load(f)
+
+                # Check if it's the correct structure
+                if "installed" in creds_data or "web" in creds_data:
+                    client_info = creds_data.get("installed") or creds_data.get("web")
+                    client_id = client_info.get("client_id", "")[:20] + "..."
+                    self.stderr.write(
+                        f"  credentials.json............. "
+                        f"{self.style.SUCCESS('✓ Valid')} (Client ID: {client_id})"
+                    )
+                else:
+                    self.stderr.write(
+                        f"  credentials.json............. "
+                        f"{self.style.ERROR('✗ Invalid format')}"
+                    )
+            except (json.JSONDecodeError, IOError) as e:
+                self.stderr.write(
+                    f"  credentials.json............. "
+                    f"{self.style.ERROR('✗ Error reading: ' + str(e)[:30])}"
+                )
+        else:
+            self.stderr.write(
+                f"  credentials.json............. " f"{self.style.ERROR('✗ Not found')}"
+            )
+            self.stderr.write(
+                f"    {self.style.WARNING('→ Run: python gmail_auth.py')}"
+            )
+
+        # Check token.pickle
+        if token_path.exists():
+            try:
+                with open(token_path, "rb") as token_file:
+                    creds = pickle.load(token_file)
+
+                # Check if credentials are valid
+                if hasattr(creds, "valid") and creds.valid:
+                    if hasattr(creds, "expiry"):
+                        expiry_str = creds.expiry.strftime("%Y-%m-%d %H:%M:%S")
+                        # Use timezone-aware datetime for comparison
+                        now = datetime.now(timezone.utc)
+                        # Make expiry timezone-aware if it isn't already
+                        expiry = creds.expiry
+                        if expiry.tzinfo is None:
+                            expiry = expiry.replace(tzinfo=timezone.utc)
+                        time_left = expiry - now
+                        days_left = time_left.days
+
+                        if days_left > 7:
+                            status = self.style.SUCCESS(f"✓ Valid until {expiry_str}")
+                        elif days_left > 0:
+                            status = self.style.WARNING(
+                                f"⚠ Expires {expiry_str} ({days_left}d left)"
+                            )
+                        else:
+                            status = self.style.ERROR(f"✗ Expired on {expiry_str}")
+
+                        self.stderr.write(f"  token.pickle................. {status}")
+                    else:
+                        self.stderr.write(
+                            f"  token.pickle................. "
+                            f"{self.style.SUCCESS('✓ Valid (no expiry)')}"
+                        )
+                elif hasattr(creds, "expired") and creds.expired:
+                    if hasattr(creds, "refresh_token"):
+                        self.stderr.write(
+                            f"  token.pickle................. "
+                            f"{self.style.WARNING('⚠ Expired (can refresh)')}"
+                        )
+                        self.stderr.write(
+                            f"    {self.style.WARNING('→ Token will auto-refresh on next API call')}"
+                        )
+                    else:
+                        self.stderr.write(
+                            f"  token.pickle................. "
+                            f"{self.style.ERROR('✗ Expired (no refresh token)')}"
+                        )
+                        self.stderr.write(
+                            f"    {self.style.ERROR('→ Run: python gmail_auth.py')}"
+                        )
+                else:
+                    self.stderr.write(
+                        f"  token.pickle................. "
+                        f"{self.style.WARNING('⚠ Unknown validity state')}"
+                    )
+            except (pickle.UnpicklingError, IOError, AttributeError, ImportError) as e:
+                self.stderr.write(
+                    f"  token.pickle................. "
+                    f"{self.style.ERROR('✗ Error reading: ' + str(e)[:30])}"
+                )
+        else:
+            self.stderr.write(
+                f"  token.pickle................. " f"{self.style.ERROR('✗ Not found')}"
+            )
+            self.stderr.write(f"    {self.style.ERROR('→ Run: python gmail_auth.py')}")
+
+        self.stderr.write(self.style.SUCCESS("=" * 70 + "\n"))

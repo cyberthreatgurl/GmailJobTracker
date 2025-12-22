@@ -105,15 +105,24 @@ python manage.py runserver
 
 ### Dashboard Overview
 
-### Coming soon: Screenshot of main dashboard with stats*
+![Dashboard] (images/Dashboard.png)
+
+### Dashboard with Date Filter
+
+![Dashboard with Date Filter] (images/dash_filter.png)
 
 ### Bulk Labeling Interface
 
-## Coming soon: Screenshot of bulk labeling with checkboxes*
+![Bulk Message Labeling] (images/label_messages.png)
 
 ### Company Detail View
 
 ## Coming soon: Screenshot of threaded messages per company*
+
+### CLI View
+
+![Starting up the web interface] (/images/cli.png)
+
 
 ---
 

@@ -185,7 +185,9 @@ class Command(RunserverCommand):
         self.stderr.write(self.style.SUCCESS("Gmail API Authentication Status"))
         self.stderr.write(self.style.SUCCESS("=" * 70))
 
-        project_root = Path(__file__).resolve().parents[4]
+        # Get project root: runserver.py is at tracker/management/commands/
+        # So parents[3] gets us to the project root
+        project_root = Path(__file__).resolve().parents[3]
         credentials_path = project_root / "json" / "credentials.json"
         token_path = project_root / "model" / "token.pickle"
 

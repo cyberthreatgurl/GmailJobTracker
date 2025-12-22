@@ -3376,14 +3376,21 @@ def ingest_message(service, msg_id):
                         )
 
     # Check if sender domain is in personal domains list - override to noise
+    # EXCEPT for head_hunter (headhunters legitimately use personal domains)
     sender_domain = metadata.get("sender_domain", "").lower()
     if sender_domain and sender_domain in PERSONAL_DOMAINS:
-        if DEBUG:
+        final_label = result.get("label") if result else None
+        if final_label != "head_hunter":
+            if DEBUG:
+                print(
+                    f"[PERSONAL DOMAIN] Detected personal domain: {sender_domain}, overriding to 'noise'"
+                )
+            result = dict(result)
+            result["label"] = "noise"
+        elif DEBUG:
             print(
-                f"[PERSONAL DOMAIN] Detected personal domain: {sender_domain}, overriding to 'noise'"
+                f"[PERSONAL DOMAIN] Detected personal domain: {sender_domain}, but keeping head_hunter label"
             )
-        result = dict(result)
-        result["label"] = "noise"
 
     # Apply downgrade/upgrade logic for consistency with parse_subject
     subject_clean = re.sub(
@@ -3453,9 +3460,9 @@ def ingest_message(service, msg_id):
             )  # Boost confidence
 
     # --- NEW LOGIC: Robust company extraction order ---
-    # Add guard: skip company assignment for noise label
+    # Add guard: skip company assignment for noise and head_hunter labels
     label_guard = result.get("label") if result else None
-    skip_company_assignment = label_guard == "noise"
+    skip_company_assignment = label_guard in ("noise", "head_hunter")
     company_obj = None
     # For user-sent messages, use recipient-mapped company if available
     # Extract just the email address from "Display Name <email@domain.com>" format
@@ -3834,7 +3841,7 @@ def ingest_message(service, msg_id):
                     if DEBUG:
                         print(f"Set domain for {company}: {sender_domain}")
         elif skip_company_assignment and DEBUG:
-            print(f"Skipping company assignment for noise message")
+            print(f"Skipping company assignment for {label_guard} message")
 
     if DEBUG:
         confidence = result.get("confidence", 0.0) if result else 0.0
@@ -5018,13 +5025,25 @@ def ingest_message_from_eml(eml_content: str, fake_msg_id: str = None):
                     )
 
     # Check if sender domain is in personal domains list - override to noise
+    # EXCEPT for head_hunter (headhunters legitimately use personal domains)
     sender_domain = metadata.get("sender_domain", "").lower()
     if sender_domain and sender_domain in PERSONAL_DOMAINS:
-        if DEBUG:
+        if ml_label != "head_hunter":
+            if DEBUG:
+                print(
+                    f"[EML PERSONAL DOMAIN] Detected personal domain: {sender_domain}, overriding to 'noise'"
+                )
+            ml_label = "noise"
+        elif DEBUG:
             print(
-                f"[EML PERSONAL DOMAIN] Detected personal domain: {sender_domain}, overriding to 'noise'"
+                f"[EML PERSONAL DOMAIN] Detected personal domain: {sender_domain}, but keeping head_hunter label"
             )
-        ml_label = "noise"
+
+    # Skip company assignment for noise and head_hunter messages
+    if ml_label in ("noise", "head_hunter"):
+        company = None
+        if DEBUG:
+            print(f"[EML] Skipping company assignment for {ml_label} message")
 
     if DEBUG:
         print(f"[EML] Parsed company: {company}")

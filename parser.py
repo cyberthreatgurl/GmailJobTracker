@@ -2396,11 +2396,34 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
             f"[DEBUG] is_ats_domain={is_ats_domain}, company={repr(company)}, sender={repr(sender)}"
         )
     if not company and is_ats_domain and sender:
-        # First try to extract from sender email prefix (e.g., ngc@myworkday.com)
-        # Use parseaddr to extract the actual email address from "Display Name <email@domain.com>"
-        _, sender_email = parseaddr(sender)
-        if sender_email and "@" in sender_email:
+        # First try to extract from sender display name (e.g., "Peraton" from "Peraton <peraton@icims.com>")
+        display_name, sender_email = parseaddr(sender)
+        if display_name:
+            display_name_clean = display_name.strip()
+            # Check if display name is a known company
+            if display_name_clean.lower() in {c.lower() for c in KNOWN_COMPANIES}:
+                # Find original casing from known list
+                for orig in company_data.get("known", []):
+                    if orig.lower() == display_name_clean.lower():
+                        company = orig
+                        break
+                if not company:
+                    company = display_name_clean
+                if DEBUG:
+                    print(f"[DEBUG] ATS display name is known company: {company}")
+            # Check if display name matches an alias
+            elif display_name_clean.lower() in {k.lower() for k in company_data.get("aliases", {}).keys()}:
+                aliases_lower = {k.lower(): v for k, v in company_data.get("aliases", {}).items()}
+                company = aliases_lower[display_name_clean.lower()]
+                if DEBUG:
+                    print(f"[DEBUG] ATS display name alias match: {display_name_clean} -> {company}")
+
+        # Try to extract from sender email prefix (e.g., ngc@myworkday.com)
+        if not company and sender_email and "@" in sender_email:
             sender_prefix = sender_email.split("@", maxsplit=1)[0].strip().lower()
+            # Handle + in email addresses (e.g., peraton+autoreply -> peraton)
+            if "+" in sender_prefix:
+                sender_prefix = sender_prefix.split("+", maxsplit=1)[0]
             # Check if prefix matches an alias
             aliases_lower = {
                 k.lower(): v for k, v in company_data.get("aliases", {}).items()
@@ -2409,6 +2432,14 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
                 company = aliases_lower[sender_prefix]
                 if DEBUG:
                     print(f"[DEBUG] ATS alias match: {sender_prefix} -> {company}")
+            # Check if prefix is a known company
+            elif sender_prefix in {c.lower() for c in KNOWN_COMPANIES}:
+                for orig in company_data.get("known", []):
+                    if orig.lower() == sender_prefix:
+                        company = orig
+                        break
+                if DEBUG:
+                    print(f"[DEBUG] ATS prefix is known company: {company}")
 
     # Job board application confirmations - extract actual employer from body
     # Works for Indeed, LinkedIn, Dice, etc. - any job board where subject contains "Application"
@@ -2881,10 +2912,31 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
         if DEBUG:
             print(f"[DEBUG] Clearing company captured as job title: {company}")
         company = ""
+
+    # Check if company name matches ATS sender display name (trusted source)
+    ats_sender_match = False
+    if company and is_ats_domain and sender:
+        display_name, _ = parseaddr(sender)
+        if display_name and company.lower() == display_name.lower():
+            ats_sender_match = True
+            if DEBUG:
+                print(f"[DEBUG] Company matches ATS sender display name: {company}")
+
+    # Check if company name appears in subject with trusted pattern "with [Company]"
+    subject_with_match = False
+    if company and re.search(
+        rf"\bwith\s+{re.escape(company)}\s*$", subject, re.IGNORECASE
+    ):
+        subject_with_match = True
+        if DEBUG:
+            print(f"[DEBUG] Company matches 'with [Company]' pattern in subject: {company}")
+
     if (
         company
         and looks_like_person(company)
         and company.lower() not in {c.lower() for c in KNOWN_COMPANIES}
+        and not ats_sender_match  # Trust ATS sender display name
+        and not subject_with_match  # Trust "with [Company]" subject pattern
     ):
         if DEBUG:
             print(

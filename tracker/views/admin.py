@@ -437,7 +437,10 @@ def json_file_viewer(request):
 
 @login_required
 def reingest_admin(request):
-    """Run the ingest_gmail command with options and show output."""
+    """Run the ingest_gmail command with options and show output, or ingest a single uploaded message."""
+    import tempfile
+    from parser import ingest_message_from_eml
+    
     base_dir = Path(__file__).resolve().parents[2]
     day_choices = [
         ("ALL", "ALL"),
@@ -459,40 +462,67 @@ def reingest_admin(request):
     ctx["reporting_default_start_date"] = env_start_date or ""
 
     if request.method == "POST":
-        days_back = request.POST.get("days_back", str(default_days))
-        force = request.POST.get("force") == "on"
-        reparse_all = request.POST.get("reparse_all") == "on"
+        # Check for single message upload/paste first
+        pasted = (request.POST.get("pasted_message") or "").strip()
+        upload = request.FILES.get("message_file")
+        
+        if pasted or upload:
+            # Handle single message ingestion
+            try:
+                if pasted:
+                    raw_content = pasted
+                else:
+                    raw_content = upload.read().decode("utf-8", errors="replace")
+                
+                # Ingest the EML content directly
+                result = ingest_message_from_eml(raw_content)
+                
+                if result == "inserted":
+                    ctx["result"] = "✅ Message ingested successfully!"
+                elif result == "skipped":
+                    ctx["result"] = "⏭️ Message was skipped (already exists or reviewed)."
+                elif result == "ignored":
+                    ctx["result"] = "🚫 Message was ignored (newsletter/bulk/blank)."
+                else:
+                    ctx["error"] = f"Ingestion returned: {result}"
+            except Exception as e:
+                ctx["error"] = f"Failed to ingest message: {e}"
+        else:
+            # Normal batch ingestion from Gmail
+            days_back = request.POST.get("days_back", str(default_days))
+            force = request.POST.get("force") == "on"
+            reparse_all = request.POST.get("reparse_all") == "on"
 
-        cmd = [
-            sys.executable,
-            "manage.py",
-            "ingest_gmail",
-            "--metrics-before",
-            "--metrics-after",
-        ]
-        if days_back and days_back != "ALL":
-            cmd += ["--days-back", str(days_back)]
-        if force:
-            cmd.append("--force")
-        if reparse_all:
-            cmd.append("--reparse-all")
+            cmd = [
+                sys.executable,
+                "manage.py",
+                "ingest_gmail",
+                "--metrics-before",
+                "--metrics-after",
+            ]
+            if days_back and days_back != "ALL":
+                cmd += ["--days-back", str(days_back)]
+            if force:
+                cmd.append("--force")
+            if reparse_all:
+                cmd.append("--reparse-all")
 
-        try:
-            result = subprocess.run(
-                cmd,
-                cwd=str(base_dir),
-                capture_output=True,
-                text=True,
-                encoding="utf-8",
-                errors="replace",
-                check=False,
-            )
-            output = result.stdout or ""
-            if result.stderr:
-                output += "\n[stderr]\n" + result.stderr
-            ctx["result"] = output
-        except Exception as e:
-            ctx["error"] = f"Failed to run ingestion: {e}"
+            try:
+                result = subprocess.run(
+                    cmd,
+                    cwd=str(base_dir),
+                    capture_output=True,
+                    text=True,
+                    encoding="utf-8",
+                    errors="replace",
+                    check=False,
+                )
+                output = result.stdout or ""
+                if result.stderr:
+                    output += "\n[stderr]\n" + result.stderr
+                ctx["result"] = output
+            except Exception as e:
+                ctx["error"] = f"Failed to run ingestion: {e}"
 
     return render(request, "tracker/reingest_admin.html", ctx)
 

@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.14] - 2025-12-31
+
+### Fixed
+- Fixed company extraction for Boeing emails from ATS domains (myworkday.com)
+- Fixed company extraction for Peraton emails from ATS domains (icims.com with +autoreply suffix)
+- Fixed `looks_like_person()` false positives for single-word company names like "Boeing"
+- Enhanced ATS company extraction to check display name against known companies
+- Enhanced ATS company extraction to handle `+` suffixes in email prefixes
+
+### Changed
+- Redesigned Ingest New Messages page (reingest_admin) with improved Tailwind CSS styling
+- Added single message upload/paste feature to Ingest page (EML/JSON support)
+- Improved file upload button visibility with styled blue button
+- Added Boeing to companies.json (known, domain_to_company, aliases)
+
 ## [1.0.10] - 2025-12-22
 
 ### Fixed

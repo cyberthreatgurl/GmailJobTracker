@@ -1,57 +1,126 @@
 {% extends "base.html" %}
 {% block title %}Ingest New Messages{% endblock %}
 {% block content %}
-<div class="main-content">
-  <h1>📥 Ingest New Messages from Gmail</h1>
-  <p style="color:#6b7280; margin-bottom:0.5rem;">Fetch and process <strong>new</strong> job application emails from your Gmail account.</p>
-  <div style="background:#dbeafe; border-left:4px solid #2563eb; padding:0.75rem; margin-bottom:1.5rem; border-radius:4px;">
-    <p style="margin:0; font-size:0.9rem; color:#1e40af;">
+<div style="max-width: 800px;">
+  <!-- Page Header -->
+  <h1 style="font-size: 1.5rem; font-weight: 700; color: #1f2937; margin-bottom: 0.5rem;">📥 Ingest New Messages from Gmail</h1>
+  <p style="color: #6b7280; margin-bottom: 1rem;">Fetch and process <strong>new</strong> job application emails from your Gmail account.</p>
+
+  <!-- Info Banner -->
+  <div style="background: #dbeafe; border-left: 4px solid #2563eb; padding: 0.75rem 1rem; margin-bottom: 1.5rem; border-radius: 0 6px 6px 0;">
+    <p style="margin: 0; font-size: 0.9rem; color: #1e40af;">
       ℹ️ <strong>Default behavior:</strong> Only processes messages that haven't been seen before. Already processed/reviewed messages are automatically skipped.
     </p>
   </div>
-  <form method="post">
+
+  <!-- Main Form -->
+  <form method="post" id="ingest-form" enctype="multipart/form-data" style="background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem;">
     {% csrf_token %}
-    <div style="margin-bottom:1rem;">
-      <label><b>Days Back:</b></label>
-      <select name="days_back">
-        {% for val, label in day_choices %}
-          <option value="{{ val }}" {% if val == default_days %}selected{% endif %}>{{ label }}</option>
-        {% endfor %}
-      </select>
-      <span style="font-size:0.9em;color:#888;">(ALL = since {{ reporting_default_start_date }})</span>
+    
+    <!-- Days Back Selection -->
+    <div style="margin-bottom: 1.5rem;">
+      <label style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.5rem;">Days Back</label>
+      <div style="display: flex; align-items: center; gap: 0.75rem;">
+        <select name="days_back" style="padding: 0.5rem 1rem; font-size: 1rem; border: 1px solid #d1d5db; border-radius: 6px; background: #fff; color: #374151; min-width: 150px;">
+          {% for val, label in day_choices %}
+            <option value="{{ val }}" {% if val == default_days %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+        <span style="font-size: 0.875rem; color: #6b7280;">(ALL = since {{ reporting_default_start_date }})</span>
+      </div>
     </div>
-    <div style="background:#fef3c7; border-left:4px solid #f59e0b; padding:0.75rem; margin-bottom:1rem; border-radius:4px;">
-      <p style="margin:0 0 0.5rem 0; font-weight:600; color:#92400e;">⚠️ Advanced Options (Use with caution)</p>
-      <label style="display:block; margin-bottom:0.25rem; color:#78350f;">
-        <input type="checkbox" name="force" id="force-checkbox"> 
-        <strong>Force:</strong> Re-process already seen messages (does not overwrite manual labels)
-      </label>
-      <label style="display:block; color:#78350f;">
-        <input type="checkbox" name="reparse_all" id="reparse-checkbox"> 
-        <strong>Re-parse ALL:</strong> Completely re-ingest everything (⚠️ may affect reviewed messages)
-      </label>
-      <p style="margin:0.5rem 0 0 0; font-size:0.85rem; color:#92400e;">
+
+    <!-- Single Message Upload/Paste -->
+    <div style="background: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem;">
+      <p style="margin: 0 0 0.75rem 0; font-weight: 600; color: #166534;">📧 Or Add a Single Message (EML/JSON)</p>
+      
+      <div style="margin-bottom: 1rem;">
+        <label style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.5rem;">Upload File:</label>
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <label style="display: inline-block; background: #2563eb; color: #fff; font-weight: 600; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer;">
+            📁 Choose File
+            <input type="file" name="message_file" accept=".json,.eml,.txt" style="display: none;" onchange="document.getElementById('file-name-display').textContent = this.files[0] ? this.files[0].name : 'No file chosen';">
+          </label>
+          <span id="file-name-display" style="color: #6b7280; font-size: 0.875rem;">No file chosen</span>
+        </div>
+      </div>
+      
+      <div>
+        <label style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.5rem;">Or Paste Message Content:</label>
+        <textarea name="pasted_message" rows="6" placeholder="Paste raw EML or JSON message content here..." style="width: 100%; padding: 0.5rem; font-size: 0.85rem; border: 1px solid #d1d5db; border-radius: 6px; font-family: monospace; resize: vertical;"></textarea>
+      </div>
+      
+      <p style="margin: 0.5rem 0 0 0; font-size: 0.8rem; color: #6b7280;">
+        💡 <em>Pasted content takes precedence over uploaded file. If provided, only this message will be processed (ignoring Days Back).</em>
+      </p>
+    </div>
+
+    <!-- Warning Card for Advanced Options -->
+    <div style="background: #fef3c7; border: 1px solid #fcd34d; border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem;">
+      <p style="margin: 0 0 0.75rem 0; font-weight: 600; color: #92400e;">⚠️ Advanced Options (Use with caution)</p>
+      
+      <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+        <label style="display: flex; align-items: flex-start; gap: 0.5rem; cursor: pointer; color: #78350f;">
+          <input type="checkbox" name="force" id="force-checkbox" style="margin-top: 3px;">
+          <span><strong>Force Re-process:</strong> Re-process already seen messages (does not overwrite manual labels)</span>
+        </label>
+        
+        <label style="display: flex; align-items: flex-start; gap: 0.5rem; cursor: pointer; color: #78350f;">
+          <input type="checkbox" name="reparse_all" id="reparse-checkbox" style="margin-top: 3px;">
+          <span><strong>Re-parse ALL:</strong> Completely re-ingest everything (⚠️ may affect reviewed messages)</span>
+        </label>
+      </div>
+      
+      <p style="margin: 0.75rem 0 0 0; font-size: 0.85rem; color: #92400e; border-top: 1px solid #fcd34d; padding-top: 0.75rem;">
         💡 <em>Tip: Use the "Re-ingest" button on the Label Messages page to selectively re-process specific messages.</em>
       </p>
     </div>
-    <button class="button" type="submit" style="background:#2563eb; color:white; padding:0.75rem 2rem; font-weight:600; font-size:1rem;">Run Ingestion</button>
+
+    <!-- Submit Button -->
+    <button type="submit" style="background: #2563eb; color: #fff; font-weight: 600; border: none; border-radius: 6px; padding: 0.75rem 1.5rem; cursor: pointer; font-size: 1rem;">
+      ▶ Run Ingestion
+    </button>
   </form>
-  <div id="live-output" style="display:none;">
-    <h2>Live Ingestion Output</h2>
-    <pre id="output-box" style="background:#0b1021;color:#d1d5db;padding:1em;border-radius:6px;max-height:480px;overflow:auto;white-space:pre-wrap;"></pre>
+
+  <!-- Live Output Section -->
+  <div id="live-output" style="display: none; margin-bottom: 1.5rem;">
+    <div style="background: #1f2937; border-radius: 8px; overflow: hidden;">
+      <div style="background: #374151; padding: 0.75rem 1rem; display: flex; align-items: center;">
+        <span style="width: 10px; height: 10px; background: #10b981; border-radius: 50%; margin-right: 0.5rem; animation: pulse 1.5s infinite;"></span>
+        <h2 style="margin: 0; color: #fff; font-size: 1rem; font-weight: 600;">Live Ingestion Output</h2>
+      </div>
+      <pre id="output-box" style="background: #111827; color: #d1d5db; padding: 1rem; max-height: 400px; overflow: auto; white-space: pre-wrap; font-family: monospace; font-size: 0.85rem; margin: 0;"></pre>
+    </div>
   </div>
+
+  <!-- Static Result Output (fallback) -->
   {% if result %}
-    <h2>Ingestion Output</h2>
-    <pre style="background:#f3f4f6;padding:1em;border-radius:6px;max-height:400px;overflow:auto;">{{ result }}</pre>
+    <div style="background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; margin-bottom: 1.5rem;">
+      <div style="background: #f3f4f6; padding: 0.75rem 1rem; border-bottom: 1px solid #e5e7eb;">
+        <h2 style="margin: 0; font-size: 1rem; font-weight: 600; color: #374151;">Ingestion Output</h2>
+      </div>
+      <pre style="background: #f9fafb; padding: 1rem; max-height: 400px; overflow: auto; white-space: pre-wrap; font-family: monospace; font-size: 0.85rem; margin: 0; color: #374151;">{{ result }}</pre>
+    </div>
   {% endif %}
+
+  <!-- Error Display -->
   {% if error %}
-    <div style="color:red;font-weight:bold;">Error: {{ error }}</div>
+    <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 1rem;">
+      <span style="color: #dc2626; font-weight: 600;">❌ Error:</span>
+      <span style="color: #991b1b; margin-left: 0.5rem;">{{ error }}</span>
+    </div>
   {% endif %}
 </div>
 
+<style>
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+</style>
+
 <script>
-  // Hijack the form submit to stream output instead of waiting for completion
-  const form = document.querySelector('form');
+  const form = document.getElementById('ingest-form');
   const live = document.getElementById('live-output');
   const box = document.getElementById('output-box');
   function append(text){ box.textContent += text; box.scrollTop = box.scrollHeight; }
@@ -64,7 +133,6 @@
     const force = fd.get('force') === 'on';
     const reparseAll = fd.get('reparse_all') === 'on';
     
-    // Confirmation for advanced options
     if (force || reparseAll) {
       const optionsUsed = [];
       if (force) optionsUsed.push('Force re-process');
@@ -77,9 +145,7 @@
         `Are you sure you want to continue?`
       );
       
-      if (!confirmed) {
-        return; // Cancel submission
-      }
+      if (!confirmed) return;
     }
     
     if(days) params.set('days_back', days);

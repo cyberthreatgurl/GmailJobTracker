@@ -1348,6 +1348,14 @@ class CompanyResolver:
                 r"thank you for your application with\s+([A-Z][\w&-]+(?:\s+[\w&-]+){0,2})\b",
                 re.IGNORECASE,
             ),
+            (
+                r"thank you for applying to\s+([A-Z][\w&-]+(?:\s+[\w&-]+){0,2})\b",
+                re.IGNORECASE,
+            ),
+            (
+                r"applying to\s+([A-Z][\w&-]+(?:\s+[\w&-]+){0,2})\b",
+                re.IGNORECASE,
+            ),
             (r"@\s*([A-Z][\w&-]+(?:\s+[\w&-]+){0,2})\b", re.IGNORECASE),
         ]
 
@@ -2806,6 +2814,14 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
         ),
         (
             r"thank you for your application with\s+([A-Z][\w&-]+(?:\s+[\w&-]+){0,2})\b",
+            re.IGNORECASE,
+        ),
+        (
+            r"thank you for applying to\s+([A-Z][\w&-]+(?:\s+[\w&-]+){0,2})\b",
+            re.IGNORECASE,
+        ),
+        (
+            r"applying to\s+([A-Z][\w&-]+(?:\s+[\w&-]+){0,2})\b",
             re.IGNORECASE,
         ),
         (r"@\s*([A-Z][\w&-]+(?:\s+[\w&-]+){0,2})\b", re.IGNORECASE),

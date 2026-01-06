@@ -29,6 +29,7 @@ class Company(models.Model):
         null=True,
         default="application",
     )
+    notes = models.TextField(blank=True, null=True, help_text="Free-form notes about the company")
     first_contact = models.DateTimeField()
     last_contact = models.DateTimeField()
     confidence = models.FloatField(null=True, blank=True)

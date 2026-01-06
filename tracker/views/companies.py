@@ -117,32 +117,21 @@ def delete_company(request, company_id):
 @login_required
 def label_companies(request):
     """List companies for labeling and provide quick actions (create/select/update)."""
-    # Quick Add Company action (before loading companies list)
+    from urllib.parse import quote
+    
+    # Quick Add Company action - redirect to new company form instead of creating immediately
     if request.method == "POST" and request.POST.get("action") == "quick_add_company":
         company_name = request.POST.get("new_company_name", "").strip()
         if company_name:
-            try:
-                new_company, created = Company.objects.get_or_create(
-                    name=company_name,
-                    defaults={
-                        "confidence": 1.0,
-                        "status": "application",
-                        "first_contact": now(),
-                        "last_contact": now(),
-                    },
+            # Check if company already exists
+            existing = Company.objects.filter(name__iexact=company_name).first()
+            if existing:
+                messages.info(
+                    request, f"ℹ️ Company '{company_name}' already exists."
                 )
-                if created:
-                    messages.success(
-                        request, f"✅ Company '{company_name}' created successfully!"
-                    )
-                    return redirect(f"/label_companies/?company={new_company.id}")
-                else:
-                    messages.info(
-                        request, f"ℹ️ Company '{company_name}' already exists."
-                    )
-                    return redirect(f"/label_companies/?company={new_company.id}")
-            except Exception as e:
-                messages.error(request, f"❌ Failed to create company: {e}")
+                return redirect(f"/label_companies/?company={existing.id}")
+            # Redirect to new company form with prefilled name
+            return redirect(f"/label_companies/?new_company_name={quote(company_name)}")
         else:
             messages.error(request, "❌ Please enter a company name.")
         return redirect("label_companies")
@@ -155,6 +144,10 @@ def label_companies(request):
     latest_label = None
     last_message_ts = None
     days_since_last_message = None
+    
+    # Check for new company creation mode (Quick Add prefill)
+    new_company_name = request.GET.get("new_company_name", "").strip()
+    creating_new_company = bool(new_company_name)
     # Configurable threshold for ghosted hint (default 30). DB AppSetting overrides env.
     from tracker.models import AppSetting
 
@@ -467,6 +460,19 @@ def label_companies(request):
                     return redirect(f"/label_companies/?company={selected_company.id}")
 
                 # Quick action: mark as ghosted
+                if request.POST.get("action") == "save_notes":
+                    # Save notes for the selected company
+                    try:
+                        notes_text = request.POST.get("notes", "").strip()
+                        selected_company.notes = notes_text if notes_text else None
+                        selected_company.save(update_fields=["notes"])
+                        messages.success(
+                            request,
+                            f"✅ Notes saved for {selected_company.name}.",
+                        )
+                    except Exception as e:
+                        messages.error(request, f"❌ Failed to save notes: {e}")
+                    return redirect(f"/label_companies/?company={selected_company.id}")
                 if request.POST.get("action") == "mark_ghosted":
                     # Do not allow ghosted if last message was a rejection
                     if latest_label == "rejection":
@@ -614,6 +620,65 @@ def label_companies(request):
                     instance=selected_company, initial={"career_url": career_url}
                 )
 
+    # Handle new company creation mode (Quick Add prefill)
+    if creating_new_company and not selected_company:
+        if request.method == "POST" and request.POST.get("action") == "create_new_company":
+            # User submitted the new company form
+            form = CompanyEditForm(request.POST)
+            if form.is_valid():
+                # Check if domain or homepage was provided
+                domain = form.cleaned_data.get("domain", "").strip()
+                homepage = form.cleaned_data.get("homepage", "").strip()
+                if not domain and not homepage:
+                    messages.error(request, "❌ Please enter at least a domain or homepage before saving.")
+                    # Form stays bound with submitted data for re-display
+                else:
+                    # Create the company
+                    new_company = form.save(commit=False)
+                    new_company.confidence = 1.0
+                    new_company.first_contact = now()
+                    new_company.last_contact = now()
+                    if not new_company.status:
+                        new_company.status = "application"
+                    new_company.save()
+                    messages.success(request, f"✅ Company '{new_company.name}' created successfully!")
+                    
+                    # Save to companies.json (known array + domain mapping if provided)
+                    try:
+                        companies_json_path = Path("json/companies.json")
+                        if companies_json_path.exists():
+                            with open(companies_json_path, "r", encoding="utf-8") as f:
+                                companies_json_data = json.load(f)
+                            
+                            changes_made = False
+                            
+                            # Add to known array if not already present
+                            if "known" not in companies_json_data:
+                                companies_json_data["known"] = []
+                            if new_company.name not in companies_json_data["known"]:
+                                companies_json_data["known"].append(new_company.name)
+                                changes_made = True
+                            
+                            # Add domain mapping if domain was provided
+                            if domain:
+                                if "domain_to_company" not in companies_json_data:
+                                    companies_json_data["domain_to_company"] = {}
+                                if domain not in companies_json_data["domain_to_company"]:
+                                    companies_json_data["domain_to_company"][domain] = new_company.name
+                                    changes_made = True
+                            
+                            if changes_made:
+                                with open(companies_json_path, "w", encoding="utf-8") as f:
+                                    json.dump(companies_json_data, f, indent=2, ensure_ascii=False)
+                    except Exception as e:
+                        messages.warning(request, f"⚠️ Failed to save to companies.json: {e}")
+                    
+                    return redirect(f"/label_companies/?company={new_company.id}")
+            # If form invalid, it stays bound with errors for re-display
+        else:
+            # GET request: show blank form with prefilled company name
+            form = CompanyEditForm(initial={"name": new_company_name})
+
     ctx = build_sidebar_context()
     ctx.update(
         {
@@ -626,6 +691,8 @@ def label_companies(request):
             "ghosted_days_threshold": ghosted_days_threshold,
             "message_count": message_count,
             "message_info_list": message_info_list,
+            "creating_new_company": creating_new_company,
+            "new_company_name": new_company_name,
         }
     )
     return render(request, "tracker/label_companies.html", ctx)

@@ -128,6 +128,15 @@ class StatsService:
             .order_by("interview_date")[:10]
         )
 
+        # Companies with offers (messages labeled as 'offer')
+        offer_companies = (
+            Company.objects.filter(
+                message__ml_label="offer",
+            )
+            .distinct()
+            .order_by("name")
+        )
+
         latest_stats = IngestionStats.objects.order_by("-date").first()
 
         return {
@@ -138,6 +147,7 @@ class StatsService:
             "rejections_week": rejections_week,
             "interviews_week": interviews_week,
             "upcoming_interviews": upcoming_interviews,
+            "offer_companies": offer_companies,
             "latest_stats": latest_stats,
         }
 

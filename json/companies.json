@@ -136,6 +136,8 @@
     "claroty.com": "Claroty",
     "claroty.comeet-notifications.com": "Claroty",
     "cloudflare.com": "Cloudflare",
+    "cmu.edu": "Carnegie Mellon University",
+    "crowdstrike.com": "CrowdStrike",
     "cnas.org": "Center for a New American Security",
     "coalfiredederal.com": "Coalfire Federal",
     "comeet-notifications.com": "Claroty",
@@ -164,6 +166,7 @@
     "guidehousefederal.com": "Guidehouse",
     "hirebridgemail.com": "JRC Integrated Systems",
     "hitachi.com": "Hitachi",
+    "thomsonreuters.com": "Thomson Reuters",
     "hitachids.com": "Hitachi Digital Services",
     "icf.com": "ICF",
     "idp.login.splunk.com": "Splunk, Inc",
@@ -245,7 +248,8 @@
     "victorops.com": "Victorops",
     "wearemetronome.com": "Metronome",
     "westinghousenuclear.com": "Westinghouse Nuclear",
-    "wrglabs.com": "Wireless Research Group, LLC"
+    "wrglabs.com": "Wireless Research Group, LLC",
+    "databricks.com": "Databricks"
   },
   "headhunter_domains": [
     "agreeya.com",
@@ -307,6 +311,7 @@
     "General Dynamics Information Technology": "https://www.gdit.com/careers/",
     "Sabre Systems": "https://careers.sabresystems.com/jobs",
     "Radiant Security": "https://radiantsecurity.ai/careers/",
+    "Thomson Reuters": "https://www.thomsonreuters.com/en/careers",
     "Amazon": "https://www.amazon.jobs/en/",
     "McLaren": "https://mclarencareers.mclaren.com/careers/SearchJobs",
     "CFA Institute": "https://osv_cfainstitute.wd5.myworkdayjobs.com/Careers",
@@ -366,12 +371,15 @@
     "Tech Wizards Inc.": "https://tech-wizards.applicantstack.com/x/openings",
     "ECS": "https://ecstech.com/careers/",
     "Armis": "https://armis.pinpointhq.com/",
-    "Boeing": "https://boeing.wd1.myworkdayjobs.com/en-US/EXTERNAL_CAREERS/userHome?q=arlington&locationCountry=bc33aa3152ec42d4995f4791a106ed09"
+    "Boeing": "https://boeing.wd1.myworkdayjobs.com/en-US/EXTERNAL_CAREERS/userHome?q=arlington&locationCountry=bc33aa3152ec42d4995f4791a106ed09",
+    "Rand": "https://www.rand.org/jobs.html",
+    "Databricks": "https://www.databricks.com/company/careers/open-positions"
   },
   "known": [
     "Obsidian",
     "PingWind",
     "Sabre",
+    "Thomson Reuters",
     "TechPride",
     "McLaren",
     "BAE Systems",
@@ -495,6 +503,7 @@
     "SailPoint Technologies",
     "supervisory",
     "deltadental",
-    "guidehouse"
+    "guidehouse",
+    "Databricks"
   ]
 }

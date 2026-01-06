@@ -13,7 +13,19 @@
     </div>
   </div>
 
-  <!-- Upcoming Interviews at the top -->
+  <!-- Offers Section -->
+  <div class="bg-white p-4 rounded-lg mb-4 shadow-sm">
+    <h2 class="text-sm font-semibold mb-3 text-gray-800">🎉 Offers</h2>
+    <ul class="list-none pl-0 m-0">
+      {% for company in offer_companies %}
+        <li class="py-2 text-xs"><a href="{% url 'label_companies' %}?company={{ company.id }}" class="text-blue-600 hover:text-blue-800 hover:underline">{{ company.name }}</a></li>
+      {% empty %}
+        <li class="py-2 text-xs text-gray-600">No offers yet</li>
+      {% endfor %}
+    </ul>
+  </div>
+
+  <!-- Upcoming Interviews -->
   <div class="bg-white p-4 rounded-lg mb-4 shadow-sm">
     <h2 class="text-sm font-semibold mb-3 text-gray-800">🗓️ Upcoming Interviews</h2>
     <ul class="list-none pl-0 m-0">

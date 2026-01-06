@@ -117,7 +117,56 @@
         }
       </script>
 
-      {% if selected_company %}
+      {% if selected_company or creating_new_company %}
+      {% if creating_new_company %}
+      <!-- Creating New Company Form -->
+      <div style="background:#f0fdf4; border:1px solid #86efac; border-radius:8px; padding:1rem 1.5rem; margin-bottom:1.5rem;">
+        <h2 style="margin:0 0 0.75rem 0; color:#166534; font-size:1.1rem;">✨ Create New Company: {{ new_company_name }}</h2>
+        <p style="color:#4b5563; margin:0; font-size:0.95rem;">Fill in the details below and click <strong>Create Company</strong> to save. At least a domain or homepage is required.</p>
+      </div>
+      <div style="display: flex; gap: 2rem; align-items: flex-start;">
+        <div style="flex: 1;">
+          <form method="post" action="{% url 'label_companies' %}?new_company_name={{ new_company_name|urlencode }}" class="edit-form">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="create_new_company" />
+          <label for="id_name">Company Name</label>
+          {{ form.name }}
+          <label for="id_domain">Domain Name <span style="color:#b91c1c;">*</span></label>
+          {{ form.domain }}
+          <small style="color:#6b7280; display:block; margin-bottom:0.5rem;">Enter the company's email domain (e.g., microsoft.com)</small>
+          <label for="id_ats">ATS Domain (if any)</label>
+          {{ form.ats }}
+          <label for="id_homepage">Homepage <span style="color:#b91c1c;">*</span></label>
+          {{ form.homepage }}
+          <small style="color:#6b7280; display:block; margin-bottom:0.5rem;">Enter the company's website URL</small>
+          <label for="id_career_url">Career/Jobs URL</label>
+          {{ form.career_url }}
+          <label for="id_contact_name">Contact Name</label>
+          {{ form.contact_name }}
+          <label for="id_contact_email">Contact Email</label>
+          {{ form.contact_email }}
+          <label for="id_status">Status</label>
+          {{ form.status }}
+          <div style="display:flex; gap:0.75rem; margin-top:1rem;">
+            <button type="submit" style="background:#16a34a; color:white; font-weight:600; border-radius:6px; padding:0.6rem 1.2rem; border:none; cursor:pointer;">✅ Create Company</button>
+            <a href="{% url 'label_companies' %}" style="background:#6b7280; color:white; font-weight:600; border-radius:6px; padding:0.6rem 1.2rem; text-decoration:none; display:inline-block;">Cancel</a>
+          </div>
+        </form>
+        </div>
+        <div style="flex: 1; display: flex; flex-direction: column; gap: 1rem;">
+          <div style="background: #f3f4f6; border-radius: 8px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+            <h2 style="margin-top:0; color:#1e40af; font-size:1.1rem;">Tips</h2>
+            <ul style="margin:0.5rem 0 0 0; padding-left:1.2rem; font-size:0.95rem; color:#4b5563;">
+              <li>At least one of Domain or Homepage is required</li>
+              <li>Domain should be the email domain (e.g., google.com)</li>
+              <li>ATS Domain is for Applicant Tracking Systems like greenhouse.io</li>
+              <li>Status will default to "application" if not set</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      {% else %}
+      <!-- Existing Company Edit Form -->
       <!-- Company Metrics and Quick Actions at the top -->
       <div style="background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px; padding:1rem 1.5rem; margin-bottom:1.5rem;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
@@ -187,29 +236,50 @@
           <button type="submit" style="background:#2563eb; color:white; font-weight:600; border-radius:6px; padding:0.6rem 1.2rem; border:none; cursor:pointer; margin-top:1rem;">Save Changes</button>
         </form>
         </div>
-        <div style="flex: 1; background: #f3f4f6; border-radius: 8px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
-          <h2 style="margin-top:0; color:#1e40af; font-size:1.1rem;">Company Data Preview</h2>
-          <div style="margin-bottom:1rem;"><strong>Messages in database:</strong> {{ message_count }}</div>
-          <div style="max-height: 320px; overflow-y: auto;">
-            <strong>All Email Dates, Labels &amp; Subjects:</strong>
-            <ul style="margin:0.5rem 0 0 0; padding-left:1.2rem; font-size:0.97rem; list-style:none;">
-              {% for mid, ts, subj, label in message_info_list %}
-                <li style="margin-bottom:0.5rem;">
-                  <div style="display:flex; align-items:center; gap:0.5rem;">
-                    <span style="color:#6b7280; white-space:nowrap;">{{ ts|date:"Y-m-d H:i" }}</span>
-                    <span style="background:#e0e7ff; color:#3730a3; border-radius:3px; padding:0.15rem 0.4rem; font-size:0.8rem; font-weight:600; white-space:nowrap;">{{ label|default:"N/A" }}</span>
-                    <a href="{% url 'label_messages' %}?reviewed=all&label=all&sort=date&order=desc&focus={{ mid }}" style="color:#2563eb; text-decoration:none; flex:1;">
-                      {{ subj|truncatechars:70 }}
-                    </a>
-                  </div>
-                </li>
-              {% empty %}
-                <li style="color:#9ca3af;">No messages found for this company.</li>
-              {% endfor %}
-            </ul>
+        <div style="flex: 1; display: flex; flex-direction: column; gap: 1rem;">
+          <div style="background: #f3f4f6; border-radius: 8px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+            <h2 style="margin-top:0; color:#1e40af; font-size:1.1rem;">Company Data Preview</h2>
+            <div style="margin-bottom:1rem;"><strong>Messages in database:</strong> {{ message_count }}</div>
+            <div style="max-height: 320px; overflow-y: auto;">
+              <strong>All Email Dates, Labels &amp; Subjects:</strong>
+              <ul style="margin:0.5rem 0 0 0; padding-left:1.2rem; font-size:0.97rem; list-style:none;">
+                {% for mid, ts, subj, label in message_info_list %}
+                  <li style="margin-bottom:0.5rem;">
+                    <div style="display:flex; align-items:center; gap:0.5rem;">
+                      <span style="color:#6b7280; white-space:nowrap;">{{ ts|date:"Y-m-d H:i" }}</span>
+                      <span style="background:#e0e7ff; color:#3730a3; border-radius:3px; padding:0.15rem 0.4rem; font-size:0.8rem; font-weight:600; white-space:nowrap;">{{ label|default:"N/A" }}</span>
+                      <a href="{% url 'label_messages' %}?reviewed=all&label=all&sort=date&order=desc&focus={{ mid }}" style="color:#2563eb; text-decoration:none; flex:1;">
+                        {{ subj|truncatechars:70 }}
+                      </a>
+                    </div>
+                  </li>
+                {% empty %}
+                  <li style="color:#9ca3af;">No messages found for this company.</li>
+                {% endfor %}
+              </ul>
+            </div>
           </div>
+          <!-- Notes Section (expandable) -->
+          <details open style="background: #fefce8; border-radius: 8px; padding: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+            <summary style="cursor: pointer; padding: 1rem 1.5rem; font-weight: 600; color: #854d0e; font-size: 1rem; list-style: none; display: flex; align-items: center; gap: 0.5rem;">
+              <span style="transition: transform 0.2s;">▶</span> Notes
+            </summary>
+            <div style="padding: 0 1.5rem 1.5rem 1.5rem;">
+              <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="company" value="{{ selected_company.id }}" />
+                <input type="hidden" name="action" value="save_notes" />
+                <textarea name="notes" rows="6" style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem; resize: vertical; font-family: inherit; box-sizing: border-box;">{{ selected_company.notes|default:'' }}</textarea>
+                <button type="submit" style="background: #ca8a04; color: white; font-weight: 600; border-radius: 6px; padding: 0.5rem 1rem; border: none; cursor: pointer; margin-top: 0.75rem;">Save Notes</button>
+              </form>
+            </div>
+          </details>
+          <style>
+            details[open] summary span:first-child { transform: rotate(90deg); }
+          </style>
         </div>
       </div>
+      {% endif %}{# end creating_new_company else #}
       {% else %}
         <div style="color:#9ca3af; margin-top:2rem;">Select a company to edit its details.</div>
       {% endif %}

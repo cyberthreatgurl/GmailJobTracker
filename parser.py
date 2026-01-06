@@ -384,6 +384,32 @@ class DomainMapper:
             return False
         return domain.lower() in self.headhunter_domains
 
+    def get_domain_for_company(self, company_name: str) -> str | None:
+        """Look up the domain for a known company name.
+
+        Reverse lookup in domain_to_company mapping to find the primary domain
+        for a company. Returns the shortest domain (most likely the primary).
+
+        Args:
+            company_name: Company name to look up
+
+        Returns:
+            Domain string if found, None otherwise
+        """
+        if not company_name:
+            return None
+        company_lower = company_name.lower()
+        # Find all domains that map to this company
+        matching_domains = [
+            domain
+            for domain, name in self.domain_to_company.items()
+            if name.lower() == company_lower
+        ]
+        if not matching_domains:
+            return None
+        # Return shortest domain (most likely primary, not subdomain)
+        return min(matching_domains, key=len)
+
 
 class RuleClassifier:
     """Classifies email messages using rule-based regex patterns.
@@ -579,21 +605,12 @@ class RuleClassifier:
                     )
                 return "rejection"
 
-        # Check application confirmation patterns (after rejection check)
-        # This ensures "Thank you for applying" emails are not misclassified as rejections
-        # due to explanatory text like "if archived, that means you were not selected"
-        for rx in self._msg_label_patterns.get("job_application", []):
-            if rx.search(s):
-                if DEBUG:
-                    print(
-                        f"[DEBUG rule_label] Early application confirmation match: {rx.pattern[:80]}"
-                    )
-                return "job_application"
-
         # Check if this is a reply/follow-up email (RE:, Re:, FW:, Fwd:, etc.)
         is_reply = subject and any(rx.search(subject) for rx in self._reply_indicators)
 
-        # Early scheduling-language detection -> interview_invite
+        # Early scheduling-language detection -> interview_invite (BEFORE application confirmation)
+        # This is important because emails like "Thank you for applying... I would like to discuss"
+        # should be classified as interview_invite, not job_application
         # BUT classify as 'other' for replies (to avoid classifying scheduling follow-ups as interviews)
         if any(rx.search(s) for rx in self._early_scheduling):
             if is_reply:
@@ -609,6 +626,17 @@ class RuleClassifier:
                         "[DEBUG rule_label] Early scheduling-language match -> interview_invite"
                     )
                 return "interview_invite"
+
+        # Check application confirmation patterns (after rejection and scheduling checks)
+        # This ensures "Thank you for applying" emails are not misclassified as rejections
+        # due to explanatory text like "if archived, that means you were not selected"
+        for rx in self._msg_label_patterns.get("job_application", []):
+            if rx.search(s):
+                if DEBUG:
+                    print(
+                        f"[DEBUG rule_label] Early application confirmation match: {rx.pattern[:80]}"
+                    )
+                return "job_application"
 
         # Early referral detection
         if any(rx.search(s) for rx in self._early_referral):
@@ -3901,13 +3929,36 @@ def ingest_message(service, msg_id):
                     "confidence": confidence,
                 },
             )
-            if company_obj and not company_obj.domain:
+            # Set company domain and/or ATS domain
+            if company_obj:
                 sender_domain = metadata.get("sender_domain", "").lower()
-                if sender_domain:
-                    company_obj.domain = sender_domain
-                    company_obj.save()
+                needs_save = False
+                
+                # Set the primary domain if not already set
+                if not company_obj.domain:
+                    # First try to look up the company's domain from companies.json
+                    known_domain = _get_domain_for_company(company)
+                    if known_domain:
+                        company_obj.domain = known_domain
+                        needs_save = True
+                        if DEBUG:
+                            print(f"Set domain for {company} from companies.json: {known_domain}")
+                    elif sender_domain and not _is_ats_domain(sender_domain):
+                        # Only set domain from sender if it's not an ATS domain
+                        company_obj.domain = sender_domain
+                        needs_save = True
+                        if DEBUG:
+                            print(f"Set domain for {company}: {sender_domain}")
+                
+                # Set ATS domain if sender is an ATS and ATS field is empty
+                if not company_obj.ats and sender_domain and _is_ats_domain(sender_domain):
+                    company_obj.ats = sender_domain
+                    needs_save = True
                     if DEBUG:
-                        print(f"Set domain for {company}: {sender_domain}")
+                        print(f"Set ATS domain for {company}: {sender_domain}")
+                
+                if needs_save:
+                    company_obj.save()
         elif skip_company_assignment and DEBUG:
             print(f"Skipping company assignment for {label_guard} message")
 
@@ -5206,3 +5257,8 @@ def _map_company_by_domain(domain: str) -> str | None:
     'uwe.nsa.gov' will also map to that company.
     """
     return _domain_mapper.map_company_by_domain(domain)
+
+
+def _get_domain_for_company(company_name: str) -> str | None:
+    """Look up the primary domain for a company name (delegates to DomainMapper)."""
+    return _domain_mapper.get_domain_for_company(company_name)

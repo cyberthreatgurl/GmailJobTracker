@@ -18,6 +18,7 @@ class Company(models.Model):
     status = models.CharField(
         max_length=32,
         choices=[
+            ("new", "New"),
             ("application", "Application"),
             ("interview", "Interview"),
             ("follow-up", "Follow-up"),

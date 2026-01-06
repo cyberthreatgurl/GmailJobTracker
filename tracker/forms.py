@@ -138,8 +138,13 @@ class CompanyEditForm(forms.ModelForm):
             "contact_name",
             "contact_email",
             "status",
+            "notes",
         ]
         help_texts = {
             "domain": "Primary company domain",
             "ats": "Applicant Tracking System domain",
+            "notes": "Free-form notes about the company",
+        }
+        widgets = {
+            "notes": forms.Textarea(attrs={"rows": 4, "style": "width: 100%; resize: vertical;"}),
         }

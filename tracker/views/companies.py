@@ -284,6 +284,7 @@ def label_companies(request):
             # Load career URL from companies.json JobSites
             companies_json_path = Path("json/companies.json")
             career_url = ""
+            alias = ""
             try:
                 if companies_json_path.exists():
                     with open(companies_json_path, "r", encoding="utf-8") as f:
@@ -291,6 +292,12 @@ def label_companies(request):
                         career_url = companies_json_data.get("JobSites", {}).get(
                             selected_company.name, ""
                         )
+                        # Load alias for this company (reverse lookup in aliases dict)
+                        aliases_dict = companies_json_data.get("aliases", {})
+                        for alias_name, canonical_name in aliases_dict.items():
+                            if canonical_name == selected_company.name:
+                                alias = alias_name
+                                break
             except Exception:
                 pass
         except Company.DoesNotExist:
@@ -737,6 +744,36 @@ def label_companies(request):
                                 # Note: We don't remove ATS domains when cleared because they might be shared
                                 # by multiple companies. Manual removal from companies.json is needed.
 
+                                # Update alias in aliases
+                                alias_input = (form.cleaned_data.get("alias") or "").strip()
+                                if "aliases" not in companies_json_data:
+                                    companies_json_data["aliases"] = {}
+
+                                # Find and remove old alias for this company
+                                old_alias = None
+                                for alias_name, canonical_name in list(companies_json_data["aliases"].items()):
+                                    if canonical_name == company_name:
+                                        old_alias = alias_name
+                                        break
+
+                                if alias_input:
+                                    # Set or update the alias mapping
+                                    if old_alias and old_alias != alias_input:
+                                        # Remove old alias
+                                        del companies_json_data["aliases"][old_alias]
+                                        changes_made = True
+                                    if (
+                                        alias_input not in companies_json_data["aliases"]
+                                        or companies_json_data["aliases"][alias_input] != company_name
+                                    ):
+                                        companies_json_data["aliases"][alias_input] = company_name
+                                        changes_made = True
+                                else:
+                                    # Remove alias if field is cleared
+                                    if old_alias:
+                                        del companies_json_data["aliases"][old_alias]
+                                        changes_made = True
+
                                 # Only write to file if changes were made
                                 if changes_made:
                                     with open(
@@ -757,9 +794,9 @@ def label_companies(request):
                     return redirect(f"/label_companies/?company={selected_company.id}")
                 # If invalid, fall through to render the bound form with errors
             else:
-                # GET request: initialize form with current data and career URL from companies.json
+                # GET request: initialize form with current data, career URL and alias from companies.json
                 form = CompanyEditForm(
-                    instance=selected_company, initial={"career_url": career_url}
+                    instance=selected_company, initial={"career_url": career_url, "alias": alias}
                 )
 
     # Handle new company creation mode (Quick Add prefill)
@@ -818,7 +855,7 @@ def label_companies(request):
                         new_company.first_contact = now()
                         new_company.last_contact = now()
                         if not new_company.status:
-                            new_company.status = "application"
+                            new_company.status = "new"
                         new_company.save()
                         messages.success(request, f"✅ Company '{new_company.name}' created successfully!")
                         
@@ -856,6 +893,18 @@ def label_companies(request):
                                         changes_made = True
                                     elif companies_json_data["JobSites"][new_company.name] != career_url:
                                         companies_json_data["JobSites"][new_company.name] = career_url
+                                        changes_made = True
+                                
+                                # Add alias to aliases if provided
+                                alias = form.cleaned_data.get("alias", "").strip()
+                                if alias:
+                                    if "aliases" not in companies_json_data:
+                                        companies_json_data["aliases"] = {}
+                                    if alias not in companies_json_data["aliases"]:
+                                        companies_json_data["aliases"][alias] = new_company.name
+                                        changes_made = True
+                                    elif companies_json_data["aliases"][alias] != new_company.name:
+                                        companies_json_data["aliases"][alias] = new_company.name
                                         changes_made = True
                                 
                                 if changes_made:

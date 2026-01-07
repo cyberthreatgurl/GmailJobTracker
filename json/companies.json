@@ -61,7 +61,9 @@
     "trellix": "Trellix",
     "verizon": "Verizon",
     "viasat": "Viasat",
-    "wearemetronome": "Metronome"
+    "wearemetronome": "Metronome",
+    "Quinn @ Mondo": "Mondo",
+    "PMAT": "PMAT Inc."
   },
   "ats_domains": [
     "adp.com",
@@ -175,7 +177,6 @@
     "invalidemail.com": "Amentum",
     "jobalerts.freddiemac.com": "Freddie Mac",
     "jobalerts.hr.virginia.edu": "University of Virginia",
-    "jobs.microsoft.com": "Microsoft",
     "jobs.netflix.com": "Netflix",
     "jrcisi.com": "JRC Integrated Systems",
     "kodiak.ai": "Kodiak",
@@ -249,7 +250,12 @@
     "wearemetronome.com": "Metronome",
     "westinghousenuclear.com": "Westinghouse Nuclear",
     "wrglabs.com": "Wireless Research Group, LLC",
-    "databricks.com": "Databricks"
+    "databricks.com": "Databricks",
+    "mondo.com": "Mondo",
+    "microsoft.com": "Microsoft",
+    "anduril.com": "Anduril",
+    "iansresearch.com": "IANS",
+    "pmatinc.com": "PMAT Inc."
   },
   "headhunter_domains": [
     "agreeya.com",
@@ -293,7 +299,8 @@
     "vtechsolution.us",
     "zapnixinc.com",
     "zolon.com",
-    "zolontech.com"
+    "zolontech.com",
+    "mondo.com"
   ],
   "job_boards": [
     "angel.co",
@@ -373,7 +380,13 @@
     "Armis": "https://armis.pinpointhq.com/",
     "Boeing": "https://boeing.wd1.myworkdayjobs.com/en-US/EXTERNAL_CAREERS/userHome?q=arlington&locationCountry=bc33aa3152ec42d4995f4791a106ed09",
     "Rand": "https://www.rand.org/jobs.html",
-    "Databricks": "https://www.databricks.com/company/careers/open-positions"
+    "Databricks": "https://www.databricks.com/company/careers/open-positions",
+    "aig": "https://www.aig.com/home/risk-solutions/business/management-and-professional-liability/employment-practices-liability",
+    "AIG": "https://www.aig.com/home/careers",
+    "Microsoft": "https://careers.microsoft.com/",
+    "Anduril": "https://www.anduril.com/careers",
+    "PMAT Inc. | Enhancing Decision Dominance": "https://pmatinc.com/careers/",
+    "PMAT Inc.": "https://pmatinc.com/careers/"
   },
   "known": [
     "Obsidian",
@@ -504,6 +517,10 @@
     "supervisory",
     "deltadental",
     "guidehouse",
-    "Databricks"
+    "Databricks",
+    "Mondo",
+    "Anduril",
+    "IANS",
+    "PMAT Inc. | Enhancing Decision Dominance"
   ]
 }

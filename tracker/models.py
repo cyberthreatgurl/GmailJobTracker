@@ -3,17 +3,62 @@
 
 # Create models here.
 from django.db import models
+from django.core.validators import RegexValidator, URLValidator
 from django.utils.timezone import now
 
 
 class Company(models.Model):
-    name = models.CharField(max_length=255)
-    domain = models.CharField(max_length=255, blank=True)
+    name = models.CharField(
+        max_length=255,
+        validators=[
+            RegexValidator(
+                regex=r'^[a-zA-Z0-9\s.,\-&\'"()]+$',
+                message='Company name can only contain letters, numbers, spaces, and: . , - & \' " ( )',
+                code='invalid_company_name'
+            )
+        ]
+    )
+    domain = models.CharField(
+        max_length=255,
+        blank=True,
+        validators=[
+            RegexValidator(
+                regex=r'^[a-zA-Z0-9.\-]+$',
+                message='Domain can only contain letters, numbers, dots, and hyphens',
+                code='invalid_domain'
+            )
+        ]
+    )
     ats = models.CharField(
-        max_length=255, blank=True, null=True
+        max_length=255,
+        blank=True,
+        null=True,
+        validators=[
+            RegexValidator(
+                regex=r'^[a-zA-Z0-9.\-]+$',
+                message='ATS domain can only contain letters, numbers, dots, and hyphens',
+                code='invalid_ats'
+            )
+        ]
     )  # New field for ATS domain
-    homepage = models.URLField(max_length=512, blank=True, null=True)
-    contact_name = models.CharField(max_length=255, blank=True, null=True)
+    homepage = models.URLField(
+        max_length=512,
+        blank=True,
+        null=True,
+        validators=[URLValidator(schemes=['http', 'https'])]
+    )
+    contact_name = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        validators=[
+            RegexValidator(
+                regex=r'^[a-zA-Z\s.,\-\']+$',
+                message='Contact name can only contain letters, spaces, and: . , - \'',
+                code='invalid_contact_name'
+            )
+        ]
+    )
     contact_email = models.EmailField(max_length=255, blank=True, null=True)
     status = models.CharField(
         max_length=32,
@@ -61,11 +106,40 @@ class ThreadTracking(models.Model):
     For individual email content, see the Message model.
     """
 
-    thread_id = models.CharField(max_length=255, unique=True)
+    thread_id = models.CharField(
+        max_length=255,
+        unique=True,
+        validators=[
+            RegexValidator(
+                regex=r'^[a-zA-Z0-9]+$',
+                message='Thread ID can only contain letters and numbers',
+                code='invalid_thread_id'
+            )
+        ]
+    )
     company_source = models.CharField(max_length=50, blank=True)
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
-    job_title = models.CharField(max_length=255)
-    job_id = models.CharField(max_length=255, blank=True)
+    job_title = models.CharField(
+        max_length=255,
+        validators=[
+            RegexValidator(
+                regex=r'^[a-zA-Z0-9\s.,\-/()&]+$',
+                message='Job title can only contain letters, numbers, spaces, and: . , - / ( ) &',
+                code='invalid_job_title'
+            )
+        ]
+    )
+    job_id = models.CharField(
+        max_length=255,
+        blank=True,
+        validators=[
+            RegexValidator(
+                regex=r'^[a-zA-Z0-9\-_]*$',
+                message='Job ID can only contain letters, numbers, hyphens, and underscores',
+                code='invalid_job_id'
+            )
+        ]
+    )
     status = models.CharField(max_length=50)
     sent_date = models.DateField()
     rejection_date = models.DateField(null=True, blank=True)

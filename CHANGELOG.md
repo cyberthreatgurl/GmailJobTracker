@@ -5,6 +5,78 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.15] - 2026-01-06
+
+### Added
+- **Company Homepage Scraper**: Automated web scraping service for extracting company information
+  - New `tracker/services/company_scraper.py` module with BeautifulSoup integration
+  - Extracts company name (from og:site_name, title, or H1 tags)
+  - Extracts domain from URL
+  - Finds career/jobs page URLs with smart filtering
+  - Handles acronym company names (e.g., "aig" → "AIG", "ibm" → "IBM")
+  - 10-second timeout with comprehensive error handling
+  - User-Agent header to avoid bot blocking
+
+- **URL-Based Quick Add Company** (label_companies page)
+  - Replaced manual company name entry with homepage URL field
+  - Automatic web scraping when user enters URL
+  - Three-level duplicate detection:
+    1. Database check (by name/domain)
+    2. companies.json check (known companies and domain mappings)
+    3. Auto-create from companies.json if company exists there
+  - Redirects to existing company page if duplicate found
+  - Prefills new company form with scraped data for review
+  - Graceful fallback to manual entry if scraping fails
+
+- **URL-Based Quick Add Company** (label_messages page)
+  - Replaced 4-field company registry form with single URL field
+  - Identical scraping and duplicate detection as label_companies page
+  - Automatic redirect to label_companies for company management
+  - Consistent UX across both pages
+
+- **Enhanced Career URL Detection**
+  - Priority-based link matching (href keywords → link text keywords)
+  - Exclusion patterns for insurance/legal/product pages
+  - Filters out social media and unrelated links
+  - Removed "employment" keyword to avoid false matches
+
+- **Career URL Persistence**
+  - Career/Jobs URL now consistently saved to companies.json `JobSites`
+  - Fixed bug where career_url wasn't saved during company creation
+  - Properly extracts from form's cleaned_data
+  - Updates or creates JobSites entry with scraped URL
+
+### Changed
+- **Quick Add Company Flow** (both pages)
+  - Single URL input replaces multiple manual fields
+  - Automated data extraction reduces manual entry
+  - "🔍 Add Company" button with search icon
+  - Helper text: "Enter company homepage URL to automatically populate details"
+
+- **Duplicate Prevention Logic**
+  - Case-insensitive matching for company names
+  - Domain-based detection even if name doesn't match
+  - Uses canonical names from companies.json
+  - Preserves existing company data (never overwrites)
+
+- **Company Name Cleaning**
+  - Removes taglines with em dash separator (e.g., "Microsoft – AI, Cloud..." → "Microsoft")
+  - Strips common suffixes (Home, Homepage, Official Site)
+  - Handles both single-word and multi-word company names
+
+### Fixed
+- Career/Jobs URL field not saving to companies.json during company creation
+- AIG homepage scraper now correctly returns "AIG" instead of "aig"
+- Microsoft careers page detection (no longer finds Game Pass links)
+- Invalid career URLs with employment-practices-liability paths
+
+### Technical Details
+- Dependencies: Uses existing `requests` and `beautifulsoup4` packages
+- New service module: `tracker/services/company_scraper.py` (200 lines)
+- Updated views: `tracker/views/companies.py` and `tracker/views/messages.py`
+- Updated templates: `tracker/templates/tracker/label_companies.html` and `label_messages.html`
+- Custom exception: `CompanyScraperError` for scraping failures
+
 ## [1.0.14] - 2025-12-31
 
 ### Fixed

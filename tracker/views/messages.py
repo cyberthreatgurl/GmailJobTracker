@@ -65,95 +65,121 @@ def label_messages(request):
     if request.method == "POST":
         action = request.POST.get("action")
 
-        if action == "update_company_registry":
-            # Add or update entries in json/companies.json from quick-add form
-            company_name = (request.POST.get("company_name") or "").strip()
-            company_domain = (request.POST.get("company_domain") or "").strip()
-            ats_domain = (request.POST.get("ats_domain") or "").strip()
-            careers_url = (request.POST.get("careers_url") or "").strip()
-
-            if not any([company_name, company_domain, ats_domain, careers_url]):
-                messages.warning(
-                    request, "⚠️ Please provide at least one field to add/update."
-                )
+        if action == "quick_add_company":
+            from tracker.services.company_scraper import scrape_company_info, CompanyScraperError
+            from urllib.parse import urlparse, quote
+            
+            homepage_url = request.POST.get("homepage_url", "").strip()
+            if not homepage_url:
+                messages.error(request, "❌ Please enter a homepage URL.")
                 return redirect(request.get_full_path())
-
-            cfg_path = Path("json/companies.json")
+            
+            # Add https:// if missing
+            if not homepage_url.startswith(("http://", "https://")):
+                homepage_url = "https://" + homepage_url
+            
+            # Validate URL syntax
             try:
-                with open(cfg_path, "r", encoding="utf-8") as f:
-                    companies_cfg = json.load(f)
-            except Exception as e:  # pylint: disable=broad-except
-                messages.error(request, f"❌ Failed to read companies.json: {e}")
+                parsed = urlparse(homepage_url)
+                if not parsed.netloc:
+                    messages.error(request, "❌ Invalid URL format. Please enter a valid URL.")
+                    return redirect(request.get_full_path())
+            except Exception:
+                messages.error(request, "❌ Invalid URL format. Please enter a valid URL.")
                 return redirect(request.get_full_path())
-
-            added = []
-            updated = []
-
-            # Ensure top-level keys exist
-            companies_cfg.setdefault("known", [])
-            companies_cfg.setdefault("domain_to_company", {})
-            companies_cfg.setdefault("ats_domains", [])
-            companies_cfg.setdefault("JobSites", {})
-
-            # Add company name to known list
-            if company_name:
-                if company_name not in companies_cfg["known"]:
-                    companies_cfg["known"].append(company_name)
-                    added.append(f"known: {company_name}")
-
-            # Map company domain to company name
-            if company_domain:
-                domain_key = company_domain.lower()
-                existing = companies_cfg["domain_to_company"].get(domain_key)
-                if not existing:
-                    companies_cfg["domain_to_company"][domain_key] = (
-                        company_name or existing or ""
-                    )
-                    added.append(
-                        f"domain_to_company: {domain_key} → {companies_cfg['domain_to_company'][domain_key]}"
-                    )
-                elif company_name and existing != company_name:
-                    companies_cfg["domain_to_company"][domain_key] = company_name
-                    updated.append(f"domain_to_company: {domain_key} → {company_name}")
-
-            # Add ATS domain
-            if ats_domain:
-                ats_key = ats_domain.lower()
-                if ats_key not in companies_cfg["ats_domains"]:
-                    companies_cfg["ats_domains"].append(ats_key)
-                    added.append(f"ats_domains: {ats_key}")
-
-            # Add or update careers URL under JobSites
-            if careers_url and company_name:
-                existing_url = companies_cfg["JobSites"].get(company_name)
-                if not existing_url:
-                    companies_cfg["JobSites"][company_name] = careers_url
-                    added.append(f"JobSites: {company_name}")
-                elif existing_url != careers_url:
-                    companies_cfg["JobSites"][company_name] = careers_url
-                    updated.append(f"JobSites: {company_name}")
-
-            # Persist changes if any
+            
+            # Scrape company info
             try:
-                if added or updated:
-                    with open(cfg_path, "w", encoding="utf-8") as f:
-                        json.dump(companies_cfg, f, ensure_ascii=False, indent=2)
-                    if added:
-                        messages.success(
-                            request, "✅ Added entries: " + "; ".join(added)
-                        )
-                    if updated:
-                        messages.info(
-                            request, "ℹ️ Updated entries: " + "; ".join(updated)
-                        )
-                else:
+                scraped_data = scrape_company_info(homepage_url, timeout=10)
+                company_name = scraped_data.get("name", "")
+                domain = scraped_data.get("domain", "")
+                career_url = scraped_data.get("career_url", "")
+                
+                # Check if company already exists in database by name or domain
+                existing = None
+                if company_name:
+                    existing = Company.objects.filter(name__iexact=company_name).first()
+                if not existing and domain:
+                    existing = Company.objects.filter(domain__iexact=domain).first()
+                
+                if existing:
                     messages.info(
-                        request, "No changes needed; companies.json already up to date."
+                        request, f"ℹ️ Company '{existing.name}' already exists in database."
                     )
-            except Exception as e:  # pylint: disable=broad-except
-                messages.error(request, f"❌ Failed to write companies.json: {e}")
-
-            return redirect(request.get_full_path())
+                    return redirect(f"/label_companies/?company={existing.id}")
+                
+                # Check if company exists in companies.json
+                companies_json_path = Path("json/companies.json")
+                if companies_json_path.exists():
+                    try:
+                        with open(companies_json_path, "r", encoding="utf-8") as f:
+                            companies_json_data = json.load(f)
+                        
+                        found_in_json = None
+                        
+                        # Check if scraped name is in known companies list
+                        if company_name and "known" in companies_json_data:
+                            for known_name in companies_json_data["known"]:
+                                if known_name.lower() == company_name.lower():
+                                    found_in_json = known_name
+                                    break
+                        
+                        # Check if domain maps to a known company
+                        if not found_in_json and domain and "domain_to_company" in companies_json_data:
+                            if domain in companies_json_data["domain_to_company"]:
+                                found_in_json = companies_json_data["domain_to_company"][domain]
+                        
+                        if found_in_json:
+                            # Company exists in companies.json - check if Company record exists
+                            existing = Company.objects.filter(name__iexact=found_in_json).first()
+                            if existing:
+                                messages.info(
+                                    request, f"ℹ️ Company '{existing.name}' already exists (found in companies.json)."
+                                )
+                                return redirect(f"/label_companies/?company={existing.id}")
+                            else:
+                                # Create Company record from companies.json entry
+                                new_company = Company.objects.create(
+                                    name=found_in_json,
+                                    domain=domain or "",
+                                    homepage=homepage_url,
+                                    career_url=career_url or "",
+                                    confidence=1.0,
+                                    first_contact=now(),
+                                    last_contact=now(),
+                                    status="application"
+                                )
+                                messages.success(
+                                    request, f"✅ Created company '{new_company.name}' from known companies list."
+                                )
+                                return redirect(f"/label_companies/?company={new_company.id}")
+                    
+                    except Exception as e:
+                        # If companies.json check fails, continue with normal flow
+                        logger.exception(f"Failed to check companies.json: {e}")
+                
+                # Redirect to label_companies with scraped data for review
+                params = []
+                if company_name:
+                    params.append(f"new_company_name={quote(company_name)}")
+                if homepage_url:
+                    params.append(f"homepage={quote(homepage_url)}")
+                if domain:
+                    params.append(f"domain={quote(domain)}")
+                if career_url:
+                    params.append(f"career_url={quote(career_url)}")
+                
+                redirect_url = f"/label_companies/?{'&'.join(params)}"
+                messages.success(request, f"✅ Scraped company info from {domain}. Review and save below.")
+                return redirect(redirect_url)
+                
+            except CompanyScraperError as e:
+                messages.error(request, f"❌ Failed to scrape company info: {e}")
+                # Still allow manual entry by redirecting to form with just the URL
+                return redirect(f"/label_companies/?homepage={quote(homepage_url)}")
+            except Exception as e:
+                messages.error(request, f"❌ Error scraping company info: {e}")
+                return redirect(request.get_full_path())
 
         if action == "bulk_label":
             selected_ids = request.POST.getlist("selected_messages")

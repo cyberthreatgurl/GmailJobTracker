@@ -121,20 +121,120 @@ def label_companies(request):
     
     # Quick Add Company action - redirect to new company form instead of creating immediately
     if request.method == "POST" and request.POST.get("action") == "quick_add_company":
-        company_name = request.POST.get("new_company_name", "").strip()
-        if company_name:
-            # Check if company already exists
-            existing = Company.objects.filter(name__iexact=company_name).first()
+        from tracker.services.company_scraper import scrape_company_info, CompanyScraperError
+        from urllib.parse import urlparse
+        
+        homepage_url = request.POST.get("homepage_url", "").strip()
+        if not homepage_url:
+            messages.error(request, "❌ Please enter a homepage URL.")
+            return redirect("label_companies")
+        
+        # Add https:// if missing
+        if not homepage_url.startswith(("http://", "https://")):
+            homepage_url = "https://" + homepage_url
+        
+        # Validate URL syntax
+        try:
+            parsed = urlparse(homepage_url)
+            if not parsed.netloc:
+                messages.error(request, "❌ Invalid URL format. Please enter a valid URL.")
+                return redirect("label_companies")
+        except Exception:
+            messages.error(request, "❌ Invalid URL format. Please enter a valid URL.")
+            return redirect("label_companies")
+        
+        # Scrape company info
+        try:
+            scraped_data = scrape_company_info(homepage_url, timeout=10)
+            company_name = scraped_data.get("name", "")
+            domain = scraped_data.get("domain", "")
+            career_url = scraped_data.get("career_url", "")
+            
+            # Check if company already exists in database by name or domain
+            existing = None
+            if company_name:
+                existing = Company.objects.filter(name__iexact=company_name).first()
+            if not existing and domain:
+                existing = Company.objects.filter(domain__iexact=domain).first()
+            
             if existing:
                 messages.info(
-                    request, f"ℹ️ Company '{company_name}' already exists."
+                    request, f"ℹ️ Company '{existing.name}' already exists in database."
                 )
                 return redirect(f"/label_companies/?company={existing.id}")
-            # Redirect to new company form with prefilled name
-            return redirect(f"/label_companies/?new_company_name={quote(company_name)}")
-        else:
-            messages.error(request, "❌ Please enter a company name.")
-        return redirect("label_companies")
+            
+            # Check if company exists in companies.json
+            companies_json_path = Path("json/companies.json")
+            if companies_json_path.exists():
+                try:
+                    with open(companies_json_path, "r", encoding="utf-8") as f:
+                        companies_json_data = json.load(f)
+                    
+                    found_in_json = None
+                    
+                    # Check if scraped name is in known companies list
+                    if company_name and "known" in companies_json_data:
+                        for known_name in companies_json_data["known"]:
+                            if known_name.lower() == company_name.lower():
+                                found_in_json = known_name
+                                break
+                    
+                    # Check if domain maps to a known company
+                    if not found_in_json and domain and "domain_to_company" in companies_json_data:
+                        if domain in companies_json_data["domain_to_company"]:
+                            found_in_json = companies_json_data["domain_to_company"][domain]
+                    
+                    if found_in_json:
+                        # Company exists in companies.json - check if Company record exists
+                        existing = Company.objects.filter(name__iexact=found_in_json).first()
+                        if existing:
+                            messages.info(
+                                request, f"ℹ️ Company '{existing.name}' already exists (found in companies.json)."
+                            )
+                            return redirect(f"/label_companies/?company={existing.id}")
+                        else:
+                            # Create Company record from companies.json entry
+                            new_company = Company.objects.create(
+                                name=found_in_json,
+                                domain=domain or "",
+                                homepage=homepage_url,
+                                career_url=career_url or "",
+                                confidence=1.0,
+                                first_contact=now(),
+                                last_contact=now(),
+                                status="application"
+                            )
+                            messages.success(
+                                request, f"✅ Created company '{new_company.name}' from known companies list."
+                            )
+                            return redirect(f"/label_companies/?company={new_company.id}")
+                
+                except Exception as e:
+                    # If companies.json check fails, continue with normal flow
+                    logger.exception(f"Failed to check companies.json: {e}")
+            
+            # Redirect to new company form with scraped data
+            params = []
+            if company_name:
+                params.append(f"new_company_name={quote(company_name)}")
+            if homepage_url:
+                params.append(f"homepage={quote(homepage_url)}")
+            if domain:
+                params.append(f"domain={quote(domain)}")
+            if career_url:
+                params.append(f"career_url={quote(career_url)}")
+            
+            redirect_url = f"/label_companies/?{'&'.join(params)}"
+            messages.success(request, f"✅ Scraped company info from {domain}. Review and save below.")
+            return redirect(redirect_url)
+            
+        except CompanyScraperError as e:
+            messages.error(request, f"❌ Failed to scrape company info: {e}")
+            # Still allow manual entry by redirecting to form with just the URL
+            return redirect(f"/label_companies/?homepage={quote(homepage_url)}")
+        except Exception as e:
+            messages.error(request, f"❌ Error scraping company info: {e}")
+            return redirect("label_companies")
 
     # Exclude headhunter companies from the dropdown
     companies = Company.objects.exclude(status="headhunter").order_by(Lower("name"))
@@ -147,7 +247,10 @@ def label_companies(request):
     
     # Check for new company creation mode (Quick Add prefill)
     new_company_name = request.GET.get("new_company_name", "").strip()
-    creating_new_company = bool(new_company_name)
+    prefill_homepage = request.GET.get("homepage", "").strip()
+    prefill_domain = request.GET.get("domain", "").strip()
+    prefill_career_url = request.GET.get("career_url", "").strip()
+    creating_new_company = bool(new_company_name or prefill_homepage)
     # Configurable threshold for ghosted hint (default 30). DB AppSetting overrides env.
     from tracker.models import AppSetting
 
@@ -459,8 +562,44 @@ def label_companies(request):
 
                     return redirect(f"/label_companies/?company={selected_company.id}")
 
+                # Populate company info from homepage
+                if request.POST.get("action") == "populate_from_homepage":
+                    homepage_url = request.POST.get("homepage", "").strip()
+                    if not homepage_url:
+                        messages.error(request, "❌ Please enter a homepage URL first.")
+                    else:
+                        try:
+                            from tracker.services.company_scraper import scrape_company_info, CompanyScraperError
+                            
+                            scraped_data = scrape_company_info(homepage_url)
+                            
+                            # Create a form with the scraped data
+                            form_data = {
+                                "name": scraped_data.get("name", selected_company.name),
+                                "domain": scraped_data.get("domain", selected_company.domain),
+                                "homepage": homepage_url,
+                                "career_url": scraped_data.get("career_url", ""),
+                                "ats": selected_company.ats or "",
+                                "contact_name": selected_company.contact_name or "",
+                                "contact_email": selected_company.contact_email or "",
+                                "status": selected_company.status or "application",
+                            }
+                            form = CompanyEditForm(form_data, instance=selected_company)
+                            
+                            messages.success(
+                                request,
+                                f"✅ Successfully scraped company info from homepage. Review and click Save Changes to apply.",
+                            )
+                        except CompanyScraperError as e:
+                            messages.error(request, f"❌ Failed to scrape homepage: {e}")
+                            form = CompanyEditForm(instance=selected_company, initial={"career_url": career_url})
+                        except Exception as e:
+                            messages.error(request, f"❌ Unexpected error: {e}")
+                            form = CompanyEditForm(instance=selected_company, initial={"career_url": career_url})
+                    # Don't redirect - stay on page with populated form
+                    
                 # Quick action: mark as ghosted
-                if request.POST.get("action") == "save_notes":
+                elif request.POST.get("action") == "save_notes":
                     # Save notes for the selected company
                     try:
                         notes_text = request.POST.get("notes", "").strip()
@@ -492,7 +631,10 @@ def label_companies(request):
                             messages.error(request, f"Failed to mark ghosted: {e}")
                     # Redirect to avoid form resubmission and preserve selection
                     return redirect(f"/label_companies/?company={selected_company.id}")
-                form = CompanyEditForm(request.POST, instance=selected_company)
+                
+                # Handle regular form submission (Save Changes)
+                elif not request.POST.get("action"):  # No action means it's the main form
+                    form = CompanyEditForm(request.POST, instance=selected_company)
                 if form.is_valid():
                     # Get cleaned data before saving
                     career_url_input = (
@@ -622,62 +764,120 @@ def label_companies(request):
 
     # Handle new company creation mode (Quick Add prefill)
     if creating_new_company and not selected_company:
-        if request.method == "POST" and request.POST.get("action") == "create_new_company":
-            # User submitted the new company form
-            form = CompanyEditForm(request.POST)
-            if form.is_valid():
-                # Check if domain or homepage was provided
-                domain = form.cleaned_data.get("domain", "").strip()
-                homepage = form.cleaned_data.get("homepage", "").strip()
-                if not domain and not homepage:
-                    messages.error(request, "❌ Please enter at least a domain or homepage before saving.")
-                    # Form stays bound with submitted data for re-display
+        if request.method == "POST":
+            # Handle populate action for new company
+            if request.POST.get("action") == "populate_from_homepage":
+                homepage_url = request.POST.get("homepage", "").strip()
+                if not homepage_url:
+                    messages.error(request, "❌ Please enter a homepage URL first.")
+                    form = CompanyEditForm(initial={"name": new_company_name})
                 else:
-                    # Create the company
-                    new_company = form.save(commit=False)
-                    new_company.confidence = 1.0
-                    new_company.first_contact = now()
-                    new_company.last_contact = now()
-                    if not new_company.status:
-                        new_company.status = "application"
-                    new_company.save()
-                    messages.success(request, f"✅ Company '{new_company.name}' created successfully!")
-                    
-                    # Save to companies.json (known array + domain mapping if provided)
                     try:
-                        companies_json_path = Path("json/companies.json")
-                        if companies_json_path.exists():
-                            with open(companies_json_path, "r", encoding="utf-8") as f:
-                                companies_json_data = json.load(f)
-                            
-                            changes_made = False
-                            
-                            # Add to known array if not already present
-                            if "known" not in companies_json_data:
-                                companies_json_data["known"] = []
-                            if new_company.name not in companies_json_data["known"]:
-                                companies_json_data["known"].append(new_company.name)
-                                changes_made = True
-                            
-                            # Add domain mapping if domain was provided
-                            if domain:
-                                if "domain_to_company" not in companies_json_data:
-                                    companies_json_data["domain_to_company"] = {}
-                                if domain not in companies_json_data["domain_to_company"]:
-                                    companies_json_data["domain_to_company"][domain] = new_company.name
-                                    changes_made = True
-                            
-                            if changes_made:
-                                with open(companies_json_path, "w", encoding="utf-8") as f:
-                                    json.dump(companies_json_data, f, indent=2, ensure_ascii=False)
+                        from tracker.services.company_scraper import scrape_company_info, CompanyScraperError
+                        
+                        scraped_data = scrape_company_info(homepage_url)
+                        
+                        # Create a form with the scraped data
+                        form_data = {
+                            "name": scraped_data.get("name", new_company_name),
+                            "domain": scraped_data.get("domain", ""),
+                            "homepage": homepage_url,
+                            "career_url": scraped_data.get("career_url", ""),
+                            "ats": "",
+                            "contact_name": "",
+                            "contact_email": "",
+                            "status": "new",
+                        }
+                        form = CompanyEditForm(form_data)
+                        
+                        messages.success(
+                            request,
+                            f"✅ Successfully scraped company info. Review and click Create Company to save.",
+                        )
+                    except CompanyScraperError as e:
+                        messages.error(request, f"❌ Failed to scrape homepage: {e}")
+                        form = CompanyEditForm(initial={"name": new_company_name, "homepage": homepage_url})
                     except Exception as e:
-                        messages.warning(request, f"⚠️ Failed to save to companies.json: {e}")
-                    
-                    return redirect(f"/label_companies/?company={new_company.id}")
-            # If form invalid, it stays bound with errors for re-display
+                        messages.error(request, f"❌ Unexpected error: {e}")
+                        form = CompanyEditForm(initial={"name": new_company_name, "homepage": homepage_url})
+            # Handle create action
+            elif request.POST.get("action") == "create_new_company":
+                # User submitted the new company form
+                form = CompanyEditForm(request.POST)
+                if form.is_valid():
+                    # Check if domain or homepage was provided
+                    domain = form.cleaned_data.get("domain", "").strip()
+                    homepage = form.cleaned_data.get("homepage", "").strip()
+                    if not domain and not homepage:
+                        messages.error(request, "❌ Please enter at least a domain or homepage before saving.")
+                        # Form stays bound with submitted data for re-display
+                    else:
+                        # Create the company
+                        new_company = form.save(commit=False)
+                        new_company.confidence = 1.0
+                        new_company.first_contact = now()
+                        new_company.last_contact = now()
+                        if not new_company.status:
+                            new_company.status = "application"
+                        new_company.save()
+                        messages.success(request, f"✅ Company '{new_company.name}' created successfully!")
+                        
+                        # Save to companies.json (known array + domain mapping + career URL if provided)
+                        try:
+                            companies_json_path = Path("json/companies.json")
+                            if companies_json_path.exists():
+                                with open(companies_json_path, "r", encoding="utf-8") as f:
+                                    companies_json_data = json.load(f)
+                                
+                                changes_made = False
+                                
+                                # Add to known array if not already present
+                                if "known" not in companies_json_data:
+                                    companies_json_data["known"] = []
+                                if new_company.name not in companies_json_data["known"]:
+                                    companies_json_data["known"].append(new_company.name)
+                                    changes_made = True
+                                
+                                # Add domain mapping if domain was provided
+                                if domain:
+                                    if "domain_to_company" not in companies_json_data:
+                                        companies_json_data["domain_to_company"] = {}
+                                    if domain not in companies_json_data["domain_to_company"]:
+                                        companies_json_data["domain_to_company"][domain] = new_company.name
+                                        changes_made = True
+                                
+                                # Add career URL to JobSites if provided
+                                career_url = form.cleaned_data.get("career_url", "").strip()
+                                if career_url:
+                                    if "JobSites" not in companies_json_data:
+                                        companies_json_data["JobSites"] = {}
+                                    if new_company.name not in companies_json_data["JobSites"]:
+                                        companies_json_data["JobSites"][new_company.name] = career_url
+                                        changes_made = True
+                                    elif companies_json_data["JobSites"][new_company.name] != career_url:
+                                        companies_json_data["JobSites"][new_company.name] = career_url
+                                        changes_made = True
+                                
+                                if changes_made:
+                                    with open(companies_json_path, "w", encoding="utf-8") as f:
+                                        json.dump(companies_json_data, f, indent=2, ensure_ascii=False)
+                        except Exception as e:
+                            messages.warning(request, f"⚠️ Failed to save to companies.json: {e}")
+                        
+                        return redirect(f"/label_companies/?company={new_company.id}")
+                # If form invalid, it stays bound with errors for re-display
         else:
-            # GET request: show blank form with prefilled company name
-            form = CompanyEditForm(initial={"name": new_company_name})
+            # GET request: show form with prefilled scraped data
+            initial_data = {}
+            if new_company_name:
+                initial_data["name"] = new_company_name
+            if prefill_homepage:
+                initial_data["homepage"] = prefill_homepage
+            if prefill_domain:
+                initial_data["domain"] = prefill_domain
+            if prefill_career_url:
+                initial_data["career_url"] = prefill_career_url
+            form = CompanyEditForm(initial=initial_data)
 
     ctx = build_sidebar_context()
     ctx.update(

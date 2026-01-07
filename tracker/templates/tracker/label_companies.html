@@ -55,15 +55,15 @@
       <!-- Quick Add Company Section -->
       <div style="background:#d1fae5; border:1px solid #10b981; border-radius:8px; padding:1rem 1.25rem; margin-bottom:1.5rem;">
         <h3 style="margin:0 0 0.75rem 0; color:#065f46; font-size:1rem;">➕ Quick Add New Company</h3>
-        <p style="margin:0 0 0.75rem 0; font-size:0.9rem; color:#047857;">Add a company you contacted outside of email (LinkedIn, Indeed, etc.)</p>
+        <p style="margin:0 0 0.75rem 0; font-size:0.9rem; color:#047857;">Enter company homepage URL to automatically populate details</p>
         <form method="post" style="display:flex; gap:0.75rem; align-items:flex-end;">
           {% csrf_token %}
           <input type="hidden" name="action" value="quick_add_company">
           <div style="flex:1;">
-            <label for="new_company_name" style="display:block; font-weight:500; margin-bottom:0.3rem; font-size:0.9rem; color:#065f46;">Company Name:</label>
-            <input type="text" name="new_company_name" id="new_company_name" placeholder="e.g., Coalfire Federal" style="width:100%; padding:0.5rem; border:1px solid #10b981; border-radius:4px; font-size:1rem;" required>
+            <label for="quick_add_homepage_url" style="display:block; font-weight:500; margin-bottom:0.3rem; font-size:0.9rem; color:#065f46;">Homepage URL:</label>
+            <input type="url" name="homepage_url" id="quick_add_homepage_url" placeholder="e.g., https://www.company.com" style="width:100%; padding:0.5rem; border:1px solid #10b981; border-radius:4px; font-size:1rem;" required>
           </div>
-          <button type="submit" style="background:#10b981; color:white; font-weight:600; padding:0.55rem 1.2rem; border:none; border-radius:6px; cursor:pointer; font-size:0.95rem;">Add Company</button>
+          <button type="submit" style="background:#10b981; color:white; font-weight:600; padding:0.55rem 1.2rem; border:none; border-radius:6px; cursor:pointer; font-size:0.95rem;">🔍 Add Company</button>
         </form>
       </div>
 
@@ -137,8 +137,11 @@
           <label for="id_ats">ATS Domain (if any)</label>
           {{ form.ats }}
           <label for="id_homepage">Homepage <span style="color:#b91c1c;">*</span></label>
-          {{ form.homepage }}
-          <small style="color:#6b7280; display:block; margin-bottom:0.5rem;">Enter the company's website URL</small>
+          <div style="display: flex; gap: 0.5rem; align-items: center;">
+            {{ form.homepage }}
+            <button type="submit" name="action" value="populate_from_homepage" style="background:#059669; color:white; font-weight:600; border-radius:6px; padding:0.6rem 1rem; border:none; cursor:pointer; white-space:nowrap;" title="Scrape company info from homepage">🔍 Populate</button>
+          </div>
+          <small style="color:#6b7280; display:block; margin-top:0.25rem; margin-bottom:0.5rem;">Enter URL and click Populate to auto-fill, or fill manually</small>
           <label for="id_career_url">Career/Jobs URL</label>
           {{ form.career_url }}
           <label for="id_contact_name">Contact Name</label>
@@ -224,7 +227,11 @@
           <label for="id_ats">ATS Domain (if any)</label>
           {{ form.ats }}
           <label for="id_homepage">Homepage</label>
-          {{ form.homepage }}
+          <div style="display: flex; gap: 0.5rem; align-items: center;">
+            {{ form.homepage }}
+            <button type="submit" name="action" value="populate_from_homepage" style="background:#059669; color:white; font-weight:600; border-radius:6px; padding:0.6rem 1rem; border:none; cursor:pointer; white-space:nowrap;" title="Scrape company info from homepage">🔍 Populate</button>
+          </div>
+          <small style="color:#6b7280; display:block; margin-top:0.25rem; margin-bottom:0.5rem;">Enter homepage URL and click Populate to auto-fill company details</small>
           <label for="id_career_url">Career/Jobs URL</label>
           {{ form.career_url }}
           <label for="id_contact_name">Contact Name</label>

@@ -1,5 +1,6 @@
 # tracker/forms.py
 from django import forms
+from django.core.validators import RegexValidator, URLValidator
 from django.utils.timezone import now
 
 from tracker.models import ThreadTracking, Company
@@ -32,6 +33,13 @@ class ManualEntryForm(forms.Form):
         max_length=255,
         label="Company Name",
         help_text="Enter the company name (will auto-match or create new)",
+        validators=[
+            RegexValidator(
+                regex=r'^[a-zA-Z0-9\s.,\-&\'"()]+$',
+                message='Company name can only contain letters, numbers, spaces, and the following: . , - & \' " ( )',
+                code='invalid_company_name'
+            )
+        ],
     )
 
     # Job details
@@ -40,6 +48,13 @@ class ManualEntryForm(forms.Form):
         required=False,
         label="Job Title",
         help_text="Optional: Position title",
+        validators=[
+            RegexValidator(
+                regex=r'^[a-zA-Z0-9\s.,\-/()]+$',
+                message='Job title can only contain letters, numbers, spaces, and: . , - / ( )',
+                code='invalid_job_title'
+            )
+        ],
     )
 
     job_id = forms.CharField(
@@ -47,6 +62,13 @@ class ManualEntryForm(forms.Form):
         required=False,
         label="Job ID/Reference",
         help_text="Optional: Job posting ID or reference number",
+        validators=[
+            RegexValidator(
+                regex=r'^[a-zA-Z0-9\-_]+$',
+                message='Job ID can only contain letters, numbers, hyphens, and underscores',
+                code='invalid_job_id'
+            )
+        ],
     )
 
     # Dates
@@ -78,6 +100,13 @@ class ManualEntryForm(forms.Form):
         required=False,
         label="Source",
         help_text="e.g., LinkedIn, Indeed, direct, recruiter, etc.",
+        validators=[
+            RegexValidator(
+                regex=r'^[a-zA-Z0-9\s.,\-]+$',
+                message='Source can only contain letters, numbers, spaces, and: . , -',
+                code='invalid_source'
+            )
+        ],
     )
 
     def clean_company_name(self):
@@ -108,6 +137,13 @@ class UploadEmlForm(forms.Form):
         required=False,
         label="Thread ID override",
         help_text="Optional: force thread_id to use for this message",
+        validators=[
+            RegexValidator(
+                regex=r'^[a-zA-Z0-9]+$',
+                message='Thread ID can only contain letters and numbers',
+                code='invalid_thread_id'
+            )
+        ],
     )
     no_tt = forms.BooleanField(
         required=False,
@@ -126,6 +162,7 @@ class CompanyEditForm(forms.ModelForm):
         required=False,
         label="Career Page URL",
         help_text="Company's job listings or career page",
+        validators=[URLValidator(schemes=['http', 'https'])],
     )
     
     # Add alias as a non-model field
@@ -134,6 +171,13 @@ class CompanyEditForm(forms.ModelForm):
         required=False,
         label="Alias",
         help_text="Alternative name or abbreviation (e.g., 'AFS' for 'Accenture Federal Services')",
+        validators=[
+            RegexValidator(
+                regex=r'^[a-zA-Z0-9\s.,\-&]+$',
+                message='Alias can only contain letters, numbers, spaces, and: . , - &',
+                code='invalid_alias'
+            )
+        ],
     )
 
     class Meta:

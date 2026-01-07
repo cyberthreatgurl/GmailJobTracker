@@ -7,7 +7,7 @@
     {% csrf_token %}
     <div style="margin-bottom:1.5rem;">
       <label for="gmail_label_prefix" style="font-weight:600;">Label Prefix</label>
-      <input id="gmail_label_prefix" name="gmail_label_prefix" type="text" value="{{ gmail_label_prefix|default:'#job-hunt' }}" placeholder="#job-hunt" style="width:220px; padding:0.5rem; border:1px solid #d1d5db; border-radius:6px; margin-left:0.5rem;" />
+      <input id="gmail_label_prefix" name="gmail_label_prefix" type="text" value="{{ gmail_label_prefix|default:'#job-hunt' }}" placeholder="#job-hunt" pattern="[a-zA-Z0-9#\-_]+" title="Label prefix can only contain letters, numbers, and: # - _" style="width:220px; padding:0.5rem; border:1px solid #d1d5db; border-radius:6px; margin-left:0.5rem;" />
       <button class="button" name="action" value="fetch" type="submit" style="margin-left:1rem;">Fetch Filters</button>
     </div>
     {% if filters %}

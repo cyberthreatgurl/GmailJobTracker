@@ -320,29 +320,18 @@
     </div>
   </div>
 
-  <!-- Company Registry Quick Add -->
+  <!-- Quick Add Company -->
   <div style="background: white; margin: 0 1rem; padding: 0.75rem 1rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-  <form method="post" style="display:flex; flex-wrap:wrap; gap:0.75rem; align-items:end;">
+    <p style="margin: 0 0 0.5rem 0; font-size: 0.9rem; color: #6b7280;">Enter company homepage URL to automatically populate details</p>
+    <form method="post" style="display:flex; gap:0.75rem; align-items:end;">
       {% csrf_token %}
-      <input type="hidden" name="action" value="update_company_registry">
-      <div class="filter-group" style="min-width: 220px;">
-        <label>Company Name</label>
-  <input type="text" id="company-name-input" name="company_name" placeholder="e.g., Amentum" style="width: 100%; padding: 0.4rem 0.6rem; border-radius: 4px; border: 1px solid #d1d5db; font-size: 0.9rem;">
-      </div>
-      <div class="filter-group" style="min-width: 220px;">
-        <label>Domain Name</label>
-  <input type="text" id="company-domain-input" name="company_domain" placeholder="e.g., amentum.com" style="width: 100%; padding: 0.4rem 0.6rem; border-radius: 4px; border: 1px solid #d1d5db; font-size: 0.9rem;">
-      </div>
-      <div class="filter-group" style="min-width: 220px;">
-        <label>ATS Domain</label>
-  <input type="text" id="ats-domain-input" name="ats_domain" placeholder="e.g., myworkday.com" style="width: 100%; padding: 0.4rem 0.6rem; border-radius: 4px; border: 1px solid #d1d5db; font-size: 0.9rem;">
-      </div>
-      <div class="filter-group" style="min-width: 320px; flex: 1;">
-        <label>Career Jobs URL</label>
-  <input type="url" id="careers-url-input" name="careers_url" placeholder="e.g., https://www.amentumcareers.com/jobs/" style="width: 100%; padding: 0.4rem 0.6rem; border-radius: 4px; border: 1px solid #d1d5db; font-size: 0.9rem;">
+      <input type="hidden" name="action" value="quick_add_company">
+      <div class="filter-group" style="flex: 1;">
+        <label>Homepage URL</label>
+        <input type="url" name="homepage_url" placeholder="e.g., https://www.company.com" style="width: 100%; padding: 0.4rem 0.6rem; border-radius: 4px; border: 1px solid #d1d5db; font-size: 0.9rem;" required>
       </div>
       <div>
-        <button type="submit" class="btn btn-primary">➕ Update Companies</button>
+        <button type="submit" class="btn btn-primary">🔍 Add Company</button>
       </div>
     </form>
   </div>

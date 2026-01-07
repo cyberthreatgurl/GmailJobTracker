@@ -2436,6 +2436,25 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
         display_name, sender_email = parseaddr(sender)
         if display_name:
             display_name_clean = display_name.strip()
+            
+            # Handle "PersonName @ CompanyName" pattern (e.g., "Quinn @ Mondo" -> "Mondo")
+            # The @ separator is a strong signal that this is a "Person @ Company" format
+            if " @ " in display_name_clean or " at " in display_name_clean.lower():
+                # Extract company part after @ or "at"
+                if " @ " in display_name_clean:
+                    parts = display_name_clean.split(" @ ", 1)
+                else:
+                    parts = re.split(r"\s+at\s+", display_name_clean, maxsplit=1, flags=re.IGNORECASE)
+                if len(parts) == 2:
+                    person_part = parts[0].strip()
+                    company_part = parts[1].strip()
+                    # The @ pattern is a strong signal - if first part looks like a person name,
+                    # use the second part as the company (even if it's a short single word)
+                    if looks_like_person(person_part) and company_part:
+                        display_name_clean = company_part
+                        if DEBUG:
+                            print(f"[DEBUG] Extracted company from 'Name @ Company' pattern: {display_name_clean}")
+            
             # Check if display name is a known company
             if display_name_clean.lower() in {c.lower() for c in KNOWN_COMPANIES}:
                 # Find original casing from known list
@@ -2694,10 +2713,29 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
         ats_display_name_fallback = None
         if not company:
             display_name, _ = parseaddr(sender)
+            cleaned = display_name
+            
+            # Handle "PersonName @ CompanyName" pattern (e.g., "Quinn @ Mondo" -> "Mondo")
+            # The @ separator is a strong signal that this is a "Person @ Company" format
+            if " @ " in cleaned or re.search(r"\s+at\s+", cleaned, re.IGNORECASE):
+                if " @ " in cleaned:
+                    parts = cleaned.split(" @ ", 1)
+                else:
+                    parts = re.split(r"\s+at\s+", cleaned, maxsplit=1, flags=re.IGNORECASE)
+                if len(parts) == 2:
+                    person_part = parts[0].strip()
+                    company_part = parts[1].strip()
+                    # The @ pattern is a strong signal - if first part looks like a person name,
+                    # use the second part as the company (even if it's a short single word)
+                    if looks_like_person(person_part) and company_part:
+                        cleaned = company_part
+                        if DEBUG:
+                            print(f"[DEBUG] Extracted company from 'Name @ Company' pattern: {cleaned}")
+            
             cleaned = re.sub(
                 r"\b(Workday|Recruiting Team|Careers|Talent Acquisition Team|HR|Hiring|Notification|Notifications|Team|Portal)\b",
                 "",
-                display_name,
+                cleaned,
                 flags=re.I,
             ).strip()
             # Remove ATS platform suffixes (e.g., "@ icims", "@ Workday", etc.)

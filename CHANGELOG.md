@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.16] - 2026-01-07
+
+### Added
+- **Company Alias Input Field** on label_companies page
+  - New alias text field after Career/Jobs URL in both new and existing company forms
+  - Allows users to define alternative names or abbreviations (e.g., "AFS" for "Accenture Federal Services")
+  - Auto-loads existing aliases from companies.json via reverse lookup
+  - Saves aliases to companies.json `aliases` object
+  - Supports add, update, and remove operations
+  - Comprehensive documentation in `markdown/ALIAS_FEATURE.md`
+
+### Changed
+- **CompanyEditForm**: Added `alias` non-model field (max 255 chars, optional)
+- **label_companies view**: Enhanced to load, initialize, and save alias mappings
+- **companies.json**: Alias storage in `{"aliasName": "canonicalCompanyName"}` format
+
 ## [1.0.15] - 2026-01-06
 
 ### Added

@@ -127,6 +127,14 @@ class CompanyEditForm(forms.ModelForm):
         label="Career Page URL",
         help_text="Company's job listings or career page",
     )
+    
+    # Add alias as a non-model field
+    alias = forms.CharField(
+        max_length=255,
+        required=False,
+        label="Alias",
+        help_text="Alternative name or abbreviation (e.g., 'AFS' for 'Accenture Federal Services')",
+    )
 
     class Meta:
         model = Company

@@ -141,6 +141,14 @@ def _clean_company_name(name: str) -> str:
     # Remove common web suffixes
     name = re.sub(r"\s*[|-]\s*Official.*$", "", name, flags=re.IGNORECASE)
     name = re.sub(r"\s*[|-]\s*Home.*$", "", name, flags=re.IGNORECASE)
+    
+    # Handle pipe separators (e.g., "PMAT Inc. | Enhancing Decision Dominance")
+    if '|' in name:
+        parts = name.split('|')
+        # Keep first part (company name) if it's reasonable length
+        if parts and len(parts[0].strip()) < 50:
+            name = parts[0].strip()
+    
     # Remove long descriptive taglines (em dash often separates company from tagline)
     if ' – ' in name:
         parts = name.split(' – ')

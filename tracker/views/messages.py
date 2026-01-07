@@ -147,7 +147,7 @@ def label_messages(request):
                                     confidence=1.0,
                                     first_contact=now(),
                                     last_contact=now(),
-                                    status="application"
+                                    status="new"
                                 )
                                 messages.success(
                                     request, f"✅ Created company '{new_company.name}' from known companies list."

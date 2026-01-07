@@ -8,6 +8,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.16] - 2026-01-07
 
 ### Added
+- **Comprehensive Input Validation** across all forms and models
+  - **HTML5 Browser Validation**: Pattern attributes on text inputs, type="url" for URLs
+  - **Django Form Validation**: RegexValidator on all text fields (company name, job title, job ID, alias, source, thread_id)
+  - **Django Model Validation**: Field-level validators on Company and ThreadTracking models
+  - **URL Validation**: URLValidator with http/https schemes on homepage and career_url
+  - **Allowed Characters**:
+    - Text fields: Alphanumeric + period (.), comma (,), dash (-)
+    - Company names/aliases: Also allows ampersand (&), quotes, parentheses
+    - Job titles: Also allows forward slash (/), parentheses, ampersand
+    - Domains: Alphanumeric + period, dash
+    - Job IDs: Alphanumeric + dash, underscore
+    - Thread IDs: Alphanumeric only
+  - Comprehensive documentation in `markdown/INPUT_VALIDATION.md`
+  - Migration 0014 created for model validator changes
+
 - **Company Alias Input Field** on label_companies page
   - New alias text field after Career/Jobs URL in both new and existing company forms
   - Allows users to define alternative names or abbreviations (e.g., "AFS" for "Accenture Federal Services")
@@ -17,9 +32,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Comprehensive documentation in `markdown/ALIAS_FEATURE.md`
 
 ### Changed
-- **CompanyEditForm**: Added `alias` non-model field (max 255 chars, optional)
+- **CompanyEditForm**: Added `alias` non-model field with regex validation (max 255 chars, optional)
+- **ManualEntryForm**: Added regex validators to company_name, job_title, job_id, source fields
+- **UploadEmlForm**: Added regex validator to thread_id field
+- **Company Model**: Added validators to name, domain, ats, homepage, contact_name fields
+- **ThreadTracking Model**: Added validators to thread_id, job_title, job_id fields
+- **Templates**: Added HTML5 pattern validation to search box, gmail label prefix inputs
 - **label_companies view**: Enhanced to load, initialize, and save alias mappings
 - **companies.json**: Alias storage in `{"aliasName": "canonicalCompanyName"}` format
+
+### Security
+- **XSS Prevention**: Input validation blocks HTML tags, JavaScript protocols, malicious patterns
+- **SQL Injection Prevention**: Django ORM parameterized queries + validators prevent malicious input
+- **Three-Layer Validation**: HTML5 (client) → Django Forms (server) → Django Models (database)
 
 ## [1.0.15] - 2026-01-06
 

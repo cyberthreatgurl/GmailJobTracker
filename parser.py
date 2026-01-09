@@ -3174,7 +3174,7 @@ def ingest_message(service, msg_id):
             )
             if hasattr(stats, "total_ignored"):
                 stats.total_ignored += 1
-            return "ignored"
+            return {"status": "ignored", "reason": "blank_body"}
 
     except Exception as e:
         if DEBUG:
@@ -3223,7 +3223,7 @@ def ingest_message(service, msg_id):
             )
             if hasattr(stats, "total_ignored"):
                 stats.total_ignored += 1
-            return "ignored"
+            return {"status": "ignored", "reason": "newsletter_headers"}
     elif DEBUG and header_hints.get("is_newsletter"):
         print(
             f"[HEADER HINTS] Newsletter header found but application-related (patterns.json), not ignoring: {metadata['subject']}"
@@ -3281,7 +3281,7 @@ def ingest_message(service, msg_id):
             )
             if hasattr(stats, "total_ignored"):
                 stats.total_ignored += 1
-            return "ignored"
+            return {"status": "ignored", "reason": "user_personal_email"}
 
         # If ML classifies as noise with reasonable confidence, trust it
         if ml_predicted_label == "noise" and ml_confidence > 0.5:
@@ -3375,17 +3375,18 @@ def ingest_message(service, msg_id):
                 )
             existing.delete()
 
+        ignore_reason = parsed_subject.get("ignore_reason", "ml_ignore")
         log_ignored_message(
             msg_id,
             metadata,
-            reason=parsed_subject.get("ignore_reason", "ml_ignore"),
+            reason=ignore_reason,
         )
         IngestionStats.objects.filter(date=stats.date).update(
             total_ignored=F("total_ignored") + 1
         )
         if hasattr(stats, "total_ignored"):
             stats.total_ignored += 1
-        return "ignored"
+        return {"status": "ignored", "reason": ignore_reason}
 
     status = classify_message(body)
     # Pass actual datetime object for date arithmetic (fixes timedelta concat on str)
@@ -4891,7 +4892,16 @@ def ingest_message(service, msg_id):
     if DEBUG:
         print(f"Logged: {metadata['subject']}")
 
-    return "inserted"
+    # Return details for logging
+    final_label = result.get("label") if result else "unknown"
+    confidence = float(result.get("confidence", 0.0)) if result else 0.0
+    return {
+        "status": "inserted",
+        "label": final_label,
+        "confidence": confidence,
+        "company": company or "N/A",
+        "source": company_source or "none",
+    }
 
 
 # Note: Company data loading moved to DomainMapper class

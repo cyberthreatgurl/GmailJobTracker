@@ -63,7 +63,8 @@
     "viasat": "Viasat",
     "wearemetronome": "Metronome",
     "Quinn @ Mondo": "Mondo",
-    "PMAT": "PMAT Inc."
+    "PMAT": "PMAT Inc.",
+    "Cordia": "Cordia Resources"
   },
   "ats_domains": [
     "adp.com",
@@ -260,7 +261,12 @@
     "victorops.com": "Victorops",
     "wearemetronome.com": "Metronome",
     "westinghousenuclear.com": "Westinghouse Nuclear",
-    "wrglabs.com": "Wireless Research Group, LLC"
+    "wrglabs.com": "Wireless Research Group, LLC",
+    "cordiaresources.com": "Cordia Resources",
+    "insanecyber.com": "Insane Cyber",
+    "recordedfuture.com": "Advanced Cyber Threat Intelligence",
+    "kittyhawktech.com": "Kitty Hawk Technologies",
+    "gotyto.com": "Tyto Athene"
   },
   "headhunter_domains": [
     "agreeya.com",
@@ -391,7 +397,12 @@
     "Microsoft": "https://careers.microsoft.com/",
     "Anduril": "https://www.anduril.com/careers",
     "PMAT Inc. | Enhancing Decision Dominance": "https://pmatinc.com/careers/",
-    "PMAT Inc.": "https://pmatinc.com/careers/"
+    "PMAT Inc.": "https://pmatinc.com/careers/",
+    "Cordia Resources": "https://www.cordiaresources.com/find-jobs/",
+    "Insane Cyber": "https://insanecyber.com/careers/",
+    "Advanced Cyber Threat Intelligence": "https://www.recordedfuture.com/careers",
+    "Kitty Hawk Technologies": "https://kittyhawktech.com/current-openings/",
+    "Tyto Athene": "https://gotyto.com/who-we-are/careers/"
   },
   "known": [
     "Obsidian",
@@ -503,6 +514,7 @@
     "Splunk",
     "Starbucks",
     "Stripe",
+    "Cordia Resources",
     "TMC Technologies",
     "Target",
     "The Home Depot",
@@ -526,6 +538,9 @@
     "Mondo",
     "Anduril",
     "IANS",
-    "PMAT Inc. | Enhancing Decision Dominance"
+    "PMAT Inc. | Enhancing Decision Dominance",
+    "Insane Cyber",
+    "Kitty Hawk Technologies",
+    "Tyto Athene"
   ]
 }

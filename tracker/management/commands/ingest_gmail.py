@@ -177,28 +177,43 @@ class Command(BaseCommand):
                     # Mark as processed
                     ProcessedMessage.objects.get_or_create(gmail_id=msg_id)
 
-                    # Track if message was inserted or ignored
-                    # ingest_message returns "ignored" if the message was ignored
-                    if ret == "ignored":
+                    # Enhanced logging: Show what happened with this message
+                    if isinstance(ret, dict):
+                        status = ret.get("status", "unknown")
+                        if status == "ignored":
+                            reason = ret.get("reason", "unknown")
+                            log_console(f"  → Ignored: {reason}")
+                            ignored += 1
+                        elif status == "inserted":
+                            label = ret.get("label", "unknown")
+                            confidence = ret.get("confidence", 0)
+                            company = ret.get("company", "N/A")
+                            source = ret.get("source", "unknown")
+                            log_console(
+                                f"  → Inserted: label={label}, confidence={confidence:.2f}, company={company}, source={source}"
+                            )
+                            inserted += 1
+                        else:
+                            log_console(f"  → {status}")
+                    elif ret == "ignored":
+                        # Legacy string return
+                        log_console(f"  → Ignored")
                         ignored += 1
                     else:
-                        # Best-effort detection if an insert happened
+                        # Legacy return values
                         inserted_flag = False
                         if isinstance(ret, bool):
                             inserted_flag = ret
                         elif isinstance(ret, int):
                             inserted_flag = ret > 0
-                        elif isinstance(ret, dict):
-                            inserted_flag = bool(
-                                ret.get("inserted")
-                                or ret.get("created")
-                                or ret.get("saved")
-                            )
                         else:
-                            inserted_flag = True
+                            inserted_flag = True if ret else False
 
                         if inserted_flag:
+                            log_console(f"  → Inserted")
                             inserted += 1
+                        else:
+                            log_console(f"  → Skipped")
 
                 except Exception as e:
                     log_console(f"Failed to ingest {msg_id}: {e}")

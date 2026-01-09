@@ -24,6 +24,18 @@
       </select>
     </form>
   </div>
+  
+  <!-- Help text to explain log types -->
+  <div style="margin-bottom: 1rem; padding: 0.75rem; background: #eff6ff; border-left: 3px solid #3b82f6; border-radius: 4px; font-size: 0.9rem;">
+    {% if selected_log and "tracker-" in selected_log %}
+      <strong>📝 Tracker Log:</strong> Shows ingestion details including classification (label, confidence, company, source) and ignored messages.
+    {% elif selected_log and "django.log" in selected_log %}
+      <strong>🌐 Django Log:</strong> Shows HTTP requests and framework logs. For ingestion debugging, view <code>tracker-YYYY-MM-DD.log</code> instead.
+    {% else %}
+      <strong>ℹ️ Log Viewer:</strong> Select a log file to view. Tracker logs show ingestion details; Django logs show HTTP requests.
+    {% endif %}
+  </div>
+  
   <div>
     <div class="log-box" id="logBox">{{ log_content|default:"(No log data)" }}</div>
   </div>

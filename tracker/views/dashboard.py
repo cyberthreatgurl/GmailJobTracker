@@ -75,8 +75,8 @@ def dashboard(request):
     # First-time flag will be added to ctx near render
 
     # ✅ Recent messages with company preloaded
-    messages = Message.objects.select_related("company").order_by("-timestamp")[:100]
-    for msg in messages:
+    recent_messages = Message.objects.select_related("company").order_by("-timestamp")[:100]
+    for msg in recent_messages:
         raw_html = msg.body or ""
         msg.cleaned_body_html = extract_body_content(raw_html)
 
@@ -786,7 +786,7 @@ def dashboard(request):
 
     ctx = {
         "companies_list": companies_list,
-        "messages": messages,
+        "recent_messages": recent_messages,
         "threads": thread_list,
         "threads_by_subject": threads_by_subject,
         "latest_stats": latest_stats,

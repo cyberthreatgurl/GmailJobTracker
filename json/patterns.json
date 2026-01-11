@@ -279,7 +279,12 @@
       "\\bwe\\snoticed\\syou\\sstarted\\b",
       "\\bhelp\\syou\\sget\\sstarted\\b",
       "\\bIndeed\\sApplication:\\b",
-      "\\bpre-?screen(?:ing)?\\b"
+      "\\bpre-?screen(?:ing)?\\b",
+      "\\b(?:request|requesting)\\s+(?:for\\s+)?(?:missing|additional|outstanding)\\s+(?:application\\s+)?materials?\\b",
+      "\\bmissing\\s+(?:application\\s+)?(?:materials?|documents?|items?)\\b",
+      "\\boutstanding\\s+(?:application\\s+)?(?:materials?|documents?|items?)\\b",
+      "\\b(?:materials?|documents?|items?)\\s+(?:may\\s+be\\s+)?missing\\s+from\\s+your\\s+application\\b",
+      "\\bsubmit\\s+(?:any\\s+)?outstanding\\s+(?:materials?|documents?|items?)\\b"
     ]
   },
   "message_label_excludes": {

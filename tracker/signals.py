@@ -1,10 +1,10 @@
 import json
 from pathlib import Path
 
-from django.db.models.signals import post_delete, post_save
+from django.db.models.signals import post_delete, post_save, pre_delete
 from django.dispatch import receiver
 
-from .models import ATSDomain, Company, CompanyAlias, DomainToCompany, KnownCompany
+from .models import ATSDomain, Company, CompanyAlias, DomainToCompany, KnownCompany, Message, ThreadTracking
 
 
 @receiver([post_save, post_delete], sender=KnownCompany)
@@ -61,3 +61,65 @@ def sync_domain_to_company_on_company_save(sender, instance: Company, **kwargs):
     )
     # Trigger export
     export_companies(sender=DomainToCompany)
+
+
+@receiver(pre_delete, sender=Message)
+def cleanup_thread_tracking_before_delete(sender, instance, **kwargs):
+    """
+    Before deleting a Message, check if we need to update or delete its ThreadTracking.
+    
+    This handles:
+    1. If this is the last message in the thread -> delete ThreadTracking
+    2. If deleting a rejection message -> clear rejection_date and find next rejection
+    3. If deleting an interview message -> clear interview_date and find next interview
+    4. Recalculate ml_label based on remaining messages
+    """
+    thread_id = instance.thread_id
+    
+    if not thread_id:
+        return
+    
+    try:
+        thread_tracking = ThreadTracking.objects.get(thread_id=thread_id)
+    except ThreadTracking.DoesNotExist:
+        return
+    
+    # Count remaining messages in this thread (excluding the one being deleted)
+    remaining_messages = Message.objects.filter(thread_id=thread_id).exclude(
+        msg_id=instance.msg_id
+    )
+    remaining_count = remaining_messages.count()
+    
+    # If this is the last message, delete the ThreadTracking
+    if remaining_count == 0:
+        print(f"[SIGNAL] Deleting ThreadTracking {thread_id} - last message deleted")
+        thread_tracking.delete()
+        return
+    
+    # Otherwise, update ThreadTracking based on remaining messages
+    print(f"[SIGNAL] Updating ThreadTracking {thread_id} - {remaining_count} messages remain")
+    
+    # Recalculate rejection_date
+    rejections = remaining_messages.filter(ml_label='rejection').order_by('-timestamp')
+    if rejections.exists():
+        latest_rejection = rejections.first()
+        thread_tracking.rejection_date = latest_rejection.timestamp.date()
+    else:
+        thread_tracking.rejection_date = None
+    
+    # Recalculate interview_date
+    interviews = remaining_messages.filter(ml_label='interview_invite').order_by('-timestamp')
+    if interviews.exists():
+        latest_interview = interviews.first()
+        thread_tracking.interview_date = latest_interview.timestamp.date()
+    else:
+        thread_tracking.interview_date = None
+    
+    # Recalculate ml_label - use the most recent message's label
+    latest_message = remaining_messages.order_by('-timestamp').first()
+    if latest_message:
+        thread_tracking.ml_label = latest_message.ml_label
+        thread_tracking.ml_confidence = latest_message.confidence
+    
+    thread_tracking.save()
+    print(f"[SIGNAL] Updated ThreadTracking: rejection_date={thread_tracking.rejection_date}, interview_date={thread_tracking.interview_date}, ml_label={thread_tracking.ml_label}")

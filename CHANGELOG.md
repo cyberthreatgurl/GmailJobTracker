@@ -5,6 +5,41 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-01-11
+
+### Added
+- **🔍 Job Search Tracker** - New proactive job search management feature
+  - Dedicated page at `/job_search_tracker/` to track manual company website searches
+  - Added `last_job_search_date` field to Company model (migration 0015)
+  - Track which companies you've manually searched for job opportunities
+  - "Searched Today" button per company to mark search timestamp
+  - Sortable table columns (Company, Last Search Date, Messages)
+  - Statistics dashboard showing:
+    - Total companies
+    - Ever searched count
+    - Never searched count
+    - Searched today count
+    - Searched this week count
+  - Sidebar integration with "Jobs Searched" count
+  - New "Added Today" counter in sidebar showing companies added in last 24 hours
+  - Checkbox on label_companies page to mark company as manually searched
+  - Displays last search date with "time since" formatting
+
+### Changed
+- **StatsService**: Added `companies_searched_count` and `companies_added_today` metrics to sidebar
+- **label_companies view**: Added POST handler for `mark_searched` checkbox
+- **Sidebar template**: Added "Jobs Searched" and "Added Today" stats with links
+- **URL routing**: Added `job_search_tracker` route
+- **Company model**: Enhanced with job search tracking capability
+
+### UI/UX
+- Modern Tailwind CSS styling with gradient backgrounds
+- Color-coded stat cards with left border accents
+- Responsive design for mobile and desktop
+- Hover effects and smooth transitions
+- Badge-style pills for dates and message counts
+- Two-column help section with usage instructions and sorting tips
+
 ## [1.0.16] - 2026-01-07
 
 ### Added

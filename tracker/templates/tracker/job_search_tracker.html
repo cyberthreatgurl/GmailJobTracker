@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Job Search Tracker{% endblock %}
+
+{% block content %}
+<div class="bg-blue-50 p-6 rounded-lg shadow mb-6 border border-blue-200">
+    <div class="mb-4">
+        <h1 class="text-2xl font-bold text-gray-900 mb-2">🔍 Job Search Tracker</h1>
+        <p class="text-gray-700">Track which companies you've manually searched for new job opportunities</p>
+    </div>
+    
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <div class="bg-white p-4 rounded-lg shadow border-l-4 border-blue-500">
+            <div class="text-2xl font-bold text-blue-600">{{ total_companies }}</div>
+            <div class="text-sm text-gray-600">Total Companies</div>
+        </div>
+        <div class="bg-white p-4 rounded-lg shadow border-l-4 border-green-500">
+            <div class="text-2xl font-bold text-green-600">{{ searched_companies }}</div>
+            <div class="text-sm text-gray-600">Ever Searched</div>
+        </div>
+        <div class="bg-white p-4 rounded-lg shadow border-l-4 border-orange-500">
+            <div class="text-2xl font-bold text-orange-600">{{ never_searched }}</div>
+            <div class="text-sm text-gray-600">Never Searched</div>
+        </div>
+        <div class="bg-white p-4 rounded-lg shadow border-l-4 border-purple-500">
+            <div class="text-2xl font-bold text-purple-600">{{ searched_today }}</div>
+            <div class="text-sm text-gray-600">Searched Today</div>
+        </div>
+        <div class="bg-white p-4 rounded-lg shadow border-l-4 border-indigo-500">
+            <div class="text-2xl font-bold text-indigo-600">{{ searched_this_week }}</div>
+            <div class="text-sm text-gray-600">This Week</div>
+        </div>
+    </div>
+</div>
+
+<!-- Companies Table -->
+<div class="bg-white rounded-lg shadow overflow-hidden border border-gray-200">
+    <div class="overflow-x-auto">
+        <table id="companiesTable" class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase cursor-pointer hover:bg-gray-200" onclick="sortTable(0)">
+                        <div class="flex items-center gap-2">
+                            Company
+                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path>
+                            </svg>
+                        </div>
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase cursor-pointer hover:bg-gray-200" onclick="sortTable(1)">
+                        <div class="flex items-center gap-2">
+                            Last Search Date
+                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path>
+                            </svg>
+                        </div>
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase cursor-pointer hover:bg-gray-200" onclick="sortTable(2)">
+                        <div class="flex items-center gap-2">
+                            Messages
+                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path>
+                            </svg>
+                        </div>
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-center text-xs font-bold text-gray-700 uppercase">
+                        Action
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for company in companies %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <a href="{% url 'label_companies' %}?company={{ company.id }}" 
+                           class="text-blue-600 hover:text-blue-800 font-semibold hover:underline">
+                            {{ company.name }}
+                        </a>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap" data-sort-value="{% if company.last_job_search_date %}{{ company.last_job_search_date|date:'U' }}{% else %}0{% endif %}">
+                        {% if company.last_job_search_date %}
+                            <div class="flex items-center gap-2">
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    {{ company.last_job_search_date|date:"Y-m-d H:i" }}
+                                </span>
+                            </div>
+                            <span class="text-xs text-gray-500 mt-1 block">
+                                ({{ company.last_job_search_date|timesince }} ago)
+                            </span>
+                        {% else %}
+                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">Never searched</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-700" data-sort-value="{{ company.message_count }}">
+                        <span class="inline-flex items-center justify-center px-3 py-1 rounded-full text-sm font-semibold bg-blue-100 text-blue-700">
+                            {{ company.message_count }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-center">
+                        <form method="POST" class="inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="company_id" value="{{ company.id }}">
+                            <input type="hidden" name="searched" value="1">
+                            <button type="submit" 
+                                    class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-semibold rounded-lg text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 shadow">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                Searched Today
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="px-6 py-8 text-center text-gray-500">
+                        No companies found. Ingest some emails first!
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Help Section -->
+<div class="mt-6 grid md:grid-cols-2 gap-4">
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <h3 class="font-bold text-blue-900 mb-2 text-base flex items-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            How to Use
+        </h3>
+        <ul class="text-sm text-blue-900 space-y-1">
+            <li class="flex items-start gap-2">
+                <span class="text-blue-600 font-bold">•</span>
+                <span>Click company name to view/edit details</span>
+            </li>
+            <li class="flex items-start gap-2">
+                <span class="text-blue-600 font-bold">•</span>
+                <span>Click "Searched Today" after checking job postings</span>
+            </li>
+            <li class="flex items-start gap-2">
+                <span class="text-blue-600 font-bold">•</span>
+                <span>Stay proactive with regular searches</span>
+            </li>
+        </ul>
+    </div>
+    <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
+        <h3 class="font-bold text-purple-900 mb-2 text-base flex items-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path>
+            </svg>
+            Sorting
+        </h3>
+        <ul class="text-sm text-purple-900 space-y-1">
+            <li class="flex items-start gap-2">
+                <span class="text-purple-600 font-bold">•</span>
+                <span>Click column header to sort ascending</span>
+            </li>
+            <li class="flex items-start gap-2">
+                <span class="text-purple-600 font-bold">•</span>
+                <span>Click again to sort descending</span>
+            </li>
+            <li class="flex items-start gap-2">
+                <span class="text-purple-600 font-bold">•</span>
+                <span>Default sorted by last search date</span>
+            </li>
+        </ul>
+    </div>
+</div>
+
+<script>
+let sortDirection = [1, 1, 1]; // 1 for ascending, -1 for descending
+
+function sortTable(columnIndex) {
+    const table = document.getElementById('companiesTable');
+    const tbody = table.querySelector('tbody');
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+    
+    // Toggle sort direction
+    sortDirection[columnIndex] *= -1;
+    
+    rows.sort((a, b) => {
+        let aValue, bValue;
+        
+        if (columnIndex === 0) {
+            // Company name - text sort
+            aValue = a.cells[columnIndex].textContent.trim().toLowerCase();
+            bValue = b.cells[columnIndex].textContent.trim().toLowerCase();
+        } else if (columnIndex === 1) {
+            // Last search date - use data-sort-value attribute (unix timestamp)
+            aValue = parseInt(a.cells[columnIndex].getAttribute('data-sort-value') || '0');
+            bValue = parseInt(b.cells[columnIndex].getAttribute('data-sort-value') || '0');
+        } else if (columnIndex === 2) {
+            // Messages - numeric sort using data-sort-value
+            aValue = parseInt(a.cells[columnIndex].getAttribute('data-sort-value') || '0');
+            bValue = parseInt(b.cells[columnIndex].getAttribute('data-sort-value') || '0');
+        }
+        
+        if (aValue < bValue) return -1 * sortDirection[columnIndex];
+        if (aValue > bValue) return 1 * sortDirection[columnIndex];
+        return 0;
+    });
+    
+    // Re-append rows in sorted order
+    rows.forEach(row => tbody.appendChild(row));
+    
+    // Visual feedback - highlight sorted column
+    table.querySelectorAll('th').forEach((th, index) => {
+        if (index === columnIndex) {
+            th.classList.add('bg-blue-200');
+        } else {
+            th.classList.remove('bg-blue-200');
+        }
+    });
+}
+</script>
+{% endblock %}

@@ -40,4 +40,5 @@ urlpatterns = [
     ),
     path("debug/label_rule/", views.label_rule_debugger, name="label_rule_debugger"),
     path("upload_eml/", views.upload_eml, name="upload_eml"),
+    path("job_search_tracker/", views.job_search_tracker, name="job_search_tracker"),
 ]

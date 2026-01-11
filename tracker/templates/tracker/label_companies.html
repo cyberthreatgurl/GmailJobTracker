@@ -207,6 +207,15 @@
             <strong style="display:block; font-size:0.85rem; color:#6b7280; margin-bottom:0.2rem;">Latest Label from Messages:</strong>
             <span style="background:#e0e7ff; color:#3730a3; border-radius:4px; padding:0.25rem 0.6rem; font-size:0.95rem; display:inline-block;">{{ latest_label|default:"N/A" }}</span>
           </div>
+          <div>
+            <strong style="display:block; font-size:0.85rem; color:#6b7280; margin-bottom:0.2rem;">Last Job Search:</strong>
+            {% if selected_company.last_job_search_date %}
+              <span style="background:#d1fae5; color:#065f46; border-radius:4px; padding:0.25rem 0.6rem; font-size:0.95rem; display:inline-block;">{{ selected_company.last_job_search_date|date:"Y-m-d H:i" }}</span>
+              <span style="font-size:0.8rem; color:#6b7280; margin-left:0.3rem;">({{ selected_company.last_job_search_date|timesince }} ago)</span>
+            {% else %}
+              <span style="background:#f3f4f6; color:#6b7280; border-radius:4px; padding:0.25rem 0.6rem; font-size:0.95rem; font-style:italic; display:inline-block;">Never searched</span>
+            {% endif %}
+          </div>
           {% if days_since_last_message is not None %}
           <div>
             <strong style="display:block; font-size:0.85rem; color:#6b7280; margin-bottom:0.2rem;">Days since last message:</strong>
@@ -217,6 +226,15 @@
           </div>
           {% endif %}
         </div>
+        <!-- Mark as Searched Checkbox -->
+        <form method="post" style="margin-top:1rem; padding:0.75rem; background:#f0fdf4; border:1px solid #86efac; border-radius:6px;">
+          {% csrf_token %}
+          <input type="hidden" name="company" value="{{ selected_company.id }}" />
+          <label style="display:flex; align-items:center; cursor:pointer; font-size:0.95rem; color:#166534;">
+            <input type="checkbox" name="mark_searched" value="1" style="width:auto; margin-right:0.5rem; cursor:pointer;" onchange="this.form.submit()">
+            <strong>🔍 I manually searched this company's website for jobs today</strong>
+          </label>
+        </form>
       </div>
       <div style="display: flex; gap: 2rem; align-items: flex-start;">
         <div style="flex: 1;">

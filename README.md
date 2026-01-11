@@ -36,6 +36,7 @@ A local-only Django application that transforms your Gmail into an intelligent j
 - **Bulk labeling**: Label 10/50/100 messages at once with checkboxes
 - **Confidence filtering**: Focus on low-confidence predictions
 - **Calendar view**: Upcoming interviews timeline
+- **🔍 Job Search Tracker**: Proactively track which companies you've manually searched for opportunities
 
 ### 🔒 Privacy & Security
 

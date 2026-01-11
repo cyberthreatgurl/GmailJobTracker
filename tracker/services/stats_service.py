@@ -139,6 +139,17 @@ class StatsService:
 
         latest_stats = IngestionStats.objects.order_by("-date").first()
 
+        # Count companies that have been manually searched
+        companies_searched_count = Company.objects.filter(
+            last_job_search_date__isnull=False
+        ).count()
+
+        # Count companies added today
+        today_start = now().replace(hour=0, minute=0, second=0, microsecond=0)
+        companies_added_today = Company.objects.filter(
+            first_contact__gte=today_start
+        ).count()
+
         return {
             "companies": companies_count,
             "applications": applications_count,
@@ -149,6 +160,8 @@ class StatsService:
             "upcoming_interviews": upcoming_interviews,
             "offer_companies": offer_companies,
             "latest_stats": latest_stats,
+            "companies_searched_count": companies_searched_count,
+            "companies_added_today": companies_added_today,
         }
 
     @staticmethod

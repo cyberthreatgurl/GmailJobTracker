@@ -79,6 +79,11 @@ class Company(models.Model):
     first_contact = models.DateTimeField()
     last_contact = models.DateTimeField()
     confidence = models.FloatField(null=True, blank=True)
+    last_job_search_date = models.DateTimeField(
+        null=True, 
+        blank=True, 
+        help_text="Last date when user manually searched this company's job postings"
+    )
 
     def __str__(self):
         return self.name

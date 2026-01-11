@@ -3,7 +3,6 @@
     "AFS": "Accenture Federal Services",
     "Wireless Research Group": "Wireless Research Group, LLC",
     "ARC": "Analysis and Resilience Center for Systemic Risk",
-    "ARES": "ARES Corporation",
     "Boeing": "Boeing",
     "RadiantSecurity": "Radiant Security",
     "capitalone": "Capital One",
@@ -64,7 +63,9 @@
     "wearemetronome": "Metronome",
     "Quinn @ Mondo": "Mondo",
     "PMAT": "PMAT Inc.",
-    "Cordia": "Cordia Resources"
+    "Cordia": "Cordia Resources",
+    "ares": "ARES Corporation",
+    "Macro Pros": "Alluvial Concepts"
   },
   "ats_domains": [
     "adp.com",
@@ -227,7 +228,7 @@
     "radiantsecurity.ai": "Radiant Security",
     "rand.org": "Rand",
     "rapid7.com": "Rapid7",
-    "recordedfuture.com": "Advanced Cyber Threat Intelligence",
+    "recordedfuture.com": "Recorded Future",
     "recruiting.facebook.com": "Meta",
     "rigor.com": "Rigor",
     "rmcweb.com": "Resource Management Concepts",
@@ -272,7 +273,11 @@
     "intrusion.com": "Intrusion",
     "tees.tamu.edu": "Texas A&M Engineering Experiment Station",
     "sentinelblue.com": "Sentinel Blue",
-    "randolphcollege.edu": "Randolph College"
+    "randolphcollege.edu": "Randolph College",
+    "rappahannock.edu": "Rappahannock Community College",
+    "umw.edu": "University of Mary Washington",
+    "alluvialconcepts.com": "Alluvial Concepts",
+    "mcguirewoods.com": "McGuireWoods"
   },
   "headhunter_domains": [
     "agreeya.com",
@@ -342,7 +347,7 @@
     "CFA Institute": "https://osv_cfainstitute.wd5.myworkdayjobs.com/Careers",
     "Arcfield": "https://careers.arcfield.com/careers-home",
     "Tech Wizards": "https://tech-wizards.applicantstack.com/x/openings",
-    "Amentum": "https://www.amentumcareers.com/jobs/",
+    "Amentum": "https://www.amentumcareers.com/jobs/search?query=",
     "Anthropic": "https://www.anthropic.com/careers",
     "Resource Management Concepts": "https://careers.rmcweb.com/",
     "Banduri": "https://www.banduri.com/Jobs",
@@ -415,7 +420,13 @@
     "Intrusion": "https://www.intrusion.com/company/careers/",
     "Texas A&M Engineering Experiment Station": "https://tees.tamu.edu/engr-hr/career-opportunities.html",
     "Sentinel Blue": "https://www.sentinelblue.com/company/careers/",
-    "Randolph College": "https://www.randolphcollege.edu/humanresources/job-openings/"
+    "Randolph College": "https://www.randolphcollege.edu/humanresources/job-openings/",
+    "Rappahannock Community College": "https://www.rappahannock.edu/jobs/index.html",
+    "University of Mary Washington": "https://jobs.umw.edu/jobs/search",
+    "ARES Corporation": "https://workforcenow.adp.com/mascsr/default/mdf/recruitment/recruitment.html?cid=5c86c854-26b4-4d63-afc8-7cd746a5b057&ccId=19000101_000001&type=JS&lang=en_US",
+    "Alluvial Concepts": "https://alluvialconcepts.com/find-opportunities/",
+    "McGuireWoods": "https://careers.mcguirewoods.com/",
+    "Recorded Future": "https://www.recordedfuture.com/careers"
   },
   "known": [
     "Obsidian",
@@ -560,6 +571,10 @@
     "Vituity",
     "Intrusion",
     "Texas A&M Engineering Experiment Station",
-    "Sentinel Blue"
+    "Sentinel Blue",
+    "Rappahannock Community College",
+    "University of Mary Washington",
+    "Alluvial Concepts",
+    "McGuireWoods"
   ]
 }

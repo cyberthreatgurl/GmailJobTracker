@@ -619,6 +619,20 @@ def label_companies(request):
                     except Exception as e:
                         messages.error(request, f"❌ Failed to save notes: {e}")
                     return redirect(f"/label_companies/?company={selected_company.id}")
+                
+                # Handle "mark_searched" checkbox
+                if request.POST.get("mark_searched"):
+                    try:
+                        selected_company.last_job_search_date = now()
+                        selected_company.save(update_fields=["last_job_search_date"])
+                        messages.success(
+                            request,
+                            f"✅ Marked {selected_company.name} as searched on {selected_company.last_job_search_date.strftime('%Y-%m-%d %H:%M')}",
+                        )
+                    except Exception as e:
+                        messages.error(request, f"❌ Failed to mark as searched: {e}")
+                    return redirect(f"/label_companies/?company={selected_company.id}")
+                
                 if request.POST.get("action") == "mark_ghosted":
                     # Do not allow ghosted if last message was a rejection
                     if latest_label == "rejection":
@@ -1823,4 +1837,67 @@ def manage_domains(request):
     return render(request, "tracker/manage_domains.html", ctx)
 
 
-__all__ = ["delete_company", "label_companies", "merge_companies", "manage_domains"]
+@login_required
+def job_search_tracker(request):
+    """
+    Track manual job searches across all companies.
+    
+    Shows all known companies with their last search date.
+    Allows users to mark companies as searched today.
+    """
+    if request.method == "POST":
+        company_id = request.POST.get("company_id")
+        if company_id:
+            try:
+                company = Company.objects.get(pk=company_id)
+                if request.POST.get("searched"):
+                    company.last_job_search_date = now()
+                    company.save()
+                    messages.success(
+                        request,
+                        f"✅ Marked {company.name} as searched on {company.last_job_search_date.strftime('%Y-%m-%d %H:%M')}"
+                    )
+                return redirect("job_search_tracker")
+            except Company.DoesNotExist:
+                messages.error(request, "❌ Company not found")
+    
+    # Get all companies ordered by last search date (nulls last)
+    companies = Company.objects.annotate(
+        message_count=Count('message')
+    ).order_by(
+        F('last_job_search_date').desc(nulls_last=True),
+        'name'
+    )
+    
+    # Calculate stats
+    total_companies = companies.count()
+    searched_companies = companies.filter(last_job_search_date__isnull=False).count()
+    never_searched = total_companies - searched_companies
+    
+    # Get companies searched today
+    today_start = now().replace(hour=0, minute=0, second=0, microsecond=0)
+    searched_today = companies.filter(last_job_search_date__gte=today_start).count()
+    
+    # Get companies searched in last 7 days
+    week_ago = now() - timedelta(days=7)
+    searched_this_week = companies.filter(last_job_search_date__gte=week_ago).count()
+    
+    # Get companies searched in last 30 days
+    month_ago = now() - timedelta(days=30)
+    searched_this_month = companies.filter(last_job_search_date__gte=month_ago).count()
+    
+    ctx = {
+        **build_sidebar_context(),
+        "companies": companies,
+        "total_companies": total_companies,
+        "searched_companies": searched_companies,
+        "never_searched": never_searched,
+        "searched_today": searched_today,
+        "searched_this_week": searched_this_week,
+        "searched_this_month": searched_this_month,
+    }
+    
+    return render(request, "tracker/job_search_tracker.html", ctx)
+
+
+__all__ = ["delete_company", "label_companies", "merge_companies", "manage_domains", "job_search_tracker"]

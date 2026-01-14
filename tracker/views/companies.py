@@ -297,12 +297,14 @@ def label_companies(request):
                         career_url = companies_json_data.get("JobSites", {}).get(
                             selected_company.name, ""
                         )
-                        # Load alias for this company (reverse lookup in aliases dict)
+                        # Load all aliases for this company (reverse lookup in aliases dict)
                         aliases_dict = companies_json_data.get("aliases", {})
-                        for alias_name, canonical_name in aliases_dict.items():
-                            if canonical_name == selected_company.name:
-                                alias = alias_name
-                                break
+                        alias_list = [
+                            alias_name
+                            for alias_name, canonical_name in aliases_dict.items()
+                            if canonical_name == selected_company.name
+                        ]
+                        alias = ", ".join(alias_list) if alias_list else ""
             except Exception:
                 pass
         except Company.DoesNotExist:
@@ -771,33 +773,39 @@ def label_companies(request):
                                         # Note: We don't remove ATS domains when cleared because they might be shared
                                         # by multiple companies. Manual removal from companies.json is needed.
 
-                                        # Update alias in aliases
+                                        # Update aliases (support multiple comma-separated values)
                                         alias_input = (form.cleaned_data.get("alias") or "").strip()
                                         if "aliases" not in companies_json_data:
                                             companies_json_data["aliases"] = {}
 
-                                        # Find and remove old alias for this company
-                                        old_alias = None
-                                        for alias_name, canonical_name in list(companies_json_data["aliases"].items()):
-                                            if canonical_name == company_name:
-                                                old_alias = alias_name
-                                                break
+                                        # Find and remove all old aliases for this company
+                                        old_aliases = [
+                                            alias_name
+                                            for alias_name, canonical_name in list(companies_json_data["aliases"].items())
+                                            if canonical_name == company_name
+                                        ]
 
                                         if alias_input:
-                                            # Set or update the alias mapping
-                                            if old_alias and old_alias != alias_input:
-                                                # Remove old alias
-                                                del companies_json_data["aliases"][old_alias]
-                                                changes_made = True
-                                            if (
-                                                alias_input not in companies_json_data["aliases"]
-                                                or companies_json_data["aliases"][alias_input] != company_name
-                                            ):
-                                                companies_json_data["aliases"][alias_input] = company_name
-                                                changes_made = True
+                                            # Split by comma and clean up each alias
+                                            new_aliases = [a.strip() for a in alias_input.split(",") if a.strip()]
+                                            
+                                            # Remove all old aliases
+                                            for old_alias in old_aliases:
+                                                if old_alias not in new_aliases:
+                                                    del companies_json_data["aliases"][old_alias]
+                                                    changes_made = True
+                                            
+                                            # Add all new aliases
+                                            for new_alias in new_aliases:
+                                                if (
+                                                    new_alias not in companies_json_data["aliases"]
+                                                    or companies_json_data["aliases"][new_alias] != company_name
+                                                ):
+                                                    companies_json_data["aliases"][new_alias] = company_name
+                                                    changes_made = True
                                         else:
-                                            # Remove alias if field is cleared
-                                            if old_alias:
+                                            # Remove all aliases if field is cleared
+                                            for old_alias in old_aliases:
                                                 del companies_json_data["aliases"][old_alias]
                                                 changes_made = True
 
@@ -940,17 +948,20 @@ def label_companies(request):
                                         companies_json_data["JobSites"][new_company.name] = career_url
                                         changes_made = True
                                 
-                                # Add alias to aliases if provided
-                                alias = form.cleaned_data.get("alias", "").strip()
-                                if alias:
+                                # Add aliases (support multiple comma-separated values)
+                                alias_input = form.cleaned_data.get("alias", "").strip()
+                                if alias_input:
                                     if "aliases" not in companies_json_data:
                                         companies_json_data["aliases"] = {}
-                                    if alias not in companies_json_data["aliases"]:
-                                        companies_json_data["aliases"][alias] = new_company.name
-                                        changes_made = True
-                                    elif companies_json_data["aliases"][alias] != new_company.name:
-                                        companies_json_data["aliases"][alias] = new_company.name
-                                        changes_made = True
+                                    # Split by comma and clean up each alias
+                                    new_aliases = [a.strip() for a in alias_input.split(",") if a.strip()]
+                                    for alias in new_aliases:
+                                        if alias not in companies_json_data["aliases"]:
+                                            companies_json_data["aliases"][alias] = new_company.name
+                                            changes_made = True
+                                        elif companies_json_data["aliases"][alias] != new_company.name:
+                                            companies_json_data["aliases"][alias] = new_company.name
+                                            changes_made = True
                                 
                                 if changes_made:
                                     with open(companies_json_path, "w", encoding="utf-8") as f:

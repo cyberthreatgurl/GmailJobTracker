@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2026-01-13
+
+### Fixed
+- **🔧 Company Alias Resolution** - Fixed duplicate company creation when aliases exist
+  - Added `resolve_company_alias()` function to check CompanyAlias model before creating companies
+  - Updated all 6 `Company.objects.get_or_create()` calls in parser.py to resolve aliases first
+  - Prevents duplicate companies like "CGI" (Company #201) when alias points to "CGI Inc." (Company #200)
+  - Aliases now properly resolve to canonical company names during email ingestion
+
+- **⏰ Jobs Searched Timezone Fix** - Fixed "Jobs Searched" counter to respect local timezone
+  - Changed `now().replace()` to `timezone.localtime(now())` in stats_service.py
+  - Properly calculates midnight in local timezone instead of UTC
+  - "Jobs Searched" counter now correctly counts all companies searched today in America/New_York timezone
+  - Added `timezone` import to stats_service.py
+
+- **🌍 Timezone Configuration** - TIME_ZONE setting now reads from environment variable
+  - Updated settings.py to use `os.getenv("TZ", "America/New_York")` instead of hardcoded value
+  - Respects TZ environment variable from .env file for consistent timezone handling
+
+### Technical Details
+- Modified parser.py: Added resolve_company_alias() function and updated 6 company creation points
+- Modified tracker/services/stats_service.py: Fixed timezone calculation for daily stats
+- Modified dashboard/settings.py: TIME_ZONE now reads from TZ environment variable
+
 ## [1.1.0] - 2026-01-11
 
 ### Added
@@ -20,7 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Never searched count
     - Searched today count
     - Searched this week count
-  - Sidebar integration with "Jobs Searched" count
+  - Sidebar integration with "Job Searches Today" count
   - New "Added Today" counter in sidebar showing companies added in last 24 hours
   - Checkbox on label_companies page to mark company as manually searched
   - Displays last search date with "time since" formatting
@@ -28,7 +52,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - **StatsService**: Added `companies_searched_count` and `companies_added_today` metrics to sidebar
 - **label_companies view**: Added POST handler for `mark_searched` checkbox
-- **Sidebar template**: Added "Jobs Searched" and "Added Today" stats with links
+- **Sidebar template**: Added "Job Searches Today" and "Added Today" stats with links
 - **URL routing**: Added `job_search_tracker` route
 - **Company model**: Enhanced with job search tracking capability
 

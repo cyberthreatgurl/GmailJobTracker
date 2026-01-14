@@ -41,17 +41,24 @@
   <div class="bg-white p-4 rounded-lg mb-4 shadow-sm">
     <h2 class="text-sm font-semibold mb-3 text-gray-800">📊 Summary</h2>
     <ul class="list-none pl-0 m-0">
-      <li class="flex justify-between py-2 text-xs text-gray-600 border-b border-gray-100">Total Companies: <span>{% if companies.count %}{{ companies.count }}{% else %}{{ companies|default:"0" }}{% endif %}</span></li>
-      <li class="flex justify-between py-2 text-xs text-gray-600 border-b border-gray-100">Added Today: <span class="font-semibold text-green-600">{{ companies_added_today|default:0 }}</span></li>
-      <li class="flex justify-between py-2 text-xs text-gray-600 border-b border-gray-100">Total Applications: <span>{{ applications_count|default:applications }}</span></li>
-      <li class="flex justify-between py-2 text-xs text-gray-600 border-b border-gray-100">Applications This Week: <span>{{ applications_week }}</span></li>
-      <li class="flex justify-between py-2 text-xs text-gray-600 border-b border-gray-100">Rejections This Week: <span>{{ rejections_week }}</span></li>
-      <li class="flex justify-between py-2 text-xs text-gray-600 border-b border-gray-100">Interviews This Week: <span>{{ interviews_week }}</span></li>
-      <li class="flex justify-between py-2 text-xs text-gray-600 border-b border-gray-100">Companies Ghosted: <span>{{ ghosted_count }}</span></li>
-      <li class="flex justify-between py-2 text-xs text-gray-600">
-        <a href="{% url 'job_search_tracker' %}" class="text-blue-600 hover:text-blue-800 hover:underline">Jobs Searched:</a>
+      <li class="flex justify-between py-2 text-xs text-gray-600 border-b border-gray-100">
+        <a href="{% url 'label_companies' %}" class="text-blue-600 hover:text-blue-800 hover:underline">Total Companies:</a>
+        <span>{{ companies|default:0 }}</span>
+      </li>
+      <li class="flex justify-between py-2 text-xs text-gray-600 border-b border-gray-100">
+        <a href="{% url 'job_search_tracker' %}?new_only=true" class="text-blue-600 hover:text-blue-800 hover:underline">Added Today:</a>
+        <span class="font-semibold text-green-600">{{ companies_added_today|default:0 }}</span>
+      </li>
+        <li class="flex justify-between py-2 text-xs text-gray-600">
+        <a href="{% url 'job_search_tracker' %}" class="text-blue-600 hover:text-blue-800 hover:underline">Job Searches (Today):</a>
         <span>{{ companies_searched_count|default:0 }}</span>
       </li>
+      <li class="flex justify-between py-2 text-xs text-gray-600 border-b border-gray-100">Total Applications: <span>{{ applications_count|default:applications|default:0 }}</span></li>
+      <li class="flex justify-between py-2 text-xs text-gray-600 border-b border-gray-100">Applications This Week: <span>{{ applications_week|default:0 }}</span></li>
+      <li class="flex justify-between py-2 text-xs text-gray-600 border-b border-gray-100">Rejections This Week: <span>{{ rejections_week|default:0 }}</span></li>
+      <li class="flex justify-between py-2 text-xs text-gray-600 border-b border-gray-100">Interviews This Week: <span>{{ interviews_week|default:0 }}</span></li>
+      <li class="flex justify-between py-2 text-xs text-gray-600 border-b border-gray-100">Companies Ghosted: <span>{{ ghosted_count|default:0 }}</span></li>
+    
     </ul>
   </div>
 

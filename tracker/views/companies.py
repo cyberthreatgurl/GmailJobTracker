@@ -250,7 +250,12 @@ def label_companies(request):
     prefill_homepage = request.GET.get("homepage", "").strip()
     prefill_domain = request.GET.get("domain", "").strip()
     prefill_career_url = request.GET.get("career_url", "").strip()
-    creating_new_company = bool(new_company_name or prefill_homepage)
+    # Only treat as new company creation if we have prefill params from URL AND no selected_id
+    # This prevents populate_from_homepage button on existing companies from triggering new company mode
+    creating_new_company = bool(
+        (new_company_name or prefill_homepage) and not selected_id or 
+        request.POST.get("action") == "create_new_company"
+    )
     # Configurable threshold for ghosted hint (default 30). DB AppSetting overrides env.
     from tracker.models import AppSetting
 
@@ -593,10 +598,17 @@ def label_companies(request):
                             }
                             form = CompanyEditForm(form_data, instance=selected_company)
                             
-                            messages.success(
-                                request,
-                                f"✅ Successfully scraped company info from homepage. Review and click Save Changes to apply.",
-                            )
+                            # Show success or partial success message
+                            if scraped_data.get("career_url"):
+                                messages.success(
+                                    request,
+                                    f"✅ Successfully scraped company info from homepage. Review and click Save Changes to apply.",
+                                )
+                            else:
+                                messages.success(
+                                    request,
+                                    f"✅ Company name extracted. Career page not found automatically - please enter it manually if known.",
+                                )
                         except CompanyScraperError as e:
                             messages.error(request, f"❌ Failed to scrape homepage: {e}")
                             form = CompanyEditForm(instance=selected_company, initial={"career_url": career_url})
@@ -816,6 +828,9 @@ def label_companies(request):
     # Handle new company creation mode (Quick Add prefill)
     if creating_new_company and not selected_company:
         if request.method == "POST":
+            # Debug: Log all POST data at the start
+            logger.info(f"NEW COMPANY POST received. Action={request.POST.get('action')}, POST keys={list(request.POST.keys())}")
+            
             # Handle populate action for new company
             if request.POST.get("action") == "populate_from_homepage":
                 homepage_url = request.POST.get("homepage", "").strip()
@@ -841,10 +856,17 @@ def label_companies(request):
                         }
                         form = CompanyEditForm(form_data)
                         
-                        messages.success(
-                            request,
-                            f"✅ Successfully scraped company info. Review and click Create Company to save.",
-                        )
+                        # Show success or partial success message
+                        if scraped_data.get("career_url"):
+                            messages.success(
+                                request,
+                                f"✅ Successfully scraped company info. Review and click Create Company to save.",
+                            )
+                        else:
+                            messages.success(
+                                request,
+                                f"✅ Company name extracted. Career page not found automatically - please enter it manually if known, then click Create Company.",
+                            )
                     except CompanyScraperError as e:
                         messages.error(request, f"❌ Failed to scrape homepage: {e}")
                         form = CompanyEditForm(initial={"name": new_company_name, "homepage": homepage_url})
@@ -855,6 +877,13 @@ def label_companies(request):
             elif request.POST.get("action") == "create_new_company":
                 # User submitted the new company form
                 form = CompanyEditForm(request.POST)
+                
+                # Debug logging
+                logger.info(f"Create company form submitted. POST data: {dict(request.POST)}")
+                logger.info(f"Form is_valid: {form.is_valid()}")
+                if not form.is_valid():
+                    logger.error(f"Form errors: {form.errors}")
+                
                 if form.is_valid():
                     # Check if domain or homepage was provided
                     domain = form.cleaned_data.get("domain", "").strip()
@@ -871,7 +900,7 @@ def label_companies(request):
                         if not new_company.status:
                             new_company.status = "new"
                         new_company.save()
-                        messages.success(request, f"✅ Company '{new_company.name}' created successfully!")
+                        messages.success(request, f"✅ New Company: {new_company.name} added")
                         
                         # Save to companies.json (known array + domain mapping + career URL if provided)
                         try:
@@ -928,6 +957,13 @@ def label_companies(request):
                             messages.warning(request, f"⚠️ Failed to save to companies.json: {e}")
                         
                         return redirect(f"/label_companies/?company={new_company.id}")
+                else:
+                    # Form validation failed - show errors
+                    error_messages = []
+                    for field, errors in form.errors.items():
+                        for error in errors:
+                            error_messages.append(f"{field}: {error}")
+                    messages.error(request, f"❌ Please fix the following errors: {'; '.join(error_messages)}")
                 # If form invalid, it stays bound with errors for re-display
         else:
             # GET request: show form with prefilled scraped data
@@ -1861,40 +1897,71 @@ def job_search_tracker(request):
             except Company.DoesNotExist:
                 messages.error(request, "❌ Company not found")
     
+    # Check for filter parameter
+    show_new_only = request.GET.get('new_only', 'false').lower() == 'true'
+    
     # Get all companies ordered by last search date (nulls last)
     companies = Company.objects.annotate(
         message_count=Count('message')
-    ).order_by(
+    )
+    
+    # Filter for companies added today if requested
+    today_start = now().replace(hour=0, minute=0, second=0, microsecond=0)
+    if show_new_only:
+        companies = companies.filter(first_contact__gte=today_start)
+    
+    companies = companies.order_by(
         F('last_job_search_date').desc(nulls_last=True),
         'name'
     )
     
+    # Load career URLs from companies.json JobSites
+    companies_json_path = Path("json/companies.json")
+    job_sites = {}
+    try:
+        if companies_json_path.exists():
+            with open(companies_json_path, "r", encoding="utf-8") as f:
+                companies_json_data = json.load(f)
+                job_sites = companies_json_data.get("JobSites", {})
+    except Exception:
+        pass
+    
+    # Attach career URLs to companies
+    companies_with_urls = []
+    for company in companies:
+        company.career_url = job_sites.get(company.name, "")
+        companies_with_urls.append(company)
+    
     # Calculate stats
-    total_companies = companies.count()
-    searched_companies = companies.filter(last_job_search_date__isnull=False).count()
+    total_companies = len(companies_with_urls)
+    searched_companies = sum(1 for c in companies_with_urls if c.last_job_search_date)
     never_searched = total_companies - searched_companies
     
+    # Get companies added today
+    new_today = Company.objects.filter(first_contact__gte=today_start).count()
+    
     # Get companies searched today
-    today_start = now().replace(hour=0, minute=0, second=0, microsecond=0)
-    searched_today = companies.filter(last_job_search_date__gte=today_start).count()
+    searched_today = sum(1 for c in companies_with_urls if c.last_job_search_date and c.last_job_search_date >= today_start)
     
     # Get companies searched in last 7 days
     week_ago = now() - timedelta(days=7)
-    searched_this_week = companies.filter(last_job_search_date__gte=week_ago).count()
+    searched_this_week = sum(1 for c in companies_with_urls if c.last_job_search_date and c.last_job_search_date >= week_ago)
     
     # Get companies searched in last 30 days
     month_ago = now() - timedelta(days=30)
-    searched_this_month = companies.filter(last_job_search_date__gte=month_ago).count()
+    searched_this_month = sum(1 for c in companies_with_urls if c.last_job_search_date and c.last_job_search_date >= month_ago)
     
     ctx = {
         **build_sidebar_context(),
-        "companies": companies,
+        "companies_list": companies_with_urls,
         "total_companies": total_companies,
         "searched_companies": searched_companies,
         "never_searched": never_searched,
+        "new_today": new_today,
         "searched_today": searched_today,
         "searched_this_week": searched_this_week,
         "searched_this_month": searched_this_month,
+        "show_new_only": show_new_only,
     }
     
     return render(request, "tracker/job_search_tracker.html", ctx)

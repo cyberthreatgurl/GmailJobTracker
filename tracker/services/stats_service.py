@@ -18,6 +18,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 from django.db.models import Q, QuerySet
+from django.utils import timezone
 from django.utils.timezone import now
 
 from tracker.models import Company, IngestionStats, Message, ThreadTracking
@@ -139,16 +140,20 @@ class StatsService:
 
         latest_stats = IngestionStats.objects.order_by("-date").first()
 
-        # Count companies that have been manually searched
-        companies_searched_count = Company.objects.filter(
-            last_job_search_date__isnull=False
-        ).count()
-
-        # Count companies added today
-        today_start = now().replace(hour=0, minute=0, second=0, microsecond=0)
+        # Count companies added today (use localtime to handle timezone correctly)
+        local_now = timezone.localtime(now())
+        today_start = local_now.replace(hour=0, minute=0, second=0, microsecond=0)
         companies_added_today = Company.objects.filter(
             first_contact__gte=today_start
         ).count()
+
+        # Count companies that have been manually searched TODAY
+        companies_searched_count = Company.objects.filter(
+            last_job_search_date__gte=today_start
+        ).count()
+
+        # Count ghosted companies
+        ghosted_count = Company.objects.filter(status="ghosted").count()
 
         return {
             "companies": companies_count,
@@ -162,6 +167,7 @@ class StatsService:
             "latest_stats": latest_stats,
             "companies_searched_count": companies_searched_count,
             "companies_added_today": companies_added_today,
+            "ghosted_count": ghosted_count,
         }
 
     @staticmethod

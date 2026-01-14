@@ -165,6 +165,44 @@ python manage.py reclassify_messages
 
 ### 🏢 Company Management Commands
 
+#### `sync_companies` ⭐ **RECOMMENDED AFTER EDITING companies.json**
+
+Synchronize Company database records with companies.json configuration.
+
+```bash
+# Preview what would be updated
+python manage.py sync_companies --dry-run
+
+# Apply synchronization
+python manage.py sync_companies
+
+# Verbose output showing all companies checked
+python manage.py sync_companies --verbose
+```
+
+**Options**:
+
+- `--dry-run`: Preview without making changes
+- `--verbose`: Show all companies checked, not just updates
+
+**Logic**:
+
+- Reads domain_to_company mappings from companies.json
+- For each known company, finds matching Company record (by name or alias)
+- Updates domain field if empty or different from companies.json
+- Reports updates, companies checked, and missing records
+
+**Use Cases**:
+
+- After adding/editing domain_to_company entries
+- After adding new companies to known list
+- Periodic sync to ensure database matches configuration
+- Part of deployment/update workflow
+
+**Output**: Shows which companies were updated and summary statistics
+
+---
+
 #### `export_companies`
 
 Export all companies to JSON file.
@@ -533,6 +571,22 @@ python manage.py ingest_gmail --days 90
 
 # 6. Start server
 python manage.py runserver
+```
+
+---
+
+### After Editing companies.json
+
+```bash
+# 1. Validate JSON syntax
+python -m json.tool json/companies.json > /dev/null
+
+# 2. Sync database with new mappings
+python manage.py sync_companies --dry-run
+python manage.py sync_companies
+
+# 3. Re-ingest affected messages (optional)
+python manage.py ingest_gmail --message-id <msg_id>
 ```
 
 ---

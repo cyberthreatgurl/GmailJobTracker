@@ -32,7 +32,7 @@ def scrape_company_info(homepage_url: str, timeout: int = 10) -> Dict[str, str]:
         Dictionary with keys:
         - name: Company name (extracted from page)
         - domain: Domain name (extracted from URL)
-        - career_url: Career/Jobs page URL (if found)
+        - career_url: Career/Jobs page URL (if found, empty string if not found)
         
     Raises:
         CompanyScraperError: If scraping fails or URL is invalid
@@ -54,15 +54,25 @@ def scrape_company_info(homepage_url: str, timeout: int = 10) -> Dict[str, str]:
     
     # Fetch the page
     try:
+        # Use minimal headers - more complex headers can trigger anti-bot measures
         headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
         }
         response = requests.get(homepage_url, headers=headers, timeout=timeout, allow_redirects=True)
         response.raise_for_status()
     except requests.Timeout:
-        raise CompanyScraperError("Request timed out")
+        raise CompanyScraperError(f"Request timed out after {timeout} seconds. The website may be slow or unavailable.")
+    except requests.HTTPError as e:
+        if e.response.status_code == 403:
+            raise CompanyScraperError(f"Access denied (403 Forbidden). The website '{domain}' is blocking automated requests. Try manually visiting their careers page instead.")
+        elif e.response.status_code == 404:
+            raise CompanyScraperError(f"Page not found (404). Please check if '{homepage_url}' is the correct URL.")
+        elif e.response.status_code >= 500:
+            raise CompanyScraperError(f"Server error ({e.response.status_code}). The website may be temporarily down.")
+        else:
+            raise CompanyScraperError(f"HTTP error {e.response.status_code}: {e}")
     except requests.RequestException as e:
-        raise CompanyScraperError(f"Failed to fetch page: {e}")
+        raise CompanyScraperError(f"Failed to connect to '{domain}': {str(e)}")
     
     # Parse HTML
     try:
@@ -207,7 +217,9 @@ def _extract_career_url(soup: BeautifulSoup, base_url: str) -> Optional[str]:
     ]
     
     # Priority 1: Look for links with exact matches in href
-    for link in soup.find_all("a", href=True):
+    all_links = soup.find_all("a", href=True)
+    
+    for link in all_links:
         href = link["href"].lower()
         
         # Skip excluded patterns

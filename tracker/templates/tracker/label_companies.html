@@ -131,6 +131,9 @@
           <input type="hidden" name="action" value="create_new_company" />
           <label for="id_name">Company Name</label>
           {{ form.name }}
+          <label for="id_focus_area">Focus Area</label>
+          {{ form.focus_area }}
+          <small style="color:#6b7280; display:block; margin-top:0.25rem; margin-bottom:0.5rem;">Business focus (e.g., Software as a Service, Mining, Network Security)</small>
           <label for="id_domain">Domain Name <span style="color:#b91c1c;">*</span></label>
           {{ form.domain }}
           <small style="color:#6b7280; display:block; margin-bottom:0.5rem;">Enter the company's email domain (e.g., microsoft.com)</small>
@@ -153,9 +156,6 @@
           {{ form.contact_email }}
           <label for="id_status">Status</label>
           {{ form.status }}
-          <label for="id_focus_area">Focus Area</label>
-          {{ form.focus_area }}
-          <small style="color:#6b7280; display:block; margin-top:0.25rem; margin-bottom:0.5rem;">Business focus (e.g., Software as a Service, Mining, Network Security)</small>
           <div style="display:flex; gap:0.75rem; margin-top:1rem;">
             <button type="submit" name="action" value="create_new_company" style="background:#16a34a; color:white; font-weight:600; border-radius:6px; padding:0.6rem 1.2rem; border:none; cursor:pointer;">✅ Create Company</button>
             <a href="{% url 'label_companies' %}" style="background:#6b7280; color:white; font-weight:600; border-radius:6px; padding:0.6rem 1.2rem; text-decoration:none; display:inline-block;">Cancel</a>
@@ -246,6 +246,9 @@
           <input type="hidden" name="company" value="{{ selected_company.id }}" />
           <label for="id_name">Company Name</label>
           {{ form.name }}
+          <label for="id_focus_area">Focus Area</label>
+          {{ form.focus_area }}
+          <small style="color:#6b7280; display:block; margin-top:0.25rem; margin-bottom:0.5rem;">Business focus (e.g., Software as a Service, Mining, Network Security)</small>
           <label for="id_domain">Domain Name</label>
           {{ form.domain }}
           <label for="id_ats">ATS Domain (if any)</label>
@@ -267,9 +270,6 @@
           {{ form.contact_email }}
           <label for="id_status">Status</label>
           {{ form.status }}
-          <label for="id_focus_area">Focus Area</label>
-          {{ form.focus_area }}
-          <small style="color:#6b7280; display:block; margin-top:0.25rem; margin-bottom:0.5rem;">Business focus (e.g., Software as a Service, Mining, Network Security)</small>
           <button type="submit" style="background:#2563eb; color:white; font-weight:600; border-radius:6px; padding:0.6rem 1.2rem; border:none; cursor:pointer; margin-top:1rem;">Save Changes</button>
         </form>
         </div>

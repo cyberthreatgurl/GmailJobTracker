@@ -436,6 +436,8 @@
       ]
     },
   "invalid_company_prefixes": [
+    "the\\sposition\\sof\\s",
+    "the\\srole\\sof\\s",
     "Cyber\\sProgram,",
     "Lead\\sMachine\\sLearning\\sEngineer,",
     "Detection\\sand\\sResponse,",

@@ -213,6 +213,62 @@
     </div>
   </div>
 
+  <!-- Focus Area Word Cloud (Top Right Quarter) -->
+  <div style="margin-top: 2rem;">
+    <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+      <h2 style="font-size: 1rem; color: #1f2937; margin-bottom: 1rem;">💼 Company Focus Areas Word Cloud</h2>
+      <div id="wordCloudContainer" style="min-height: 200px; display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; align-items: center; padding: 1rem; background: #f9fafb; border-radius: 6px;">
+        <!-- Words will be inserted here by JavaScript -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Focus Area Word Cloud
+    (function() {
+      const wordData = {{ focus_area_wordcloud_data|safe }};
+      const container = document.getElementById('wordCloudContainer');
+      
+      if (!wordData || wordData.length === 0) {
+        container.innerHTML = '<p style="color: #6b7280; font-style: italic;">No focus areas set yet. Add focus areas to companies to see the word cloud.</p>';
+        return;
+      }
+      
+      // Find max frequency for scaling
+      const maxFreq = Math.max(...wordData.map(item => item[1]));
+      const minFreq = Math.min(...wordData.map(item => item[1]));
+      
+      // Generate color palette
+      const colors = ['#2563eb', '#7c3aed', '#db2777', '#dc2626', '#ea580c', '#d97706', '#059669', '#0891b2'];
+      
+      // Create word elements
+      wordData.forEach(([word, freq], index) => {
+        const span = document.createElement('span');
+        span.textContent = word;
+        
+        // Scale font size between 0.8rem and 2.5rem based on frequency
+        const fontSize = 0.8 + (freq - minFreq) / (maxFreq - minFreq) * 1.7;
+        span.style.fontSize = fontSize + 'rem';
+        span.style.color = colors[index % colors.length];
+        span.style.fontWeight = freq > maxFreq * 0.7 ? '700' : freq > maxFreq * 0.4 ? '600' : '500';
+        span.style.cursor = 'default';
+        span.style.padding = '0.25rem 0.5rem';
+        span.style.transition = 'transform 0.2s';
+        span.title = `${word}: ${freq} ${freq === 1 ? 'company' : 'companies'}`;
+        
+        // Hover effect
+        span.addEventListener('mouseenter', () => {
+          span.style.transform = 'scale(1.1)';
+        });
+        span.addEventListener('mouseleave', () => {
+          span.style.transform = 'scale(1)';
+        });
+        
+        container.appendChild(span);
+      });
+    })();
+  </script>
+
   <!-- Company Breakdown by Status (defaults to last 7 days; adjust with date picker above) -->
   <div style="margin-top: 2rem;">
   {% if selected_company %}

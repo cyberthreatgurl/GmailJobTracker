@@ -529,8 +529,24 @@
         slicedSeriesData = seriesData.map(series => series.data);
       }
 
-      // X-axis type
-      const xAxisType = document.getElementById('xAxisType').value;
+      // Calculate date range in days
+      const startDate = new Date(startStr + 'T00:00:00Z');
+      const endDate = new Date(endStr + 'T00:00:00Z');
+      const daysDiff = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+
+      // Auto-switch X-axis type based on date range
+      const xAxisTypeSelect = document.getElementById('xAxisType');
+      let xAxisType = xAxisTypeSelect.value;
+      
+      // If range is 30 days or less, automatically use 'date' view
+      if (daysDiff <= 30) {
+        xAxisType = 'date';
+        // Update the select to reflect the auto-switch (but don't trigger change event)
+        if (xAxisTypeSelect.value !== 'date') {
+          xAxisTypeSelect.value = 'date';
+        }
+      }
+      
       const grouped = groupLabelsAndData(
         slicedLabels,
         slicedSeriesData,

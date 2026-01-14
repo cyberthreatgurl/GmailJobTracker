@@ -76,6 +76,12 @@ class Company(models.Model):
         default="application",
     )
     notes = models.TextField(blank=True, null=True, help_text="Free-form notes about the company")
+    focus_area = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text="Business focus area (e.g., Software as a Service, Mining, Network Security)"
+    )
     first_contact = models.DateTimeField()
     last_contact = models.DateTimeField()
     confidence = models.FloatField(null=True, blank=True)

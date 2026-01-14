@@ -298,11 +298,17 @@ def label_companies(request):
                             selected_company.name, ""
                         )
                         # Load all aliases for this company (reverse lookup in aliases dict)
+                        # Check both: canonical names that match AND if company name is itself an alias
                         aliases_dict = companies_json_data.get("aliases", {})
+                        
+                        # Find canonical name for this company (if it's an alias)
+                        canonical_name = aliases_dict.get(selected_company.name, selected_company.name)
+                        
+                        # Collect all aliases that point to the canonical name
                         alias_list = [
                             alias_name
-                            for alias_name, canonical_name in aliases_dict.items()
-                            if canonical_name == selected_company.name
+                            for alias_name, canonical in aliases_dict.items()
+                            if canonical == canonical_name or canonical == selected_company.name
                         ]
                         alias = ", ".join(alias_list) if alias_list else ""
             except Exception:

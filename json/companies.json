@@ -71,7 +71,8 @@
     "JPMorgan Chase": "JPMorganChase",
     "Germanna": "Germanna Community College",
     "SVCC": "Southside Virginia Community College",
-    "Clover": "Clover Security"
+    "Clover": "Clover Security",
+    "AstraZeneca": "AstraZeneca US"
   },
   "ats_domains": [
     "adp.com",
@@ -117,7 +118,8 @@
     "us.greenhouse-jobs.com",
     "us.greenhouse-mail.io",
     "usastaffing.gov",
-    "workday.com"
+    "workday.com",
+    "eightfold.ai"
   ],
   "domain_to_company": {
     "afs.com": "Accenture Federal Services",
@@ -312,7 +314,11 @@
     "corridor.dev": "Corridor",
     "clover.security": "Clover Security",
     "verrusgroup.com": "Verrus",
-    "paloaltonetworks.com": "Palo Alto Networks"
+    "paloaltonetworks.com": "Palo Alto Networks",
+    "danville.edu": "Danville Community College",
+    "astrazeneca-us.com": "AstraZeneca US",
+    "astrazeneca.com": "AstraZeneca US",
+    "az-recruitment.com": "AstraZeneca US"
   },
   "headhunter_domains": [
     "agreeya.com",
@@ -496,7 +502,9 @@
     "Verrus": "https://www.verrusgroup.com/vacancy/",
     "Cloudflare": "https://cloudflare.com/careers/",
     "CrowdStrike": "https://crowdstrike.com/en-us/careers/",
-    "Palo Alto Networks": "https://jobs.paloaltonetworks.com/en/"
+    "Palo Alto Networks": "https://jobs.paloaltonetworks.com/en/",
+    "Danville Community College": "https://danville.edu/careers-programs",
+    "AstraZeneca US": "https://www.astrazeneca-us.com/careers.html"
   },
   "known": [
     "Obsidian",
@@ -669,6 +677,8 @@
     "Akima",
     "Corridor",
     "Clover Security",
-    "Verrus"
+    "Verrus",
+    "Danville Community College",
+    "AstraZeneca US"
   ]
 }

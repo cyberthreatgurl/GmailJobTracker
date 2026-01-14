@@ -801,6 +801,23 @@ def dashboard(request):
     # Cumulative ghosted count (total unique companies currently ghosted - UNFILTERED)
     ghosted_count = len(ghosted_companies_list)
 
+    # Generate focus area word cloud data
+    focus_areas_text = ""
+    focus_area_words = {}
+    companies_with_focus = Company.objects.filter(focus_area__isnull=False).exclude(focus_area="")
+    for company in companies_with_focus:
+        focus_areas_text += " " + company.focus_area
+        # Count individual words for word frequency
+        words = re.findall(r'\b[a-zA-Z]{3,}\b', company.focus_area.lower())
+        for word in words:
+            # Skip common words
+            if word not in ['and', 'the', 'for', 'with', 'from', 'into', 'over', 'under']:
+                focus_area_words[word] = focus_area_words.get(word, 0) + 1
+    
+    # Sort by frequency and get top 50 words
+    sorted_words = sorted(focus_area_words.items(), key=lambda x: x[1], reverse=True)[:50]
+    focus_area_wordcloud_data = json.dumps(sorted_words)
+
     ctx = {
         "companies_list": companies_list,
         "recent_messages": recent_messages,
@@ -835,6 +852,7 @@ def dashboard(request):
         "ghosted_count": ghosted_count,
         "all_companies": all_companies,
         "selected_company": selected_company,
+        "focus_area_wordcloud_data": focus_area_wordcloud_data,
     }
     # Ensure single source of truth for sidebar cards like Applications This Week
     # First-time user flag: show onboarding modal if no messages exist

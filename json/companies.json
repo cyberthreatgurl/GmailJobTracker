@@ -70,7 +70,9 @@
     "UltraViolet": "UltraViolet Cyber",
     "Red Balloon Security": "Red Balloon Security, Inc.",
     "CGI": "CGI Inc.",
-    "JPMorgan Chase": "JPMorganChase"
+    "JPMorgan Chase": "JPMorganChase",
+    "Germanna": "Germanna Community College",
+    "SVCC": "Southside Virginia Community College"
   },
   "ats_domains": [
     "adp.com",
@@ -302,7 +304,10 @@
     "ghostlogic.tech": "GhostLogic",
     "cgi.com": "CGI Inc.",
     "jpmorganchase.com": "JPMorganChase",
-    "trace3.com": "Trace3"
+    "trace3.com": "Trace3",
+    "germanna.edu": "Germanna Community College",
+    "southside.edu": "Southside Virginia Community College",
+    "gdit.com": "General Dynamics Information Technology"
   },
   "headhunter_domains": [
     "agreeya.com",
@@ -351,16 +356,18 @@
     "zolontech.com"
   ],
   "job_boards": [
-    "angel.co",
-    "careerbuilder.com",
-    "clearedjobs.net",
-    "dice.com",
-    "glassdoor.com",
-    "indeed.com",
-    "jsfirm.com",
-    "linkedin.com",
-    "simplyhired.com",
-    "usajobs.gov"
+    "https://angel.co",
+    "https://careerbuilder.com",
+    "https://clearedjobs.net",
+    "https://dice.com",
+    "https://glassdoor.com",
+    "https://indeed.com",
+    "https://jsfirm.com",
+    "https://linkedin.com",
+    "https://simplyhired.com",
+    "https://usajobs.gov",
+    "https://www.jobs.virginia.gov/",
+    "https://jobs.vccs.edu/postings"
   ],
   "JobSites": {
     "General Dynamics Information Technology": "https://www.gdit.com/careers/",
@@ -446,7 +453,7 @@
     "Texas A&M Engineering Experiment Station": "https://tees.tamu.edu/engr-hr/career-opportunities.html",
     "Sentinel Blue": "https://www.sentinelblue.com/company/careers/",
     "Randolph College": "https://www.randolphcollege.edu/humanresources/job-openings/",
-    "Rappahannock Community College": "https://www.rappahannock.edu/jobs/index.html",
+    "Rappahannock Community College": "https://jobs.vccs.edu/postings/search?query=&query_organizational_tier_2_id%5B%5D=4573&commit=Search",
     "University of Mary Washington": "https://jobs.umw.edu/jobs/search",
     "ARES Corporation": "https://workforcenow.adp.com/mascsr/default/mdf/recruitment/recruitment.html?cid=5c86c854-26b4-4d63-afc8-7cd746a5b057&ccId=19000101_000001&type=JS&lang=en_US",
     "Alluvial Concepts": "https://alluvialconcepts.com/find-opportunities/",
@@ -473,7 +480,9 @@
     "BCS Allegient": "https://www.bcsallegient.com/careers",
     "CGI Inc.": "https://www.cgi.com/en/careers/career-articles",
     "JPMorganChase": "https://jpmc.fa.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1001/requisitions",
-    "Trace3": "https://www.trace3.com/careers"
+    "Trace3": "https://www.trace3.com/careers",
+    "Germanna Community College": "https://germanna.edu/about-germanna/campus-resources/human-resources/work-germanna",
+    "Southside Virginia Community College": "https://southside.edu/employment-opportunities"
   },
   "known": [
     "Obsidian",
@@ -640,6 +649,8 @@
     "GhostLogic",
     "CGI Inc.",
     "JPMorganChase",
-    "Trace3"
+    "Trace3",
+    "Germanna Community College",
+    "Southside Virginia Community College"
   ]
 }

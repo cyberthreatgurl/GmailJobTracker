@@ -27,7 +27,7 @@ from django.db.models.functions import Coalesce, StrIndex, Substr, Lower
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.utils.timezone import now
-from tracker.models import Company, Message, ThreadTracking, AuditEvent
+from tracker.models import Company, Message, ThreadTracking, AuditEvent, IngestionStats
 from tracker.services import MessageService
 from gmail_auth import get_gmail_service
 
@@ -604,10 +604,6 @@ def label_messages(request):
             selected_ids = request.POST.getlist("selected_messages")
 
             if selected_ids:
-                from django.db.models import F
-                from tracker.models import IngestionStats
-                from datetime import date
-
                 # Get thread IDs before deletion for cleanup
                 thread_ids = set(
                     Message.objects.filter(pk__in=selected_ids)

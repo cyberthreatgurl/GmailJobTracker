@@ -420,6 +420,23 @@ def dashboard(request):
             )
             ints_map = {r["interview_date"]: r["count"] for r in ints_by_day}
             data = [ints_map.get(d, 0) for d in app_date_list]
+        elif ml_label == "job_search":
+            # Job searches per day - count companies manually searched each day
+            search_q = Company.objects.filter(last_job_search_date__isnull=False)
+            if app_start_date:
+                search_q = search_q.filter(last_job_search_date__date__gte=app_start_date)
+            if hh_companies:
+                search_q = search_q.exclude(id__in=hh_companies)
+            if company_filter_id:
+                search_q = search_q.filter(id=company_filter_id)
+            # Group by day and count companies searched
+            search_by_day = (
+                search_q.annotate(day=TruncDate("last_job_search_date"))
+                .values("day")
+                .annotate(count=Count("id"))
+            )
+            search_map = {r["day"]: r["count"] for r in search_by_day}
+            data = [search_map.get(d, 0) for d in app_date_list]
         else:
             # Message-based series (referral, head_hunter, noise, etc.)
             msgs_by_day = (

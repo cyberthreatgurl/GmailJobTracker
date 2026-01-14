@@ -16,5 +16,11 @@
     "display_name": "Rejected",
     "color": "#ef4444",
     "ml_label": "rejected"
+  },
+  {
+    "label": "job_search",
+    "display_name": "Job Search",
+    "color": "#8b5cf6",
+    "ml_label": "job_search"
   }
 ]

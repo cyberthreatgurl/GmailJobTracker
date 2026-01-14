@@ -198,7 +198,11 @@
               {% for series in plot_series_config %}
               <label style="font-size:0.8rem; color:#374151; cursor:pointer; white-space:nowrap;">
                 <input type="checkbox" class="series-checkbox" value="{{ series.key }}" checked style="margin-right:0.3rem;">
-                <a href="{% url 'label_messages' %}?label={{ series.ml_label }}" style="color:{{ series.color }}; text-decoration:none;" title="View {{ series.label|lower }} messages">{{ series.label }}</a>
+                {% if series.key == "job_search" %}
+                  <a href="{% url 'job_search_tracker' %}" style="color:{{ series.color }}; text-decoration:none;" title="View job search tracker">{{ series.display_name }}</a>
+                {% else %}
+                  <a href="{% url 'label_messages' %}?label={{ series.ml_label }}" style="color:{{ series.color }}; text-decoration:none;" title="View {{ series.label|lower }} messages">{{ series.label }}</a>
+                {% endif %}
               </label>
               {% endfor %}
             </div>

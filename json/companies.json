@@ -23,12 +23,10 @@
     "Coalfire": "Coalfire Federal",
     "Complete Your SimVentions": "SimVentions",
     "constellationenergy": "Constellation Energy",
-    "CrowdStrike Job": "CrowdStrike",
     "CSA": "CSA Associates",
     "CSA Global LLC": "CSA Associates",
     "CVS Health has been received": "CVS Health",
     "draper": "Draper",
-    "DeeDee Price from Palo Alto Networks": "Palo Alto Networks",
     "donotreply_Leidos_HR": "Leidos",
     "Dragos Application": "Dragos",
     "ECS Technologies": "ECS",
@@ -72,7 +70,8 @@
     "CGI": "CGI Inc.",
     "JPMorgan Chase": "JPMorganChase",
     "Germanna": "Germanna Community College",
-    "SVCC": "Southside Virginia Community College"
+    "SVCC": "Southside Virginia Community College",
+    "Clover": "Clover Security"
   },
   "ats_domains": [
     "adp.com",
@@ -309,7 +308,11 @@
     "wearemetronome.com": "Metronome",
     "westinghousenuclear.com": "Westinghouse Nuclear",
     "workflow.mail.us2.cloud.oracle.com": "JPMorganChase",
-    "wrglabs.com": "Wireless Research Group, LLC"
+    "wrglabs.com": "Wireless Research Group, LLC",
+    "corridor.dev": "Corridor",
+    "clover.security": "Clover Security",
+    "verrusgroup.com": "Verrus",
+    "paloaltonetworks.com": "Palo Alto Networks"
   },
   "headhunter_domains": [
     "agreeya.com",
@@ -486,7 +489,14 @@
     "Trace3": "https://www.trace3.com/careers",
     "Germanna Community College": "https://germanna.edu/about-germanna/campus-resources/human-resources/work-germanna",
     "Southside Virginia Community College": "https://southside.edu/employment-opportunities",
-    "Akima": "https://www.akima.com/careers/"
+    "Akima": "https://www.akima.com/careers/",
+    "Corelight": "https://corelight.com/company/careers",
+    "Corridor": "https://corridor.dev/jobs/",
+    "Clover Security": "https://clover.security/careers.html",
+    "Verrus": "https://www.verrusgroup.com/vacancy/",
+    "Cloudflare": "https://cloudflare.com/careers/",
+    "CrowdStrike": "https://crowdstrike.com/en-us/careers/",
+    "Palo Alto Networks": "https://jobs.paloaltonetworks.com/en/"
   },
   "known": [
     "Obsidian",
@@ -656,6 +666,9 @@
     "Trace3",
     "Germanna Community College",
     "Southside Virginia Community College",
-    "Akima"
+    "Akima",
+    "Corridor",
+    "Clover Security",
+    "Verrus"
   ]
 }

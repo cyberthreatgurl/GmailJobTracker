@@ -73,8 +73,8 @@
     "SVCC": "Southside Virginia Community College",
     "Clover": "Clover Security",
     "AstraZeneca": "AstraZeneca US",
-    "MITRE": "The MITRE Corporation",
-    "MITRE Corporation": "The MITRE Corporation"
+    "MITRE": "MITRE",
+    "MITRE Corporation": "MITRE"
   },
   "ats_domains": [
     "adp.com",
@@ -321,8 +321,10 @@
     "astrazeneca-us.com": "AstraZeneca US",
     "astrazeneca.com": "AstraZeneca US",
     "az-recruitment.com": "AstraZeneca US",
-    "mitre.org": "The MITRE Corporation",
-    "eightfold.ai": "Eightfold"
+    "mitre.org": "MITRE",
+    "eightfold.ai": "Eightfold",
+    "prudential.com": "Prudential",
+    "pru.myworkday.com": "Prudential"
   },
   "headhunter_domains": [
     "agreeya.com",
@@ -509,7 +511,9 @@
     "Palo Alto Networks": "https://jobs.paloaltonetworks.com/en/",
     "Danville Community College": "https://danville.edu/careers-programs",
     "AstraZeneca US": "https://www.astrazeneca-us.com/careers.html",
-    "Eightfold": "https://eightfold.ai/learn/transforming-careers-and-hiring-efficiency-at-fortive/"
+    "Eightfold": "https://eightfold.ai/learn/transforming-careers-and-hiring-efficiency-at-fortive/",
+    "MITRE": "https://mitre.org/careers",
+    "Prudential": "https://jobs.prudential.com/"
   },
   "known": [
     "Obsidian",
@@ -686,6 +690,7 @@
     "Danville Community College",
     "AstraZeneca US",
     "The MITRE Corporation",
-    "Eightfold"
+    "Eightfold",
+    "Prudential"
   ]
 }

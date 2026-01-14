@@ -599,6 +599,58 @@ def label_messages(request):
 
             return redirect(request.get_full_path())
 
+        elif action == "delete_selected":
+            # Delete selected messages and update related counters
+            selected_ids = request.POST.getlist("selected_messages")
+
+            if selected_ids:
+                from django.db.models import F
+                from tracker.models import IngestionStats
+                from datetime import date
+
+                # Get thread IDs before deletion for cleanup
+                thread_ids = set(
+                    Message.objects.filter(pk__in=selected_ids)
+                    .exclude(thread_id__isnull=True)
+                    .values_list("thread_id", flat=True)
+                )
+
+                # Count messages by date for stats update
+                messages_by_date = {}
+                for msg in Message.objects.filter(pk__in=selected_ids).values('timestamp'):
+                    msg_date = msg['timestamp'].date()
+                    messages_by_date[msg_date] = messages_by_date.get(msg_date, 0) + 1
+
+                # Delete the messages
+                deleted_count = Message.objects.filter(pk__in=selected_ids).delete()[0]
+
+                # Update ingestion stats - decrement total_inserted for each date
+                for msg_date, count in messages_by_date.items():
+                    IngestionStats.objects.filter(date=msg_date).update(
+                        total_inserted=F('total_inserted') - count
+                    )
+
+                # Clean up ThreadTracking records that have no remaining messages
+                threads_to_check = list(thread_ids)
+                if threads_to_check:
+                    # Find threads that now have zero messages
+                    for thread_id in threads_to_check:
+                        remaining_msgs = Message.objects.filter(thread_id=thread_id).count()
+                        if remaining_msgs == 0:
+                            ThreadTracking.objects.filter(thread_id=thread_id).delete()
+
+                messages.success(
+                    request,
+                    f"✅ Deleted {deleted_count} message(s) and updated statistics",
+                )
+            else:
+                messages.warning(
+                    request,
+                    "⚠️ Please select one or more messages to delete",
+                )
+
+            return redirect(request.get_full_path())
+
     # Get pagination parameters
     per_page = int(request.GET.get("per_page", 50))
     page = int(request.GET.get("page", 1))

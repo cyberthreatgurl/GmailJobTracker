@@ -454,6 +454,9 @@
       <button type="submit" class="btn" id="clear-reviewed-submit" onclick="return submitClearReviewed()" style="margin-left:0.5rem; background:#ef4444; color:white;">
         ⤺ Clear Reviewed
       </button>
+      <button type="submit" class="btn" id="delete-submit" disabled onclick="return submitDelete()" style="margin-left:0.5rem; background:#b91c1c; color:white;">
+        🗑️ Delete Selected
+      </button>
       {% endif %}
     </div>
     <!-- Message Table -->
@@ -593,6 +596,8 @@
       document.getElementById('bulk-submit').disabled = count === 0;
       document.getElementById('company-submit').disabled = count === 0;
       document.getElementById('reingest-submit').disabled = count === 0;
+      const deleteBtn = document.getElementById('delete-submit');
+      if (deleteBtn) deleteBtn.disabled = count === 0;
       
       // Update select-all checkbox state
       const selectAll = document.getElementById('select-all');
@@ -698,6 +703,27 @@
       }
       
       document.getElementById('form-action').value = 'reingest_selected';
+      return true;
+    }
+    
+    function submitDelete() {
+      const count = document.querySelectorAll('.message-checkbox:checked').length;
+      
+      if (count === 0) {
+        alert('Please select messages to delete');
+        return false;
+      }
+      
+      if (!confirm(`⚠️ WARNING: Delete ${count} message(s) permanently?\n\nThis will:\n- Remove messages from the database\n- Update thread tracking records\n- Update ingestion statistics\n\nThis action CANNOT be undone!`)) {
+        return false;
+      }
+      
+      // Double confirmation for safety
+      if (!confirm(`Are you ABSOLUTELY SURE you want to delete ${count} message(s)?\n\nClick OK to proceed with deletion.`)) {
+        return false;
+      }
+      
+      document.getElementById('form-action').value = 'delete_selected';
       return true;
     }
     

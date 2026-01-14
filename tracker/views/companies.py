@@ -593,17 +593,17 @@ def label_companies(request):
                             
                             scraped_data = scrape_company_info(homepage_url)
                             
-                            # Create a form with the scraped data
+                            # Create a form with the scraped data, preserving user-entered fields
                             form_data = {
                                 "name": scraped_data.get("name", selected_company.name),
                                 "domain": scraped_data.get("domain", selected_company.domain),
                                 "homepage": homepage_url,
                                 "career_url": scraped_data.get("career_url", ""),
-                                "ats": selected_company.ats or "",
-                                "contact_name": selected_company.contact_name or "",
-                                "contact_email": selected_company.contact_email or "",
-                                "status": selected_company.status or "application",
-                                "focus_area": selected_company.focus_area or "",
+                                "ats": request.POST.get("ats", selected_company.ats or ""),
+                                "contact_name": request.POST.get("contact_name", selected_company.contact_name or ""),
+                                "contact_email": request.POST.get("contact_email", selected_company.contact_email or ""),
+                                "status": request.POST.get("status", selected_company.status or "application"),
+                                "focus_area": request.POST.get("focus_area", selected_company.focus_area or ""),
                                 "alias": alias,  # Preserve alias from companies.json
                             }
                             form = CompanyEditForm(form_data, instance=selected_company)

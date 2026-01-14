@@ -154,7 +154,7 @@
           <label for="id_status">Status</label>
           {{ form.status }}
           <div style="display:flex; gap:0.75rem; margin-top:1rem;">
-            <button type="submit" style="background:#16a34a; color:white; font-weight:600; border-radius:6px; padding:0.6rem 1.2rem; border:none; cursor:pointer;">✅ Create Company</button>
+            <button type="submit" name="action" value="create_new_company" style="background:#16a34a; color:white; font-weight:600; border-radius:6px; padding:0.6rem 1.2rem; border:none; cursor:pointer;">✅ Create Company</button>
             <a href="{% url 'label_companies' %}" style="background:#6b7280; color:white; font-weight:600; border-radius:6px; padding:0.6rem 1.2rem; text-decoration:none; display:inline-block;">Cancel</a>
           </div>
         </form>

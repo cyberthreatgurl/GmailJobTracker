@@ -1638,7 +1638,8 @@ else:
     }
 
 # Compile application patterns for efficient matching
-# Include both message_labels.application AND early_detection.application_confirmation
+# Include application confirmations, rejections, and interview invites
+# to prevent ATS emails with List-Unsubscribe headers from being marked as newsletters
 APPLICATION_PATTERNS = []
 app_pattern_sources = []
 if "message_labels" in PATTERNS and "application" in PATTERNS["message_labels"]:
@@ -1648,6 +1649,20 @@ if (
     and "application_confirmation" in PATTERNS["early_detection"]
 ):
     app_pattern_sources.extend(PATTERNS["early_detection"]["application_confirmation"])
+
+# Also include rejection and interview patterns to prevent false newsletter detection
+if "message_labels" in PATTERNS:
+    if "rejection" in PATTERNS["message_labels"]:
+        app_pattern_sources.extend(PATTERNS["message_labels"]["rejection"])
+    if "interview" in PATTERNS["message_labels"]:
+        app_pattern_sources.extend(PATTERNS["message_labels"]["interview"])
+
+# Add early detection patterns for rejections and interviews
+if "early_detection" in PATTERNS:
+    if "rejection_override" in PATTERNS["early_detection"]:
+        app_pattern_sources.extend(PATTERNS["early_detection"]["rejection_override"])
+    if "scheduling_language" in PATTERNS["early_detection"]:
+        app_pattern_sources.extend(PATTERNS["early_detection"]["scheduling_language"])
 
 if app_pattern_sources:
     APPLICATION_PATTERNS = [
@@ -1912,14 +1927,18 @@ def get_stats():
 
 
 def is_application_related(subject, body):
-    """Check if message is application-related using patterns from patterns.json.
+    """Check if message is job-related (application, rejection, interview) using patterns from patterns.json.
+    
+    This prevents ATS emails with List-Unsubscribe headers from being incorrectly marked as newsletters.
+    ATS systems (Workday, Greenhouse, etc.) add List-Unsubscribe headers to ALL automated emails
+    for legal compliance, including rejections, interview invites, and application confirmations.
 
     Args:
         subject: Email subject line
         body: Email body text (first 500 chars recommended)
 
     Returns:
-        True if any application pattern matches, False otherwise
+        True if any job-related pattern matches (application/rejection/interview), False otherwise
     """
     if not APPLICATION_PATTERNS:
         return False
@@ -2003,6 +2022,34 @@ def normalize_company_name(name: str) -> str:
     Delegates to CompanyValidator class (refactored).
     """
     return _company_validator.normalize_company_name(name)
+
+
+def resolve_company_alias(company_name: str) -> str:
+    """Resolve company alias to canonical company name.
+    
+    Checks the CompanyAlias model to see if the provided company name
+    is an alias for another company. If found, returns the canonical
+    company name. Otherwise, returns the original name.
+    
+    Args:
+        company_name: Company name to check for alias
+        
+    Returns:
+        Canonical company name if alias found, otherwise original name
+    """
+    if not company_name:
+        return company_name
+    
+    from tracker.models import CompanyAlias
+    
+    # Check if this name is an alias
+    alias_obj = CompanyAlias.objects.filter(alias__iexact=company_name).first()
+    if alias_obj:
+        if DEBUG:
+            print(f"[ALIAS] Resolved '{company_name}' -> '{alias_obj.company}'")
+        return alias_obj.company
+    
+    return company_name
 
 
 def looks_like_person(name: str) -> bool:
@@ -3625,6 +3672,8 @@ def ingest_message(service, msg_id):
                 result["company"] = mapped_company
                 result["predicted_company"] = mapped_company
         if company:
+            # Resolve alias to canonical company name
+            company = resolve_company_alias(company)
             company_obj, _ = Company.objects.get_or_create(
                 name=company,
                 defaults={
@@ -3934,6 +3983,8 @@ def ingest_message(service, msg_id):
             mapped_company = _map_company_by_domain(recipient_domain)
         if mapped_company:
             company = normalize_company_name(mapped_company)
+            # Resolve alias to canonical company name
+            company = resolve_company_alias(company)
             company_obj, _ = Company.objects.get_or_create(
                 name=company,
                 defaults={
@@ -3960,6 +4011,8 @@ def ingest_message(service, msg_id):
         if company and not skip_company_assignment:
             # Final normalization before persistence
             company = normalize_company_name(company)
+            # Resolve alias to canonical company name
+            company = resolve_company_alias(company)
             company_obj, _ = Company.objects.get_or_create(
                 name=company,
                 defaults={
@@ -4084,8 +4137,10 @@ def ingest_message(service, msg_id):
                 if recipient_domain:
                     mapped_company = _map_company_by_domain(recipient_domain)
                     if mapped_company:
+                        # Resolve alias to canonical company name
+                        canonical_company = resolve_company_alias(normalize_company_name(mapped_company))
                         company_obj, _ = Company.objects.get_or_create(
-                            name=normalize_company_name(mapped_company),
+                            name=canonical_company,
                             defaults={
                                 "first_contact": metadata["timestamp"],
                                 "last_contact": metadata["timestamp"],
@@ -4501,8 +4556,10 @@ def ingest_message(service, msg_id):
             if recipient_domain:
                 mapped_company = _map_company_by_domain(recipient_domain)
             if mapped_company:
+                # Resolve alias to canonical company name
+                canonical_company = resolve_company_alias(normalize_company_name(mapped_company))
                 company_obj, _ = Company.objects.get_or_create(
-                    name=normalize_company_name(mapped_company),
+                    name=canonical_company,
                     defaults={
                         "first_contact": metadata["timestamp"],
                         "last_contact": metadata["timestamp"],
@@ -5219,8 +5276,10 @@ def ingest_message_from_eml(eml_content: str, fake_msg_id: str = None):
     # Get or create company object
     company_obj = None
     if company and company.strip():
+        # Resolve alias to canonical company name
+        canonical_company = resolve_company_alias(company)
         company_obj, created = Company.objects.get_or_create(
-            name=company,
+            name=canonical_company,
             defaults={
                 "first_contact": date_obj,
                 "last_contact": date_obj,

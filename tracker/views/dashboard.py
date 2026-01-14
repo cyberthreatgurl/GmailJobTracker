@@ -802,21 +802,26 @@ def dashboard(request):
     ghosted_count = len(ghosted_companies_list)
 
     # Generate focus area word cloud data
-    focus_areas_text = ""
-    focus_area_words = {}
+    # Treat each focus_area as a complete phrase, not individual words
+    focus_area_phrases = {}
     companies_with_focus = Company.objects.filter(focus_area__isnull=False).exclude(focus_area="")
     for company in companies_with_focus:
-        focus_areas_text += " " + company.focus_area
-        # Count individual words for word frequency
-        words = re.findall(r'\b[a-zA-Z]{3,}\b', company.focus_area.lower())
-        for word in words:
-            # Skip common words
-            if word not in ['and', 'the', 'for', 'with', 'from', 'into', 'over', 'under']:
-                focus_area_words[word] = focus_area_words.get(word, 0) + 1
+        # Normalize the focus area (strip whitespace, preserve case for display)
+        focus_phrase = company.focus_area.strip()
+        if focus_phrase:
+            # Count entire phrases (case-insensitive for counting, but preserve original case)
+            phrase_lower = focus_phrase.lower()
+            if phrase_lower not in focus_area_phrases:
+                focus_area_phrases[phrase_lower] = {"display": focus_phrase, "count": 0}
+            focus_area_phrases[phrase_lower]["count"] += 1
     
-    # Sort by frequency and get top 50 words
-    sorted_words = sorted(focus_area_words.items(), key=lambda x: x[1], reverse=True)[:50]
-    focus_area_wordcloud_data = json.dumps(sorted_words)
+    # Sort by frequency and get top 50 phrases
+    sorted_phrases = sorted(
+        [(data["display"], data["count"]) for data in focus_area_phrases.values()],
+        key=lambda x: x[1],
+        reverse=True
+    )[:50]
+    focus_area_wordcloud_data = json.dumps(sorted_phrases)
 
     ctx = {
         "companies_list": companies_list,

@@ -604,6 +604,7 @@ def label_companies(request):
                                 "contact_email": selected_company.contact_email or "",
                                 "status": selected_company.status or "application",
                                 "focus_area": selected_company.focus_area or "",
+                                "alias": alias,  # Preserve alias from companies.json
                             }
                             form = CompanyEditForm(form_data, instance=selected_company)
                             

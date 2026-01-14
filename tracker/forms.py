@@ -179,6 +179,14 @@ class CompanyEditForm(forms.ModelForm):
             )
         ],
     )
+    
+    # Add focus_area as a non-model field (actually it IS in the model but we list it explicitly)
+    focus_area = forms.CharField(
+        max_length=255,
+        required=False,
+        label="Focus Area",
+        help_text="Business focus area (e.g., Software as a Service, Mining, Network Security)",
+    )
 
     class Meta:
         model = Company
@@ -191,6 +199,7 @@ class CompanyEditForm(forms.ModelForm):
             "contact_email",
             "status",
             "notes",
+            "focus_area",
         ]
         help_texts = {
             "domain": "Primary company domain",

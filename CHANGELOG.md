@@ -5,6 +5,73 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-01-15
+
+### Added
+- **💼 Job Title Field** - Added editable Job Title field to Application Details section
+  - Displays existing job title from ThreadTracking records
+  - Allows manual editing and saving via "Save Application Details" button
+  - Added job_title to ApplicationDetailsForm fields list
+  - Auto-populated from message subjects during sync_threadtracking
+
+- **🔄 Manual Job Posting Scraper** - Added explicit "Scrape Text" button for job posting URLs
+  - Replaced auto-scraping with user-initiated button click
+  - Green "🔄 Scrape Text" button next to Application URL field
+  - Shows loading state ("⏳ Scraping...") during fetch
+  - Displays character count in success notification
+  - Better User-Agent headers for macOS Chrome
+  - BambooHR-specific content selectors
+  - Fallback to largest text container when selectors don't match
+  - Debug HTML saving to /tmp/scrape_debug.html for troubleshooting
+  - Enhanced error messages for JavaScript-rendered content
+
+- **📅 Upcoming Interviews/Prescreens Display** - Improved sidebar "Upcoming" section
+  - Now shows both prescreen_date and interview_date fields
+  - Clear differentiation: 📞 Prescreen vs 💼 Interview icons
+  - Multi-line format with company name as clickable link
+  - Displays both dates when applicable (sorted chronologically)
+  - Clickable company names navigate to label_companies page
+  - Fixed query to check prescreen_date >= today (not ml_label='prescreen')
+  - Date comparison uses .date() instead of datetime for accuracy
+
+### Fixed
+- **📝 Notes Field Not Saving** - Fixed company notes not persisting on label_companies page
+  - Added "notes" to CompanyEditForm Meta.fields list
+  - Notes now save when clicking "Save Changes" button
+  - Properly included in form validation and processing
+
+- **🔧 .eml Upload ThreadTracking Fix** - Fixed Application Details not showing for manually uploaded emails
+  - .eml ingestion now updates ThreadTracking.ml_label after classification
+  - Previously created Message with ml_label but left ThreadTracking with null
+  - Template filter for ml_label='job_application' now works correctly
+  - Added fix_eml_threadtracking management command for existing records
+  - sync_threadtracking properly creates records for job_application messages
+
+- **🗓️ Upcoming Events Query** - Fixed upcoming interviews/prescreens not displaying
+  - Changed from checking ml_label='prescreen' to prescreen_date >= today
+  - Now checks both interview_date and prescreen_date fields
+  - Fixed date comparison to use .date() for proper DateField matching
+  - Properly orders by interview_date and prescreen_date
+
+- **🌐 Job Posting Scraper Errors** - Improved scraping reliability and error handling
+  - Fixed URLSearchParams formatting for POST request body
+  - Added detailed server-side logging for debugging
+  - Suppressed BeautifulSoup encoding warnings
+  - Better error messages displayed to user
+  - Returns 200 status with error message for client-side handling
+
+### Technical Details
+- Modified tracker/forms_company.py: Added job_title and notes to form fields
+- Modified tracker/templates/tracker/label_companies.html: 
+  - Added Job Title input field to Application Details section
+  - Changed Application URL to inline button layout
+  - Updated JavaScript to manual scrape with better error handling
+- Modified tracker/templates/tracker/_sidebar.html: Enhanced upcoming events display with icons and links
+- Modified tracker/services/stats_service.py: Fixed upcoming query to use date fields instead of ml_label
+- Modified tracker/views/companies.py: Enhanced scrape_job_posting with logging and better headers
+- Modified scripts/ingest_eml.py: Update ThreadTracking.ml_label after classification
+- Added tracker/management/commands/fix_eml_threadtracking.py: Fix existing null ml_label records
+
 ## [1.1.1] - 2026-01-13
 
 ### Fixed

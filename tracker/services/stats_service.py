@@ -115,10 +115,15 @@ class StatsService:
             interviews_qs = interviews_qs.exclude(msg_hh_sender_q)
         interviews_week = interviews_qs.values("company_id").distinct().count()
 
-        # Upcoming interviews (exclude rejected/ghosted)
+        # Upcoming interviews and prescreens (exclude rejected/ghosted)
+        # Include records with:
+        # - interview_date today or in the future
+        # - prescreen_date today or in the future
+        # Exclude completed interviews and rejected/ghosted applications
+        today = now().date()
         upcoming_interviews = (
             ThreadTracking.objects.filter(
-                interview_date__gte=now(),
+                Q(interview_date__gte=today) | Q(prescreen_date__gte=today),
                 company__isnull=False,
                 interview_completed=False,
             )
@@ -126,7 +131,7 @@ class StatsService:
             .exclude(status="rejected")
             .exclude(rejection_date__isnull=False)
             .select_related("company")
-            .order_by("interview_date")[:10]
+            .order_by("interview_date", "prescreen_date")[:10]
         )
 
         # Companies with offers (messages labeled as 'offer')

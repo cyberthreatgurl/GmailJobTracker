@@ -259,7 +259,7 @@ python manage.py runserver
 
 1. Visit: <http://127.0.0.1:8000/tracker/label_messages/>
 2. Select 20-50 messages using checkboxes
-3. Choose correct label from dropdown (noise, interview_invite, job_application, rejection, etc.)
+3. Choose correct label from dropdown (noise, prescreen,interview_invite, job_application, rejection, etc.)
 4. Click "Apply Label to Selected"
 5. Model retrains automatically after every 20 labels
 

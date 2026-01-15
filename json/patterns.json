@@ -38,6 +38,7 @@
     "rejection_override": [
       "\\b(?:move|moved|moving)\\s+forward\\s+with\\s+(?:other|another|an?\\s+alternative)\\s+candidate",
       "\\b(?:decided|chosen|opted)\\s+not\\s+to\\s+(?:move\\s+forward|proceed)",
+      "\\b(?:decided|chosen)\\s+to\\s+consider\\s+candidates.*(?:more\\s+closely\\s+align|better\\s+(?:match|fit))",
       "\\b(?:unable|not\\s+able)\\s+to\\s+(?:move\\s+forward|proceed)",
       "\\bother\\s+(?:candidates|applicants)\\b",
       "\\bposition\\s+(?:has\\s+been\\s+)?(?:closed|filled)\\b"
@@ -64,6 +65,9 @@
     "referral_explicit_language": "\\b(referred|referral|referred by|referrer)\\b"
   },
   "message_labels": {
+    "prescreen": [
+        "\\bbrief\\s+phone\\s+call\\b"
+      ],
     "interview": [
       "\\bschedule.*interview\\b",
       "\\bsset\\sup\\sand\\sinterview\\b",
@@ -170,6 +174,8 @@
       "\\b(?:chosen|opted)\\s+not\\s+to\\s+(?:move\\s+forward|proceed)\\s+with\\s+your\\b",
       "\\bproceed(?:ing)?\\swith\\s(?:other|another|an?\\salternative)\\scandidate(?:s)?\\b",
       "\\bwe\\s+have\\s+decided\\s+to\\s+pursue\\s+other\\s+candidates\\b",
+      "\\bwe\\s+have\\s+decided\\s+to\\s+consider\\s+candidates\\b",
+      "\\bdecided\\s+to\\s+consider\\s+candidates.*more\\s+closely\\s+align\\b",
       "\\bkeep\\syour\\s(?:resume|application)\\son\\sfile\\b",
       "\\bdecided\\snot\\sto\\smove\\sforward\\swith\\syour\\sapplication\\b",
       "\\byour\\s+application\\s+will\\s+not\\s+advance\\b",
@@ -391,13 +397,14 @@
         "\\bthank\\s+you\\s+for\\s+your\\s+interest.*application.*received\\b",
         "\\bwe.*reviewing\\s+your\\s+application\\b"
       ],
-      "application": [
+       "application": [
         "\\bincomplete\\s+application\\b",
         "\\bapplication\\s+incomplete\\b",
         "\\bdon'?t\\s+forget\\s+to\\s+finish\\b",
         "\\bpick\\s+up\\s+where\\s+you\\s+left\\s+off\\b",
         "\\bresume\\s+your\\s+application\\b",
-        "\\baction\\s+needed\\s+to\\s+complete\\b"
+        "\\baction\\s+needed\\s+to\\s+complete\\b",
+        "\\bbrief\\s+phone\\s+call\\b"
       ],
       "interview_invite": [
         "\\bList-?Unsubscribe\\b",

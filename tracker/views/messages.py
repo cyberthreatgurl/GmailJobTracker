@@ -869,17 +869,18 @@ def label_messages(request):
 
     # Available label choices
     label_choices = [
+        "follow_up",
+        "ghosted",
+        "head_hunter",
         "interview_invite",
         "job_application",
-        "rejection",
-        "offer",
         "noise",
-        "head_hunter",
-        "referral",
-        "ghosted",
-        "follow_up",
-        "response",
+        "offer",
         "other",
+        "prescreen",
+        "rejection",
+        "referral",
+        "response"
     ]
 
     # Get label distribution for prioritization

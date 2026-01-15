@@ -7,34 +7,53 @@
   <title>{% block title %}GmailJobTracker{% endblock %}</title>
   {% tailwind_css %}
   {% block extra_head %}{% endblock %}
+  <style>
+    /* Fixed sidebar, scrollable main content */
+    html, body {
+      margin: 0;
+      height: 100%;
+    }
+    .sidebar-fixed {
+      position: fixed;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 14rem; /* 56 = w-56 */
+      max-width: 15rem; /* 60 = max-w-60 */
+      overflow-y: auto;
+      z-index: 10;
+    }
+    .main-with-sidebar {
+      margin-left: 14.5rem; /* Slightly more than sidebar width to account for gap */
+      min-height: 100vh;
+    }
+  </style>
 </head>
 <body class="font-sans m-0 bg-gray-50 text-gray-800">
-  <div class="flex gap-2 m-0">
-    <!-- Sidebar -->
-    <aside class="flex-none w-56 max-w-60">
-      {% include "tracker/_sidebar.html" %}
-    </aside>
+  <!-- Sidebar - Fixed position -->
+  <aside class="sidebar-fixed">
+    {% include "tracker/_sidebar.html" %}
+  </aside>
+  
+  <!-- Main Content - Scrolls naturally with page -->
+  <main class="main-with-sidebar p-8 pl-2">
+    <!-- Django Messages Display -->
+    {% if messages %}
+      <div class="messages mb-6">
+        {% for message in messages %}
+          <div class="message {{ message.tags }} p-3 mb-2 rounded-lg text-sm
+            {% if message.tags == 'success' %}bg-green-100 text-green-800 border-l-4 border-green-500{% endif %}
+            {% if message.tags == 'error' %}bg-red-100 text-red-800 border-l-4 border-red-500{% endif %}
+            {% if message.tags == 'warning' %}bg-yellow-100 text-yellow-800 border-l-4 border-yellow-500{% endif %}
+            {% if message.tags == 'info' %}bg-blue-100 text-blue-800 border-l-4 border-blue-500{% endif %}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
     
-    <!-- Main Content -->
-    <main class="flex-1 p-8 pl-2">
-      <!-- Django Messages Display -->
-      {% if messages %}
-        <div class="messages mb-6">
-          {% for message in messages %}
-            <div class="message {{ message.tags }} p-3 mb-2 rounded-lg text-sm
-              {% if message.tags == 'success' %}bg-green-100 text-green-800 border-l-4 border-green-500{% endif %}
-              {% if message.tags == 'error' %}bg-red-100 text-red-800 border-l-4 border-red-500{% endif %}
-              {% if message.tags == 'warning' %}bg-yellow-100 text-yellow-800 border-l-4 border-yellow-500{% endif %}
-              {% if message.tags == 'info' %}bg-blue-100 text-blue-800 border-l-4 border-blue-500{% endif %}">
-              {{ message }}
-            </div>
-          {% endfor %}
-        </div>
-      {% endif %}
-      
-      {% block content %}{% endblock %}
-    </main>
-  </div>
+    {% block content %}{% endblock %}
+  </main>
   {% block extra_scripts %}{% endblock %}
 </body>
 </html>

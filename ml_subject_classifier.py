@@ -128,11 +128,12 @@ def rule_label(subject: str, body: str = "") -> str | None:
     from generic words like "unfortunately" found in newsletters:
       1) offer
       2) head_hunter
-      3) noise          20prioritize over rejected to avoid false positives
+      3) noise          prioritize over rejected to avoid false positives
       4) rejected
       5) interview_invite
-      6) job_application
-      7) referral
+      6) prescreen
+      7) job_application
+      8) referral
     """
     text = f"{subject or ''} {body or ''}".lower()
 
@@ -144,6 +145,7 @@ def rule_label(subject: str, body: str = "") -> str | None:
         "noise",  # newsletters, OTP, promos
         "rejection",  # explicit negatives
         "interview",  # interview scheduling/confirmation
+        "prescreen",  # screening questions
         "application",  # generic acknowledgements
         "referral",  # intros/referrals
         "response",

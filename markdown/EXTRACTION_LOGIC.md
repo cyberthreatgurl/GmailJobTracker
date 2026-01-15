@@ -28,6 +28,10 @@ These checks run **before** pattern matching and return immediately if matched:
 - `\bpick\s+up\s+where\s+you\s+left\s+off\b`
 - **Why**: These are nudges, not application confirmations
 
+#### Prescreen before potential interview → `prescreen`
+- `\\bbrief\\s+phone\\s+call\\b\`
+- **Why**: 
+
 #### Early Scheduling Detection → `interview_invite`
 - `let\s+me\s+know\s+when\s+you(?:'re|are)?\s+available`
 - `available\s+for\s+(?:a\s+)?(?:call|phone\s+call|conversation)`

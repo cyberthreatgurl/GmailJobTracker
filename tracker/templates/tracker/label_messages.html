@@ -96,13 +96,14 @@
       min-width: 200px;
     }
     .btn {
-      padding: 0.6rem 1.5rem;
+      padding: 0.5rem 1rem;
       border-radius: 6px;
       border: none;
       font-weight: 600;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       cursor: pointer;
       transition: all 0.2s;
+      white-space: nowrap;
     }
     .btn-primary {
       background: #2563eb;
@@ -285,9 +286,12 @@
 {% endblock %}
 
 {% block content %}
-  <h1>🏷️ Label Messages - Bulk Mode</h1>
+  <div style="display: flex; flex-direction: column; height: calc(100vh - 4rem); overflow: hidden;">
+    <!-- Fixed Header Section (doesn't scroll) -->
+    <div style="flex-shrink: 0;">
+      <h1>🏷️ Label Messages - Bulk Mode</h1>
 
-  <!-- Message Modal -->
+      <!-- Message Modal -->
   {% if messages %}
   <div id="messageModal" style="position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:9999;">
     <div style="background:white; border-radius:12px; padding:1.5rem 2rem; max-width:500px; box-shadow:0 10px 25px rgba(0,0,0,0.3);">
@@ -331,7 +335,7 @@
         <input type="url" name="homepage_url" placeholder="e.g., https://www.company.com" style="width: 100%; padding: 0.4rem 0.6rem; border-radius: 4px; border: 1px solid #d1d5db; font-size: 0.9rem;" required>
       </div>
       <div>
-        <button type="submit" class="btn btn-primary">🔍 Add Company</button>
+        <button type="submit" class="btn btn-primary" style="font-size:0.85rem;">🔍 Add</button>
       </div>
     </form>
   </div>
@@ -430,7 +434,7 @@
         {% endfor %}
       </select>
       <button type="submit" class="btn btn-primary" id="bulk-submit" disabled onclick="return submitBulkLabel()">
-        Apply Label to Selected
+        Apply Label
       </button>
       <select name="company_id" id="company-select" style="margin-left: 1rem; padding: 0.6rem; border-radius: 6px; border: 1px solid #d1d5db; font-size: 0.9rem; min-width: 200px;">
         <option value="">-- Select Company --</option>
@@ -440,25 +444,30 @@
         {% endfor %}
       </select>
       <button type="submit" class="btn btn-primary" id="company-submit" disabled onclick="return submitCompanyReassign()">
-        Reassign Company
+        Reassign
       </button>
-      <button type="submit" class="btn btn-secondary" id="reingest-submit" disabled onclick="return submitReingest()" style="background-color: #f59e0b; border-color: #f59e0b;">
-        🔄 Re-ingest from Gmail
+      <button type="submit" class="btn" id="reingest-submit" disabled onclick="return submitReingest()" style="background:#f59e0b; color:white;">
+        🔄 Re-ingest
       </button>
       {% if message_list %}
-      <button type="submit" class="btn btn-success" id="mark-reviewed-submit" onclick="return submitMarkAllReviewed()" style="margin-left: auto;">
-        ✓ Mark Selected as Reviewed
+      <button type="submit" class="btn" id="mark-reviewed-submit" onclick="return submitMarkAllReviewed()" style="margin-left:auto; background:#059669; color:white;">
+        ✓ Mark Reviewed
       </button>
       {% endif %}
       {% if message_list %}
       <button type="submit" class="btn" id="clear-reviewed-submit" onclick="return submitClearReviewed()" style="margin-left:0.5rem; background:#ef4444; color:white;">
-        ⤺ Clear Reviewed
+        ⤺ Clear
       </button>
       <button type="submit" class="btn" id="delete-submit" disabled onclick="return submitDelete()" style="margin-left:0.5rem; background:#b91c1c; color:white;">
-        🗑️ Delete Selected
+        🗑️ Delete
       </button>
       {% endif %}
     </div>
+    </div>
+    <!-- End fixed header section -->
+
+    <!-- Scrollable Table Section -->
+    <div style="flex: 1; overflow-y: auto; padding-right: 0.5rem;">
     <!-- Message Table -->
     <div class="message-table">
       <table>
@@ -818,4 +827,8 @@
       }
     });
   </script>
+  </div>
+  <!-- End scrollable section -->
+  </div>
+  <!-- End flex container -->
 {% endblock %}

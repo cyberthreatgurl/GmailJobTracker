@@ -438,6 +438,7 @@ class RuleClassifier:
         # Map code labels to patterns.json keys
         label_key_map = {
             "interview_invite": "interview",
+            "prescreen": "prescreen",
             "job_application": "application",
             "rejection": "rejection",
             "offer": "offer",
@@ -563,7 +564,7 @@ class RuleClassifier:
 
         Returns:
             One of the known labels or None if no rule matches.
-            Labels: interview_invite, job_application, rejection, offer, noise,
+            Labels: interview_invite, prescreen, job_application, rejection, offer, noise,
                    head_hunter, other, referral, ghosted, blank
         """
         s = f"{subject or ''} {body or ''}"
@@ -627,6 +628,16 @@ class RuleClassifier:
                     )
                 return "interview_invite"
 
+        # Check prescreen patterns BEFORE application confirmation
+        # Prescreen calls (brief phone call) are more specific than generic application confirmations
+        for rx in self._msg_label_patterns.get("prescreen", []):
+            if rx.search(s):
+                if DEBUG:
+                    print(
+                        f"[DEBUG rule_label] Early prescreen match: {rx.pattern[:80]}"
+                    )
+                return "prescreen"
+
         # Check application confirmation patterns (after rejection and scheduling checks)
         # This ensures "Thank you for applying" emails are not misclassified as rejections
         # due to explanatory text like "if archived, that means you were not selected"
@@ -682,6 +693,7 @@ class RuleClassifier:
             "rejection",
             "head_hunter",
             "noise",
+            "prescreen",
             "job_application",
             "interview_invite",
             "other",
@@ -2323,6 +2335,9 @@ def extract_organizer_from_icalendar(body):
 def parse_subject(subject, body="", sender=None, sender_domain=None):
     """Extract company, job title, and job ID from subject line, sender, and optionally sender domain."""
 
+    # Reload companies.json if it has changed
+    _domain_mapper.reload_if_needed()
+
     if DEBUG:
         print(f"[DEBUG] parse_subject called with:")
         print(f"[DEBUG]   subject={subject[:60]}...")
@@ -2505,7 +2520,7 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
             # Check if display name is a known company
             if display_name_clean.lower() in {c.lower() for c in KNOWN_COMPANIES}:
                 # Find original casing from known list
-                for orig in company_data.get("known", []):
+                for orig in _domain_mapper.company_data.get("known", []):
                     if orig.lower() == display_name_clean.lower():
                         company = orig
                         break
@@ -2514,8 +2529,8 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
                 if DEBUG:
                     print(f"[DEBUG] ATS display name is known company: {company}")
             # Check if display name matches an alias
-            elif display_name_clean.lower() in {k.lower() for k in company_data.get("aliases", {}).keys()}:
-                aliases_lower = {k.lower(): v for k, v in company_data.get("aliases", {}).items()}
+            elif display_name_clean.lower() in {k.lower() for k in _domain_mapper.company_data.get("aliases", {}).keys()}:
+                aliases_lower = {k.lower(): v for k, v in _domain_mapper.company_data.get("aliases", {}).items()}
                 company = aliases_lower[display_name_clean.lower()]
                 if DEBUG:
                     print(f"[DEBUG] ATS display name alias match: {display_name_clean} -> {company}")
@@ -2528,7 +2543,7 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
                 sender_prefix = sender_prefix.split("+", maxsplit=1)[0]
             # Check if prefix matches an alias
             aliases_lower = {
-                k.lower(): v for k, v in company_data.get("aliases", {}).items()
+                k.lower(): v for k, v in _domain_mapper.company_data.get("aliases", {}).items()
             }
             if sender_prefix in aliases_lower:
                 company = aliases_lower[sender_prefix]
@@ -2536,7 +2551,7 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
                     print(f"[DEBUG] ATS alias match: {sender_prefix} -> {company}")
             # Check if prefix is a known company
             elif sender_prefix in {c.lower() for c in KNOWN_COMPANIES}:
-                for orig in company_data.get("known", []):
+                for orig in _domain_mapper.company_data.get("known", []):
                     if orig.lower() == sender_prefix:
                         company = orig
                         break
@@ -2823,7 +2838,7 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
         for known in sorted_companies:
             if known in subj_lower:
                 # Find original casing from known list
-                for orig in company_data.get("known", []):
+                for orig in _domain_mapper.company_data.get("known", []):
                     if orig.lower() == known:
                         company = orig
                         break
@@ -2980,7 +2995,7 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
         subj_lower = subject_clean.lower()
         # Check aliases first (map lower->canonical)
         aliases_lower = {
-            k.lower(): v for k, v in company_data.get("aliases", {}).items()
+            k.lower(): v for k, v in _domain_mapper.company_data.get("aliases", {}).items()
         }
         for alias_lower, canonical in aliases_lower.items():
             # Use word boundary matching to avoid false matches like "arc" in "research"
@@ -2997,7 +3012,7 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
                 break
         # Next check known companies list for substrings
         if not found and KNOWN_COMPANIES:
-            for known in company_data.get("known", []):
+            for known in _domain_mapper.company_data.get("known", []):
                 if known.lower() in cand_lower or known.lower() in subj_lower:
                     company = known
                     found = True

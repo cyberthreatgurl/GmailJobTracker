@@ -305,6 +305,13 @@ def ingest_eml_bytes(
                 msg_rec.classification_source = classification_source
                 msg_rec.save()
 
+                # Update ThreadTracking ml_label if it exists
+                if create_tt and msg_rec.company:
+                    ThreadTracking.objects.filter(thread_id=msg_rec.thread_id).update(
+                        ml_label=ml_label,
+                        ml_confidence=ml_conf,
+                    )
+
                 details["ml_label"] = ml_label
                 details["ml_confidence"] = ml_conf
                 details["classification_source"] = classification_source

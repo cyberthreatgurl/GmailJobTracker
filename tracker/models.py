@@ -154,8 +154,24 @@ class ThreadTracking(models.Model):
     status = models.CharField(max_length=50)
     sent_date = models.DateField()
     rejection_date = models.DateField(null=True, blank=True)
+    prescreen_date = models.DateField(
+        null=True,
+        blank=True,
+        help_text="Date of prescreen phone call or initial screening"
+    )
     interview_date = models.DateField(null=True, blank=True)
     interview_completed = models.BooleanField(default=False)
+    application_url = models.URLField(
+        max_length=500,
+        blank=True,
+        null=True,
+        help_text="URL to the job application page"
+    )
+    application_text = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Cover letter or application text"
+    )
     ml_label = models.CharField(max_length=50, blank=True, null=True)  # e.g., noise
     ml_confidence = models.FloatField(blank=True, null=True)
     reviewed = models.BooleanField(default=False)

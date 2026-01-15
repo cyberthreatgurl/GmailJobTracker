@@ -61,6 +61,7 @@ _MSG_LABEL_PATTERNS = {
     k: [re.compile(p, re.I) for p in (_PATTERNS.get("message_labels", {}).get(k, []))]
     for k in (
         "interview_invite",
+        "prescreen",
         "job_application",
         "rejection",
         "offer",

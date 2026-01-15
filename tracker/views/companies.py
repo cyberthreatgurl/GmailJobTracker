@@ -589,9 +589,22 @@ def label_companies(request):
                         messages.error(request, "❌ Please enter a homepage URL first.")
                     else:
                         try:
-                            from tracker.services.company_scraper import scrape_company_info, CompanyScraperError
+                            from tracker.services.company_scraper import scrape_company_info, CompanyScraperError, analyze_company_focus
                             
                             scraped_data = scrape_company_info(homepage_url)
+                            
+                            # Analyze focus area from page content
+                            page_content = scraped_data.get("page_content", "")
+                            focus_analysis = analyze_company_focus(page_content) if page_content else ""
+                            
+                            # Append focus analysis to notes if available
+                            if focus_analysis:
+                                current_notes = selected_company.notes or ""
+                                if current_notes:
+                                    selected_company.notes = f"{current_notes}\n\n{focus_analysis}"
+                                else:
+                                    selected_company.notes = focus_analysis
+                                selected_company.save(update_fields=["notes"])
                             
                             # Create a form with the scraped data, preserving user-entered fields
                             form_data = {
@@ -640,6 +653,51 @@ def label_companies(request):
                         )
                     except Exception as e:
                         messages.error(request, f"❌ Failed to save notes: {e}")
+                    return redirect(f"/label_companies/?company={selected_company.id}")
+                
+                # Save application details (prescreen/interview dates, URL, text)
+                elif request.POST.get("action") == "save_application_details":
+                    try:
+                        from tracker.forms_company import ApplicationDetailsForm
+                        
+                        # Get thread_id from POST data (user selects which application to edit)
+                        thread_id = request.POST.get("thread_id", "").strip()
+                        
+                        if thread_id:
+                            # Edit existing ThreadTracking
+                            thread_tracking = ThreadTracking.objects.filter(
+                                thread_id=thread_id,
+                                company=selected_company
+                            ).first()
+                            
+                            if not thread_tracking:
+                                messages.error(request, f"❌ Application thread not found: {thread_id}")
+                                return redirect(f"/label_companies/?company={selected_company.id}")
+                        else:
+                            # Create a new manual ThreadTracking if no thread_id specified
+                            thread_tracking = ThreadTracking.objects.create(
+                                thread_id=f"manual_{selected_company.id}_{now().timestamp()}",
+                                company=selected_company,
+                                job_title="Manual Entry",
+                                status="application",
+                                sent_date=now().date(),
+                            )
+                        
+                        form_data = ApplicationDetailsForm(request.POST, instance=thread_tracking)
+                        if form_data.is_valid():
+                            form_data.save()
+                            job_title = thread_tracking.job_title or "this application"
+                            messages.success(
+                                request,
+                                f"✅ Application details saved for {selected_company.name} - {job_title}.",
+                            )
+                        else:
+                            for field, errors in form_data.errors.items():
+                                for error in errors:
+                                    messages.error(request, f"❌ {field}: {error}")
+                    except Exception as e:
+                        messages.error(request, f"❌ Failed to save application details: {e}")
+                        logger.exception("Failed to save application details")
                     return redirect(f"/label_companies/?company={selected_company.id}")
                 
                 # Handle "mark_searched" checkbox
@@ -855,9 +913,13 @@ def label_companies(request):
                     form = CompanyEditForm(initial={"name": new_company_name})
                 else:
                     try:
-                        from tracker.services.company_scraper import scrape_company_info, CompanyScraperError
+                        from tracker.services.company_scraper import scrape_company_info, CompanyScraperError, analyze_company_focus
                         
                         scraped_data = scrape_company_info(homepage_url)
+                        
+                        # Analyze focus area from page content
+                        page_content = scraped_data.get("page_content", "")
+                        focus_analysis = analyze_company_focus(page_content) if page_content else ""
                         
                         # Create a form with the scraped data
                         form_data = {
@@ -870,6 +932,7 @@ def label_companies(request):
                             "contact_email": "",
                             "status": "new",
                             "focus_area": request.POST.get("focus_area", ""),
+                            "notes": focus_analysis if focus_analysis else "",
                         }
                         form = CompanyEditForm(form_data)
                         
@@ -998,7 +1061,36 @@ def label_companies(request):
                 initial_data["career_url"] = prefill_career_url
             form = CompanyEditForm(initial=initial_data)
 
+    # Generate focus area word cloud data
+    focus_area_phrases = {}
+    companies_with_focus = Company.objects.filter(focus_area__isnull=False).exclude(focus_area="")
+    for company in companies_with_focus:
+        focus_phrase = company.focus_area.strip()
+        if focus_phrase:
+            phrase_lower = focus_phrase.lower()
+            if phrase_lower not in focus_area_phrases:
+                focus_area_phrases[phrase_lower] = {"display": focus_phrase, "count": 0}
+            focus_area_phrases[phrase_lower]["count"] += 1
+    
+    # Sort by frequency and get top 50 phrases
+    sorted_phrases = sorted(
+        [(data["display"], data["count"]) for data in focus_area_phrases.values()],
+        key=lambda x: x[1],
+        reverse=True
+    )[:50]
+    focus_area_wordcloud_data = json.dumps(sorted_phrases)
+
     ctx = build_sidebar_context()
+    
+    # Get all application threads for selected company (for Application Details section)
+    # Only include actual job applications, not prescreens/interviews (those are dates within an application)
+    application_threads = []
+    if selected_company:
+        application_threads = list(ThreadTracking.objects.filter(
+            company=selected_company,
+            ml_label='job_application'
+        ).order_by('-sent_date'))
+    
     ctx.update(
         {
             "company_list": companies,
@@ -1012,6 +1104,8 @@ def label_companies(request):
             "message_info_list": message_info_list,
             "creating_new_company": creating_new_company,
             "new_company_name": new_company_name,
+            "focus_area_wordcloud_data": focus_area_wordcloud_data,
+            "application_threads": application_threads,
         }
     )
     return render(request, "tracker/label_companies.html", ctx)
@@ -1987,4 +2081,165 @@ def job_search_tracker(request):
     return render(request, "tracker/job_search_tracker.html", ctx)
 
 
-__all__ = ["delete_company", "label_companies", "merge_companies", "manage_domains", "job_search_tracker"]
+@login_required
+def scrape_job_posting(request):
+    """
+    AJAX endpoint to scrape job posting content from a URL.
+    Returns the extracted text content as JSON.
+    """
+    if request.method != "POST":
+        logger.warning(f"scrape_job_posting: Invalid method {request.method}")
+        return JsonResponse({"error": "POST method required"}, status=405)
+    
+    url = request.POST.get("url", "").strip()
+    logger.info(f"scrape_job_posting: Received URL: {url}")
+    
+    if not url:
+        logger.warning("scrape_job_posting: No URL provided")
+        return JsonResponse({"error": "URL is required"}, status=400)
+    
+    # Validate URL format
+    if not url.startswith(("http://", "https://")):
+        logger.warning(f"scrape_job_posting: Invalid URL format: {url}")
+        return JsonResponse({"error": "URL must start with http:// or https://"}, status=400)
+    
+    try:
+        # Import scraping utilities
+        import requests
+        from bs4 import BeautifulSoup
+        import warnings
+        
+        # Suppress BeautifulSoup encoding warnings
+        warnings.filterwarnings("ignore", category=UserWarning, module='bs4')
+        
+        # Fetch the page with a realistic User-Agent and headers
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+            "Accept-Language": "en-US,en;q=0.9",
+            "Accept-Encoding": "gzip, deflate, br",
+            "DNT": "1",
+            "Connection": "keep-alive",
+            "Upgrade-Insecure-Requests": "1",
+            "Sec-Fetch-Dest": "document",
+            "Sec-Fetch-Mode": "navigate",
+            "Sec-Fetch-Site": "none",
+            "Cache-Control": "max-age=0",
+        }
+        logger.info(f"scrape_job_posting: Fetching URL: {url}")
+        response = requests.get(url, headers=headers, timeout=15, allow_redirects=True)
+        response.raise_for_status()
+        
+        logger.info(f"scrape_job_posting: Received {len(response.content)} bytes, status {response.status_code}")
+        
+        # Parse HTML with explicit encoding handling
+        soup = BeautifulSoup(response.content, "html.parser", from_encoding=response.encoding)
+        
+        # Log the page structure for debugging
+        logger.debug(f"scrape_job_posting: Page title: {soup.title.string if soup.title else 'No title'}")
+        
+        # Remove unwanted elements (scripts, styles, nav, footer, ads)
+        for element in soup(["script", "style", "nav", "footer", "header", "aside", "iframe", "noscript"]):
+            element.decompose()
+        
+        # Try to find the main content area with expanded selectors
+        main_content = None
+        content_selectors = [
+            # BambooHR specific
+            ".BambooHR-ATS-board",
+            ".BambooHR-ATS-Description",
+            "[data-qa='job-description']",
+            ".job-board__description",
+            "#jobDescription",
+            ".careers-description",
+            # Generic job posting containers
+            "main",
+            "article",
+            "[role='main']",
+            ".job-description",
+            ".job-details",
+            ".job-content",
+            ".posting-description",
+            "#job-description",
+            "#job-details",
+            ".description",
+            ".content",
+            ".main-content",
+            "[class*='description']",
+            "[class*='job-posting']",
+            "[class*='posting-content']",
+        ]
+        
+        for selector in content_selectors:
+            main_content = soup.select_one(selector)
+            if main_content:
+                logger.info(f"scrape_job_posting: Found content using selector: {selector}")
+                break
+        
+        # If no main content found, try to find any divs with substantial text
+        if not main_content:
+            logger.warning("scrape_job_posting: No main content selector matched, trying fallback methods")
+            # Look for the largest text-containing div
+            divs = soup.find_all(['div', 'section', 'article'])
+            if divs:
+                main_content = max(divs, key=lambda d: len(d.get_text(strip=True)))
+                logger.info(f"scrape_job_posting: Using largest text container as fallback")
+        
+        # Last resort: use body
+        if not main_content:
+            main_content = soup.body
+            logger.warning("scrape_job_posting: Using body as last resort")
+        
+        if not main_content:
+            return JsonResponse({"error": "Could not extract content from page"}, status=400)
+        
+        # Extract text and clean it up
+        text = main_content.get_text(separator="\n", strip=True)
+        
+        # Clean up excessive whitespace
+        lines = [line.strip() for line in text.split("\n") if line.strip()]
+        text = "\n".join(lines)
+        
+        # If we got no content, save HTML for debugging
+        if len(text) < 100:
+            logger.warning(f"scrape_job_posting: Very little content extracted ({len(text)} chars)")
+            # Save HTML to debug file
+            debug_file = "/tmp/scrape_debug.html"
+            try:
+                with open(debug_file, "w", encoding="utf-8") as f:
+                    f.write(str(soup.prettify()))
+                logger.info(f"scrape_job_posting: Saved HTML to {debug_file} for debugging")
+            except Exception as e:
+                logger.error(f"scrape_job_posting: Failed to save debug HTML: {e}")
+        
+        # Limit to first 10,000 characters (same as form validation)
+        if len(text) > 10000:
+            text = text[:10000] + "\n\n[Content truncated to 10,000 characters]"
+        
+        logger.info(f"scrape_job_posting: Extracted {len(text)} characters")
+        logger.debug(f"scrape_job_posting: Content preview: {text[:200]}...")
+        
+        # If we have no meaningful content, return an error
+        if len(text) < 50:
+            return JsonResponse({
+                "error": "Could not extract meaningful content. The page may use JavaScript to load content. Try copying the text manually.",
+                "success": False
+            }, status=200)  # Return 200 so JavaScript can show the error message
+        
+        return JsonResponse({"success": True, "content": text})
+        
+    except requests.Timeout:
+        return JsonResponse({"error": "Request timed out. The page took too long to load."}, status=408)
+    except requests.HTTPError as e:
+        if e.response.status_code == 403:
+            return JsonResponse({"error": "Access denied (403). The website is blocking automated requests."}, status=403)
+        elif e.response.status_code == 404:
+            return JsonResponse({"error": "Page not found (404). Please check the URL."}, status=404)
+        else:
+            return JsonResponse({"error": f"HTTP error {e.response.status_code}"}, status=e.response.status_code)
+    except Exception as e:
+        logger.exception("Failed to scrape job posting")
+        return JsonResponse({"error": f"Failed to scrape page: {str(e)}"}, status=500)
+
+
+__all__ = ["delete_company", "label_companies", "merge_companies", "manage_domains", "job_search_tracker", "scrape_job_posting"]

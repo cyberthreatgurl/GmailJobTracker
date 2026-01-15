@@ -86,10 +86,29 @@ def scrape_company_info(homepage_url: str, timeout: int = 10) -> Dict[str, str]:
     # Extract career/jobs URL
     career_url = _extract_career_url(soup, homepage_url)
     
+    # Extract page content for focus area analysis
+    page_content = _extract_page_content(soup)
+    
+    # Try to find and scrape About Us page for more comprehensive analysis
+    about_url = _extract_about_url(soup, homepage_url)
+    about_content = ""
+    if about_url:
+        try:
+            about_content = _scrape_about_page(about_url, timeout)
+        except Exception:
+            # If About page scraping fails, continue without it
+            pass
+    
+    # Combine homepage and about content
+    combined_content = page_content
+    if about_content:
+        combined_content = page_content + " " + about_content
+    
     return {
         "name": company_name,
         "domain": domain,
         "career_url": career_url or "",
+        "page_content": combined_content,
     }
 
 
@@ -252,3 +271,213 @@ def _extract_career_url(soup: BeautifulSoup, base_url: str) -> Optional[str]:
                     return full_url
     
     return None
+
+
+def _extract_about_url(soup: BeautifulSoup, base_url: str) -> Optional[str]:
+    """
+    Extract About Us / Company Info page URL.
+    
+    Looks for links containing keywords like:
+    - about, about-us, company, who-we-are, our-story, etc.
+    
+    Returns the first matching URL.
+    """
+    about_keywords = [
+        "about-us",
+        "about",
+        "company",
+        "who-we-are",
+        "our-story",
+        "our-company",
+        "overview",
+        "mission",
+    ]
+    
+    # Exclusion patterns to avoid blogs, news, press releases
+    exclusion_patterns = [
+        'blog',
+        'news',
+        'press',
+        'media',
+        'events',
+        'contact',
+        'privacy',
+        'terms',
+        'legal',
+        'support',
+        'help',
+        'faq',
+    ]
+    
+    all_links = soup.find_all("a", href=True)
+    
+    # Priority 1: Look for exact keyword matches in href
+    for link in all_links:
+        href = link["href"].lower()
+        
+        # Skip excluded patterns
+        if any(skip in href for skip in exclusion_patterns):
+            continue
+        
+        # Check if href contains about keywords
+        for keyword in about_keywords:
+            if f"/{keyword}" in href or f"-{keyword}" in href or href.endswith(keyword):
+                full_url = urljoin(base_url, link["href"])
+                if full_url.startswith(("http://", "https://")) and full_url != base_url:
+                    return full_url
+    
+    # Priority 2: Look for keywords in link text
+    for link in all_links:
+        href = link["href"].lower()
+        text = link.get_text().lower().strip()
+        
+        # Skip excluded patterns
+        if any(skip in href for skip in exclusion_patterns):
+            continue
+        
+        # Check common about page link text
+        if text in ["about", "about us", "company", "who we are", "our story", "overview"]:
+            full_url = urljoin(base_url, link["href"])
+            if full_url.startswith(("http://", "https://")) and full_url != base_url:
+                return full_url
+    
+    return None
+
+
+def _scrape_about_page(about_url: str, timeout: int = 10) -> str:
+    """
+    Scrape content from About Us page.
+    
+    Args:
+        about_url: URL of the About Us page
+        timeout: Request timeout in seconds
+        
+    Returns:
+        Extracted text content from the About page
+    """
+    try:
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        }
+        response = requests.get(about_url, headers=headers, timeout=timeout, allow_redirects=True)
+        response.raise_for_status()
+        
+        soup = BeautifulSoup(response.content, "html.parser")
+        return _extract_page_content(soup)
+    except Exception:
+        # Return empty string if scraping fails
+        return ""
+
+
+def _extract_page_content(soup: BeautifulSoup) -> str:
+    """
+    Extract main text content from page for focus area analysis.
+    
+    Returns:
+        Text content from meta description, h1-h3 headings, and main paragraph text.
+    """
+    content_parts = []
+    
+    # Extract meta description
+    meta_desc = soup.find("meta", attrs={"name": "description"})
+    if not meta_desc:
+        meta_desc = soup.find("meta", property="og:description")
+    if meta_desc and meta_desc.get("content"):
+        content_parts.append(meta_desc["content"].strip())
+    
+    # Extract headings (h1-h3)
+    for heading_tag in ["h1", "h2", "h3"]:
+        headings = soup.find_all(heading_tag)
+        for heading in headings[:5]:  # Limit to first 5 of each type
+            text = heading.get_text().strip()
+            if text and len(text) < 200:
+                content_parts.append(text)
+    
+    # Extract main paragraph text
+    # Look for main content areas first
+    main_content = soup.find(["main", "article", "div"], class_=re.compile(r"(main|content|about)", re.I))
+    if main_content:
+        paragraphs = main_content.find_all("p", limit=10)
+    else:
+        paragraphs = soup.find_all("p", limit=15)
+    
+    for p in paragraphs:
+        text = p.get_text().strip()
+        # Filter out short paragraphs (likely navigation, footers, etc.)
+        if text and len(text) > 50 and len(text) < 500:
+            content_parts.append(text)
+    
+    # Join all content with spaces
+    full_content = " ".join(content_parts)
+    
+    # Limit total length to ~3000 characters for analysis
+    return full_content[:3000] if full_content else ""
+
+
+def analyze_company_focus(page_content: str) -> str:
+    """
+    Analyze company homepage content to estimate focus area.
+    
+    Uses keyword extraction and frequency analysis to identify main business areas.
+    
+    Args:
+        page_content: Text content from company homepage
+        
+    Returns:
+        String describing estimated focus area, or empty string if cannot determine.
+    """
+    if not page_content or len(page_content) < 50:
+        return ""
+    
+    # Convert to lowercase for analysis
+    content_lower = page_content.lower()
+    
+    # Industry/domain keywords with their associated focus areas
+    focus_keywords = {
+        "AI/Machine Learning": ["artificial intelligence", "machine learning", "deep learning", "neural network", "computer vision", "natural language", "nlp", "generative ai", "llm"],
+        "Cloud/Infrastructure": ["cloud computing", "cloud infrastructure", "aws", "azure", "kubernetes", "devops", "infrastructure", "iaas", "saas", "paas"],
+        "Cybersecurity": ["cybersecurity", "security solutions", "threat detection", "penetration testing", "vulnerability", "secure", "encryption", "firewall"],
+        "Data/Analytics": ["data analytics", "big data", "business intelligence", "data science", "data platform", "analytics", "insights", "visualization"],
+        "Enterprise Software": ["enterprise software", "erp", "crm", "salesforce", "enterprise solutions", "business software", "workflow"],
+        "Financial Services": ["financial services", "fintech", "banking", "payment", "trading", "investment", "insurance", "wealth management"],
+        "Healthcare/MedTech": ["healthcare", "medical", "health tech", "telemedicine", "patient care", "clinical", "pharmaceutical", "biotech"],
+        "E-commerce/Retail": ["e-commerce", "ecommerce", "online shopping", "retail", "marketplace", "shopping platform", "consumer"],
+        "Government/Defense": ["government", "defense", "military", "federal", "national security", "public sector", "dod", "classified"],
+        "Education/EdTech": ["education", "learning", "edtech", "training", "student", "university", "academic", "curriculum"],
+        "Marketing/AdTech": ["marketing", "advertising", "adtech", "digital marketing", "brand", "campaign", "customer engagement"],
+        "Gaming/Entertainment": ["gaming", "video game", "entertainment", "streaming", "media", "content creation", "esports"],
+        "Telecommunications": ["telecommunications", "telecom", "5g", "network", "connectivity", "wireless", "broadband"],
+        "Consulting": ["consulting", "advisory", "professional services", "strategy", "transformation", "management consulting"],
+    }
+    
+    # Count keyword matches for each focus area
+    focus_scores = {}
+    for focus_area, keywords in focus_keywords.items():
+        score = 0
+        matched_keywords = []
+        for keyword in keywords:
+            count = content_lower.count(keyword)
+            if count > 0:
+                score += count
+                matched_keywords.append(keyword)
+        if score > 0:
+            focus_scores[focus_area] = {"score": score, "keywords": matched_keywords}
+    
+    # Get top 3 focus areas
+    sorted_areas = sorted(focus_scores.items(), key=lambda x: x[1]["score"], reverse=True)[:3]
+    
+    if not sorted_areas:
+        return ""
+    
+    # Build result string
+    result_parts = []
+    for focus_area, data in sorted_areas:
+        # Only include if score is significant (at least 2 mentions)
+        if data["score"] >= 2:
+            keywords_str = ", ".join(data["keywords"][:3])  # Show max 3 keywords
+            result_parts.append(f"{focus_area} (mentions: {keywords_str})")
+    
+    if result_parts:
+        return "AI-suggested focus areas: " + "; ".join(result_parts)
+    
+    return ""

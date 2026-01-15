@@ -25,14 +25,31 @@
     </ul>
   </div>
 
-  <!-- Upcoming Interviews -->
+  <!-- Upcoming Interviews and Prescreens -->
   <div class="bg-white p-4 rounded-lg mb-4 shadow-sm">
-    <h2 class="text-sm font-semibold mb-3 text-gray-800">🗓️ Upcoming Interviews</h2>
+    <h2 class="text-sm font-semibold mb-3 text-gray-800">🗓️ Upcoming</h2>
     <ul class="list-none pl-0 m-0">
       {% for interview in upcoming_interviews %}
-        <li class="py-2 text-xs text-gray-600">{{ interview.company.name }} — {{ interview.interview_date|date:"Y-m-d" }}</li>
+        <li class="py-2 text-xs text-gray-600">
+          <a href="{% url 'label_companies' %}?company={{ interview.company.id }}" class="text-blue-600 hover:text-blue-800 hover:underline font-semibold">{{ interview.company.name }}</a><br>
+          {% if interview.prescreen_date and interview.interview_date %}
+            {% if interview.prescreen_date <= interview.interview_date %}
+              📞 Prescreen: {{ interview.prescreen_date|date:"Y-m-d" }}<br>
+              💼 Interview: {{ interview.interview_date|date:"Y-m-d" }}
+            {% else %}
+              💼 Interview: {{ interview.interview_date|date:"Y-m-d" }}<br>
+              📞 Prescreen: {{ interview.prescreen_date|date:"Y-m-d" }}
+            {% endif %}
+          {% elif interview.prescreen_date %}
+            📞 Prescreen: {{ interview.prescreen_date|date:"Y-m-d" }}
+          {% elif interview.interview_date %}
+            💼 Interview: {{ interview.interview_date|date:"Y-m-d" }}
+          {% else %}
+            📅 TBD
+          {% endif %}
+        </li>
       {% empty %}
-        <li class="py-2 text-xs text-gray-600">No upcoming interviews</li>
+        <li class="py-2 text-xs text-gray-600">No upcoming events</li>
       {% endfor %}
     </ul>
   </div>

@@ -123,12 +123,6 @@
     .btn-success:hover {
       background: #047857;
     }
-    .message-table {
-      background: white;
-      border-radius: 8px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-      overflow: hidden;
-    }
     table {
       width: 100%;
       border-collapse: collapse;
@@ -172,14 +166,6 @@
     .subject-cell {
       max-width: 300px;
       font-weight: 500;
-    }
-    .snippet-cell {
-      max-width: 400px;
-      color: #6b7280;
-      font-size: 0.8rem;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
     }
     .confidence-badge {
       display: inline-block;
@@ -285,8 +271,11 @@
     /* Sticky table header */
     .message-table {
       position: relative;
-      max-height: calc(100vh - 280px);
+      flex: 1;
       overflow-y: auto;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     }
     .message-table thead {
       position: sticky;
@@ -529,7 +518,6 @@
     <!-- End fixed header section -->
 
     <!-- Scrollable Table Section -->
-    <div style="flex: 1; overflow-y: auto; padding-right: 0.5rem;">
     <!-- Message Table -->
     <div class="message-table">
       <table>
@@ -911,8 +899,6 @@
       }
     });
   </script>
-  </div>
-  <!-- End scrollable section -->
   </div>
   <!-- End flex container -->
 {% endblock %}

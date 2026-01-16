@@ -55,7 +55,7 @@ class ManualEntryForm(forms.Form):
         # Populate company choices from database
         from tracker.models import Company
         companies = Company.objects.all().order_by('name')
-        choices = [('__new__', '- New Company -')]
+        choices = [('', '-- Select Company --'), ('__new__', '- New Company -')]
         choices.extend([(str(c.id), c.name) for c in companies])
         self.fields['company_select'].choices = choices
     
@@ -63,6 +63,12 @@ class ManualEntryForm(forms.Form):
         cleaned_data = super().clean()
         company_select = cleaned_data.get('company_select')
         new_company_name = cleaned_data.get('new_company_name', '').strip()
+        
+        # Validate that a company is selected
+        if not company_select:
+            raise forms.ValidationError({
+                'company_select': 'Please select a company or create a new one.'
+            })
         
         # If new company selected, validate the name
         if company_select == '__new__':

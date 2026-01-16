@@ -123,6 +123,75 @@
       color: #2563eb;
       font-size: 0.9rem;
     }
+    .entry-actions {
+      margin-top: 0.75rem;
+      display: flex;
+      gap: 0.5rem;
+    }
+    .entry-btn {
+      padding: 0.35rem 0.75rem;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .edit-btn {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+    .edit-btn:hover {
+      background: #bfdbfe;
+    }
+    .delete-btn {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+    .delete-btn:hover {
+      background: #fecaca;
+    }
+    .entry-checkbox {
+      margin-right: 0.5rem;
+      cursor: pointer;
+      width: 18px;
+      height: 18px;
+    }
+    .bulk-actions {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      margin-bottom: 1rem;
+      padding: 0.75rem;
+      background: white;
+      border-radius: 6px;
+    }
+    .bulk-delete-btn {
+      padding: 0.5rem 1rem;
+      background: #ef4444;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .bulk-delete-btn:hover {
+      background: #dc2626;
+    }
+    .bulk-delete-btn:disabled {
+      background: #d1d5db;
+      cursor: not-allowed;
+    }
+    .select-all-container {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.9rem;
+      color: #374151;
+    }
     .entry-type-badge {
       display: inline-block;
       padding: 0.2rem 0.6rem;
@@ -180,7 +249,7 @@
   {% endif %}
 
   <div class="form-card">
-    <h2>Add New Entry</h2>
+    <h2>{% if is_edit %}Edit Entry{% else %}Add New Entry{% endif %}</h2>
     <form method="post">
       {% csrf_token %}
       
@@ -201,12 +270,25 @@
       </div>
 
       <div class="form-group">
-        <label for="{{ form.company_name.id_for_label }}">{{ form.company_name.label }}</label>
-        {{ form.company_name }}
-        <div class="help-text">{{ form.company_name.help_text }}</div>
-        {% if form.company_name.errors %}
+        <label for="{{ form.company_select.id_for_label }}">{{ form.company_select.label }}</label>
+        {{ form.company_select }}
+        <div class="help-text">{{ form.company_select.help_text }}</div>
+        {% if form.company_select.errors %}
           <ul class="errorlist">
-            {% for error in form.company_name.errors %}
+            {% for error in form.company_select.errors %}
+              <li>{{ error }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      </div>
+
+      <div class="form-group" id="new-company-name-group" style="display: none;">
+        <label for="{{ form.new_company_name.id_for_label }}">{{ form.new_company_name.label }}</label>
+        {{ form.new_company_name }}
+        <div class="help-text">{{ form.new_company_name.help_text }}</div>
+        {% if form.new_company_name.errors %}
+          <ul class="errorlist">
+            {% for error in form.new_company_name.errors %}
               <li>{{ error }}</li>
             {% endfor %}
           </ul>
@@ -295,25 +377,116 @@
         {% endif %}
       </div>
 
-      <button type="submit" class="submit-btn">Add Entry</button>
+      <button type="submit" class="submit-btn">{% if is_edit %}Update Entry{% else %}Add Entry{% endif %}</button>
+      {% if is_edit %}
+        <a href="{% url 'manual_entry' %}" class="submit-btn" style="background: #6b7280; margin-left: 1rem; display: inline-block; text-decoration: none;">Cancel</a>
+      {% endif %}
     </form>
   </div>
+
+  <script>
+    // Show/hide new company name field based on dropdown selection
+    const companySelect = document.getElementById('{{ form.company_select.id_for_label }}');
+    const newCompanyNameGroup = document.getElementById('new-company-name-group');
+    const newCompanyNameInput = document.getElementById('{{ form.new_company_name.id_for_label }}');
+
+    function toggleNewCompanyField() {
+      if (companySelect.value === '__new__') {
+        newCompanyNameGroup.style.display = 'block';
+        newCompanyNameInput.required = true;
+      } else {
+        newCompanyNameGroup.style.display = 'none';
+        newCompanyNameInput.required = false;
+        newCompanyNameInput.value = '';  // Clear the field when hidden
+      }
+    }
+
+    // Initialize on page load
+    toggleNewCompanyField();
+
+    // Update when dropdown changes
+    companySelect.addEventListener('change', toggleNewCompanyField);
+
+    // Bulk delete functionality
+    const selectAllCheckbox = document.getElementById('select-all');
+    const entryCheckboxes = document.querySelectorAll('.entry-select');
+    const bulkDeleteBtn = document.getElementById('bulk-delete-btn');
+    const selectedCountSpan = document.getElementById('selected-count');
+
+    function updateBulkDeleteButton() {
+      const checkedCount = document.querySelectorAll('.entry-select:checked').length;
+      selectedCountSpan.textContent = checkedCount;
+      bulkDeleteBtn.disabled = checkedCount === 0;
+    }
+
+    // Select all functionality
+    if (selectAllCheckbox) {
+      selectAllCheckbox.addEventListener('change', function() {
+        entryCheckboxes.forEach(checkbox => {
+          checkbox.checked = this.checked;
+        });
+        updateBulkDeleteButton();
+      });
+    }
+
+    // Individual checkbox changes
+    entryCheckboxes.forEach(checkbox => {
+      checkbox.addEventListener('change', function() {
+        // Update select all checkbox state
+        const allChecked = Array.from(entryCheckboxes).every(cb => cb.checked);
+        const someChecked = Array.from(entryCheckboxes).some(cb => cb.checked);
+        if (selectAllCheckbox) {
+          selectAllCheckbox.checked = allChecked;
+          selectAllCheckbox.indeterminate = someChecked && !allChecked;
+        }
+        updateBulkDeleteButton();
+      });
+    });
+
+    // Initialize button state
+    updateBulkDeleteButton();
+  </script>
 
   {% if recent_entries %}
   <div class="recent-entries">
     <h3>Recent Manual Entries ({{ recent_entries|length }})</h3>
-    {% for entry in recent_entries %}
-    <div class="entry-item {{ entry.ml_label }}">
-      <div class="entry-header">
-        <div>
-          <span class="entry-type-badge {{ entry.ml_label }}">{{ entry.ml_label }}</span>
-          <span class="entry-title">{{ entry.job_title }}</span>
+    
+    <form id="bulk-delete-form" method="post" action="{% url 'bulk_delete_manual_entries' %}">
+      {% csrf_token %}
+      
+      <div class="bulk-actions">
+        <div class="select-all-container">
+          <input type="checkbox" id="select-all" class="entry-checkbox">
+          <label for="select-all" style="cursor: pointer; margin: 0;">Select All</label>
         </div>
-        <span class="entry-date">{{ entry.sent_date|date:"M d, Y" }}</span>
+        <button type="submit" id="bulk-delete-btn" class="bulk-delete-btn" disabled onclick="return confirm('Are you sure you want to delete the selected entries?')">🗑️ Delete Selected (<span id="selected-count">0</span>)</button>
       </div>
-      <div class="entry-company">{{ entry.company.name }}</div>
+      
+      {% for entry in recent_entries %}
+      <div class="entry-item {{ entry.ml_label }}">
+        <div class="entry-header">
+          <div style="display: flex; align-items: center;">
+            <input type="checkbox" name="thread_ids" value="{{ entry.thread_id }}" class="entry-checkbox entry-select">
+            <span class="entry-type-badge {{ entry.ml_label }}">{{ entry.ml_label }}</span>
+            <span class="entry-title">{{ entry.job_title }}</span>
+          </div>
+          <span class="entry-date">{{ entry.sent_date|date:"M d, Y" }}</span>
+        </div>
+        <div class="entry-company">
+          <a href="{% url 'label_companies' %}?company={{ entry.company.id }}" style="text-decoration: none; color: #2563eb;">
+            {{ entry.company.name }}
+          </a>
+        </div>
+        <div class="entry-actions">
+          <a href="{% url 'edit_manual_entry' entry.thread_id %}" class="entry-btn edit-btn">✏️ Edit</a>
+          <form method="post" action="{% url 'delete_manual_entry' entry.thread_id %}" style="display: inline;">
+            {% csrf_token %}
+            <button type="submit" class="entry-btn delete-btn" onclick="return confirm('Are you sure you want to delete this entry?')">🗑️ Delete</button>
+          </form>
+        </div>
     </div>
     {% endfor %}
+    </form>
   </div>
   {% endif %}
 </div>

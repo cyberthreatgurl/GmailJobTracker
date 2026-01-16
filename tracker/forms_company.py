@@ -24,6 +24,10 @@ class CompanyEditForm(forms.ModelForm):
         ]
         widgets = {
             "status": forms.Select(choices=Company._meta.get_field("status").choices),
+            "notes": forms.Textarea(attrs={
+                'rows': 6,
+                'style': 'width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem; resize: vertical; font-family: inherit; box-sizing: border-box;'
+            }),
         }
 
 
@@ -39,6 +43,16 @@ class ApplicationDetailsForm(forms.ModelForm):
             'placeholder': 'e.g., Senior Software Engineer, Product Manager'
         }),
         help_text="Title of the position you applied for"
+    )
+    
+    sent_date = forms.DateField(
+        required=False,
+        label="Application Date",
+        widget=forms.DateInput(attrs={
+            'type': 'date',
+            'class': 'form-control'
+        }),
+        help_text="Date you submitted the application"
     )
     
     prescreen_date = forms.DateField(
@@ -85,7 +99,7 @@ class ApplicationDetailsForm(forms.ModelForm):
     
     class Meta:
         model = ThreadTracking
-        fields = ['job_title', 'prescreen_date', 'interview_date', 'application_url', 'application_text']
+        fields = ['job_title', 'sent_date', 'prescreen_date', 'interview_date', 'application_url', 'application_text']
     
     def clean_application_url(self):
         """Validate URL format and security"""

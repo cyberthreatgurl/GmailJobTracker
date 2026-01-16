@@ -96,8 +96,28 @@ class ThreadTrackingAdmin(admin.ModelAdmin):
 
 
 class CompanyAdmin(admin.ModelAdmin):
-    list_display = ("name", "domain")
-    search_fields = ("name", "domain")
+    list_display = ("name", "domain", "status", "first_contact", "last_contact")
+    search_fields = ("name", "domain", "alias")
+    list_filter = ("status",)
+    actions = ["merge_selected_companies"]
+
+    def merge_selected_companies(self, request, queryset):
+        """Admin action to merge selected companies."""
+        from django.shortcuts import redirect
+        selected = queryset.values_list("id", flat=True)
+        if len(selected) < 2:
+            self.message_user(
+                request,
+                "⚠️ Please select at least 2 companies to merge.",
+                level="warning"
+            )
+            return
+        
+        # Redirect to merge view with selected company IDs
+        company_ids = "&".join([f"company_ids={cid}" for cid in selected])
+        return redirect(f"/merge-companies/?{company_ids}")
+    
+    merge_selected_companies.short_description = "🔗 Merge selected companies"
 
 
 class EMLUploadForm(forms.Form):

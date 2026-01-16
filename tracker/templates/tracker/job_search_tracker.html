@@ -44,7 +44,11 @@
     <div class="flex items-center justify-between">
         <div class="flex items-center gap-2">
             <span class="text-sm font-semibold text-gray-700">Filter:</span>
-            {% if show_new_only %}
+            {% if focus_area_filter %}
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800 border border-purple-300">
+                    🎯 Focus Area: {{ focus_area_filter }} ({{ total_companies }})
+                </span>
+            {% elif show_new_only %}
                 <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800 border border-yellow-300">
                     🆕 Showing New Companies Added Today ({{ total_companies }})
                 </span>
@@ -55,15 +59,16 @@
             {% endif %}
         </div>
         <div class="flex gap-2">
-            {% if show_new_only %}
+            {% if focus_area_filter or show_new_only %}
                 <a href="{% url 'job_search_tracker' %}" 
                    class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-sm">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                     </svg>
-                    Show All
+                    Clear Filter
                 </a>
-            {% else %}
+            {% endif %}
+            {% if not show_new_only %}
                 <a href="{% url 'job_search_tracker' %}?new_only=true" 
                    class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 shadow-sm">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -115,6 +120,7 @@
                 {% for company in companies_list %}
                 <tr class="hover:bg-gray-50">
                     <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center gap-2">
                         {% if company.career_url %}
                             <a href="{{ company.career_url }}" 
                                target="_blank"
@@ -136,6 +142,14 @@
                                 </svg>
                             </a>
                         {% endif %}
+                        <a href="{% url 'label_companies' %}?company={{ company.id }}"
+                           class="text-gray-500 hover:text-blue-600 transition-colors"
+                           title="Edit {{ company.name }} profile">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                            </svg>
+                        </a>
+                        </div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap" data-sort-value="{% if company.last_job_search_date %}{{ company.last_job_search_date|date:'U' }}{% else %}0{% endif %}">
                         {% if company.last_job_search_date %}

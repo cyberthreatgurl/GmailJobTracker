@@ -282,6 +282,68 @@
       50% { background-color: #fde68a; }
       100% { background-color: transparent; }
     }
+    /* Sticky table header */
+    .message-table {
+      position: relative;
+      max-height: calc(100vh - 280px);
+      overflow-y: auto;
+    }
+    .message-table thead {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .message-table thead th {
+      background: #f9fafb;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    /* Expandable snippet styles */
+    .snippet-cell {
+      max-width: 400px;
+      color: #6b7280;
+      font-size: 0.8rem;
+      position: relative;
+    }
+    .snippet-preview {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      cursor: pointer;
+      padding: 0.25rem;
+      border-radius: 4px;
+      transition: background-color 0.2s;
+    }
+    .snippet-preview:hover {
+      background-color: #e5e7eb;
+    }
+    .snippet-preview::after {
+      content: ' ▼';
+      font-size: 0.6rem;
+      color: #9ca3af;
+    }
+    .snippet-expanded {
+      display: none;
+      max-height: 450px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      padding: 0.75rem;
+      margin-top: 0.5rem;
+      font-size: 0.8rem;
+      line-height: 1.5;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .snippet-expanded.show {
+      display: block;
+    }
+    .snippet-toggle-icon {
+      font-size: 0.6rem;
+      color: #9ca3af;
+      margin-left: 0.25rem;
+    }
   </style>
 {% endblock %}
 
@@ -548,7 +610,10 @@
               </td>
               <td style="font-size: 0.75rem; color: #6b7280;">{{ msg.sender_domain|default:''|cut:'>' }}</td>
               <td style="font-size: 0.75rem; color: #6b7280;">{{ msg.display_date|date:"m/d/Y" }}{% if msg.company_source != 'manual' %} {{ msg.display_date|date:"g:i A" }}{% endif %}</td>
-              <td class="snippet-cell" title="{{ msg.body_snippet }}">{{ msg.body_snippet|truncatechars:100 }}</td>
+              <td class="snippet-cell">
+                <div class="snippet-preview" onclick="toggleSnippet(this)" title="Click to expand">{{ msg.body_snippet|truncatechars:100 }}</div>
+                <div class="snippet-expanded">{{ msg.body_snippet_full|default:msg.body_snippet }}</div>
+              </td>
             </tr>
           {% empty %}
             <tr>
@@ -579,6 +644,25 @@
   </form>
 
   <script>
+    // Toggle snippet expansion
+    function toggleSnippet(previewEl) {
+      const expandedEl = previewEl.nextElementSibling;
+      if (expandedEl && expandedEl.classList.contains('snippet-expanded')) {
+        expandedEl.classList.toggle('show');
+        // Update preview indicator
+        if (expandedEl.classList.contains('show')) {
+          previewEl.style.display = 'none';
+          // Add click to collapse on the expanded view
+          expandedEl.onclick = function() {
+            expandedEl.classList.remove('show');
+            previewEl.style.display = 'block';
+          };
+          expandedEl.style.cursor = 'pointer';
+          expandedEl.title = 'Click to collapse';
+        }
+      }
+    }
+
     // current sort state from server
     const currentSort = "{{ sort|default:'' }}";
     const currentOrder = "{{ order|default:'asc' }}";

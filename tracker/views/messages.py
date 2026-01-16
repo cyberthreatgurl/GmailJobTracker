@@ -825,11 +825,18 @@ def label_messages(request):
             soup = BeautifulSoup(msg.body, "html.parser")
             for tag in soup(["script", "style", "noscript"]):
                 tag.decompose()
-            plain_text = soup.get_text(separator=" ", strip=True)
-            plain_text = " ".join(plain_text.split())
-            msg.body_snippet = plain_text[:200]
+            plain_text = soup.get_text(separator="\n", strip=True)
+            # Normalize whitespace within lines but preserve line breaks
+            lines = [" ".join(line.split()) for line in plain_text.split("\n") if line.strip()]
+            # Short snippet for preview (collapsed view)
+            collapsed_text = " ".join(lines)[:200]
+            msg.body_snippet = collapsed_text
+            # Full snippet for expanded view (up to 30 lines)
+            full_lines = lines[:30]
+            msg.body_snippet_full = "\n".join(full_lines)
         else:
             msg.body_snippet = "[empty body]"
+            msg.body_snippet_full = "[empty body]"
 
         if msg.subject and msg.subject.strip():
             msg.display_subject = msg.subject

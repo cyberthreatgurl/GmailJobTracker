@@ -547,7 +547,7 @@
                 {% endif %}
               </td>
               <td style="font-size: 0.75rem; color: #6b7280;">{{ msg.sender_domain|default:''|cut:'>' }}</td>
-              <td style="font-size: 0.75rem; color: #6b7280;">{{ msg.timestamp|date:"m/d/Y g:i A" }}</td>
+              <td style="font-size: 0.75rem; color: #6b7280;">{{ msg.display_date|date:"m/d/Y" }}{% if msg.company_source != 'manual' %} {{ msg.display_date|date:"g:i A" }}{% endif %}</td>
               <td class="snippet-cell" title="{{ msg.body_snippet }}">{{ msg.body_snippet|truncatechars:100 }}</td>
             </tr>
           {% empty %}

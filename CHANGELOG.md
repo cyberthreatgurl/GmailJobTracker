@@ -5,6 +5,113 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.1] - 2026-01-16
+
+### Added
+- **📋 Manual Entry CRUD Operations** - Complete edit/delete functionality for manual entries
+  - Edit button on each manual entry to update details
+  - Delete button with confirmation for individual entries
+  - Bulk delete with "Select All" checkbox and count indicator
+  - New URL routes: `/manual_entry/<thread_id>/edit/` and `/manual_entry/<thread_id>/delete/`
+  - Company dropdown selector with "- New Company -" option for creating new companies during entry
+
+- **🎯 Focus Area Word Cloud Filter** - Dashboard word cloud now links to Job Search Tracker
+  - Clicking a word filters to companies with that focus area
+  - New `focus_area` URL parameter: `/job_search_tracker/?focus_area=Cybersecurity`
+  - Clear Filter button to remove focus area filter
+  - Filter badge shows active focus area
+
+- **📊 Dashboard Chart Improvements**
+  - Series dropdown menu replaces inline checkboxes (cleaner UI)
+  - "Today" added as default date range option
+  - Two-row layout for chart controls (Row 1: date range, Row 2: X-Axis/Series)
+  - Word cloud links navigate to filtered Job Search Tracker
+
+- **🔍 Enhanced Company Scraping** - Multi-page crawling for better focus area analysis
+  - Now crawls About, Solutions, Technology, and Industries pages
+  - Combines content from multiple internal pages for analysis
+  - Shows which pages were analyzed in focus area results
+  - Improved AI-suggested focus areas with bullet-point formatting
+
+- **🏢 Company Admin Merge Action** - Admin can now select multiple companies to merge
+  - "🔗 Merge selected companies" action in Django admin
+  - Redirects to merge interface with pre-selected companies
+
+- **📝 Notes Section for Companies** - Expandable Notes section in label_companies
+  - Company focus area analysis appears in Notes field after Populate
+  - Persist errors and analysis results for reference
+  - Larger textarea with proper styling
+
+- **📅 Application Date Field** - Added sent_date (Application Date) to Application Details
+  - Editable date field in Application Details section
+  - Auto-populated from ThreadTracking.sent_date
+  - Syncs when switching between multiple applications
+
+- **✏️ Edit Icon in Job Search Tracker** - Quick link to edit company profile
+  - Pencil icon next to company name in Job Search Tracker table
+  - Links directly to `/label_companies/?company=ID`
+
+### Changed
+- **🔄 Auto-Calculate Company Status** - Status now auto-updates based on latest message
+  - Removed manual "Mark as Ghosted" button (now automatic)
+  - Status reflects: rejected, interview, application, ghosted (based on GHOSTED_DAYS_THRESHOLD)
+  - Companies with status="new" are protected from auto-update
+  - New management command: `update_company_statuses` 
+
+- **📧 .eml Import ThreadTracking** - EML uploads now create proper ThreadTracking records
+  - Automatically creates ThreadTracking for job_application and interview_invite labels
+  - Propagates label changes to existing ThreadTracking records
+  - Application Details section now shows correctly after EML upload
+
+- **🎯 Dashboard Company Filter Removed** - Simplified dashboard layout
+  - Company dropdown changed to "Go to Company" navigation
+  - Selecting a company navigates to label_companies page
+  - Chart data no longer filtered by single company
+
+- **⏰ Dashboard Timezone Fix** - All JavaScript date handling uses local timezone
+  - Fixed UTC vs local time discrepancy in chart display
+  - Date inputs, week/month grouping, and quick range all use local time
+  - Dates now display correctly in America/New_York timezone
+
+- **❌ Populate Error Handling** - Errors now appear in Notes field
+  - Failed scrape attempts log error to company Notes
+  - AJAX response includes `notes` field for error context
+  - Status messages show above form fields
+
+### Fixed
+- **🏢 Dragos Company Mapping** - Fixed companies.json domain mapping
+  - Changed `"dragos.com": "Your Partner in OT Cybersecurity"` → `"dragos.com": "Dragos"`
+  - Application Details now correctly associate with Dragos company
+  - ThreadTracking records properly linked
+
+- **📊 Application Details Empty** - Fixed Application Details section not showing
+  - Added sync_message_threadtracking_labels management command
+  - Fixes ThreadTracking.ml_label mismatches with Message.ml_label
+  - fix_missing_threadtracking script creates missing records
+
+- **🔢 Manual Entry ml_label Mapping** - Fixed manual entry labels
+  - "application" → "job_application" (matches system labels)
+  - "interview" → "interview_invite" (matches system labels)
+  - Manual entries now appear correctly in dashboard stats
+
+### Technical Details
+- Modified tracker/forms.py: Company dropdown with new company creation option
+- Modified tracker/forms_company.py: Added sent_date to ApplicationDetailsForm, improved notes widget
+- Modified tracker/views/applications.py: Added edit_manual_entry, delete_manual_entry, bulk_delete_manual_entries
+- Modified tracker/views/companies.py: AJAX populate/save, auto-status calculation, scraper helper function
+- Modified tracker/views/dashboard.py: Removed company filter, simplified chart data queries
+- Modified tracker/templates/tracker/dashboard.html: Two-row chart controls, Series dropdown, local timezone JS
+- Modified tracker/templates/tracker/label_companies.html: Notes section, AJAX functions, application date field
+- Modified tracker/templates/tracker/manual_entry.html: Edit/delete buttons, bulk delete, company dropdown
+- Modified tracker/templates/tracker/job_search_tracker.html: Focus area filter, edit icon
+- Modified tracker/admin.py: Merge action for companies
+- Modified tracker/urls.py: New manual entry edit/delete routes
+- Modified parser.py: EML import creates ThreadTracking records
+- Modified tracker/services/company_scraper.py: Multi-page crawling, improved focus analysis
+- Added tracker/management/commands/sync_message_threadtracking_labels.py
+- Added tracker/management/commands/update_company_statuses.py
+- Added scripts/check_label_mismatches.py, fix_missing_threadtracking.py, debug_mismatches.py
+
 ## [1.2.0] - 2026-01-15
 
 ### Added

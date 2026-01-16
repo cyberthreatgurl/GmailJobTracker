@@ -44,7 +44,8 @@ def manual_entry(request):
         form = ManualEntryForm(request.POST)
         if form.is_valid():
             # Extract cleaned data
-            company_name = form.cleaned_data["company_name"]
+            company_select = form.cleaned_data["company_select"]
+            new_company_name = form.cleaned_data.get("new_company_name", "").strip()
             entry_type = form.cleaned_data["entry_type"]
             job_title = form.cleaned_data.get("job_title") or "Manual Entry"
             job_id = form.cleaned_data.get("job_id") or ""
@@ -54,31 +55,31 @@ def manual_entry(request):
             source = form.cleaned_data.get("source") or "manual"
 
             # Get or create company
-            # First try case-insensitive lookup
-            existing_company = Company.objects.filter(name__iexact=company_name).first()
-
-            if existing_company:
-                company = existing_company
-                # Update last contact and status
-                company.last_contact = now()
-                if entry_type == "rejection":
-                    company.status = "rejected"
-                elif entry_type == "interview" and company.status != "rejected":
-                    company.status = "interview"
-                company.save()
-            else:
-                # Create new company
+            if company_select == "__new__":
+                # Create new company (already validated in form.clean())
                 company = Company.objects.create(
-                    name=company_name,
+                    name=new_company_name,
                     first_contact=now(),
                     last_contact=now(),
-                    status=entry_type,
+                    status="new",  # New companies start with "new" status
                 )
+            else:
+                # Get existing company by ID
+                company = Company.objects.get(id=int(company_select))
+                # Update last contact
+                company.last_contact = now()
+                # Don't auto-update status if it's "new" (preserve manual "new" status)
+                if company.status != "new":
+                    if entry_type == "rejection":
+                        company.status = "rejected"
+                    elif entry_type == "interview" and company.status != "rejected":
+                        company.status = "interview"
+                company.save()
 
             # Generate unique thread_id for manual entry
             import hashlib
 
-            thread_id_base = f"manual_{company_name}_{job_title}_{application_date}_{now().timestamp()}"
+            thread_id_base = f"manual_{company.name}_{job_title}_{application_date}_{now().timestamp()}"
             thread_id = hashlib.md5(thread_id_base.encode()).hexdigest()[:16]
 
             # Create Application record
@@ -91,6 +92,14 @@ def manual_entry(request):
             rejection_date = application_date if entry_type == "rejection" else None
             interview_dt = interview_date if entry_type == "interview" else None
 
+            # Map entry_type to ml_label (must match system labels)
+            ml_label_map = {
+                "application": "job_application",  # System uses "job_application"
+                "interview": "interview_invite",   # System uses "interview_invite"
+                "rejection": "rejection",          # Already correct
+            }
+            ml_label = ml_label_map[entry_type]
+
             # Create application record (not used after creation, logged implicitly)
             ThreadTracking.objects.create(
                 thread_id=thread_id,
@@ -102,14 +111,14 @@ def manual_entry(request):
                 sent_date=application_date,
                 rejection_date=rejection_date,
                 interview_date=interview_dt,
-                ml_label=entry_type,
+                ml_label=ml_label,
                 ml_confidence=1.0,  # Manual entries are 100% confident
                 reviewed=True,
             )
 
             # Create Message record for tracking
             msg_id = f"manual_{thread_id}"
-            subject = f"{entry_type.title()}: {job_title} at {company_name}"
+            subject = f"{entry_type.title()}: {job_title} at {company.name}"
             body = f"Source: {source}\n\n{notes}" if notes else f"Source: {source}"
 
             Message.objects.create(
@@ -122,14 +131,14 @@ def manual_entry(request):
                 timestamp=now(),
                 msg_id=msg_id,
                 thread_id=thread_id,
-                ml_label=entry_type,
+                ml_label=ml_label,  # Use mapped ml_label
                 confidence=1.0,
                 reviewed=True,
             )
 
             messages.success(
                 request,
-                f"✅ Successfully added {entry_type} for {company_name} - {job_title}",
+                f"✅ Successfully added {entry_type} for {company.name} - {job_title}",
             )
             return redirect("manual_entry")
     else:
@@ -150,4 +159,177 @@ def manual_entry(request):
     return render(request, "tracker/manual_entry.html", ctx)
 
 
-__all__ = ["edit_application", "flagged_applications", "manual_entry"]
+@login_required
+def edit_manual_entry(request, thread_id):
+    """Edit a manual entry."""
+    entry = get_object_or_404(ThreadTracking, thread_id=thread_id, company_source="manual")
+    
+    if request.method == "POST":
+        form = ManualEntryForm(request.POST)
+        if form.is_valid():
+            # Extract cleaned data
+            company_select = form.cleaned_data["company_select"]
+            new_company_name = form.cleaned_data.get("new_company_name", "").strip()
+            entry_type = form.cleaned_data["entry_type"]
+            job_title = form.cleaned_data.get("job_title") or "Manual Entry"
+            job_id = form.cleaned_data.get("job_id") or ""
+            application_date = form.cleaned_data["application_date"]
+            interview_date = form.cleaned_data.get("interview_date")
+            notes = form.cleaned_data.get("notes") or ""
+            source = form.cleaned_data.get("source") or "manual"
+
+            # Get or create company
+            if company_select == "__new__":
+                company = Company.objects.create(
+                    name=new_company_name,
+                    first_contact=now(),
+                    last_contact=now(),
+                    status="new",
+                )
+            else:
+                company = Company.objects.get(id=int(company_select))
+                company.last_contact = now()
+                if company.status != "new":
+                    if entry_type == "rejection":
+                        company.status = "rejected"
+                    elif entry_type == "interview" and company.status != "rejected":
+                        company.status = "interview"
+                company.save()
+
+            # Map entry_type to ml_label and status
+            ml_label_map = {
+                "application": "job_application",
+                "interview": "interview_invite",
+                "rejection": "rejection",
+            }
+            status_map = {
+                "application": "application",
+                "interview": "interview",
+                "rejection": "rejected",
+            }
+
+            rejection_date = application_date if entry_type == "rejection" else None
+            interview_dt = interview_date if entry_type == "interview" else None
+
+            # Update ThreadTracking
+            entry.company = company
+            entry.job_title = job_title
+            entry.job_id = job_id
+            entry.status = status_map[entry_type]
+            entry.sent_date = application_date
+            entry.rejection_date = rejection_date
+            entry.interview_date = interview_dt
+            entry.ml_label = ml_label_map[entry_type]
+            entry.save()
+
+            # Update associated Message
+            msg = Message.objects.filter(thread_id=thread_id).first()
+            if msg:
+                msg.company = company
+                msg.subject = f"{entry_type.title()}: {job_title} at {company.name}"
+                msg.body = f"Source: {source}\n\n{notes}" if notes else f"Source: {source}"
+                msg.body_html = f"<p>{msg.body.replace(chr(10), '<br>')}</p>"
+                msg.ml_label = ml_label_map[entry_type]
+                msg.save()
+
+            messages.success(request, f"✅ Updated manual entry for {company.name}")
+            return redirect("manual_entry")
+    else:
+        # Pre-populate form with existing data
+        # Extract notes from Message body
+        msg = Message.objects.filter(thread_id=thread_id).first()
+        notes_text = ""
+        source_text = "manual"
+        if msg and msg.body:
+            parts = msg.body.split("\n\n", 1)
+            if parts[0].startswith("Source: "):
+                source_text = parts[0].replace("Source: ", "").strip()
+                notes_text = parts[1] if len(parts) > 1 else ""
+        
+        # Map ml_label back to entry_type
+        entry_type_map = {
+            "job_application": "application",
+            "interview_invite": "interview",
+            "rejection": "rejection",
+        }
+        
+        initial_data = {
+            "company_select": str(entry.company.id),
+            "entry_type": entry_type_map.get(entry.ml_label, "application"),
+            "job_title": entry.job_title,
+            "job_id": entry.job_id,
+            "application_date": entry.sent_date,
+            "interview_date": entry.interview_date,
+            "notes": notes_text,
+            "source": source_text,
+        }
+        form = ManualEntryForm(initial=initial_data)
+
+    ctx = {
+        "form": form,
+        "entry": entry,
+        "is_edit": True,
+    }
+    ctx.update(build_sidebar_context())
+    return render(request, "tracker/manual_entry.html", ctx)
+
+
+@login_required
+def delete_manual_entry(request, thread_id):
+    """Delete a manual entry."""
+    entry = get_object_or_404(ThreadTracking, thread_id=thread_id, company_source="manual")
+    
+    if request.method == "POST":
+        company_name = entry.company.name
+        job_title = entry.job_title
+        
+        # Delete associated Message
+        Message.objects.filter(thread_id=thread_id).delete()
+        
+        # Delete ThreadTracking
+        entry.delete()
+        
+        messages.success(request, f"🗑️ Deleted manual entry: {job_title} at {company_name}")
+        return redirect("manual_entry")
+    
+    return redirect("manual_entry")
+
+
+@login_required
+def bulk_delete_manual_entries(request):
+    """Delete multiple manual entries at once."""
+    if request.method == "POST":
+        thread_ids = request.POST.getlist("thread_ids")
+        
+        if not thread_ids:
+            messages.warning(request, "No entries selected for deletion.")
+            return redirect("manual_entry")
+        
+        # Get entries to delete
+        entries = ThreadTracking.objects.filter(
+            thread_id__in=thread_ids, 
+            company_source="manual"
+        )
+        
+        deleted_count = entries.count()
+        
+        if deleted_count == 0:
+            messages.warning(request, "No valid entries found to delete.")
+            return redirect("manual_entry")
+        
+        # Delete associated Messages
+        Message.objects.filter(thread_id__in=thread_ids).delete()
+        
+        # Delete ThreadTracking entries
+        entries.delete()
+        
+        messages.success(
+            request, 
+            f"🗑️ Successfully deleted {deleted_count} manual {'entry' if deleted_count == 1 else 'entries'}"
+        )
+        return redirect("manual_entry")
+    
+    return redirect("manual_entry")
+
+
+__all__ = ["edit_application", "flagged_applications", "manual_entry", "edit_manual_entry", "delete_manual_entry", "bulk_delete_manual_entries"]

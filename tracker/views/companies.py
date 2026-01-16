@@ -37,6 +37,42 @@ python_path = sys.executable
 logger = logging.getLogger(__name__)
 
 
+def _scrape_and_analyze_company(homepage_url, timeout=10):
+    """
+    Shared helper function to scrape company info and perform sentiment analysis.
+    
+    Args:
+        homepage_url: The URL to scrape
+        timeout: Request timeout in seconds
+        
+    Returns:
+        dict: Scraped data with keys: name, domain, career_url, page_content, focus_analysis
+        
+    Raises:
+        CompanyScraperError: If scraping fails
+    """
+    from tracker.services.company_scraper import scrape_company_info, analyze_company_focus
+    
+    # Scrape company information
+    scraped_data = scrape_company_info(homepage_url, timeout=timeout)
+    
+    # Extract page content and perform sentiment analysis
+    page_content = scraped_data.get("page_content", "")
+    pages_scraped = scraped_data.get("pages_scraped", ["homepage"])
+    
+    focus_analysis = analyze_company_focus(page_content) if page_content else ""
+    
+    # Add scraping metadata to focus analysis
+    if focus_analysis and pages_scraped:
+        page_list = ", ".join(pages_scraped)
+        focus_analysis = f"📄 Analyzed pages: {page_list}\n\n{focus_analysis}"
+    
+    # Add focus analysis to scraped data
+    scraped_data["focus_analysis"] = focus_analysis
+    
+    return scraped_data
+
+
 @login_required
 def delete_company(request, company_id):
     """Delete a company and all related messages/applications, then retrain model."""
@@ -121,7 +157,7 @@ def label_companies(request):
     
     # Quick Add Company action - redirect to new company form instead of creating immediately
     if request.method == "POST" and request.POST.get("action") == "quick_add_company":
-        from tracker.services.company_scraper import scrape_company_info, CompanyScraperError
+        from tracker.services.company_scraper import scrape_company_info, CompanyScraperError, analyze_company_focus
         from urllib.parse import urlparse
         
         homepage_url = request.POST.get("homepage_url", "").strip()
@@ -145,10 +181,11 @@ def label_companies(request):
         
         # Scrape company info
         try:
-            scraped_data = scrape_company_info(homepage_url, timeout=10)
+            scraped_data = _scrape_and_analyze_company(homepage_url, timeout=10)
             company_name = scraped_data.get("name", "")
             domain = scraped_data.get("domain", "")
             career_url = scraped_data.get("career_url", "")
+            focus_analysis = scraped_data.get("focus_analysis", "")
             
             # Check if company already exists in database by name or domain
             existing = None
@@ -223,18 +260,18 @@ def label_companies(request):
                 params.append(f"domain={quote(domain)}")
             if career_url:
                 params.append(f"career_url={quote(career_url)}")
+            if focus_analysis:
+                params.append(f"notes={quote(focus_analysis)}")
             
             redirect_url = f"/label_companies/?{'&'.join(params)}"
             messages.success(request, f"✅ Scraped company info from {domain}. Review and save below.")
             return redirect(redirect_url)
             
-        except CompanyScraperError as e:
+        except Exception as e:
+            logger.exception(f"Failed to scrape company info from {homepage_url}")
             messages.error(request, f"❌ Failed to scrape company info: {e}")
             # Still allow manual entry by redirecting to form with just the URL
             return redirect(f"/label_companies/?homepage={quote(homepage_url)}")
-        except Exception as e:
-            messages.error(request, f"❌ Error scraping company info: {e}")
-            return redirect("label_companies")
 
     # Exclude headhunter companies from the dropdown
     companies = Company.objects.exclude(status="headhunter").order_by(Lower("name"))
@@ -250,6 +287,7 @@ def label_companies(request):
     prefill_homepage = request.GET.get("homepage", "").strip()
     prefill_domain = request.GET.get("domain", "").strip()
     prefill_career_url = request.GET.get("career_url", "").strip()
+    prefill_notes = request.GET.get("notes", "").strip()
     # Only treat as new company creation if we have prefill params from URL AND no selected_id
     # This prevents populate_from_homepage button on existing companies from triggering new company mode
     creating_new_company = bool(
@@ -327,20 +365,44 @@ def label_companies(request):
                 .first()
             )
             latest_label = latest_msg.ml_label if latest_msg else None
-            # If the latest message is a rejection, ensure company status reflects that
+            
+            # Auto-calculate company status based on latest message and ghosted threshold
+            # Skip if status is "new" - preserve manual "new" status
             try:
-                if (
-                    latest_label == "rejection"
-                    and selected_company.status != "rejected"
-                ):
-                    selected_company.status = "rejected"
-                    selected_company.save()
-                    messages.info(
-                        request,
-                        f"ℹ️ Company status set to 'rejected' based on latest message label.",
-                    )
-            except Exception:
-                pass
+                new_status = None
+                
+                # Don't auto-update if status is "new"
+                if selected_company.status != "new":
+                    if latest_label == "rejection":
+                        new_status = "rejected"
+                    elif latest_label == "head_hunter":
+                        new_status = "headhunter"
+                    elif latest_label == "interview_invite":
+                        new_status = "interview"
+                    elif latest_label == "job_application":
+                        # Check if it's past ghosted threshold
+                        if latest_msg and latest_msg.timestamp:
+                            days_since = (now() - latest_msg.timestamp).days
+                            if days_since >= ghosted_days_threshold:
+                                new_status = "ghosted"
+                            else:
+                                new_status = "application"
+                        else:
+                            new_status = "application"
+                    elif latest_label in ["other", "referral", "noise"]:
+                        # Don't change status for these labels
+                        pass
+                
+                    # Update status if it changed
+                    if new_status and selected_company.status != new_status:
+                        selected_company.status = new_status
+                        selected_company.save(update_fields=["status"])
+                        messages.info(
+                            request,
+                            f"ℹ️ Company status auto-updated to '{new_status}' based on latest message.",
+                        )
+            except Exception as e:
+                logger.exception(f"Failed to auto-update company status: {e}")
 
             # Get message count and (date, subject, label) list (exclude noise messages)
             messages_qs = (
@@ -585,19 +647,19 @@ def label_companies(request):
                 # Populate company info from homepage
                 if request.POST.get("action") == "populate_from_homepage":
                     homepage_url = request.POST.get("homepage", "").strip()
+                    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+                    
                     if not homepage_url:
+                        if is_ajax:
+                            return JsonResponse({'success': False, 'message': 'Please enter a homepage URL first.'})
                         messages.error(request, "❌ Please enter a homepage URL first.")
                     else:
                         try:
-                            from tracker.services.company_scraper import scrape_company_info, CompanyScraperError, analyze_company_focus
-                            
-                            scraped_data = scrape_company_info(homepage_url)
-                            
-                            # Analyze focus area from page content
-                            page_content = scraped_data.get("page_content", "")
-                            focus_analysis = analyze_company_focus(page_content) if page_content else ""
+                            scraped_data = _scrape_and_analyze_company(homepage_url)
                             
                             # Append focus analysis to notes if available
+                            focus_analysis = scraped_data.get("focus_analysis", "")
+                            notes_to_return = focus_analysis
                             if focus_analysis:
                                 current_notes = selected_company.notes or ""
                                 if current_notes:
@@ -605,6 +667,21 @@ def label_companies(request):
                                 else:
                                     selected_company.notes = focus_analysis
                                 selected_company.save(update_fields=["notes"])
+                            
+                            # Return JSON for AJAX requests
+                            if is_ajax:
+                                success_msg = "Successfully scraped company info from homepage."
+                                if not scraped_data.get("career_url"):
+                                    success_msg = "Company name extracted. Career page not found automatically."
+                                
+                                return JsonResponse({
+                                    'success': True,
+                                    'message': success_msg,
+                                    'name': scraped_data.get("name", ""),
+                                    'domain': scraped_data.get("domain", ""),
+                                    'career_url': scraped_data.get("career_url", ""),
+                                    'notes': notes_to_return
+                                })
                             
                             # Create a form with the scraped data, preserving user-entered fields
                             form_data = {
@@ -632,11 +709,24 @@ def label_companies(request):
                                     request,
                                     f"✅ Company name extracted. Career page not found automatically - please enter it manually if known.",
                                 )
-                        except CompanyScraperError as e:
-                            messages.error(request, f"❌ Failed to scrape homepage: {e}")
-                            form = CompanyEditForm(instance=selected_company, initial={"career_url": career_url})
                         except Exception as e:
-                            messages.error(request, f"❌ Unexpected error: {e}")
+                            logger.exception(f"Failed to scrape homepage for existing company: {homepage_url}")
+                            
+                            # Write error to notes field
+                            error_msg = f"❌ Populate Error ({homepage_url}):\n{str(e)}"
+                            current_notes = selected_company.notes or ""
+                            if current_notes:
+                                updated_notes = f"{current_notes}\n\n{error_msg}"
+                            else:
+                                updated_notes = error_msg
+                            selected_company.notes = updated_notes
+                            selected_company.save(update_fields=["notes"])
+                            
+                            # Return JSON for AJAX requests
+                            if is_ajax:
+                                return JsonResponse({'success': False, 'message': str(e), 'notes': error_msg})
+                            
+                            messages.error(request, f"❌ Failed to scrape homepage: {e}")
                             form = CompanyEditForm(instance=selected_company, initial={"career_url": career_url})
                     # Don't redirect - stay on page with populated form
                     
@@ -713,25 +803,8 @@ def label_companies(request):
                         messages.error(request, f"❌ Failed to mark as searched: {e}")
                     return redirect(f"/label_companies/?company={selected_company.id}")
                 
-                if request.POST.get("action") == "mark_ghosted":
-                    # Do not allow ghosted if last message was a rejection
-                    if latest_label == "rejection":
-                        messages.error(
-                            request,
-                            "❌ Cannot mark as ghosted: the latest message is a rejection.",
-                        )
-                    else:
-                        try:
-                            selected_company.status = "ghosted"
-                            selected_company.save()
-                            messages.success(
-                                request,
-                                f"✅ Marked {selected_company.name} as ghosted.",
-                            )
-                        except Exception as e:
-                            messages.error(request, f"Failed to mark ghosted: {e}")
-                    # Redirect to avoid form resubmission and preserve selection
-                    return redirect(f"/label_companies/?company={selected_company.id}")
+                # NOTE: Removed manual "mark_ghosted" action - status is now auto-calculated
+                # based on latest message label and GHOSTED_DAYS_THRESHOLD
                 
                 # Handle regular form submission (Save Changes)
                 elif not request.POST.get("action"):  # No action means it's the main form
@@ -890,8 +963,20 @@ def label_companies(request):
                                     request, f"⚠️ Failed to save to companies.json: {e}"
                                 )
                         form.save()
+                        
+                        # Return JSON for AJAX requests
+                        is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+                        if is_ajax:
+                            return JsonResponse({'success': True, 'message': 'Company details saved successfully.'})
+                        
                         messages.success(request, "✅ Company details saved.")
                         return redirect(f"/label_companies/?company={selected_company.id}")
+                    else:
+                        # Form validation failed
+                        is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+                        if is_ajax:
+                            errors = '; '.join([f"{field}: {', '.join(errs)}" for field, errs in form.errors.items()])
+                            return JsonResponse({'success': False, 'message': f'Validation errors: {errors}'})
                     # If invalid, fall through to render the bound form with errors
             else:
                 # GET request: initialize form with current data, career URL and alias from companies.json
@@ -913,13 +998,7 @@ def label_companies(request):
                     form = CompanyEditForm(initial={"name": new_company_name})
                 else:
                     try:
-                        from tracker.services.company_scraper import scrape_company_info, CompanyScraperError, analyze_company_focus
-                        
-                        scraped_data = scrape_company_info(homepage_url)
-                        
-                        # Analyze focus area from page content
-                        page_content = scraped_data.get("page_content", "")
-                        focus_analysis = analyze_company_focus(page_content) if page_content else ""
+                        scraped_data = _scrape_and_analyze_company(homepage_url)
                         
                         # Create a form with the scraped data
                         form_data = {
@@ -932,7 +1011,7 @@ def label_companies(request):
                             "contact_email": "",
                             "status": "new",
                             "focus_area": request.POST.get("focus_area", ""),
-                            "notes": focus_analysis if focus_analysis else "",
+                            "notes": scraped_data.get("focus_analysis", ""),
                         }
                         form = CompanyEditForm(form_data)
                         
@@ -947,12 +1026,14 @@ def label_companies(request):
                                 request,
                                 f"✅ Company name extracted. Career page not found automatically - please enter it manually if known, then click Create Company.",
                             )
-                    except CompanyScraperError as e:
-                        messages.error(request, f"❌ Failed to scrape homepage: {e}")
-                        form = CompanyEditForm(initial={"name": new_company_name, "homepage": homepage_url})
                     except Exception as e:
-                        messages.error(request, f"❌ Unexpected error: {e}")
-                        form = CompanyEditForm(initial={"name": new_company_name, "homepage": homepage_url})
+                        logger.exception(f"Failed to scrape homepage: {homepage_url}")
+                        
+                        # Write error to notes field in form
+                        error_msg = f"❌ Populate Error ({homepage_url}):\n{str(e)}"
+                        
+                        messages.error(request, f"❌ Failed to scrape homepage: {e}")
+                        form = CompanyEditForm(initial={"name": new_company_name, "homepage": homepage_url, "notes": error_msg})
             # Handle create action
             elif request.POST.get("action") == "create_new_company":
                 # User submitted the new company form
@@ -1059,26 +1140,9 @@ def label_companies(request):
                 initial_data["domain"] = prefill_domain
             if prefill_career_url:
                 initial_data["career_url"] = prefill_career_url
+            if prefill_notes:
+                initial_data["notes"] = prefill_notes
             form = CompanyEditForm(initial=initial_data)
-
-    # Generate focus area word cloud data
-    focus_area_phrases = {}
-    companies_with_focus = Company.objects.filter(focus_area__isnull=False).exclude(focus_area="")
-    for company in companies_with_focus:
-        focus_phrase = company.focus_area.strip()
-        if focus_phrase:
-            phrase_lower = focus_phrase.lower()
-            if phrase_lower not in focus_area_phrases:
-                focus_area_phrases[phrase_lower] = {"display": focus_phrase, "count": 0}
-            focus_area_phrases[phrase_lower]["count"] += 1
-    
-    # Sort by frequency and get top 50 phrases
-    sorted_phrases = sorted(
-        [(data["display"], data["count"]) for data in focus_area_phrases.values()],
-        key=lambda x: x[1],
-        reverse=True
-    )[:50]
-    focus_area_wordcloud_data = json.dumps(sorted_phrases)
 
     ctx = build_sidebar_context()
     
@@ -1104,7 +1168,6 @@ def label_companies(request):
             "message_info_list": message_info_list,
             "creating_new_company": creating_new_company,
             "new_company_name": new_company_name,
-            "focus_area_wordcloud_data": focus_area_wordcloud_data,
             "application_threads": application_threads,
         }
     )
@@ -2011,8 +2074,9 @@ def job_search_tracker(request):
             except Company.DoesNotExist:
                 messages.error(request, "❌ Company not found")
     
-    # Check for filter parameter
+    # Check for filter parameters
     show_new_only = request.GET.get('new_only', 'false').lower() == 'true'
+    focus_area_filter = request.GET.get('focus_area', '').strip()
     
     # Get all companies ordered by last search date (nulls last)
     companies = Company.objects.annotate(
@@ -2023,6 +2087,10 @@ def job_search_tracker(request):
     today_start = now().replace(hour=0, minute=0, second=0, microsecond=0)
     if show_new_only:
         companies = companies.filter(first_contact__gte=today_start)
+    
+    # Filter by focus area if specified
+    if focus_area_filter:
+        companies = companies.filter(focus_area__icontains=focus_area_filter)
     
     companies = companies.order_by(
         F('last_job_search_date').desc(nulls_last=True),
@@ -2076,6 +2144,7 @@ def job_search_tracker(request):
         "searched_this_week": searched_this_week,
         "searched_this_month": searched_this_month,
         "show_new_only": show_new_only,
+        "focus_area_filter": focus_area_filter,
     }
     
     return render(request, "tracker/job_search_tracker.html", ctx)

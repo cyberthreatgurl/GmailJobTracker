@@ -120,7 +120,7 @@ class ApplicationDetailsForm(forms.ModelForm):
         if text:
             text = text.strip()
             # Limit length to prevent abuse
-            if len(text) > 10000:
-                raise forms.ValidationError("Application text is too long (max 10,000 characters)")
+            if len(text) > 20000:
+                raise forms.ValidationError("Application text is too long (max 20,000 characters)")
         return text
 

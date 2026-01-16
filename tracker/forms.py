@@ -18,6 +18,7 @@ class ManualEntryForm(forms.Form):
     # Entry type
     ENTRY_TYPES = [
         ("application", "Job Application"),
+        ("prescreen", "Prescreen Call"),
         ("interview", "Interview Invitation"),
         ("rejection", "Rejection"),
     ]

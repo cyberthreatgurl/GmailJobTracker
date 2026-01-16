@@ -2070,6 +2070,54 @@ def get_or_create_company_iexact(name: str, defaults: dict = None) -> tuple:
     return company_obj, created
 
 
+def update_company_domain_and_ats(company_obj, sender_domain: str, company_name: str = None) -> bool:
+    """Update company's domain and ATS fields based on sender domain.
+    
+    This is shared logic used by both Gmail API ingestion and EML file imports.
+    
+    Args:
+        company_obj: Company model instance to update
+        sender_domain: Email sender domain (lowercase)
+        company_name: Company name for logging (optional, uses company_obj.name if not provided)
+        
+    Returns:
+        True if company was modified and saved, False otherwise
+    """
+    if not company_obj or not sender_domain:
+        return False
+    
+    company_name = company_name or company_obj.name
+    needs_save = False
+    
+    # Set the primary domain if not already set
+    if not company_obj.domain:
+        # First try to look up the company's domain from companies.json
+        known_domain = _get_domain_for_company(company_name)
+        if known_domain:
+            company_obj.domain = known_domain
+            needs_save = True
+            if DEBUG:
+                print(f"Set domain for {company_name} from companies.json: {known_domain}")
+        elif sender_domain and not _is_ats_domain(sender_domain):
+            # Only set domain from sender if it's not an ATS domain
+            company_obj.domain = sender_domain
+            needs_save = True
+            if DEBUG:
+                print(f"Set domain for {company_name}: {sender_domain}")
+    
+    # Set ATS domain if sender is an ATS and ATS field is empty
+    if not company_obj.ats and sender_domain and _is_ats_domain(sender_domain):
+        company_obj.ats = sender_domain
+        needs_save = True
+        if DEBUG:
+            print(f"Set ATS domain for {company_name}: {sender_domain}")
+    
+    if needs_save:
+        company_obj.save()
+    
+    return needs_save
+
+
 def resolve_company_alias(company_name: str) -> str:
     """Resolve company alias to canonical company name.
     
@@ -4070,36 +4118,10 @@ def ingest_message(service, msg_id):
                     "confidence": confidence,
                 },
             )
-            # Set company domain and/or ATS domain
+            # Set company domain and/or ATS domain (shared helper)
             if company_obj:
                 sender_domain = metadata.get("sender_domain", "").lower()
-                needs_save = False
-                
-                # Set the primary domain if not already set
-                if not company_obj.domain:
-                    # First try to look up the company's domain from companies.json
-                    known_domain = _get_domain_for_company(company)
-                    if known_domain:
-                        company_obj.domain = known_domain
-                        needs_save = True
-                        if DEBUG:
-                            print(f"Set domain for {company} from companies.json: {known_domain}")
-                    elif sender_domain and not _is_ats_domain(sender_domain):
-                        # Only set domain from sender if it's not an ATS domain
-                        company_obj.domain = sender_domain
-                        needs_save = True
-                        if DEBUG:
-                            print(f"Set domain for {company}: {sender_domain}")
-                
-                # Set ATS domain if sender is an ATS and ATS field is empty
-                if not company_obj.ats and sender_domain and _is_ats_domain(sender_domain):
-                    company_obj.ats = sender_domain
-                    needs_save = True
-                    if DEBUG:
-                        print(f"Set ATS domain for {company}: {sender_domain}")
-                
-                if needs_save:
-                    company_obj.save()
+                update_company_domain_and_ats(company_obj, sender_domain, company)
         elif skip_company_assignment and DEBUG:
             print(f"Skipping company assignment for {label_guard} message")
 
@@ -5335,34 +5357,10 @@ def ingest_message_from_eml(eml_content: str, fake_msg_id: str = None):
             },
         )
         
-        # Set company domain and/or ATS domain (same logic as ingest_message)
+        # Set company domain and/or ATS domain (shared helper)
         if company_obj:
             sender_domain = metadata.get("sender_domain", "").lower()
-            needs_save = False
-            
-            # Set the primary domain if not already set
-            if not company_obj.domain:
-                known_domain = _get_domain_for_company(canonical_company)
-                if known_domain:
-                    company_obj.domain = known_domain
-                    needs_save = True
-                    if DEBUG:
-                        print(f"[EML] Set domain for {canonical_company} from companies.json: {known_domain}")
-                elif sender_domain and not _is_ats_domain(sender_domain):
-                    company_obj.domain = sender_domain
-                    needs_save = True
-                    if DEBUG:
-                        print(f"[EML] Set domain for {canonical_company}: {sender_domain}")
-            
-            # Set ATS domain if sender is an ATS and ATS field is empty
-            if not company_obj.ats and sender_domain and _is_ats_domain(sender_domain):
-                company_obj.ats = sender_domain
-                needs_save = True
-                if DEBUG:
-                    print(f"[EML] Set ATS domain for {canonical_company}: {sender_domain}")
-            
-            if needs_save:
-                company_obj.save()
+            update_company_domain_and_ats(company_obj, sender_domain, canonical_company)
 
     # Check for duplicates
     existing = Message.objects.filter(msg_id=fake_msg_id).first()

@@ -336,7 +336,8 @@
     "legionx.net": "Legion X",
     "openai.com": "OpenAI",
     "ventureglobal.com": "Venture Global",
-    "costar.com": "CoStar Realty Information, Inc"
+    "costar.com": "CoStar Realty Information, Inc",
+    "americansystems.com": "American Systems"
   },
   "headhunter_domains": [
     "agreeya.com",
@@ -547,7 +548,9 @@
     "CoStar Realty Information, Inc": "https://www.costargroup.com/careers",
     "Dragos": "https://job-boards.greenhouse.io/dragos",
     "Capital One": "https://www.capitalonecareers.com/",
-    "TechPride": "https://www.linkedin.com/company/techpride/jobs/"
+    "TechPride": "https://www.linkedin.com/company/techpride/jobs/",
+    "AMERICAN SYSTEMS": "http://www.americansystems.com/careers-welcome",
+    "American Systems": "http://www.americansystems.com/careers-welcome"
   },
   "known": [
     "Obsidian",

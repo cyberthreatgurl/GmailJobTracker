@@ -6,6 +6,7 @@ Extracted from monolithic views.py (Phase 5 refactoring).
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import models
+from django.db.models import Q
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils.timezone import now
 from tracker.forms import ApplicationEditForm, ManualEntryForm
@@ -70,13 +71,61 @@ def manual_entry(request):
                 company.last_contact = now()
                 # Don't auto-update status if it's "new" (preserve manual "new" status)
                 if company.status != "new":
-                    if entry_type == "rejection":
+                    if entry_type == "offer":
+                        company.status = "offer"
+                    elif entry_type == "rejection":
                         company.status = "rejected"
-                    elif entry_type == "interview" and company.status != "rejected":
+                    elif entry_type == "interview" and company.status not in ("rejected", "offer"):
                         company.status = "interview"
-                    elif entry_type == "prescreen" and company.status not in ("rejected", "interview"):
+                    elif entry_type == "prescreen" and company.status not in ("rejected", "interview", "offer"):
                         company.status = "prescreen"
                 company.save()
+
+            # For prescreen/interview/rejection/offer on existing company, try to find and update
+            # the existing application record instead of creating a new one
+            if entry_type in ("prescreen", "interview", "rejection", "offer") and company_select != "__new__":
+                # Look for existing application with same job title
+                existing_app = ThreadTracking.objects.filter(
+                    company=company,
+                    job_title=job_title,
+                    ml_label="job_application"
+                ).first()
+                
+                if existing_app:
+                    # Update the existing application record with the new date
+                    if entry_type == "prescreen":
+                        existing_app.prescreen_date = interview_date
+                        existing_app.status = "prescreen"
+                    elif entry_type == "interview":
+                        existing_app.interview_date = interview_date
+                        existing_app.status = "interview"
+                    elif entry_type == "rejection":
+                        existing_app.rejection_date = interview_date
+                        existing_app.status = "rejected"
+                    elif entry_type == "offer":
+                        existing_app.offer_date = interview_date
+                        existing_app.status = "offer"
+                    # Mark as manually updated so it shows in recent manual entries
+                    existing_app.company_source = "manual_update"
+                    existing_app.reviewed = True
+                    existing_app.save()
+                    
+                    # Update company status
+                    if entry_type == "offer":
+                        company.status = "offer"
+                    elif entry_type == "rejection":
+                        company.status = "rejected"
+                    elif entry_type == "interview" and company.status not in ("rejected", "offer"):
+                        company.status = "interview"
+                    elif entry_type == "prescreen" and company.status not in ("rejected", "interview", "offer"):
+                        company.status = "prescreen"
+                    company.save()
+                    
+                    messages.success(
+                        request,
+                        f"✅ Updated {job_title} at {company.name} with {entry_type} date",
+                    )
+                    return redirect("manual_entry")
 
             # Generate unique thread_id for manual entry
             import hashlib
@@ -90,11 +139,14 @@ def manual_entry(request):
                 "prescreen": "prescreen",
                 "interview": "interview",
                 "rejection": "rejected",
+                "offer": "offer",
             }
 
-            rejection_date = application_date if entry_type == "rejection" else None
+            # For rejection/prescreen: use interview_date field as the date (more intuitive UX)
+            rejection_date = interview_date if entry_type == "rejection" else None
             interview_dt = interview_date if entry_type == "interview" else None
-            prescreen_dt = application_date if entry_type == "prescreen" else None
+            prescreen_dt = interview_date if entry_type == "prescreen" else None
+            offer_dt = interview_date if entry_type == "offer" else None
 
             # Map entry_type to ml_label (must match system labels)
             ml_label_map = {
@@ -102,6 +154,7 @@ def manual_entry(request):
                 "prescreen": "prescreen",          # Prescreen call
                 "interview": "interview_invite",   # System uses "interview_invite"
                 "rejection": "rejection",          # Already correct
+                "offer": "offer",                  # Job offer received
             }
             ml_label = ml_label_map[entry_type]
 
@@ -117,6 +170,7 @@ def manual_entry(request):
                 rejection_date=rejection_date,
                 prescreen_date=prescreen_dt,
                 interview_date=interview_dt,
+                offer_date=offer_dt,
                 ml_label=ml_label,
                 ml_confidence=1.0,  # Manual entries are 100% confident
                 reviewed=True,
@@ -127,6 +181,12 @@ def manual_entry(request):
             subject = f"{entry_type.title()}: {job_title} at {company.name}"
             body = f"Source: {source}\n\n{notes}" if notes else f"Source: {source}"
 
+            # Convert application_date to timezone-aware datetime for timestamp field
+            from datetime import datetime, time
+            from django.utils import timezone
+            naive_dt = datetime.combine(application_date, time(12, 0))
+            app_datetime = timezone.make_aware(naive_dt)
+
             Message.objects.create(
                 company=company,
                 company_source="manual",
@@ -134,7 +194,7 @@ def manual_entry(request):
                 subject=subject,
                 body=body,
                 body_html=f"<p>{body.replace(chr(10), '<br>')}</p>",
-                timestamp=now(),
+                timestamp=app_datetime,
                 msg_id=msg_id,
                 thread_id=thread_id,
                 ml_label=ml_label,  # Use mapped ml_label
@@ -150,9 +210,11 @@ def manual_entry(request):
     else:
         form = ManualEntryForm()
 
-    # Show recent manual entries
+    # Show recent manual entries (includes new manual entries and updated existing entries)
     recent_entries = (
-        ThreadTracking.objects.filter(company_source="manual")
+        ThreadTracking.objects.filter(
+            company_source__in=["manual", "manual_update"]
+        )
         .select_related("company")
         .order_by("-sent_date")[:20]
     )
@@ -168,7 +230,7 @@ def manual_entry(request):
 @login_required
 def edit_manual_entry(request, thread_id):
     """Edit a manual entry."""
-    entry = get_object_or_404(ThreadTracking, thread_id=thread_id, company_source="manual")
+    entry = get_object_or_404(ThreadTracking, thread_id=thread_id, company_source__in=["manual", "manual_update"])
     
     if request.method == "POST":
         form = ManualEntryForm(request.POST)
@@ -196,26 +258,37 @@ def edit_manual_entry(request, thread_id):
                 company = Company.objects.get(id=int(company_select))
                 company.last_contact = now()
                 if company.status != "new":
-                    if entry_type == "rejection":
+                    if entry_type == "offer":
+                        company.status = "offer"
+                    elif entry_type == "rejection":
                         company.status = "rejected"
-                    elif entry_type == "interview" and company.status != "rejected":
+                    elif entry_type == "interview" and company.status not in ("rejected", "offer"):
                         company.status = "interview"
+                    elif entry_type == "prescreen" and company.status not in ("rejected", "interview", "offer"):
+                        company.status = "prescreen"
                 company.save()
 
             # Map entry_type to ml_label and status
             ml_label_map = {
                 "application": "job_application",
+                "prescreen": "prescreen",
                 "interview": "interview_invite",
                 "rejection": "rejection",
+                "offer": "offer",
             }
             status_map = {
                 "application": "application",
+                "prescreen": "prescreen",
                 "interview": "interview",
                 "rejection": "rejected",
+                "offer": "offer",
             }
 
-            rejection_date = application_date if entry_type == "rejection" else None
+            # For rejection/prescreen: use interview_date field as the date (more intuitive UX)
+            rejection_date = interview_date if entry_type == "rejection" else None
             interview_dt = interview_date if entry_type == "interview" else None
+            prescreen_dt = interview_date if entry_type == "prescreen" else None
+            offer_dt = interview_date if entry_type == "offer" else None
 
             # Update ThreadTracking
             entry.company = company
@@ -224,7 +297,9 @@ def edit_manual_entry(request, thread_id):
             entry.status = status_map[entry_type]
             entry.sent_date = application_date
             entry.rejection_date = rejection_date
+            entry.prescreen_date = prescreen_dt
             entry.interview_date = interview_dt
+            entry.offer_date = offer_dt
             entry.ml_label = ml_label_map[entry_type]
             entry.save()
 
@@ -252,20 +327,36 @@ def edit_manual_entry(request, thread_id):
                 source_text = parts[0].replace("Source: ", "").strip()
                 notes_text = parts[1] if len(parts) > 1 else ""
         
-        # Map ml_label back to entry_type
+        # Map status back to entry_type (status is more reliable than ml_label for updated entries)
         entry_type_map = {
-            "job_application": "application",
-            "interview_invite": "interview",
-            "rejection": "rejection",
+            "application": "application",
+            "prescreen": "prescreen",
+            "interview": "interview",
+            "rejected": "rejection",
+            "offer": "offer",
         }
+        
+        # Determine which date to use for the interview_date field based on entry type
+        entry_type = entry_type_map.get(entry.status, "application")
+        if entry_type == "prescreen":
+            # For prescreen, prescreen_date goes in interview_date field
+            int_date = entry.prescreen_date
+        elif entry_type == "rejection":
+            # For rejection, rejection_date goes in interview_date field
+            int_date = entry.rejection_date
+        elif entry_type == "offer":
+            # For offer, offer_date goes in interview_date field
+            int_date = entry.offer_date
+        else:
+            int_date = entry.interview_date
         
         initial_data = {
             "company_select": str(entry.company.id),
-            "entry_type": entry_type_map.get(entry.ml_label, "application"),
+            "entry_type": entry_type,
             "job_title": entry.job_title,
             "job_id": entry.job_id,
             "application_date": entry.sent_date,
-            "interview_date": entry.interview_date,
+            "interview_date": int_date,
             "notes": notes_text,
             "source": source_text,
         }
@@ -283,7 +374,7 @@ def edit_manual_entry(request, thread_id):
 @login_required
 def delete_manual_entry(request, thread_id):
     """Delete a manual entry."""
-    entry = get_object_or_404(ThreadTracking, thread_id=thread_id, company_source="manual")
+    entry = get_object_or_404(ThreadTracking, thread_id=thread_id, company_source__in=["manual", "manual_update"])
     
     if request.method == "POST":
         company_name = entry.company.name
@@ -346,11 +437,13 @@ def get_company_job_titles(request, company_id):
     try:
         company = Company.objects.get(id=company_id)
         # Get distinct job titles from ThreadTracking for this company
-        # Only include application entries (not rejections, etc.)
+        # Include entries that are applications (by status or ml_label)
         job_titles = (
-            ThreadTracking.objects.filter(
-                company=company,
-                status="application"
+            ThreadTracking.objects.filter(company=company)
+            .filter(
+                Q(status="application") | 
+                Q(ml_label="job_application") |
+                Q(ml_label="application")
             )
             .exclude(job_title__in=["", "Manual Entry"])
             .values_list("job_title", flat=True)

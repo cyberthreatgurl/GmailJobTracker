@@ -160,6 +160,11 @@ class ThreadTracking(models.Model):
         help_text="Date of prescreen phone call or initial screening"
     )
     interview_date = models.DateField(null=True, blank=True)
+    offer_date = models.DateField(
+        null=True,
+        blank=True,
+        help_text="Date job offer was received"
+    )
     interview_completed = models.BooleanField(default=False)
     application_url = models.URLField(
         max_length=500,
@@ -175,6 +180,8 @@ class ThreadTracking(models.Model):
     ml_label = models.CharField(max_length=50, blank=True, null=True)  # e.g., noise
     ml_confidence = models.FloatField(blank=True, null=True)
     reviewed = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 
     class Meta:
         db_table = "tracker_application"  # Keep existing table name to preserve data
@@ -235,6 +242,27 @@ class Message(models.Model):
             self.company = None
             self.company_source = ""
         super().save(*args, **kwargs)
+
+    @property
+    def sender_domain(self):
+        """Extract the domain from the sender email address.
+        
+        Handles formats like:
+        - "Display Name" <email@domain.com>
+        - email@domain.com
+        - "Name @ Company" <email@domain.com>
+        """
+        from email.utils import parseaddr
+        import re
+        
+        _, email_addr = parseaddr(self.sender)
+        if email_addr and "@" in email_addr:
+            return email_addr.split("@", 1)[1].strip(">").lower()
+        # Fallback: try to find email pattern in sender
+        match = re.search(r"@([A-Za-z0-9.-]+)", self.sender)
+        if match:
+            return match.group(1).lower()
+        return ""
 
     def __str__(self):
         company_name = self.company.name if self.company else "No Company"

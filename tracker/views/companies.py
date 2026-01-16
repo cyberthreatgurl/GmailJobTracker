@@ -2281,9 +2281,9 @@ def scrape_job_posting(request):
             except Exception as e:
                 logger.error(f"scrape_job_posting: Failed to save debug HTML: {e}")
         
-        # Limit to first 10,000 characters (same as form validation)
-        if len(text) > 10000:
-            text = text[:10000] + "\n\n[Content truncated to 10,000 characters]"
+        # Limit to first 20,000 characters (same as form validation)
+        if len(text) > 20000:
+            text = text[:20000] + "\n\n[Content truncated to 20,000 characters]"
         
         logger.info(f"scrape_job_posting: Extracted {len(text)} characters")
         logger.debug(f"scrape_job_posting: Content preview: {text[:200]}...")

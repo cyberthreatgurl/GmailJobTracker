@@ -220,8 +220,8 @@ class CompanyEditForm(forms.ModelForm):
         help_text="Alternative name or abbreviation (e.g., 'AFS' for 'Accenture Federal Services')",
         validators=[
             RegexValidator(
-                regex=r'^[a-zA-Z0-9\s.,\-&]+$',
-                message='Alias can only contain letters, numbers, spaces, and: . , - &',
+                regex=r'^[a-zA-Z0-9\s.,\-_&]+$',
+                message='Alias can only contain letters, numbers, spaces, and: . , - _ &',
                 code='invalid_alias'
             )
         ],

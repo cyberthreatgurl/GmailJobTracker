@@ -282,17 +282,20 @@ def label_companies(request):
     last_message_ts = None
     days_since_last_message = None
     
-    # Check for new company creation mode (Quick Add prefill)
+    # Check for new company creation mode (Quick Add prefill or dropdown selection)
     new_company_name = request.GET.get("new_company_name", "").strip()
     prefill_homepage = request.GET.get("homepage", "").strip()
     prefill_domain = request.GET.get("domain", "").strip()
     prefill_career_url = request.GET.get("career_url", "").strip()
     prefill_notes = request.GET.get("notes", "").strip()
-    # Only treat as new company creation if we have prefill params from URL AND no selected_id
-    # This prevents populate_from_homepage button on existing companies from triggering new company mode
+    # Treat as new company creation if:
+    # 1. We have prefill params from URL AND no selected_id, OR
+    # 2. User selected "new" from dropdown, OR
+    # 3. Form action is create_new_company or populate_from_homepage
     creating_new_company = bool(
-        (new_company_name or prefill_homepage) and not selected_id or 
-        request.POST.get("action") == "create_new_company"
+        (new_company_name or prefill_homepage) and not selected_id or
+        selected_id == "new" or
+        request.POST.get("action") in ("create_new_company", "populate_from_homepage")
     )
     # Configurable threshold for ghosted hint (default 30). DB AppSetting overrides env.
     from tracker.models import AppSetting
@@ -321,7 +324,7 @@ def label_companies(request):
     form = None
     message_count = 0
     message_info_list = []
-    if selected_id:
+    if selected_id and selected_id != "new":
         try:
             selected_company = Company.objects.get(id=selected_id)
             # Load career URL from companies.json JobSites
@@ -1047,8 +1050,8 @@ def label_companies(request):
                 
                 if form.is_valid():
                     # Check if domain or homepage was provided
-                    domain = form.cleaned_data.get("domain", "").strip()
-                    homepage = form.cleaned_data.get("homepage", "").strip()
+                    domain = (form.cleaned_data.get("domain") or "").strip()
+                    homepage = (form.cleaned_data.get("homepage") or "").strip()
                     if not domain and not homepage:
                         messages.error(request, "❌ Please enter at least a domain or homepage before saving.")
                         # Form stays bound with submitted data for re-display

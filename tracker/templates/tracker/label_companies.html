@@ -32,6 +32,7 @@
         <label for="company">Select Company:</label>
         <select name="company" id="company" onchange="this.form.submit()">
           <option value="">-- Choose a company --</option>
+          <option value="new" {% if creating_new_company %}selected{% endif %}>-- Create New Company --</option>
           {% for c in company_list %}
             <option value="{{ c.id }}" {% if selected_company and c.id == selected_company.id %}selected{% endif %}>{{ c.name }}</option>
           {% endfor %}
@@ -50,7 +51,7 @@
       </div>
       <div style="display: flex; gap: 2rem; align-items: flex-start;">
         <div style="flex: 1;">
-          <form method="post" action="{% url 'label_companies' %}?new_company_name={{ new_company_name|urlencode }}" class="edit-form">
+          <form method="post" action="{% url 'label_companies' %}?company=new&new_company_name={{ new_company_name|urlencode }}" class="edit-form">
           {% csrf_token %}
           <input type="hidden" name="action" value="create_new_company" />
           <label for="id_name">Company Name</label>

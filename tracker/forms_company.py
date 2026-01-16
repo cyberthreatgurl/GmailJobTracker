@@ -75,6 +75,26 @@ class ApplicationDetailsForm(forms.ModelForm):
         help_text="Date of scheduled interview"
     )
     
+    rejection_date = forms.DateField(
+        required=False,
+        label="Rejection Date",
+        widget=forms.DateInput(attrs={
+            'type': 'date',
+            'class': 'form-control'
+        }),
+        help_text="Date rejection was received"
+    )
+    
+    offer_date = forms.DateField(
+        required=False,
+        label="Offer Date",
+        widget=forms.DateInput(attrs={
+            'type': 'date',
+            'class': 'form-control'
+        }),
+        help_text="Date job offer was received"
+    )
+    
     application_url = forms.URLField(
         required=False,
         label="Application URL",
@@ -99,7 +119,7 @@ class ApplicationDetailsForm(forms.ModelForm):
     
     class Meta:
         model = ThreadTracking
-        fields = ['job_title', 'sent_date', 'prescreen_date', 'interview_date', 'application_url', 'application_text']
+        fields = ['job_title', 'sent_date', 'prescreen_date', 'interview_date', 'rejection_date', 'offer_date', 'application_url', 'application_text']
     
     def clean_application_url(self):
         """Validate URL format and security"""

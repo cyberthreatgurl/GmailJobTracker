@@ -1147,7 +1147,7 @@ def label_companies(request):
     ctx = build_sidebar_context()
     
     # Get all application threads for selected company (for Application Details section)
-    # Only include actual job applications, not prescreens/interviews (those are dates within an application)
+    # Only include actual job applications - prescreens/interviews are dates within an application
     application_threads = []
     if selected_company:
         application_threads = list(ThreadTracking.objects.filter(

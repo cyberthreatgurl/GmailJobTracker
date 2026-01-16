@@ -349,10 +349,10 @@
           {% endif %}
         </div>
 
-        <div class="form-group">
-          <label for="{{ form.interview_date.id_for_label }}">{{ form.interview_date.label }}</label>
+        <div class="form-group" id="interview-date-group">
+          <label for="{{ form.interview_date.id_for_label }}" id="interview-date-label">{{ form.interview_date.label }}</label>
           {{ form.interview_date }}
-          <div class="help-text">{{ form.interview_date.help_text }}</div>
+          <div class="help-text" id="interview-date-help">{{ form.interview_date.help_text }}</div>
           {% if form.interview_date.errors %}
             <ul class="errorlist">
               {% for error in form.interview_date.errors %}
@@ -462,6 +462,36 @@
       return selected ? selected.value : 'application';
     }
     
+    function updateInterviewDateLabel() {
+      const entryType = getSelectedEntryType();
+      const label = document.getElementById('interview-date-label');
+      const help = document.getElementById('interview-date-help');
+      const group = document.getElementById('interview-date-group');
+      
+      if (entryType === 'prescreen') {
+        label.textContent = 'Prescreen Date';
+        help.textContent = 'When is the prescreen call scheduled?';
+        group.style.display = 'block';
+      } else if (entryType === 'interview') {
+        label.textContent = 'Interview Date';
+        help.textContent = 'Scheduled interview date';
+        group.style.display = 'block';
+      } else if (entryType === 'rejection') {
+        label.textContent = 'Rejection Date';
+        help.textContent = 'When did you receive the rejection?';
+        group.style.display = 'block';
+      } else if (entryType === 'offer') {
+        label.textContent = 'Offer Date';
+        help.textContent = 'When did you receive the offer?';
+        group.style.display = 'block';
+      } else {
+        // Hide for application type only
+        label.textContent = 'Interview Date';
+        help.textContent = 'For interview entries: scheduled interview date';
+        group.style.display = 'none';
+      }
+    }
+    
     async function fetchJobTitles(companyId) {
       if (jobTitlesCache[companyId]) {
         return jobTitlesCache[companyId];
@@ -487,6 +517,7 @@
       if (entryType === 'application' || companyId === '__new__' || !companyId) {
         jobTitleSelectContainer.style.display = 'none';
         noApplicationsWarning.style.display = 'none';
+        jobTitleInput.style.display = 'block';  // Show text input for direct entry
         jobTitleHelp.textContent = '{{ form.job_title.help_text }}';
         return;
       }
@@ -513,13 +544,45 @@
         jobTitleSelect.appendChild(customOption);
         
         jobTitleSelectContainer.style.display = 'block';
+        jobTitleSelect.style.display = 'block';  // Make sure dropdown is visible
         noApplicationsWarning.style.display = 'none';
+        
+        // Check if current job title matches an existing option (for edit mode)
+        const currentJobTitle = jobTitleInput.value.trim();
+        let matchFound = false;
+        if (currentJobTitle) {
+          for (let i = 0; i < jobTitleSelect.options.length; i++) {
+            if (jobTitleSelect.options[i].value === currentJobTitle) {
+              jobTitleSelect.selectedIndex = i;
+              matchFound = true;
+              break;
+            }
+          }
+        }
+        
+        // Hide text input if a match was found, show it otherwise
+        if (matchFound) {
+          jobTitleInput.style.display = 'none';
+        } else if (currentJobTitle) {
+          // Has a custom job title - select "Enter new job title" option
+          for (let i = 0; i < jobTitleSelect.options.length; i++) {
+            if (jobTitleSelect.options[i].value === '__custom__') {
+              jobTitleSelect.selectedIndex = i;
+              break;
+            }
+          }
+          jobTitleInput.style.display = 'block';
+        } else {
+          jobTitleInput.style.display = 'none';
+        }
+        
         jobTitleHelp.textContent = 'Select from existing applications or enter a new title';
       } else {
-        // No applications found - show warning
+        // No applications found - show warning and text input
         jobTitleSelectContainer.style.display = 'block';
         noApplicationsWarning.style.display = 'block';
         jobTitleSelect.style.display = 'none';
+        jobTitleInput.style.display = 'block';  // Show text input for manual entry
         jobTitleHelp.textContent = 'Enter job title manually';
       }
     }
@@ -527,10 +590,14 @@
     // When job title dropdown changes, update the text input
     jobTitleSelect.addEventListener('change', function() {
       if (this.value === '__custom__' || this.value === '') {
+        // Show text input for custom entry
         jobTitleInput.value = '';
+        jobTitleInput.style.display = 'block';
         jobTitleInput.focus();
       } else {
+        // Hide text input when selecting existing job title
         jobTitleInput.value = this.value;
+        jobTitleInput.style.display = 'none';
       }
     });
     
@@ -538,6 +605,7 @@
     document.querySelectorAll('input[name="entry_type"]').forEach(radio => {
       radio.addEventListener('change', function() {
         toggleNewCompanyField();  // Re-check new company warning
+        updateInterviewDateLabel();  // Update date label based on entry type
         // Reset job title select visibility
         jobTitleSelect.style.display = 'block';
       });
@@ -545,6 +613,7 @@
 
     // Initialize on page load
     toggleNewCompanyField();
+    updateInterviewDateLabel();
 
     // Update when dropdown changes
     companySelect.addEventListener('change', function() {
@@ -600,40 +669,134 @@
     <form id="bulk-delete-form" method="post" action="{% url 'bulk_delete_manual_entries' %}">
       {% csrf_token %}
       
-      <div class="bulk-actions">
-        <div class="select-all-container">
+      <div class="bulk-actions" style="margin-bottom: 1rem;">
+        <div class="select-all-container" style="display: inline-flex; align-items: center; gap: 0.5rem;">
           <input type="checkbox" id="select-all" class="entry-checkbox">
           <label for="select-all" style="cursor: pointer; margin: 0;">Select All</label>
         </div>
         <button type="submit" id="bulk-delete-btn" class="bulk-delete-btn" disabled onclick="return confirm('Are you sure you want to delete the selected entries?')">🗑️ Delete Selected (<span id="selected-count">0</span>)</button>
       </div>
       
+      <table id="manual-entries-table" style="width: 100%; border-collapse: collapse; font-size: 0.95rem;">
+        <thead>
+          <tr style="background: #f3f4f6; border-bottom: 2px solid #d1d5db;">
+            <th style="padding: 0.75rem 0.5rem; text-align: left; width: 30px;"></th>
+            <th class="sortable" data-sort="event" style="padding: 0.75rem 0.5rem; text-align: left; cursor: pointer; white-space: nowrap;">Job Event <span class="sort-indicator">⇅</span></th>
+            <th class="sortable" data-sort="title" style="padding: 0.75rem 0.5rem; text-align: left; cursor: pointer;">Title <span class="sort-indicator">⇅</span></th>
+            <th class="sortable" data-sort="company" style="padding: 0.75rem 0.5rem; text-align: left; cursor: pointer;">Company <span class="sort-indicator">⇅</span></th>
+            <th class="sortable" data-sort="event-date" style="padding: 0.75rem 0.5rem; text-align: left; cursor: pointer; white-space: nowrap;">Date of Event <span class="sort-indicator">⇅</span></th>
+            <th class="sortable" data-sort="creation-date" style="padding: 0.75rem 0.5rem; text-align: left; cursor: pointer; white-space: nowrap;">Creation Date <span class="sort-indicator">⇅</span></th>
+            <th style="padding: 0.75rem 0.5rem; text-align: center;">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for entry in recent_entries %}
+          <tr class="entry-row" style="border-bottom: 1px solid #e5e7eb;"
+              data-event="{% if entry.status == 'offer' %}offer{% elif entry.status == 'rejected' %}rejection{% elif entry.status == 'interview' %}interview{% elif entry.status == 'prescreen' %}prescreen{% else %}{{ entry.ml_label }}{% endif %}"
+              data-title="{{ entry.job_title|lower }}"
+              data-company="{{ entry.company.name|lower }}"
+              data-event-date="{% if entry.status == 'offer' and entry.offer_date %}{{ entry.offer_date|date:'Y-m-d' }}{% elif entry.status == 'rejected' and entry.rejection_date %}{{ entry.rejection_date|date:'Y-m-d' }}{% elif entry.status == 'interview' and entry.interview_date %}{{ entry.interview_date|date:'Y-m-d' }}{% elif entry.status == 'prescreen' and entry.prescreen_date %}{{ entry.prescreen_date|date:'Y-m-d' }}{% else %}{{ entry.sent_date|date:'Y-m-d' }}{% endif %}"
+              data-creation-date="{% if entry.updated_at %}{{ entry.updated_at|date:'Y-m-d' }}{% else %}{{ entry.sent_date|date:'Y-m-d' }}{% endif %}">
+            <td style="padding: 0.5rem;">
+              <input type="checkbox" name="thread_ids" value="{{ entry.thread_id }}" class="entry-checkbox entry-select">
+            </td>
+            <td style="padding: 0.5rem;">
+              {% if entry.status == "offer" %}
+                <span style="background: #d1fae5; color: #065f46; border-radius: 3px; padding: 0.15rem 0.4rem; font-size: 0.8rem; font-weight: 600;">🎉 Offer</span>
+              {% elif entry.status == "rejected" %}
+                <span style="background: #fee2e2; color: #991b1b; border-radius: 3px; padding: 0.15rem 0.4rem; font-size: 0.8rem; font-weight: 600;">Rejection</span>
+              {% elif entry.status == "interview" %}
+                <span style="background: #dbeafe; color: #1e40af; border-radius: 3px; padding: 0.15rem 0.4rem; font-size: 0.8rem; font-weight: 600;">Interview</span>
+              {% elif entry.status == "prescreen" %}
+                <span style="background: #fef3c7; color: #92400e; border-radius: 3px; padding: 0.15rem 0.4rem; font-size: 0.8rem; font-weight: 600;">Prescreen</span>
+              {% else %}
+                <span style="background: #dcfce7; color: #166534; border-radius: 3px; padding: 0.15rem 0.4rem; font-size: 0.8rem; font-weight: 600;">Application</span>
+              {% endif %}
+            </td>
+            <td style="padding: 0.5rem;">{{ entry.job_title|default:"(No title)" }}</td>
+            <td style="padding: 0.5rem;">
+              <a href="{% url 'label_companies' %}?company={{ entry.company.id }}" style="text-decoration: none; color: #2563eb;">
+                {{ entry.company.name }}
+              </a>
+            </td>
+            <td style="padding: 0.5rem; white-space: nowrap;">
+              {% if entry.status == "offer" and entry.offer_date %}
+                {{ entry.offer_date|date:"M d, Y" }}
+              {% elif entry.status == "rejected" and entry.rejection_date %}
+                {{ entry.rejection_date|date:"M d, Y" }}
+              {% elif entry.status == "interview" and entry.interview_date %}
+                {{ entry.interview_date|date:"M d, Y" }}
+              {% elif entry.status == "prescreen" and entry.prescreen_date %}
+                {{ entry.prescreen_date|date:"M d, Y" }}
+              {% else %}
+                {{ entry.sent_date|date:"M d, Y" }}
+              {% endif %}
+            </td>
+            <td style="padding: 0.5rem; white-space: nowrap;">{% if entry.updated_at %}{{ entry.updated_at|date:"M d, Y" }}{% else %}{{ entry.sent_date|date:"M d, Y" }}{% endif %}</td>
+            <td style="padding: 0.5rem; text-align: center; white-space: nowrap;">
+              <a href="{% url 'edit_manual_entry' entry.thread_id %}" class="entry-btn edit-btn" style="margin-right: 0.25rem;">✏️ Edit</a>
+              <button type="button" class="entry-btn delete-btn" onclick="if(confirm('Are you sure you want to delete this entry?')) { document.getElementById('delete-form-{{ entry.thread_id }}').submit(); }">🗑️ Delete</button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      
       {% for entry in recent_entries %}
-      <div class="entry-item {{ entry.ml_label }}">
-        <div class="entry-header">
-          <div style="display: flex; align-items: center;">
-            <input type="checkbox" name="thread_ids" value="{{ entry.thread_id }}" class="entry-checkbox entry-select">
-            <span class="entry-type-badge {{ entry.ml_label }}">{{ entry.ml_label }}</span>
-            <span class="entry-title">{{ entry.job_title }}</span>
-          </div>
-          <span class="entry-date">{{ entry.sent_date|date:"M d, Y" }}</span>
-        </div>
-        <div class="entry-company">
-          <a href="{% url 'label_companies' %}?company={{ entry.company.id }}" style="text-decoration: none; color: #2563eb;">
-            {{ entry.company.name }}
-          </a>
-        </div>
-        <div class="entry-actions">
-          <a href="{% url 'edit_manual_entry' entry.thread_id %}" class="entry-btn edit-btn">✏️ Edit</a>
-          <form method="post" action="{% url 'delete_manual_entry' entry.thread_id %}" style="display: inline;">
-            {% csrf_token %}
-            <button type="submit" class="entry-btn delete-btn" onclick="return confirm('Are you sure you want to delete this entry?')">🗑️ Delete</button>
-          </form>
-        </div>
-    </div>
-    {% endfor %}
+      <form id="delete-form-{{ entry.thread_id }}" method="post" action="{% url 'delete_manual_entry' entry.thread_id %}" style="display: none;">
+        {% csrf_token %}
+      </form>
+      {% endfor %}
     </form>
   </div>
+  
+  <script>
+    // Table sorting functionality
+    (function() {
+      const table = document.getElementById('manual-entries-table');
+      if (!table) return;
+      
+      const headers = table.querySelectorAll('th.sortable');
+      let currentSort = { column: null, ascending: true };
+      
+      headers.forEach(header => {
+        header.addEventListener('click', function() {
+          const sortKey = this.dataset.sort;
+          const ascending = currentSort.column === sortKey ? !currentSort.ascending : true;
+          currentSort = { column: sortKey, ascending };
+          
+          // Update sort indicators
+          headers.forEach(h => {
+            const indicator = h.querySelector('.sort-indicator');
+            if (indicator) indicator.textContent = '⇅';
+          });
+          const indicator = this.querySelector('.sort-indicator');
+          if (indicator) indicator.textContent = ascending ? '↑' : '↓';
+          
+          // Sort rows
+          const tbody = table.querySelector('tbody');
+          const rows = Array.from(tbody.querySelectorAll('tr.entry-row'));
+          
+          rows.sort((a, b) => {
+            let aVal = a.dataset[sortKey.replace('-', '')] || a.dataset[sortKey.replace(/-/g, '')] || '';
+            let bVal = b.dataset[sortKey.replace('-', '')] || b.dataset[sortKey.replace(/-/g, '')] || '';
+            
+            // Handle date sorting
+            if (sortKey.includes('date')) {
+              aVal = aVal || '0000-00-00';
+              bVal = bVal || '0000-00-00';
+            }
+            
+            if (aVal < bVal) return ascending ? -1 : 1;
+            if (aVal > bVal) return ascending ? 1 : -1;
+            return 0;
+          });
+          
+          rows.forEach(row => tbody.appendChild(row));
+        });
+      });
+    })();
+  </script>
   {% endif %}
 </div>
 {% endblock %}

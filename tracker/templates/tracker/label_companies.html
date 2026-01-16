@@ -219,10 +219,32 @@
               <ul style="margin:0.5rem 0 0 0; padding-left:1.2rem; font-size:0.97rem; list-style:none;">
                 {% for thread in application_threads %}
                   <li style="margin-bottom:0.5rem;">
-                    <div style="display:flex; align-items:center; gap:0.5rem;">
+                    <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
                       <span style="color:#6b7280; white-space:nowrap;">{{ thread.sent_date|date:"Y-m-d" }}</span>
-                      <span style="background:#dcfce7; color:#166534; border-radius:3px; padding:0.15rem 0.4rem; font-size:0.8rem; font-weight:600; white-space:nowrap;">APPLICATION</span>
+                      {% if thread.ml_label == "offer" or thread.status == "offer" %}
+                        <span style="background:#d1fae5; color:#065f46; border-radius:3px; padding:0.15rem 0.4rem; font-size:0.8rem; font-weight:600; white-space:nowrap;">🎉 OFFER</span>
+                      {% elif thread.ml_label == "prescreen" or thread.status == "prescreen" %}
+                        <span style="background:#fef3c7; color:#92400e; border-radius:3px; padding:0.15rem 0.4rem; font-size:0.8rem; font-weight:600; white-space:nowrap;">PRESCREEN</span>
+                      {% elif thread.ml_label == "interview_invite" or thread.status == "interview" %}
+                        <span style="background:#dbeafe; color:#1e40af; border-radius:3px; padding:0.15rem 0.4rem; font-size:0.8rem; font-weight:600; white-space:nowrap;">INTERVIEW</span>
+                      {% elif thread.status == "rejected" %}
+                        <span style="background:#fee2e2; color:#991b1b; border-radius:3px; padding:0.15rem 0.4rem; font-size:0.8rem; font-weight:600; white-space:nowrap;">REJECTED</span>
+                      {% else %}
+                        <span style="background:#dcfce7; color:#166534; border-radius:3px; padding:0.15rem 0.4rem; font-size:0.8rem; font-weight:600; white-space:nowrap;">APPLICATION</span>
+                      {% endif %}
                       <span style="color:#374151; flex:1;">{{ thread.job_title|default:"(No job title)" }}</span>
+                      {% if thread.prescreen_date %}
+                        <span style="color:#92400e; font-size:0.85rem; white-space:nowrap;">📞 {{ thread.prescreen_date|date:"M d" }}</span>
+                      {% endif %}
+                      {% if thread.interview_date %}
+                        <span style="color:#1e40af; font-size:0.85rem; white-space:nowrap;">🗓️ {{ thread.interview_date|date:"M d" }}</span>
+                      {% endif %}
+                      {% if thread.rejection_date %}
+                        <span style="color:#991b1b; font-size:0.85rem; white-space:nowrap;">❌ {{ thread.rejection_date|date:"M d" }}</span>
+                      {% endif %}
+                      {% if thread.offer_date %}
+                        <span style="color:#065f46; font-size:0.85rem; white-space:nowrap;">🎉 {{ thread.offer_date|date:"M d" }}</span>
+                      {% endif %}
                     </div>
                   </li>
                 {% empty %}
@@ -291,9 +313,11 @@
                             data-sentdate="{{ thread.sent_date|date:'Y-m-d'|default:'' }}"
                             data-prescreen="{{ thread.prescreen_date|date:'Y-m-d'|default:'' }}"
                             data-interview="{{ thread.interview_date|date:'Y-m-d'|default:'' }}"
+                            data-rejection="{{ thread.rejection_date|date:'Y-m-d'|default:'' }}"
+                            data-offer="{{ thread.offer_date|date:'Y-m-d'|default:'' }}"
                             data-url="{{ thread.application_url|default:'' }}"
                             data-text="{{ thread.application_text|default:'' }}">
-                      {% if thread.job_title %}{{ thread.job_title }}{% else %}Application #{{ forloop.counter }}{% endif %} - {{ thread.sent_date|date:'M d, Y' }} ({{ thread.status|default:'application' }})
+                      {% if thread.job_title %}{{ thread.job_title }}{% else %}Application #{{ forloop.counter }}{% endif %} - {{ thread.sent_date|date:'M d, Y' }} ({% if thread.ml_label == 'job_application' %}application{% elif thread.ml_label == 'prescreen' %}prescreen{% elif thread.ml_label == 'interview_invite' %}interview{% else %}{{ thread.ml_label|default:'application' }}{% endif %})
                     </option>
                     {% endfor %}
                   </select>
@@ -321,6 +345,18 @@
                   <label for="id_interview_date" style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.25rem;">🗓️ Interview Date</label>
                   <input type="date" name="interview_date" id="id_interview_date" value="{% if application_threads %}{{ application_threads.0.interview_date|date:'Y-m-d'|default:'' }}{% endif %}" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem;" />
                   <small style="color: #6b7280; display: block; margin-top: 0.25rem;">Date of scheduled interview</small>
+                </div>
+                
+                <div style="margin-bottom: 1.5rem;">
+                  <label for="id_rejection_date" style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.25rem;">❌ Rejection Date</label>
+                  <input type="date" name="rejection_date" id="id_rejection_date" value="{% if application_threads %}{{ application_threads.0.rejection_date|date:'Y-m-d'|default:'' }}{% endif %}" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem;" />
+                  <small style="color: #6b7280; display: block; margin-top: 0.25rem;">Date rejection was received</small>
+                </div>
+                
+                <div style="margin-bottom: 1.5rem;">
+                  <label for="id_offer_date" style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.25rem;">🎉 Offer Date</label>
+                  <input type="date" name="offer_date" id="id_offer_date" value="{% if application_threads %}{{ application_threads.0.offer_date|date:'Y-m-d'|default:'' }}{% endif %}" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem;" />
+                  <small style="color: #6b7280; display: block; margin-top: 0.25rem;">Date offer was received</small>
                 </div>
                 
                 <div style="margin-bottom: 1rem;">
@@ -375,6 +411,8 @@
           document.getElementById('id_sent_date').value = selected.dataset.sentdate || '';
           document.getElementById('id_prescreen_date').value = selected.dataset.prescreen || '';
           document.getElementById('id_interview_date').value = selected.dataset.interview || '';
+          document.getElementById('id_rejection_date').value = selected.dataset.rejection || '';
+          document.getElementById('id_offer_date').value = selected.dataset.offer || '';
           document.getElementById('id_application_url').value = selected.dataset.url || '';
           document.getElementById('id_application_text').value = selected.dataset.text || '';
         });

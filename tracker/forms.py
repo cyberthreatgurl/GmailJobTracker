@@ -21,6 +21,7 @@ class ManualEntryForm(forms.Form):
         ("prescreen", "Prescreen Call"),
         ("interview", "Interview Invitation"),
         ("rejection", "Rejection"),
+        ("offer", "Job Offer"),
     ]
     entry_type = forms.ChoiceField(
         choices=ENTRY_TYPES,
@@ -173,10 +174,22 @@ class ManualEntryForm(forms.Form):
         entry_type = cleaned_data.get("entry_type")
         interview_date = cleaned_data.get("interview_date")
 
-        # Validate interview date is required for interview type
+        # Validate date is required for interview, prescreen, and rejection types
         if entry_type == "interview" and not interview_date:
             self.add_error(
                 "interview_date", "Interview date is required for interview entries."
+            )
+        if entry_type == "prescreen" and not interview_date:
+            self.add_error(
+                "interview_date", "Prescreen date is required for prescreen entries."
+            )
+        if entry_type == "rejection" and not interview_date:
+            self.add_error(
+                "interview_date", "Rejection date is required for rejection entries."
+            )
+        if entry_type == "offer" and not interview_date:
+            self.add_error(
+                "interview_date", "Offer date is required for offer entries."
             )
 
         return cleaned_data

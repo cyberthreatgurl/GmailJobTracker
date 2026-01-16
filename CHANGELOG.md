@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.4] - 2026-01-16
+
+### Fixed
+- **Sender Domain Parsing** - Fixed incorrect sender_domain extraction for emails with `@` in display name
+  - Emails like `"AMERICAN SYSTEMS @ icims" <email@talent.icims.com>` now correctly show `talent.icims.com`
+  - Added `sender_domain` property to Message model using Python's `email.utils.parseaddr()`
+  - Previously the first `@` was found (in display name), now properly extracts from email address portion
+
+### Added
+- **Case-Insensitive Company Matching** - Prevents duplicate companies differing only in case
+  - New `get_or_create_company_iexact()` helper function in parser.py
+  - Updated 6 locations in parser.py and messages.py to use case-insensitive lookup
+  - Example: "AMERICAN SYSTEMS" and "American Systems" now resolve to same company record
+
+- **ATS Domain Auto-Population for EML Imports** - EML imports now set company ATS field
+  - When importing .eml files, if sender domain is a known ATS, the company's `ats` field is populated
+  - Matches existing behavior in Gmail API ingestion
+
 ## [1.2.3] - 2026-01-16
 
 ### Fixed

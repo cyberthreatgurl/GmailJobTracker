@@ -337,7 +337,8 @@
     "openai.com": "OpenAI",
     "ventureglobal.com": "Venture Global",
     "costar.com": "CoStar Realty Information, Inc",
-    "americansystems.com": "American Systems"
+    "americansystems.com": "American Systems",
+    "cellebrite.com": "Cellebrite"
   },
   "headhunter_domains": [
     "agreeya.com",
@@ -550,7 +551,8 @@
     "Capital One": "https://www.capitalonecareers.com/",
     "TechPride": "https://www.linkedin.com/company/techpride/jobs/",
     "AMERICAN SYSTEMS": "http://www.americansystems.com/careers-welcome",
-    "American Systems": "http://www.americansystems.com/careers-welcome"
+    "American Systems": "http://www.americansystems.com/careers-welcome",
+    "Cellebrite": "https://cellebrite.com/en/about/careers/"
   },
   "known": [
     "Obsidian",
@@ -734,6 +736,7 @@
     "SM2 Security Solutions, LLC",
     "Synack Red Team",
     "Corsha",
-    "Legion X"
+    "Legion X",
+    "Cellebrite"
   ]
 }

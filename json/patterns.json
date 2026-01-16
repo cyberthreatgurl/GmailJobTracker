@@ -117,6 +117,7 @@
       "\\bfinish(?:ing)?\\s+your\\s+application\\b",
       "\\baction\\s+needed\\s+to\\s+complete\\s+(?:your\\s+)?application\\b",
       "\\byour\\sapplication\\s(?:to|for|at)\\b",
+      "\\byour\\s+\\w+\\s+application\\s+for\\b",
       "\\bapplication\\supdate\\b",
       "\\bapplication\\sstatus\\b",
       "\\bprofile\\sconfirmation\\b",

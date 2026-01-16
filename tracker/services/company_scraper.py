@@ -89,26 +89,33 @@ def scrape_company_info(homepage_url: str, timeout: int = 10) -> Dict[str, str]:
     # Extract page content for focus area analysis
     page_content = _extract_page_content(soup)
     
-    # Try to find and scrape About Us page for more comprehensive analysis
-    about_url = _extract_about_url(soup, homepage_url)
-    about_content = ""
-    if about_url:
+    # Enhanced crawling: Extract internal links and crawl 1 level deep
+    internal_links = _extract_internal_links(soup, homepage_url, domain)
+    pages_scraped = ["homepage"]
+    
+    # Crawl relevant internal pages
+    additional_content = []
+    for link_url, link_type in internal_links[:5]:  # Limit to top 5 pages
         try:
-            about_content = _scrape_about_page(about_url, timeout)
+            content = _scrape_internal_page(link_url, timeout=8)
+            if content:
+                additional_content.append(content)
+                pages_scraped.append(link_type)
         except Exception:
-            # If About page scraping fails, continue without it
+            # Continue if a page fails
             pass
     
-    # Combine homepage and about content
+    # Combine all scraped content
     combined_content = page_content
-    if about_content:
-        combined_content = page_content + " " + about_content
+    if additional_content:
+        combined_content = page_content + " " + " ".join(additional_content)
     
     return {
         "name": company_name,
         "domain": domain,
         "career_url": career_url or "",
         "page_content": combined_content,
+        "pages_scraped": pages_scraped,  # Track which pages were analyzed
     }
 
 
@@ -414,6 +421,91 @@ def _extract_page_content(soup: BeautifulSoup) -> str:
     return full_content[:3000] if full_content else ""
 
 
+def _extract_internal_links(soup: BeautifulSoup, base_url: str, domain: str) -> list:
+    """
+    Extract relevant internal links for deeper content analysis.
+    
+    Args:
+        soup: Parsed homepage HTML
+        base_url: Homepage URL
+        domain: Company domain
+        
+    Returns:
+        List of tuples (url, page_type) prioritized for scraping
+    """
+    # Priority keywords for relevant pages
+    priority_patterns = [
+        (r'/(about|company|who-we-are|our-story|overview)', 'about'),
+        (r'/(solutions?|products?|services?|offerings?|what-we-do)', 'solutions'),
+        (r'/(technology|platform|innovation)', 'technology'),
+        (r'/(industries?|sectors?|customers?)', 'industries'),
+    ]
+    
+    relevant_links = []
+    seen_urls = set()
+    
+    all_links = soup.find_all("a", href=True)
+    
+    for link in all_links:
+        href = link["href"]
+        full_url = urljoin(base_url, href)
+        
+        # Only internal links
+        try:
+            parsed = urlparse(full_url)
+            link_domain = parsed.netloc.replace("www.", "")
+            
+            # Skip if not same domain
+            if link_domain != domain:
+                continue
+            
+            # Skip anchors, already seen, or same as base
+            if parsed.fragment or full_url in seen_urls or full_url == base_url:
+                continue
+            
+            # Check against priority patterns
+            for pattern, page_type in priority_patterns:
+                if re.search(pattern, full_url.lower()):
+                    relevant_links.append((full_url, page_type))
+                    seen_urls.add(full_url)
+                    break
+                    
+        except Exception:
+            continue
+    
+    # Return prioritized list (about first, then solutions, tech, industries)
+    return relevant_links
+
+
+def _scrape_internal_page(page_url: str, timeout: int = 8) -> str:
+    """
+    Scrape content from an internal page.
+    
+    Args:
+        page_url: URL of the internal page
+        timeout: Request timeout in seconds
+        
+    Returns:
+        Extracted text content (max 2000 chars per page)
+    """
+    try:
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        }
+        response = requests.get(page_url, headers=headers, timeout=timeout, allow_redirects=True)
+        response.raise_for_status()
+        
+        soup = BeautifulSoup(response.content, "html.parser")
+        content = _extract_page_content(soup)
+        
+        # Limit to 2000 chars per page to avoid excessive content
+        return content[:2000] if content else ""
+    except Exception:
+        # Return empty string if scraping fails
+        return ""
+
+
+
 def analyze_company_focus(page_content: str) -> str:
     """
     Analyze company homepage content to estimate focus area.
@@ -427,18 +519,18 @@ def analyze_company_focus(page_content: str) -> str:
         String describing estimated focus area, or empty string if cannot determine.
     """
     if not page_content or len(page_content) < 50:
-        return ""
+        return "⚠️ No content extracted from homepage for analysis (page may be JavaScript-heavy or protected)"
     
     # Convert to lowercase for analysis
     content_lower = page_content.lower()
     
     # Industry/domain keywords with their associated focus areas
     focus_keywords = {
-        "AI/Machine Learning": ["artificial intelligence", "machine learning", "deep learning", "neural network", "computer vision", "natural language", "nlp", "generative ai", "llm"],
+        "AI/Machine Learning": ["artificial intelligence", "machine learning", "deep learning", "neural network", "computer vision", "natural language", "nlp", "generative ai", "llm", " ai ", "ai research", "ai safety", "ai systems"],
         "Cloud/Infrastructure": ["cloud computing", "cloud infrastructure", "aws", "azure", "kubernetes", "devops", "infrastructure", "iaas", "saas", "paas"],
         "Cybersecurity": ["cybersecurity", "security solutions", "threat detection", "penetration testing", "vulnerability", "secure", "encryption", "firewall"],
         "Data/Analytics": ["data analytics", "big data", "business intelligence", "data science", "data platform", "analytics", "insights", "visualization"],
-        "Enterprise Software": ["enterprise software", "erp", "crm", "salesforce", "enterprise solutions", "business software", "workflow"],
+        "Enterprise Software": ["enterprise software", " erp ", " crm ", "salesforce", "enterprise solutions", "business software", "workflow"],
         "Financial Services": ["financial services", "fintech", "banking", "payment", "trading", "investment", "insurance", "wealth management"],
         "Healthcare/MedTech": ["healthcare", "medical", "health tech", "telemedicine", "patient care", "clinical", "pharmaceutical", "biotech"],
         "E-commerce/Retail": ["e-commerce", "ecommerce", "online shopping", "retail", "marketplace", "shopping platform", "consumer"],
@@ -467,17 +559,18 @@ def analyze_company_focus(page_content: str) -> str:
     sorted_areas = sorted(focus_scores.items(), key=lambda x: x[1]["score"], reverse=True)[:3]
     
     if not sorted_areas:
-        return ""
+        # No keywords matched - provide fallback message with content length
+        return f"ℹ️ Could not determine focus area from homepage (analyzed {len(page_content)} characters, but no keyword matches found). Content may be too generic or use non-standard terminology."
     
     # Build result string
     result_parts = []
     for focus_area, data in sorted_areas:
-        # Only include if score is significant (at least 2 mentions)
-        if data["score"] >= 2:
+        # Lower threshold from 2 to 1 mention
+        if data["score"] >= 1:
             keywords_str = ", ".join(data["keywords"][:3])  # Show max 3 keywords
             result_parts.append(f"{focus_area} (mentions: {keywords_str})")
     
     if result_parts:
-        return "AI-suggested focus areas: " + "; ".join(result_parts)
+        return "🤖 AI-suggested focus areas:\n" + "\n".join([f"• {part}" for part in result_parts])
     
-    return ""
+    return f"ℹ️ Weak keyword matches found. Analyzed {len(page_content)} characters but confidence is low."

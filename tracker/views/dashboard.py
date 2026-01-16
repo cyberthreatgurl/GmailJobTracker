@@ -41,17 +41,6 @@ def dashboard(request):
         "-timestamp"
     )[:50]
 
-    # Handle company filter
-    selected_company = None
-    company_filter = request.GET.get("company")
-    if company_filter:
-        try:
-            selected_company = Company.objects.get(id=int(company_filter))
-        except (Company.DoesNotExist, ValueError):
-            selected_company = None
-
-    company_filter_id = selected_company.id if selected_company else None
-
     # Get all companies for dropdown (excluding headhunters)
     all_companies = Company.objects.exclude(status="headhunter").order_by(Lower("name"))
 
@@ -79,22 +68,6 @@ def dashboard(request):
     for msg in recent_messages:
         raw_html = msg.body or ""
         msg.cleaned_body_html = extract_body_content(raw_html)
-
-    # Prepare thread data for selected company (like company_threads view)
-    threads_by_subject = []
-    if selected_company:
-        msgs = Message.objects.filter(company=selected_company, reviewed=True).order_by(
-            "thread_id", "timestamp"
-        )
-        # Group messages by subject
-        thread_dict = defaultdict(list)
-        for msg in msgs:
-            thread_dict[msg.subject].append(msg)
-        # Convert to list of dicts with subject and messages
-        threads_by_subject = [
-            {"subject": subj, "messages": msgs_list}
-            for subj, msgs_list in thread_dict.items()
-        ]
 
     # ✅ Group messages by thread_id with company preloaded
     threads = defaultdict(list)
@@ -314,8 +287,6 @@ def dashboard(request):
     user_email = (os.environ.get("USER_EMAIL_ADDRESS") or "").strip()
     if user_email:
         msg_qs = msg_qs.exclude(sender__icontains=user_email)
-    if company_filter_id:
-        msg_qs = msg_qs.filter(company_id=company_filter_id)
 
     for series in plot_series_config:
         ml_label = series["ml_label"]
@@ -335,8 +306,6 @@ def dashboard(request):
                 apps_msg_q = apps_msg_q.exclude(sender__icontains=user_email)
             if hh_companies:
                 apps_msg_q = apps_msg_q.exclude(company_id__in=hh_companies)
-            if company_filter_id:
-                apps_msg_q = apps_msg_q.filter(company_id=company_filter_id)
             # Exclude headhunter domain senders
             if headhunter_domains:
                 msg_hh_q = Q()
@@ -362,8 +331,6 @@ def dashboard(request):
                 rejs_q = rejs_q.filter(rejection_date__gte=app_start_date)
             if hh_companies:
                 rejs_q = rejs_q.exclude(company_id__in=hh_companies)
-            if company_filter_id:
-                rejs_q = rejs_q.filter(company_id=company_filter_id)
             rejs_by_day = rejs_q.values("rejection_date").annotate(
                 count=models.Count("id")
             )
@@ -392,8 +359,6 @@ def dashboard(request):
             # Exclude messages in threads already represented by Applications
             if app_threads:
                 msg_rejs_q = msg_rejs_q.exclude(thread_id__in=app_threads)
-            if company_filter_id:
-                msg_rejs_q = msg_rejs_q.filter(company_id=company_filter_id)
             msg_rejs_by_day = (
                 msg_rejs_q.annotate(day=TruncDate("timestamp"))
                 .values("day")
@@ -413,8 +378,6 @@ def dashboard(request):
                 ints_q = ints_q.filter(interview_date__gte=app_start_date)
             if hh_companies:
                 ints_q = ints_q.exclude(company_id__in=hh_companies)
-            if company_filter_id:
-                ints_q = ints_q.filter(company_id=company_filter_id)
             ints_by_day = ints_q.values("interview_date").annotate(
                 count=models.Count("id")
             )
@@ -427,8 +390,6 @@ def dashboard(request):
                 search_q = search_q.filter(last_job_search_date__date__gte=app_start_date)
             if hh_companies:
                 search_q = search_q.exclude(id__in=hh_companies)
-            if company_filter_id:
-                search_q = search_q.filter(id=company_filter_id)
             # Group by day and count companies searched
             search_by_day = (
                 search_q.annotate(day=TruncDate("last_job_search_date"))
@@ -509,10 +470,6 @@ def dashboard(request):
         rejection_companies_qs = rejection_companies_qs.exclude(
             company_id__in=hh_company_list
         )
-    if company_filter_id:
-        rejection_companies_qs = rejection_companies_qs.filter(
-            company_id=company_filter_id
-        )
 
     # 2) Message-based rejections (messages without corresponding Application.rejection_date)
     msg_rejections_qs = Message.objects.filter(
@@ -527,8 +484,6 @@ def dashboard(request):
         msg_rejections_qs = msg_rejections_qs.exclude(msg_hh_sender_q)
     if hh_company_list:
         msg_rejections_qs = msg_rejections_qs.exclude(company_id__in=hh_company_list)
-    if company_filter_id:
-        msg_rejections_qs = msg_rejections_qs.filter(company_id=company_filter_id)
 
     # Exclude messages whose thread already has an Application with rejection_date
     # to prevent double-counting (same as we do for interviews)
@@ -570,10 +525,6 @@ def dashboard(request):
         for d in headhunter_domains:
             msg_hh_q |= Q(sender__icontains=f"@{d}")
         application_companies_base = application_companies_base.exclude(msg_hh_q)
-    if company_filter_id:
-        application_companies_base = application_companies_base.filter(
-            company_id=company_filter_id
-        )
 
     # Get individual application messages (not aggregated) so JavaScript can filter and count by date
     application_companies_qs = application_companies_base.values(
@@ -593,8 +544,6 @@ def dashboard(request):
         ghosted_companies_qs = ghosted_companies_qs.exclude(
             company_id__in=hh_company_list
         )
-    if company_filter_id:
-        ghosted_companies_qs = ghosted_companies_qs.filter(company_id=company_filter_id)
 
     # Separate unfiltered query for CURRENT total ghosted companies (sidebar stat)
     # This ignores date filters and company filters to show absolute current ghosted count
@@ -661,10 +610,6 @@ def dashboard(request):
         interview_companies_qs = interview_companies_qs.exclude(
             company_id__in=hh_company_list
         )
-    if company_filter_id:
-        interview_companies_qs = interview_companies_qs.filter(
-            company_id=company_filter_id
-        )
 
     # Use a dict to track the earliest interview per company (deduplicate by company_id)
     interview_by_company = {}
@@ -702,8 +647,6 @@ def dashboard(request):
         msg_interviews_qs = msg_interviews_qs.exclude(msg_hh_sender_q)
     if hh_company_list:
         msg_interviews_qs = msg_interviews_qs.exclude(company_id__in=hh_company_list)
-    if company_filter_id:
-        msg_interviews_qs = msg_interviews_qs.filter(company_id=company_filter_id)
 
     # Add message-based interviews, keeping only the most recent per company
     # Skip companies that already have ThreadTracking interview_date
@@ -755,7 +698,6 @@ def dashboard(request):
         print(
             f"[DEBUG] hh_company_list count: {len(hh_company_list) if hh_company_list else 0}"
         )
-        print(f"[DEBUG] company_filter_id: {company_filter_id}")
     else:
         print(f"[DEBUG] Found {len(ghosted_companies)} ghosted companies")
 
@@ -827,7 +769,6 @@ def dashboard(request):
         "companies_list": companies_list,
         "recent_messages": recent_messages,
         "threads": thread_list,
-        "threads_by_subject": threads_by_subject,
         "latest_stats": latest_stats,
         "chart_labels": chart_labels,
         "chart_inserted": chart_inserted,
@@ -856,7 +797,6 @@ def dashboard(request):
         "ghosted_companies_list": ghosted_companies_list,
         "ghosted_count": ghosted_count,
         "all_companies": all_companies,
-        "selected_company": selected_company,
         "focus_area_wordcloud_data": focus_area_wordcloud_data,
     }
     # Ensure single source of truth for sidebar cards like Applications This Week

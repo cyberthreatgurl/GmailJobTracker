@@ -28,11 +28,9 @@
     "CVS Health has been received": "CVS Health",
     "draper": "Draper",
     "donotreply_Leidos_HR": "Leidos",
-    "Dragos Application": "Dragos",
     "ECS Technologies": "ECS",
     "OPS": "OPS Consulting",
     "Ping Windows": "PingWind",
-    "Follow-up on Dragos": "Dragos",
     "freddiemac": "Freddie Mac",
     "Google Application": "Google",
     "Guidehouse Federal": "Guidehouse",
@@ -74,7 +72,12 @@
     "Clover": "Clover Security",
     "AstraZeneca": "AstraZeneca US",
     "MITRE Corporation": "MITRE",
-    "pru": "Prudential"
+    "pru": "Prudential",
+    "Tech Wizards": "Tech Wizards Inc.",
+    "sei": "Carnegie Mellon University",
+    "synack": "Synack Red Team",
+    "facebook": "Meta",
+    "costar": "CoStar Realty Information, Inc"
   },
   "ats_domains": [
     "adp.com",
@@ -122,7 +125,9 @@
     "usastaffing.gov",
     "workday.com",
     "eightfold.ai",
-    "myworkdayjobs.com"
+    "myworkdayjobs.com",
+    "appreview.gem.com",
+    "greenhouse.io"
   ],
   "domain_to_company": {
     "afs.com": "Accenture Federal Services",
@@ -136,7 +141,6 @@
     "appdynamics.com": "Appdynamics",
     "appian.com": "Appian",
     "applicantstack.com": "Applicantstack",
-    "appreview.gem.com": "Anthropic",
     "arcfield.com": "Arcfield",
     "arcgrioup.org": "Applied R",
     "arcgroup.org": "Analysis and Resilience Center for Systemic Risk",
@@ -162,7 +166,6 @@
     "claroty.com": "Claroty",
     "claroty.comeet-notifications.com": "Claroty",
     "cloudflare.com": "Cloudflare",
-    "cmu.edu": "Carnegie Mellon University",
     "cnas.org": "Center for a New American Security",
     "coalfiredederal.com": "Coalfire Federal",
     "comeet-notifications.com": "Claroty",
@@ -260,7 +263,6 @@
     "rapid7.com": "Rapid7",
     "rappahannock.edu": "Rappahannock Community College",
     "recordedfuture.com": "Recorded Future",
-    "recruiting.facebook.com": "Meta",
     "redballoonsecurity.com": "Red Balloon Security, Inc.",
     "rigor.com": "Rigor",
     "rmcweb.com": "Resource Management Concepts",
@@ -268,7 +270,7 @@
     "sabresystems.com": "Sabre Systems",
     "saic.com": "SAIC",
     "sailpoint.com": "Sail Point Technologies",
-    "sei.cmu.edu": "Software Engineering Institute",
+    "sei.cmu.edu": "Carnegie Mellon University",
     "sentinelblue.com": "Sentinel Blue",
     "sentinelone.com": "SentinelOne",
     "sharpdecisions.com": "Analysis and Resilience Center for Systemic Risk",
@@ -324,7 +326,17 @@
     "pru.myworkday.com": "Prudential",
     "apple.com": "Apple",
     "vt.edu": "Virginia Tech",
-    "meta.com": "Meta"
+    "meta.com": "Meta",
+    "thtbc.com": "Tlingit Haida Tribal Business Corporation",
+    "bisongroupusa.com": "The Bison Group",
+    "sm2security.com": "SM2 Security Solutions, LLC",
+    "synack.com": "Synack Red Team",
+    "anthropic.com": "Anthropic",
+    "corsha.com": "Corsha",
+    "legionx.net": "Legion X",
+    "openai.com": "OpenAI",
+    "ventureglobal.com": "Venture Global",
+    "costar.com": "CoStar Realty Information, Inc"
   },
   "headhunter_domains": [
     "agreeya.com",
@@ -472,7 +484,7 @@
     "Sentinel Blue": "https://www.sentinelblue.com/company/careers/",
     "Randolph College": "https://www.randolphcollege.edu/humanresources/job-openings/",
     "Rappahannock Community College": "https://jobs.vccs.edu/postings/search?query=&query_organizational_tier_2_id%5B%5D=4573&commit=Search",
-    "University of Mary Washington": "https://jobs.umw.edu/jobs/search",
+    "University of Mary Washington": "https://www.umw.edu/careercenter/",
     "ARES Corporation": "https://workforcenow.adp.com/mascsr/default/mdf/recruitment/recruitment.html?cid=5c86c854-26b4-4d63-afc8-7cd746a5b057&ccId=19000101_000001&type=JS&lang=en_US",
     "Alluvial Concepts": "https://alluvialconcepts.com/find-opportunities/",
     "McGuireWoods": "https://careers.mcguirewoods.com/",
@@ -505,7 +517,7 @@
     "Corelight": "https://corelight.com/company/careers",
     "Corridor": "https://corridor.dev/jobs/",
     "Clover Security": "https://clover.security/careers.html",
-    "Verrus": "https://www.verrusgroup.com/vacancy/",
+    "Verrus": "https://www.verrusgroup.com/join-the-team/",
     "Cloudflare": "https://cloudflare.com/careers/",
     "CrowdStrike": "https://crowdstrike.com/en-us/careers/",
     "Palo Alto Networks": "https://jobs.paloaltonetworks.com/en/",
@@ -521,7 +533,19 @@
     "Clarifying the Complex": "https://www.thomsonreuters.com/en/careers",
     "Virginia Tech": "https://jobs.apply.vt.edu/",
     "Analysis and Resilience Center for Systemic Risk": "https://www.linkedin.com/company/systemicrisk/jobs/",
-    "Meta": "https://www.metacareers.com/"
+    "Meta": "https://www.metacareers.com/",
+    "THTBC": "https://thtbc.com/work-with-us/",
+    "Tlingit Haida Tribal Business Corporation": "https://thtbc.com/work-with-us/",
+    "Carnegie Mellon University": "https://sei.cmu.edu/careers/",
+    "The Bison Group": "https://recruiting.paylocity.com/recruiting/jobs/All/d394fc20-679d-4e94-90d9-dfa28a5f368b/The-Bison-Group",
+    "Synack Red Team": "https://www.synack.com/careers/#jobs",
+    "Corsha": "https://corsha.com/new-careers",
+    "Accenture Federal Services": "https://afs.com/us-en/careers",
+    "Legion X": "https://www.legionx.net/careers",
+    "OpenAI": "https://openai.com/careers/",
+    "Venture Global": "https://ventureglobal.com/careers/",
+    "CoStar Realty Information, Inc": "https://www.costargroup.com/careers",
+    "Dragos": "https://job-boards.greenhouse.io/dragos"
   },
   "known": [
     "Obsidian",
@@ -699,6 +723,12 @@
     "AstraZeneca US",
     "The MITRE Corporation",
     "Eightfold",
-    "Prudential"
+    "Prudential",
+    "THTBC",
+    "The Bison Group",
+    "SM2 Security Solutions, LLC",
+    "Synack Red Team",
+    "Corsha",
+    "Legion X"
   ]
 }

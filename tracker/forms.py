@@ -29,10 +29,17 @@ class ManualEntryForm(forms.Form):
     )
 
     # Company information
-    company_name = forms.CharField(
+    company_select = forms.ChoiceField(
+        label="Company",
+        help_text="Select an existing company or choose '- New Company -' to create a new one",
+        required=True,
+    )
+    
+    new_company_name = forms.CharField(
         max_length=255,
-        label="Company Name",
-        help_text="Enter the company name (will auto-match or create new)",
+        label="New Company Name",
+        required=False,
+        help_text="Enter the new company name (will be validated against existing companies and aliases)",
         validators=[
             RegexValidator(
                 regex=r'^[a-zA-Z0-9\s.,\-&\'"()]+$',
@@ -41,6 +48,46 @@ class ManualEntryForm(forms.Form):
             )
         ],
     )
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Populate company choices from database
+        from tracker.models import Company
+        companies = Company.objects.all().order_by('name')
+        choices = [('__new__', '- New Company -')]
+        choices.extend([(str(c.id), c.name) for c in companies])
+        self.fields['company_select'].choices = choices
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        company_select = cleaned_data.get('company_select')
+        new_company_name = cleaned_data.get('new_company_name', '').strip()
+        
+        # If new company selected, validate the name
+        if company_select == '__new__':
+            if not new_company_name:
+                raise forms.ValidationError({
+                    'new_company_name': 'Please enter a company name or select an existing company.'
+                })
+            
+            # Validate against existing companies and aliases
+            from tracker.models import Company, CompanyAlias
+            
+            # Check exact match (case-insensitive)
+            existing = Company.objects.filter(name__iexact=new_company_name).first()
+            if existing:
+                raise forms.ValidationError({
+                    'new_company_name': f'A company named "{existing.name}" already exists. Please select it from the dropdown.'
+                })
+            
+            # Check aliases
+            alias = CompanyAlias.objects.filter(alias__iexact=new_company_name).first()
+            if alias:
+                raise forms.ValidationError({
+                    'new_company_name': f'"{new_company_name}" is an alias for "{alias.company.name}". Please select "{alias.company.name}" from the dropdown.'
+                })
+        
+        return cleaned_data
 
     # Job details
     job_title = forms.CharField(

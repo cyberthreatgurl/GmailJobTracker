@@ -5314,6 +5314,18 @@ def ingest_message_from_eml(eml_content: str, fake_msg_id: str = None):
         existing.ml_label = ml_label
         existing.confidence = ml_confidence
         existing.save()
+
+        # Propagate label to ThreadTracking
+        if ml_label in ("job_application", "interview_invite") and company_obj:
+            try:
+                from tracker.utils import propagate_message_label_to_thread
+                propagate_message_label_to_thread(existing)
+                if DEBUG:
+                    print(f"[EML] Updated ThreadTracking for existing message")
+            except Exception as e:
+                if DEBUG:
+                    print(f"[EML] Failed to propagate label to ThreadTracking: {e}")
+
         return "skipped"
 
     # Create new message
@@ -5339,6 +5351,45 @@ def ingest_message_from_eml(eml_content: str, fake_msg_id: str = None):
 
         # Store body text in separate search table
         insert_email_text(fake_msg_id, metadata["subject"], body)
+
+        # Create or update ThreadTracking for job applications and interview invites
+        if ml_label in ("job_application", "interview_invite") and company_obj:
+            # Extract job details from parse_result
+            job_title = ""
+            job_id = ""
+            if isinstance(parse_result, dict):
+                job_title = parse_result.get("job_title", "")
+                job_id = parse_result.get("job_id", "")
+
+            # Determine status
+            status = "application" if ml_label == "job_application" else "interview"
+
+            try:
+                thread_tracking, tt_created = ThreadTracking.objects.get_or_create(
+                    thread_id=metadata["thread_id"],
+                    defaults={
+                        "company": company_obj,
+                        "company_source": "eml_import",
+                        "job_title": job_title,
+                        "job_id": job_id,
+                        "status": status,
+                        "sent_date": metadata["date"].date(),
+                        "ml_label": ml_label,
+                        "ml_confidence": ml_confidence,
+                        "reviewed": False,
+                    },
+                )
+
+                if tt_created:
+                    if DEBUG:
+                        print(f"[EML] Created ThreadTracking for {company_obj.name} - {ml_label}")
+                elif DEBUG:
+                    print(f"[EML] ThreadTracking already exists for thread {metadata['thread_id']}")
+
+            except Exception as e:
+                if DEBUG:
+                    print(f"[EML] Failed to create ThreadTracking: {e}")
+                # Don't fail the entire ingestion if ThreadTracking creation fails
 
         # Update stats
         IngestionStats.objects.filter(date=stats.date).update(

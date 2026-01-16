@@ -421,12 +421,22 @@
       
       if (isNewCompany) {
         if (isNonApplicationType) {
-          // Show warning and hide new company name field
+          // Show warning briefly, then auto-select Job Application
           newCompanyWarning.style.display = 'block';
           newCompanyNameGroup.style.display = 'none';
-          newCompanyNameInput.required = false;
+          
+          // Auto-select Job Application after a brief delay so user sees the message
+          setTimeout(() => {
+            const applicationRadio = document.querySelector('input[name="entry_type"][value="application"]');
+            if (applicationRadio) {
+              applicationRadio.checked = true;
+              // Trigger the change to update the UI
+              toggleNewCompanyField();
+            }
+          }, 1500);  // 1.5 second delay so user can read the message
+          
           submitBtn.disabled = true;
-          submitBtn.title = 'Please create a Job Application first';
+          submitBtn.title = 'Switching to Job Application...';
         } else {
           // Normal new company flow for applications
           newCompanyWarning.style.display = 'none';

@@ -338,4 +338,36 @@ def bulk_delete_manual_entries(request):
     return redirect("manual_entry")
 
 
-__all__ = ["edit_application", "flagged_applications", "manual_entry", "edit_manual_entry", "delete_manual_entry", "bulk_delete_manual_entries"]
+@login_required
+def get_company_job_titles(request, company_id):
+    """API endpoint to get job titles for a company's existing applications."""
+    from django.http import JsonResponse
+    
+    try:
+        company = Company.objects.get(id=company_id)
+        # Get distinct job titles from ThreadTracking for this company
+        # Only include application entries (not rejections, etc.)
+        job_titles = (
+            ThreadTracking.objects.filter(
+                company=company,
+                status="application"
+            )
+            .exclude(job_title__in=["", "Manual Entry"])
+            .values_list("job_title", flat=True)
+            .distinct()
+            .order_by("job_title")
+        )
+        return JsonResponse({
+            "success": True,
+            "company_name": company.name,
+            "job_titles": list(job_titles),
+        })
+    except Company.DoesNotExist:
+        return JsonResponse({
+            "success": False,
+            "error": "Company not found",
+            "job_titles": [],
+        })
+
+
+__all__ = ["edit_application", "flagged_applications", "manual_entry", "edit_manual_entry", "delete_manual_entry", "bulk_delete_manual_entries", "get_company_job_titles"]

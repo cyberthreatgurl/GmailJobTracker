@@ -19,6 +19,7 @@ urlpatterns = [
     path("manual_entry/<str:thread_id>/edit/", views.edit_manual_entry, name="edit_manual_entry"),
     path("manual_entry/<str:thread_id>/delete/", views.delete_manual_entry, name="delete_manual_entry"),
     path("manual_entry/bulk_delete/", views.bulk_delete_manual_entries, name="bulk_delete_manual_entries"),
+    path("api/company/<int:company_id>/job_titles/", views.get_company_job_titles, name="get_company_job_titles"),
     path("django_admin/", admin.site.urls, name="django_admin"),
     path("aliases/manage/", views.manage_aliases, name="manage_aliases"),
     path(

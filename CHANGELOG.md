@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.3] - 2026-01-16
+
+### Fixed
+- **Newsletter Override for ATS Emails** - Added pattern `\byour\s+\w+\s+application\s+for\b` to application patterns
+  - Matches subject lines like "Your Guidehouse Application for 34202 Cyber Security Engineer"
+  - Ensures ATS emails with List-Unsubscribe headers are not incorrectly ignored as newsletters
+  - Fixes Workday/Greenhouse emails that use unsubscribe headers being misclassified
+
 ## [1.2.2] - 2026-01-16
 
 ### Added

@@ -842,6 +842,20 @@ def label_messages(request):
         else:
             msg.sender_domain = "unknown"
 
+        # For manual entries, use ThreadTracking.sent_date as the display date
+        if msg.company_source == "manual":
+            try:
+                thread = ThreadTracking.objects.filter(thread_id=msg.thread_id).first()
+                if thread and thread.sent_date:
+                    from datetime import datetime, time
+                    msg.display_date = datetime.combine(thread.sent_date, time.min)
+                else:
+                    msg.display_date = msg.timestamp
+            except Exception:
+                msg.display_date = msg.timestamp
+        else:
+            msg.display_date = msg.timestamp
+
     # Calculate pagination info
     total_pages = (total_count + per_page - 1) // per_page
     has_previous = page > 1

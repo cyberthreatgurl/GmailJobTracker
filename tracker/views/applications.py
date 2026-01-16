@@ -74,6 +74,8 @@ def manual_entry(request):
                         company.status = "rejected"
                     elif entry_type == "interview" and company.status != "rejected":
                         company.status = "interview"
+                    elif entry_type == "prescreen" and company.status not in ("rejected", "interview"):
+                        company.status = "prescreen"
                 company.save()
 
             # Generate unique thread_id for manual entry
@@ -85,16 +87,19 @@ def manual_entry(request):
             # Create Application record
             status_map = {
                 "application": "application",
+                "prescreen": "prescreen",
                 "interview": "interview",
                 "rejection": "rejected",
             }
 
             rejection_date = application_date if entry_type == "rejection" else None
             interview_dt = interview_date if entry_type == "interview" else None
+            prescreen_dt = application_date if entry_type == "prescreen" else None
 
             # Map entry_type to ml_label (must match system labels)
             ml_label_map = {
                 "application": "job_application",  # System uses "job_application"
+                "prescreen": "prescreen",          # Prescreen call
                 "interview": "interview_invite",   # System uses "interview_invite"
                 "rejection": "rejection",          # Already correct
             }
@@ -110,6 +115,7 @@ def manual_entry(request):
                 status=status_map[entry_type],
                 sent_date=application_date,
                 rejection_date=rejection_date,
+                prescreen_date=prescreen_dt,
                 interview_date=interview_dt,
                 ml_label=ml_label,
                 ml_confidence=1.0,  # Manual entries are 100% confident

@@ -515,14 +515,17 @@ def label_messages(request):
                                     msg.ml_label = ml_label
                                     msg.confidence = ml_confidence
                                     if company:
-                                        company_obj, _ = Company.objects.get_or_create(
-                                            name=company,
-                                            defaults={
-                                                "first_contact": msg.timestamp,
-                                                "last_contact": msg.timestamp,
-                                                "confidence": ml_confidence,
-                                            },
-                                        )
+                                        # Case-insensitive lookup to prevent duplicates
+                                        company_obj = Company.objects.filter(name__iexact=company).first()
+                                        if not company_obj:
+                                            company_obj, _ = Company.objects.get_or_create(
+                                                name=company,
+                                                defaults={
+                                                    "first_contact": msg.timestamp,
+                                                    "last_contact": msg.timestamp,
+                                                    "confidence": ml_confidence,
+                                                },
+                                            )
                                         msg.company = company_obj
                                     msg.save()
                                     result = "skipped"  # Mark as processed
@@ -738,15 +741,16 @@ def label_messages(request):
     qs = qs.select_related("company").annotate(
         company_name=Coalesce(F("company__name"), Value("")),
     )
-    # Annotate sender_domain extracted after '@' when present
+    # Annotate sender_domain_sort for sorting (rough extraction for ordering purposes)
+    # The actual sender_domain property on the model handles display correctly
     at_pos = StrIndex(F("sender"), Value("@"))
     start_pos = ExpressionWrapper(at_pos + Value(1), output_field=IntegerField())
-    sender_domain_expr = Case(
+    sender_domain_sort_expr = Case(
         When(sender__contains="@", then=Substr(F("sender"), start_pos)),
         default=F("sender"),
         output_field=CharField(),
     )
-    qs = qs.annotate(sender_domain=sender_domain_expr)
+    qs = qs.annotate(sender_domain_sort=sender_domain_sort_expr)
 
     # Sorting
     sort = sort.lower()
@@ -769,7 +773,7 @@ def label_messages(request):
         )
     elif sort == "sender_domain":
         qs = qs.order_by(
-            "-sender_domain" if is_desc else "sender_domain",
+            "-sender_domain_sort" if is_desc else "sender_domain_sort",
             "-timestamp" if is_desc else "timestamp",
         )
     elif sort == "subject":
@@ -843,11 +847,7 @@ def label_messages(request):
         else:
             msg.display_subject = "[blank subject]"
 
-        if msg.sender:
-            sender_parts = msg.sender.split("@")
-            msg.sender_domain = sender_parts[1] if len(sender_parts) > 1 else "unknown"
-        else:
-            msg.sender_domain = "unknown"
+        # Note: msg.sender_domain is now a property on the Message model
 
         # For manual entries, use ThreadTracking.sent_date as the display date
         if msg.company_source == "manual":

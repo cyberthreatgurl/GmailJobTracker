@@ -2036,6 +2036,40 @@ def normalize_company_name(name: str) -> str:
     return _company_validator.normalize_company_name(name)
 
 
+def get_or_create_company_iexact(name: str, defaults: dict = None) -> tuple:
+    """Get or create a Company with case-insensitive name matching.
+    
+    Prevents duplicate companies that differ only in case (e.g., 'AMERICAN SYSTEMS' vs 'American Systems').
+    If a matching company exists (case-insensitive), returns that company.
+    Otherwise creates a new company with the provided name.
+    
+    Args:
+        name: Company name to look up or create
+        defaults: Default values for new company creation
+        
+    Returns:
+        Tuple of (company_obj, created) like get_or_create
+    """
+    from tracker.models import Company
+    
+    if not name:
+        return None, False
+    
+    # Try case-insensitive lookup first
+    existing = Company.objects.filter(name__iexact=name).first()
+    if existing:
+        return existing, False
+    
+    # No match found, create new company
+    if defaults is None:
+        defaults = {}
+    company_obj, created = Company.objects.get_or_create(
+        name=name,
+        defaults=defaults
+    )
+    return company_obj, created
+
+
 def resolve_company_alias(company_name: str) -> str:
     """Resolve company alias to canonical company name.
     
@@ -3689,7 +3723,7 @@ def ingest_message(service, msg_id):
         if company:
             # Resolve alias to canonical company name
             company = resolve_company_alias(company)
-            company_obj, _ = Company.objects.get_or_create(
+            company_obj, _ = get_or_create_company_iexact(
                 name=company,
                 defaults={
                     "first_contact": metadata["timestamp"],
@@ -4000,7 +4034,7 @@ def ingest_message(service, msg_id):
             company = normalize_company_name(mapped_company)
             # Resolve alias to canonical company name
             company = resolve_company_alias(company)
-            company_obj, _ = Company.objects.get_or_create(
+            company_obj, _ = get_or_create_company_iexact(
                 name=company,
                 defaults={
                     "first_contact": metadata["timestamp"],
@@ -4028,7 +4062,7 @@ def ingest_message(service, msg_id):
             company = normalize_company_name(company)
             # Resolve alias to canonical company name
             company = resolve_company_alias(company)
-            company_obj, _ = Company.objects.get_or_create(
+            company_obj, _ = get_or_create_company_iexact(
                 name=company,
                 defaults={
                     "first_contact": metadata["timestamp"],
@@ -4154,7 +4188,7 @@ def ingest_message(service, msg_id):
                     if mapped_company:
                         # Resolve alias to canonical company name
                         canonical_company = resolve_company_alias(normalize_company_name(mapped_company))
-                        company_obj, _ = Company.objects.get_or_create(
+                        company_obj, _ = get_or_create_company_iexact(
                             name=canonical_company,
                             defaults={
                                 "first_contact": metadata["timestamp"],
@@ -4573,7 +4607,7 @@ def ingest_message(service, msg_id):
             if mapped_company:
                 # Resolve alias to canonical company name
                 canonical_company = resolve_company_alias(normalize_company_name(mapped_company))
-                company_obj, _ = Company.objects.get_or_create(
+                company_obj, _ = get_or_create_company_iexact(
                     name=canonical_company,
                     defaults={
                         "first_contact": metadata["timestamp"],
@@ -5293,13 +5327,42 @@ def ingest_message_from_eml(eml_content: str, fake_msg_id: str = None):
     if company and company.strip():
         # Resolve alias to canonical company name
         canonical_company = resolve_company_alias(company)
-        company_obj, created = Company.objects.get_or_create(
+        company_obj, created = get_or_create_company_iexact(
             name=canonical_company,
             defaults={
                 "first_contact": date_obj,
                 "last_contact": date_obj,
             },
         )
+        
+        # Set company domain and/or ATS domain (same logic as ingest_message)
+        if company_obj:
+            sender_domain = metadata.get("sender_domain", "").lower()
+            needs_save = False
+            
+            # Set the primary domain if not already set
+            if not company_obj.domain:
+                known_domain = _get_domain_for_company(canonical_company)
+                if known_domain:
+                    company_obj.domain = known_domain
+                    needs_save = True
+                    if DEBUG:
+                        print(f"[EML] Set domain for {canonical_company} from companies.json: {known_domain}")
+                elif sender_domain and not _is_ats_domain(sender_domain):
+                    company_obj.domain = sender_domain
+                    needs_save = True
+                    if DEBUG:
+                        print(f"[EML] Set domain for {canonical_company}: {sender_domain}")
+            
+            # Set ATS domain if sender is an ATS and ATS field is empty
+            if not company_obj.ats and sender_domain and _is_ats_domain(sender_domain):
+                company_obj.ats = sender_domain
+                needs_save = True
+                if DEBUG:
+                    print(f"[EML] Set ATS domain for {canonical_company}: {sender_domain}")
+            
+            if needs_save:
+                company_obj.save()
 
     # Check for duplicates
     existing = Message.objects.filter(msg_id=fake_msg_id).first()

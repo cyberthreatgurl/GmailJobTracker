@@ -2311,4 +2311,75 @@ def scrape_job_posting(request):
         return JsonResponse({"error": f"Failed to scrape page: {str(e)}"}, status=500)
 
 
-__all__ = ["delete_company", "label_companies", "merge_companies", "manage_domains", "job_search_tracker", "scrape_job_posting"]
+@login_required
+def missing_applications(request):
+    """
+    Find companies with rejections but fewer (or no) application confirmations.
+    
+    This helps identify cases where:
+    - A rejection was received but no application confirmation email was tracked
+    - More rejections exist than applications (multiple roles applied, only some confirmations received)
+    """
+    from django.db.models import Count, Q
+    
+    # Get companies with their application and rejection counts
+    companies_with_counts = Company.objects.annotate(
+        application_count=Count(
+            'message',
+            filter=Q(message__ml_label='job_application')
+        ),
+        rejection_count=Count(
+            'message',
+            filter=Q(message__ml_label='rejection')
+        ),
+        interview_count=Count(
+            'message',
+            filter=Q(message__ml_label='interview_invite')
+        ),
+    ).filter(
+        rejection_count__gt=0  # Only companies with at least one rejection
+    ).filter(
+        rejection_count__gt=F('application_count')  # More rejections than applications
+    ).order_by('-rejection_count', 'name')
+    
+    # Build detailed data for template
+    companies_data = []
+    for company in companies_with_counts:
+        # Get the actual messages for context
+        rejections = Message.objects.filter(
+            company=company, 
+            ml_label='rejection'
+        ).order_by('-timestamp')[:5]
+        
+        applications = Message.objects.filter(
+            company=company, 
+            ml_label='job_application'
+        ).order_by('-timestamp')[:5]
+        
+        missing_count = company.rejection_count - company.application_count
+        
+        companies_data.append({
+            'company': company,
+            'application_count': company.application_count,
+            'rejection_count': company.rejection_count,
+            'interview_count': company.interview_count,
+            'missing_count': missing_count,
+            'rejections': rejections,
+            'applications': applications,
+        })
+    
+    # Calculate summary stats
+    total_missing = sum(c['missing_count'] for c in companies_data)
+    total_companies_affected = len(companies_data)
+    
+    ctx = {
+        **build_sidebar_context(),
+        'companies_data': companies_data,
+        'total_missing': total_missing,
+        'total_companies_affected': total_companies_affected,
+    }
+    
+    return render(request, 'tracker/missing_applications.html', ctx)
+
+
+__all__ = ["delete_company", "label_companies", "merge_companies", "manage_domains", "job_search_tracker", "scrape_job_posting", "missing_applications"]

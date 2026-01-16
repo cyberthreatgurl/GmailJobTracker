@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Missing Applications{% endblock %}
+
+{% block content %}
+<div class="bg-orange-50 p-6 rounded-lg shadow mb-6 border border-orange-200">
+    <div class="mb-4">
+        <h1 class="text-2xl font-bold text-gray-900 mb-2">⚠️ Missing Application Confirmations</h1>
+        <p class="text-gray-700">Companies with rejection emails but fewer (or no) application confirmation emails tracked</p>
+    </div>
+    
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+        <div class="bg-white p-4 rounded-lg shadow border-l-4 border-orange-500">
+            <div class="text-2xl font-bold text-orange-600">{{ total_companies_affected }}</div>
+            <div class="text-sm text-gray-600">Companies Affected</div>
+        </div>
+        <div class="bg-white p-4 rounded-lg shadow border-l-4 border-red-500">
+            <div class="text-2xl font-bold text-red-600">{{ total_missing }}</div>
+            <div class="text-sm text-gray-600">Missing Applications</div>
+        </div>
+        <div class="bg-white p-4 rounded-lg shadow border-l-4 border-blue-500">
+            <div class="text-sm text-gray-600 mb-1">Quick Fix</div>
+            <a href="{% url 'manual_entry' %}" class="text-blue-600 hover:underline text-sm font-medium">
+                ➕ Add Manual Entry
+            </a>
+        </div>
+    </div>
+</div>
+
+{% if companies_data %}
+<!-- Companies Table -->
+<div class="bg-white rounded-lg shadow overflow-hidden border border-gray-200">
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase">
+                        Company
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-center text-xs font-bold text-gray-700 uppercase">
+                        Applications
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-center text-xs font-bold text-gray-700 uppercase">
+                        Rejections
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-center text-xs font-bold text-gray-700 uppercase">
+                        Interviews
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-center text-xs font-bold text-gray-700 uppercase">
+                        Missing
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase">
+                        Recent Rejections
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-center text-xs font-bold text-gray-700 uppercase">
+                        Actions
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for item in companies_data %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <div>
+                                <div class="text-sm font-medium text-gray-900">
+                                    <a href="{% url 'label_companies' %}?company_id={{ item.company.id }}" class="hover:text-blue-600 hover:underline">
+                                        {{ item.company.name }}
+                                    </a>
+                                </div>
+                                {% if item.company.domain %}
+                                <div class="text-xs text-gray-500">{{ item.company.domain }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-center">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {% if item.application_count == 0 %}bg-red-100 text-red-800{% else %}bg-green-100 text-green-800{% endif %}">
+                            {{ item.application_count }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-center">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                            {{ item.rejection_count }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-center">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {% if item.interview_count > 0 %}bg-blue-100 text-blue-800{% else %}bg-gray-100 text-gray-600{% endif %}">
+                            {{ item.interview_count }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-center">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800 font-bold">
+                            {{ item.missing_count }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="max-w-md">
+                            {% for rejection in item.rejections %}
+                            <div class="text-xs text-gray-600 truncate mb-1" title="{{ rejection.subject }}">
+                                <span class="text-gray-400">{{ rejection.timestamp|date:"M d" }}:</span>
+                                {{ rejection.subject|truncatechars:50 }}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-center">
+                        <div class="flex items-center justify-center gap-2">
+                            <a href="{% url 'manual_entry' %}?company={{ item.company.name|urlencode }}" 
+                               class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                               title="Add manual application entry for {{ item.company.name }}">
+                                ➕ Add
+                            </a>
+                            <a href="{% url 'label_messages' %}?company={{ item.company.id }}&label=all" 
+                               class="inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                               title="View all messages from {{ item.company.name }}">
+                                📧 View
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% else %}
+<div class="bg-green-50 p-8 rounded-lg shadow border border-green-200 text-center">
+    <div class="text-4xl mb-4">✅</div>
+    <h2 class="text-xl font-semibold text-green-800 mb-2">All Clear!</h2>
+    <p class="text-green-700">Every company with a rejection has at least one application confirmation tracked.</p>
+</div>
+{% endif %}
+
+<!-- Help Section -->
+<div class="mt-6 bg-gray-50 p-4 rounded-lg border border-gray-200">
+    <h3 class="text-sm font-semibold text-gray-700 mb-2">💡 Why are applications missing?</h3>
+    <ul class="text-sm text-gray-600 space-y-1">
+        <li>• Some companies don't send application confirmation emails</li>
+        <li>• The confirmation email may have been filtered as spam or promotions</li>
+        <li>• The email was ingested before the classification patterns were added</li>
+        <li>• Applied through LinkedIn Easy Apply (often no confirmation email)</li>
+        <li>• Multiple roles at the same company but only one confirmation received</li>
+    </ul>
+    <div class="mt-3 text-sm text-gray-600">
+        <strong>To fix:</strong> Use the "➕ Add" button to create a manual application entry, or check Gmail for the original confirmation email and re-ingest it.
+    </div>
+</div>
+{% endblock %}

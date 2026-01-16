@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.5] - 2026-01-16
+
+### Changed
+- **Refactored Company Domain/ATS Assignment** - Extracted shared logic into `update_company_domain_and_ats()` helper
+  - New helper function in parser.py used by both Gmail API ingestion and EML file imports
+  - Eliminates code duplication between `ingest_message()` and `ingest_message_from_eml()`
+  - Ensures consistent behavior for domain and ATS field population across all import methods
+
 ## [1.2.4] - 2026-01-16
 
 ### Fixed

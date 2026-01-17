@@ -130,6 +130,7 @@
               <button type="submit" name="action" value="reingest_company" style="background:#ca8a04; color:white; font-weight:600; border-radius:6px; padding:0.45rem 1rem; border:none; cursor:pointer;" title="Re-ingest all messages from this company">🔄 Re-ingest</button>
             </form>
             {# Status is now auto-calculated based on latest message and GHOSTED_DAYS_THRESHOLD #}
+            <a href="{% url 'manual_entry' %}?company={{ selected_company.id }}" style="background:#2563eb; color:white; font-weight:600; border-radius:6px; padding:0.45rem 1rem; border:none; cursor:pointer; text-decoration:none; display:inline-block;" title="Create a new application for this company">➕ Create Application</a>
             <form method="get" action="{% url 'delete_company' selected_company.id %}" style="margin:0;">
               <button type="submit" style="background:#b91c1c; color:white; font-weight:600; border-radius:6px; padding:0.45rem 1rem; border:none; cursor:pointer;">Delete Company</button>
             </form>

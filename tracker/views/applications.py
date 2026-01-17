@@ -131,7 +131,17 @@ def manual_entry(request):
             )
             return redirect("manual_entry")
     else:
-        form = ManualEntryForm()
+        # Check for pre-selected company from query parameter
+        initial_data = {}
+        company_id = request.GET.get('company')
+        if company_id:
+            try:
+                company = Company.objects.get(id=int(company_id))
+                initial_data['company_select'] = str(company.id)
+            except (ValueError, Company.DoesNotExist):
+                pass  # Invalid company ID, ignore
+        
+        form = ManualEntryForm(initial=initial_data)
 
     # Show recent manual entries (includes new manual entries and updated existing entries)
     recent_entries = (

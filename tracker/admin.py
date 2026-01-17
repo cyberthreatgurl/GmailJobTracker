@@ -104,6 +104,7 @@ class CompanyAdmin(admin.ModelAdmin):
     def merge_selected_companies(self, request, queryset):
         """Admin action to merge selected companies."""
         from django.shortcuts import redirect
+        from django.urls import reverse
         selected = queryset.values_list("id", flat=True)
         if len(selected) < 2:
             self.message_user(
@@ -115,7 +116,7 @@ class CompanyAdmin(admin.ModelAdmin):
         
         # Redirect to merge view with selected company IDs
         company_ids = "&".join([f"company_ids={cid}" for cid in selected])
-        return redirect(f"/merge-companies/?{company_ids}")
+        return redirect(f"{reverse('merge_companies')}?{company_ids}")
     
     merge_selected_companies.short_description = "🔗 Merge selected companies"
 

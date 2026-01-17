@@ -92,6 +92,8 @@ def manual_entry(request):
                 job_id=job_id,
                 status="application",
                 sent_date=application_date,
+                application_url=application_url,
+                application_text=notes,  # Notes carry over to Application Details
                 ml_label="job_application",
                 ml_confidence=1.0,  # Manual entries are 100% confident
                 reviewed=True,
@@ -188,6 +190,8 @@ def edit_manual_entry(request, thread_id):
             entry.job_title = job_title
             entry.job_id = job_id
             entry.sent_date = application_date
+            entry.application_url = application_url
+            entry.application_text = notes  # Notes carry over to Application Details
             entry.save()
 
             # Update associated Message
@@ -203,21 +207,24 @@ def edit_manual_entry(request, thread_id):
             return redirect("manual_entry")
     else:
         # Pre-populate form with existing data
-        # Extract notes from Message body
+        # Use application_text for notes, fall back to extracting from Message body
         msg = Message.objects.filter(thread_id=thread_id).first()
-        notes_text = ""
+        notes_text = entry.application_text or ""
         source_text = "manual"
-        if msg and msg.body:
+        if not notes_text and msg and msg.body:
             parts = msg.body.split("\n\n", 1)
             if parts[0].startswith("Source: "):
                 source_text = parts[0].replace("Source: ", "").strip()
                 notes_text = parts[1] if len(parts) > 1 else ""
+        elif msg and msg.body and msg.body.startswith("Source: "):
+            source_text = msg.body.split("\n")[0].replace("Source: ", "").strip()
         
         initial_data = {
             "company_select": str(entry.company.id),
             "job_title": entry.job_title,
             "job_id": entry.job_id,
             "application_date": entry.sent_date,
+            "application_url": entry.application_url or "",
             "notes": notes_text,
             "source": source_text,
         }

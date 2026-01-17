@@ -124,6 +124,14 @@ class ManualEntryForm(forms.Form):
         help_text="When you submitted this application",
     )
 
+    application_url = forms.URLField(
+        max_length=500,
+        required=False,
+        label="Application URL",
+        help_text="Optional: Link to the job posting or application page",
+        widget=forms.URLInput(attrs={"placeholder": "https://..."}),
+    )
+
     # Additional info
     notes = forms.CharField(
         widget=forms.Textarea(attrs={"rows": 4}),

@@ -47,4 +47,6 @@ urlpatterns = [
     path("job_search_tracker/", views.job_search_tracker, name="job_search_tracker"),
     path("missing_applications/", views.missing_applications, name="missing_applications"),
     path("api/scrape_job_posting/", views.scrape_job_posting, name="scrape_job_posting"),
+    path("company/<int:company_id>/upload_document/", views.upload_company_document, name="upload_company_document"),
+    path("company/document/<int:document_id>/delete/", views.delete_company_document, name="delete_company_document"),
 ]

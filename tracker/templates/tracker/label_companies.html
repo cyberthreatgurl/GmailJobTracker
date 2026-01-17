@@ -292,6 +292,57 @@
             details[open] summary span:first-child { transform: rotate(90deg); }
           </style>
           
+          <!-- Documents Section (expandable) -->
+          <details style="background: #e0e7ff; border-radius: 8px; padding: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+            <summary style="cursor: pointer; padding: 1rem 1.5rem; font-weight: 600; color: #3730a3; font-size: 1rem; list-style: none; display: flex; align-items: center; gap: 0.5rem;">
+              <span style="transition: transform 0.2s;">▶</span> 📎 Documents{% if company_documents %} ({{ company_documents|length }}){% endif %}
+            </summary>
+            <div style="padding: 0 1.5rem 1.5rem 1.5rem;">
+              <!-- Existing Documents -->
+              {% if company_documents %}
+              <div style="margin-bottom: 1rem;">
+                <ul style="list-style: none; padding: 0; margin: 0;">
+                  {% for doc in company_documents %}
+                  <li style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0.75rem; background: white; border-radius: 6px; margin-bottom: 0.5rem; border: 1px solid #c7d2fe;">
+                    <span style="font-size: 1.25rem;">
+                      {% if doc.file_extension == '.pdf' %}📄{% elif doc.file_extension == '.xlsx' %}📊{% elif doc.file_extension == '.docx' %}📝{% else %}📃{% endif %}
+                    </span>
+                    <div style="flex: 1;">
+                      <a href="{{ doc.file.url }}" target="_blank" style="color: #3730a3; text-decoration: none; font-weight: 500;">{{ doc.filename }}</a>
+                      {% if doc.description %}
+                      <div style="font-size: 0.85rem; color: #6b7280;">{{ doc.description }}</div>
+                      {% endif %}
+                      <div style="font-size: 0.8rem; color: #9ca3af;">{{ doc.file_size_display }} • {{ doc.uploaded_at|date:"M d, Y" }}</div>
+                    </div>
+                    <form method="post" action="{% url 'delete_company_document' doc.id %}" style="margin: 0;" onsubmit="return confirm('Delete this document?');">
+                      {% csrf_token %}
+                      <button type="submit" style="background: #fee2e2; color: #991b1b; border: none; border-radius: 4px; padding: 0.35rem 0.6rem; cursor: pointer; font-size: 0.85rem;" title="Delete document">🗑️</button>
+                    </form>
+                  </li>
+                  {% endfor %}
+                </ul>
+              </div>
+              {% else %}
+              <p style="color: #6b7280; font-size: 0.95rem; margin-bottom: 1rem;">No documents uploaded yet.</p>
+              {% endif %}
+              
+              <!-- Upload Form -->
+              <form method="post" action="{% url 'upload_company_document' selected_company.id %}" enctype="multipart/form-data" style="background: white; padding: 1rem; border-radius: 6px; border: 1px solid #c7d2fe;">
+                {% csrf_token %}
+                <div style="margin-bottom: 0.75rem;">
+                  <label for="document" style="display: block; font-weight: 500; color: #374151; margin-bottom: 0.25rem;">Upload Document:</label>
+                  <input type="file" name="document" id="document" accept=".pdf,.txt,.xlsx,.docx" required style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem;" />
+                  <small style="color: #6b7280; display: block; margin-top: 0.25rem;">PDF, TXT, XLSX, DOCX only. Max 5MB.</small>
+                </div>
+                <div style="margin-bottom: 0.75rem;">
+                  <label for="description" style="display: block; font-weight: 500; color: #374151; margin-bottom: 0.25rem;">Description (optional):</label>
+                  <input type="text" name="description" id="description" placeholder="e.g., Offer Letter, Contract, NDA" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem; box-sizing: border-box;" />
+                </div>
+                <button type="submit" style="background: #4f46e5; color: white; font-weight: 600; border-radius: 6px; padding: 0.5rem 1rem; border: none; cursor: pointer;">📤 Upload</button>
+              </form>
+            </div>
+          </details>
+          
           <!-- Application Details Section -->
           {% if application_threads %}
           <details style="background: #dbeafe; border-radius: 8px; padding: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">

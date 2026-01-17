@@ -179,8 +179,12 @@ class StatsService:
         
         # Calculate average days to first response
         # First response = earliest of rejection_date, prescreen_date, interview_date
+        # Only count applications with sent_date AND at least one response date
+        # Exclude 0-day and negative entries (data entry artifacts or errors)
         responded_threads = ThreadTracking.objects.exclude(
             company__status="headhunter"
+        ).filter(
+            sent_date__isnull=False
         ).filter(
             Q(rejection_date__isnull=False) |
             Q(prescreen_date__isnull=False) |
@@ -196,10 +200,11 @@ class StatsService:
                 thread.prescreen_date,
                 thread.interview_date
             ] if d is not None]
-            if response_dates and thread.sent_date:
+            if response_dates:
                 earliest_response = min(response_dates)
                 days_to_response = (earliest_response - thread.sent_date).days
-                if days_to_response >= 0:  # Only count valid positive durations
+                # Exclude 0-day (same-day manual entries) and negative (data errors)
+                if days_to_response > 0:
                     total_days += days_to_response
                     count_with_response += 1
         

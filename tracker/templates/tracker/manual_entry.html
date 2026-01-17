@@ -49,22 +49,6 @@
       color: #6b7280;
       margin-top: 0.3rem;
     }
-    .radio-group {
-      display: flex;
-      gap: 1.5rem;
-      margin-top: 0.5rem;
-    }
-    .radio-group label {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      font-weight: 500;
-      cursor: pointer;
-    }
-    .radio-group input[type="radio"] {
-      width: auto;
-      cursor: pointer;
-    }
     .submit-btn {
       background: #2563eb;
       color: white;
@@ -236,8 +220,12 @@
 {% block content %}
 <div class="manual-entry-container">
   <h1>📝 Manual Entry</h1>
-  <p style="color: #6b7280; margin-bottom: 2rem;">
-    Add job applications, interviews, or rejections from external sources (LinkedIn, Indeed, email, etc.)
+  <p style="color: #6b7280; margin-bottom: 1rem;">
+    Add job applications from external sources (LinkedIn, Indeed, email, etc.)
+  </p>
+  <p style="color: #9ca3af; font-size: 0.9rem; margin-bottom: 2rem;">
+    💡 <strong>Tip:</strong> To update milestone dates (prescreen, interview, rejection, offer), use the 
+    <a href="{% url 'label_companies' %}" style="color: #2563eb;">Label Companies</a> page → Application Details section.
   </p>
 
   {% if messages %}
@@ -249,33 +237,14 @@
   {% endif %}
 
   <div class="form-card">
-    <h2>{% if is_edit %}Edit Entry{% else %}Add New Entry{% endif %}</h2>
+    <h2>{% if is_edit %}Edit Application{% else %}Add New Application{% endif %}</h2>
     <form method="post">
       {% csrf_token %}
-      
-      <div class="form-group">
-        <label for="{{ form.entry_type.id_for_label }}">{{ form.entry_type.label }}</label>
-        <div class="radio-group">
-          {% for choice in form.entry_type %}
-            {{ choice }}
-          {% endfor %}
-        </div>
-        {% if form.entry_type.errors %}
-          <ul class="errorlist">
-            {% for error in form.entry_type.errors %}
-              <li>{{ error }}</li>
-            {% endfor %}
-          </ul>
-        {% endif %}
-      </div>
 
       <div class="form-group">
         <label for="{{ form.company_select.id_for_label }}">{{ form.company_select.label }}</label>
         {{ form.company_select }}
         <div class="help-text">{{ form.company_select.help_text }}</div>
-        <div id="new-company-warning" style="display: none; background: #fee2e2; border: 1px solid #fecaca; color: #991b1b; padding: 0.75rem; border-radius: 6px; margin-top: 0.5rem;">
-          ⚠️ <strong>Please create a Job Application first.</strong> You cannot add a prescreen, interview, or rejection for a new company without an existing application.
-        </div>
         {% if form.company_select.errors %}
           <ul class="errorlist">
             {% for error in form.company_select.errors %}
@@ -299,19 +268,10 @@
       </div>
 
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-        <div class="form-group" id="job-title-group">
+        <div class="form-group">
           <label for="{{ form.job_title.id_for_label }}">{{ form.job_title.label }}</label>
-          <!-- Job title dropdown for prescreen/interview/rejection -->
-          <div id="job-title-select-container" style="display: none; margin-bottom: 0.5rem;">
-            <select id="job-title-select" style="width: 100%; padding: 0.6rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem; margin-bottom: 0.5rem;">
-              <option value="">-- Select existing job title --</option>
-            </select>
-            <div id="no-applications-warning" style="display: none; background: #fef3c7; border: 1px solid #f59e0b; color: #92400e; padding: 0.5rem; border-radius: 4px; font-size: 0.85rem; margin-bottom: 0.5rem;">
-              ⚠️ No existing applications found for this company. Please add a Job Application first, or enter a new job title below.
-            </div>
-          </div>
           {{ form.job_title }}
-          <div class="help-text" id="job-title-help">{{ form.job_title.help_text }}</div>
+          <div class="help-text">{{ form.job_title.help_text }}</div>
           {% if form.job_title.errors %}
             <ul class="errorlist">
               {% for error in form.job_title.errors %}
@@ -335,7 +295,7 @@
         </div>
       </div>
 
-      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
         <div class="form-group">
           <label for="{{ form.application_date.id_for_label }}">{{ form.application_date.label }}</label>
           {{ form.application_date }}
@@ -343,19 +303,6 @@
           {% if form.application_date.errors %}
             <ul class="errorlist">
               {% for error in form.application_date.errors %}
-                <li>{{ error }}</li>
-              {% endfor %}
-            </ul>
-          {% endif %}
-        </div>
-
-        <div class="form-group" id="interview-date-group">
-          <label for="{{ form.interview_date.id_for_label }}" id="interview-date-label">{{ form.interview_date.label }}</label>
-          {{ form.interview_date }}
-          <div class="help-text" id="interview-date-help">{{ form.interview_date.help_text }}</div>
-          {% if form.interview_date.errors %}
-            <ul class="errorlist">
-              {% for error in form.interview_date.errors %}
                 <li>{{ error }}</li>
               {% endfor %}
             </ul>
@@ -389,7 +336,7 @@
         {% endif %}
       </div>
 
-      <button type="submit" class="submit-btn">{% if is_edit %}Update Entry{% else %}Add Entry{% endif %}</button>
+      <button type="submit" class="submit-btn">{% if is_edit %}Update Application{% else %}Add Application{% endif %}</button>
       {% if is_edit %}
         <a href="{% url 'manual_entry' %}" class="submit-btn" style="background: #6b7280; margin-left: 1rem; display: inline-block; text-decoration: none;">Cancel</a>
       {% endif %}
@@ -401,227 +348,27 @@
     const companySelect = document.getElementById('{{ form.company_select.id_for_label }}');
     const newCompanyNameGroup = document.getElementById('new-company-name-group');
     const newCompanyNameInput = document.getElementById('{{ form.new_company_name.id_for_label }}');
-    const newCompanyWarning = document.getElementById('new-company-warning');
-    const submitBtn = document.querySelector('.submit-btn');
-    
-    // Job title elements
-    const jobTitleInput = document.getElementById('{{ form.job_title.id_for_label }}');
-    const jobTitleSelectContainer = document.getElementById('job-title-select-container');
-    const jobTitleSelect = document.getElementById('job-title-select');
-    const noApplicationsWarning = document.getElementById('no-applications-warning');
-    const jobTitleHelp = document.getElementById('job-title-help');
-    
-    // Cache for job titles per company
-    const jobTitlesCache = {};
 
     function toggleNewCompanyField() {
-      const entryType = getSelectedEntryType();
       const isNewCompany = companySelect.value === '__new__';
-      const isNonApplicationType = ['prescreen', 'interview', 'rejection'].includes(entryType);
-      
       if (isNewCompany) {
-        if (isNonApplicationType) {
-          // Show warning briefly, then auto-select Job Application
-          newCompanyWarning.style.display = 'block';
-          newCompanyNameGroup.style.display = 'none';
-          
-          // Auto-select Job Application after a brief delay so user sees the message
-          setTimeout(() => {
-            const applicationRadio = document.querySelector('input[name="entry_type"][value="application"]');
-            if (applicationRadio) {
-              applicationRadio.checked = true;
-              // Trigger the change to update the UI
-              toggleNewCompanyField();
-            }
-          }, 1500);  // 1.5 second delay so user can read the message
-          
-          submitBtn.disabled = true;
-          submitBtn.title = 'Switching to Job Application...';
-        } else {
-          // Normal new company flow for applications
-          newCompanyWarning.style.display = 'none';
-          newCompanyNameGroup.style.display = 'block';
-          newCompanyNameInput.required = true;
-          submitBtn.disabled = false;
-          submitBtn.title = '';
-        }
+        newCompanyNameGroup.style.display = 'block';
+        newCompanyNameInput.required = true;
       } else {
-        newCompanyWarning.style.display = 'none';
         newCompanyNameGroup.style.display = 'none';
         newCompanyNameInput.required = false;
         newCompanyNameInput.value = '';  // Clear the field when hidden
-        submitBtn.disabled = false;
-        submitBtn.title = '';
-      }
-      // Also update job title dropdown
-      updateJobTitleDropdown();
-    }
-    
-    function getSelectedEntryType() {
-      const selected = document.querySelector('input[name="entry_type"]:checked');
-      return selected ? selected.value : 'application';
-    }
-    
-    function updateInterviewDateLabel() {
-      const entryType = getSelectedEntryType();
-      const label = document.getElementById('interview-date-label');
-      const help = document.getElementById('interview-date-help');
-      const group = document.getElementById('interview-date-group');
-      
-      if (entryType === 'prescreen') {
-        label.textContent = 'Prescreen Date';
-        help.textContent = 'When is the prescreen call scheduled?';
-        group.style.display = 'block';
-      } else if (entryType === 'interview') {
-        label.textContent = 'Interview Date';
-        help.textContent = 'Scheduled interview date';
-        group.style.display = 'block';
-      } else if (entryType === 'rejection') {
-        label.textContent = 'Rejection Date';
-        help.textContent = 'When did you receive the rejection?';
-        group.style.display = 'block';
-      } else if (entryType === 'offer') {
-        label.textContent = 'Offer Date';
-        help.textContent = 'When did you receive the offer?';
-        group.style.display = 'block';
-      } else {
-        // Hide for application type only
-        label.textContent = 'Interview Date';
-        help.textContent = 'For interview entries: scheduled interview date';
-        group.style.display = 'none';
       }
     }
-    
-    async function fetchJobTitles(companyId) {
-      if (jobTitlesCache[companyId]) {
-        return jobTitlesCache[companyId];
-      }
-      try {
-        const response = await fetch(`/api/company/${companyId}/job_titles/`);
-        const data = await response.json();
-        if (data.success) {
-          jobTitlesCache[companyId] = data.job_titles;
-          return data.job_titles;
-        }
-      } catch (error) {
-        console.error('Error fetching job titles:', error);
-      }
-      return [];
-    }
-    
-    async function updateJobTitleDropdown() {
-      const entryType = getSelectedEntryType();
-      const companyId = companySelect.value;
-      
-      // Only show dropdown for prescreen, interview, rejection when a real company is selected
-      if (entryType === 'application' || companyId === '__new__' || !companyId) {
-        jobTitleSelectContainer.style.display = 'none';
-        noApplicationsWarning.style.display = 'none';
-        jobTitleInput.style.display = 'block';  // Show text input for direct entry
-        jobTitleHelp.textContent = '{{ form.job_title.help_text }}';
-        return;
-      }
-      
-      // Fetch job titles for the selected company
-      const jobTitles = await fetchJobTitles(companyId);
-      
-      // Clear existing options
-      jobTitleSelect.innerHTML = '<option value="">-- Select existing job title --</option>';
-      
-      if (jobTitles.length > 0) {
-        // Populate dropdown with job titles
-        jobTitles.forEach(title => {
-          const option = document.createElement('option');
-          option.value = title;
-          option.textContent = title;
-          jobTitleSelect.appendChild(option);
-        });
-        
-        // Add option for custom entry
-        const customOption = document.createElement('option');
-        customOption.value = '__custom__';
-        customOption.textContent = '-- Enter new job title --';
-        jobTitleSelect.appendChild(customOption);
-        
-        jobTitleSelectContainer.style.display = 'block';
-        jobTitleSelect.style.display = 'block';  // Make sure dropdown is visible
-        noApplicationsWarning.style.display = 'none';
-        
-        // Check if current job title matches an existing option (for edit mode)
-        const currentJobTitle = jobTitleInput.value.trim();
-        let matchFound = false;
-        if (currentJobTitle) {
-          for (let i = 0; i < jobTitleSelect.options.length; i++) {
-            if (jobTitleSelect.options[i].value === currentJobTitle) {
-              jobTitleSelect.selectedIndex = i;
-              matchFound = true;
-              break;
-            }
-          }
-        }
-        
-        // Hide text input if a match was found, show it otherwise
-        if (matchFound) {
-          jobTitleInput.style.display = 'none';
-        } else if (currentJobTitle) {
-          // Has a custom job title - select "Enter new job title" option
-          for (let i = 0; i < jobTitleSelect.options.length; i++) {
-            if (jobTitleSelect.options[i].value === '__custom__') {
-              jobTitleSelect.selectedIndex = i;
-              break;
-            }
-          }
-          jobTitleInput.style.display = 'block';
-        } else {
-          jobTitleInput.style.display = 'none';
-        }
-        
-        jobTitleHelp.textContent = 'Select from existing applications or enter a new title';
-      } else {
-        // No applications found - show warning and text input
-        jobTitleSelectContainer.style.display = 'block';
-        noApplicationsWarning.style.display = 'block';
-        jobTitleSelect.style.display = 'none';
-        jobTitleInput.style.display = 'block';  // Show text input for manual entry
-        jobTitleHelp.textContent = 'Enter job title manually';
-      }
-    }
-    
-    // When job title dropdown changes, update the text input
-    jobTitleSelect.addEventListener('change', function() {
-      if (this.value === '__custom__' || this.value === '') {
-        // Show text input for custom entry
-        jobTitleInput.value = '';
-        jobTitleInput.style.display = 'block';
-        jobTitleInput.focus();
-      } else {
-        // Hide text input when selecting existing job title
-        jobTitleInput.value = this.value;
-        jobTitleInput.style.display = 'none';
-      }
-    });
-    
-    // Listen for entry type changes
-    document.querySelectorAll('input[name="entry_type"]').forEach(radio => {
-      radio.addEventListener('change', function() {
-        toggleNewCompanyField();  // Re-check new company warning
-        updateInterviewDateLabel();  // Update date label based on entry type
-        // Reset job title select visibility
-        jobTitleSelect.style.display = 'block';
-      });
-    });
 
     // Initialize on page load
     toggleNewCompanyField();
-    updateInterviewDateLabel();
 
     // Update when dropdown changes
-    companySelect.addEventListener('change', function() {
-      toggleNewCompanyField();
-      // Reset job title select visibility
-      jobTitleSelect.style.display = 'block';
-    });
+    companySelect.addEventListener('change', toggleNewCompanyField);
+  </script>
 
+  <script>
     // Bulk delete functionality
     const selectAllCheckbox = document.getElementById('select-all');
     const entryCheckboxes = document.querySelectorAll('.entry-select');

@@ -40,18 +40,21 @@ def flagged_applications(request):
 
 @login_required
 def manual_entry(request):
-    """Manual entry form for job applications from external sources."""
+    """Manual entry form for NEW job applications from external sources.
+    
+    Note: This form only creates new applications. To update milestones 
+    (prescreen, interview, rejection, offer dates), use the Application Details
+    section on the Label Companies page.
+    """
     if request.method == "POST":
         form = ManualEntryForm(request.POST)
         if form.is_valid():
             # Extract cleaned data
             company_select = form.cleaned_data["company_select"]
             new_company_name = form.cleaned_data.get("new_company_name", "").strip()
-            entry_type = form.cleaned_data["entry_type"]
             job_title = form.cleaned_data.get("job_title") or "Manual Entry"
             job_id = form.cleaned_data.get("job_id") or ""
             application_date = form.cleaned_data["application_date"]
-            interview_date = form.cleaned_data.get("interview_date")
             notes = form.cleaned_data.get("notes") or ""
             source = form.cleaned_data.get("source") or "manual"
 
@@ -69,63 +72,10 @@ def manual_entry(request):
                 company = Company.objects.get(id=int(company_select))
                 # Update last contact
                 company.last_contact = now()
-                # Don't auto-update status if it's "new" (preserve manual "new" status)
-                if company.status != "new":
-                    if entry_type == "offer":
-                        company.status = "offer"
-                    elif entry_type == "rejection":
-                        company.status = "rejected"
-                    elif entry_type == "interview" and company.status not in ("rejected", "offer"):
-                        company.status = "interview"
-                    elif entry_type == "prescreen" and company.status not in ("rejected", "interview", "offer"):
-                        company.status = "prescreen"
+                # Update status to application if it's "new"
+                if company.status == "new":
+                    company.status = "application"
                 company.save()
-
-            # For prescreen/interview/rejection/offer on existing company, try to find and update
-            # the existing application record instead of creating a new one
-            if entry_type in ("prescreen", "interview", "rejection", "offer") and company_select != "__new__":
-                # Look for existing application with same job title
-                existing_app = ThreadTracking.objects.filter(
-                    company=company,
-                    job_title=job_title,
-                    ml_label="job_application"
-                ).first()
-                
-                if existing_app:
-                    # Update the existing application record with the new date
-                    if entry_type == "prescreen":
-                        existing_app.prescreen_date = interview_date
-                        existing_app.status = "prescreen"
-                    elif entry_type == "interview":
-                        existing_app.interview_date = interview_date
-                        existing_app.status = "interview"
-                    elif entry_type == "rejection":
-                        existing_app.rejection_date = interview_date
-                        existing_app.status = "rejected"
-                    elif entry_type == "offer":
-                        existing_app.offer_date = interview_date
-                        existing_app.status = "offer"
-                    # Mark as manually updated so it shows in recent manual entries
-                    existing_app.company_source = "manual_update"
-                    existing_app.reviewed = True
-                    existing_app.save()
-                    
-                    # Update company status
-                    if entry_type == "offer":
-                        company.status = "offer"
-                    elif entry_type == "rejection":
-                        company.status = "rejected"
-                    elif entry_type == "interview" and company.status not in ("rejected", "offer"):
-                        company.status = "interview"
-                    elif entry_type == "prescreen" and company.status not in ("rejected", "interview", "offer"):
-                        company.status = "prescreen"
-                    company.save()
-                    
-                    messages.success(
-                        request,
-                        f"✅ Updated {job_title} at {company.name} with {entry_type} date",
-                    )
-                    return redirect("manual_entry")
 
             # Generate unique thread_id for manual entry
             import hashlib
@@ -133,52 +83,23 @@ def manual_entry(request):
             thread_id_base = f"manual_{company.name}_{job_title}_{application_date}_{now().timestamp()}"
             thread_id = hashlib.md5(thread_id_base.encode()).hexdigest()[:16]
 
-            # Create Application record
-            status_map = {
-                "application": "application",
-                "prescreen": "prescreen",
-                "interview": "interview",
-                "rejection": "rejected",
-                "offer": "offer",
-            }
-
-            # For rejection/prescreen: use interview_date field as the date (more intuitive UX)
-            rejection_date = interview_date if entry_type == "rejection" else None
-            interview_dt = interview_date if entry_type == "interview" else None
-            prescreen_dt = interview_date if entry_type == "prescreen" else None
-            offer_dt = interview_date if entry_type == "offer" else None
-
-            # Map entry_type to ml_label (must match system labels)
-            ml_label_map = {
-                "application": "job_application",  # System uses "job_application"
-                "prescreen": "prescreen",          # Prescreen call
-                "interview": "interview_invite",   # System uses "interview_invite"
-                "rejection": "rejection",          # Already correct
-                "offer": "offer",                  # Job offer received
-            }
-            ml_label = ml_label_map[entry_type]
-
-            # Create application record (not used after creation, logged implicitly)
+            # Create ThreadTracking record for the new application
             ThreadTracking.objects.create(
                 thread_id=thread_id,
                 company=company,
                 company_source="manual",
                 job_title=job_title,
                 job_id=job_id,
-                status=status_map[entry_type],
+                status="application",
                 sent_date=application_date,
-                rejection_date=rejection_date,
-                prescreen_date=prescreen_dt,
-                interview_date=interview_dt,
-                offer_date=offer_dt,
-                ml_label=ml_label,
+                ml_label="job_application",
                 ml_confidence=1.0,  # Manual entries are 100% confident
                 reviewed=True,
             )
 
             # Create Message record for tracking
             msg_id = f"manual_{thread_id}"
-            subject = f"{entry_type.title()}: {job_title} at {company.name}"
+            subject = f"Application: {job_title} at {company.name}"
             body = f"Source: {source}\n\n{notes}" if notes else f"Source: {source}"
 
             # Convert application_date to timezone-aware datetime for timestamp field
@@ -197,14 +118,14 @@ def manual_entry(request):
                 timestamp=app_datetime,
                 msg_id=msg_id,
                 thread_id=thread_id,
-                ml_label=ml_label,  # Use mapped ml_label
+                ml_label="job_application",
                 confidence=1.0,
                 reviewed=True,
             )
 
             messages.success(
                 request,
-                f"✅ Successfully added {entry_type} for {company.name} - {job_title}",
+                f"✅ Successfully added application for {company.name} - {job_title}",
             )
             return redirect("manual_entry")
     else:
@@ -229,7 +150,12 @@ def manual_entry(request):
 
 @login_required
 def edit_manual_entry(request, thread_id):
-    """Edit a manual entry."""
+    """Edit a manual application entry.
+    
+    Note: This only edits basic application info (company, job title, dates).
+    Milestone dates (prescreen, interview, rejection, offer) should be updated
+    via the Application Details section on the Label Companies page.
+    """
     entry = get_object_or_404(ThreadTracking, thread_id=thread_id, company_source__in=["manual", "manual_update"])
     
     if request.method == "POST":
@@ -238,11 +164,9 @@ def edit_manual_entry(request, thread_id):
             # Extract cleaned data
             company_select = form.cleaned_data["company_select"]
             new_company_name = form.cleaned_data.get("new_company_name", "").strip()
-            entry_type = form.cleaned_data["entry_type"]
             job_title = form.cleaned_data.get("job_title") or "Manual Entry"
             job_id = form.cleaned_data.get("job_id") or ""
             application_date = form.cleaned_data["application_date"]
-            interview_date = form.cleaned_data.get("interview_date")
             notes = form.cleaned_data.get("notes") or ""
             source = form.cleaned_data.get("source") or "manual"
 
@@ -257,60 +181,22 @@ def edit_manual_entry(request, thread_id):
             else:
                 company = Company.objects.get(id=int(company_select))
                 company.last_contact = now()
-                if company.status != "new":
-                    if entry_type == "offer":
-                        company.status = "offer"
-                    elif entry_type == "rejection":
-                        company.status = "rejected"
-                    elif entry_type == "interview" and company.status not in ("rejected", "offer"):
-                        company.status = "interview"
-                    elif entry_type == "prescreen" and company.status not in ("rejected", "interview", "offer"):
-                        company.status = "prescreen"
                 company.save()
 
-            # Map entry_type to ml_label and status
-            ml_label_map = {
-                "application": "job_application",
-                "prescreen": "prescreen",
-                "interview": "interview_invite",
-                "rejection": "rejection",
-                "offer": "offer",
-            }
-            status_map = {
-                "application": "application",
-                "prescreen": "prescreen",
-                "interview": "interview",
-                "rejection": "rejected",
-                "offer": "offer",
-            }
-
-            # For rejection/prescreen: use interview_date field as the date (more intuitive UX)
-            rejection_date = interview_date if entry_type == "rejection" else None
-            interview_dt = interview_date if entry_type == "interview" else None
-            prescreen_dt = interview_date if entry_type == "prescreen" else None
-            offer_dt = interview_date if entry_type == "offer" else None
-
-            # Update ThreadTracking
+            # Update ThreadTracking (preserve any existing milestone dates)
             entry.company = company
             entry.job_title = job_title
             entry.job_id = job_id
-            entry.status = status_map[entry_type]
             entry.sent_date = application_date
-            entry.rejection_date = rejection_date
-            entry.prescreen_date = prescreen_dt
-            entry.interview_date = interview_dt
-            entry.offer_date = offer_dt
-            entry.ml_label = ml_label_map[entry_type]
             entry.save()
 
             # Update associated Message
             msg = Message.objects.filter(thread_id=thread_id).first()
             if msg:
                 msg.company = company
-                msg.subject = f"{entry_type.title()}: {job_title} at {company.name}"
+                msg.subject = f"Application: {job_title} at {company.name}"
                 msg.body = f"Source: {source}\n\n{notes}" if notes else f"Source: {source}"
                 msg.body_html = f"<p>{msg.body.replace(chr(10), '<br>')}</p>"
-                msg.ml_label = ml_label_map[entry_type]
                 msg.save()
 
             messages.success(request, f"✅ Updated manual entry for {company.name}")
@@ -327,36 +213,11 @@ def edit_manual_entry(request, thread_id):
                 source_text = parts[0].replace("Source: ", "").strip()
                 notes_text = parts[1] if len(parts) > 1 else ""
         
-        # Map status back to entry_type (status is more reliable than ml_label for updated entries)
-        entry_type_map = {
-            "application": "application",
-            "prescreen": "prescreen",
-            "interview": "interview",
-            "rejected": "rejection",
-            "offer": "offer",
-        }
-        
-        # Determine which date to use for the interview_date field based on entry type
-        entry_type = entry_type_map.get(entry.status, "application")
-        if entry_type == "prescreen":
-            # For prescreen, prescreen_date goes in interview_date field
-            int_date = entry.prescreen_date
-        elif entry_type == "rejection":
-            # For rejection, rejection_date goes in interview_date field
-            int_date = entry.rejection_date
-        elif entry_type == "offer":
-            # For offer, offer_date goes in interview_date field
-            int_date = entry.offer_date
-        else:
-            int_date = entry.interview_date
-        
         initial_data = {
             "company_select": str(entry.company.id),
-            "entry_type": entry_type,
             "job_title": entry.job_title,
             "job_id": entry.job_id,
             "application_date": entry.sent_date,
-            "interview_date": int_date,
             "notes": notes_text,
             "source": source_text,
         }

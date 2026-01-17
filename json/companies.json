@@ -338,7 +338,8 @@
     "ventureglobal.com": "Venture Global",
     "costar.com": "CoStar Realty Information, Inc",
     "americansystems.com": "American Systems",
-    "cellebrite.com": "Cellebrite"
+    "cellebrite.com": "Cellebrite",
+    "zscaler.com": "Zscaler"
   },
   "headhunter_domains": [
     "agreeya.com",
@@ -552,7 +553,8 @@
     "TechPride": "https://www.linkedin.com/company/techpride/jobs/",
     "AMERICAN SYSTEMS": "http://www.americansystems.com/careers-welcome",
     "American Systems": "http://www.americansystems.com/careers-welcome",
-    "Cellebrite": "https://cellebrite.com/en/about/careers/"
+    "Cellebrite": "https://cellebrite.com/en/about/careers/",
+    "Zscaler": "https://www.zscaler.com/careers"
   },
   "known": [
     "Obsidian",
@@ -737,6 +739,7 @@
     "Synack Red Team",
     "Corsha",
     "Legion X",
-    "Cellebrite"
+    "Cellebrite",
+    "Zscaler"
   ]
 }

@@ -13,22 +13,12 @@ class ApplicationEditForm(forms.ModelForm):
 
 
 class ManualEntryForm(forms.Form):
-    """Form for manually entering job application data from external sources."""
-
-    # Entry type
-    ENTRY_TYPES = [
-        ("application", "Job Application"),
-        ("prescreen", "Prescreen Call"),
-        ("interview", "Interview Invitation"),
-        ("rejection", "Rejection"),
-        ("offer", "Job Offer"),
-    ]
-    entry_type = forms.ChoiceField(
-        choices=ENTRY_TYPES,
-        widget=forms.RadioSelect,
-        initial="application",
-        label="Entry Type",
-    )
+    """Form for manually entering NEW job applications from external sources.
+    
+    Note: This form only creates new applications. To update milestones 
+    (prescreen, interview, rejection, offer dates), use the Application Details
+    section on the Label Companies page.
+    """
 
     # Company information
     company_select = forms.ChoiceField(
@@ -131,14 +121,7 @@ class ManualEntryForm(forms.Form):
         widget=forms.DateInput(attrs={"type": "date"}),
         initial=now,
         label="Application Date",
-        help_text="When you applied or when this event occurred",
-    )
-
-    interview_date = forms.DateField(
-        widget=forms.DateInput(attrs={"type": "date"}),
-        required=False,
-        label="Interview Date",
-        help_text="For interview entries: scheduled interview date",
+        help_text="When you submitted this application",
     )
 
     # Additional info
@@ -168,31 +151,6 @@ class ManualEntryForm(forms.Form):
         """Normalize company name."""
         name = self.cleaned_data["company_name"].strip()
         return name
-
-    def clean(self):
-        cleaned_data = super().clean()
-        entry_type = cleaned_data.get("entry_type")
-        interview_date = cleaned_data.get("interview_date")
-
-        # Validate date is required for interview, prescreen, and rejection types
-        if entry_type == "interview" and not interview_date:
-            self.add_error(
-                "interview_date", "Interview date is required for interview entries."
-            )
-        if entry_type == "prescreen" and not interview_date:
-            self.add_error(
-                "interview_date", "Prescreen date is required for prescreen entries."
-            )
-        if entry_type == "rejection" and not interview_date:
-            self.add_error(
-                "interview_date", "Rejection date is required for rejection entries."
-            )
-        if entry_type == "offer" and not interview_date:
-            self.add_error(
-                "interview_date", "Offer date is required for offer entries."
-            )
-
-        return cleaned_data
 
 
 class UploadEmlForm(forms.Form):

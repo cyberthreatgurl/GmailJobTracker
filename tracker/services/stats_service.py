@@ -148,6 +148,10 @@ class StatsService:
         # Count companies added today (use localtime to handle timezone correctly)
         local_now = timezone.localtime(now())
         today_start = local_now.replace(hour=0, minute=0, second=0, microsecond=0)
+        
+        # Get today's stats specifically (for the "Today" label in sidebar)
+        today_stats = IngestionStats.objects.filter(date=local_now.date()).first()
+        
         companies_added_today = Company.objects.filter(
             first_contact__gte=today_start
         ).count()
@@ -210,7 +214,7 @@ class StatsService:
             "interviews_week": interviews_week,
             "upcoming_interviews": upcoming_interviews,
             "offer_companies": offer_companies,
-            "latest_stats": latest_stats,
+            "latest_stats": today_stats or latest_stats,  # Prefer today's stats
             "companies_searched_count": companies_searched_count,
             "companies_added_today": companies_added_today,
             "ghosted_count": ghosted_count,

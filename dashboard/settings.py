@@ -133,6 +133,10 @@ USE_TZ = True
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
+# Media files (user uploads)
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
+
 # Additional static file directories
 # Only add theme/static if it exists (prevents Docker warning)
 _THEME_STATIC = BASE_DIR / "theme" / "static"

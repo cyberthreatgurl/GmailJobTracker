@@ -66,6 +66,7 @@ class Company(models.Model):
             ("new", "New"),
             ("application", "Application"),
             ("interview", "Interview"),
+            ("offer", "Offer"),
             ("follow-up", "Follow-up"),
             ("rejected", "Rejected"),
             ("ghosted", "Ghosted"),
@@ -454,3 +455,82 @@ class AuditEvent(models.Model):
 
     def __str__(self):
         return f"AuditEvent {self.action} {self.msg_id or self.db_id or ''} @ {self.created_at:%Y-%m-%d %H:%M:%S}"
+
+
+def validate_file_size(value):
+    """Validate that file size is under 5MB."""
+    max_size = 5 * 1024 * 1024  # 5 MB
+    if value.size > max_size:
+        from django.core.exceptions import ValidationError
+        raise ValidationError(f"File size must be under 5MB. Current size: {value.size / 1024 / 1024:.1f}MB")
+
+
+def validate_file_extension(value):
+    """Validate file extension is one of the allowed types."""
+    import os
+    from django.core.exceptions import ValidationError
+    
+    ext = os.path.splitext(value.name)[1].lower()
+    allowed_extensions = ['.pdf', '.txt', '.xlsx', '.docx']
+    if ext not in allowed_extensions:
+        raise ValidationError(
+            f"File type '{ext}' not allowed. Allowed types: {', '.join(allowed_extensions)}"
+        )
+
+
+def company_document_path(instance, filename):
+    """Generate upload path: company_documents/<company_id>/<filename>"""
+    return f"company_documents/{instance.company.id}/{filename}"
+
+
+class CompanyDocument(models.Model):
+    """Documents attached to a company (contracts, offers, etc.)."""
+    
+    company = models.ForeignKey(
+        Company,
+        on_delete=models.CASCADE,
+        related_name="documents"
+    )
+    file = models.FileField(
+        upload_to=company_document_path,
+        validators=[validate_file_size, validate_file_extension],
+        help_text="Allowed types: PDF, TXT, XLSX, DOCX. Max size: 5MB."
+    )
+    description = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Brief description of the document (e.g., 'Offer Letter', 'Contract')"
+    )
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ["-uploaded_at"]
+    
+    def __str__(self):
+        return f"{self.company.name} - {self.filename}"
+    
+    @property
+    def filename(self):
+        """Return just the filename without the path."""
+        import os
+        return os.path.basename(self.file.name)
+    
+    @property
+    def file_extension(self):
+        """Return the file extension."""
+        import os
+        return os.path.splitext(self.file.name)[1].lower()
+    
+    @property
+    def file_size_display(self):
+        """Return human-readable file size."""
+        try:
+            size = self.file.size
+            if size < 1024:
+                return f"{size} B"
+            elif size < 1024 * 1024:
+                return f"{size / 1024:.1f} KB"
+            else:
+                return f"{size / 1024 / 1024:.1f} MB"
+        except Exception:
+            return "Unknown"

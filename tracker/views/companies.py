@@ -1158,6 +1158,12 @@ def label_companies(request):
             ml_label='job_application'
         ).order_by('-sent_date'))
     
+    # Get company documents
+    company_documents = []
+    if selected_company:
+        from tracker.models import CompanyDocument
+        company_documents = list(selected_company.documents.all())
+    
     ctx.update(
         {
             "company_list": companies,
@@ -1172,6 +1178,7 @@ def label_companies(request):
             "creating_new_company": creating_new_company,
             "new_company_name": new_company_name,
             "application_threads": application_threads,
+            "company_documents": company_documents,
         }
     )
     return render(request, "tracker/label_companies.html", ctx)
@@ -2385,4 +2392,61 @@ def missing_applications(request):
     return render(request, 'tracker/missing_applications.html', ctx)
 
 
-__all__ = ["delete_company", "label_companies", "merge_companies", "manage_domains", "job_search_tracker", "scrape_job_posting", "missing_applications"]
+@login_required
+def upload_company_document(request, company_id):
+    """Upload a document to a company profile."""
+    from tracker.models import Company, CompanyDocument
+    
+    company = get_object_or_404(Company, id=company_id)
+    
+    if request.method != "POST":
+        messages.error(request, "Invalid request method.")
+        return redirect(f"/label_companies/?company={company_id}")
+    
+    if "document" not in request.FILES:
+        messages.error(request, "No file was uploaded.")
+        return redirect(f"/label_companies/?company={company_id}")
+    
+    uploaded_file = request.FILES["document"]
+    description = request.POST.get("description", "").strip()
+    
+    # Create the document record
+    try:
+        doc = CompanyDocument(
+            company=company,
+            file=uploaded_file,
+            description=description
+        )
+        doc.full_clean()  # Run validators
+        doc.save()
+        messages.success(request, f"✅ Document '{doc.filename}' uploaded successfully.")
+    except Exception as e:
+        messages.error(request, f"❌ Failed to upload document: {str(e)}")
+    
+    return redirect(f"/label_companies/?company={company_id}")
+
+
+@login_required
+def delete_company_document(request, document_id):
+    """Delete a document from a company profile."""
+    from tracker.models import CompanyDocument
+    
+    doc = get_object_or_404(CompanyDocument, id=document_id)
+    company_id = doc.company.id
+    filename = doc.filename
+    
+    if request.method == "POST":
+        # Delete the file from storage
+        try:
+            doc.file.delete(save=False)
+        except Exception:
+            pass  # File might not exist
+        
+        # Delete the database record
+        doc.delete()
+        messages.success(request, f"✅ Document '{filename}' deleted.")
+    
+    return redirect(f"/label_companies/?company={company_id}")
+
+
+__all__ = ["delete_company", "label_companies", "merge_companies", "manage_domains", "job_search_tracker", "scrape_job_posting", "missing_applications", "upload_company_document", "delete_company_document"]

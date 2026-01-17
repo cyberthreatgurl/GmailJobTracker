@@ -33,14 +33,14 @@ python_path = sys.executable
 def log_viewer(request):
     """Display and refresh log files from the logs directory."""
     from django.conf import settings
-    from datetime import datetime
+    from django.utils import timezone
 
     logs_dir = Path(settings.BASE_DIR) / "logs"
     log_files = [f.name for f in logs_dir.glob("*.log") if f.is_file()]
     log_files.sort()
     
     # Default to today's tracker log (where ingestion debug output goes)
-    today = datetime.now().strftime("%Y-%m-%d")
+    today = timezone.localtime(timezone.now()).strftime("%Y-%m-%d")
     default_log = f"tracker-{today}.log"
     
     # Use today's tracker log if it exists, otherwise fall back to first log file

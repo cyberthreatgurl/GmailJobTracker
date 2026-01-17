@@ -1,12 +1,13 @@
 # ingest_gmail.py
 
 import os
-from datetime import datetime, timedelta
-from parser import ingest_message
+from datetime import timedelta
 
 from django.core.management.base import BaseCommand
+from django.utils import timezone
 
 from gmail_auth import get_gmail_service  # adjust if needed
+from parser import ingest_message
 from tracker.models import IngestionStats, ProcessedMessage
 from tracker_logger import log_console
 
@@ -84,7 +85,7 @@ class Command(BaseCommand):
 
             service = get_gmail_service()
             stats, _ = IngestionStats.objects.get_or_create(
-                date=datetime.today().date()
+                date=timezone.localtime(timezone.now()).date()
             )
 
             # Single message mode
@@ -101,7 +102,7 @@ class Command(BaseCommand):
 
             # Calculate date range
             days_back = options.get("days_back", 7)
-            after_date = datetime.now() - timedelta(days=days_back)
+            after_date = timezone.localtime(timezone.now()) - timedelta(days=days_back)
             custom_query = options.get("query")
 
             log_console(f"Fetching Gmail messages from last {days_back} days...")

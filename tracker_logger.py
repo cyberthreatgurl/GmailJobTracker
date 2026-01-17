@@ -12,7 +12,17 @@ Optionally, monkey-patch print to also log to file.
 """
 
 import os
-from datetime import datetime
+
+# Use Django timezone for consistent local time across the app
+try:
+    from django.utils import timezone
+    def _get_local_now():
+        return timezone.localtime(timezone.now())
+except ImportError:
+    # Fallback if Django not available (standalone script use)
+    from datetime import datetime
+    def _get_local_now():
+        return datetime.now()
 
 LOG_DIR = os.path.join(os.path.dirname(__file__), "logs")
 
@@ -22,7 +32,7 @@ if not os.path.exists(LOG_DIR):
 
 def log_console(message):
     """Write a timestamped message to a daily log file (tracker-YYYY-MM-DD.log)."""
-    now = datetime.now()
+    now = _get_local_now()
     ts = now.strftime("%Y-%m-%d %H:%M:%S")
     # Compute today's file name at call time so midnight rollovers create a new file automatically
     log_path = os.path.join(LOG_DIR, f"tracker-{now.strftime('%Y-%m-%d')}.log")

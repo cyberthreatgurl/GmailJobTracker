@@ -113,10 +113,10 @@
                                title="Add manual application entry for {{ item.company.name }}">
                                 ➕ Add
                             </a>
-                            <a href="{% url 'label_messages' %}?company={{ item.company.id }}&label=all" 
+                            <a href="{% url 'label_companies' %}?company={{ item.company.id }}" 
                                class="inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                               title="View all messages from {{ item.company.name }}">
-                                📧 View
+                               title="View company details for {{ item.company.name }}">
+                                🏢 View
                             </a>
                         </div>
                     </td>

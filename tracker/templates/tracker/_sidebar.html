@@ -75,7 +75,12 @@
       <li class="flex justify-between py-2 text-xs text-gray-600 border-b border-gray-100">Rejections This Week: <span>{{ rejections_week|default:0 }}</span></li>
       <li class="flex justify-between py-2 text-xs text-gray-600 border-b border-gray-100">Interviews This Week: <span>{{ interviews_week|default:0 }}</span></li>
       <li class="flex justify-between py-2 text-xs text-gray-600 border-b border-gray-100">Companies Ghosted: <span>{{ ghosted_count|default:0 }}</span></li>
-    
+      <li class="flex justify-between py-2 text-xs text-gray-600 border-b border-gray-100" title="Applications with a rejection, prescreen, or interview response">
+        Response Rate: <span>{{ responded_apps|default:0 }}/{{ applications_count|default:0 }} ({{ response_rate|default:0 }}%)</span>
+      </li>
+      <li class="flex justify-between py-2 text-xs text-gray-600" title="Average days from application to first response (rejection, prescreen, or interview)">
+        Avg Response Time: <span>{% if avg_response_days %}{{ avg_response_days }} days{% else %}N/A{% endif %}</span>
+      </li>
     </ul>
   </div>
 

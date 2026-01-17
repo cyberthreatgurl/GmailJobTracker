@@ -160,6 +160,47 @@ class StatsService:
         # Count ghosted companies
         ghosted_count = Company.objects.filter(status="ghosted").count()
 
+        # Calculate response rate and average response time
+        # Response = has rejection_date, prescreen_date, or interview_date
+        total_apps = ThreadTracking.objects.exclude(company__status="headhunter").count()
+        responded_apps = ThreadTracking.objects.exclude(
+            company__status="headhunter"
+        ).filter(
+            Q(rejection_date__isnull=False) |
+            Q(prescreen_date__isnull=False) |
+            Q(interview_date__isnull=False)
+        ).count()
+        
+        response_rate = round((responded_apps / total_apps * 100), 1) if total_apps > 0 else 0
+        
+        # Calculate average days to first response
+        # First response = earliest of rejection_date, prescreen_date, interview_date
+        responded_threads = ThreadTracking.objects.exclude(
+            company__status="headhunter"
+        ).filter(
+            Q(rejection_date__isnull=False) |
+            Q(prescreen_date__isnull=False) |
+            Q(interview_date__isnull=False)
+        )
+        
+        total_days = 0
+        count_with_response = 0
+        for thread in responded_threads:
+            # Find earliest response date
+            response_dates = [d for d in [
+                thread.rejection_date,
+                thread.prescreen_date,
+                thread.interview_date
+            ] if d is not None]
+            if response_dates and thread.sent_date:
+                earliest_response = min(response_dates)
+                days_to_response = (earliest_response - thread.sent_date).days
+                if days_to_response >= 0:  # Only count valid positive durations
+                    total_days += days_to_response
+                    count_with_response += 1
+        
+        avg_response_days = round(total_days / count_with_response, 1) if count_with_response > 0 else None
+
         return {
             "companies": companies_count,
             "applications": applications_count,
@@ -173,6 +214,9 @@ class StatsService:
             "companies_searched_count": companies_searched_count,
             "companies_added_today": companies_added_today,
             "ghosted_count": ghosted_count,
+            "response_rate": response_rate,
+            "responded_apps": responded_apps,
+            "avg_response_days": avg_response_days,
         }
 
     @staticmethod

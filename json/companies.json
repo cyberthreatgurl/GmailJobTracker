@@ -227,7 +227,7 @@
     "leidos.com": "Leidos",
     "lensa.com": "Lensa",
     "mail1.creditkarma.com": "Credit Karma",
-    "mantech.com": "Mantech",
+    "mantech.com": "Home",
     "mbc-va.com": "Mid-Atlantic Broadband",
     "mcguirewoods.com": "McGuireWoods",
     "mclaren.com": "McLaren",
@@ -339,7 +339,8 @@
     "costar.com": "CoStar Realty Information, Inc",
     "americansystems.com": "American Systems",
     "cellebrite.com": "Cellebrite",
-    "zscaler.com": "Zscaler"
+    "zscaler.com": "Zscaler",
+    "jamhoff.com": "James & Hoffman, P.C."
   },
   "headhunter_domains": [
     "agreeya.com",
@@ -555,7 +556,9 @@
     "American Systems": "http://www.americansystems.com/careers-welcome",
     "Cellebrite": "https://cellebrite.com/en/about/careers/",
     "Zscaler": "https://www.zscaler.com/careers",
-    "CACI": "https://careers.caci.com/"
+    "CACI": "https://careers.caci.com/",
+    "Vituity Healthcare Solutions & Hospital Staffing": "https://careers.vituity.com",
+    "Home": "https://mantech.avature.net/en_US/careers/"
   },
   "known": [
     "Obsidian",

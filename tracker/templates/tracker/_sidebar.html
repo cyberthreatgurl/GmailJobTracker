@@ -70,7 +70,7 @@
         <a href="{% url 'job_search_tracker' %}" class="text-blue-600 hover:text-blue-800 hover:underline">Job Searches (Today):</a>
         <span>{{ companies_searched_count|default:0 }}</span>
       </li>
-      <li class="flex justify-between py-2 text-xs text-gray-600 border-b border-gray-100">Total Applications: <span>{{ applications_count|default:applications|default:0 }}</span></li>
+      <li class="flex justify-between py-2 text-xs text-gray-600 border-b border-gray-100">Total Applications: <span>{{ applications_count|default:0 }}</span></li>
       <li class="flex justify-between py-2 text-xs text-gray-600 border-b border-gray-100">Applications This Week: <span>{{ applications_week|default:0 }}</span></li>
       <li class="flex justify-between py-2 text-xs text-gray-600 border-b border-gray-100">Rejections This Week: <span>{{ rejections_week|default:0 }}</span></li>
       <li class="flex justify-between py-2 text-xs text-gray-600 border-b border-gray-100">Interviews This Week: <span>{{ interviews_week|default:0 }}</span></li>

@@ -888,8 +888,9 @@ def label_messages(request):
             distinct_labels.append(normalized)
             seen.add(normalized)
 
-    # Available label choices
+    # Available label choices (sorted alphabetically for easier selection)
     label_choices = [
+        "cancelled",
         "follow_up",
         "ghosted",
         "head_hunter",
@@ -899,9 +900,10 @@ def label_messages(request):
         "offer",
         "other",
         "prescreen",
-        "rejection",
         "referral",
-        "response"
+        "rejection",
+        "response",
+        "withdrew",
     ]
 
     # Get label distribution for prioritization

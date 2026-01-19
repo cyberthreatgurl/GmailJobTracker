@@ -1,8 +1,9 @@
 import sys
 import os
 from pathlib import Path
+from django.utils import timezone as dj_timezone
 
-sys.path.insert(0, r"C:\Users\kaver\code\GmailJobTracker")
+sys.path.insert(0, r"C:\Users\kaver\code\GmailJobTracker"))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dashboard.settings")
 import django
 
@@ -152,14 +153,14 @@ def main():
             rej = to_date(status_dates.get("rejection_date")) if status_dates else None
             intr = to_date(status_dates.get("interview_date")) if status_dates else None
             if not rej and ml_label in ("rejected", "rejection"):
-                rej = msg.timestamp.date() if msg.timestamp else None
+                rej = dj_timezone.localtime(msg.timestamp).date() if msg.timestamp else None
             if (
                 not intr
                 and ml_label
                 and "interview" in str(ml_label).lower()
                 and ml_conf >= 0.7
             ):
-                intr = msg.timestamp.date() if msg.timestamp else None
+                intr = dj_timezone.localtime(msg.timestamp).date() if msg.timestamp else None
             if rej and not tt.rejection_date:
                 tt.rejection_date = rej
             if intr and not tt.interview_date:

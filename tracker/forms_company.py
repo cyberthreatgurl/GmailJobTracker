@@ -85,6 +85,18 @@ class ApplicationDetailsForm(forms.ModelForm):
         help_text="Date rejection was received"
     )
     
+    cancelled = forms.BooleanField(
+        required=False,
+        label="Cancelled",
+        help_text="Job posting was cancelled by the company"
+    )
+    
+    withdrew = forms.BooleanField(
+        required=False,
+        label="Withdrew",
+        help_text="I withdrew my application"
+    )
+    
     offer_date = forms.DateField(
         required=False,
         label="Offer Date",
@@ -119,7 +131,7 @@ class ApplicationDetailsForm(forms.ModelForm):
     
     class Meta:
         model = ThreadTracking
-        fields = ['job_title', 'sent_date', 'prescreen_date', 'interview_date', 'rejection_date', 'offer_date', 'application_url', 'application_text']
+        fields = ['job_title', 'sent_date', 'prescreen_date', 'interview_date', 'rejection_date', 'cancelled', 'withdrew', 'offer_date', 'application_url', 'application_text']
     
     def clean_application_url(self):
         """Validate URL format and security"""

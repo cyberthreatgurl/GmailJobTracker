@@ -3,6 +3,7 @@
 import os
 
 import django
+from django.utils import timezone
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dashboard.settings")
 django.setup()
@@ -14,7 +15,7 @@ msg = Message.objects.get(id=1452)
 print(f"Interview message:")
 print(f"  Thread: {msg.thread_id}")
 print(f"  Company: {msg.company.name if msg.company else 'None'}")
-print(f"  Date: {msg.timestamp.date()}")
+print(f"  Date: {timezone.localtime(msg.timestamp).date()}")
 print(f"  Subject: {msg.subject}")
 print()
 
@@ -26,12 +27,13 @@ else:
     print("No ThreadTracking record found. Creating one...")
 
     # Create ThreadTracking
+    local_date = timezone.localtime(msg.timestamp).date()
     app = ThreadTracking.objects.create(
         thread_id=msg.thread_id,
         company=msg.company,
         job_title="Cyber PM",  # From subject
-        sent_date=msg.timestamp.date(),  # Use interview date as sent_date
-        interview_date=msg.timestamp.date(),
+        sent_date=local_date,  # Use interview date as sent_date
+        interview_date=local_date,
         ml_label="interview_invite",
         ml_confidence=msg.confidence or 0.0,
         reviewed=True,

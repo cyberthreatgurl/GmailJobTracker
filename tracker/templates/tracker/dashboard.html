@@ -369,7 +369,11 @@
         <ul id="rejectionList" style="margin: 0; padding-left: 1.25rem; list-style: disc; color: #7f1d1d; font-size: 0.9rem; line-height: 1.6;">
           {% if initial_rejection_companies %}
             {% for c in initial_rejection_companies %}
-              <li style="font-size:0.8rem;"><a href="/label_companies/?company={{ c.id }}" style="text-decoration:none; color:inherit;">{{ c.name }}</a></li>
+              <li style="font-size:0.8rem;">
+                <a href="/label_companies/?company={{ c.id }}" style="text-decoration:none; color:inherit;">{{ c.name }}</a>
+                {% if c.cancelled %}<span style="color:#9333ea; font-size:0.7rem; margin-left:0.25rem;" title="Cancelled">🚫 CANCELLED</span>{% endif %}
+                {% if c.withdrew %}<span style="color:#0891b2; font-size:0.7rem; margin-left:0.25rem;" title="Withdrew">🚶 WITHDREW</span>{% endif %}
+              </li>
             {% endfor %}
           {% else %}
             <li style="color: #9ca3af; font-size:0.8rem;">No data in selected range</li>
@@ -819,7 +823,7 @@
           if (matched) console.log('Rejection matched:', item.company__name, item.rejection_date);
           return matched;
         })
-        .map(item => ({ id: item.company_id, name: item.company__name }));
+        .map(item => ({ id: item.company_id, name: item.company__name, cancelled: item.cancelled || false, withdrew: item.withdrew || false }));
       
       // Filter applications by date range, then group by company with counts
       const applications = applicationCompanies
@@ -854,7 +858,7 @@
       console.log('Filtered applications:', applications);
       console.log('All ghosted (no date filter):', ghosted);
 
-      // Get unique companies by id (deduplicate)
+      // Get unique companies by id (deduplicate, preserving extra properties)
       function uniqueById(arr) {
         const map = new Map();
         for (const item of arr) {
@@ -890,7 +894,11 @@
           .map(item => {
             const c = countsMap.get(item.id) || 1;
             const suffix = annotateCounts && c > 1 ? ` (${c})` : '';
-            return `<li><a href="/label_companies/?company=${item.id}" style="text-decoration:none; color:inherit;">${item.name}${suffix}</a></li>`;
+            // Add cancelled/withdrew indicators if present
+            let indicators = '';
+            if (item.cancelled) indicators += ' <span style="color:#9333ea; font-size:0.7rem; margin-left:0.25rem;" title="Cancelled">🚫 CANCELLED</span>';
+            if (item.withdrew) indicators += ' <span style="color:#0891b2; font-size:0.7rem; margin-left:0.25rem;" title="Withdrew">🚶 WITHDREW</span>';
+            return `<li><a href="/label_companies/?company=${item.id}" style="text-decoration:none; color:inherit;">${item.name}${suffix}</a>${indicators}</li>`;
           })
           .join('');
       }

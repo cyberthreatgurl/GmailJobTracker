@@ -4,6 +4,7 @@
 import os
 
 import django
+from django.utils import timezone
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dashboard.settings")
 django.setup()
@@ -56,7 +57,7 @@ tt = ThreadTracking.objects.create(
     thread_id=bah_msg.thread_id,
     company=bah_msg.company,
     ml_label=bah_msg.ml_label,
-    sent_date=bah_msg.timestamp.date(),  # Use message timestamp as sent_date
+    sent_date=timezone.localtime(bah_msg.timestamp).date(),  # Use message timestamp as sent_date
     reviewed=bah_msg.reviewed,
     ml_confidence=bah_msg.confidence or 0.0,
     job_title=job_title,

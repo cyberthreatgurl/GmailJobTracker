@@ -29,7 +29,7 @@
     "draper": "Draper",
     "donotreply_Leidos_HR": "Leidos",
     "ECS Technologies": "ECS",
-    "OPS": "OPS Consulting",
+    "OPS": "OPS Consulting, LLC",
     "Ping Windows": "PingWind",
     "freddiemac": "Freddie Mac",
     "Google Application": "Google",
@@ -77,7 +77,12 @@
     "sei": "Carnegie Mellon University",
     "synack": "Synack Red Team",
     "facebook": "Meta",
-    "costar": "CoStar Realty Information, Inc"
+    "costar": "CoStar Realty Information, Inc",
+    "SGI": "SHI International Corp.",
+    "Tatitlek": "The Tatitlek Corporation",
+    "Valiant": "Valiant Solutions",
+    "QinetiQ": "QinetiQ",
+    "BTC": "BTC Resources"
   },
   "ats_domains": [
     "adp.com",
@@ -127,7 +132,8 @@
     "eightfold.ai",
     "myworkdayjobs.com",
     "appreview.gem.com",
-    "greenhouse.io"
+    "greenhouse.io",
+    "breezy.hr"
   ],
   "domain_to_company": {
     "afs.com": "Accenture Federal Services",
@@ -155,9 +161,7 @@
     "boeing.com": "Boeing",
     "boozallen.com": "Booz Allen Hamilton",
     "caci.com": "CACI",
-    "candidatecare.com": "ECS",
     "capitalone.com": "Capital One",
-    "careers.tylertech.com": "Tyler Technologies",
     "carefirst.com": "CareFirst",
     "ccsglobaltech.com": "CCS Global Tech",
     "cfainstitute.org": "CFA Institute",
@@ -243,11 +247,11 @@
     "nozominetworks.com": "Nozomi",
     "nsa.gov": "National Security Agency",
     "obsidian.global": "Obsidian",
-    "operant.ai": "Operant",
-    "opsconsulting.com": "OPS Consulting",
+    "operant.ai": "Operant AI - 3D Runtime Protection",
+    "opsconsulting.com": "OPS Consulting, LLC",
     "ornl.gov": "Oak Ridge National Laboratory",
     "palantir.com": "Palantir",
-    "parsons.com": "Parsons",
+    "parsons.com": "Parsons Corporation",
     "partnerforces.com": "PartnerForces",
     "peaktechnical.com": "employment",
     "peerspot.com": "Peerspot",
@@ -269,11 +273,11 @@
     "sabre.com": "Sabre",
     "sabresystems.com": "Sabre Systems",
     "saic.com": "SAIC",
-    "sailpoint.com": "Sail Point Technologies",
+    "sailpoint.com": "SailPoint Technologies",
     "sei.cmu.edu": "Carnegie Mellon University",
     "sentinelblue.com": "Sentinel Blue",
     "sentinelone.com": "SentinelOne",
-    "sharpdecisions.com": "Analysis and Resilience Center for Systemic Risk",
+    "sharpdecisions.com": "Comprehensive Staffing Services, Technology, and Talent Solutions",
     "shentel.com": "Shentel",
     "signalfx.com": "Signalfx",
     "simventions.com": "SimVentions",
@@ -340,7 +344,12 @@
     "americansystems.com": "American Systems",
     "cellebrite.com": "Cellebrite",
     "zscaler.com": "Zscaler",
-    "jamhoff.com": "James & Hoffman, P.C."
+    "jamhoff.com": "James & Hoffman, P.C.",
+    "presidio.com": "Presidio",
+    "shi.com": "SHI International Corp.",
+    "tatitlek.com": "The Tatitlek Corporation",
+    "us.qinetiq.com": "QinetiQ",
+    "btc-resources.co": "BTC Resources"
   },
   "headhunter_domains": [
     "agreeya.com",
@@ -543,7 +552,7 @@
     "Carnegie Mellon University": "https://sei.cmu.edu/careers/",
     "The Bison Group": "https://recruiting.paylocity.com/recruiting/jobs/All/d394fc20-679d-4e94-90d9-dfa28a5f368b/The-Bison-Group",
     "Synack Red Team": "https://www.synack.com/careers/#jobs",
-    "Corsha": "https://corsha.com/new-careers",
+    "Corsha": "https://www.linkedin.com/company/corsha/jobs/",
     "Accenture Federal Services": "https://afs.com/us-en/careers",
     "Legion X": "https://www.legionx.net/careers",
     "OpenAI": "https://openai.com/careers/",
@@ -559,7 +568,22 @@
     "CACI": "https://careers.caci.com/",
     "Vituity Healthcare Solutions & Hospital Staffing": "https://careers.vituity.com",
     "Home": "https://mantech.avature.net/en_US/careers/",
-    "Mantech": "https://mantech.avature.net/en_US/careers/"
+    "Mantech": "https://mantech.avature.net/en_US/careers/",
+    "Home - Corsha": "https://www.linkedin.com/company/corsha/jobs/",
+    "IANS": "https://www.iansresearch.com/who-we-are/careers#open-positions",
+    "National Security Agency": "https://intelligencecareers.gov",
+    "Parsons Corporation": "https://parsons.com/careers",
+    "PartnerForces": "https://www.partnerforces.com/careers/",
+    "SailPoint Technologies": "https://sailpoint.wd1.myworkdayjobs.com/SailPoint/jobs",
+    "Comprehensive Staffing Services, Technology, and Talent Solutions": "https://www.sharpdecisions.com/careers",
+    "Presidio": "https://www.presidio.com/careers/",
+    "SHI International Corp.": "http://www.shi.com/careers/diversity-equity-and-inclusion",
+    "Tyler Technologies": "https://www.tylertech.com/careers",
+    "QinetiQ US": "https://us.qinetiq.com/en-us/careers",
+    "QinetiQ": "https://us.qinetiq.com/en-us/careers",
+    "BTC Resources": "https://www.btc-resources.co/jobs",
+    "OPS Consulting, LLC": "https://opsconsulting.com/careers/",
+    "Operant AI - 3D Runtime Protection": "https://operant.ai/company/careers"
   },
   "known": [
     "Obsidian",
@@ -745,6 +769,10 @@
     "Corsha",
     "Legion X",
     "Cellebrite",
-    "Zscaler"
+    "Zscaler",
+    "Presidio",
+    "SHI International Corp.",
+    "QinetiQ US",
+    "BTC Resources"
   ]
 }

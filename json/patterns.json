@@ -65,8 +65,21 @@
     "referral_explicit_language": "\\b(referred|referral|referred by|referrer)\\b"
   },
   "message_labels": {
+    "cancelled": [
+        "\\b(?:position|job|role|requisition)\\s+(?:has\\s+been\\s+)?(?:cancelled|canceled|closed)\\b",
+        "\\b(?:cancelled|canceled)\\s+(?:the\\s+)?(?:position|job|role|requisition)\\b",
+        "\\bno\\s+longer\\s+(?:filling|hiring\\s+for)\\s+(?:this|the)\\s+(?:position|role)\\b"
+      ],
     "prescreen": [
-        "\\bbrief\\s+phone\\s+call\\b"
+        "\\bbrief\\s+phone\\s+call\\b",
+        "\\bphone\\s*screen\\b",
+        "\\bpre-?screen\\b",
+        "\\bprescreening\\b",
+        "\\bscreening\\s+call\\b",
+        "\\binitial\\s+(?:phone\\s+)?screen\\b",
+        "\\b(?:give|call)\\s+you\\s+a\\s+call\\b",
+        "\\bwould\\s+like\\s+to\\s+(?:discuss|talk\\s+about)\\s+(?:this|the)\\s+opportunity\\b",
+        "\\bi\\s+would\\s+like\\s+to\\s+discuss\\s+this\\s+opportunity\\b"
       ],
     "interview": [
       "\\bschedule.*interview\\b",
@@ -84,13 +97,11 @@
       "\\byour\\sinterview\\sis\\sscheduled\\b",
       "\\byou'?ve\\sscheduled\\b.*\\binterview\\b",
       "\\binterview\\savailability\\b",
-      "\\bwould\\s+like\\s+to\\s+discuss\\b",
       "\\blet\\s+me\\s+know\\s+when\\s+you\\s+(?:would\\s+)?(?:be\\s+)?available\\b",
       "\\blet\\s+me\\s+know\\s+when\\s+you('?re|are)\\s+available\\b",
       "\\bavailable\\s+for\\s+(?:a\\s+)?(?:call|phone\\s+call|conversation)\\b",
       "\\bschedule\\s+(?:a\\s+)?(?:call|time|conversation)\\b",
-      "\\bwould\\s+like\\s+to\\s+discuss\\s+the\\s+position\\b",
-      "\\bi\\s+would\\s+like\\s+to\\s+discuss\\b",
+      "\\bwould\\s+like\\s+to\\s+discuss\\s+(?:the\\s+position|your\\s+(?:application|resume|background|qualifications))\\b",
       "\\bMicrosoft\\s+Teams\\s+Meeting\\b",
       "\\bJoin\\s+the\\s+meeting\\s+now\\b",
       "\\bMeeting\\s+ID:\\s+\\d",
@@ -246,6 +257,12 @@
       "(?i)\\blooking\\sfor\\s(?:candidates|someone|a\\s|an\\s)\\b",
       "(?i)\\brecruit(ment|er|ing|ment\\sexecutive)?\\b",
       "(?i)\\b(?:recruiter|recruiting|talent acquisition|headhunter|sourcing)\\b(?s:.*?)(?:\\b\\d{3}[-.\\s]\\d{3}[-.\\s]\\d{4}\\b|mailto:|\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}\\b|LinkedIn|via LinkedIn)"
+    ],
+    "withdrew": [
+      "\\b(?:I|we)\\s+(?:have\\s+)?(?:withdrawn?|withdrew)\\s+(?:my|our)\\s+(?:application|candidacy)\\b",
+      "\\bwithdraw(?:ing|n)?\\s+(?:from|my)\\s+(?:consideration|the\\s+process|this\\s+position)\\b",
+      "\\b(?:decided|choosing)\\s+to\\s+withdraw\\b",
+      "\\bno\\s+longer\\s+(?:interested|pursuing)\\b"
     ],
 
     "response": [

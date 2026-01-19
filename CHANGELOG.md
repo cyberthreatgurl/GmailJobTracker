@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.6] - 2026-01-19
+
+### Fixed
+- **UTC Date Conversion Bug** - Fixed incorrect `sent_date`, `rejection_date`, and `interview_date` values
+  - Dates were being extracted from UTC timestamps without converting to local time first
+  - Example: Email received at 10pm EST on Dec 9 (3am UTC Dec 10) was stored as Dec 10
+  - All `.date()` calls on `metadata["timestamp"]` now use `timezone.localtime()` wrapper
+  - Fixed in 6 locations in parser.py (main ingestion pipeline)
+  - Fixed in 10 scripts: `create_tt_from_message.py`, `reingest_single_eml.py`, `reingest_uploaded_eml.py`,
+    `fix_missing_threadtracking.py`, `backfill_threadtracking_from_messages.py`, `backfill_dates.py`,
+    `fix_booz_allen_threadtracking.py`, `fix_millennium_threads.py`, `fix_endyna_interview.py`
+  - Prevents future date mismatches between Message timestamp and ThreadTracking sent_date
+
 ## [1.2.5] - 2026-01-16
 
 ### Changed

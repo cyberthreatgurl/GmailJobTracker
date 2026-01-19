@@ -223,13 +223,15 @@
                   <li style="margin-bottom:0.5rem;">
                     <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
                       <span style="color:#6b7280; white-space:nowrap;">{{ thread.sent_date|date:"Y-m-d" }}</span>
-                      {% if thread.ml_label == "offer" or thread.status == "offer" %}
+                      {# All entries in application_threads are job applications (have a job_application message) #}
+                      {# Show offer badge if offer received, cancelled/withdrew if applicable, otherwise show APPLICATION #}
+                      {% if thread.ml_label == "offer" or thread.status == "offer" or thread.offer_date %}
                         <span style="background:#d1fae5; color:#065f46; border-radius:3px; padding:0.15rem 0.4rem; font-size:0.8rem; font-weight:600; white-space:nowrap;">🎉 OFFER</span>
-                      {% elif thread.ml_label == "prescreen" or thread.status == "prescreen" %}
-                        <span style="background:#fef3c7; color:#92400e; border-radius:3px; padding:0.15rem 0.4rem; font-size:0.8rem; font-weight:600; white-space:nowrap;">PRESCREEN</span>
-                      {% elif thread.ml_label == "interview_invite" or thread.status == "interview" %}
-                        <span style="background:#dbeafe; color:#1e40af; border-radius:3px; padding:0.15rem 0.4rem; font-size:0.8rem; font-weight:600; white-space:nowrap;">INTERVIEW</span>
-                      {% elif thread.status == "rejected" %}
+                      {% elif thread.cancelled %}
+                        <span style="background:#fef3c7; color:#92400e; border-radius:3px; padding:0.15rem 0.4rem; font-size:0.8rem; font-weight:600; white-space:nowrap;">🚫 CANCELLED</span>
+                      {% elif thread.withdrew %}
+                        <span style="background:#e0e7ff; color:#3730a3; border-radius:3px; padding:0.15rem 0.4rem; font-size:0.8rem; font-weight:600; white-space:nowrap;">🚶 WITHDREW</span>
+                      {% elif thread.status == "rejected" or thread.rejection_date %}
                         <span style="background:#fee2e2; color:#991b1b; border-radius:3px; padding:0.15rem 0.4rem; font-size:0.8rem; font-weight:600; white-space:nowrap;">REJECTED</span>
                       {% else %}
                         <span style="background:#dcfce7; color:#166534; border-radius:3px; padding:0.15rem 0.4rem; font-size:0.8rem; font-weight:600; white-space:nowrap;">APPLICATION</span>
@@ -242,7 +244,7 @@
                         <span style="color:#1e40af; font-size:0.85rem; white-space:nowrap;">🗓️ {{ thread.interview_date|date:"M d" }}</span>
                       {% endif %}
                       {% if thread.rejection_date %}
-                        <span style="color:#991b1b; font-size:0.85rem; white-space:nowrap;">❌ {{ thread.rejection_date|date:"M d" }}</span>
+                        <span style="color:#991b1b; font-size:0.85rem; white-space:nowrap;">{% if thread.cancelled %}🚫{% elif thread.withdrew %}🚶{% else %}❌{% endif %} {{ thread.rejection_date|date:"M d" }}</span>
                       {% endif %}
                       {% if thread.offer_date %}
                         <span style="color:#065f46; font-size:0.85rem; white-space:nowrap;">🎉 {{ thread.offer_date|date:"M d" }}</span>
@@ -403,7 +405,21 @@
                 <div style="margin-bottom: 1.5rem;">
                   <label for="id_rejection_date" style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.25rem;">❌ Rejection Date</label>
                   <input type="date" name="rejection_date" id="id_rejection_date" value="{% if application_threads %}{{ application_threads.0.rejection_date|date:'Y-m-d'|default:'' }}{% endif %}" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem;" />
-                  <small style="color: #6b7280; display: block; margin-top: 0.25rem;">Date rejection was received</small>
+                  <small style="color: #6b7280; display: block; margin-top: 0.25rem;">Date rejection was received (or date of cancellation/withdrawal)</small>
+                  
+                  <!-- Cancelled and Withdrew checkboxes -->
+                  <div style="display: flex; gap: 1.5rem; margin-top: 0.75rem; padding: 0.75rem; background: #fef3c7; border-radius: 6px;">
+                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.9rem;">
+                      <input type="checkbox" name="cancelled" id="id_cancelled" {% if application_threads and application_threads.0.cancelled %}checked{% endif %} style="width: 1rem; height: 1rem; cursor: pointer;" />
+                      <span style="color: #92400e;">🚫 Cancelled</span>
+                      <small style="color: #78716c;">(job was cancelled)</small>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.9rem;">
+                      <input type="checkbox" name="withdrew" id="id_withdrew" {% if application_threads and application_threads.0.withdrew %}checked{% endif %} style="width: 1rem; height: 1rem; cursor: pointer;" />
+                      <span style="color: #92400e;">🚶 Withdrew</span>
+                      <small style="color: #78716c;">(I withdrew)</small>
+                    </label>
+                  </div>
                 </div>
                 
                 <div style="margin-bottom: 1.5rem;">

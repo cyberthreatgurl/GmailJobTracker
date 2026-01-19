@@ -28,11 +28,17 @@ These checks run **before** pattern matching and return immediately if matched:
 - `\bpick\s+up\s+where\s+you\s+left\s+off\b`
 - **Why**: These are nudges, not application confirmations
 
-#### Prescreen before potential interview → `prescreen`
-- `\\bbrief\\s+phone\\s+call\\b\`
-- **Why**: 
+#### Prescreen Detection → `prescreen` (BEFORE scheduling language)
+- `\bphone\s*screen\b` - "Phone Screen" in subject
+- `\bpre-?screen\b` - "Prescreen" or "Pre-screen"
+- `\bprescreening\b` - "Prescreening"
+- `\bscreening\s+call\b` - "Screening call"
+- `\binitial\s+(?:phone\s+)?screen\b` - "Initial screen" or "Initial phone screen"
+- `\bbrief\s+phone\s+call\b` - "Brief phone call"
+- **Why**: Phone screens are preliminary, not full interviews. Checked BEFORE scheduling language to avoid misclassifying "Schedule Your Phone Screen" as `interview_invite`
+- **Example**: "Schedule Your Phone Screen for Senior Cyber Intelligence Analyst" → `prescreen`
 
-#### Early Scheduling Detection → `interview_invite`
+#### Early Scheduling Detection → `interview_invite` (AFTER prescreen check)
 - `let\s+me\s+know\s+when\s+you(?:'re|are)?\s+available`
 - `available\s+for\s+(?:a\s+)?(?:call|phone\s+call|conversation)`
 - `would\s+like\s+to\s+discuss\s+(?:the\s+position|this\s+role)`

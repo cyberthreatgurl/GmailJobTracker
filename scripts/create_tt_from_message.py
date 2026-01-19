@@ -1,5 +1,6 @@
 import os, sys
 from datetime import datetime
+from django.utils import timezone
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if ROOT not in sys.path:
@@ -31,7 +32,7 @@ tt, created = ThreadTracking.objects.get_or_create(
         "job_title": "",
         "job_id": "",
         "status": msg.ml_label or "interview",
-        "sent_date": msg.timestamp.date(),
+        "sent_date": timezone.localtime(msg.timestamp).date(),
         "rejection_date": None,
         "interview_date": None,
         "ml_label": msg.ml_label,
@@ -49,7 +50,7 @@ else:
         tt.company = msg.company
         updated = True
     if not tt.sent_date and msg.timestamp:
-        tt.sent_date = msg.timestamp.date()
+        tt.sent_date = timezone.localtime(msg.timestamp).date()
         updated = True
     if not tt.ml_label and msg.ml_label:
         tt.ml_label = msg.ml_label

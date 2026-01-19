@@ -1150,12 +1150,20 @@ def label_companies(request):
     ctx = build_sidebar_context()
     
     # Get all application threads for selected company (for Application Details section)
-    # Only include actual job applications - prescreens/interviews are dates within an application
+    # Include threads where ANY message has job_application label, not just thread-level label
+    # This ensures we capture threads that started as applications but later got interview/rejection msgs
     application_threads = []
     if selected_company:
-        application_threads = list(ThreadTracking.objects.filter(
+        # Get thread_ids that have at least one job_application message
+        from django.db.models import Q
+        application_thread_ids = Message.objects.filter(
             company=selected_company,
             ml_label='job_application'
+        ).values_list('thread_id', flat=True).distinct()
+        
+        application_threads = list(ThreadTracking.objects.filter(
+            company=selected_company,
+            thread_id__in=application_thread_ids
         ).order_by('-sent_date'))
     
     # Get company documents

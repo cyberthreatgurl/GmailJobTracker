@@ -464,7 +464,7 @@ def dashboard(request):
         )
         .exclude(ml_label="noise")  # Exclude noise from metrics
         .select_related("company")
-        .values("company_id", "company__name", "rejection_date")
+        .values("company_id", "company__name", "rejection_date", "cancelled", "withdrew")
     )
     if hh_company_list:
         rejection_companies_qs = rejection_companies_qs.exclude(
@@ -572,6 +572,8 @@ def dashboard(request):
                 "company_id": item["company_id"],
                 "company__name": item["company__name"],
                 "rejection_date": item["rejection_date"].strftime("%Y-%m-%d"),
+                "cancelled": item.get("cancelled", False),
+                "withdrew": item.get("withdrew", False),
             }
         )
     # Add Message-based rejections (using timestamp as rejection_date)
@@ -581,6 +583,8 @@ def dashboard(request):
                 "company_id": item["company_id"],
                 "company__name": item["company__name"],
                 "rejection_date": item["timestamp"].strftime("%Y-%m-%d"),
+                "cancelled": False,
+                "withdrew": False,
             }
         )
 
@@ -721,6 +725,11 @@ def dashboard(request):
                 # Include count if available
                 if count_key and count_key in it:
                     item_dict["count"] = it[count_key]
+                # Include cancelled/withdrew flags if available
+                if "cancelled" in it:
+                    item_dict["cancelled"] = it["cancelled"]
+                if "withdrew" in it:
+                    item_dict["withdrew"] = it["withdrew"]
                 out.append(item_dict)
                 seen.add(cid)
         # sort by name for a stable display

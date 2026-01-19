@@ -5,6 +5,7 @@ Fix companies with missing ThreadTracking records.
 import os
 import sys
 import django
+from django.utils import timezone
 
 # Setup Django
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -57,7 +58,7 @@ for company_id, company_name, expected_msg, current_tt in companies_to_fix:
             tt = ThreadTracking.objects.create(
                 thread_id=msg.thread_id,
                 company=company,
-                sent_date=msg.timestamp.date() if msg.timestamp else None,
+                sent_date=timezone.localtime(msg.timestamp).date() if msg.timestamp else None,
                 ml_label="job_application",
                 job_title=msg.subject,
             )

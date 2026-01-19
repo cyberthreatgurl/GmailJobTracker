@@ -55,6 +55,7 @@ def manual_entry(request):
             job_title = form.cleaned_data.get("job_title") or "Manual Entry"
             job_id = form.cleaned_data.get("job_id") or ""
             application_date = form.cleaned_data["application_date"]
+            application_url = form.cleaned_data.get("application_url") or ""
             notes = form.cleaned_data.get("notes") or ""
             source = form.cleaned_data.get("source") or "manual"
 
@@ -179,6 +180,7 @@ def edit_manual_entry(request, thread_id):
             job_title = form.cleaned_data.get("job_title") or "Manual Entry"
             job_id = form.cleaned_data.get("job_id") or ""
             application_date = form.cleaned_data["application_date"]
+            application_url = form.cleaned_data.get("application_url") or ""
             notes = form.cleaned_data.get("notes") or ""
             source = form.cleaned_data.get("source") or "manual"
 

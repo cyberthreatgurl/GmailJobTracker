@@ -609,7 +609,18 @@ class RuleClassifier:
         # Check if this is a reply/follow-up email (RE:, Re:, FW:, Fwd:, etc.)
         is_reply = subject and any(rx.search(subject) for rx in self._reply_indicators)
 
-        # Early scheduling-language detection -> interview_invite (BEFORE application confirmation)
+        # Check prescreen patterns FIRST (before scheduling language)
+        # "Phone Screen" or "Prescreen" in subject should be classified as prescreen,
+        # not interview_invite, even if the email contains scheduling language
+        for rx in self._msg_label_patterns.get("prescreen", []):
+            if rx.search(s):
+                if DEBUG:
+                    print(
+                        f"[DEBUG rule_label] Early prescreen match: {rx.pattern[:80]}"
+                    )
+                return "prescreen"
+
+        # Early scheduling-language detection -> interview_invite (AFTER prescreen check)
         # This is important because emails like "Thank you for applying... I would like to discuss"
         # should be classified as interview_invite, not job_application
         # BUT classify as 'other' for replies (to avoid classifying scheduling follow-ups as interviews)
@@ -627,16 +638,6 @@ class RuleClassifier:
                         "[DEBUG rule_label] Early scheduling-language match -> interview_invite"
                     )
                 return "interview_invite"
-
-        # Check prescreen patterns BEFORE application confirmation
-        # Prescreen calls (brief phone call) are more specific than generic application confirmations
-        for rx in self._msg_label_patterns.get("prescreen", []):
-            if rx.search(s):
-                if DEBUG:
-                    print(
-                        f"[DEBUG rule_label] Early prescreen match: {rx.pattern[:80]}"
-                    )
-                return "prescreen"
 
         # Check application confirmation patterns (after rejection and scheduling checks)
         # This ensures "Thank you for applying" emails are not misclassified as rejections
@@ -1520,9 +1521,11 @@ class MetadataExtractor:
             dates["response_date"] = received_date
         if any(re.search(p, body_lower) for p in rejection_patterns):
             dates["rejection_date"] = received_date
-        if any(re.search(p, body_lower) for p in interview_patterns):
-            # Set to 7 days in future to mark as "upcoming interview"
-            dates["interview_date"] = (received_date + timedelta(days=7)).date()
+        # NOTE: interview_date is NOT auto-set from pattern matching.
+        # It should only be set when:
+        #   1. User manually enters the date via UI, OR
+        #   2. Email contains explicit date (future enhancement: parse dates from body)
+        # The previous "+7 days" heuristic created phantom interview entries.
         if any(re.search(p, body_lower) for p in followup_patterns):
             dates["follow_up_dates"] = received_date
         return dates
@@ -2160,7 +2163,7 @@ def looks_like_person(name: str) -> bool:
     return _company_validator.looks_like_person(name)
 
 
-PARSER_VERSION = "1.0.11"
+PARSER_VERSION = "1.0.12"
 
 # --- ML Model Paths ---
 # Message classification is handled by ml_subject_classifier.py (imported on line 27)
@@ -3161,6 +3164,8 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
         company
         and looks_like_person(company)
         and company.lower() not in {c.lower() for c in KNOWN_COMPANIES}
+        and company.lower() not in {v.lower() for v in DOMAIN_TO_COMPANY.values()}
+        and not company_from_domain  # Trust domain-mapped companies
         and not ats_sender_match  # Trust ATS sender display name
         and not subject_with_match  # Trust "with [Company]" subject pattern
     ):
@@ -4383,7 +4388,7 @@ def ingest_message(service, msg_id):
                     updated = False
                     # Normalize: treat both 'rejected' and 'rejection' as rejection outcome
                     if not app.rejection_date and ml_label in ("rejected", "rejection"):
-                        app.rejection_date = metadata["timestamp"].date()
+                        app.rejection_date = timezone.localtime(metadata["timestamp"]).date()
                         updated = True
                         if DEBUG:
                             print(
@@ -4401,7 +4406,7 @@ def ingest_message(service, msg_id):
                             and ml_label == "interview_invite"
                             and ml_conf >= 0.7
                         ):
-                            app.interview_date = metadata["timestamp"].date()
+                            app.interview_date = timezone.localtime(metadata["timestamp"]).date()
                         updated = True
                         if DEBUG:
                             print(
@@ -4682,7 +4687,7 @@ def ingest_message(service, msg_id):
 
     # Treat both 'rejection' and 'rejected' as rejection outcomes
     if not rejection_date_final and ml_label in ("rejected", "rejection"):
-        rejection_date_final = metadata["timestamp"].date()
+        rejection_date_final = timezone.localtime(metadata["timestamp"]).date()
         if DEBUG:
             print(f"✓ Set rejection_date from ML label: {rejection_date_final}")
 
@@ -4697,7 +4702,7 @@ def ingest_message(service, msg_id):
             ml_conf = 0.0
         if ml_conf >= 0.7:
             # Set to the message timestamp date as the conservative interview milestone
-            interview_date_final = metadata["timestamp"].date()
+            interview_date_final = timezone.localtime(metadata["timestamp"]).date()
             if DEBUG:
                 print(
                     f"✓ Set interview_date from ML label (message date): {interview_date_final}"
@@ -4760,7 +4765,7 @@ def ingest_message(service, msg_id):
                             "job_title": parsed_subject.get("job_title", ""),
                             "job_id": parsed_subject.get("job_id", ""),
                             "status": status,
-                            "sent_date": metadata["timestamp"].date(),
+                            "sent_date": timezone.localtime(metadata["timestamp"]).date(),
                             "rejection_date": rejection_date_final,
                             "interview_date": interview_date_final,
                             "ml_label": ml_label,
@@ -4888,7 +4893,7 @@ def ingest_message(service, msg_id):
                                 "job_title": parsed_subject.get("job_title", ""),
                                 "job_id": parsed_subject.get("job_id", ""),
                                 "status": status,
-                                "sent_date": metadata["timestamp"].date(),
+                                "sent_date": timezone.localtime(metadata["timestamp"]).date(),
                                 "rejection_date": rejection_date_final,
                                 "interview_date": interview_date_final,
                                 "ml_label": ml_label,

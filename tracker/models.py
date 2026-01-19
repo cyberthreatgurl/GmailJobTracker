@@ -155,6 +155,14 @@ class ThreadTracking(models.Model):
     status = models.CharField(max_length=50)
     sent_date = models.DateField()
     rejection_date = models.DateField(null=True, blank=True)
+    cancelled = models.BooleanField(
+        default=False,
+        help_text="Job posting was cancelled by the company"
+    )
+    withdrew = models.BooleanField(
+        default=False,
+        help_text="User withdrew their application"
+    )
     prescreen_date = models.DateField(
         null=True,
         blank=True,

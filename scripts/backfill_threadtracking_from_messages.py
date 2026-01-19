@@ -1,5 +1,6 @@
 import sys
 from pathlib import Path
+from django.utils import timezone
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
@@ -43,7 +44,7 @@ def main():
                 job_title="",
                 job_id="",
                 status="application",
-                sent_date=(msg.timestamp.date() if msg.timestamp else None),
+                sent_date=(timezone.localtime(msg.timestamp).date() if msg.timestamp else None),
                 ml_label=msg.ml_label,
                 ml_confidence=(msg.confidence or 0.0),
             )

@@ -6,6 +6,7 @@ that have ML labels but no corresponding date set.
 import os
 
 import django
+from django.utils import timezone
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dashboard.settings")
 django.setup()
@@ -23,11 +24,11 @@ def backfill_dates():
             thread_id=app.thread_id, ml_label="interview_invite"
         ).first()
         if msg:
-            app.interview_date = msg.timestamp.date()
+            app.interview_date = timezone.localtime(msg.timestamp).date()
             app.save()
             interviews_fixed += 1
             company_name = app.company.name if app.company else "Unknown"
-            print(f"Fixed interview: {company_name} - {msg.timestamp.date()}")
+            print(f"Fixed interview: {company_name} - {timezone.localtime(msg.timestamp).date()}")
 
     # Fix rejections
     rejections_fixed = 0
@@ -38,11 +39,11 @@ def backfill_dates():
             thread_id=app.thread_id, ml_label="rejected"
         ).first()
         if msg:
-            app.rejection_date = msg.timestamp.date()
+            app.rejection_date = timezone.localtime(msg.timestamp).date()
             app.save()
             rejections_fixed += 1
             company_name = app.company.name if app.company else "Unknown"
-            print(f"Fixed rejection: {company_name} - {msg.timestamp.date()}")
+            print(f"Fixed rejection: {company_name} - {timezone.localtime(msg.timestamp).date()}")
 
     print(
         f"\nSummary: Fixed {interviews_fixed} interview dates and {rejections_fixed} rejection dates"

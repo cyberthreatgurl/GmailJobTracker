@@ -1,6 +1,7 @@
 import sys, os
+from django.utils import timezone as dj_timezone
 
-sys.path.insert(0, r"C:\Users\kaver\code\GmailJobTracker")
+sys.path.insert(0, r"C:\Users\kaver\code\GmailJobTracker"))
 import django
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dashboard.settings")
@@ -113,9 +114,9 @@ if msg.thread_id:
             if ml_label:
                 ml_l = str(ml_label).lower()
                 if not rej_date and ml_l in ("rejected", "rejection"):
-                    rej_date = msg.timestamp.date() if msg.timestamp else None
+                    rej_date = dj_timezone.localtime(msg.timestamp).date() if msg.timestamp else None
                 if not int_date and "interview" in ml_l and ml_conf >= 0.7:
-                    int_date = msg.timestamp.date() if msg.timestamp else None
+                    int_date = dj_timezone.localtime(msg.timestamp).date() if msg.timestamp else None
         except Exception:
             pass
 

@@ -4,6 +4,7 @@ import os
 import sys
 import django
 from datetime import timedelta
+from django.utils import timezone
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dashboard.settings")
@@ -29,7 +30,8 @@ for msg in millennium_interviews:
         continue
 
     # Create ThreadTracking record
-    interview_date = (msg.timestamp + timedelta(days=7)).date()
+    local_timestamp = timezone.localtime(msg.timestamp)
+    interview_date = (local_timestamp + timedelta(days=7)).date()
 
     thread = ThreadTracking.objects.create(
         thread_id=msg.thread_id,
@@ -40,7 +42,7 @@ for msg in millennium_interviews:
         .strip(),
         job_id="",
         status="interview",
-        sent_date=msg.timestamp.date(),
+        sent_date=local_timestamp.date(),
         interview_date=interview_date,
         interview_completed=False,
         ml_label=msg.ml_label,

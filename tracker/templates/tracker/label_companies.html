@@ -206,6 +206,9 @@
           {{ form.contact_email }}
           <label for="id_status">Status</label>
           {{ form.status }}
+          <label for="id_notes" style="margin-top:0.75rem;">Notes</label>
+          {{ form.notes }}
+          <small style="color:#6b7280; display:block; margin-top:0.25rem; margin-bottom:0.5rem;">Company focus area analysis will appear here after clicking Populate. You can also add your own notes.</small>
           <button type="button" onclick="saveCompanyChanges()" style="background:#2563eb; color:white; font-weight:600; border-radius:6px; padding:0.6rem 1.2rem; border:none; cursor:pointer; margin-top:1rem;">Save Changes</button>
           <div id="save_status" style="margin-top:0.5rem; display:none;"></div>
         </form>
@@ -275,21 +278,6 @@
               </ul>
             </div>
           </div>
-          <!-- Notes Section (expandable) -->
-          <details open style="background: #fefce8; border-radius: 8px; padding: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
-            <summary style="cursor: pointer; padding: 1rem 1.5rem; font-weight: 600; color: #854d0e; font-size: 1rem; list-style: none; display: flex; align-items: center; gap: 0.5rem;">
-              <span style="transition: transform 0.2s;">▶</span> Notes
-            </summary>
-            <div style="padding: 0 1.5rem 1.5rem 1.5rem;">
-              <form method="post">
-                {% csrf_token %}
-                <input type="hidden" name="company" value="{{ selected_company.id }}" />
-                <input type="hidden" name="action" value="save_notes" />
-                <textarea name="notes" rows="6" style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem; resize: vertical; font-family: inherit; box-sizing: border-box;">{{ selected_company.notes|default:'' }}</textarea>
-                <button type="submit" style="background: #ca8a04; color: white; font-weight: 600; border-radius: 6px; padding: 0.5rem 1rem; border: none; cursor: pointer; margin-top: 0.75rem;">Save Notes</button>
-              </form>
-            </div>
-          </details>
           <style>
             details[open] summary span:first-child { transform: rotate(90deg); }
           </style>

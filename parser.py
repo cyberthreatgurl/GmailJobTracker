@@ -495,6 +495,9 @@ class RuleClassifier:
 
         # Early detection patterns
         early_detection = self.patterns.get("early_detection", {})
+        self._early_cancelled = self._compile_pattern_list(
+            early_detection.get("cancelled_position", [])
+        )
         self._early_scheduling = self._compile_pattern_list(
             early_detection.get("scheduling_language", [])
         )
@@ -594,6 +597,16 @@ class RuleClassifier:
                 )
             return "other"
 
+        # Check cancelled position FIRST (before rejection)
+        # "Decided not to move forward with filling this role" is a position cancellation,
+        # NOT a personal rejection. Must be checked before rejection patterns.
+        if any(rx.search(s) for rx in self._early_cancelled):
+            if DEBUG:
+                print(
+                    "[DEBUG rule_label] Early cancelled match - position was cancelled"
+                )
+            return "cancelled"
+
         # Check rejection patterns FIRST (before application confirmation)
         # This is critical because rejection emails often contain "your application to" language
         # that would otherwise match the broad application confirmation patterns
@@ -608,12 +621,26 @@ class RuleClassifier:
 
         # Check if this is a reply/follow-up email (RE:, Re:, FW:, Fwd:, etc.)
         is_reply = subject and any(rx.search(subject) for rx in self._reply_indicators)
+        
+        # Track if prescreen was skipped due to being a reply (to skip in priority loop too)
+        skip_prescreen_label = False
+        is_prescreen_reply = False  # Track if this is specifically a reply to a prescreen
 
         # Check prescreen patterns FIRST (before scheduling language)
         # "Phone Screen" or "Prescreen" in subject should be classified as prescreen,
         # not interview_invite, even if the email contains scheduling language
+        # BUT only for initial outreach - replies should be classified as 'other'
         for rx in self._msg_label_patterns.get("prescreen", []):
             if rx.search(s):
+                if is_reply:
+                    if DEBUG:
+                        print(
+                            "[DEBUG rule_label] Prescreen pattern in reply -> treating as follow-up (other)"
+                        )
+                    # Mark to skip prescreen in the priority loop as well
+                    skip_prescreen_label = True
+                    is_prescreen_reply = True
+                    break
                 if DEBUG:
                     print(
                         f"[DEBUG rule_label] Early prescreen match: {rx.pattern[:80]}"
@@ -691,6 +718,7 @@ class RuleClassifier:
         # Check labels in priority order
         for label in (
             "offer",
+            "cancelled",
             "rejection",
             "head_hunter",
             "noise",
@@ -702,6 +730,12 @@ class RuleClassifier:
             "ghosted",
             "blank",
         ):
+            # Skip prescreen if we already determined this is a reply to a prescreen thread
+            if label == "prescreen" and skip_prescreen_label:
+                if DEBUG:
+                    print("[DEBUG rule_label] Skipping prescreen label check (reply detected earlier)")
+                continue
+                
             if DEBUG and label == "rejection":
                 print(f"[DEBUG rule_label] Checking '{label}' patterns...")
 
@@ -801,6 +835,13 @@ class RuleClassifier:
                     if DEBUG and label == "rejection":
                         print(f"[DEBUG rule_label] About to return '{label}'")
                     return label
+
+        # If this was a reply to a prescreen thread that didn't match any other label,
+        # default to 'other' instead of None
+        if is_prescreen_reply:
+            if DEBUG:
+                print("[DEBUG rule_label] Prescreen reply with no other match -> other")
+            return "other"
 
         return None
 
@@ -2039,12 +2080,42 @@ def normalize_company_name(name: str) -> str:
     return _company_validator.normalize_company_name(name)
 
 
-def get_or_create_company_iexact(name: str, defaults: dict = None) -> tuple:
-    """Get or create a Company with case-insensitive name matching.
+def normalize_company_name_for_matching(name: str) -> str:
+    """Normalize company name for fuzzy matching.
     
-    Prevents duplicate companies that differ only in case (e.g., 'AMERICAN SYSTEMS' vs 'American Systems').
-    If a matching company exists (case-insensitive), returns that company.
-    Otherwise creates a new company with the provided name.
+    Removes punctuation variations (commas, periods) and standardizes spacing
+    to catch near-duplicates like "Network Designs, Inc." vs "Network Designs Inc".
+    
+    Args:
+        name: Company name to normalize
+        
+    Returns:
+        Normalized lowercase string for comparison
+        
+    Examples:
+        "Network Designs, Inc." -> "network designs inc"
+        "Network Designs Inc"   -> "network designs inc"
+        "ABC Corp."             -> "abc corp"
+    """
+    if not name:
+        return ""
+    # Remove common punctuation that causes mismatches
+    normalized = re.sub(r'[,.]', '', name)
+    # Collapse multiple spaces to single space
+    normalized = re.sub(r'\s+', ' ', normalized)
+    return normalized.strip().lower()
+
+
+def get_or_create_company_iexact(name: str, defaults: dict = None) -> tuple:
+    """Get or create a Company with case-insensitive and punctuation-insensitive name matching.
+    
+    Prevents duplicate companies that differ only in case or punctuation:
+    - Case differences: 'AMERICAN SYSTEMS' vs 'American Systems'
+    - Punctuation differences: 'Network Designs, Inc.' vs 'Network Designs Inc'
+    
+    Resolution order:
+    1. Exact case-insensitive match on Company.name
+    2. Normalized match (removes commas, periods, standardizes spacing)
     
     Args:
         name: Company name to look up or create
@@ -2062,6 +2133,14 @@ def get_or_create_company_iexact(name: str, defaults: dict = None) -> tuple:
     existing = Company.objects.filter(name__iexact=name).first()
     if existing:
         return existing, False
+    
+    # Try normalized match (handles punctuation differences)
+    normalized_input = normalize_company_name_for_matching(name)
+    for company in Company.objects.all():
+        if normalize_company_name_for_matching(company.name) == normalized_input:
+            if DEBUG:
+                print(f"[DEBUG] Normalized match: '{name}' -> existing '{company.name}'")
+            return company, False
     
     # No match found, create new company
     if defaults is None:
@@ -4686,7 +4765,8 @@ def ingest_message(service, msg_id):
     interview_date_final = status_dates["interview_date"]
 
     # Treat both 'rejection' and 'rejected' as rejection outcomes
-    if not rejection_date_final and ml_label in ("rejected", "rejection"):
+    # Also treat 'cancelled' as a rejection (position was cancelled)
+    if not rejection_date_final and ml_label in ("rejected", "rejection", "cancelled"):
         rejection_date_final = timezone.localtime(metadata["timestamp"]).date()
         if DEBUG:
             print(f"✓ Set rejection_date from ML label: {rejection_date_final}")
@@ -4707,6 +4787,13 @@ def ingest_message(service, msg_id):
                 print(
                     f"✓ Set interview_date from ML label (message date): {interview_date_final}"
                 )
+
+    # If ML indicates a prescreen, set prescreen_date from message timestamp
+    prescreen_date_final = None
+    if ml_label == "prescreen":
+        prescreen_date_final = timezone.localtime(metadata["timestamp"]).date()
+        if DEBUG:
+            print(f"✓ Set prescreen_date from ML label: {prescreen_date_final}")
 
     try:
         message_obj = Message.objects.get(msg_id=msg_id)
@@ -4755,8 +4842,8 @@ def ingest_message(service, msg_id):
                     )
                 # Do not create or update Application for headhunters
             else:
-                # Create ThreadTracking for applications and interview invites
-                if ml_label in ("job_application", "interview_invite"):
+                # Create ThreadTracking for applications, interview invites, prescreens, and cancelled positions
+                if ml_label in ("job_application", "interview_invite", "prescreen", "cancelled"):
                     application_obj, created = ThreadTracking.objects.get_or_create(
                         thread_id=metadata["thread_id"],
                         defaults={
@@ -4768,11 +4855,13 @@ def ingest_message(service, msg_id):
                             "sent_date": timezone.localtime(metadata["timestamp"]).date(),
                             "rejection_date": rejection_date_final,
                             "interview_date": interview_date_final,
+                            "prescreen_date": prescreen_date_final,
                             "ml_label": ml_label,
                             "ml_confidence": (
                                 float(result.get("confidence", 0.0)) if result else 0.0
                             ),
                             "reviewed": reviewed,
+                            "cancelled": ml_label == "cancelled",
                         },
                     )
 
@@ -4802,6 +4891,12 @@ def ingest_message(service, msg_id):
                             and ml_label == "interview_invite"
                         ):
                             application_obj.interview_date = interview_date_final
+                            updated = True
+                        if (
+                            not application_obj.prescreen_date
+                            and ml_label == "prescreen"
+                        ):
+                            application_obj.prescreen_date = prescreen_date_final
                             updated = True
                         if updated:
                             application_obj.save()
@@ -4856,6 +4951,12 @@ def ingest_message(service, msg_id):
                         ):
                             application_obj.interview_date = interview_date_final
                             updated = True
+                        if (
+                            not application_obj.prescreen_date
+                            and ml_label == "prescreen"
+                        ):
+                            application_obj.prescreen_date = prescreen_date_final
+                            updated = True
                         if updated:
                             application_obj.save()
                             if DEBUG:
@@ -4869,10 +4970,10 @@ def ingest_message(service, msg_id):
                             )
         else:
             # Missing company_obj or message_obj - try fallback ThreadTracking creation if applicable
-            if ml_label in ("job_application", "interview_invite") and not company_obj:
+            if ml_label in ("job_application", "interview_invite", "prescreen") and not company_obj:
                 if DEBUG:
                     print(
-                        f"⚠️  job_application/interview_invite without company - attempting fallback"
+                        f"⚠️  job_application/interview_invite/prescreen without company - attempting fallback"
                     )
                 # Try to extract company from Message if it was created
                 try:
@@ -4896,6 +4997,7 @@ def ingest_message(service, msg_id):
                                 "sent_date": timezone.localtime(metadata["timestamp"]).date(),
                                 "rejection_date": rejection_date_final,
                                 "interview_date": interview_date_final,
+                                "prescreen_date": prescreen_date_final,
                                 "ml_label": ml_label,
                                 "ml_confidence": (
                                     float(result.get("confidence", 0.0))
@@ -4903,6 +5005,7 @@ def ingest_message(service, msg_id):
                                     else 0.0
                                 ),
                                 "reviewed": reviewed,
+                                "cancelled": ml_label == "cancelled",
                             },
                         )
                         if created and DEBUG:

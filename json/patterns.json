@@ -15,6 +15,11 @@
     ]
   },
   "early_detection": {
+    "cancelled_position": [
+      "\\b(?:decided|chosen)\\s+not\\s+to\\s+(?:move\\s+forward\\s+with\\s+)?fill(?:ing)?\\s+(?:this|the)\\s+(?:role|position)\\b",
+      "\\bevolving\\s+business\\s+needs\\b.*\\bnot\\s+(?:to\\s+)?(?:move\\s+forward|proceed|fill)\\b",
+      "\\bnot\\s+(?:to\\s+)?move\\s+forward\\s+with\\s+filling\\s+(?:this|the)\\s+(?:role|position)\\b"
+    ],
     "scheduling_language": [
       "(?:please\\s+)?(?:let\\s+me\\s+know\\s+when\\s+you(?:\\s+would|(?:'re|\\s+are))?\\s+available)",
       "(?:please\\s+)?(?:provide|share|send)(?:\\s+me)?(?:\\s+with)?\\s+your\\s+availability",
@@ -68,6 +73,7 @@
     "cancelled": [
         "\\b(?:position|job|role|requisition)\\s+(?:has\\s+been\\s+)?(?:cancelled|canceled|closed)\\b",
         "\\b(?:cancelled|canceled)\\s+(?:the\\s+)?(?:position|job|role|requisition)\\b",
+        "\\bno\\s+longer\\s+(?:filling|hiring\\s+for)\\s+(?:this|the)\\s+(?:position|role)\\b",
         "\\bno\\s+longer\\s+(?:filling|hiring\\s+for)\\s+(?:this|the)\\s+(?:position|role)\\b"
       ],
     "prescreen": [

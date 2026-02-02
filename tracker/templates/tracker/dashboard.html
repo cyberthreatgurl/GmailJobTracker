@@ -152,7 +152,7 @@
       const select = document.getElementById('dashboard_company');
       const value = select.value;
       if (value === 'new') {
-        window.location.href = '/label_companies/';
+        window.location.href = '/label_companies/?company=new';
       } else if (value) {
         window.location.href = `/label_companies/?company=${value}`;
       }

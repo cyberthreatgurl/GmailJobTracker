@@ -46,6 +46,10 @@ def propagate_message_label_to_thread(message: Message) -> Optional[ThreadTracki
                         # Clear prescreen_date if it was set from old label
                         if old_label == "prescreen" and tt.prescreen_date == msg_date:
                             tt.prescreen_date = None
+                    elif message.ml_label in ("rejection", "cancelled") and not tt.rejection_date:
+                        tt.rejection_date = msg_date
+                        if message.ml_label == "cancelled":
+                            tt.cancelled = True
 
                 if message.confidence is not None and (
                     tt.ml_confidence is None or tt.ml_confidence != message.confidence
@@ -57,10 +61,10 @@ def propagate_message_label_to_thread(message: Message) -> Optional[ThreadTracki
                 return tt
 
             # No ThreadTracking for this thread_id exists
-            # For prescreen/interview messages, check if company already has a ThreadTracking
+            # For prescreen/interview/rejection messages, check if company already has a ThreadTracking
             # and update that one instead of creating a duplicate
             if (
-                message.ml_label in ("prescreen", "interview_invite")
+                message.ml_label in ("prescreen", "interview_invite", "rejection", "cancelled")
                 and message.company
             ):
                 # Look for existing ThreadTracking for this company
@@ -76,6 +80,11 @@ def propagate_message_label_to_thread(message: Message) -> Optional[ThreadTracki
                         changed = True
                     elif message.ml_label == "interview_invite" and not existing_tt.interview_date:
                         existing_tt.interview_date = msg_date
+                        changed = True
+                    elif message.ml_label in ("rejection", "cancelled") and not existing_tt.rejection_date:
+                        existing_tt.rejection_date = msg_date
+                        if message.ml_label == "cancelled":
+                            existing_tt.cancelled = True
                         changed = True
                     if changed:
                         existing_tt.save()

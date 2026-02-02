@@ -5,6 +5,70 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-02-02
+
+### Added
+- **Configuration-Driven Architecture** - Major refactoring to move hardcoded values to JSON config files
+  - `companies.json` now includes: `ats_heuristic_patterns`, `display_name_noise_words`, `ats_platform_suffixes`, `job_board_sender_patterns`
+  - `patterns.json` now includes: `corp_markers`, `newsletter_headers`, `classification_headers`, `company_name_normalizations`
+  - All hardcoded ATS patterns, display name cleaning words, and validation markers now loaded from config
+  - Fallback defaults ensure backward compatibility when config fields are missing
+
+- **New Utility Scripts**
+  - `scripts/ats_detection_heuristics.py` - Auto-detect ATS from email headers/body using URL patterns
+  - `scripts/pattern_conflict_analysis.py` - Analyze patterns.json for conflicts and redundancies
+  - `scripts/find_missing_ats_domains.py` - Find and fix companies with missing ATS domains
+  - `scripts/find_missing_rejection_dates.py` - Find and fix ThreadTracking records missing rejection dates
+  - `scripts/test_ats_domain.py` - Test ATS domain detection logic
+
+- **Regression Test Suite** - `tests/test_edge_case_regressions.py` with tests for:
+  - Amentum "Thanks You for Your Application" fix
+  - Future Technologies/saashr.com parsing fix
+  - Rejection pattern prioritization
+  - Application confirmation priority over status updates
+  - Prescreen vs interview classification
+  - Newsletter vs application detection
+  - ATS domain recognition
+
+- **New Companies & Domains** - Added 13+ new companies to `companies.json`:
+  - LinTech Global, Scientific Research Corporation, Dragonfli Group, Threat Tec
+  - The Maven Group, Data Intelligence LLC, SCCI, Future Technologies Inc
+  - OSC Edge, Emerging Tech, Cydecor, BCI Sensor Systems, Bluehawk Intelligence Services
+  - Added corresponding domain mappings and career page URLs
+
+### Changed
+- **Application Confirmation Priority** - Now checked BEFORE status updates
+  - Prevents "Thank you for your application" emails from being misclassified as "other"
+  - Fixes issue where emails mentioning "under review" were misrouted
+
+- **Label Propagation Improvements** - Better handling of rejection/cancelled labels
+  - Rejection and cancelled messages now properly update ThreadTracking.rejection_date
+  - Cancelled messages also set ThreadTracking.cancelled flag
+  - Existing ThreadTracking records for company are updated instead of creating duplicates
+
+- **Company Domain/ATS Update on Re-ingest** - Re-ingesting messages now updates company domain/ATS fields
+  - Previously only set on initial ingest, now properly updates on re-ingest
+
+- **Pattern Cleanup** - Removed duplicate/redundant patterns:
+  - Removed duplicate `\bmyworkday\b` patterns (3 occurrences)
+  - Removed duplicate `\bno\s+longer\s+(?:filling|hiring\s+for)` pattern
+  - Removed duplicate `\byour\s+job\s+application\s+is\s+incomplete\b` pattern
+  - Fixed duplicate line in application_confirmation patterns
+
+### Fixed
+- **Dashboard "Create New Company" Navigation** - Now goes directly to create form
+  - Previously required extra click through dropdown
+  - Fixed by adding `?company=new` parameter to navigation URL
+
+- **Personal Domain Detection** - Now uses centralized `PERSONAL_DOMAINS` set from `personal_domains.json`
+  - Previously had hardcoded lists in 3 locations in parser.py
+  - Ensures consistent personal domain detection across all code paths
+
+- **ATS Domain Heuristic Detection** - Added configurable pattern matching
+  - `is_ats_domain()` now checks both static list AND heuristic patterns
+  - Added `saashr.com` and `taleo.net` to ATS domains
+  - Debug logging shows which heuristic pattern matched
+
 ## [1.2.6] - 2026-01-19
 
 ### Fixed

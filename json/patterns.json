@@ -55,8 +55,7 @@
       "\\bstatus\\s+of\\s+your\\s+application\\b"
     ],
     "application_confirmation": [
-      "\\b(we\\s+have\\s+received\\s+your\\s+application|we['’]?ve\\s+received\\s+your\\s+application|thanks?\\s+(?:you\\s+)?for\\s+applying|application\\s+received|your\\s+application\\s+has\\s+been\\s+received|your\\s+application\\s+has\\s+been\\s+submitted|your\\s+application\\s+was\\s+sent)\\b",
-      "\\bthank\\s+you\\s+for\\s+your\\s+(?:application|employment\\s+submission)\\b",
+      "\\b(we\\s+have\\s+received\\s+your\\s+application|we['’]?ve\\s+received\\s+your\\s+application|thanks?\\s+(?:you\\s+)?for\\s+applying|application\\s+received|your\\s+application\\s+has\\s+been\\s+received|your\\s+application\\s+has\\s+been\\s+submitted|your\\s+application\\s+was\\s+sent)\\b",      "\\bthanks?\\s+you\\s+for\\s+your\\s+(?:application|recent\\s+application)\\b",      "\\bthank\\s+you\\s+for\\s+your\\s+(?:application|employment\\s+submission)\\b",
       "\\bwe\\s+will\\s+review\\s+your\\s+(?:application|submission)\\b"
     ]
   },
@@ -74,7 +73,7 @@
         "\\b(?:position|job|role|requisition)\\s+(?:has\\s+been\\s+)?(?:cancelled|canceled|closed)\\b",
         "\\b(?:cancelled|canceled)\\s+(?:the\\s+)?(?:position|job|role|requisition)\\b",
         "\\bno\\s+longer\\s+(?:filling|hiring\\s+for)\\s+(?:this|the)\\s+(?:position|role)\\b",
-        "\\bno\\s+longer\\s+(?:filling|hiring\\s+for)\\s+(?:this|the)\\s+(?:position|role)\\b"
+        "\\bhas\\s+been\\s+(?:cancelled|canceled)\\b"
       ],
     "prescreen": [
         "\\bbrief\\s+phone\\s+call\\b",
@@ -130,7 +129,6 @@
       "\\bcomplete\\s+(?:your|the)\\s+.*?\\sapplication\\b",
       "\\bcomplete\\s+your\\s+application\\b",
       "\\bapplication\\s+is\\s+incomplete\\b",
-      "\\byour\\s+job\\s+application\\s+is\\s+incomplete\\b",
       "\\bfinish(?:ing)?\\s+your\\s+application\\b",
       "\\baction\\s+needed\\s+to\\s+complete\\s+(?:your\\s+)?application\\b",
       "\\byour\\sapplication\\s(?:to|for|at)\\b",
@@ -154,7 +152,6 @@
     ],
     "rejection": [
       "\\bemail_jobs_application_rejected",
-      "\\bX-LinkedIn-Template:\\s*email_jobs_application_rejected",
       "\\byour\\s+application\\s+to\\b.{0,200}\\b(?:not\\s+selected|not\\s+moving\\s+forward|decided\\s+not\\s+to|chosen|declined|rejected|unfortunately|regret|no\\s+longer)",
       "\\byour\\s+application\\s+to\\b.{0,200}(?:another\\s+candidate|other\\s+candidate|different\\s+candidate|filled\\s+the\\s+position)",
       "\\byour\\s+update\\s+from\\b.{0,200}\\b(?:not\\s+selected|not\\s+moving\\s+forward|decided\\s+not\\s+to|chosen|declined|rejected|unfortunately|regret)",
@@ -172,12 +169,12 @@
       "\\bmoving\\sforward\\swith\\sother\\b",
       "\\bmoving\\s+forward\\s+with\\s+other\\s+(?:applicants|candidates)\\b",
       "\\bunable\\s+to\\s+consider\\s+you\\s+for\\s+(?:this|the)\\s+(?:role|position)\\b",
-      "\\bthank\\s+you\\s+for\\s+(?:your\\s+)?interest\\b",
       "\\b(?:we(?:'ve|\\s+have)\\s+)?(?:decided|chosen)\\s+to\\s+move\\s+forward\\s+with\\s+(?:other|another|an?\\s+alternative)\\s+candidate",
       "\\bwe\\s+are\\s+not\\s+moving\\s+forward",
       "\\bwe\\s+will\\s+not\\s+be\\s+moving\\s+forward\\b",
       "\\bnot\\sto\\smove\\sforward\\swith\\syour\\b",
       "\\bunfortunately.{0,50}you\\s+(?:have|were)\\s+not\\s+been\\s+selected\\b",
+      "\\byou\\s+(?:have|were)\\s+not\\s+(?:been\\s+)?selected\\b",
       "\\bregret.{0,50}you\\s+(?:have|were)\\s+not\\s+(?:been\\s+)?selected\\b",
       "\\bwe.{0,30}not\\s+(?:be\\s+)?able.{0,30}selected\\s+you\\b",
       "\\bposition\\s+has\\s+been\\s+closed\\s+or\\s+filled\\b",
@@ -238,7 +235,6 @@
         "\\breply-?to:\\s*\\S*workday\\b",
         "\\bauto-?submitted\\b",
         "\\bworkday\\b",
-        "\\bmyworkday\\b",
         "\\btalent\\.icims\\b",
         "\\byour\\s+message\\s+is\\s+on\\s+its\\s+way\\s+to\\b",
         "\\bthank\\s+you\\s+for\\s+taking\\s+action\\b",
@@ -383,7 +379,6 @@
         "\\bplease\\s+(?:do\\s+)?not\\s+(?:reply|respond)\\b",
         "\\bauto-?(?:reply|response|generated|submitted)\\b",
         "\\bworkday\\b",
-        "\\bmyworkday\\b",
         "\\btalent\\.icims\\b",
         "\\bindeed\\b",
         "\\b(list-|List-)Unsubscribe\\b",
@@ -436,7 +431,6 @@
         "\\bList-?Unsubscribe\\b",
         "\\bOne-Click\\b",
         "\\bworkday\\b",
-        "\\bmyworkday\\b",
         "\\btalent\\.icims\\b",
         "\\bthis\\s+is\\s+an\\s+automated\\s+email\\b",
         "\\bthis\\s+is\\s+an\\s+automated\\s+response\\b",
@@ -494,5 +488,22 @@
     "the\\sPrincipal,",
     "donotreply,",
     "Field\\sCTO,"
-  ]
+  ],
+  "corp_markers": [
+    "inc", "llc", "ltd", "co", "corp", "corporation", "company",
+    "technologies", "systems", "group", "solutions", "consulting",
+    "services", "partners", "associates", "labs", "industries"
+  ],
+  "newsletter_headers": [
+    "List-Id", "List-Unsubscribe", "X-Newsletter", "X-Campaign",
+    "X-Mailer-LID", "X-Mailgun-Tag"
+  ],
+  "classification_headers": [
+    "List-Id", "List-Unsubscribe", "Precedence", "X-Campaign",
+    "X-Mailer", "X-Newsletter", "Auto-Submitted", "X-Auto-Response-Suppress",
+    "Return-Path", "Reply-To", "Organization", "X-Entity-Ref-ID", "X-Sender"
+  ],
+  "company_name_normalizations": {
+    "indeed application": "Indeed"
+  }
 }

@@ -358,6 +358,8 @@
                             data-interview="{{ thread.interview_date|date:'Y-m-d'|default:'' }}"
                             data-rejection="{{ thread.rejection_date|date:'Y-m-d'|default:'' }}"
                             data-offer="{{ thread.offer_date|date:'Y-m-d'|default:'' }}"
+                            data-cancelled="{{ thread.cancelled|yesno:'true,false' }}"
+                            data-withdrew="{{ thread.withdrew|yesno:'true,false' }}"
                             data-url="{{ thread.application_url|default:'' }}"
                             data-text="{{ thread.application_text|default:'' }}">
                       {% if thread.job_title %}{{ thread.job_title }}{% else %}Application #{{ forloop.counter }}{% endif %} - {{ thread.sent_date|date:'M d, Y' }} ({% if thread.ml_label == 'job_application' %}application{% elif thread.ml_label == 'prescreen' %}prescreen{% elif thread.ml_label == 'interview_invite' %}interview{% else %}{{ thread.ml_label|default:'application' }}{% endif %})
@@ -470,6 +472,8 @@
           document.getElementById('id_interview_date').value = selected.dataset.interview || '';
           document.getElementById('id_rejection_date').value = selected.dataset.rejection || '';
           document.getElementById('id_offer_date').value = selected.dataset.offer || '';
+          document.getElementById('id_cancelled').checked = selected.dataset.cancelled === 'true';
+          document.getElementById('id_withdrew').checked = selected.dataset.withdrew === 'true';
           document.getElementById('id_application_url').value = selected.dataset.url || '';
           document.getElementById('id_application_text').value = selected.dataset.text || '';
         });

@@ -101,6 +101,19 @@ class CompanyValidator:
         """
         self.patterns = patterns
         self.invalid_prefixes = patterns.get("invalid_company_prefixes", [])
+        # Load corp_markers from patterns.json (with fallback defaults)
+        self.corp_markers = set(
+            m.lower() for m in patterns.get("corp_markers", [
+                "inc", "llc", "ltd", "co", "corp", "corporation", "company",
+                "technologies", "systems", "group",
+            ])
+        )
+        # Load company name normalizations from patterns.json
+        self.company_name_normalizations = {
+            k.lower(): v for k, v in patterns.get("company_name_normalizations", {
+                "indeed application": "Indeed",
+            }).items()
+        }
 
     def is_valid_company_name(self, name):
         """Reject company names that match known invalid prefixes from patterns.
@@ -131,7 +144,7 @@ class CompanyValidator:
         - Strip whitespace and trailing punctuation
         - Remove suffix fragments like "- Application ..." or trailing "Application"
         - Collapse repeated whitespace
-        - Map known pseudo-companies like "Indeed Application" -> "Indeed"
+        - Map known pseudo-companies from company_name_normalizations config
 
         Args:
             name: Company name to normalize
@@ -154,10 +167,10 @@ class CompanyValidator:
         # Collapse multiple internal spaces
         n = re.sub(r"\s{2,}", " ", n)
 
-        # Known normalizations
+        # Check configurable normalizations
         lower = n.lower()
-        if lower == "indeed application":
-            return "Indeed"
+        if lower in self.company_name_normalizations:
+            return self.company_name_normalizations[lower]
 
         return n
 
@@ -167,7 +180,7 @@ class CompanyValidator:
         Criteria (intentionally conservative so we *reject* obvious person names):
         - 1–3 tokens, each starting with capital then lowercase letters only
         - No token contains digits, '&', '@', '.', or corporate suffix markers
-        - Contains no common company suffix words (Inc, LLC, Corp, Company, Technologies, Systems)
+        - Contains no common company suffix words from corp_markers config
         - If exactly two tokens and both are common first/last name shapes (<=12 chars) treat as person
 
         Args:
@@ -184,19 +197,8 @@ class CompanyValidator:
         tokens = raw.split()
         if not (1 <= len(tokens) <= 3):
             return False
-        corp_markers = {
-            "inc",
-            "llc",
-            "ltd",
-            "co",
-            "corp",
-            "corporation",
-            "company",
-            "technologies",
-            "systems",
-            "group",
-        }
-        if any(t.lower().strip(".,") in corp_markers for t in tokens):
+        # Use configurable corp_markers from patterns.json
+        if any(t.lower().strip(".,") in self.corp_markers for t in tokens):
             return False
         # Reject if any token has non alpha (besides hyphen) or is ALLCAPS acronym
         for t in tokens:
@@ -217,6 +219,7 @@ class DomainMapper:
     This class encapsulates domain resolution logic, company data loading,
     and automatic reloading when the companies.json file changes.
     """
+
 
     def __init__(self, companies_path: Path):
         """Initialize DomainMapper with path to companies.json.
@@ -271,6 +274,30 @@ class DomainMapper:
             }
             self.aliases = self.company_data.get("aliases", {})
 
+            # Load new configurable patterns (with fallback defaults)
+            self.ats_heuristic_patterns = [
+                p.lower() for p in self.company_data.get("ats_heuristic_patterns", [
+                    "workday", "greenhouse", "lever", "icims", "taleo",
+                    "brassring", "smartrecruiters", "jobvite", "successfactors",
+                    "bamboohr", "paylocity", "ultipro", "ashby", "rippling",
+                    "applicantpro", "jazzhr", "recruitee", "workable",
+                ])
+            ]
+            self.display_name_noise_words = self.company_data.get("display_name_noise_words", [
+                "Workday", "Recruiting Team", "Careers", "Talent Acquisition Team",
+                "HR", "Hiring", "Notification", "Notifications", "Team", "Portal",
+            ])
+            self.ats_platform_suffixes = [
+                s.lower() for s in self.company_data.get("ats_platform_suffixes", [
+                    "icims", "workday", "greenhouse", "lever", "indeed",
+                ])
+            ]
+            self.job_board_sender_patterns = [
+                p.lower() for p in self.company_data.get("job_board_sender_patterns", [
+                    "indeedapply",
+                ])
+            ]
+
             # Track file modification time for auto-reload
             try:
                 self._domain_map_mtime = self.companies_path.stat().st_mtime
@@ -313,6 +340,9 @@ class DomainMapper:
     def is_ats_domain(self, domain: str) -> bool:
         """Return True if domain equals or is a subdomain of any ATS root domain.
 
+        First checks the static list from companies.json, then falls back to
+        heuristic detection based on common ATS URL patterns.
+
         Args:
             domain: Email domain to check (e.g., 'myworkday.com', 'talent.icims.com')
 
@@ -322,9 +352,19 @@ class DomainMapper:
         if not domain:
             return False
         d = domain.lower()
+        
+        # Check static list first
         for ats in self.ats_domains:
             if d == ats or d.endswith("." + ats):
                 return True
+        
+        # Heuristic fallback: detect ATS from configurable patterns
+        for pattern in self.ats_heuristic_patterns:
+            if pattern in d:
+                if DEBUG:
+                    print(f"[ATS HEURISTIC] Domain {domain} matched pattern '{pattern}'")
+                return True
+        
         return False
 
     def map_company_by_domain(self, domain: str):
@@ -701,19 +741,22 @@ class RuleClassifier:
                         return "rejection"
                 break  # Exit after checking rejection patterns once
 
-        # Status update messages (follow-up/still under review) -> other (checked BEFORE application confirmation)
-        if any(rx.search(s) for rx in self._early_status_update):
-            if DEBUG:
-                print("[DEBUG rule_label] Matched status-update -> other")
-            return "other"
-
-        # Explicit application-confirmation signals -> job_application
+        # Explicit application-confirmation signals -> job_application (checked BEFORE status update)
+        # This ensures "Thank you for your application" emails aren't misclassified as "other"
+        # just because they also mention "under review"
         if any(rx.search(s) for rx in self._early_application_confirm):
             if DEBUG:
                 print(
                     "[DEBUG rule_label] Matched application-confirmation -> job_application"
                 )
             return "job_application"
+
+        # Status update messages (follow-up/still under review) -> other
+        # Only triggers if application-confirmation patterns didn't match above
+        if any(rx.search(s) for rx in self._early_status_update):
+            if DEBUG:
+                print("[DEBUG rule_label] Matched status-update -> other")
+            return "other"
 
         # Check labels in priority order
         for label in (
@@ -1237,11 +1280,16 @@ class CompanyResolver:
             return None
 
         domain_lower = (sender_domain or "").lower()
+        sender_email_lower = (sender_email or "").lower()
 
-        # Check if this is a job board domain
+        # Check if this is a job board domain or matches job board sender patterns
+        job_board_sender_match = any(
+            pattern in sender_email_lower
+            for pattern in self.domain_mapper.job_board_sender_patterns
+        )
         is_job_board = (
             domain_lower in self.job_board_domains
-            or "indeedapply" in sender_email
+            or job_board_sender_match
             or "application" in subject.lower()
         )
 
@@ -1325,21 +1373,15 @@ class CompanyResolver:
 
         display_name, _ = parseaddr(sender)
 
-        # Clean up ATS-specific noise
-        cleaned = re.sub(
-            r"\b(Workday|Recruiting Team|Careers|Talent Acquisition Team|HR|Hiring|Notification|Notifications|Team|Portal)\b",
-            "",
-            display_name,
-            flags=re.I,
-        ).strip()
+        # Clean up ATS-specific noise words (from companies.json config)
+        noise_words = self.domain_mapper.display_name_noise_words
+        noise_pattern = r"\b(" + "|".join(re.escape(w) for w in noise_words) + r")\b"
+        cleaned = re.sub(noise_pattern, "", display_name, flags=re.I).strip()
 
-        # Remove ATS platform suffixes
-        cleaned = re.sub(
-            r"\s*@\s*(icims|workday|greenhouse|lever|indeed)\s*$",
-            "",
-            cleaned,
-            flags=re.I,
-        ).strip()
+        # Remove ATS platform suffixes (from companies.json config)
+        suffixes = self.domain_mapper.ats_platform_suffixes
+        suffix_pattern = r"\s*@\s*(" + "|".join(re.escape(s) for s in suffixes) + r")\s*$"
+        cleaned = re.sub(suffix_pattern, "", cleaned, flags=re.I).strip()
 
         # Clean up multiple spaces
         cleaned = re.sub(r"\s+", " ", cleaned).strip()
@@ -2624,14 +2666,8 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
             )
         )
 
-        # Check if sender is from a company domain (not personal)
-        is_company_domain = domain_lower and domain_lower not in [
-            "gmail.com",
-            "yahoo.com",
-            "outlook.com",
-            "hotmail.com",
-            "icloud.com",
-        ]
+        # Check if sender is from a company domain (not personal - use loaded PERSONAL_DOMAINS)
+        is_company_domain = domain_lower and domain_lower not in PERSONAL_DOMAINS
 
         if has_meeting_details and has_interview_language and is_company_domain:
             if DEBUG:
@@ -2735,16 +2771,21 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
             _, sender_email = parseaddr(sender)
         else:
             sender_email = ""
+        sender_email_lower = (sender_email or "").lower()
 
         if DEBUG:
             print(
                 f"[DEBUG] Checking for job board application confirmation in subject: {subject[:50]}..."
             )
 
-        # Check if this is a job board domain or generic confirmation email
+        # Check if this is a job board domain or matches job board sender patterns
+        job_board_sender_match = any(
+            pattern in sender_email_lower
+            for pattern in _domain_mapper.job_board_sender_patterns
+        )
         is_job_board_confirmation = (
             domain_lower in JOB_BOARD_DOMAINS
-            or "indeedapply" in sender_email
+            or job_board_sender_match
             or "application" in subject.lower()
         )
 
@@ -2839,14 +2880,16 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
                     print(f"[DEBUG] Body plain is empty, cannot extract company")
 
     # Generic ATS body patterns - look for company name in application confirmation text
+    # Also trigger for ATS domains even without application keywords in subject
+    subject_has_app_keywords = (
+        "application" in subject.lower()
+        or "applying" in subject.lower()
+        or "applied" in subject.lower()
+    )
     if (
         not company
         and body
-        and (
-            "application" in subject.lower()
-            or "applying" in subject.lower()
-            or "applied" in subject.lower()
-        )
+        and (subject_has_app_keywords or is_ats_domain)
     ):
         if DEBUG:
             print(f"[DEBUG] Entering ATS body pattern extraction")
@@ -2868,12 +2911,14 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
             # Pattern: "application for [POSITION] position here at COMPANY"
             # Pattern: "application for our [POSITION] position at COMPANY"
             # Pattern: "your application for [POSITION] at COMPANY"
+            # Pattern: "interest in COMPANY" (Future Technologies, etc.)
             ats_body_patterns = [
                 r"position\s+(?:here\s+)?at\s+([A-Z][A-Za-z0-9\s&.,'-]+?)(?:\.|[\r\n]|\s+Thank)",
                 r"position\s+(?:here\s+)?(?:at|with)\s+([A-Z][A-Za-z0-9\s&.,'-]{2,30})[\r\n.]",
                 r"application\s+for\s+(?:our|the)\s+.{5,50}?\s+at\s+([A-Z][A-Za-z0-9\s&.,'-]+?)(?:\.|[\r\n])",
                 r"considering\s+us\s+at\s+([A-Z][A-Za-z0-9\s&.,'-]+?)\s+as",
                 r"considering\s+([A-Z][A-Za-z0-9\s&.,'-]+?)\s+as\s+(?:a\s+)?(?:potential|future)\s+employer",
+                r"(?:your\s+)?interest\s+in\s+(?:the\s+)?([A-Z][A-Za-z0-9\s&.,'-]+?)(?:\s+and\s+wish|\.|!|[\r\n])",
             ]
 
             for pattern in ats_body_patterns:
@@ -3802,15 +3847,9 @@ def ingest_message(service, msg_id):
             )
         )
 
-        # Check if sender is from a company domain (not personal)
+        # Check if sender is from a company domain (not personal - use loaded PERSONAL_DOMAINS)
         sender_domain = metadata.get("sender_domain", "").lower()
-        is_company_domain = sender_domain and sender_domain not in [
-            "gmail.com",
-            "yahoo.com",
-            "outlook.com",
-            "hotmail.com",
-            "icloud.com",
-        ]
+        is_company_domain = sender_domain and sender_domain not in PERSONAL_DOMAINS
 
         if has_meeting_details and has_interview_language and is_company_domain:
             if DEBUG:
@@ -3995,11 +4034,13 @@ def ingest_message(service, msg_id):
 
         # 1.6. Indeed job board special case - extract actual employer from body
         if not company and sender_domain == "indeed.com":
-            # Check for Indeed Apply confirmation pattern
-            if (
-                "Indeed Application:" in subject
-                or "indeedapply@indeed.com" in metadata.get("sender", "").lower()
-            ):
+            # Check for Indeed Apply confirmation pattern (using configurable sender patterns)
+            sender_lower = metadata.get("sender", "").lower()
+            job_board_sender_match = any(
+                pattern in sender_lower
+                for pattern in _domain_mapper.job_board_sender_patterns
+            )
+            if "Indeed Application:" in subject or job_board_sender_match:
                 # Extract plain text body for pattern matching
                 body_plain = body
                 try:
@@ -4436,6 +4477,12 @@ def ingest_message(service, msg_id):
                 existing.confidence = _ORIG_CONFIDENCE
             existing.company = _ORIG_COMPANY
             existing.company_source = _ORIG_COMPANY_SOURCE
+
+        # Update company domain/ATS fields during re-ingest (was missing before)
+        if existing.company:
+            sender_domain = metadata.get("sender_domain", "").lower()
+            company_name = existing.company.name if existing.company else ""
+            update_company_domain_and_ats(existing.company, sender_domain, company_name)
 
         existing.save()
         # Propagate ml_label to ThreadTracking so label changes reflect in dashboard

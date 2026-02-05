@@ -19,6 +19,7 @@ from django.db.models import Q, Count, F, Case, When, Value
 from django.db.models.functions import Lower
 from django.utils.timezone import now
 from parser import parse_subject, normalize_company_name
+from tracker.views.applications import check_for_existing_rejection
 from tracker.models import (
     Company,
     Message,
@@ -755,6 +756,7 @@ def label_companies(request):
                         
                         # Get thread_id from POST data (user selects which application to edit)
                         thread_id = request.POST.get("thread_id", "").strip()
+                        is_new_manual_entry = False
                         
                         if thread_id:
                             # Edit existing ThreadTracking
@@ -775,15 +777,23 @@ def label_companies(request):
                                 status="application",
                                 sent_date=now().date(),
                             )
+                            is_new_manual_entry = True
                         
                         form_data = ApplicationDetailsForm(request.POST, instance=thread_tracking)
                         if form_data.is_valid():
                             form_data.save()
+                            
+                            # For new manual entries, check for existing rejection/cancelled messages
+                            rejection_merged = False
+                            if is_new_manual_entry:
+                                rejection_merged = check_for_existing_rejection(thread_tracking, selected_company)
+                            
                             job_title = thread_tracking.job_title or "this application"
-                            messages.success(
-                                request,
-                                f"✅ Application details saved for {selected_company.name} - {job_title}.",
-                            )
+                            success_msg = f"✅ Application details saved for {selected_company.name} - {job_title}."
+                            if rejection_merged:
+                                rejection_type = "cancelled" if thread_tracking.cancelled else "rejected"
+                                success_msg += f" (📧 Found existing {rejection_type} message - status updated)"
+                            messages.success(request, success_msg)
                         else:
                             for field, errors in form_data.errors.items():
                                 for error in errors:

@@ -3,6 +3,7 @@
 Extracted from monolithic views.py (Phase 5 refactoring).
 """
 
+import re
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import models
@@ -13,6 +14,54 @@ from tracker.forms import ApplicationEditForm, ManualEntryForm
 from tracker.models import Company, Message, ThreadTracking
 from tracker.services import MessageService
 from tracker.views.helpers import build_sidebar_context
+
+
+def check_for_existing_rejection(thread_tracking, company):
+    """Check if there are existing rejection/cancelled messages for this company.
+    
+    When a user manually creates an application, this function checks if there are
+    any existing rejection messages for the same company that should be merged.
+    If found, updates the ThreadTracking with rejection_date and cancelled flag.
+    
+    Args:
+        thread_tracking: The newly created ThreadTracking object
+        company: The Company object
+    
+    Returns:
+        True if a rejection was found and merged, False otherwise
+    """
+    # Look for rejection messages for this company that aren't already linked to a ThreadTracking
+    rejection_messages = Message.objects.filter(
+        company=company,
+        ml_label__in=["rejection", "rejected", "cancelled"]
+    ).order_by("-timestamp")
+    
+    if not rejection_messages.exists():
+        return False
+    
+    # Get the most recent rejection message
+    rejection_msg = rejection_messages.first()
+    
+    # Check if this rejection is already linked to another ThreadTracking
+    existing_tt = ThreadTracking.objects.filter(
+        thread_id=rejection_msg.thread_id
+    ).exclude(id=thread_tracking.id).first()
+    
+    if existing_tt:
+        # Already linked to another ThreadTracking, don't merge
+        return False
+    
+    # Update the ThreadTracking with rejection info
+    thread_tracking.rejection_date = rejection_msg.timestamp.date()
+    thread_tracking.status = "rejected"
+    
+    # Check for cancelled keywords in the rejection message
+    combined_text = (rejection_msg.subject + " " + (rejection_msg.body or "")).lower()
+    if re.search(r'\b(?:cancelled|canceled|closed/cancelled|cancelled/closed)\b', combined_text):
+        thread_tracking.cancelled = True
+    
+    thread_tracking.save()
+    return True
 
 
 def edit_application(request, pk):
@@ -85,7 +134,7 @@ def manual_entry(request):
             thread_id = hashlib.md5(thread_id_base.encode()).hexdigest()[:16]
 
             # Create ThreadTracking record for the new application
-            ThreadTracking.objects.create(
+            new_thread_tracking = ThreadTracking.objects.create(
                 thread_id=thread_id,
                 company=company,
                 company_source="manual",
@@ -99,6 +148,9 @@ def manual_entry(request):
                 ml_confidence=1.0,  # Manual entries are 100% confident
                 reviewed=True,
             )
+            
+            # Check for existing rejection/cancelled messages for this company
+            rejection_merged = check_for_existing_rejection(new_thread_tracking, company)
 
             # Create Message record for tracking
             msg_id = f"manual_{thread_id}"
@@ -126,10 +178,13 @@ def manual_entry(request):
                 reviewed=True,
             )
 
-            messages.success(
-                request,
-                f"✅ Successfully added application for {company.name} - {job_title}",
-            )
+            # Build success message based on what happened
+            success_msg = f"✅ Successfully added application for {company.name} - {job_title}"
+            if rejection_merged:
+                rejection_type = "cancelled" if new_thread_tracking.cancelled else "rejected"
+                success_msg += f" (📧 Found existing {rejection_type} message - status updated)"
+            
+            messages.success(request, success_msg)
             return redirect("manual_entry")
     else:
         # Check for pre-selected company from query parameter

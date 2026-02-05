@@ -39,7 +39,7 @@
         <div style="display: flex; align-items: center; gap: 0.75rem;">
           <label style="display: inline-block; background: #2563eb; color: #fff; font-weight: 600; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer;">
             📁 Choose File
-            <input type="file" name="message_file" accept=".json,.eml,.txt" style="display: none;" onchange="document.getElementById('file-name-display').textContent = this.files[0] ? this.files[0].name : 'No file chosen';">
+            <input type="file" name="message_file" accept=".json,.eml,.txt" style="display: none;">
           </label>
           <span id="file-name-display" style="color: #6b7280; font-size: 0.875rem;">No file chosen</span>
         </div>
@@ -47,7 +47,14 @@
       
       <div>
         <label style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.5rem;">Or Paste Message Content:</label>
-        <textarea name="pasted_message" rows="6" placeholder="Paste raw EML or JSON message content here..." style="width: 100%; padding: 0.5rem; font-size: 0.85rem; border: 1px solid #d1d5db; border-radius: 6px; font-family: monospace; resize: vertical;"></textarea>
+        <textarea name="pasted_message" id="pasted-message" rows="6" placeholder="Paste raw EML or JSON message content here..." style="width: 100%; padding: 0.5rem; font-size: 0.85rem; border: 1px solid #d1d5db; border-radius: 6px; font-family: monospace; resize: vertical;"></textarea>
+      </div>
+      
+      <!-- Submit button for single message upload -->
+      <div style="margin-top: 1rem;">
+        <button type="submit" id="upload-submit-btn" style="background: #16a34a; color: #fff; font-weight: 600; border: none; border-radius: 6px; padding: 0.6rem 1.2rem; cursor: pointer; font-size: 0.95rem; display: none;">
+          📤 Upload & Process Message
+        </button>
       </div>
       
       <p style="margin: 0.5rem 0 0 0; font-size: 0.8rem; color: #6b7280;">
@@ -123,11 +130,96 @@
   const form = document.getElementById('ingest-form');
   const live = document.getElementById('live-output');
   const box = document.getElementById('output-box');
+  const fileInput = document.querySelector('input[name="message_file"]');
+  const pastedInput = document.getElementById('pasted-message');
+  const uploadBtn = document.getElementById('upload-submit-btn');
+  const fileNameDisplay = document.getElementById('file-name-display');
+  
   function append(text){ box.textContent += text; box.scrollTop = box.scrollHeight; }
+  
+  // Show/hide upload button based on file or paste content
+  function updateUploadButton() {
+    const hasFile = fileInput && fileInput.files && fileInput.files.length > 0;
+    const hasPaste = pastedInput && pastedInput.value.trim().length > 0;
+    if (hasFile || hasPaste) {
+      uploadBtn.style.display = 'inline-block';
+    } else {
+      uploadBtn.style.display = 'none';
+    }
+  }
+  
+  // Update file name display and show button
+  if (fileInput) {
+    fileInput.addEventListener('change', function() {
+      fileNameDisplay.textContent = this.files[0] ? this.files[0].name : 'No file chosen';
+      updateUploadButton();
+    });
+  }
+  
+  if (pastedInput) {
+    pastedInput.addEventListener('input', updateUploadButton);
+  }
 
   form.addEventListener('submit', async (e) => {
-    e.preventDefault();
     const fd = new FormData(form);
+    const hasFile = fileInput && fileInput.files && fileInput.files.length > 0;
+    const hasPaste = pastedInput && pastedInput.value.trim().length > 0;
+    
+    // If uploading a file or pasting content, use AJAX to show log output
+    if (hasFile || hasPaste) {
+      e.preventDefault();
+      
+      live.style.display = 'block';
+      box.textContent = '📤 Uploading and processing message...\n';
+      
+      try {
+        const resp = await fetch(form.action || window.location.href, {
+          method: 'POST',
+          body: fd
+        });
+        
+        const html = await resp.text();
+        
+        // Parse the result from the response HTML
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        
+        // Look for result or error in the response
+        const resultPre = doc.querySelector('pre');
+        const errorDiv = doc.querySelector('[style*="fef2f2"]'); // Error div has this background
+        
+        box.textContent = '';
+        
+        if (errorDiv) {
+          append('❌ ' + errorDiv.textContent.trim() + '\n');
+        } else if (resultPre) {
+          append(resultPre.textContent + '\n');
+        } else {
+          // Try to find the result text in the page
+          const resultSection = doc.querySelector('.log-viewer-container pre, [style*="f9fafb"] pre');
+          if (resultSection) {
+            append(resultSection.textContent + '\n');
+          } else {
+            append('✅ Request completed. Check the page for results.\n');
+          }
+        }
+        
+        // Clear the file input and paste area after successful upload
+        if (fileInput) fileInput.value = '';
+        if (pastedInput) pastedInput.value = '';
+        fileNameDisplay.textContent = 'No file chosen';
+        updateUploadButton();
+        
+      } catch (err) {
+        box.textContent = '❌ Error: ' + err.message + '\n';
+      }
+      
+      return;
+    }
+    
+    // Otherwise, use streaming for batch Gmail ingestion
+    e.preventDefault();
+    
     const params = new URLSearchParams();
     const days = fd.get('days_back');
     const force = fd.get('force') === 'on';

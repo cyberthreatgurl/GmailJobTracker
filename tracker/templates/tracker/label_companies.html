@@ -353,6 +353,7 @@
                     {% for thread in application_threads %}
                     <option value="{{ thread.thread_id }}" 
                             data-jobtitle="{{ thread.job_title|default:'' }}"
+                            data-location="{{ thread.location|default:'' }}"
                             data-sentdate="{{ thread.sent_date|date:'Y-m-d'|default:'' }}"
                             data-prescreen="{{ thread.prescreen_date|date:'Y-m-d'|default:'' }}"
                             data-interview="{{ thread.interview_date|date:'Y-m-d'|default:'' }}"
@@ -373,6 +374,12 @@
                 <div style="margin-bottom: 1rem;">                  <label for="id_job_title" style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.5rem;">💼 Job Title:</label>
                   <input type="text" name="job_title" id="id_job_title" value="{% if application_threads %}{{ application_threads.0.job_title|default:'' }}{% endif %}" placeholder="e.g., Senior Software Engineer, Product Manager" style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem; box-sizing: border-box;" />
                   <small style="color: #6b7280; display: block; margin-top: 0.25rem;">Title of the position you applied for</small>
+                </div>
+                
+                <div style="margin-bottom: 1rem;">
+                  <label for="id_location" style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.5rem;">📍 Location:</label>
+                  <input type="text" name="location" id="id_location" value="{% if application_threads %}{{ application_threads.0.location|default:'' }}{% endif %}" placeholder="e.g., Remote, New York, NY, Hybrid - San Francisco" style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem; box-sizing: border-box;" />
+                  <small style="color: #6b7280; display: block; margin-top: 0.25rem;">Job location or work arrangement</small>
                 </div>
                 
                 <div style="margin-bottom: 1.5rem;">
@@ -467,6 +474,7 @@
           
           // Update form fields with selected application data
           document.getElementById('id_job_title').value = selected.dataset.jobtitle || '';
+          document.getElementById('id_location').value = selected.dataset.location || '';
           document.getElementById('id_sent_date').value = selected.dataset.sentdate || '';
           document.getElementById('id_prescreen_date').value = selected.dataset.prescreen || '';
           document.getElementById('id_interview_date').value = selected.dataset.interview || '';

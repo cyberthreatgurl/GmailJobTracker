@@ -70,10 +70,10 @@
   },
   "message_labels": {
     "cancelled": [
-        "\\b(?:position|job|role|requisition)\\s+(?:has\\s+been\\s+)?(?:cancelled|canceled|closed)\\b",
+        "\\b(?:position|job|role|requisition|opportunity)\\s+(?:has\\s+been\\s+)?(?:cancelled|canceled|closed)\\b",
         "\\b(?:cancelled|canceled)\\s+(?:the\\s+)?(?:position|job|role|requisition)\\b",
         "\\bno\\s+longer\\s+(?:filling|hiring\\s+for)\\s+(?:this|the)\\s+(?:position|role)\\b",
-        "\\bhas\\s+been\\s+(?:cancelled|canceled)\\b"
+        "\\bhas\\s+been\\s+(?:closed/?cancelled|cancelled/?closed|cancelled|canceled|closed)\\b"
       ],
     "prescreen": [
         "\\bbrief\\s+phone\\s+call\\b",

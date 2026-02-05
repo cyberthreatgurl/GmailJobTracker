@@ -481,25 +481,67 @@ def reingest_admin(request):
         
         if pasted or upload:
             # Handle single message ingestion
+            import io
+            import sys
+            from contextlib import redirect_stdout, redirect_stderr
+            
             try:
                 if pasted:
                     raw_content = pasted
+                    source_name = "pasted content"
                 else:
                     raw_content = upload.read().decode("utf-8", errors="replace")
+                    source_name = upload.name
                 
-                # Ingest the EML content directly
-                result = ingest_message_from_eml(raw_content)
+                # Capture stdout/stderr during ingestion for logging
+                log_buffer = io.StringIO()
+                
+                # Temporarily enable DEBUG for parser output
+                import parser as parser_module
+                original_debug = getattr(parser_module, 'DEBUG', False)
+                parser_module.DEBUG = True
+                
+                try:
+                    with redirect_stdout(log_buffer), redirect_stderr(log_buffer):
+                        result = ingest_message_from_eml(raw_content)
+                finally:
+                    parser_module.DEBUG = original_debug
+                
+                log_output = log_buffer.getvalue()
+                
+                # Build detailed output
+                output_lines = []
+                output_lines.append(f"📧 Processing: {source_name}")
+                output_lines.append("-" * 60)
+                
+                if log_output.strip():
+                    output_lines.append(log_output.strip())
+                    output_lines.append("-" * 60)
                 
                 if result == "inserted":
-                    ctx["result"] = "✅ Message ingested successfully!"
+                    output_lines.append("✅ Message ingested successfully!")
                 elif result == "skipped":
-                    ctx["result"] = "⏭️ Message was skipped (already exists or reviewed)."
+                    output_lines.append("⏭️ Message was skipped (already exists or reviewed).")
                 elif result == "ignored":
-                    ctx["result"] = "🚫 Message was ignored (newsletter/bulk/blank)."
+                    output_lines.append("🚫 Message was ignored (newsletter/bulk/blank).")
+                elif isinstance(result, dict):
+                    # Handle dict results like {"status": "ignored", "reason": "..."}
+                    status = result.get("status", "unknown")
+                    reason = result.get("reason", "")
+                    if status == "ignored":
+                        output_lines.append(f"🚫 Message was ignored: {reason}")
+                    elif status == "inserted":
+                        output_lines.append("✅ Message ingested successfully!")
+                    else:
+                        output_lines.append(f"Result: {result}")
                 else:
-                    ctx["error"] = f"Ingestion returned: {result}"
+                    output_lines.append(f"Result: {result}")
+                
+                ctx["result"] = "\n".join(output_lines)
+                
             except Exception as e:
-                ctx["error"] = f"Failed to ingest message: {e}"
+                import traceback
+                ctx["error"] = f"Failed to ingest message: {e}\n\n{traceback.format_exc()}"
         else:
             # Normal batch ingestion from Gmail
             days_back = request.POST.get("days_back", str(default_days))

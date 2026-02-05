@@ -141,6 +141,12 @@ class ThreadTracking(models.Model):
             )
         ]
     )
+    location = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text="Job location (e.g., Remote, New York, NY, Hybrid - San Francisco)"
+    )
     job_id = models.CharField(
         max_length=255,
         blank=True,

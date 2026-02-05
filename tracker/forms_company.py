@@ -45,6 +45,17 @@ class ApplicationDetailsForm(forms.ModelForm):
         help_text="Title of the position you applied for"
     )
     
+    location = forms.CharField(
+        required=False,
+        label="Location",
+        max_length=255,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'e.g., Remote, New York, NY, Hybrid - San Francisco'
+        }),
+        help_text="Job location or work arrangement"
+    )
+    
     sent_date = forms.DateField(
         required=False,
         label="Application Date",
@@ -131,7 +142,7 @@ class ApplicationDetailsForm(forms.ModelForm):
     
     class Meta:
         model = ThreadTracking
-        fields = ['job_title', 'sent_date', 'prescreen_date', 'interview_date', 'rejection_date', 'cancelled', 'withdrew', 'offer_date', 'application_url', 'application_text']
+        fields = ['job_title', 'location', 'sent_date', 'prescreen_date', 'interview_date', 'rejection_date', 'cancelled', 'withdrew', 'offer_date', 'application_url', 'application_text']
     
     def clean_application_url(self):
         """Validate URL format and security"""

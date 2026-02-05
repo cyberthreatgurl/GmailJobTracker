@@ -64,6 +64,8 @@ from db import (
 from db_helpers import build_company_job_index, get_application_by_sender
 from ml_entity_extraction import extract_entities
 from ml_subject_classifier import predict_subject_type
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 from tracker.models import (
     Company,
     IgnoredMessage,
@@ -1754,6 +1756,8 @@ if "message_labels" in PATTERNS:
         app_pattern_sources.extend(PATTERNS["message_labels"]["rejection"])
     if "interview" in PATTERNS["message_labels"]:
         app_pattern_sources.extend(PATTERNS["message_labels"]["interview"])
+    if "cancelled" in PATTERNS["message_labels"]:
+        app_pattern_sources.extend(PATTERNS["message_labels"]["cancelled"])
 
 # Add early detection patterns for rejections and interviews
 if "early_detection" in PATTERNS:
@@ -1761,6 +1765,8 @@ if "early_detection" in PATTERNS:
         app_pattern_sources.extend(PATTERNS["early_detection"]["rejection_override"])
     if "scheduling_language" in PATTERNS["early_detection"]:
         app_pattern_sources.extend(PATTERNS["early_detection"]["scheduling_language"])
+    if "cancelled_position" in PATTERNS["early_detection"]:
+        app_pattern_sources.extend(PATTERNS["early_detection"]["cancelled_position"])
 
 if app_pattern_sources:
     APPLICATION_PATTERNS = [
@@ -4929,9 +4935,14 @@ def ingest_message(service, msg_id):
                                 )
                         if (
                             not application_obj.rejection_date
-                            and ml_label == "rejected"
+                            and ml_label in ("rejected", "rejection", "cancelled")
                         ):
                             application_obj.rejection_date = rejection_date_final
+                            application_obj.status = "rejected"
+                            # Check for cancelled in email text
+                            combined_text = (metadata.get("subject", "") + " " + metadata.get("body", "")).lower()
+                            if re.search(r'\b(?:cancelled|canceled|closed/cancelled|cancelled/closed)\b', combined_text):
+                                application_obj.cancelled = True
                             updated = True
                         if (
                             not application_obj.interview_date
@@ -4988,9 +4999,14 @@ def ingest_message(service, msg_id):
                                 )
                         if (
                             not application_obj.rejection_date
-                            and ml_label == "rejected"
+                            and ml_label in ("rejected", "rejection", "cancelled")
                         ):
                             application_obj.rejection_date = rejection_date_final
+                            application_obj.status = "rejected"
+                            # Check for cancelled in email text
+                            combined_text = (metadata.get("subject", "") + " " + metadata.get("body", "")).lower()
+                            if re.search(r'\b(?:cancelled|canceled|closed/cancelled|cancelled/closed)\b', combined_text):
+                                application_obj.cancelled = True
                             updated = True
                         if (
                             not application_obj.interview_date
@@ -5011,7 +5027,37 @@ def ingest_message(service, msg_id):
                                     "✓ Updated existing application (no new creation)"
                                 )
                     except ThreadTracking.DoesNotExist:
-                        if DEBUG:
+                        # No ThreadTracking with this thread_id - for rejections, try to find by company
+                        if ml_label in ("rejected", "rejection", "cancelled") and company_obj:
+                            # Use TF-IDF job title matching to find the correct application
+                            job_title = parsed_subject.get("job_title", "") if isinstance(parsed_subject, dict) else ""
+                            existing_tt = find_best_matching_application(
+                                company_obj,
+                                job_title,
+                                metadata.get("subject", "")
+                            )
+                            if existing_tt:
+                                # Update existing ThreadTracking with rejection info
+                                if not existing_tt.rejection_date:
+                                    existing_tt.rejection_date = rejection_date_final
+                                existing_tt.status = "rejected"
+                                # Check for cancelled in email text
+                                combined_text = (metadata.get("subject", "") + " " + metadata.get("body", "")).lower()
+                                if re.search(r'\b(?:cancelled|canceled|closed/cancelled|cancelled/closed)\b', combined_text):
+                                    existing_tt.cancelled = True
+                                    if DEBUG:
+                                        print(f"✓ Detected 'cancelled' in email text, setting cancelled=True")
+                                existing_tt.save()
+                                if DEBUG:
+                                    print(
+                                        f"✓ Updated existing ThreadTracking for {company_obj.name} (job: '{existing_tt.job_title}') with rejection_date={rejection_date_final}"
+                                    )
+                            else:
+                                if DEBUG:
+                                    print(
+                                        f"ℹ️ No existing ThreadTracking found for {company_obj.name} to update with rejection"
+                                    )
+                        elif DEBUG:
                             print(
                                 "ℹ️ No existing ThreadTracking for this thread; not creating because this is not a job_application email"
                             )
@@ -5218,6 +5264,105 @@ def _reload_domain_map_if_needed():
     KNOWN_COMPANIES_CASED = _domain_mapper.known_companies_cased
     ALIASES = _domain_mapper.aliases
     company_data = _domain_mapper.company_data
+
+
+def find_best_matching_application(company_obj, rejection_job_title: str, rejection_subject: str, threshold: float = 0.3):
+    """Find the best matching ThreadTracking record for a rejection email using TF-IDF similarity.
+    
+    When a rejection email comes in on a different thread, we need to match it to the correct
+    application. This function uses TF-IDF cosine similarity to compare job titles.
+    
+    Args:
+        company_obj: Company model instance to filter applications by
+        rejection_job_title: Job title extracted from the rejection email
+        rejection_subject: Full subject line from the rejection email (fallback if no job_title)
+        threshold: Minimum similarity score to consider a match (default 0.3)
+    
+    Returns:
+        ThreadTracking object if a match is found, None otherwise
+    """
+    # Get all applications for this company that don't already have a rejection date
+    applications = list(ThreadTracking.objects.filter(
+        company=company_obj,
+        rejection_date__isnull=True
+    ).exclude(status="rejected"))
+    
+    if not applications:
+        # Fall back to any application for this company
+        applications = list(ThreadTracking.objects.filter(company=company_obj))
+    
+    if not applications:
+        return None
+    
+    if len(applications) == 1:
+        # Only one application - use it directly
+        if DEBUG:
+            print(f"[EML JOB MATCH] Single application found for {company_obj.name}, using it directly")
+        return applications[0]
+    
+    # Multiple applications - use TF-IDF to find best match
+    # Build corpus: rejection text + all application job titles
+    rejection_text = rejection_job_title or rejection_subject or ""
+    if not rejection_text.strip():
+        # No job title info - just return the most recent application
+        if DEBUG:
+            print(f"[EML JOB MATCH] No job title to match, using most recent application")
+        return applications[0]
+    
+    # Build corpus with application job titles (or subjects as fallback)
+    corpus = [rejection_text]
+    for app in applications:
+        app_text = app.job_title or ""
+        corpus.append(app_text)
+    
+    # Filter out empty strings to avoid TF-IDF issues
+    if not any(text.strip() for text in corpus[1:]):
+        # All applications have empty job titles - return most recent
+        if DEBUG:
+            print(f"[EML JOB MATCH] No job titles in existing applications, using most recent")
+        return applications[0]
+    
+    try:
+        # Use TF-IDF with character n-grams for fuzzy matching
+        vectorizer = TfidfVectorizer(
+            analyzer='char_wb',  # Word boundary-aware character n-grams
+            ngram_range=(2, 4),  # 2-4 character n-grams
+            lowercase=True,
+            min_df=1
+        )
+        tfidf_matrix = vectorizer.fit_transform(corpus)
+        
+        # Calculate cosine similarity between rejection and each application
+        rejection_vector = tfidf_matrix[0:1]
+        application_vectors = tfidf_matrix[1:]
+        similarities = cosine_similarity(rejection_vector, application_vectors).flatten()
+        
+        # Find best match
+        best_idx = similarities.argmax()
+        best_score = similarities[best_idx]
+        
+        if DEBUG:
+            print(f"[EML JOB MATCH] Rejection job title: '{rejection_text}'")
+            for i, (app, sim) in enumerate(zip(applications, similarities)):
+                marker = " ← BEST MATCH" if i == best_idx else ""
+                print(f"[EML JOB MATCH]   App #{i+1}: '{app.job_title}' (similarity: {sim:.3f}){marker}")
+        
+        if best_score >= threshold:
+            if DEBUG:
+                print(f"[EML JOB MATCH] Selected application with similarity {best_score:.3f} >= threshold {threshold}")
+            return applications[best_idx]
+        else:
+            if DEBUG:
+                print(f"[EML JOB MATCH] Best match {best_score:.3f} < threshold {threshold}, no confident match")
+            # Return best match anyway if it's reasonable (> 0.1), else return None
+            if best_score >= 0.1:
+                return applications[best_idx]
+            return None
+            
+    except Exception as e:
+        if DEBUG:
+            print(f"[EML JOB MATCH] TF-IDF matching failed: {e}, falling back to first application")
+        return applications[0] if applications else None
 
 
 def ingest_message_from_eml(eml_content: str, fake_msg_id: str = None):
@@ -5541,6 +5686,46 @@ def ingest_message_from_eml(eml_content: str, fake_msg_id: str = None):
             except Exception as e:
                 if DEBUG:
                     print(f"[EML] Failed to propagate label to ThreadTracking: {e}")
+        
+        # Handle rejection/cancelled for existing messages
+        elif ml_label in ("rejection", "cancelled") and company_obj:
+            try:
+                rejection_date = metadata["date"].date()
+                # Detect cancelled from email text
+                is_cancelled = ml_label == "cancelled"
+                if not is_cancelled:
+                    combined_text = (metadata.get("subject", "") + " " + body).lower()
+                    if re.search(r'\b(?:cancelled|canceled|closed/cancelled|cancelled/closed)\b', combined_text):
+                        is_cancelled = True
+                        if DEBUG:
+                            print(f"[EML] Detected 'cancelled' in email text, setting cancelled=True")
+                
+                # Extract job title for matching
+                job_title = ""
+                if isinstance(parse_result, dict):
+                    job_title = parse_result.get("job_title", "")
+                
+                # Use TF-IDF job title matching to find the correct application
+                existing_tt = find_best_matching_application(
+                    company_obj, 
+                    job_title, 
+                    metadata["subject"]
+                )
+                if existing_tt:
+                    if not existing_tt.rejection_date:
+                        existing_tt.rejection_date = rejection_date
+                    existing_tt.status = "rejected"
+                    if is_cancelled:
+                        existing_tt.cancelled = True
+                    existing_tt.save()
+                    if DEBUG:
+                        print(f"[EML] Updated existing ThreadTracking for {company_obj.name} (job: '{existing_tt.job_title}') with rejection_date={rejection_date}, cancelled={is_cancelled}")
+                else:
+                    if DEBUG:
+                        print(f"[EML] No existing ThreadTracking found for {company_obj.name} to update with rejection")
+            except Exception as e:
+                if DEBUG:
+                    print(f"[EML] Failed to update ThreadTracking with rejection: {e}")
 
         return "skipped"
 
@@ -5568,8 +5753,8 @@ def ingest_message_from_eml(eml_content: str, fake_msg_id: str = None):
         # Store body text in separate search table
         insert_email_text(fake_msg_id, metadata["subject"], body)
 
-        # Create or update ThreadTracking for job applications and interview invites
-        if ml_label in ("job_application", "interview_invite") and company_obj:
+        # Create or update ThreadTracking for job applications, interview invites, rejections, and cancelled
+        if ml_label in ("job_application", "interview_invite", "rejection", "cancelled") and company_obj:
             # Extract job details from parse_result
             job_title = ""
             job_id = ""
@@ -5577,34 +5762,92 @@ def ingest_message_from_eml(eml_content: str, fake_msg_id: str = None):
                 job_title = parse_result.get("job_title", "")
                 job_id = parse_result.get("job_id", "")
 
-            # Determine status
-            status = "application" if ml_label == "job_application" else "interview"
+            # Determine status and dates based on label
+            rejection_date = None
+            is_cancelled = False
+            if ml_label in ("rejection", "cancelled"):
+                status = "rejected"
+                rejection_date = metadata["date"].date()
+                # Set cancelled flag if label is 'cancelled' OR if the email text contains "cancelled"
+                is_cancelled = ml_label == "cancelled"
+                if not is_cancelled:
+                    # Check subject and body for "cancelled" keywords
+                    combined_text = (metadata.get("subject", "") + " " + body).lower()
+                    if re.search(r'\b(?:cancelled|canceled|closed/cancelled|cancelled/closed)\b', combined_text):
+                        is_cancelled = True
+                        if DEBUG:
+                            print(f"[EML] Detected 'cancelled' in email text, setting cancelled=True")
+            elif ml_label == "interview_invite":
+                status = "interview"
+            else:
+                status = "application"
 
             try:
-                thread_tracking, tt_created = ThreadTracking.objects.get_or_create(
-                    thread_id=metadata["thread_id"],
-                    defaults={
-                        "company": company_obj,
-                        "company_source": "eml_import",
-                        "job_title": job_title,
-                        "job_id": job_id,
-                        "status": status,
-                        "sent_date": metadata["date"].date(),
-                        "ml_label": ml_label,
-                        "ml_confidence": ml_confidence,
-                        "reviewed": False,
-                    },
-                )
+                # For rejections/cancelled, first try to find existing ThreadTracking by company
+                # (since rejection may come in a different thread than original application)
+                if ml_label in ("rejection", "cancelled"):
+                    # Use TF-IDF job title matching to find the correct application
+                    existing_tt = find_best_matching_application(
+                        company_obj, 
+                        job_title, 
+                        metadata["subject"]
+                    )
+                    if existing_tt:
+                        # Update existing ThreadTracking with rejection info
+                        if not existing_tt.rejection_date:
+                            existing_tt.rejection_date = rejection_date
+                        existing_tt.status = "rejected"
+                        if is_cancelled:
+                            existing_tt.cancelled = True
+                        existing_tt.save()
+                        if DEBUG:
+                            print(f"[EML] Updated existing ThreadTracking for {company_obj.name} (job: '{existing_tt.job_title}') with rejection_date={rejection_date}, cancelled={is_cancelled}")
+                    else:
+                        # No existing application found - create one with rejection status
+                        thread_tracking, tt_created = ThreadTracking.objects.get_or_create(
+                            thread_id=metadata["thread_id"],
+                            defaults={
+                                "company": company_obj,
+                                "company_source": "eml_import",
+                                "job_title": job_title,
+                                "job_id": job_id,
+                                "status": status,
+                                "sent_date": metadata["date"].date(),
+                                "rejection_date": rejection_date,
+                                "cancelled": is_cancelled,
+                                "ml_label": ml_label,
+                                "ml_confidence": ml_confidence,
+                                "reviewed": False,
+                            },
+                        )
+                        if tt_created and DEBUG:
+                            print(f"[EML] Created NEW ThreadTracking for {company_obj.name} with rejection status (no prior application found)")
+                else:
+                    # For job_application and interview_invite, use normal get_or_create by thread_id
+                    thread_tracking, tt_created = ThreadTracking.objects.get_or_create(
+                        thread_id=metadata["thread_id"],
+                        defaults={
+                            "company": company_obj,
+                            "company_source": "eml_import",
+                            "job_title": job_title,
+                            "job_id": job_id,
+                            "status": status,
+                            "sent_date": metadata["date"].date(),
+                            "ml_label": ml_label,
+                            "ml_confidence": ml_confidence,
+                            "reviewed": False,
+                        },
+                    )
 
-                if tt_created:
-                    if DEBUG:
-                        print(f"[EML] Created ThreadTracking for {company_obj.name} - {ml_label}")
-                elif DEBUG:
-                    print(f"[EML] ThreadTracking already exists for thread {metadata['thread_id']}")
+                    if tt_created:
+                        if DEBUG:
+                            print(f"[EML] Created ThreadTracking for {company_obj.name} - {ml_label}")
+                    elif DEBUG:
+                        print(f"[EML] ThreadTracking already exists for thread {metadata['thread_id']}")
 
             except Exception as e:
                 if DEBUG:
-                    print(f"[EML] Failed to create ThreadTracking: {e}")
+                    print(f"[EML] Failed to create/update ThreadTracking: {e}")
                 # Don't fail the entire ingestion if ThreadTracking creation fails
 
         # Update stats

@@ -1,0 +1,320 @@
+{% extends "base.html" %}
+
+{% block title %}Defense Contract Awards – GmailJobTracker{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+  <!-- Page Header -->
+  <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">🏛️ Defense Contract Awards</h1>
+      <p class="text-sm text-gray-500 mt-1">
+        Source: <a href="https://www.war.gov/News/Contracts/" target="_blank" class="text-blue-600 hover:underline">war.gov/News/Contracts/</a>
+      </p>
+    </div>
+    <div class="flex gap-2">
+      <button id="fetchContractsBtn"
+              onclick="fetchContracts(false)"
+              class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg px-4 py-2.5 transition-colors shadow-sm">
+        <span id="fetchBtnIcon">📥</span>
+        <span id="fetchBtnText">Fetch Latest</span>
+      </button>
+      <button id="refreshAllBtn"
+              onclick="fetchContracts(true)"
+              class="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-lg px-4 py-2.5 transition-colors shadow-sm"
+              title="Re-fetch all articles, even previously scraped ones">
+        <span>🔄</span>
+        <span>Refresh All</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Fetch Results Banner (hidden by default) -->
+  <div id="fetchResultsBanner" class="hidden mb-4 p-4 rounded-lg border text-sm"></div>
+
+  <!-- Summary Stats Bar -->
+  <div class="flex flex-wrap gap-4 mb-6">
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 px-4 py-3 flex items-center gap-2">
+      <span class="text-lg">📋</span>
+      <div>
+        <div class="text-xs text-gray-500 uppercase tracking-wider">Contracts</div>
+        <div class="text-xl font-bold text-gray-900">{{ total_count }}</div>
+      </div>
+    </div>
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 px-4 py-3 flex items-center gap-2">
+      <span class="text-lg">💰</span>
+      <div>
+        <div class="text-xs text-gray-500 uppercase tracking-wider">Total Value</div>
+        <div class="text-xl font-bold text-green-700">{{ total_value_display }}</div>
+      </div>
+    </div>
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 px-4 py-3 flex items-center gap-2">
+      <span class="text-lg">📦</span>
+      <div>
+        <div class="text-xs text-gray-500 uppercase tracking-wider">Articles Cached</div>
+        <div class="text-xl font-bold text-gray-900">{{ scraped_articles_count }}</div>
+      </div>
+    </div>
+    {% if last_scraped %}
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 px-4 py-3 flex items-center gap-2">
+      <span class="text-lg">🕒</span>
+      <div>
+        <div class="text-xs text-gray-500 uppercase tracking-wider">Last Scraped</div>
+        <div class="text-sm font-semibold text-gray-700">{{ last_scraped.scraped_at|timesince }} ago</div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Search & Filter Bar -->
+  <form method="get" action="{% url 'defense_contracts' %}" class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+    <div class="flex flex-wrap gap-3 items-end">
+      <!-- Search Input -->
+      <div class="flex-1 min-w-[200px]">
+        <label for="q" class="block text-xs font-semibold text-gray-600 mb-1">🔍 Search</label>
+        <input type="text"
+               name="q"
+               id="q"
+               value="{{ search_query }}"
+               placeholder="Company name, description, location..."
+               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+      </div>
+
+      <!-- Branch Filter -->
+      <div class="min-w-[160px]">
+        <label for="branch" class="block text-xs font-semibold text-gray-600 mb-1">🎖️ Branch</label>
+        <select name="branch"
+                id="branch"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="">All Branches</option>
+          {% for code, label in branch_choices %}
+            <option value="{{ code }}" {% if code == branch_filter %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Date Range -->
+      <div class="min-w-[140px]">
+        <label for="days" class="block text-xs font-semibold text-gray-600 mb-1">📅 Date Range</label>
+        <select name="days"
+                id="days"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+          {% for value, label in date_range_options %}
+            <option value="{{ value }}" {% if value == days_back %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Buttons -->
+      <div class="flex gap-2">
+        <button type="submit"
+                class="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg px-4 py-2 text-sm transition-colors">
+          Search
+        </button>
+        <a href="{% url 'defense_contracts' %}"
+           class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded-lg px-4 py-2 text-sm transition-colors inline-block">
+          Reset
+        </a>
+      </div>
+    </div>
+  </form>
+
+  <!-- Active Filters -->
+  {% if search_query or branch_filter %}
+  <div class="flex flex-wrap gap-2 mb-4">
+    {% if search_query %}
+    <span class="inline-flex items-center gap-1 bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-1 rounded-full">
+      Search: "{{ search_query }}"
+      <a href="{% url 'defense_contracts' %}?branch={{ branch_filter }}&days={{ days_back }}" class="ml-1 hover:text-blue-600">✕</a>
+    </span>
+    {% endif %}
+    {% if branch_filter %}
+    <span class="inline-flex items-center gap-1 bg-purple-100 text-purple-800 text-xs font-medium px-2.5 py-1 rounded-full">
+      Branch: {{ branch_filter }}
+      <a href="{% url 'defense_contracts' %}?q={{ search_query }}&days={{ days_back }}" class="ml-1 hover:text-purple-600">✕</a>
+    </span>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <!-- Contracts List -->
+  {% if contracts %}
+  <div class="space-y-3">
+    {% for contract in contracts %}
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 hover:border-blue-300 transition-colors">
+      <div class="p-4">
+        <!-- Header Row -->
+        <div class="flex flex-wrap items-start justify-between gap-2 mb-2">
+          <div class="flex-1">
+            <div class="flex items-center gap-2 flex-wrap">
+              <h3 class="text-base font-semibold text-gray-900">
+                {% if contract.company %}
+                  <a href="{% url 'label_companies' %}?company={{ contract.company.id }}"
+                     class="text-blue-600 hover:text-blue-800 hover:underline">
+                    {{ contract.company_name_raw }}
+                  </a>
+                {% else %}
+                  {{ contract.company_name_raw }}
+                {% endif %}
+              </h3>
+              {% if contract.is_small_business %}
+              <span class="inline-flex items-center bg-amber-100 text-amber-800 text-[0.65rem] font-medium px-1.5 py-0.5 rounded">SB</span>
+              {% endif %}
+              {% if contract.is_modification %}
+              <span class="inline-flex items-center bg-slate-100 text-slate-700 text-[0.65rem] font-medium px-1.5 py-0.5 rounded">MOD</span>
+              {% endif %}
+            </div>
+            <div class="text-xs text-gray-500 mt-0.5">
+              📍 {{ contract.company_location }}
+              {% if contract.contract_number %} · 📝 {{ contract.contract_number }}{% endif %}
+            </div>
+          </div>
+          <div class="text-right">
+            <div class="text-lg font-bold text-green-700">{{ contract.amount_display }}</div>
+            <div class="text-xs text-gray-500">{{ contract.article_date|date:"M d, Y" }}</div>
+          </div>
+        </div>
+
+        <!-- Branch Badge -->
+        <div class="mb-2">
+          <span class="inline-flex items-center text-[0.7rem] font-semibold px-2 py-0.5 rounded-full
+            {% if contract.branch == 'army' %}bg-green-100 text-green-800
+            {% elif contract.branch == 'navy' %}bg-blue-100 text-blue-800
+            {% elif contract.branch == 'air_force' %}bg-sky-100 text-sky-800
+            {% elif contract.branch == 'defense_logistics_agency' %}bg-orange-100 text-orange-800
+            {% elif contract.branch == 'special_operations' %}bg-red-100 text-red-800
+            {% elif contract.branch == 'missile_defense' %}bg-violet-100 text-violet-800
+            {% else %}bg-gray-100 text-gray-800
+            {% endif %}">
+            {{ contract.get_branch_display }}
+          </span>
+        </div>
+
+        <!-- Description (collapsible) -->
+        <details class="group">
+          <summary class="cursor-pointer text-sm text-gray-700 line-clamp-2 group-open:line-clamp-none">
+            {{ contract.description|truncatewords:40 }}
+          </summary>
+          <div class="mt-2 text-sm text-gray-600 space-y-1">
+            <p>{{ contract.description }}</p>
+            {% if contract.work_location %}
+            <p class="text-xs"><strong>📍 Work Location:</strong> {{ contract.work_location }}</p>
+            {% endif %}
+            {% if contract.completion_date %}
+            <p class="text-xs"><strong>📅 Completion:</strong> {{ contract.completion_date }}</p>
+            {% endif %}
+            {% if contract.contracting_activity %}
+            <p class="text-xs"><strong>🏢 Contracting Activity:</strong> {{ contract.contracting_activity }}</p>
+            {% endif %}
+            <p class="text-xs text-gray-400 mt-1">
+              <a href="{{ contract.source_url }}" target="_blank" class="text-blue-500 hover:underline">View on war.gov →</a>
+            </p>
+          </div>
+        </details>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
+    <div class="text-4xl mb-3">🏛️</div>
+    <h3 class="text-lg font-semibold text-gray-700 mb-2">No Contracts Found</h3>
+    <p class="text-sm text-gray-500 mb-4">
+      {% if search_query or branch_filter %}
+        No contracts match your current filters. Try adjusting your search.
+      {% else %}
+        Click <strong>Fetch Latest</strong> to scrape recent contract awards from war.gov.
+      {% endif %}
+    </p>
+    {% if not search_query and not branch_filter %}
+    <button onclick="fetchContracts(false)"
+            class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg px-6 py-2.5 transition-colors">
+      📥 Fetch Latest Contracts
+    </button>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  /**
+   * Trigger scraping of latest contract articles via AJAX.
+   * Shows progress feedback and reloads the page on completion.
+   * @param {boolean} forceRefresh - If true, re-fetch even previously scraped articles.
+   */
+  function fetchContracts(forceRefresh) {
+    const btn = document.getElementById('fetchContractsBtn');
+    const refreshBtn = document.getElementById('refreshAllBtn');
+    const icon = document.getElementById('fetchBtnIcon');
+    const text = document.getElementById('fetchBtnText');
+    const banner = document.getElementById('fetchResultsBanner');
+
+    // Disable both buttons and show loading state
+    btn.disabled = true;
+    btn.classList.add('opacity-75', 'cursor-not-allowed');
+    if (refreshBtn) {
+      refreshBtn.disabled = true;
+      refreshBtn.classList.add('opacity-75', 'cursor-not-allowed');
+    }
+    icon.textContent = '⏳';
+    text.textContent = forceRefresh ? 'Refreshing All...' : 'Fetching...';
+
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value
+      || '{{ csrf_token }}';
+
+    const formData = new FormData();
+    formData.append('csrfmiddlewaretoken', csrfToken);
+    formData.append('max_articles', '5');
+    if (forceRefresh) {
+      formData.append('force_refresh', '1');
+    }
+
+    fetch('{% url "fetch_contracts_ajax" %}', {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'X-CSRFToken': csrfToken,
+      },
+    })
+      .then(response => response.json())
+      .then(data => {
+        banner.classList.remove('hidden');
+        if (data.success) {
+          const cached = data.articles_skipped_cached || 0;
+          banner.className = 'mb-4 p-4 rounded-lg border text-sm bg-green-50 border-green-200 text-green-800';
+          banner.innerHTML = `
+            <strong>✅ Scraping complete!</strong><br>
+            📰 Articles processed: ${data.articles_processed}
+            ${cached > 0 ? '<br>📦 Skipped (already scraped): ' + cached : ''}<br>
+            ✨ New contracts: ${data.contracts_created}<br>
+            🔄 Updated: ${data.contracts_updated}<br>
+            ⏭️ Skipped (duplicates): ${data.contracts_skipped}
+            ${data.errors.length > 0 ? '<br>⚠️ Warnings: ' + data.errors.join('; ') : ''}
+          `;
+          // Reload page after short delay to show new data
+          setTimeout(() => window.location.reload(), 2000);
+        } else {
+          banner.className = 'mb-4 p-4 rounded-lg border text-sm bg-red-50 border-red-200 text-red-800';
+          banner.innerHTML = `<strong>❌ Error:</strong> ${data.error || 'Unknown error occurred'}`;
+        }
+      })
+      .catch(err => {
+        banner.classList.remove('hidden');
+        banner.className = 'mb-4 p-4 rounded-lg border text-sm bg-red-50 border-red-200 text-red-800';
+        banner.innerHTML = `<strong>❌ Network Error:</strong> ${err.message}`;
+      })
+      .finally(() => {
+        btn.disabled = false;
+        btn.classList.remove('opacity-75', 'cursor-not-allowed');
+        if (refreshBtn) {
+          refreshBtn.disabled = false;
+          refreshBtn.classList.remove('opacity-75', 'cursor-not-allowed');
+        }
+        icon.textContent = '📥';
+        text.textContent = 'Fetch Latest';
+      });
+  }
+</script>
+{% endblock %}

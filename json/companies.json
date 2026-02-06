@@ -106,7 +106,8 @@
     "TMC": "TMC Technologies",
     "MSR": "MSR Technology Group",
     "SM2": "SM2 Security Solutions, LLC",
-    "Obsidian": "Obsidian"
+    "Obsidian": "Obsidian",
+    "dark wolf": "Dark Wolf Solutions"
   },
   "ats_domains": [
     "adp.com",
@@ -440,7 +441,12 @@
     "msrtechnologies.com": "MSR Technology Group",
     "abacustech.com": "Abacus Technology",
     "windward.ai": "Windward",
-    "marathonts.com": "Marathon TS"
+    "marathonts.com": "Marathon TS",
+    "smithfieldfoods.com": "Smithfield Foods",
+    "analyst1.com": "Analyst1",
+    "alphamountain.ai": "alphaMountain",
+    "govcio.com": "GovCIO",
+    "darkwolf.io": "Dark Wolf Solutions"
   },
   "headhunter_domains": [
     "agreeya.com",
@@ -735,7 +741,13 @@
     "Abacus Technology": "https://www.abacustech.com/join-the-team/",
     "Windward": "https://windward.ai/company/careers/",
     "Obsidian": "https://www.obsidian.global",
-    "Marathon TS": "https://www1.jobdiva.com/candidates/myjobs/searchjobsdone.jsp?a=j7jdnwgck4wulo816y7l865pzq556q05f5cqdk65b0o0dpy0m5p196w9a9ln1g3w&compid=-1"
+    "Marathon TS": "https://www1.jobdiva.com/candidates/myjobs/searchjobsdone.jsp?a=j7jdnwgck4wulo816y7l865pzq556q05f5cqdk65b0o0dpy0m5p196w9a9ln1g3w&compid=-1",
+    "Smithfield Foods": "http://www.smithfieldfoods.com/careers/why-smithfield",
+    "Analyst1": "https://job-boards.greenhouse.io/analyst1",
+    "alphaMountain": "https://www.alphamountain.ai/about-us/",
+    "GovCIO": "https://govcio.com/careers/",
+    "Dark Wolf": "https://darkwolf.io/join-the-pack",
+    "Dark Wolf Solutions": "https://darkwolf.io/join-the-pack"
   },
   "known": [
     "Obsidian",
@@ -990,7 +1002,12 @@
     "Abacus Technology Corporation",
     "Windward",
     "Obsidian Global, LLC",
-    "Marathon TS"
+    "Marathon TS",
+    "Smithfield Foods",
+    "Analyst1",
+    "alphaMountain",
+    "GovCIO",
+    "Dark Wolf"
   ],
   "ats_heuristic_patterns": [
     "workday",

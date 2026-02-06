@@ -38,6 +38,15 @@ A local-only Django application that transforms your Gmail into an intelligent j
 - **Calendar view**: Upcoming interviews timeline
 - **🔍 Job Search Tracker**: Proactively track which companies you've manually searched for opportunities
 
+### 🏛️ Defense Contract Awards
+
+- **War.gov scraper**: Automated scraping of daily defense contract announcements
+- **Contract parsing**: Extracts company, amount, location, branch, contract number from each award
+- **Searchable dashboard**: Filter by branch, keyword, date range with summary statistics
+- **Company linking**: Auto-matches contract awardees to tracked companies
+- **Article caching**: Prevents redundant HTTP requests with ScrapedArticle tracking
+- **Playwright-powered**: Bypasses Akamai WAF using headed Chromium browser
+
 ### 🔒 Privacy & Security
 
 - **100% local**: All data stored in SQLite, no cloud sync
@@ -182,6 +191,7 @@ graph TD
 - **ML:** TF-IDF + Logistic Regression (calibrated probabilities)
 - **Database:** SQLite (single file, no server)
 - **OAuth:** google-auth-oauthlib (read-only scope)
+- **Scraping:** Playwright (headed Chromium for war.gov WAF bypass)
 
 ---
 
@@ -399,10 +409,11 @@ Tip: If you see “database is locked”, ensure no other process is using the D
 
 GmailJobTracker/
 ├── tracker/                 # Django app
-│   ├── models.py            # Company, Application, Message models
-│   ├── views.py             # Dashboard views (label_messages, metrics)
+│   ├── models.py            # Company, Message, DefenseContract, ScrapedArticle models
+│   ├── views/               # Dashboard views split by domain
+│   ├── services/            # Business logic (contract_scraper, company_service, etc.)
 │   ├── admin.py             # Admin customizations
-│   └── management/commands/ # Django commands (ingest_gmail, reclassify)
+│   └── management/commands/ # Django commands (ingest_gmail, fetch_contracts, etc.)
 ├── parser.py                # Core email parsing + company resolution
 ├── ml_subject_classifier.py # ML prediction wrapper
 ├── ml_entity_extraction.py  # spaCy entity extraction

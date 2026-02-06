@@ -49,4 +49,6 @@ urlpatterns = [
     path("api/scrape_job_posting/", views.scrape_job_posting, name="scrape_job_posting"),
     path("company/<int:company_id>/upload_document/", views.upload_company_document, name="upload_company_document"),
     path("company/document/<int:document_id>/delete/", views.delete_company_document, name="delete_company_document"),
+    path("defense_contracts/", views.defense_contracts, name="defense_contracts"),
+    path("api/fetch_contracts/", views.fetch_contracts_ajax, name="fetch_contracts_ajax"),
 ]

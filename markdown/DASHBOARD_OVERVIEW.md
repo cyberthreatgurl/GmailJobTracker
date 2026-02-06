@@ -14,6 +14,7 @@ This dashboard provides a secure, local-only interface for tracking job applicat
 - **Upcoming interview calendar**
 - **Interactive labeling interface** with auto-retraining
 - **Label debugger** with priority-order testing at `/label-companies/`
+- **Defense contract awards** scraped from war.gov with search/filter at `/defense_contracts/`
 - **Environment diagnostics** via `/admin/environment_status/`
 
 ### Intelligent Classification
@@ -36,7 +37,7 @@ This dashboard provides a secure, local-only interface for tracking job applicat
 
 - **Framework**: Django 5.2.7
 - **Database**: SQLite (`job_tracker.db`)
-- **Models**: `Message`, `ThreadTracking`, `Company`, `IgnoredMessage`, `IngestionStats`
+- **Models**: `Message`, `ThreadTracking`, `Company`, `IgnoredMessage`, `IngestionStats`, `DefenseContract`, `ScrapedArticle`
 - **ML Pipeline**: 
   - Subject classifier: `model/subject_classifier.pkl`
   - Vectorizer: `model/vectorizer.pkl`
@@ -53,6 +54,14 @@ This dashboard provides a secure, local-only interface for tracking job applicat
 python manage.py ingest_gmail --days 30
 python manage.py ingest_gmail --message-id <msg_id>
 python manage.py mark_ghosted
+```
+
+### Defense Contracts
+```bash
+python manage.py fetch_contracts
+python manage.py fetch_contracts --max-articles 10 --force-refresh
+python manage.py fetch_contracts --search "cybersecurity"
+python manage.py fetch_contracts --dry-run
 ```
 
 ### Cleanup
@@ -118,6 +127,7 @@ Messages are automatically ignored if:
 - `/admin/` - Django admin
 - `/label-companies/` - Interactive label debugger
 - `/company/<id>/` - Company detail with all messages
+- `/defense_contracts/` - Defense contract awards listing with search/filter
 - `/admin/environment_status/` - System diagnostics
 
 ---
@@ -163,9 +173,40 @@ Messages are automatically ignored if:
 - `reason`: Why ignored (e.g., "newsletter_headers", "ml_ignore")
 - `metadata`: JSON dump of full message metadata
 
+### DefenseContract
+- `id` (PK): Auto-generated
+- `contract_number`: Contract/modification number
+- `source_url`: URL of the war.gov article
+- `article_date`: Publication date
+- `company_name_raw`: Company name as it appears in the text
+- `company` (FK): Link to Company record if matched
+- `branch`: Military branch (army, navy, air_force, etc.)
+- `amount`: Dollar value
+- `description`, `raw_text`: Contract description and full paragraph
+- `company_location`, `work_location`, `completion_date`, `contracting_activity`
+- `is_modification`, `is_small_business`: Boolean flags
+- Unique together: (source_url, company_name_raw, contract_number)
+
+### ScrapedArticle
+- `url` (unique): Full URL of the war.gov article
+- `title`: Article title
+- `article_date`: Parsed publication date
+- `contracts_found`: Number of contracts parsed
+- `scraped_at`: When the article was last scraped
+
 ---
 
 ## Recent Enhancements
+
+### Defense Contract Awards (Feb 2026)
+- Playwright-based scraper for war.gov contract announcements
+- Parses company names, dollar amounts, contract numbers, locations from daily articles
+- Article caching via ScrapedArticle model prevents redundant HTTP requests
+- Searchable/filterable dashboard with branch, keyword, and date range filters
+- AJAX-powered "Fetch Latest" and "Refresh All" buttons
+- Company detail integration on Label Companies page
+- `fetch_contracts` management command with --dry-run, --force-refresh, --search
+- 39 unit tests covering parsing, matching, and caching
 
 ### Newsletter Detection (Nov 2025)
 - Header extraction for List-Id, Precedence, X-Campaign, Auto-Submitted

@@ -1188,6 +1188,13 @@ def label_companies(request):
         from tracker.models import CompanyDocument
         company_documents = list(selected_company.documents.all())
     
+    # Get defense contracts linked to this company
+    company_contracts = []
+    if selected_company:
+        company_contracts = list(
+            selected_company.defense_contracts.order_by("-article_date")[:20]
+        )
+    
     ctx.update(
         {
             "company_list": companies,
@@ -1203,6 +1210,7 @@ def label_companies(request):
             "new_company_name": new_company_name,
             "application_threads": application_threads,
             "company_documents": company_documents,
+            "company_contracts": company_contracts,
         }
     )
     return render(request, "tracker/label_companies.html", ctx)

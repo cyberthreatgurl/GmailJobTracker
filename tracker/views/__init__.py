@@ -2,7 +2,7 @@
 
 Phase 5 Refactoring: Complete - modularized from monolithic views.py (4,403 lines).
 
-All 31 view functions now organized into 9 specialized modules.
+All view functions now organized into 10 specialized modules.
 """
 
 # Import all view modules
@@ -15,5 +15,6 @@ from .applications import *  # noqa: F401, F403
 from .admin import *  # noqa: F401, F403
 from .dashboard import *  # noqa: F401, F403
 from .messages import *  # noqa: F401, F403
+from .contracts import *  # noqa: F401, F403
 
 __all__ = []

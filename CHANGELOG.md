@@ -5,6 +5,43 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.1] - 2026-02-06
+
+### Added
+- **Duplicate Company Prevention** - `CompanyEditForm` now validates against existing companies
+  - Checks for duplicate company name (case-insensitive) before creation
+  - Checks for duplicate domain already assigned to another company
+  - Checks against company aliases to prevent name collisions
+  - All validation skips the current company when editing (not just creating)
+
+- **Manual Entry Rejection Merge** - Creating a manual application now checks for existing rejections
+  - `check_for_existing_rejection()` helper searches for rejection/cancelled messages by company
+  - Automatically merges rejection_date and cancelled status into new ThreadTracking
+  - Works in both Manual Entry page and Label Companies page
+  - Shows user feedback: "📧 Found existing rejected message - status updated"
+
+### Changed
+- **Company Name Not Required for Populate** - Homepage scraping no longer requires company name
+  - `CompanyEditForm.name` field made optional (`required=False`)
+  - Company name validated server-side only when "Create Company" is clicked
+  - Allows entering just a homepage URL and clicking Populate to auto-fill all fields
+
+### Fixed
+- **Dashboard Double-Counting Rejections** - Fixed duplicate rejection counts
+  - When a manual application had a merged rejection, both the ThreadTracking and Message
+    were counted separately in the "🚫 Rejections From" section
+  - Added company-level exclusion: messages whose company already has a ThreadTracking
+    with `rejection_date` are no longer double-counted
+  - Previously only excluded by matching `thread_id`, which missed manual entries with
+    different thread IDs
+
+### Data
+- **New Companies & Domains** - Added 10+ new companies to `companies.json`:
+  - Goldbelt Nighthawk, BCT LLC, The Triana Group, F5, Advanced Global Resources
+  - TMC Technologies, MSR Technology Group, Abacus Technology, Windward, Marathon TS, Obsidian
+  - Added corresponding domain mappings, career page URLs, and aliases
+  - Added `paycomonline.com` and `hrsmart.com` to ATS domains
+
 ## [1.3.0] - 2026-02-02
 
 ### Added

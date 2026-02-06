@@ -100,7 +100,13 @@
     "Chugach": "Chugach Government Solutions",
     "argo": "ARGO Cyber Systems",
     "MIssion Technologies": "Hill",
-    "Inc.": "BCI"
+    "Inc.": "BCI",
+    "BCT": "BCT LLC",
+    "AGR": "Advanced Global Resources",
+    "TMC": "TMC Technologies",
+    "MSR": "MSR Technology Group",
+    "SM2": "SM2 Security Solutions, LLC",
+    "Obsidian": "Obsidian"
   },
   "ats_domains": [
     "adp.com",
@@ -154,7 +160,9 @@
     "appreview.gem.com",
     "greenhouse.io",
     "breezy.hr",
-    "Defense"
+    "Defense",
+    "paycomonline.com",
+    "hrsmart.com"
   ],
   "domain_to_company": {
     "afs.com": "Accenture Federal Services",
@@ -422,7 +430,17 @@
     "novolex.com": "Novolex",
     "chainguard.dev": "Chainguard",
     "astrion.us": "Astrion",
-    "lafayettegroup.com": "Lafayette Group"
+    "lafayettegroup.com": "Lafayette Group",
+    "gbnighthawk.com": "Goldbelt Nighthawk",
+    "bct-llc.com": "BCT LLC",
+    "trianagroup.com": "The Triana Group",
+    "f5.com": "F5",
+    "agr-us.com": "Advanced Global Resources",
+    "tmctechnologies.com": "TMC Technologies",
+    "msrtechnologies.com": "MSR Technology Group",
+    "abacustech.com": "Abacus Technology",
+    "windward.ai": "Windward",
+    "marathonts.com": "Marathon TS"
   },
   "headhunter_domains": [
     "agreeya.com",
@@ -539,7 +557,7 @@
     "STI": "https://www.jsfirm.com/Strategic-Technology-Institute,-Inc/16178/company-jobs",
     "The Tatitlek Corporation": "https://tatitlek.com/careers-page/",
     "Phase2 Technology": "https://phase2.io/careers/",
-    "TMC Technologies": "https://tmctechnologies.com/careers/",
+    "TMC Technologies": "https://www.tmctechnologies.com/careers",
     "Trellix": "https://careers.trellix.com/",
     "The TJX Companies": "https://www.tjx.com/careers",
     "Guidehouse Federal": "https://guidehouse.com/careers",
@@ -710,7 +728,14 @@
     "Novolex": "https://novolex.com/careers/",
     "Chainguard": "https://chainguard.dev/careers",
     "Astrion": "https://careers.astrion.us/careers-home",
-    "Lafayette Group": "https://www.lafayettegroup.com/careers"
+    "Lafayette Group": "https://www.lafayettegroup.com/careers",
+    "Goldbelt Nighthawk": "https://www.gbnighthawk.com/join-us/",
+    "F5": "https://www.f5.com/company/careers",
+    "MSR Technology Group": "https://www.msrtechnologies.com/careers/",
+    "Abacus Technology": "https://www.abacustech.com/join-the-team/",
+    "Windward": "https://windward.ai/company/careers/",
+    "Obsidian": "https://www.obsidian.global",
+    "Marathon TS": "https://www1.jobdiva.com/candidates/myjobs/searchjobsdone.jsp?a=j7jdnwgck4wulo816y7l865pzq556q05f5cqdk65b0o0dpy0m5p196w9a9ln1g3w&compid=-1"
   },
   "known": [
     "Obsidian",
@@ -955,7 +980,17 @@
     "Chainguard",
     "Astrion",
     "Lafayette Group",
-    "Dominion Energy"
+    "Dominion Energy",
+    "Goldbelt Nighthawk",
+    "BCT LLC",
+    "The Triana Group",
+    "F5",
+    "Advanced Global Resources",
+    "MSR Technology Group",
+    "Abacus Technology Corporation",
+    "Windward",
+    "Obsidian Global, LLC",
+    "Marathon TS"
   ],
   "ats_heuristic_patterns": [
     "workday",

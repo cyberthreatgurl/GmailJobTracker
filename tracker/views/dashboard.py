@@ -495,6 +495,17 @@ def dashboard(request):
     msg_rejections_qs = msg_rejections_qs.exclude(
         thread_id__in=application_rejection_threads
     )
+    
+    # Also exclude messages whose company already has a ThreadTracking with rejection_date
+    # This handles manual entries where the rejection message has a different thread_id
+    application_rejection_companies = set(
+        ThreadTracking.objects.filter(
+            rejection_date__isnull=False, company__isnull=False
+        ).values_list("company_id", flat=True)
+    )
+    msg_rejections_qs = msg_rejections_qs.exclude(
+        company_id__in=application_rejection_companies
+    )
 
     # Get message-based rejections with company info
     msg_rejection_data = msg_rejections_qs.select_related("company").values(

@@ -1059,81 +1059,87 @@ def label_companies(request):
                     logger.error(f"Form errors: {form.errors}")
                 
                 if form.is_valid():
-                    # Check if domain or homepage was provided
-                    domain = (form.cleaned_data.get("domain") or "").strip()
-                    homepage = (form.cleaned_data.get("homepage") or "").strip()
-                    if not domain and not homepage:
-                        messages.error(request, "❌ Please enter at least a domain or homepage before saving.")
+                    # Check if company name was provided
+                    company_name = (form.cleaned_data.get("name") or "").strip()
+                    if not company_name:
+                        messages.error(request, "❌ Please enter a company name before saving.")
                         # Form stays bound with submitted data for re-display
                     else:
-                        # Create the company
-                        new_company = form.save(commit=False)
-                        new_company.confidence = 1.0
-                        new_company.first_contact = now()
-                        new_company.last_contact = now()
-                        if not new_company.status:
-                            new_company.status = "new"
-                        new_company.save()
-                        messages.success(request, f"✅ New Company: {new_company.name} added")
-                        
-                        # Save to companies.json (known array + domain mapping + career URL if provided)
-                        try:
-                            companies_json_path = Path("json/companies.json")
-                            if companies_json_path.exists():
-                                with open(companies_json_path, "r", encoding="utf-8") as f:
-                                    companies_json_data = json.load(f)
-                                
-                                changes_made = False
-                                
-                                # Add to known array if not already present
-                                if "known" not in companies_json_data:
-                                    companies_json_data["known"] = []
-                                if new_company.name not in companies_json_data["known"]:
-                                    companies_json_data["known"].append(new_company.name)
-                                    changes_made = True
-                                
-                                # Add domain mapping if domain was provided
-                                if domain:
-                                    if "domain_to_company" not in companies_json_data:
-                                        companies_json_data["domain_to_company"] = {}
-                                    if domain not in companies_json_data["domain_to_company"]:
-                                        companies_json_data["domain_to_company"][domain] = new_company.name
+                        # Check if domain or homepage was provided
+                        domain = (form.cleaned_data.get("domain") or "").strip()
+                        homepage = (form.cleaned_data.get("homepage") or "").strip()
+                        if not domain and not homepage:
+                            messages.error(request, "❌ Please enter at least a domain or homepage before saving.")
+                            # Form stays bound with submitted data for re-display
+                        else:
+                            # Create the company
+                            new_company = form.save(commit=False)
+                            new_company.confidence = 1.0
+                            new_company.first_contact = now()
+                            new_company.last_contact = now()
+                            if not new_company.status:
+                                new_company.status = "new"
+                            new_company.save()
+                            messages.success(request, f"✅ New Company: {new_company.name} added")
+                            
+                            # Save to companies.json (known array + domain mapping + career URL if provided)
+                            try:
+                                companies_json_path = Path("json/companies.json")
+                                if companies_json_path.exists():
+                                    with open(companies_json_path, "r", encoding="utf-8") as f:
+                                        companies_json_data = json.load(f)
+                                    
+                                    changes_made = False
+                                    
+                                    # Add to known array if not already present
+                                    if "known" not in companies_json_data:
+                                        companies_json_data["known"] = []
+                                    if new_company.name not in companies_json_data["known"]:
+                                        companies_json_data["known"].append(new_company.name)
                                         changes_made = True
-                                
-                                # Add career URL to JobSites if provided
-                                career_url = form.cleaned_data.get("career_url", "").strip()
-                                if career_url:
-                                    if "JobSites" not in companies_json_data:
-                                        companies_json_data["JobSites"] = {}
-                                    if new_company.name not in companies_json_data["JobSites"]:
-                                        companies_json_data["JobSites"][new_company.name] = career_url
-                                        changes_made = True
-                                    elif companies_json_data["JobSites"][new_company.name] != career_url:
-                                        companies_json_data["JobSites"][new_company.name] = career_url
-                                        changes_made = True
-                                
-                                # Add aliases (support multiple comma-separated values)
-                                alias_input = form.cleaned_data.get("alias", "").strip()
-                                if alias_input:
-                                    if "aliases" not in companies_json_data:
-                                        companies_json_data["aliases"] = {}
-                                    # Split by comma and clean up each alias
-                                    new_aliases = [a.strip() for a in alias_input.split(",") if a.strip()]
-                                    for alias in new_aliases:
-                                        if alias not in companies_json_data["aliases"]:
-                                            companies_json_data["aliases"][alias] = new_company.name
+                                    
+                                    # Add domain mapping if domain was provided
+                                    if domain:
+                                        if "domain_to_company" not in companies_json_data:
+                                            companies_json_data["domain_to_company"] = {}
+                                        if domain not in companies_json_data["domain_to_company"]:
+                                            companies_json_data["domain_to_company"][domain] = new_company.name
                                             changes_made = True
-                                        elif companies_json_data["aliases"][alias] != new_company.name:
-                                            companies_json_data["aliases"][alias] = new_company.name
+                                    
+                                    # Add career URL to JobSites if provided
+                                    career_url = form.cleaned_data.get("career_url", "").strip()
+                                    if career_url:
+                                        if "JobSites" not in companies_json_data:
+                                            companies_json_data["JobSites"] = {}
+                                        if new_company.name not in companies_json_data["JobSites"]:
+                                            companies_json_data["JobSites"][new_company.name] = career_url
                                             changes_made = True
-                                
-                                if changes_made:
-                                    with open(companies_json_path, "w", encoding="utf-8") as f:
-                                        json.dump(companies_json_data, f, indent=2, ensure_ascii=False)
-                        except Exception as e:
-                            messages.warning(request, f"⚠️ Failed to save to companies.json: {e}")
-                        
-                        return redirect(f"/label_companies/?company={new_company.id}")
+                                        elif companies_json_data["JobSites"][new_company.name] != career_url:
+                                            companies_json_data["JobSites"][new_company.name] = career_url
+                                            changes_made = True
+                                    
+                                    # Add aliases (support multiple comma-separated values)
+                                    alias_input = form.cleaned_data.get("alias", "").strip()
+                                    if alias_input:
+                                        if "aliases" not in companies_json_data:
+                                            companies_json_data["aliases"] = {}
+                                        # Split by comma and clean up each alias
+                                        new_aliases = [a.strip() for a in alias_input.split(",") if a.strip()]
+                                        for alias in new_aliases:
+                                            if alias not in companies_json_data["aliases"]:
+                                                companies_json_data["aliases"][alias] = new_company.name
+                                                changes_made = True
+                                            elif companies_json_data["aliases"][alias] != new_company.name:
+                                                companies_json_data["aliases"][alias] = new_company.name
+                                                changes_made = True
+                                    
+                                    if changes_made:
+                                        with open(companies_json_path, "w", encoding="utf-8") as f:
+                                            json.dump(companies_json_data, f, indent=2, ensure_ascii=False)
+                            except Exception as e:
+                                messages.warning(request, f"⚠️ Failed to save to companies.json: {e}")
+                            
+                            return redirect(f"/label_companies/?company={new_company.id}")
                 else:
                     # Form validation failed - show errors
                     error_messages = []

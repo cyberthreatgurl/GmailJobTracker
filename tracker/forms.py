@@ -189,6 +189,21 @@ class UploadEmlForm(forms.Form):
 class CompanyEditForm(forms.ModelForm):
     """Form for editing Company details in label_companies view."""
 
+    # Override name field to make it not required (for Populate button to work without name)
+    # Validation happens in clean() method when action is create_new_company
+    name = forms.CharField(
+        max_length=255,
+        required=False,
+        label="Company Name",
+        validators=[
+            RegexValidator(
+                regex=r'^[a-zA-Z0-9\s.,\-&\'"()]+$',
+                message='Company name can only contain letters, numbers, spaces, and: . , - & \' " ( )',
+                code='invalid_company_name'
+            )
+        ],
+    )
+
     # Add career_url as a non-model field
     career_url = forms.URLField(
         max_length=512,
@@ -242,3 +257,46 @@ class CompanyEditForm(forms.ModelForm):
         widgets = {
             "notes": forms.Textarea(attrs={"rows": 4, "style": "width: 100%; resize: vertical;"}),
         }
+
+    def clean(self):
+        """Validate that company name and domain are not duplicates."""
+        cleaned_data = super().clean()
+        name = (cleaned_data.get("name") or "").strip()
+        domain = (cleaned_data.get("domain") or "").strip().lower()
+        
+        # Get the instance ID if editing an existing company
+        instance_id = self.instance.id if self.instance and self.instance.id else None
+        
+        # Check for duplicate company name (case-insensitive)
+        if name:
+            existing_name = Company.objects.filter(name__iexact=name)
+            if instance_id:
+                existing_name = existing_name.exclude(id=instance_id)
+            existing_name = existing_name.first()
+            
+            if existing_name:
+                raise forms.ValidationError({
+                    'name': f'A company named "{existing_name.name}" already exists (ID: {existing_name.id}). Please use the existing company instead.'
+                })
+            
+            # Also check aliases
+            from tracker.models import CompanyAlias
+            alias = CompanyAlias.objects.filter(alias__iexact=name).first()
+            if alias and (not instance_id or alias.company.id != instance_id):
+                raise forms.ValidationError({
+                    'name': f'"{name}" is an alias for "{alias.company.name}". Please use the existing company instead.'
+                })
+        
+        # Check for duplicate domain
+        if domain:
+            existing_domain = Company.objects.filter(domain__iexact=domain)
+            if instance_id:
+                existing_domain = existing_domain.exclude(id=instance_id)
+            existing_domain = existing_domain.first()
+            
+            if existing_domain:
+                raise forms.ValidationError({
+                    'domain': f'Domain "{domain}" is already used by "{existing_domain.name}" (ID: {existing_domain.id}). Please use the existing company instead.'
+                })
+        
+        return cleaned_data

@@ -163,7 +163,54 @@ python manage.py reclassify_messages
 
 ---
 
-### 🏢 Company Management Commands
+### �️ Defense Contract Commands
+
+#### `fetch_contracts`
+
+Fetch and parse defense contract awards from war.gov.
+
+```bash
+# Fetch latest 5 articles (default)
+python manage.py fetch_contracts
+
+# Fetch up to 10 articles
+python manage.py fetch_contracts --max-articles 10
+
+# Re-fetch all articles (bypass cache)
+python manage.py fetch_contracts --force-refresh
+
+# Dry run - show article links without saving
+python manage.py fetch_contracts --dry-run
+
+# Search existing stored contracts
+python manage.py fetch_contracts --search "cybersecurity"
+```
+
+**Options**:
+
+- `--max-articles N`: Maximum articles to process (default: 5)
+- `--force-refresh`: Re-fetch articles even if already scraped (bypass ScrapedArticle cache)
+- `--dry-run`: Show article links without fetching or saving
+- `--search QUERY`: Search existing contracts by keyword (does not fetch new data)
+
+**Logic**:
+
+- Uses Playwright (headed Chromium) to bypass Akamai WAF on war.gov
+- Fetches the contracts listing page, extracts article links
+- For each article: splits text by military branch, parses contract paragraphs
+- Extracts: company name, location, dollar amount, contract number, branch, work location
+- Links scraped companies to existing `Company` records via fuzzy matching
+- Tracks fetched articles in `ScrapedArticle` to skip on subsequent runs
+
+**Output**:
+
+- Creates `DefenseContract` records (deduplicated by source_url + company_name_raw + contract_number)
+- Creates `ScrapedArticle` cache entries for processed articles
+- Reports: articles processed, contracts created/updated/skipped, errors
+
+---
+
+### �🏢 Company Management Commands
 
 #### `sync_companies` ⭐ **RECOMMENDED AFTER EDITING companies.json**
 
@@ -531,6 +578,26 @@ http://localhost:8000/admin/environment_status/
 ```
 
 System diagnostics (admin-only).
+
+---
+
+### Defense Contract Awards
+
+```
+http://localhost:8000/defense_contracts/
+```
+
+Searchable listing of defense contract awards scraped from war.gov.
+
+**Features**:
+
+- Search by company name, description, work location
+- Filter by military branch (Army, Navy, Air Force, etc.)
+- Date range filter (7/14/30/60/90 days or all time)
+- Summary stats: total contracts, total value, articles cached
+- "Fetch Latest" button for incremental scraping
+- "Refresh All" button to re-fetch all articles
+- Click company name to view on Label Companies page
 
 ---
 

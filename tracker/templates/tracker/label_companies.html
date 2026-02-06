@@ -333,6 +333,49 @@
             </div>
           </details>
           
+          <!-- Defense Contracts Section (expandable) -->
+          {% if company_contracts %}
+          <details style="background: #ecfdf5; border-radius: 8px; padding: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+            <summary style="cursor: pointer; padding: 1rem 1.5rem; font-weight: 600; color: #065f46; font-size: 1rem; list-style: none; display: flex; align-items: center; gap: 0.5rem;">
+              <span style="transition: transform 0.2s;">▶</span> 🏛️ Defense Contracts ({{ company_contracts|length }})
+            </summary>
+            <div style="padding: 0 1.5rem 1.5rem 1.5rem;">
+              {% for contract in company_contracts %}
+              <div style="background: white; border-radius: 6px; padding: 1rem; margin-bottom: 0.75rem; border: 1px solid #a7f3d0;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; margin-bottom: 0.5rem;">
+                  <div>
+                    <span style="font-weight: 600; color: #065f46;">{{ contract.amount_display }}</span>
+                    {% if contract.is_modification %}
+                    <span style="background: #e2e8f0; color: #475569; font-size: 0.65rem; font-weight: 600; padding: 0.15rem 0.4rem; border-radius: 4px; margin-left: 0.25rem;">MOD</span>
+                    {% endif %}
+                    {% if contract.is_small_business %}
+                    <span style="background: #fef3c7; color: #92400e; font-size: 0.65rem; font-weight: 600; padding: 0.15rem 0.4rem; border-radius: 4px; margin-left: 0.25rem;">SB</span>
+                    {% endif %}
+                  </div>
+                  <div style="text-align: right;">
+                    <span style="font-size: 0.8rem; color: #6b7280;">{{ contract.article_date|date:"M d, Y" }}</span>
+                    <div style="font-size: 0.7rem; color: #9ca3af;">{{ contract.get_branch_display }}</div>
+                  </div>
+                </div>
+                {% if contract.contract_number %}
+                <div style="font-size: 0.8rem; color: #6b7280; margin-bottom: 0.25rem;">📝 {{ contract.contract_number }}</div>
+                {% endif %}
+                <div style="font-size: 0.85rem; color: #374151; margin-bottom: 0.5rem;">{{ contract.description|truncatewords:30 }}</div>
+                {% if contract.work_location %}
+                <div style="font-size: 0.75rem; color: #6b7280;">📍 {{ contract.work_location|truncatewords:15 }}</div>
+                {% endif %}
+                {% if contract.completion_date %}
+                <div style="font-size: 0.75rem; color: #6b7280;">📅 Completion: {{ contract.completion_date }}</div>
+                {% endif %}
+                <div style="margin-top: 0.5rem;">
+                  <a href="{{ contract.source_url }}" target="_blank" style="font-size: 0.75rem; color: #2563eb; text-decoration: none;">View on war.gov →</a>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          </details>
+          {% endif %}
+
           <!-- Application Details Section -->
           {% if application_threads %}
           <details style="background: #dbeafe; border-radius: 8px; padding: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">

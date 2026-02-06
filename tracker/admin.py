@@ -9,6 +9,7 @@ from .models import (
     ATSDomain,
     Company,
     CompanyAlias,
+    DefenseContract,
     DomainToCompany,
     GmailFilterImportLog,
     KnownCompany,
@@ -17,6 +18,7 @@ from .models import (
     MessageLabel,
     ModelTrainingLabelMetric,
     ModelTrainingRun,
+    ScrapedArticle,
     ThreadTracking,
     Ticket,
     UnresolvedCompany,
@@ -312,6 +314,52 @@ class AuditEventAdmin(admin.ModelAdmin):
 
 custom_admin_site.register(AuditEvent, AuditEventAdmin)
 admin.site.register(AuditEvent, AuditEventAdmin)
+
+
+class DefenseContractAdmin(admin.ModelAdmin):
+    """Admin for DefenseContract records."""
+
+    list_display = (
+        "company_name_raw",
+        "branch",
+        "amount_display",
+        "article_date",
+        "company_location",
+        "is_modification",
+        "is_small_business",
+        "company",
+    )
+    list_filter = ("branch", "is_modification", "is_small_business")
+    search_fields = (
+        "company_name_raw",
+        "description",
+        "contract_number",
+        "work_location",
+        "contracting_activity",
+    )
+    readonly_fields = ("created_at", "updated_at")
+    ordering = ("-article_date",)
+
+
+custom_admin_site.register(DefenseContract, DefenseContractAdmin)
+
+
+class ScrapedArticleAdmin(admin.ModelAdmin):
+    """Admin for ScrapedArticle cache records."""
+
+    list_display = (
+        "title",
+        "article_date",
+        "contracts_found",
+        "scraped_at",
+    )
+    list_filter = ("article_date",)
+    search_fields = ("title", "url")
+    readonly_fields = ("scraped_at",)
+    ordering = ("-article_date",)
+
+
+custom_admin_site.register(ScrapedArticle, ScrapedArticleAdmin)
 
 admin.site.register(KnownCompany)
 admin.site.register(ATSDomain)

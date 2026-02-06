@@ -548,3 +548,181 @@ class CompanyDocument(models.Model):
                 return f"{size / 1024 / 1024:.1f} MB"
         except Exception:
             return "Unknown"
+
+
+class DefenseContract(models.Model):
+    """
+    A single defense contract award scraped from war.gov (formerly defense.gov).
+
+    Each record represents one contract paragraph from a daily contract announcement.
+    Multiple contracts may share the same article (source_url) but differ by
+    company, branch, and contract number.
+
+    Fields are extracted via regex parsing of the war.gov contract text.
+    The optional FK to Company links awards to tracked companies.
+    """
+
+    BRANCH_CHOICES = [
+        ("army", "Army"),
+        ("navy", "Navy"),
+        ("air_force", "Air Force"),
+        ("defense_logistics_agency", "Defense Logistics Agency"),
+        ("special_operations", "U.S. Special Operations Command"),
+        ("missile_defense", "Missile Defense Agency"),
+        ("other", "Other"),
+    ]
+
+    # Identifiers
+    contract_number = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text="Contract or modification number (e.g., W9124P-22-F-0036)"
+    )
+    source_url = models.URLField(
+        max_length=512,
+        help_text="URL of the war.gov article this contract was scraped from"
+    )
+    article_date = models.DateField(
+        help_text="Publication date of the war.gov contracts article"
+    )
+
+    # Company info (raw from scrape + optional FK)
+    company_name_raw = models.CharField(
+        max_length=255,
+        help_text="Company name exactly as it appears in the contract text"
+    )
+    company = models.ForeignKey(
+        Company,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="defense_contracts",
+        help_text="Link to a tracked Company record, if matched"
+    )
+
+    # Contract details
+    branch = models.CharField(
+        max_length=40,
+        choices=BRANCH_CHOICES,
+        default="other",
+        help_text="Military branch or agency awarding the contract"
+    )
+    amount = models.DecimalField(
+        max_digits=15,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Dollar value of the contract award"
+    )
+    description = models.TextField(
+        blank=True,
+        help_text="Full description of the contract work"
+    )
+    raw_text = models.TextField(
+        blank=True,
+        help_text="Complete unprocessed paragraph text from the article"
+    )
+
+    # Location and timeline
+    company_location = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="City, State of the awardee (e.g., Reston, Virginia)"
+    )
+    work_location = models.TextField(
+        blank=True,
+        help_text="Where the work will be performed (may include percentages)"
+    )
+    completion_date = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text="Expected completion date as stated in the contract text"
+    )
+    contracting_activity = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Contracting command or office (e.g., Naval Air Systems Command)"
+    )
+
+    # Metadata
+    is_modification = models.BooleanField(
+        default=False,
+        help_text="True if this is a modification to an existing contract"
+    )
+    is_small_business = models.BooleanField(
+        default=False,
+        help_text="True if the awardee is marked with * (small business)"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-article_date", "branch", "company_name_raw"]
+        indexes = [
+            models.Index(fields=["article_date"]),
+            models.Index(fields=["company_name_raw"]),
+            models.Index(fields=["branch"]),
+        ]
+        unique_together = [
+            ("source_url", "company_name_raw", "contract_number"),
+        ]
+
+    def __str__(self):
+        amount_str = f"${self.amount:,.2f}" if self.amount else "N/A"
+        return f"{self.company_name_raw} – {amount_str} ({self.branch})"
+
+    @property
+    def amount_display(self):
+        """Return formatted dollar amount."""
+        if self.amount is None:
+            return "N/A"
+        if self.amount >= 1_000_000_000:
+            return f"${self.amount / 1_000_000_000:,.2f}B"
+        if self.amount >= 1_000_000:
+            return f"${self.amount / 1_000_000:,.1f}M"
+        return f"${self.amount:,.0f}"
+
+
+class ScrapedArticle(models.Model):
+    """
+    Tracks which war.gov contract articles have already been fetched.
+
+    Prevents redundant HTTP requests to war.gov on repeated scraping runs.
+    An article is recorded after its HTML has been successfully fetched and
+    parsed, regardless of how many contracts were extracted.
+
+    Set force_refresh=True in scrape_latest() to re-fetch all articles.
+    """
+
+    url = models.URLField(
+        max_length=512,
+        unique=True,
+        help_text="Full URL of the war.gov article page",
+    )
+    title = models.CharField(
+        max_length=300,
+        blank=True,
+        help_text="Article title (e.g., 'Contracts for Feb. 5, 2026')",
+    )
+    article_date = models.DateField(
+        null=True,
+        blank=True,
+        help_text="Parsed publication date of the article",
+    )
+    contracts_found = models.PositiveIntegerField(
+        default=0,
+        help_text="Number of contracts parsed from this article",
+    )
+    scraped_at = models.DateTimeField(
+        auto_now_add=True,
+        help_text="When this article was last scraped",
+    )
+
+    class Meta:
+        ordering = ["-article_date", "-scraped_at"]
+        indexes = [
+            models.Index(fields=["article_date"]),
+        ]
+
+    def __str__(self):
+        return f"{self.title} ({self.contracts_found} contracts)"

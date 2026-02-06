@@ -5,9 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.3.1] - 2026-02-06
+## [2.0.0] - 2026-02-06
 
 ### Added
+- **🏛️ Defense Contract Awards** - New feature to scrape, parse, and display U.S. defense contract awards from war.gov
+  - **ContractScraperService** (`tracker/services/contract_scraper.py`) — Full scraping pipeline:
+    - Uses Playwright (headed Chromium) to bypass Akamai WAF on war.gov
+    - Parses daily contract articles: splits by military branch, extracts company, amount, location, contract number
+    - Handles multi-awardee paragraphs, modifications, small business flags
+    - Links scraped companies to existing Company records via fuzzy matching
+  - **DefenseContract model** (migration 0023) — 15+ fields: company_name_raw, branch, amount, contract_number, work_location, completion_date, etc.
+  - **ScrapedArticle model** (migration 0024) — Caches fetched article URLs to prevent redundant HTTP requests
+  - **Dashboard page** (`/defense_contracts/`) — Searchable, filterable contract listing with:
+    - Branch, keyword, and date range filters
+    - Summary stats bar (total contracts, total value, articles cached, last scraped)
+    - "Fetch Latest" (incremental) and "Refresh All" (force refresh) AJAX buttons
+    - Contracts linked to company detail pages
+  - **Sidebar navigation** — Indigo-colored "🏛️ Contract Awards" button alongside Dashboard and Ingest
+  - **Company detail integration** — Defense contracts shown in expandable section on Label Companies page
+  - **Management command** `fetch_contracts` — CLI for scraping with `--max-articles`, `--dry-run`, `--force-refresh`, `--search` flags
+  - **Admin registration** — DefenseContract and ScrapedArticle registered with custom admin site
+  - **39 unit tests** covering: date parsing, dollar amounts, branch splitting, paragraph parsing, company matching, article caching, contract ID validation
+  - **Bug fixes during development**:
+    - Fixed CONTRACT_ID_PATTERN regex that captured "for"/"with" as contract numbers (added digit-requiring lookahead)
+    - Fixed company_name_raw parsing for paragraphs with "Virgina" typo
+    - Rebuilt Tailwind CSS to include new utility classes (bg-indigo-600, bg-amber-500)
+
 - **Duplicate Company Prevention** - `CompanyEditForm` now validates against existing companies
   - Checks for duplicate company name (case-insensitive) before creation
   - Checks for duplicate domain already assigned to another company

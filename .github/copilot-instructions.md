@@ -91,6 +91,10 @@ python manage.py update_company_statuses --dry-run
 
 # Sync ThreadTracking labels with Message labels
 python manage.py sync_message_threadtracking_labels --dry-run
+
+# Fetch defense contract awards from war.gov
+python manage.py fetch_contracts
+python manage.py fetch_contracts --max-articles 10 --force-refresh
 ```
 
 ### Testing
@@ -124,8 +128,9 @@ DEBUG=1 python manage.py ingest_gmail --days 7
 |----------------|---------|
 | `parser.py` | **Core ingestion engine** - all email parsing, classification, company resolution |
 | `ml_subject_classifier.py` | ML model loader and `predict_subject_type()` function |
-| `tracker/models.py` | Django ORM models (15+ models including `Message`, `Company`, `ThreadTracking`) |
-| `tracker/views/` | Dashboard views split by domain (companies, messages, applications, admin) |
+| `tracker/models.py` | Django ORM models (15+ models including `Message`, `Company`, `ThreadTracking`, `DefenseContract`, `ScrapedArticle`) |
+| `tracker/views/` | Dashboard views split by domain (companies, messages, applications, admin, contracts) |
+| `tracker/services/contract_scraper.py` | Defense contract scraper: Playwright-based war.gov fetcher, parser, and DB saver |
 | `tracker/utils/` | Utility modules (validation.py, email_parsing.py, helpers.py) |
 | `json/patterns.json` | Message classification regex patterns and ignore rules |
 | `json/companies.json` | Company whitelist, domain mappings, ATS domains |
@@ -154,6 +159,7 @@ DEBUG=1 python manage.py ingest_gmail --days 7
 - `/` - Main dashboard with activity chart and word cloud
 - `/label_companies/` - Company management and labeling
 - `/label_messages/` - Message review and bulk labeling
+- `/defense_contracts/` - Defense contract awards (search, filter, scrape)
 - `/job_search_tracker/` - Track companies searched for opportunities
 - `/manual_entry/` - Manual entry form for external applications
 - `/merge-companies/` - Merge duplicate companies
@@ -188,7 +194,7 @@ DEBUG=1 python manage.py ingest_gmail --days 7
 - Use `DEBUG=1` env var to see resolution steps
 
 **To modify dashboard views:**
-- Views split by domain: `tracker/views/{dashboard,companies,messages,admin}.py`
+- Views split by domain: `tracker/views/{dashboard,companies,messages,admin,contracts}.py`
 - Templates in `tracker/templates/tracker/`
 - Context processors in `dashboard/context_processors.py`
 
@@ -204,4 +210,4 @@ DEBUG=1 python manage.py ingest_gmail --days 7
 
 ---
 
-**Last Updated:** 2026-01-16
+**Last Updated:** 2026-02-06

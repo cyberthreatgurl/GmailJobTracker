@@ -240,6 +240,7 @@ class CompanyEditForm(forms.ModelForm):
         model = Company
         fields = [
             "name",
+            "location",
             "domain",
             "ats",
             "homepage",

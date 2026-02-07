@@ -5031,6 +5031,9 @@ def ingest_message(service, msg_id):
                         if ml_label in ("rejected", "rejection", "cancelled") and company_obj:
                             # Use TF-IDF job title matching to find the correct application
                             job_title = parsed_subject.get("job_title", "") if isinstance(parsed_subject, dict) else ""
+                            # If no job title from subject, try extracting from body
+                            if not job_title:
+                                job_title = extract_job_title_from_body(metadata.get("body", ""))
                             existing_tt = find_best_matching_application(
                                 company_obj,
                                 job_title,
@@ -5264,6 +5267,62 @@ def _reload_domain_map_if_needed():
     KNOWN_COMPANIES_CASED = _domain_mapper.known_companies_cased
     ALIASES = _domain_mapper.aliases
     company_data = _domain_mapper.company_data
+
+
+def extract_job_title_from_body(body: str | None) -> str:
+    """Extract job title from rejection email body text.
+
+    Rejection emails often contain the job title in the body rather than the subject.
+    Common patterns:
+      - "the position of <TITLE> has been filled"
+      - "Re: Req #1234-<TITLE>"
+      - "regarding the <TITLE> position"
+      - "for the <TITLE> role"
+      - "application for <TITLE>"
+
+    Args:
+        body: Plain text or HTML body of the email
+
+    Returns:
+        Extracted job title string, or empty string if none found
+    """
+    if not body:
+        return ""
+
+    # Clean HTML entities and tags for pattern matching
+    text = re.sub(r'&nbsp;', ' ', body)
+    text = re.sub(r'<[^>]+>', ' ', text)
+    text = re.sub(r'\s+', ' ', text).strip()
+
+    # Ordered list of patterns - first match wins
+    patterns = [
+        # "the position of X has been filled/closed"
+        r'(?:the\s+)?position\s+of\s+(.+?)\s+has\s+(?:been\s+)?(?:filled|closed)',
+        # "Req #1234-Title" or "Req #1234 - Title" (stops at Dear, sentence end, or </tag)
+        r'Req\s*#?\d+\s*[-–]\s*(.+?)(?:\s*(?:Dear|</|\.|$|\n))',
+        # "regarding the X position/role"
+        r'regarding\s+(?:the\s+)?(.+?)\s+(?:position|role|opening)',
+        # "for the X position/role"
+        r'for\s+the\s+(.+?)\s+(?:position|role|opening)',
+        # "your application for X"
+        r'application\s+for\s+(?:the\s+)?(.+?)(?:\s+has|\s+was|\s*[.,])',
+        # "applied for X"
+        r'applied\s+for\s+(?:the\s+)?(.+?)(?:\s+position|\s+role|\s*[.,])',
+    ]
+
+    for pattern in patterns:
+        match = re.search(pattern, text, re.IGNORECASE)
+        if match:
+            title = match.group(1).strip()
+            # Clean up: remove trailing punctuation and common noise
+            title = re.sub(r'[\s.,:;]+$', '', title)
+            # Reject if too short or looks like noise
+            if len(title) >= 3 and not title.lower().startswith(('the ', 'a ', 'an ')):
+                if DEBUG:
+                    print(f"[BODY JOB TITLE] Extracted '{title}' via pattern: {pattern}")
+                return title
+
+    return ""
 
 
 def find_best_matching_application(company_obj, rejection_job_title: str, rejection_subject: str, threshold: float = 0.3):
@@ -5704,6 +5763,9 @@ def ingest_message_from_eml(eml_content: str, fake_msg_id: str = None):
                 job_title = ""
                 if isinstance(parse_result, dict):
                     job_title = parse_result.get("job_title", "")
+                # If no job title from subject, try extracting from body
+                if not job_title:
+                    job_title = extract_job_title_from_body(body)
                 
                 # Use TF-IDF job title matching to find the correct application
                 existing_tt = find_best_matching_application(
@@ -5761,6 +5823,9 @@ def ingest_message_from_eml(eml_content: str, fake_msg_id: str = None):
             if isinstance(parse_result, dict):
                 job_title = parse_result.get("job_title", "")
                 job_id = parse_result.get("job_id", "")
+            # If no job title from subject and this is a rejection, try extracting from body
+            if not job_title and ml_label in ("rejection", "cancelled"):
+                job_title = extract_job_title_from_body(body)
 
             # Determine status and dates based on label
             rejection_date = None

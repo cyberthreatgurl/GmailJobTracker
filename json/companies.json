@@ -107,7 +107,11 @@
     "MSR": "MSR Technology Group",
     "SM2": "SM2 Security Solutions, LLC",
     "Obsidian": "Obsidian",
-    "dark wolf": "Dark Wolf Solutions"
+    "dark wolf": "Dark Wolf Solutions",
+    "everforth": "ASGN Incorporated",
+    "Edgewater IT": "Edgewater Federal Solutions, Inc.",
+    "Edgewater": "Edgewater Federal Solutions, Inc.",
+    "SCE": "Southern California Edison"
   },
   "ats_domains": [
     "adp.com",
@@ -201,7 +205,7 @@
     "cnas.org": "Center for a New American Security",
     "coalfiredederal.com": "Coalfire Federal",
     "comeet-notifications.com": "Claroty",
-    "constellationenergy.com": "Constellation Energy",
+    "constellationenergy.com": "Constellation",
     "cordiaresources.com": "Cordia Resources",
     "core4ce.com": "Core4ce",
     "corelight.com": "Corelight",
@@ -218,7 +222,6 @@
     "draper.com": "Draper",
     "eccalon.com": "Eccalon",
     "eclypsium.com": "Eclypsium",
-    "ecs-federal.com": "ECS",
     "ecstech.com": "ECS",
     "elastic.co": "Elastic",
     "email.figure.com": "Figure",
@@ -446,7 +449,15 @@
     "analyst1.com": "Analyst1",
     "alphamountain.ai": "alphaMountain",
     "govcio.com": "GovCIO",
-    "darkwolf.io": "Dark Wolf Solutions"
+    "darkwolf.io": "Dark Wolf Solutions",
+    "asgn.com": "ASGN Incorporated",
+    "apexsystems.com": "Apex Systems",
+    "edgewaterit.com": "Edgewater Federal Solutions, Inc.",
+    "relativity.com": "Relativity",
+    "sce.com": "Southern California Edison",
+    "sepalai.com": "Sepal AI",
+    "mercor.com": "Mercor",
+    "alignerr.com": "Alignerr"
   },
   "headhunter_domains": [
     "agreeya.com",
@@ -747,7 +758,14 @@
     "alphaMountain": "https://www.alphamountain.ai/about-us/",
     "GovCIO": "https://govcio.com/careers/",
     "Dark Wolf": "https://darkwolf.io/join-the-pack",
-    "Dark Wolf Solutions": "https://darkwolf.io/join-the-pack"
+    "Dark Wolf Solutions": "https://darkwolf.io/join-the-pack",
+    "Apex Systems": "https://www.apexsystems.com/careers",
+    "Constellation": "http://www.constellationenergy.com/careers.html",
+    "Edgewater Federal Solutions, Inc.": "https://careers-edgewaterit.icims.com/jobs/intro?hashed=-625972236",
+    "Relativity": "http://www.relativity.com/company/careers/",
+    "Southern California Edison": "http://www.sce.com/clean-energy-efficiency/workforce-development-programs/career-insights",
+    "Sepal AI": "https://www.sepalai.com/careers",
+    "Mercor": "https://work.mercor.com/jobs/list_AAABm3K4VUIQFo01n1dHZbwq"
   },
   "known": [
     "Obsidian",
@@ -1007,7 +1025,16 @@
     "Analyst1",
     "alphaMountain",
     "GovCIO",
-    "Dark Wolf"
+    "Dark Wolf",
+    "ASGN Incorporated",
+    "Apex Systems",
+    "Constellation",
+    "Edgewater Federal Solutions, Inc.",
+    "Relativity",
+    "Southern California Edison",
+    "Sepal AI",
+    "Mercor",
+    "Alignerr"
   ],
   "ats_heuristic_patterns": [
     "workday",

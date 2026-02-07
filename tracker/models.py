@@ -77,6 +77,12 @@ class Company(models.Model):
         default="application",
     )
     notes = models.TextField(blank=True, null=True, help_text="Free-form notes about the company")
+    location = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text="Headquarters or office location (e.g., Reston, VA)"
+    )
     focus_area = models.CharField(
         max_length=255,
         blank=True,

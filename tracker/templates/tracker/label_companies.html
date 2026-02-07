@@ -56,6 +56,9 @@
           <input type="hidden" name="action" value="create_new_company" />
           <label for="id_name">Company Name</label>
           {{ form.name }}
+          <label for="id_location">Location</label>
+          {{ form.location }}
+          <small style="color:#6b7280; display:block; margin-top:0.25rem; margin-bottom:0.5rem;">Headquarters or office location (e.g., Reston, VA)</small>
           <label for="id_focus_area">Focus Area</label>
           {{ form.focus_area }}
           <small style="color:#6b7280; display:block; margin-top:0.25rem; margin-bottom:0.5rem;">Business focus (e.g., Software as a Service, Mining, Network Security)</small>
@@ -181,6 +184,9 @@
           <input type="hidden" name="company" value="{{ selected_company.id }}" />
           <label for="id_name">Company Name</label>
           {{ form.name }}
+          <label for="id_location">Location</label>
+          {{ form.location }}
+          <small style="color:#6b7280; display:block; margin-top:0.25rem; margin-bottom:0.5rem;">Headquarters or office location (e.g., Reston, VA)</small>
           <label for="id_focus_area">Focus Area</label>
           {{ form.focus_area }}
           <small style="color:#6b7280; display:block; margin-top:0.25rem; margin-bottom:0.5rem;">Business focus (e.g., Software as a Service, Mining, Network Security)</small>

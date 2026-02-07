@@ -567,6 +567,9 @@
                   <a href="{% url 'label_companies' %}?company={{ msg.company.id }}" style="color: #2563eb;">
                     {{ msg.company.name }}
                   </a>
+                  {% if msg.company.location %}
+                    <div style="font-size: 0.7rem; color: #6b7280;">📍 {{ msg.company.location }}</div>
+                  {% endif %}
                 {% else %}
                   <span style="color: #b91c1c;">Missing</span>
                 {% endif %}

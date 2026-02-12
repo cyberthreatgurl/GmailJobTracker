@@ -5,17 +5,20 @@ Provides a searchable, filterable listing of defense contract awards
 scraped from war.gov, plus an AJAX endpoint to trigger scraping.
 """
 
+import json
 import logging
 from datetime import timedelta
+from pathlib import Path
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q, Sum
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.utils.timezone import now
 
-from tracker.models import DefenseContract, ScrapedArticle
+from tracker.forms import CompanyEditForm
+from tracker.models import Company, DefenseContract, ScrapedArticle
 from tracker.services.contract_scraper import ContractScraperService
 
 logger = logging.getLogger(__name__)
@@ -24,6 +27,7 @@ logger = logging.getLogger(__name__)
 __all__ = [
     "defense_contracts",
     "fetch_contracts_ajax",
+    "create_company_popup",
 ]
 
 
@@ -153,3 +157,101 @@ def fetch_contracts_ajax(request):
             "success": False,
             "error": str(exc),
         }, status=500)
+
+
+@login_required
+def create_company_popup(request):
+    """
+    Popup window for creating a Company from a defense contract award.
+
+    GET: Display pre-filled form (company name, location from query params).
+    POST: Validate and create the company, update companies.json.
+    """
+    created_company = None
+
+    if request.method == "POST":
+        form = CompanyEditForm(request.POST)
+        if form.is_valid():
+            company_name = (form.cleaned_data.get("name") or "").strip()
+            if not company_name:
+                messages.error(request, "❌ Please enter a company name.")
+            else:
+                domain = (form.cleaned_data.get("domain") or "").strip()
+                # Create the company
+                new_company = form.save(commit=False)
+                new_company.confidence = 1.0
+                new_company.first_contact = now()
+                new_company.last_contact = now()
+                if not new_company.status:
+                    new_company.status = "new"
+                new_company.save()
+                created_company = new_company
+                messages.success(request, f"✅ Company '{new_company.name}' created!")
+
+                # Sync to companies.json
+                _sync_company_to_json(new_company, domain)
+
+                # Link matching DefenseContract records to the new company
+                linked = DefenseContract.objects.filter(
+                    company__isnull=True,
+                    company_name_raw__iexact=company_name,
+                ).update(company=new_company)
+                if linked:
+                    messages.info(
+                        request,
+                        f"🔗 Linked {linked} existing contract(s) to {new_company.name}.",
+                    )
+        else:
+            error_parts = []
+            for field, errors in form.errors.items():
+                for error in errors:
+                    error_parts.append(f"{field}: {error}")
+            messages.error(request, f"❌ {'; '.join(error_parts)}")
+    else:
+        # GET: Pre-fill from query parameters
+        initial = {}
+        if request.GET.get("name"):
+            initial["name"] = request.GET["name"]
+        if request.GET.get("location"):
+            initial["location"] = request.GET["location"]
+        if request.GET.get("notes"):
+            initial["notes"] = request.GET["notes"]
+        form = CompanyEditForm(initial=initial)
+
+    return render(request, "tracker/create_company_popup.html", {
+        "form": form,
+        "created_company": created_company,
+    })
+
+
+def _sync_company_to_json(company, domain):
+    """Add a newly created company to companies.json."""
+    try:
+        companies_json_path = Path("json/companies.json")
+        if not companies_json_path.exists():
+            return
+        with open(companies_json_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        changes = False
+
+        # Add to known array
+        if "known" not in data:
+            data["known"] = []
+        if company.name not in data["known"]:
+            data["known"].append(company.name)
+            changes = True
+
+        # Add domain mapping
+        if domain:
+            if "domain_to_company" not in data:
+                data["domain_to_company"] = {}
+            if domain not in data["domain_to_company"]:
+                data["domain_to_company"][domain] = company.name
+                changes = True
+
+        if changes:
+            with open(companies_json_path, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=2, ensure_ascii=False)
+    except Exception as exc:
+        logger.warning("Failed to sync company to companies.json: %s", exc)

@@ -102,7 +102,7 @@
     "MIssion Technologies": "Hill",
     "Inc.": "BCI",
     "BCT": "BCT LLC",
-    "AGR": "Advanced Global Resources",
+    "AGR": "AGR, LLC",
     "TMC": "TMC Technologies",
     "MSR": "MSR Technology Group",
     "SM2": "SM2 Security Solutions, LLC",
@@ -114,7 +114,9 @@
     "SCE": "Southern California Edison",
     "WarCollar": "WarCollar Industries, LLC",
     "ShorePoint": "ShorePoint Incorporated",
-    "intrepid": "Intrepid Solutions and Services LLC"
+    "intrepid": "Intrepid Solutions and Services LLC",
+    "Intrepid Solutions and Services LLC": "CIS Secure",
+    "CIS": "CIS Secure"
   },
   "ats_domains": [
     "adp.com",
@@ -475,7 +477,13 @@
     "noeticstrategies.com": "Noetic Strategies",
     "helloalma.com": "Alma",
     "shorepointinc.com": "ShorePoint Incorporated",
-    "guidepointsecurity.com": "GuidePoint Security"
+    "guidepointsecurity.com": "GuidePoint Security",
+    "avinc.com": "AeroVironment, Inc.",
+    "ga.com": "General Atomics",
+    "rtx.com": "RTX Corp.",
+    "lockheedmartin.com": "Lockheed Martin",
+    "cogent.com": "Cogent Security",
+    "cogentco.com": "Cogent Communications"
   },
   "headhunter_domains": [
     "agreeya.com",
@@ -796,7 +804,14 @@
     "Noetic Strategies": "https://noeticstrategies.com/careers/",
     "Alma": "https://helloalma.com/careers",
     "ShorePoint Incorporated": "https://shorepointinc.com/careers/",
-    "GuidePoint Security": "https://www.guidepointsecurity.com/careers/"
+    "GuidePoint Security": "https://www.guidepointsecurity.com/careers/",
+    "AeroVironment, Inc.": "https://avav.wd1.myworkdayjobs.com/AVAV",
+    "General Atomics": "https://sjobs.brassring.com/",
+    "RTX Corp.": "https://careers.rtx.com",
+    "Lockheed Martin": "https://www.lockheedmartin.com/en-us/careers/life-at-lm.html",
+    "Cogent": "https://www.cogent.com/careers",
+    "Cogent Security": "https://www.cogent.com/careers",
+    "Cogent Communications": "http://www.cogentco.com/en/about-cogent/careers"
   },
   "known": [
     "Obsidian",
@@ -1079,7 +1094,14 @@
     "Alma",
     "ShorePoint Incorporated",
     "GuidePoint Security",
-    "Intrepid Solutions and Services LLC"
+    "Intrepid Solutions and Services LLC",
+    "Aerovironment Inc.",
+    "General Atomics",
+    "RTX Corp.",
+    "Lockheed Martin Corp.",
+    "Cogent",
+    "AGR, LLC",
+    "Cogent Communications"
   ],
   "ats_heuristic_patterns": [
     "workday",

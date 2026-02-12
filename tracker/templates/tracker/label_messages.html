@@ -443,17 +443,16 @@
     </div>
     <div class="filter-group">
       <label>Company</label>
-      <select id="company-filter" onchange="applyFilters()">
-        <option value="all" {% if filter_company == 'all' %}selected{% endif %}>All</option>
-        <option value="missing" {% if filter_company == 'missing' %}selected{% endif %}>Missing</option>
-        <option value="resolved" {% if filter_company == 'resolved' %}selected{% endif %}>Resolved</option>
-        <option value="" disabled>──────────</option>
-        {% for company in all_companies %}
-          {% with company_value="company_"|add:company.id|stringformat:"s" %}
-          <option value="company_{{ company.id }}" {% if filter_company == company_value %}selected{% endif %}>{{ company.name }}</option>
-          {% endwith %}
-        {% endfor %}
-      </select>
+      <div style="display:flex; gap:0.4rem; align-items:center;">
+        <select id="company-filter-mode" onchange="companyFilterModeChanged()" style="padding:0.3rem; border-radius:4px; border:1px solid #d1d5db; font-size:0.85rem;">
+          <option value="all" {% if filter_company == 'all' %}selected{% endif %}>All</option>
+          <option value="missing" {% if filter_company == 'missing' %}selected{% endif %}>Missing</option>
+          <option value="resolved" {% if filter_company == 'resolved' %}selected{% endif %}>Resolved</option>
+          <option value="specific" {% if filter_company and filter_company != 'all' and filter_company != 'missing' and filter_company != 'resolved' %}selected{% endif %}>Specific…</option>
+        </select>
+        <input type="text" id="company-filter-search" autocomplete="off" placeholder="Type to search..." style="padding:0.3rem 0.5rem; border-radius:4px; border:1px solid #d1d5db; font-size:0.85rem; width:160px; {% if not filter_company or filter_company == 'all' or filter_company == 'missing' or filter_company == 'resolved' %}display:none;{% endif %}">
+        <input type="hidden" id="company-filter-id" value="{% if filter_company and filter_company != 'all' and filter_company != 'missing' and filter_company != 'resolved' %}{{ filter_company }}{% endif %}">
+      </div>
     </div>
     <div class="filter-group">
       <label>Per Page</label>
@@ -487,13 +486,8 @@
       <button type="submit" class="btn btn-primary" id="bulk-submit" disabled onclick="return submitBulkLabel()">
         Apply Label
       </button>
-      <select name="company_id" id="company-select" style="margin-left: 1rem; padding: 0.6rem; border-radius: 6px; border: 1px solid #d1d5db; font-size: 0.9rem; min-width: 200px;">
-        <option value="">-- Select Company --</option>
-        <option value="none">None (Clear Company)</option>
-        {% for company in all_companies %}
-          <option value="{{ company.id }}">{{ company.name }}</option>
-        {% endfor %}
-      </select>
+      <input type="text" id="company-select-search" autocomplete="off" placeholder="Search company..." style="margin-left: 1rem; padding: 0.6rem; border-radius: 6px; border: 1px solid #d1d5db; font-size: 0.9rem; min-width: 200px;">
+      <input type="hidden" name="company_id" id="company-select" value="">
       <button type="submit" class="btn btn-primary" id="company-submit" disabled onclick="return submitCompanyReassign()">
         Reassign
       </button>
@@ -738,7 +732,7 @@
         return false;
       }
       
-      const companyName = document.getElementById('company-select').options[document.getElementById('company-select').selectedIndex].text;
+      const companyName = document.getElementById('company-select-search').value || companyId;
       
       if (!confirm(`Reassign ${count} message(s) to company: ${companyName}?`)) {
         return false;
@@ -825,7 +819,11 @@
     function applyFilters() {
   const label = document.getElementById('label-filter').value;
   const confidence = document.getElementById('confidence-filter').value;
-  const company = document.getElementById('company-filter').value;
+  const filterMode = document.getElementById('company-filter-mode').value;
+  let company = filterMode;
+  if (filterMode === 'specific') {
+    company = document.getElementById('company-filter-id').value || 'all';
+  }
   const perPage = document.getElementById('per-page').value;
   const reviewed = document.getElementById('reviewed-filter').value;
   const search = document.getElementById('search-box').value;
@@ -845,7 +843,11 @@
     function goToPage(pageNum) {
       const label = document.getElementById('label-filter').value;
       const confidence = document.getElementById('confidence-filter').value;
-      const company = document.getElementById('company-filter').value;
+      const filterMode = document.getElementById('company-filter-mode').value;
+      let company = filterMode;
+      if (filterMode === 'specific') {
+        company = document.getElementById('company-filter-id').value || 'all';
+      }
       const perPage = document.getElementById('per-page').value;
       const reviewed = document.getElementById('reviewed-filter').value;
       const search = document.getElementById('search-box').value;
@@ -860,7 +862,11 @@
     function sortBy(field) {
       const label = document.getElementById('label-filter').value;
       const confidence = document.getElementById('confidence-filter').value;
-      const company = document.getElementById('company-filter').value;
+      const filterMode = document.getElementById('company-filter-mode').value;
+      let company = filterMode;
+      if (filterMode === 'specific') {
+        company = document.getElementById('company-filter-id').value || 'all';
+      }
       const perPage = document.getElementById('per-page').value;
       const reviewed = document.getElementById('reviewed-filter').value;
       const search = document.getElementById('search-box').value;
@@ -900,6 +906,47 @@
         // Other actions (reassign_company, mark_all_reviewed) have their own validations via onclick handlers
         return;
       }
+    });
+  </script>
+  {% load static %}
+  <script src="{% static 'tracker/js/company_autocomplete.js' %}"></script>
+  <script>
+    // ── Company filter mode toggle ──
+    function companyFilterModeChanged() {
+      const mode = document.getElementById('company-filter-mode').value;
+      const searchEl = document.getElementById('company-filter-search');
+      if (mode === 'specific') {
+        searchEl.style.display = '';
+        searchEl.focus();
+      } else {
+        searchEl.style.display = 'none';
+        document.getElementById('company-filter-id').value = '';
+        applyFilters();
+      }
+    }
+
+    // ── Initialize autocomplete widgets ──
+    document.addEventListener('DOMContentLoaded', function() {
+      // Company filter search
+      initCompanyAutocomplete({
+        inputId: 'company-filter-search',
+        hiddenInputId: 'company-filter-id',
+        placeholder: 'Type to search...',
+        onSelect: function(company) {
+          if (company && company.id) {
+            document.getElementById('company-filter-id').value = 'company_' + company.id;
+            applyFilters();
+          }
+        }
+      });
+
+      // Company reassignment search
+      initCompanyAutocomplete({
+        inputId: 'company-select-search',
+        hiddenInputId: 'company-select',
+        placeholder: 'Search company...',
+        extraOptions: [{id: 'none', name: 'None (Clear Company)'}]
+      });
     });
   </script>
   </div>

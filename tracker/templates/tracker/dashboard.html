@@ -138,25 +138,27 @@
   <!-- Company Filter (Full Width) -->
   <div style="display:flex; align-items:center; gap:1rem; margin-bottom: 1rem;">
     <label for="dashboard_company" style="font-size:0.9rem;">Go to Company:</label>
-    <select name="company" id="dashboard_company" onchange="navigateToCompany()" style="padding:0.3rem 0.5rem; border-radius:4px; border:1px solid #d1d5db; font-size:0.9rem; min-width:180px;">
-      <option value="">-- Select Company --</option>
-      <option value="new">-- New Company --</option>
-      {% for company in all_companies %}
-        <option value="{{ company.id }}">{{ company.name }}</option>
-      {% endfor %}
-    </select>
+    <input type="text" id="dashboard_company" autocomplete="off" placeholder="Search companies..." style="padding:0.3rem 0.5rem; border-radius:4px; border:1px solid #d1d5db; font-size:0.9rem; min-width:260px;">
+    <input type="hidden" id="dashboard_company_id">
   </div>
   
+  {% load static %}
+  <script src="{% static 'tracker/js/company_autocomplete.js' %}"></script>
   <script>
-    function navigateToCompany() {
-      const select = document.getElementById('dashboard_company');
-      const value = select.value;
-      if (value === 'new') {
-        window.location.href = '/label_companies/?company=new';
-      } else if (value) {
-        window.location.href = `/label_companies/?company=${value}`;
-      }
-    }
+    document.addEventListener('DOMContentLoaded', function() {
+      initCompanyAutocomplete({
+        inputId: 'dashboard_company',
+        hiddenInputId: 'dashboard_company_id',
+        showCreateNew: true,
+        createNewUrl: '/label_companies/?company=new',
+        placeholder: 'Search companies...',
+        onSelect: function(company) {
+          if (company && company.id) {
+            window.location.href = '/label_companies/?company=' + company.id;
+          }
+        }
+      });
+    });
   </script>
 
   <!-- Chart and Word Cloud Row -->

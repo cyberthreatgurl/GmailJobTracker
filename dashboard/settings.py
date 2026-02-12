@@ -186,3 +186,15 @@ try:
     os.makedirs(BASE_DIR / "logs", exist_ok=True)
 except Exception:  # Explicitly ignore any filesystem errors during settings import
     pass
+
+# News Aggregation Configuration
+NEWS_API_KEY = os.getenv("NEWS_API_KEY", "")
+GOOGLE_NEWS_API_KEY = os.getenv("GOOGLE_NEWS_API_KEY", "")
+
+# Django Cache (used by news service for article caching)
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "company-news-cache",
+    }
+}

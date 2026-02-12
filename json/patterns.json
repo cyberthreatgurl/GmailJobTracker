@@ -45,6 +45,7 @@
       "\\b(?:decided|chosen|opted)\\s+not\\s+to\\s+(?:move\\s+forward|proceed)",
       "\\b(?:decided|chosen)\\s+to\\s+consider\\s+candidates.*(?:more\\s+closely\\s+align|better\\s+(?:match|fit))",
       "\\b(?:unable|not\\s+able)\\s+to\\s+(?:move\\s+forward|proceed)",
+      "\\bnot\\s+to\\s+proceed\\s+with\\s+your\\s+application\\b",
       "\\bother\\s+(?:candidates|applicants)\\b",
       "\\bposition\\s+(?:has\\s+been\\s+)?(?:closed|filled)\\b"
     ],
@@ -56,6 +57,7 @@
     ],
     "application_confirmation": [
       "\\b(we\\s+have\\s+received\\s+your\\s+application|we['’]?ve\\s+received\\s+your\\s+application|thanks?\\s+(?:you\\s+)?for\\s+applying|application\\s+received|your\\s+application\\s+has\\s+been\\s+received|your\\s+application\\s+has\\s+been\\s+submitted|your\\s+application\\s+was\\s+sent)\\b",      "\\bthanks?\\s+you\\s+for\\s+your\\s+(?:application|recent\\s+application)\\b",      "\\bthank\\s+you\\s+for\\s+your\\s+(?:application|employment\\s+submission)\\b",
+      "\\bthank\\s+you\\s+for\\s+your\\s+(?:[A-Za-z0-9&.'\"-]+\\s+){0,4}(?:application|employment\\s+submission)\\b",
       "\\bwe\\s+will\\s+review\\s+your\\s+(?:application|submission)\\b"
     ]
   },
@@ -189,6 +191,7 @@
       "\\bunable\\sto\\sfill\\sthe\\s(?:role|position)\\b",
       "\\bwe\\s+have\\s+decided\\s+not\\s+to\\s+move\\s+forward\\b",
       "\\b(?:chosen|opted)\\s+not\\s+to\\s+(?:move\\s+forward|proceed)\\s+with\\s+your\\b",
+      "\\b(?:decided|chosen|opted)\\s+not\\s+to\\s+proceed\\s+with\\s+your\\s+application\\b",
       "\\bproceed(?:ing)?\\swith\\s(?:other|another|an?\\salternative)\\scandidate(?:s)?\\b",
       "\\bwe\\s+have\\s+decided\\s+to\\s+pursue\\s+other\\s+candidates\\b",
       "\\bwe\\s+have\\s+decided\\s+to\\s+consider\\s+candidates\\b",

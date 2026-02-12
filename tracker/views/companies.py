@@ -28,6 +28,7 @@ from tracker.models import (
     AuditEvent,
 )
 from tracker.services import CompanyService
+from tracker.services.news_service import NewsAggregator
 from tracker.forms import CompanyEditForm
 from tracker.views.helpers import build_sidebar_context
 from db import PATTERNS_PATH
@@ -1194,6 +1195,11 @@ def label_companies(request):
         company_contracts = list(
             selected_company.defense_contracts.order_by("-article_date")[:20]
         )
+
+    # News is loaded asynchronously via AJAX after page render (see get_company_news endpoint)
+    # We only pass whether a company is selected so the template can render the placeholder
+    company_news = None
+    news_error = None
     
     ctx.update(
         {
@@ -1211,6 +1217,8 @@ def label_companies(request):
             "application_threads": application_threads,
             "company_documents": company_documents,
             "company_contracts": company_contracts,
+            "company_news": company_news,
+            "news_error": news_error,
         }
     )
     return render(request, "tracker/label_companies.html", ctx)
@@ -2481,4 +2489,82 @@ def delete_company_document(request, document_id):
     return redirect(f"/label_companies/?company={company_id}")
 
 
-__all__ = ["delete_company", "label_companies", "merge_companies", "manage_domains", "job_search_tracker", "scrape_job_posting", "missing_applications", "upload_company_document", "delete_company_document"]
+@login_required
+def get_company_news(request, company_id):
+    """GET endpoint to lazy-load company news after page render.
+    
+    Returns cached articles if fresh, otherwise fetches new ones.
+    Called via AJAX on DOMContentLoaded to avoid blocking page load.
+    """
+    from tracker.models import Company, CompanyNews
+
+    company = get_object_or_404(Company, id=company_id)
+    force_refresh = request.GET.get('force') == '1'
+
+    try:
+        company_news, _ = CompanyNews.objects.get_or_create(company=company)
+
+        # Fetch if cache is stale or force refresh requested
+        if force_refresh or not company_news.is_cache_fresh():
+            try:
+                aggregator = NewsAggregator()
+                articles = aggregator.get_news_for_company(
+                    company.name,
+                    num_articles=5,
+                    days_back=30,
+                    focus_area=getattr(company, "focus_area", None),
+                    domain=getattr(company, "domain", None),
+                )
+                article_dicts = [article.to_dict() for article in articles]
+                company_news.add_articles(article_dicts)
+                company_news.last_fetched = now()
+                company_news.error_message = ''
+                company_news.save()
+            except Exception as e:
+                logger.warning(f"Failed to fetch news for {company.name}: {e}")
+                company_news.error_message = str(e)
+                company_news.save()
+                return JsonResponse({
+                    "success": True,
+                    "articles": company_news.articles or [],
+                    "all_articles": company_news.all_articles or [],
+                    "last_fetched": company_news.last_fetched.isoformat() if company_news.last_fetched else None,
+                    "error": f"Could not fetch news: {str(e)[:100]}",
+                })
+
+        return JsonResponse({
+            "success": True,
+            "articles": company_news.articles or [],
+            "all_articles": company_news.all_articles or [],
+            "last_fetched": company_news.last_fetched.isoformat() if company_news.last_fetched else None,
+            "error": None,
+        })
+
+    except Exception as e:
+        logger.error(f"Error handling CompanyNews for {company.name}: {e}")
+        return JsonResponse({"success": False, "error": str(e)}, status=500)
+
+
+def refresh_company_news(request, company_id):
+    """POST endpoint to force-refresh news for a company (Refresh button)."""
+    if request.method != "POST":
+        return JsonResponse({"error": "Invalid method"}, status=400)
+    # Delegate to get_company_news with force=1
+    request.GET = request.GET.copy()
+    request.GET['force'] = '1'
+    return get_company_news(request, company_id)
+
+
+__all__ = [
+    "delete_company",
+    "label_companies",
+    "merge_companies",
+    "manage_domains",
+    "job_search_tracker",
+    "scrape_job_posting",
+    "missing_applications",
+    "upload_company_document",
+    "delete_company_document",
+    "get_company_news",
+    "refresh_company_news",
+]

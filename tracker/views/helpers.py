@@ -7,7 +7,8 @@ used across multiple view modules.
 
 import html
 import re
-from bs4 import BeautifulSoup
+import warnings
+from bs4 import BeautifulSoup, MarkupResemblesLocatorWarning
 from tracker.services import StatsService
 
 
@@ -21,6 +22,7 @@ def build_sidebar_context():
 
 def extract_body_content(raw_html):
     """Return sanitized HTML body if present, otherwise plain-text extracted from the HTML."""
+    warnings.filterwarnings("ignore", category=MarkupResemblesLocatorWarning)
     soup = BeautifulSoup(raw_html, "html.parser")
 
     # Remove script/style/noscript

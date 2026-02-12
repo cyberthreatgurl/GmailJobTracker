@@ -708,7 +708,33 @@ class RuleClassifier:
                     )
                 return "interview_invite"
 
-        # Check application confirmation patterns (after rejection and scheduling checks)
+        # Check for rejection signals BEFORE application confirmation
+        # (to handle mixed messages like "Your application status... we decided not to proceed")
+        # This MUST run before job_application patterns, which include broad patterns
+        # like "application status" that would otherwise short-circuit rejection detection.
+        for rx in self._early_rejection_override:
+            if rx.search(s):
+                if DEBUG:
+                    print(
+                        f"[DEBUG rule_label] Early rejection signal detected, checking rejection patterns"
+                    )
+                # Verify with full rejection patterns
+                for pattern_rx in self._msg_label_patterns.get("rejection", []):
+                    if pattern_rx.search(s):
+                        if DEBUG:
+                            print(
+                                f"[DEBUG rule_label] Rejection confirmed -> rejection"
+                            )
+                        return "rejection"
+                # rejection_override matched but no full rejection pattern confirmed;
+                # still classify as rejection since override signals are strong
+                if DEBUG:
+                    print(
+                        f"[DEBUG rule_label] Rejection override matched (no full pattern needed) -> rejection"
+                    )
+                return "rejection"
+
+        # Check application confirmation patterns (after rejection override)
         # This ensures "Thank you for applying" emails are not misclassified as rejections
         # due to explanatory text like "if archived, that means you were not selected"
         for rx in self._msg_label_patterns.get("job_application", []):
@@ -724,24 +750,6 @@ class RuleClassifier:
             if DEBUG:
                 print(f"[DEBUG rule_label] Early referral match -> referral")
             return "referral"
-
-        # Check for rejection signals BEFORE application confirmation
-        # (to handle mixed messages like "thanks for applying, but we moved forward with others")
-        for rx in self._early_rejection_override:
-            if rx.search(s):
-                if DEBUG:
-                    print(
-                        f"[DEBUG rule_label] Early rejection signal detected, checking rejection patterns"
-                    )
-                # Verify with full rejection patterns
-                for pattern_rx in self._msg_label_patterns.get("rejection", []):
-                    if pattern_rx.search(s):
-                        if DEBUG:
-                            print(
-                                f"[DEBUG rule_label] Rejection confirmed -> rejection"
-                            )
-                        return "rejection"
-                break  # Exit after checking rejection patterns once
 
         # Explicit application-confirmation signals -> job_application (checked BEFORE status update)
         # This ensures "Thank you for your application" emails aren't misclassified as "other"
@@ -1124,9 +1132,7 @@ class EmailBodyParser:
 
         # Header hints similar to Gmail path (limited set for EML)
         header_hints = {
-            "is_newsletter": any(
-                h in eml for h in ["List-Id", "List-Unsubscribe", "X-Newsletter"]
-            ),
+            "is_newsletter": any(h in eml for h in ["List-Id", "X-Newsletter"]),
             "is_bulk": EmailBodyParser.decode_header_value(
                 eml.get("Precedence", "")
             ).lower()
@@ -2468,8 +2474,8 @@ def extract_metadata(service, msg_id):
         if h_name in classification_headers:
             header_text.append(f"{h_name}: {h['value']}")
 
-        # Detect newsletter indicators
-        if h_name in ("List-Id", "List-Unsubscribe", "X-Newsletter"):
+        # Detect newsletter indicators (avoid List-Unsubscribe false positives)
+        if h_name in ("List-Id", "X-Newsletter"):
             header_hints["is_newsletter"] = True
 
         # Detect automated/bulk mail
@@ -2919,18 +2925,31 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
             # Pattern: "your application for [POSITION] at COMPANY"
             # Pattern: "interest in COMPANY" (Future Technologies, etc.)
             ats_body_patterns = [
-                r"position\s+(?:here\s+)?at\s+([A-Z][A-Za-z0-9\s&.,'-]+?)(?:\.|[\r\n]|\s+Thank)",
-                r"position\s+(?:here\s+)?(?:at|with)\s+([A-Z][A-Za-z0-9\s&.,'-]{2,30})[\r\n.]",
+                r"position\s+(?:here\s+)?at\s+([A-Z][A-Za-z0-9\s&.,'-]+?)(?:\.|,|[\r\n]|\s+Thank|\s+you\b)",
+                r"position\s+(?:here\s+)?(?:at|with)\s+([A-Z][A-Za-z0-9\s&.,'-]{2,30})(?:\.|,|[\r\n])",
                 r"application\s+for\s+(?:our|the)\s+.{5,50}?\s+at\s+([A-Z][A-Za-z0-9\s&.,'-]+?)(?:\.|[\r\n])",
                 r"considering\s+us\s+at\s+([A-Z][A-Za-z0-9\s&.,'-]+?)\s+as",
                 r"considering\s+([A-Z][A-Za-z0-9\s&.,'-]+?)\s+as\s+(?:a\s+)?(?:potential|future)\s+employer",
-                r"(?:your\s+)?interest\s+in\s+(?:the\s+)?([A-Z][A-Za-z0-9\s&.,'-]+?)(?:\s+and\s+wish|\.|!|[\r\n])",
+                r"(?:your\s+)?interest\s+in\s+(?:the\s+)?([A-Z][A-Za-z0-9\s&.,'-]{2,60}?)(?:\s+(?:and\s+(?:apply|applying|applied)|to\s+(?:the\s+)?(?:role|position)|for\s+(?:the\s+)?(?:role|position)|for\s+this\s+job)|\.|!|[\r\n])",
             ]
 
             for pattern in ats_body_patterns:
                 ats_match = re.search(pattern, body_plain, re.IGNORECASE)
                 if ats_match:
                     extracted = ats_match.group(1).strip()
+                    # Trim common trailing clauses accidentally captured
+                    extracted = re.split(
+                        r"\s+(?:and\s+(?:apply|applying|applied)|to\s+(?:the\s+)?(?:role|position)|for\s+(?:the\s+)?(?:role|position)|for\s+this\s+job)\b",
+                        extracted,
+                        maxsplit=1,
+                        flags=re.IGNORECASE,
+                    )[0].strip()
+                    extracted = re.split(
+                        r",\s*you\b|\s+you\s+(?:still|may|will)\b",
+                        extracted,
+                        maxsplit=1,
+                        flags=re.IGNORECASE,
+                    )[0].strip()
                     # Clean up trailing words and punctuation
                     extracted = re.sub(
                         r"\s+(and|the|a|as|at|for|with|in)$",
@@ -3351,20 +3370,27 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
             confidence = 0.7  # moderate confidence for overridden classification
 
     # Hard-ignore for resume or known noise patterns (only if no valid company)
+    # BUT skip ignore if body contains explicit application confirmation language
     if not company and (
         label == "noise"
         or should_ignore(subject, "")
         or any(re.search(p, subject, re.I) for p in RESUME_NOISE_PATTERNS)
     ):
-        return {
-            "company": "",
-            "job_title": "",
-            "job_id": "",
-            "predicted_company": "",
-            "label": "noise",
-            "confidence": 0.9,
-            "ignore": True,
-        }
+        # Check body for application-related language before ignoring
+        if not is_application_related(subject, body):
+            return {
+                "company": "",
+                "job_title": "",
+                "job_id": "",
+                "predicted_company": "",
+                "label": "noise",
+                "confidence": 0.9,
+                "ignore": True,
+            }
+        elif DEBUG:
+            print(
+                f"[DEBUG] Hard-ignore skipped: body contains application-related language"
+            )
 
     # Override internal introductions: If label is "referral" or "interview_invite" but sender domain
     # matches company domain AND it's a networking introduction (not a job referral), label as "other"
@@ -3465,11 +3491,10 @@ def ingest_message(service, msg_id):
 
     # Check if this is a transactional application-related message using patterns.json
     # (ATS systems add List-Unsubscribe headers even to application confirmations)
+    app_text = body if body and body.strip() else classification_text
     is_app_related = is_application_related(
         metadata["subject"],
-        classification_text[
-            :500
-        ],  # Use classification_text (body+headers) for pattern matching
+        app_text[:500],  # Prefer body to avoid long header-only false negatives
     )
 
     if DEBUG:
@@ -5300,6 +5325,8 @@ def extract_job_title_from_body(body: str | None) -> str:
         r'(?:the\s+)?position\s+of\s+(.+?)\s+has\s+(?:been\s+)?(?:filled|closed)',
         # "Req #1234-Title" or "Req #1234 - Title" (stops at Dear, sentence end, or </tag)
         r'Req\s*#?\d+\s*[-–]\s*(.+?)(?:\s*(?:Dear|</|\.|$|\n))',
+        # "apply to the R12345 Title role" (Capital One / ATS pattern)
+        r'apply\s+to\s+(?:the\s+)?(?:R\d+\s+)?(.+?)\s+(?:role|position)\b',
         # "regarding the X position/role"
         r'regarding\s+(?:the\s+)?(.+?)\s+(?:position|role|opening)',
         # "for the X position/role"
@@ -5580,8 +5607,9 @@ def ingest_message_from_eml(eml_content: str, fake_msg_id: str = None):
 
     # Check if application-related (use classification_text for pattern matching)
     header_hints = metadata.get("header_hints", {})
+    app_text = body if body and body.strip() else classification_text
     is_app_related = is_application_related(
-        metadata["subject"], classification_text[:500]
+        metadata["subject"], app_text[:500]
     )
 
     if DEBUG:

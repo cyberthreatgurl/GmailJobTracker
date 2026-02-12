@@ -5,6 +5,8 @@
 Django==4.2.25
 python-dotenv==1.2.1
 beautifulsoup4==4.14.2
+feedparser==6.0.12
+gnews==0.4.3
 google-api-python-client==2.184.0
 google-auth-oauthlib==1.2.2
 requests==2.32.5

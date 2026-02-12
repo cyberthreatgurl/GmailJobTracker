@@ -90,13 +90,13 @@
   </form>
 
   <!-- Live Output Section -->
-  <div id="live-output" style="display: none; margin-bottom: 1.5rem;">
-    <div style="background: #1f2937; border-radius: 8px; overflow: hidden;">
+  <div id="live-output" style="display: none; margin-bottom: 1.5rem; width: 100%;">
+    <div style="background: #1f2937; border-radius: 8px; overflow: hidden; width: 100%;">
       <div style="background: #374151; padding: 0.75rem 1rem; display: flex; align-items: center;">
         <span style="width: 10px; height: 10px; background: #10b981; border-radius: 50%; margin-right: 0.5rem; animation: pulse 1.5s infinite;"></span>
         <h2 style="margin: 0; color: #fff; font-size: 1rem; font-weight: 600;">Live Ingestion Output</h2>
       </div>
-      <pre id="output-box" style="background: #111827; color: #d1d5db; padding: 1rem; max-height: 400px; overflow: auto; white-space: pre-wrap; font-family: monospace; font-size: 0.85rem; margin: 0;"></pre>
+      <pre id="output-box" style="background: #111827; color: #d1d5db; padding: 1rem; max-height: 400px; min-height: 120px; overflow: auto; white-space: pre-wrap; font-family: monospace; font-size: 0.85rem; margin: 0; width: 100%; box-sizing: border-box;"></pre>
     </div>
   </div>
 
@@ -106,13 +106,13 @@
       <div style="background: #f3f4f6; padding: 0.75rem 1rem; border-bottom: 1px solid #e5e7eb;">
         <h2 style="margin: 0; font-size: 1rem; font-weight: 600; color: #374151;">Ingestion Output</h2>
       </div>
-      <pre style="background: #f9fafb; padding: 1rem; max-height: 400px; overflow: auto; white-space: pre-wrap; font-family: monospace; font-size: 0.85rem; margin: 0; color: #374151;">{{ result }}</pre>
+      <pre id="static-result" style="background: #f9fafb; padding: 1rem; max-height: 400px; overflow: auto; white-space: pre-wrap; font-family: monospace; font-size: 0.85rem; margin: 0; color: #374151;">{{ result }}</pre>
     </div>
   {% endif %}
 
   <!-- Error Display -->
   {% if error %}
-    <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 1rem;">
+    <div id="static-error" style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 1rem;">
       <span style="color: #dc2626; font-weight: 600;">❌ Error:</span>
       <span style="color: #991b1b; margin-left: 0.5rem;">{{ error }}</span>
     </div>
@@ -185,8 +185,8 @@
         const doc = parser.parseFromString(html, 'text/html');
         
         // Look for result or error in the response
-        const resultPre = doc.querySelector('pre');
-        const errorDiv = doc.querySelector('[style*="fef2f2"]'); // Error div has this background
+        const resultPre = doc.querySelector('#static-result');
+        const errorDiv = doc.querySelector('#static-error');
         
         box.textContent = '';
         
@@ -196,7 +196,7 @@
           append(resultPre.textContent + '\n');
         } else {
           // Try to find the result text in the page
-          const resultSection = doc.querySelector('.log-viewer-container pre, [style*="f9fafb"] pre');
+          const resultSection = doc.querySelector('#static-result, .log-viewer-container pre, [style*="f9fafb"] pre');
           if (resultSection) {
             append(resultSection.textContent + '\n');
           } else {

@@ -5,7 +5,9 @@
 from django.db import models
 from django.core.validators import RegexValidator, URLValidator
 from django.utils.timezone import now
+from django.utils import timezone
 
+from django.utils import timezone
 
 class Company(models.Model):
     name = models.CharField(
@@ -106,6 +108,108 @@ class Company(models.Model):
 
     def application_count(self):
         return self.threadtracking_set.count()
+
+
+class CompanyNews(models.Model):
+    """
+    Stores recent news articles for a company.
+
+    Aggregates articles from multiple providers (Google News RSS, NewsAPI)
+    with caching and historical tracking. Allows users to research companies
+    on the label_companies page.
+
+    Fields:
+    - articles: Current cached articles (JSON, limited to display_limit)
+    - all_articles: Historical record of all articles ever fetched (JSON)
+    - last_fetched: When news was last refreshed
+    - error_message: Last error encountered during fetch (if any)
+    - cache_duration_hours: How long to cache before refreshing (default: 24)
+    """
+
+    company = models.OneToOneField(
+        Company,
+        on_delete=models.CASCADE,
+        related_name='news'
+    )
+    articles = models.JSONField(
+        default=list,
+        help_text='Currently cached articles (limited list for display)'
+    )
+    all_articles = models.JSONField(
+        default=list,
+        help_text='Historical record of all articles ever fetched'
+    )
+    last_fetched = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text='When news was last refreshed'
+    )
+    error_message = models.TextField(
+        blank=True,
+        default='',
+        help_text='Last error encountered during fetch (if any)'
+    )
+    cache_duration_hours = models.PositiveIntegerField(
+        default=24,
+        help_text='How many hours before cache expires and refresh needed'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name_plural = 'Company News'
+        indexes = [
+            models.Index(fields=['company']),
+            models.Index(fields=['last_fetched']),
+        ]
+
+    def __str__(self):
+        return f"News for {self.company.name}"
+
+    def is_cache_fresh(self) -> bool:
+        """Check if cached articles are still valid."""
+        if not self.last_fetched:
+            return False
+
+        age = timezone.now() - self.last_fetched
+        return age.total_seconds() < (self.cache_duration_hours * 3600)
+
+    def get_display_articles(self) -> list:
+        """Get articles to display (limited, sorted by date)."""
+        if not self.articles:
+            return []
+
+        # Sort by date descending
+        sorted_articles = sorted(
+            self.articles,
+            key=lambda x: x.get('date', ''),
+            reverse=True
+        )
+
+        # Return up to 5 for display
+        return sorted_articles[:5]
+
+    def get_all_articles(self) -> list:
+        """Get complete historical record of all articles."""
+        return self.all_articles or []
+
+    def add_articles(self, new_articles: list) -> None:
+        """
+        Add new articles to both current cache and historical record.
+
+        Args:
+            new_articles: List of article dicts with title, url, date, source
+        """
+        # Update current articles
+        self.articles = new_articles
+
+        # Add to historical record (avoiding duplicates by URL)
+        existing_urls = {a['url'] for a in self.all_articles}
+        for article in new_articles:
+            if article['url'] not in existing_urls:
+                self.all_articles.append(article)
+
+        self.updated_at = timezone.now()
 
 
 class ThreadTracking(models.Model):

@@ -382,6 +382,36 @@
           </details>
           {% endif %}
 
+          <!-- Recent News Section (lazy-loaded via AJAX after page render) -->
+          <style>
+            .recent-news-summary,
+            .recent-news-summary * {
+              writing-mode: horizontal-tb !important;
+              transform: none !important;
+            }
+            .recent-news-summary {
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+            }
+          </style>
+          {% if selected_company %}
+          <details id="news-details" class="recent-news-details" style="background: #fef3c7; border-radius: 8px; padding: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+            <summary class="recent-news-summary" style="cursor: pointer; padding: 1rem 1.5rem; font-weight: 600; color: #92400e; font-size: 1rem; list-style: none; gap: 0.5rem; writing-mode: horizontal-tb; transform: none;">
+              <span style="display: flex; align-items: center; gap: 0.5rem;">
+                <span style="transition: transform 0.2s;">▶</span> 📰 <span id="news-title">Recent News</span>
+              </span>
+              <button id="news-refresh-btn" type="button" onclick="refreshCompanyNews({{ selected_company.id }})" style="background: #f59e0b; color: white; font-weight: 600; border-radius: 4px; padding: 0.25rem 0.75rem; border: none; cursor: pointer; font-size: 0.85rem; margin-right: 0.5rem;">🔄 Refresh</button>
+            </summary>
+            <div id="news-content" style="padding: 0 1.5rem 1.5rem 1.5rem;">
+              <div style="text-align: center; padding: 2rem; color: #92400e;">
+                <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">⏳</div>
+                <div>Loading news...</div>
+              </div>
+            </div>
+          </details>
+          {% endif %}
+
           <!-- Application Details Section -->
           {% if application_threads %}
           <details style="background: #dbeafe; border-radius: 8px; padding: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
@@ -688,6 +718,107 @@
         });
       }
       
+      // Render news articles into the news section
+      function renderNewsContent(data) {
+        const container = document.getElementById('news-content');
+        const titleSpan = document.getElementById('news-title');
+        if (!container) return;
+
+        const articles = data.articles || [];
+        const allArticles = data.all_articles || [];
+        titleSpan.textContent = `Recent News (${articles.length})`;
+
+        let html = '';
+
+        // Error banner
+        if (data.error) {
+          html += `<div style="background:#fee;border:1px solid #fcc;border-radius:6px;padding:1rem;margin-bottom:1rem;color:#c33;">⚠️ ${data.error}</div>`;
+        }
+
+        if (articles.length > 0) {
+          html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:1rem;margin-bottom:1.5rem;">';
+          articles.forEach(a => {
+            const snippet = a.snippet ? `<div style="font-size:0.85rem;color:#666;margin-bottom:0.75rem;line-height:1.4;max-height:4em;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;">${escapeHtml(a.snippet)}</div>` : '';
+            const dateDisplay = a.date_display || a.date || '';
+            const source = a.source || 'news';
+            html += `<div style="background:white;border-radius:6px;padding:1rem;border:1px solid #fce8ac;overflow:hidden;">`
+              + `<div style="font-weight:600;color:#92400e;font-size:0.95rem;line-height:1.3;margin-bottom:0.35rem;max-height:3em;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;"><a href="${a.url}" target="_blank" style="color:#0066cc;text-decoration:none;">${escapeHtml(a.title)}</a></div>`
+              + `<div style="font-size:0.75rem;color:#6b7280;margin-bottom:0.5rem;">📅 ${escapeHtml(dateDisplay)}</div>`
+              + snippet
+              + `<div style="display:flex;justify-content:space-between;align-items:center;font-size:0.75rem;color:#999;"><span>${escapeHtml(dateDisplay)}</span><span style="background:#f0f0f0;padding:0.15rem 0.4rem;border-radius:3px;color:#666;">${escapeHtml(source)}</span></div>`
+              + `<div style="margin-top:0.5rem;"><a href="${a.url}" target="_blank" style="font-size:0.8rem;color:#0066cc;text-decoration:none;">Read more →</a></div>`
+              + `</div>`;
+          });
+          html += '</div>';
+
+          // Full history
+          if (allArticles.length > 0) {
+            let historyItems = '';
+            allArticles.forEach(a => {
+              const words = (a.title || '').split(' ').slice(0, 20).join(' ');
+              const dateStr = a.date || '';
+              historyItems += `<div style="padding:0.75rem;border-bottom:1px solid #eee;font-size:0.85rem;"><div style="margin-bottom:0.25rem;"><a href="${a.url}" target="_blank" style="color:#0066cc;text-decoration:none;font-weight:500;">${escapeHtml(words)}</a></div><div style="color:#999;">${escapeHtml(dateStr)} • ${escapeHtml(a.source || '')}</div></div>`;
+            });
+            html += `<details style="margin-top:1rem;padding:1rem;background:#f9f9f9;border-radius:6px;"><summary style="cursor:pointer;font-weight:600;color:#92400e;font-size:0.9rem;">📚 Full History (${allArticles.length} total articles)</summary><div style="margin-top:1rem;max-height:400px;overflow-y:auto;">${historyItems}</div></details>`;
+          }
+        } else if (!data.error) {
+          html += '<div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:6px;padding:1rem;color:#9a3412;">📰 No recent articles found. Try refreshing or check back later.</div>';
+        }
+
+        // Last updated footer
+        if (data.last_fetched) {
+          const d = new Date(data.last_fetched);
+          html += `<div style="margin-top:1rem;padding:0.75rem;background:#f9f9f9;border-radius:6px;font-size:0.8rem;color:#666;">✅ Last updated: ${d.toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric'})} ${d.toLocaleTimeString('en-US', {hour:'numeric',minute:'2-digit'})}</div>`;
+        } else {
+          html += '<div style="margin-top:1rem;padding:0.75rem;background:#f9f9f9;border-radius:6px;font-size:0.8rem;color:#666;">⏳ Click "Refresh" to fetch news</div>';
+        }
+
+        container.innerHTML = html;
+      }
+
+      function escapeHtml(str) {
+        if (!str) return '';
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+      }
+
+      // Load news asynchronously after page render
+      function loadCompanyNews(companyId) {
+        fetch(`/company/${companyId}/news/`)
+          .then(r => r.json())
+          .then(data => renderNewsContent(data))
+          .catch(err => {
+            const container = document.getElementById('news-content');
+            if (container) container.innerHTML = `<div style="background:#fee;border:1px solid #fcc;border-radius:6px;padding:1rem;color:#c33;">❌ Failed to load news: ${err.message}</div>`;
+          });
+      }
+
+      // AJAX function to force-refresh company news (Refresh button)
+      function refreshCompanyNews(companyId) {
+        const button = document.getElementById('news-refresh-btn');
+        const originalText = button.innerHTML;
+        button.innerHTML = '⏳ Fetching...';
+        button.disabled = true;
+        button.style.background = '#d97706';
+
+        fetch(`/company/${companyId}/news/?force=1`)
+          .then(r => r.json())
+          .then(data => {
+            renderNewsContent(data);
+            showNotification('✅ News refreshed', '#10b981');
+            button.innerHTML = originalText;
+            button.disabled = false;
+            button.style.background = '#f59e0b';
+          })
+          .catch(err => {
+            showNotification(`❌ Error: ${err.message}`, '#ef4444');
+            button.innerHTML = originalText;
+            button.disabled = false;
+            button.style.background = '#f59e0b';
+          });
+      }
+      
       // AJAX function to save company changes without page refresh
       function saveCompanyChanges() {
         const form = document.querySelector('.edit-form');
@@ -719,6 +850,13 @@
           statusDiv.innerHTML = '<span style="color:#b91c1c; font-weight:600;">❌ Network error: ' + error.message + '</span>';
         });
       }
+
+      // Lazy-load company news after page render
+      {% if selected_company %}
+      document.addEventListener('DOMContentLoaded', function() {
+        loadCompanyNews({{ selected_company.id }});
+      });
+      {% endif %}
     </script>
     </div>
     <!-- End scrollable content -->

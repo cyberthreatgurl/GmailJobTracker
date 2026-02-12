@@ -16,5 +16,6 @@ from .admin import *  # noqa: F401, F403
 from .dashboard import *  # noqa: F401, F403
 from .messages import *  # noqa: F401, F403
 from .contracts import *  # noqa: F401, F403
+from .feeds import *  # noqa: F401, F403
 
 __all__ = []

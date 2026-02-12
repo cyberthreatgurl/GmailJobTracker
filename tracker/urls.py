@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, re_path
 
 from tracker.admin import admin
 
@@ -8,6 +8,9 @@ urlpatterns = [
     path("logs/", views.log_viewer, name="log_viewer"),
     path("reingest_admin/", views.reingest_admin, name="reingest_admin"),
     path("reingest_admin/stream", views.reingest_stream, name="reingest_stream"),
+    re_path(r"^(?:rss|feed)(?:\.xml|/.*)?$", views.rss_stub, name="rss_stub"),
+    re_path(r"^blog/(?:rss|feed)(?:\.xml|/)?$", views.rss_stub, name="blog_rss_stub"),
+    re_path(r"^articles/feed/?$", views.rss_stub, name="articles_feed_stub"),
     path("", views.dashboard, name="dashboard"),
     path(
         "company/<int:company_id>/delete/", views.delete_company, name="delete_company"
@@ -49,6 +52,8 @@ urlpatterns = [
     path("api/scrape_job_posting/", views.scrape_job_posting, name="scrape_job_posting"),
     path("company/<int:company_id>/upload_document/", views.upload_company_document, name="upload_company_document"),
     path("company/document/<int:document_id>/delete/", views.delete_company_document, name="delete_company_document"),
+    path("company/<int:company_id>/news/", views.get_company_news, name="get_company_news"),
+    path("company/<int:company_id>/refresh_news/", views.refresh_company_news, name="refresh_company_news"),
     path("defense_contracts/", views.defense_contracts, name="defense_contracts"),
     path("api/fetch_contracts/", views.fetch_contracts_ajax, name="fetch_contracts_ajax"),
 ]

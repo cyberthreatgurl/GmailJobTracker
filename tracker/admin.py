@@ -9,6 +9,7 @@ from .models import (
     ATSDomain,
     Company,
     CompanyAlias,
+    CompanyNews,
     DefenseContract,
     DomainToCompany,
     GmailFilterImportLog,
@@ -360,6 +361,88 @@ class ScrapedArticleAdmin(admin.ModelAdmin):
 
 
 custom_admin_site.register(ScrapedArticle, ScrapedArticleAdmin)
+
+
+class CompanyNewsAdmin(admin.ModelAdmin):
+    """Admin interface for company news caching."""
+
+    readonly_fields = (
+        'company',
+        'last_fetched',
+        'created_at',
+        'updated_at',
+        'articles_display',
+        'all_articles_display'
+    )
+    list_display = ('company', 'article_count', 'last_fetched', 'is_fresh')
+    list_filter = ('last_fetched', 'created_at')
+    search_fields = ('company__name',)
+    fieldsets = (
+        ('Company', {
+            'fields': ('company',)
+        }),
+        ('Cache Status', {
+            'fields': (
+                'last_fetched',
+                'cache_duration_hours',
+                'is_fresh'
+            ),
+            'classes': ('collapse',)
+        }),
+        ('Error Tracking', {
+            'fields': ('error_message',),
+            'classes': ('collapse',)
+        }),
+        ('Articles', {
+            'fields': ('articles_display', 'all_articles_display'),
+            'classes': ('collapse',)
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+
+    def article_count(self, obj) -> int:
+        """Display count of current cached articles."""
+        return len(obj.articles) if obj.articles else 0
+
+    article_count.short_description = 'Articles'
+
+    def is_fresh(self, obj) -> str:
+        """Show if cache is fresh."""
+        if obj.is_cache_fresh():
+            return '✅ Fresh'
+        return '⚠️ Stale'
+
+    is_fresh.short_description = 'Cache Status'
+
+    def articles_display(self, obj) -> str:
+        """Display current cached articles."""
+        if not obj.articles:
+            return 'No cached articles'
+        lines = []
+        for article in obj.get_display_articles():
+            lines.append(
+                f"• {article['title']}<br/>"
+                f"  <a href='{article['url']}' target='_blank'>Read</a> "
+                f"({article['date']})"
+            )
+        return '<br/>'.join(lines)
+
+    articles_display.short_description = 'Display Articles'
+
+    def all_articles_display(self, obj) -> str:
+        """Display historical articles summary."""
+        all_articles = obj.get_all_articles()
+        if not all_articles:
+            return 'No historical data'
+        return f'{len(all_articles)} total articles in history'
+
+    all_articles_display.short_description = 'Historical Record'
+
+
+admin.site.register(CompanyNews, CompanyNewsAdmin)
 
 admin.site.register(KnownCompany)
 admin.site.register(ATSDomain)

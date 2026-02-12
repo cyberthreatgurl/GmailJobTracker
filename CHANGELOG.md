@@ -5,6 +5,52 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2026-02-12
+
+### Added
+- **🗞️ Company News Integration** - Real-time news aggregation for company research
+  - **CompanyNews model** (migration 0026) — Stores cached articles with configurable TTL (24h default)
+  - **NewsAggregator service** (`tracker/services/news_service.py`) — Multi-provider news fetching:
+    - GNews library (primary), Google News RSS (fallback), NewsAPI.org (optional, requires key)
+    - Article deduplication, relevance filtering, blocklist for obituaries/sports noise
+    - Configurable search queries with focus area and domain context
+  - **Lazy-loaded news panel** on Label Companies page — page renders instantly, news fetches via AJAX
+    - `get_company_news` GET endpoint returns JSON with articles
+    - `DOMContentLoaded` auto-fetch, manual refresh button (no page reload)
+    - XSS-safe rendering with `escapeHtml()` helper
+  - **Admin registration** for CompanyNews model
+  - **Test suites** — `test_company_news.py` and `test_news_service.py` with model, service, and view integration tests
+
+- **RSS Stub Endpoint** (`tracker/views/feeds.py`) — Returns minimal RSS XML for common feed paths to eliminate 404 noise in logs
+
+- **Tailwind CSS Scaffolding** — Added `theme/static_src/` build tooling
+  - `package.json`, `tailwind.config.js`, `postcss.config.js` for standalone Tailwind builds
+  - Build (`--minify`) and watch scripts for CSS compilation
+
+- **JazzHR ATS Support** — Added `applytojob.com` and `jazz.co` to ATS domains in `companies.json`
+
+### Fixed
+- **Noetic Strategies ml_ignore false positive** — Messages from JazzHR ATS (`applytojob.com`) with "resume" in subject were incorrectly ignored
+  - Root cause: `applytojob.com` not in ATS domains → company extraction failed → hard-ignore gate fired on `\bresume\b` match
+  - Fix: Added ATS domains + made hard-ignore body-aware via `is_application_related()` safety check
+
+- **Newsletter false positive for referrals** — Removed `List-Unsubscribe` header from `is_newsletter` detection; many legitimate ATS emails include this header
+
+- **AstraZeneca rejection misclassification** — Added `\bnot\s+to\s+proceed\b` pattern to `early_detection.rejection_override` in `patterns.json`
+
+- **Capital One rejection matching** — Added `\b(?:decided|chosen|opted)\s+not\s+to\s+proceed\s+with\s+your\s+application\b` to rejection patterns
+
+- **Company name over-extraction** — Tightened `interest in` regex in ATS body pattern extraction; added comma-pronoun splits to prevent false company captures
+
+- **BeautifulSoup MarkupResemblesLocatorWarning** — Suppressed warning in `tracker/views/helpers.py`
+
+- **Job title extraction** — Added `apply\s+to\s+(?:the\s+)?(?:R\d+\s+)?(.+?)\s+(?:role|position)\b` pattern for Workday-style subjects
+
+### Changed
+- **`is_application_related()` function** — Now prefers body text over classification_text for more accurate detection
+- **`rule_label()` ordering** — Moved `rejection_override` check before `job_application` patterns to prevent rejections from being classified as applications
+- **Dependencies** — Added `gnews` and `feedparser` to production requirements
+
 ## [2.0.0] - 2026-02-06
 
 ### Added

@@ -72,6 +72,9 @@ review_reports/
 *.bak
 *.orig
 
+# Node modules
+node_modules/
+
 # Docker
 *.tar.gz
 docker-compose.override.yml

@@ -75,15 +75,34 @@
 {% block content %}
     <div class="main-content" style="padding-left:0.5rem;">
       <h1>Company Message Threads</h1>
-      <form method="get" class="company-select">
-        <label for="company">Select Company:</label>
-        <select name="company" id="company" onchange="this.form.submit()">
-          <option value="">-- Choose a company --</option>
-          {% for c in company_list %}
-            <option value="{{ c.id }}" {% if selected_company and c.id == selected_company.id %}selected{% endif %}>{{ c.name }}</option>
-          {% endfor %}
-        </select>
+      <form method="get" class="company-select" id="company-form">
+        <label for="company-search">Select Company:</label>
+        <!-- Value cleared for easy switching -->
+        <input type="text" id="company-search" autocomplete="off" placeholder="Switch company..." value="" style="padding:0.4rem 0.6rem; border-radius:4px; border:1px solid #d1d5db; font-size:1rem; min-width:260px;">
+        <input type="hidden" name="company" id="company-id" value="">
       </form>
+      {% load static %}
+      <script src="{% static 'tracker/js/company_autocomplete.js' %}"></script>
+      <script>
+        document.addEventListener('DOMContentLoaded', function() {
+          // FORCE CLEAR the input value to prevent browser autofill/restoration
+          var inputEl = document.getElementById('company-search');
+          if (inputEl) inputEl.value = '';
+
+          initCompanyAutocomplete({
+            inputId: 'company-search',
+            hiddenInputId: 'company-id',
+            placeholder: 'Search companies...',
+            // Initial value removed
+            onSelect: function(company) {
+              if (company && company.id) {
+                document.getElementById('company-id').value = company.id;
+                document.getElementById('company-form').submit();
+              }
+            }
+          });
+        });
+      </script>
 
       {% if selected_company %}
         <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1.5rem;">

@@ -39,6 +39,7 @@ urlpatterns = [
     path(
         "api/ingestion_status/", views.ingestion_status_api, name="ingestion_status_api"
     ),
+    path("api/company_search/", views.company_search_api, name="company_search_api"),
     path("companies/merge/", views.merge_companies, name="merge_companies"),
     path(
         "filters/labels_compare/",
@@ -55,5 +56,6 @@ urlpatterns = [
     path("company/<int:company_id>/news/", views.get_company_news, name="get_company_news"),
     path("company/<int:company_id>/refresh_news/", views.refresh_company_news, name="refresh_company_news"),
     path("defense_contracts/", views.defense_contracts, name="defense_contracts"),
+    path("defense_contracts/create_company/", views.create_company_popup, name="create_company_popup"),
     path("api/fetch_contracts/", views.fetch_contracts_ajax, name="fetch_contracts_ajax"),
 ]

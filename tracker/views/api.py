@@ -28,4 +28,26 @@ def ingestion_status_api(request):
     )
 
 
-__all__ = ["ingestion_status_api"]
+def company_search_api(request):
+    """JSON API for company name typeahead search.
+
+    GET /api/company_search/?q=<query>&limit=<n>
+    Returns: [{"id": 1, "name": "Acme Corp"}, ...]
+    """
+    from tracker.models import Company
+
+    query = request.GET.get("q", "").strip()
+    limit = min(int(request.GET.get("limit", 20)), 50)
+
+    if len(query) < 1:
+        return JsonResponse([], safe=False)
+
+    results = (
+        Company.objects.filter(name__icontains=query)
+        .order_by("name")
+        .values("id", "name")[:limit]
+    )
+    return JsonResponse(list(results), safe=False)
+
+
+__all__ = ["ingestion_status_api", "company_search_api"]

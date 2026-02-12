@@ -242,8 +242,9 @@
       {% csrf_token %}
 
       <div class="form-group">
-        <label for="{{ form.company_select.id_for_label }}">{{ form.company_select.label }}</label>
-        {{ form.company_select }}
+        <label for="company-search">{{ form.company_select.label }}</label>
+        <input type="text" id="company-search" autocomplete="off" placeholder="Search companies or type new name..." value="{% if form.company_select.value and form.company_select.value != '__new__' %}{% for cid, cname in form.company_select.field.choices %}{% if cid|stringformat:'s' == form.company_select.value|stringformat:'s' %}{{ cname }}{% endif %}{% endfor %}{% endif %}" style="width:100%; padding:0.6rem; border-radius:6px; border:1px solid #d1d5db; font-size:0.95rem;">
+        <input type="hidden" name="company_select" id="company-select-id" value="{{ form.company_select.value|default:'' }}">
         <div class="help-text">{{ form.company_select.help_text }}</div>
         {% if form.company_select.errors %}
           <ul class="errorlist">
@@ -356,29 +357,51 @@
     </form>
   </div>
 
+  {% load static %}
+  <script src="{% static 'tracker/js/company_autocomplete.js' %}"></script>
   <script>
-    // Show/hide new company name field based on dropdown selection
-    const companySelect = document.getElementById('{{ form.company_select.id_for_label }}');
+    // Show/hide new company name field based on autocomplete selection
+    const hiddenSelect = document.getElementById('company-select-id');
     const newCompanyNameGroup = document.getElementById('new-company-name-group');
     const newCompanyNameInput = document.getElementById('{{ form.new_company_name.id_for_label }}');
 
     function toggleNewCompanyField() {
-      const isNewCompany = companySelect.value === '__new__';
+      const isNewCompany = hiddenSelect.value === '__new__';
       if (isNewCompany) {
         newCompanyNameGroup.style.display = 'block';
         newCompanyNameInput.required = true;
       } else {
         newCompanyNameGroup.style.display = 'none';
         newCompanyNameInput.required = false;
-        newCompanyNameInput.value = '';  // Clear the field when hidden
+        newCompanyNameInput.value = '';
       }
     }
 
-    // Initialize on page load
-    toggleNewCompanyField();
+    document.addEventListener('DOMContentLoaded', function() {
+      initCompanyAutocomplete({
+        inputId: 'company-search',
+        hiddenInputId: 'company-select-id',
+        showCreateNew: true,
+        createNewUrl: function(typed) {
+          // Set the hidden value to __new__ and show the new company name field
+          hiddenSelect.value = '__new__';
+          newCompanyNameGroup.style.display = 'block';
+          newCompanyNameInput.required = true;
+          newCompanyNameInput.value = typed || '';
+          newCompanyNameInput.focus();
+        },
+        placeholder: 'Search companies or type new name...',
+        onSelect: function(company) {
+          if (company && company.id) {
+            hiddenSelect.value = company.id;
+            toggleNewCompanyField();
+          }
+        }
+      });
 
-    // Update when dropdown changes
-    companySelect.addEventListener('change', toggleNewCompanyField);
+      // Initialize on page load
+      toggleNewCompanyField();
+    });
   </script>
 
   <script>

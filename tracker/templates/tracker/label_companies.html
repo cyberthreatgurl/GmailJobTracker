@@ -28,16 +28,38 @@
     <div style="flex-shrink: 0; margin-bottom: 1rem;">
       <h1>Label Companies</h1>
       
-      <form method="get" class="company-select">
-        <label for="company">Select Company:</label>
-        <select name="company" id="company" onchange="this.form.submit()">
-          <option value="">-- Choose a company --</option>
-          <option value="new" {% if creating_new_company %}selected{% endif %}>-- Create New Company --</option>
-          {% for c in company_list %}
-            <option value="{{ c.id }}" {% if selected_company and c.id == selected_company.id %}selected{% endif %}>{{ c.name }}</option>
-          {% endfor %}
-        </select>
+      <form method="get" class="company-select" id="company-form">
+        <label for="company-search">Select Company:</label>
+        <!-- Value cleared to allow easy searching of next company -->
+        <input type="text" id="company-search" autocomplete="off" placeholder="Search companies..." value="" style="padding:0.4rem 0.6rem; border-radius:4px; border:1px solid #d1d5db; font-size:1rem; min-width:260px;">
+        <input type="hidden" name="company" id="company-id" value="">
       </form>
+      {% load static %}
+      <script src="{% static 'tracker/js/company_autocomplete.js' %}"></script>
+      <script>
+        document.addEventListener('DOMContentLoaded', function() {
+          // FORCE CLEAR the input value to prevent browser autofill/restoration
+          var inputEl = document.getElementById('company-search');
+          if (inputEl) inputEl.value = '';
+
+          initCompanyAutocomplete({
+            inputId: 'company-search',
+            hiddenInputId: 'company-id',
+            showCreateNew: true,
+            createNewUrl: function(typed) {
+              window.location.href = '/label_companies/?company=new' + (typed ? '&new_company_name=' + encodeURIComponent(typed) : '');
+            },
+            placeholder: 'Search for company to label...',
+            // Initial value removed to keep search box clear as requested
+            onSelect: function(company) {
+              if (company && company.id) {
+                document.getElementById('company-id').value = company.id;
+                document.getElementById('company-form').submit();
+              }
+            }
+          });
+        });
+      </script>
     </div>
 
     <!-- Scrollable Company Edit Form Content -->

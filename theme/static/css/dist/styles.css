@@ -47,8 +47,10 @@
     --color-green-700: oklch(52.7% 0.154 150.069);
     --color-green-800: oklch(44.8% 0.119 151.328);
     --color-green-900: oklch(39.3% 0.095 152.535);
+    --color-emerald-100: oklch(95% 0.052 163.051);
     --color-emerald-600: oklch(59.6% 0.145 163.225);
     --color-emerald-700: oklch(50.8% 0.118 165.612);
+    --color-emerald-800: oklch(43.2% 0.095 166.913);
     --color-cyan-50: oklch(98.4% 0.019 200.873);
     --color-cyan-100: oklch(95.6% 0.045 203.388);
     --color-cyan-200: oklch(91.7% 0.08 205.041);
@@ -73,8 +75,10 @@
     --color-indigo-500: oklch(58.5% 0.233 277.117);
     --color-indigo-600: oklch(51.1% 0.262 276.966);
     --color-indigo-700: oklch(45.7% 0.24 277.023);
+    --color-indigo-800: oklch(39.8% 0.195 277.366);
     --color-indigo-900: oklch(35.9% 0.144 278.697);
     --color-violet-100: oklch(94.3% 0.029 294.588);
+    --color-violet-700: oklch(49.1% 0.27 292.581);
     --color-violet-800: oklch(43.2% 0.232 292.759);
     --color-purple-50: oklch(97.7% 0.014 308.299);
     --color-purple-100: oklch(94.6% 0.033 307.174);
@@ -788,6 +792,9 @@
   .bg-cyan-600 {
     background-color: var(--color-cyan-600);
   }
+  .bg-emerald-100 {
+    background-color: var(--color-emerald-100);
+  }
   .bg-emerald-600 {
     background-color: var(--color-emerald-600);
   }
@@ -1022,6 +1029,9 @@
   .whitespace-nowrap {
     white-space: nowrap;
   }
+  .text-amber-600 {
+    color: var(--color-amber-600);
+  }
   .text-amber-800 {
     color: var(--color-amber-800);
   }
@@ -1054,6 +1064,9 @@
   }
   .text-cyan-900 {
     color: var(--color-cyan-900);
+  }
+  .text-emerald-800 {
+    color: var(--color-emerald-800);
   }
   .text-gray-400 {
     color: var(--color-gray-400);
@@ -1093,6 +1106,9 @@
   }
   .text-indigo-700 {
     color: var(--color-indigo-700);
+  }
+  .text-indigo-800 {
+    color: var(--color-indigo-800);
   }
   .text-indigo-900 {
     color: var(--color-indigo-900);
@@ -1141,6 +1157,9 @@
   }
   .text-slate-700 {
     color: var(--color-slate-700);
+  }
+  .text-violet-700 {
+    color: var(--color-violet-700);
   }
   .text-violet-800 {
     color: var(--color-violet-800);
@@ -1411,6 +1430,13 @@
       }
     }
   }
+  .hover\:text-emerald-600 {
+    &:hover {
+      @media (hover: hover) {
+        color: var(--color-emerald-600);
+      }
+    }
+  }
   .hover\:text-gray-700 {
     &:hover {
       @media (hover: hover) {
@@ -1422,6 +1448,13 @@
     &:hover {
       @media (hover: hover) {
         color: var(--color-green-600);
+      }
+    }
+  }
+  .hover\:text-indigo-600 {
+    &:hover {
+      @media (hover: hover) {
+        color: var(--color-indigo-600);
       }
     }
   }

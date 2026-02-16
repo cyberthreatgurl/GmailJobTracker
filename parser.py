@@ -5028,9 +5028,21 @@ def ingest_message(service, msg_id):
                         ):
                             application_obj.rejection_date = rejection_date_final
                             application_obj.status = "rejected"
-                            # Check for cancelled in email text
-                            combined_text = (metadata.get("subject", "") + " " + metadata.get("body", "")).lower()
-                            if re.search(r'\b(?:cancelled|canceled|closed/cancelled|cancelled/closed)\b', combined_text):
+                            # Check for cancelled position indicators in email text
+                            combined_text = (metadata.get("subject", "") + " " + metadata.get("body", ""))
+                            # Use the same patterns as early_detection cancelled_position
+                            cancelled_patterns = [
+                                r'\b(?:decided|chosen)\s+not\s+to\s+(?:move\s+forward\s+with\s+)?fill(?:ing)?\s+(?:this|the)\s+(?:role|position)\b',
+                                r'\bevolving\s+business\s+needs\b.*\bnot\s+(?:to\s+)?(?:move\s+forward|proceed|fill)\b',
+                                r'\bnot\s+(?:to\s+)?move\s+forward\s+with\s+filling\s+(?:this|the)\s+(?:role|position)\b',
+                                r'\b(?:to\s+)?close\s+(?:the|this)\s+(?:[\w\s]+\s+)?(?:role|position)\s+and\s+not\s+move\s+forward\b',
+                                r'\b(?:determined|decided)\s+to\s+close\s+(?:the|this)\s+(?:role|position)\b',
+                                r'\b(?:role|position)\s+(?:has\s+been\s+)?(?:closed|cancelled|canceled)\b',
+                                r'\bnot\s+(?:to\s+)?(?:move\s+forward|proceed)\s+with\s+(?:filing|filling)\s+(?:this|the)\s+(?:role|position)\b',
+                                r'\b(?:cancelled|canceled|closed/cancelled|cancelled/closed)\b',
+                            ]
+                            if any(re.search(pattern, combined_text, re.IGNORECASE) for pattern in cancelled_patterns):
+                                application_obj.cancelled = True
                                 application_obj.cancelled = True
                             updated = True
                         if (
@@ -5069,9 +5081,19 @@ def ingest_message(service, msg_id):
                                 if not existing_tt.rejection_date:
                                     existing_tt.rejection_date = rejection_date_final
                                 existing_tt.status = "rejected"
-                                # Check for cancelled in email text
-                                combined_text = (metadata.get("subject", "") + " " + metadata.get("body", "")).lower()
-                                if re.search(r'\b(?:cancelled|canceled|closed/cancelled|cancelled/closed)\b', combined_text):
+                                # Check for cancelled position indicators in email text
+                                combined_text = (metadata.get("subject", "") + " " + metadata.get("body", ""))
+                                cancelled_patterns = [
+                                    r'\b(?:decided|chosen)\s+not\s+to\s+(?:move\s+forward\s+with\s+)?fill(?:ing)?\s+(?:this|the)\s+(?:role|position)\b',
+                                    r'\bevolving\s+business\s+needs\b.*\bnot\s+(?:to\s+)?(?:move\s+forward|proceed|fill)\b',
+                                    r'\bnot\s+(?:to\s+)?move\s+forward\s+with\s+filling\s+(?:this|the)\s+(?:role|position)\b',
+                                    r'\b(?:to\s+)?close\s+(?:the|this)\s+(?:[\w\s]+\s+)?(?:role|position)\s+and\s+not\s+move\s+forward\b',
+                                    r'\b(?:determined|decided)\s+to\s+close\s+(?:the|this)\s+(?:role|position)\b',
+                                    r'\b(?:role|position)\s+(?:has\s+been\s+)?(?:closed|cancelled|canceled)\b',
+                                    r'\bnot\s+(?:to\s+)?(?:move\s+forward|proceed)\s+with\s+(?:filing|filling)\s+(?:this|the)\s+(?:role|position)\b',
+                                    r'\b(?:cancelled|canceled|closed/cancelled|cancelled/closed)\b',
+                                ]
+                                if any(re.search(pattern, combined_text, re.IGNORECASE) for pattern in cancelled_patterns):
                                     existing_tt.cancelled = True
                                     if DEBUG:
                                         print(f"✓ Detected 'cancelled' in email text, setting cancelled=True")

@@ -318,28 +318,158 @@ admin.site.register(AuditEvent, AuditEventAdmin)
 
 
 class DefenseContractAdmin(admin.ModelAdmin):
-    """Admin for DefenseContract records."""
+    """Admin for DefenseContract records with dual-source support (DoD + USASpending)."""
 
     list_display = (
         "company_name_raw",
-        "branch",
+        "data_source_badge",
+        "branch_or_agency",
         "amount_display",
         "article_date",
         "company_location",
+        "company_linked",
         "is_modification",
         "is_small_business",
-        "company",
     )
-    list_filter = ("branch", "is_modification", "is_small_business")
+    list_filter = (
+        "data_source",
+        "branch",
+        "awarding_agency",
+        "is_modification",
+        "is_small_business",
+        "article_date",
+    )
     search_fields = (
         "company_name_raw",
         "description",
         "contract_number",
+        "award_id",
         "work_location",
         "contracting_activity",
+        "awarding_agency",
+        "awarding_sub_agency",
     )
-    readonly_fields = ("created_at", "updated_at")
+    readonly_fields = (
+        "created_at",
+        "updated_at",
+        "data_source",
+        "award_id",
+        "company_link_display",
+    )
     ordering = ("-article_date",)
+    actions = ["unlink_company"]
+
+    fieldsets = (
+        ("Company Information", {
+            "fields": (
+                "company_name_raw",
+                "company",
+                "company_link_display",
+                "company_location",
+            )
+        }),
+        ("Contract Details", {
+            "fields": (
+                "data_source",
+                "award_id",
+                "contract_number",
+                "amount",
+                "description",
+                "raw_text",
+            )
+        }),
+        ("Source-Specific Fields", {
+            "fields": (
+                "branch",
+                "awarding_agency",
+                "awarding_sub_agency",
+            ),
+            "description": "Branch applies to DoD contracts, agencies to USASpending contracts"
+        }),
+        ("Location & Completion", {
+            "fields": (
+                "work_location",
+                "place_of_performance_state",
+                "completion_date",
+                "contracting_activity",
+            )
+        }),
+        ("Metadata", {
+            "fields": (
+                "article_date",
+                "source_url",
+                "is_modification",
+                "is_small_business",
+                "created_at",
+                "updated_at",
+            ),
+            "classes": ("collapse",)
+        }),
+    )
+
+    def data_source_badge(self, obj):
+        """Display data source with color coding."""
+        if obj.data_source == "war_gov":
+            return "🏛️ DoD"
+        elif obj.data_source == "usaspending":
+            return "🏢 Federal"
+        return obj.data_source
+    data_source_badge.short_description = "Source"
+
+    def branch_or_agency(self, obj):
+        """Display branch for DoD or agency for USASpending."""
+        if obj.data_source == "war_gov" and obj.branch:
+            return obj.get_branch_display()
+        elif obj.data_source == "usaspending" and obj.awarding_agency:
+            return obj.awarding_agency[:30] + "..." if len(obj.awarding_agency) > 30 else obj.awarding_agency
+        return "-"
+    branch_or_agency.short_description = "Branch/Agency"
+
+    def company_linked(self, obj):
+        """Display whether contract is linked to a Company record."""
+        if obj.company:
+            return f"✅ {obj.company.name}"
+        return "❌ Unlinked"
+    company_linked.short_description = "Company Link"
+
+    def company_link_display(self, obj):
+        """Display detailed company link information with unlink button."""
+        if not obj.company:
+            return "No company linked"
+        
+        from django.utils.html import format_html
+        from django.urls import reverse
+        
+        company_url = reverse("admin:tracker_company_change", args=[obj.company.id])
+        return format_html(
+            '<div style="padding: 10px; background: #e8f5e9; border-left: 4px solid #4caf50;">'
+            '<strong>Linked Company:</strong> <a href="{}" target="_blank">{}</a><br>'
+            '<strong>Match Type:</strong> {}<br>'
+            '<strong>Domain:</strong> {}<br>'
+            '<em>Use "Unlink company" action below to remove this association</em>'
+            '</div>',
+            company_url,
+            obj.company.name,
+            "Fuzzy Match (85%+)" if obj.company else "Exact Match",
+            obj.company.domain or "N/A",
+        )
+    company_link_display.short_description = "Company Association"
+
+    def unlink_company(self, request, queryset):
+        """Admin action to unlink company from selected contracts."""
+        updated = queryset.filter(company__isnull=False).update(company=None)
+        if updated:
+            messages.success(
+                request,
+                f"✅ Successfully unlinked {updated} contract(s) from their companies. "
+                f"You can re-run company matching to link them again."
+            )
+        else:
+            messages.warning(
+                request,
+                "⚠️ No contracts were updated. Selected contracts may already be unlinked."
+            )
+    unlink_company.short_description = "🔗 Unlink company from selected contracts"
 
 
 custom_admin_site.register(DefenseContract, DefenseContractAdmin)

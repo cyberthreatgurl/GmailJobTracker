@@ -17,7 +17,8 @@ from datetime import timedelta
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
-from django.db.models import Q, QuerySet
+from django.db.models import Q, QuerySet, Case, When, F, Min
+from django.db.models.functions import Coalesce, Least
 from django.utils import timezone
 from django.utils.timezone import now
 
@@ -115,24 +116,48 @@ class StatsService:
             interviews_qs = interviews_qs.exclude(msg_hh_sender_q)
         interviews_week = interviews_qs.values("company_id").distinct().count()
 
-        # Upcoming interviews and prescreens (exclude rejected/ghosted)
+        # Upcoming interviews and prescreens
         # Include records with:
         # - interview_date today or in the future
         # - prescreen_date today or in the future
-        # Exclude completed interviews and rejected/ghosted applications
+        # Exclude completed interviews and rejected applications
+        # 
+        # Priority logic:
+        # 1. Prefer ThreadTracking records WITH job titles (real applications)
+        # 2. If multiple records per company, show the one with the earliest date
+        # 3. Exclude empty thread-tracking records unless no real application exists
         today = now().date()
-        upcoming_interviews = (
+        
+        # Get all upcoming records, prioritizing those with job titles
+        all_upcoming = (
             ThreadTracking.objects.filter(
                 Q(interview_date__gte=today) | Q(prescreen_date__gte=today),
                 company__isnull=False,
                 interview_completed=False,
             )
-            .exclude(status="ghosted")
-            .exclude(status="rejected")
             .exclude(rejection_date__isnull=False)
+            .exclude(job_title='')  # Only records with job titles
+            .annotate(
+                earliest_date=Least(
+                    Coalesce('prescreen_date', 'interview_date'),
+                    Coalesce('interview_date', 'prescreen_date')
+                )
+            )
             .select_related("company")
-            .order_by("interview_date", "prescreen_date")[:10]
+            .order_by("earliest_date", "company__name")
         )
+        
+        # Group by company and take the first (earliest) record per company
+        seen_companies = set()
+        upcoming_interviews = []
+        for record in all_upcoming:
+            if record.company_id not in seen_companies:
+                upcoming_interviews.append(record)
+                seen_companies.add(record.company_id)
+                if len(upcoming_interviews) >= 10:
+                    break
+
+
 
         # Companies with offers (messages labeled as 'offer')
         offer_companies = (

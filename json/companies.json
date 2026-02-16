@@ -115,8 +115,8 @@
     "WarCollar": "WarCollar Industries, LLC",
     "ShorePoint": "ShorePoint Incorporated",
     "intrepid": "Intrepid Solutions and Services LLC",
-    "Intrepid Solutions and Services LLC": "CIS Secure",
-    "CIS": "CIS Secure"
+    "Intrepid Solutions and Services LLC": "CIS",
+    "CIS": "Center for Internet Security"
   },
   "ats_domains": [
     "adp.com",
@@ -483,7 +483,11 @@
     "rtx.com": "RTX Corp.",
     "lockheedmartin.com": "Lockheed Martin",
     "cogent.com": "Cogent Security",
-    "cogentco.com": "Cogent Communications"
+    "cogentco.com": "Cogent Communications",
+    "experis.com": "Experis",
+    "cisecurity.org": "Center for Internet Security",
+    "careers.globelifeinsurance.com": "Globe Life",
+    "hirepeaksconsulting.com": "HirePeaks Consulting"
   },
   "headhunter_domains": [
     "agreeya.com",
@@ -811,7 +815,11 @@
     "Lockheed Martin": "https://www.lockheedmartin.com/en-us/careers/life-at-lm.html",
     "Cogent": "https://www.cogent.com/careers",
     "Cogent Security": "https://www.cogent.com/careers",
-    "Cogent Communications": "http://www.cogentco.com/en/about-cogent/careers"
+    "Cogent Communications": "http://www.cogentco.com/en/about-cogent/careers",
+    "Experis": "https://www.experis.com/en/search",
+    "CIS": "https://cisecurity.wd1.myworkdayjobs.com/CIS_External_Career_Site",
+    "Center for Internet Security": "https://cisecurity.wd1.myworkdayjobs.com/CIS_External_Career_Site",
+    "Globe Life": "https://careers.globelifeinsurance.com/agent-careers"
   },
   "known": [
     "Obsidian",
@@ -1101,7 +1109,11 @@
     "Lockheed Martin Corp.",
     "Cogent",
     "AGR, LLC",
-    "Cogent Communications"
+    "Cogent Communications",
+    "Experis",
+    "CIS",
+    "Globe Life",
+    "HirePeaks Consulting"
   ],
   "ats_heuristic_patterns": [
     "workday",

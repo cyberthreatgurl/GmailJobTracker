@@ -639,7 +639,7 @@ class ContractScraperService:
         else:
             parse_text = clean_text
 
-        # US states pattern (reusable)
+        # US states and territories pattern (reusable)
         _state_re = (
             r"(Alabama|Alaska|Arizona|Arkansas|California|Colorado|Connecticut|"
             r"Delaware|Florida|Georgia|Hawaii|Idaho|Illinois|Indiana|Iowa|Kansas|"
@@ -649,19 +649,35 @@ class ContractScraperService:
             r"North\s+Dakota|Ohio|Oklahoma|Oregon|Pennsylvania|Rhode\s+Island|"
             r"South\s+Carolina|South\s+Dakota|Tennessee|Texas|Utah|Vermont|"
             r"Virgina|Virginia|Washington|West\s+Virginia|Wisconsin|Wyoming|"
-            r"District\s+of\s+Columbia|D\.C\.)"
+            r"District\s+of\s+Columbia|D\.C\.|"
+            r"Puerto\s+Rico|Guam|U\.S\.\s+Virgin\s+Islands|American\s+Samoa|"
+            r"Northern\s+Mariana\s+Islands)"
         )
 
         # Extract company name and location from the opening of the paragraph
-        # Pattern: "Company Name, City, State, ..." or
-        #          "Company Name, City, State (CONTRACT), ..."
-        # City can contain: "St. Petersburg", "Fort Worth", "South Salt Lake"
-        company_match = re.match(
-            r"^(?:UPDATE:\s+)?(.+?),\s+"
-            r"([A-Z][a-z]+\.?(?:\s+[A-Z][a-z]+\.?)*),\s+"
-            + _state_re,
-            parse_text,
-        )
+        # Pattern 1: "Company Name, City, State, ..." or
+        #           "Company Name, City State, ..." (comma between city and state is optional)
+        #           "Company Name, City, State (CONTRACT), ..."
+        # City can contain: "St. Petersburg", "Fort Worth", "South Salt Lake", "McKinney", "Guánica"
+        # Updated pattern to handle cities with mixed case and accented characters
+        # But DON'T match if it starts with "The $" (contract details first)
+        company_match = None
+        if not parse_text.startswith(("The $", "A $", "An $")):
+            company_match = re.match(
+                r"^(?:UPDATE:\s+)?(.+?),\s+"
+                r"([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ.'\-\s]+?),?\s+"  # Optional comma after city
+                + _state_re,
+                parse_text,
+            )
+
+        # Pattern 2 (fallback): "...announced...to Company, City, State" format
+        if not company_match:
+            company_match = re.search(
+                r",\s+to\s+([^,]+),\s+"
+                r"([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ.'\-\s]+?),?\s+"
+                + _state_re,
+                parse_text,
+            )
 
         if not company_match:
             logger.debug("Could not parse company from paragraph: %.80s...", clean_text)

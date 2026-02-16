@@ -18,7 +18,11 @@
     "cancelled_position": [
       "\\b(?:decided|chosen)\\s+not\\s+to\\s+(?:move\\s+forward\\s+with\\s+)?fill(?:ing)?\\s+(?:this|the)\\s+(?:role|position)\\b",
       "\\bevolving\\s+business\\s+needs\\b.*\\bnot\\s+(?:to\\s+)?(?:move\\s+forward|proceed|fill)\\b",
-      "\\bnot\\s+(?:to\\s+)?move\\s+forward\\s+with\\s+filling\\s+(?:this|the)\\s+(?:role|position)\\b"
+      "\\bnot\\s+(?:to\\s+)?move\\s+forward\\s+with\\s+filling\\s+(?:this|the)\\s+(?:role|position)\\b",
+      "\\b(?:to\\s+)?close\\s+(?:the|this)\\s+(?:[\\w\\s]+\\s+)?(?:role|position)\\s+and\\s+not\\s+move\\s+forward\\b",
+      "\\b(?:determined|decided)\\s+to\\s+close\\s+(?:the|this)\\s+(?:role|position)\\b",
+      "\\b(?:role|position)\\s+(?:has\\s+been\\s+)?(?:closed|cancelled|canceled)\\b",
+      "\\bnot\\s+(?:to\\s+)?(?:move\\s+forward|proceed)\\s+with\\s+(?:filing|filling)\\s+(?:this|the)\\s+(?:role|position)\\b"
     ],
     "scheduling_language": [
       "(?:please\\s+)?(?:let\\s+me\\s+know\\s+when\\s+you(?:\\s+would|(?:'re|\\s+are))?\\s+available)",

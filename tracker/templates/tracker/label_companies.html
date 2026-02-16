@@ -361,11 +361,11 @@
             </div>
           </details>
           
-          <!-- Defense Contracts Section (expandable) -->
+          <!-- Government Contracts Section (expandable) -->
           {% if company_contracts %}
           <details style="background: #ecfdf5; border-radius: 8px; padding: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
             <summary style="cursor: pointer; padding: 1rem 1.5rem; font-weight: 600; color: #065f46; font-size: 1rem; list-style: none; display: flex; align-items: center; gap: 0.5rem;">
-              <span style="transition: transform 0.2s;">▶</span> 🏛️ Defense Contracts ({{ company_contracts|length }})
+              <span style="transition: transform 0.2s;">▶</span> 🏛️ Government Contracts ({{ company_contracts|length }})
             </summary>
             <div style="padding: 0 1.5rem 1.5rem 1.5rem;">
               {% for contract in company_contracts %}
@@ -396,7 +396,15 @@
                 <div style="font-size: 0.75rem; color: #6b7280;">📅 Completion: {{ contract.completion_date }}</div>
                 {% endif %}
                 <div style="margin-top: 0.5rem;">
+                  {% if contract.data_source == 'war_gov' %}
                   <a href="{{ contract.source_url }}" target="_blank" style="font-size: 0.75rem; color: #2563eb; text-decoration: none;">View on war.gov →</a>
+                  {% elif contract.data_source == 'usaspending' %}
+                    {% if contract.usaspending_published %}
+                    <a href="{{ contract.source_url }}" target="_blank" style="font-size: 0.75rem; color: #2563eb; text-decoration: none;">View on USASpending.gov →</a>
+                    {% else %}
+                    <span style="font-size: 0.75rem; color: #d97706;">⏳ Not yet available on usaspending.gov</span>
+                    {% endif %}
+                  {% endif %}
                 </div>
               </div>
               {% endfor %}

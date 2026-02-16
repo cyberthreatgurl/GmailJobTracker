@@ -34,17 +34,21 @@ __all__ = [
 @login_required
 def defense_contracts(request):
     """
-    Display searchable listing of defense contract awards.
+    Display searchable listing of government contract awards.
 
     Supports filtering by:
+    - data source (war_gov, usaspending, all)
     - search query (company name, description, work location)
-    - military branch
+    - military branch (war.gov only)
+    - awarding agency (USASpending only)
     - date range (days back)
     """
     # Read filter parameters from GET
     search_query = request.GET.get("q", "").strip()
+    source_filter = request.GET.get("source", "all")
     branch_filter = request.GET.get("branch", "")
-    days_back = request.GET.get("days", "30")
+    agency_filter = request.GET.get("agency", "").strip()
+    days_back = request.GET.get("days", "90")  # Default to 90 days for broader view
 
     try:
         days_back = int(days_back)
@@ -54,12 +58,21 @@ def defense_contracts(request):
     # Build queryset with filters
     contracts_qs = DefenseContract.objects.select_related("company")
 
+    # Source filter
+    if source_filter and source_filter != "all":
+        contracts_qs = contracts_qs.filter(data_source=source_filter)
+
     if days_back > 0:
         cutoff_date = now().date() - timedelta(days=days_back)
         contracts_qs = contracts_qs.filter(article_date__gte=cutoff_date)
 
+    # Branch filter (war.gov only)
     if branch_filter:
         contracts_qs = contracts_qs.filter(branch=branch_filter)
+
+    # Agency filter (USASpending only)
+    if agency_filter:
+        contracts_qs = contracts_qs.filter(awarding_agency__icontains=agency_filter)
 
     if search_query:
         contracts_qs = contracts_qs.filter(
@@ -67,6 +80,8 @@ def defense_contracts(request):
             | Q(description__icontains=search_query)
             | Q(work_location__icontains=search_query)
             | Q(contracting_activity__icontains=search_query)
+            | Q(awarding_agency__icontains=search_query)
+            | Q(awarding_sub_agency__icontains=search_query)
             | Q(raw_text__icontains=search_query)
         )
 
@@ -76,8 +91,32 @@ def defense_contracts(request):
     total_value = contracts_qs.aggregate(total=Sum("amount"))["total"] or 0
     total_count = contracts_qs.count()
 
+    # Source counts for display
+    source_counts = {
+        "all": DefenseContract.objects.count(),
+        "war_gov": DefenseContract.objects.filter(data_source="war_gov").count(),
+        "usaspending": DefenseContract.objects.filter(data_source="usaspending").count(),
+    }
+
+    # Data source choices for filter dropdown
+    source_choices = [
+        ("all", "All Sources"),
+        ("war_gov", f"DoD (war.gov) - {source_counts['war_gov']} contracts"),
+        ("usaspending", f"Federal (USASpending) - {source_counts['usaspending']} contracts"),
+    ]
+
     # Branch choices for the filter dropdown
     branch_choices = DefenseContract.BRANCH_CHOICES
+
+    # Get unique awarding agencies for dropdown (top 10 by frequency)
+    from django.db.models import Count
+    top_agencies = (
+        DefenseContract.objects.filter(data_source="usaspending")
+        .values("awarding_agency")
+        .annotate(count=Count("id"))
+        .order_by("-count")[:10]
+    )
+    agency_choices = [a["awarding_agency"] for a in top_agencies if a["awarding_agency"]]
 
     # Date range options
     date_range_options = [
@@ -104,11 +143,16 @@ def defense_contracts(request):
     context = {
         "contracts": contracts_qs,
         "search_query": search_query,
+        "source_filter": source_filter,
+        "source_choices": source_choices,
+        "source_counts": source_counts,
         "branch_filter": branch_filter,
+        "branch_choices": branch_choices,
+        "agency_filter": agency_filter,
+        "agency_choices": agency_choices,
         "days_back": days_back,
         "total_count": total_count,
         "total_value_display": total_value_display,
-        "branch_choices": branch_choices,
         "date_range_options": date_range_options,
         "scraped_articles_count": scraped_articles_count,
         "last_scraped": last_scraped,

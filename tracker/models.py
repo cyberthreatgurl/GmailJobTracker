@@ -662,13 +662,16 @@ class CompanyDocument(models.Model):
 
 class DefenseContract(models.Model):
     """
-    A single defense contract award scraped from war.gov (formerly defense.gov).
+    A single government contract award from war.gov (DoD) or USASpending.gov (all agencies).
 
-    Each record represents one contract paragraph from a daily contract announcement.
-    Multiple contracts may share the same article (source_url) but differ by
-    company, branch, and contract number.
+    Each record represents either:
+    - War.gov: One contract paragraph from a daily DoD contract announcement
+    - USASpending: One contract award record from USASpending.gov API
 
-    Fields are extracted via regex parsing of the war.gov contract text.
+    Fields are extracted via:
+    - War.gov: Regex parsing of contract text
+    - USASpending: API JSON response mapping
+
     The optional FK to Company links awards to tracked companies.
     """
 
@@ -681,6 +684,39 @@ class DefenseContract(models.Model):
         ("missile_defense", "Missile Defense Agency"),
         ("other", "Other"),
     ]
+    
+    DATA_SOURCE_CHOICES = [
+        ("war_gov", "War.gov (DoD)"),
+        ("usaspending", "USASpending.gov"),
+    ]
+
+    # Data source tracking (NEW for v2.0)
+    data_source = models.CharField(
+        max_length=20,
+        choices=DATA_SOURCE_CHOICES,
+        default="war_gov",
+        help_text="Source of this contract record",
+        db_index=True,
+    )
+    
+    award_id = models.CharField(
+        max_length=100,
+        blank=True,
+        db_index=True,
+        help_text="USASpending Award ID (e.g., W912GY22C0021). Empty for war.gov records.",
+    )
+    
+    generated_internal_id = models.CharField(
+        max_length=255,
+        blank=True,
+        db_index=True,
+        help_text="USASpending generated internal ID for award detail pages (e.g., CONT_AWD_W912GY22C0021_9700_...). Used to construct award URLs. Empty for war.gov records.",
+    )
+    
+    usaspending_published = models.BooleanField(
+        default=False,
+        help_text="Whether this award's detail page is published on USASpending.gov. Always False for war.gov records.",
+    )
 
     # Identifiers
     contract_number = models.CharField(
@@ -690,7 +726,7 @@ class DefenseContract(models.Model):
     )
     source_url = models.URLField(
         max_length=512,
-        help_text="URL of the war.gov article this contract was scraped from"
+        help_text="URL of the source article or USASpending award page"
     )
     article_date = models.DateField(
         help_text="Publication date of the war.gov contracts article"
@@ -715,8 +751,22 @@ class DefenseContract(models.Model):
         max_length=40,
         choices=BRANCH_CHOICES,
         default="other",
-        help_text="Military branch or agency awarding the contract"
+        help_text="Military branch or agency awarding the contract (DoD classification)"
     )
+    
+    # Agency info (NEW for USASpending integration)
+    awarding_agency = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Top-level agency (e.g., Department of Defense, Department of Homeland Security)",
+    )
+    
+    awarding_sub_agency = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Sub-agency or bureau (e.g., Army Corps of Engineers)",
+    )
+    
     amount = models.DecimalField(
         max_digits=15,
         decimal_places=2,
@@ -743,6 +793,13 @@ class DefenseContract(models.Model):
         blank=True,
         help_text="Where the work will be performed (may include percentages)"
     )
+    
+    place_of_performance_state = models.CharField(
+        max_length=2,
+        blank=True,
+        help_text="Two-letter state code for work location (NEW for USASpending)",
+    )
+    
     completion_date = models.CharField(
         max_length=100,
         blank=True,
@@ -768,13 +825,28 @@ class DefenseContract(models.Model):
 
     class Meta:
         ordering = ["-article_date", "branch", "company_name_raw"]
+        verbose_name = "Government Contract"
+        verbose_name_plural = "Government Contracts"
         indexes = [
             models.Index(fields=["article_date"]),
             models.Index(fields=["company_name_raw"]),
             models.Index(fields=["branch"]),
+            models.Index(fields=["data_source", "article_date"]),  # NEW: Filter by source + date
+            models.Index(fields=["awarding_agency"]),  # NEW: Agency filtering
         ]
-        unique_together = [
-            ("source_url", "company_name_raw", "contract_number"),
+        constraints = [
+            # War.gov unique constraint (original)
+            models.UniqueConstraint(
+                fields=["source_url", "company_name_raw", "contract_number"],
+                condition=models.Q(data_source="war_gov"),
+                name="unique_wargov_contract",
+            ),
+            # USASpending unique constraint (NEW)
+            models.UniqueConstraint(
+                fields=["data_source", "award_id"],
+                condition=models.Q(data_source="usaspending") & ~models.Q(award_id=""),
+                name="unique_usaspending_award",
+            ),
         ]
 
     def __str__(self):

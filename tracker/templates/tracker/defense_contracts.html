@@ -1,15 +1,15 @@
 {% extends "base.html" %}
 
-{% block title %}Defense Contract Awards – GmailJobTracker{% endblock %}
+{% block title %}Government Contract Awards – GmailJobTracker{% endblock %}
 
 {% block content %}
 <div class="max-w-7xl mx-auto">
   <!-- Page Header -->
   <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
     <div>
-      <h1 class="text-2xl font-bold text-gray-900">🏛️ Defense Contract Awards</h1>
+      <h1 class="text-2xl font-bold text-gray-900">🏛️ Government Contract Awards</h1>
       <p class="text-sm text-gray-500 mt-1">
-        Source: <a href="https://www.war.gov/News/Contracts/" target="_blank" class="text-blue-600 hover:underline">war.gov/News/Contracts/</a>
+        Sources: <a href="https://www.war.gov/News/Contracts/" target="_blank" class="text-blue-600 hover:underline">DoD (war.gov)</a> · <a href="https://www.usaspending.gov/" target="_blank" class="text-blue-600 hover:underline">USASpending.gov</a>
       </p>
     </div>
     <div class="flex gap-2">
@@ -80,8 +80,21 @@
                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
       </div>
 
-      <!-- Branch Filter -->
+      <!-- Source Filter -->
       <div class="min-w-[160px]">
+        <label for="source" class="block text-xs font-semibold text-gray-600 mb-1">📊 Data Source</label>
+        <select name="source"
+                id="source"
+                onchange="toggleAgencyFilter()"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+          {% for value, label in source_choices %}
+            <option value="{{ value }}" {% if value == source_filter %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Branch Filter (DoD only) -->
+      <div id="branchFilterDiv" class="min-w-[160px]" {% if source_filter == 'usaspending' %}style="display:none;"{% endif %}>
         <label for="branch" class="block text-xs font-semibold text-gray-600 mb-1">🎖️ Branch</label>
         <select name="branch"
                 id="branch"
@@ -89,6 +102,19 @@
           <option value="">All Branches</option>
           {% for code, label in branch_choices %}
             <option value="{{ code }}" {% if code == branch_filter %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Agency Filter (USASpending only) -->
+      <div id="agencyFilterDiv" class="min-w-[200px]" {% if source_filter == 'war_gov' %}style="display:none;"{% endif %}>
+        <label for="agency" class="block text-xs font-semibold text-gray-600 mb-1">🏛️ Agency</label>
+        <select name="agency"
+                id="agency"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="">All Agencies</option>
+          {% for agency in agency_choices %}
+            <option value="{{ agency }}" {% if agency == agency_filter %}selected{% endif %}>{{ agency }}</option>
           {% endfor %}
         </select>
       </div>
@@ -120,18 +146,30 @@
   </form>
 
   <!-- Active Filters -->
-  {% if search_query or branch_filter %}
+  {% if search_query or branch_filter or source_filter != 'all' or agency_filter %}
   <div class="flex flex-wrap gap-2 mb-4">
     {% if search_query %}
     <span class="inline-flex items-center gap-1 bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-1 rounded-full">
       Search: "{{ search_query }}"
-      <a href="{% url 'defense_contracts' %}?branch={{ branch_filter }}&days={{ days_back }}" class="ml-1 hover:text-blue-600">✕</a>
+      <a href="{% url 'defense_contracts' %}?source={{ source_filter }}&branch={{ branch_filter }}&agency={{ agency_filter }}&days={{ days_back }}" class="ml-1 hover:text-blue-600">✕</a>
+    </span>
+    {% endif %}
+    {% if source_filter != 'all' %}
+    <span class="inline-flex items-center gap-1 bg-emerald-100 text-emerald-800 text-xs font-medium px-2.5 py-1 rounded-full">
+      Source: {{ source_filter }}
+      <a href="{% url 'defense_contracts' %}?q={{ search_query }}&branch={{ branch_filter }}&agency={{ agency_filter }}&days={{ days_back }}" class="ml-1 hover:text-emerald-600">✕</a>
     </span>
     {% endif %}
     {% if branch_filter %}
     <span class="inline-flex items-center gap-1 bg-purple-100 text-purple-800 text-xs font-medium px-2.5 py-1 rounded-full">
       Branch: {{ branch_filter }}
-      <a href="{% url 'defense_contracts' %}?q={{ search_query }}&days={{ days_back }}" class="ml-1 hover:text-purple-600">✕</a>
+      <a href="{% url 'defense_contracts' %}?q={{ search_query }}&source={{ source_filter }}&agency={{ agency_filter }}&days={{ days_back }}" class="ml-1 hover:text-purple-600">✕</a>
+    </span>
+    {% endif %}
+    {% if agency_filter %}
+    <span class="inline-flex items-center gap-1 bg-indigo-100 text-indigo-800 text-xs font-medium px-2.5 py-1 rounded-full">
+      Agency: {{ agency_filter }}
+      <a href="{% url 'defense_contracts' %}?q={{ search_query }}&source={{ source_filter }}&branch={{ branch_filter }}&days={{ days_back }}" class="ml-1 hover:text-indigo-600">✕</a>
     </span>
     {% endif %}
   </div>
@@ -157,6 +195,11 @@
                   {{ contract.company_name_raw }}
                 {% endif %}
               </h3>
+              {% if contract.data_source == 'war_gov' %}
+              <span class="inline-flex items-center bg-green-100 text-green-800 text-[0.65rem] font-medium px-1.5 py-0.5 rounded" title="Department of Defense contract from war.gov">DoD</span>
+              {% elif contract.data_source == 'usaspending' %}
+              <span class="inline-flex items-center bg-blue-100 text-blue-800 text-[0.65rem] font-medium px-1.5 py-0.5 rounded" title="Federal contract from USASpending.gov">Federal</span>
+              {% endif %}
               {% if contract.is_small_business %}
               <span class="inline-flex items-center bg-amber-100 text-amber-800 text-[0.65rem] font-medium px-1.5 py-0.5 rounded">SB</span>
               {% endif %}
@@ -183,8 +226,9 @@
           </div>
         </div>
 
-        <!-- Branch Badge -->
-        <div class="mb-2">
+        <!-- Branch/Agency Badge -->
+        <div class="mb-2 flex flex-wrap gap-2">
+          {% if contract.data_source == 'war_gov' and contract.branch %}
           <span class="inline-flex items-center text-[0.7rem] font-semibold px-2 py-0.5 rounded-full
             {% if contract.branch == 'army' %}bg-green-100 text-green-800
             {% elif contract.branch == 'navy' %}bg-blue-100 text-blue-800
@@ -196,6 +240,18 @@
             {% endif %}">
             {{ contract.get_branch_display }}
           </span>
+          {% elif contract.data_source == 'usaspending' %}
+            {% if contract.awarding_agency %}
+            <span class="inline-flex items-center bg-indigo-100 text-indigo-800 text-[0.7rem] font-semibold px-2 py-0.5 rounded-full">
+              🏛️ {{ contract.awarding_agency }}
+            </span>
+            {% endif %}
+            {% if contract.awarding_sub_agency %}
+            <span class="inline-flex items-center bg-violet-100 text-violet-700 text-[0.65rem] font-medium px-1.5 py-0.5 rounded">
+              {{ contract.awarding_sub_agency }}
+            </span>
+            {% endif %}
+          {% endif %}
         </div>
 
         <!-- Description (collapsible) -->
@@ -208,14 +264,28 @@
             {% if contract.work_location %}
             <p class="text-xs"><strong>📍 Work Location:</strong> {{ contract.work_location }}</p>
             {% endif %}
+            {% if contract.place_of_performance_state %}
+            <p class="text-xs"><strong>📍 Performance State:</strong> {{ contract.place_of_performance_state }}</p>
+            {% endif %}
             {% if contract.completion_date %}
             <p class="text-xs"><strong>📅 Completion:</strong> {{ contract.completion_date }}</p>
             {% endif %}
             {% if contract.contracting_activity %}
             <p class="text-xs"><strong>🏢 Contracting Activity:</strong> {{ contract.contracting_activity }}</p>
             {% endif %}
+            {% if contract.award_id %}
+            <p class="text-xs"><strong>🆔 Award ID:</strong> {{ contract.award_id }}</p>
+            {% endif %}
             <p class="text-xs text-gray-400 mt-1">
+              {% if contract.data_source == 'war_gov' %}
               <a href="{{ contract.source_url }}" target="_blank" class="text-blue-500 hover:underline">View on war.gov →</a>
+              {% elif contract.data_source == 'usaspending' %}
+                {% if contract.usaspending_published %}
+                <a href="{{ contract.source_url }}" target="_blank" class="text-blue-500 hover:underline">View on USASpending.gov →</a>
+                {% else %}
+                <span class="text-amber-600">⏳ Not yet available on usaspending.gov</span>
+                {% endif %}
+              {% endif %}
             </p>
           </div>
         </details>
@@ -247,6 +317,32 @@
 
 {% block extra_scripts %}
 <script>
+  /**
+   * Toggle visibility of branch/agency filter dropdowns based on selected source.
+   */
+  function toggleAgencyFilter() {
+    const sourceSelect = document.getElementById('source');
+    const branchDiv = document.getElementById('branchFilterDiv');
+    const agencyDiv = document.getElementById('agencyFilterDiv');
+    const branchSelect = document.getElementById('branch');
+    const agencySelect = document.getElementById('agency');
+    
+    const source = sourceSelect.value;
+    
+    if (source === 'war_gov') {
+      branchDiv.style.display = 'block';
+      agencyDiv.style.display = 'none';
+      agencySelect.value = ''; // Clear agency filter
+    } else if (source === 'usaspending') {
+      branchDiv.style.display = 'none';
+      agencyDiv.style.display = 'block';
+      branchSelect.value = ''; // Clear branch filter
+    } else { // 'all'
+      branchDiv.style.display = 'block';
+      agencyDiv.style.display = 'block';
+    }
+  }
+  
   /**
    * Open a popup window to create a new company from a defense contract.
    * @param {string} name - Company name from the contract

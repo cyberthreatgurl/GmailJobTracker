@@ -2350,12 +2350,10 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
     label = result["label"]
     bool(result.get("ignore", False))
 
-    print("=== PARSE_SUBJECT CALLED ===", flush=True)
-    print(f"DEBUG={DEBUG}", flush=True)
-    logger.debug(f"[DEBUG parse_subject] subject='{subject[:80]}'", flush=True)
-    logger.debug(f"[DEBUG parse_subject] sender='{sender}'", flush=True)
-    logger.debug(f"[DEBUG parse_subject] sender_domain='{sender_domain}'", flush=True)
-    logger.debug(f"[DEBUG parse_subject] label={label}, confidence={confidence}", flush=True)
+    logger.debug(f"[DEBUG parse_subject] subject='{subject[:80]}'")
+    logger.debug(f"[DEBUG parse_subject] sender='{sender}'")
+    logger.debug(f"[DEBUG parse_subject] sender_domain='{sender_domain}'")
+    logger.debug(f"[DEBUG parse_subject] label={label}, confidence={confidence}")
     # --- Initialize variables ---
     company = ""
     job_title = ""

@@ -1167,7 +1167,14 @@ class CompanyResolver:
         self.ats_domains = ats_domains
 
     def extract_from_ats_sender(self, sender: str, sender_domain):
-        """Extract company from ATS sender prefix (e.g., ngc@myworkday.com -> Northrop Grumman).
+        """Extract company from ATS sender display name or email prefix.
+
+        Checks (in order):
+        1. Display name "Person @ Company" pattern
+        2. Display name against known companies list
+        3. Display name against aliases
+        4. Email prefix (before @) against aliases
+        5. Email prefix against known companies
 
         Args:
             sender: Full sender email (with optional display name)
@@ -1176,34 +1183,95 @@ class CompanyResolver:
         Returns:
             Company name if found, None otherwise
         """
-        if not sender_domain:
+        if not sender or not sender_domain:
             return None
 
-        # Check if this is an ATS domain
+        # Check if this is an ATS domain (with subdomain support)
         is_ats = False
         domain_lower = sender_domain.lower()
         for ats_root in self.ats_domains:
             if domain_lower == ats_root or domain_lower.endswith(f".{ats_root}"):
                 is_ats = True
+                logger.debug(f"[DEBUG] ATS domain detected: {domain_lower} matches {ats_root}")
                 break
 
         if not is_ats:
             return None
 
-        # Extract email address from "Display Name <email@domain.com>"
-        _, sender_email = parseaddr(sender)
-        if not sender_email or "@" not in sender_email:
-            return None
+        display_name, sender_email = parseaddr(sender)
 
-        sender_prefix = sender_email.split("@", maxsplit=1)[0].strip().lower()
+        # --- Try display name first (most human-readable) ---
+        if display_name:
+            display_name_clean = display_name.strip()
 
-        # Check if prefix matches an alias
-        aliases_lower = {
-            k.lower(): v for k, v in self.company_data.get("aliases", {}).items()
-        }
-        if sender_prefix in aliases_lower:
-            logger.debug(f"[DEBUG] ATS alias match: {sender_prefix} -> {aliases_lower[sender_prefix]}")
-            return aliases_lower[sender_prefix]
+            # Handle "PersonName @ CompanyName" pattern (e.g., "Quinn @ Mondo")
+            if " @ " in display_name_clean or " at " in display_name_clean.lower():
+                if " @ " in display_name_clean:
+                    parts = display_name_clean.split(" @ ", 1)
+                else:
+                    parts = re.split(
+                        r"\s+at\s+", display_name_clean, maxsplit=1, flags=re.IGNORECASE
+                    )
+                if len(parts) == 2:
+                    person_part = parts[0].strip()
+                    company_part = parts[1].strip()
+                    if (
+                        self.company_validator.looks_like_person(person_part)
+                        and company_part
+                    ):
+                        display_name_clean = company_part
+                        logger.debug(
+                            f"[DEBUG] Extracted company from 'Name @ Company' pattern: "
+                            f"{display_name_clean}"
+                        )
+
+            # Check if display name is a known company
+            if display_name_clean.lower() in {c.lower() for c in self.known_companies}:
+                # Find original casing from known list
+                for orig in self.company_data.get("known", []):
+                    if orig.lower() == display_name_clean.lower():
+                        logger.debug(f"[DEBUG] ATS display name is known company: {orig}")
+                        return orig
+                return display_name_clean
+
+            # Check if display name matches an alias
+            aliases_lower = {
+                k.lower(): v
+                for k, v in self.company_data.get("aliases", {}).items()
+            }
+            if display_name_clean.lower() in aliases_lower:
+                canonical = aliases_lower[display_name_clean.lower()]
+                logger.debug(
+                    f"[DEBUG] ATS display name alias match: "
+                    f"{display_name_clean} -> {canonical}"
+                )
+                return canonical
+
+        # --- Try email prefix (e.g., ngc@myworkday.com -> "ngc") ---
+        if sender_email and "@" in sender_email:
+            sender_prefix = sender_email.split("@", maxsplit=1)[0].strip().lower()
+            # Handle + in email addresses (e.g., peraton+autoreply -> peraton)
+            if "+" in sender_prefix:
+                sender_prefix = sender_prefix.split("+", maxsplit=1)[0]
+
+            # Check if prefix matches an alias
+            aliases_lower = {
+                k.lower(): v
+                for k, v in self.company_data.get("aliases", {}).items()
+            }
+            if sender_prefix in aliases_lower:
+                logger.debug(
+                    f"[DEBUG] ATS alias match: {sender_prefix} -> "
+                    f"{aliases_lower[sender_prefix]}"
+                )
+                return aliases_lower[sender_prefix]
+
+            # Check if prefix is a known company
+            if sender_prefix in {c.lower() for c in self.known_companies}:
+                for orig in self.company_data.get("known", []):
+                    if orig.lower() == sender_prefix:
+                        logger.debug(f"[DEBUG] ATS prefix is known company: {orig}")
+                        return orig
 
         return None
 
@@ -1307,6 +1375,8 @@ class CompanyResolver:
     def extract_from_ats_display_name(self, sender: str, check_known: bool = False):
         """Extract company from ATS display name with validation.
 
+        Handles "Person @ Company" pattern and strips ATS noise words/suffixes.
+
         Args:
             sender: Full sender string with display name
             check_known: If True, only return if company is known or looks like a company
@@ -1318,15 +1388,41 @@ class CompanyResolver:
             return None
 
         display_name, _ = parseaddr(sender)
+        cleaned = display_name
+
+        # Handle "PersonName @ CompanyName" pattern (e.g., "Quinn @ Mondo")
+        if " @ " in cleaned or re.search(r"\s+at\s+", cleaned, re.IGNORECASE):
+            if " @ " in cleaned:
+                parts = cleaned.split(" @ ", 1)
+            else:
+                parts = re.split(
+                    r"\s+at\s+", cleaned, maxsplit=1, flags=re.IGNORECASE
+                )
+            if len(parts) == 2:
+                person_part = parts[0].strip()
+                company_part = parts[1].strip()
+                if (
+                    self.company_validator.looks_like_person(person_part)
+                    and company_part
+                ):
+                    cleaned = company_part
+                    logger.debug(
+                        f"[DEBUG] Extracted company from 'Name @ Company' pattern: "
+                        f"{cleaned}"
+                    )
 
         # Clean up ATS-specific noise words (from companies.json config)
         noise_words = self.domain_mapper.display_name_noise_words
-        noise_pattern = r"\b(" + "|".join(re.escape(w) for w in noise_words) + r")\b"
-        cleaned = re.sub(noise_pattern, "", display_name, flags=re.I).strip()
+        noise_pattern = (
+            r"\b(" + "|".join(re.escape(w) for w in noise_words) + r")\b"
+        )
+        cleaned = re.sub(noise_pattern, "", cleaned, flags=re.I).strip()
 
         # Remove ATS platform suffixes (from companies.json config)
         suffixes = self.domain_mapper.ats_platform_suffixes
-        suffix_pattern = r"\s*@\s*(" + "|".join(re.escape(s) for s in suffixes) + r")\s*$"
+        suffix_pattern = (
+            r"\s*@\s*(" + "|".join(re.escape(s) for s in suffixes) + r")\s*$"
+        )
         cleaned = re.sub(suffix_pattern, "", cleaned, flags=re.I).strip()
 
         # Clean up multiple spaces
@@ -1366,6 +1462,147 @@ class CompanyResolver:
             return None
 
         return cleaned
+
+    def extract_from_ats_body_patterns(
+        self, body: str, subject: str, sender_domain
+    ):
+        """Extract company from application confirmation text in email body.
+
+        Looks for patterns like:
+        - "position here at COMPANY"
+        - "application for our POSITION at COMPANY"
+        - "interest in COMPANY"
+        - "considering us at COMPANY"
+        Also handles IntelligenceCareers.gov special case.
+
+        Args:
+            body: Email body text (may be HTML)
+            subject: Email subject line
+            sender_domain: Sender's email domain
+
+        Returns:
+            Company name if found, None otherwise
+        """
+        if not body:
+            return None
+
+        domain_lower = (sender_domain or "").lower()
+
+        # Only trigger for subjects with application keywords OR ATS domains
+        subject_has_app_keywords = (
+            "application" in subject.lower()
+            or "applying" in subject.lower()
+            or "applied" in subject.lower()
+        )
+        is_ats = any(
+            domain_lower == ats_root or domain_lower.endswith(f".{ats_root}")
+            for ats_root in self.ats_domains
+        ) if domain_lower else False
+
+        if not (subject_has_app_keywords or is_ats):
+            return None
+
+        logger.debug("[DEBUG] Entering ATS body pattern extraction")
+        body_plain = body
+        try:
+            if "<html" in body.lower() or "<style" in body.lower():
+                soup = BeautifulSoup(body, "html.parser")
+                for tag in soup(["style", "script"]):
+                    tag.decompose()
+                body_plain = soup.get_text(separator=" ", strip=True)
+        except Exception:
+            body_plain = body
+
+        if not body_plain:
+            return None
+
+        logger.debug(
+            f"[DEBUG] Body plain length: {len(body_plain)}, "
+            f"first 200 chars: {body_plain[:200]}"
+        )
+
+        ats_body_patterns = [
+            r"position\s+(?:here\s+)?at\s+([A-Z][A-Za-z0-9\s&.,'-]+?)"
+            r"(?:\.|,|[\r\n]|\s+Thank|\s+you\b)",
+            r"position\s+(?:here\s+)?(?:at|with)\s+"
+            r"([A-Z][A-Za-z0-9\s&.,'-]{2,30})(?:\.|,|[\r\n])",
+            r"application\s+for\s+(?:our|the)\s+.{5,50}?\s+at\s+"
+            r"([A-Z][A-Za-z0-9\s&.,'-]+?)(?:\.|[\r\n])",
+            r"considering\s+us\s+at\s+"
+            r"([A-Z][A-Za-z0-9\s&.,'-]+?)\s+as",
+            r"considering\s+([A-Z][A-Za-z0-9\s&.,'-]+?)\s+as\s+"
+            r"(?:a\s+)?(?:potential|future)\s+employer",
+            r"(?:your\s+)?interest\s+in\s+(?:the\s+)?"
+            r"([A-Z][A-Za-z0-9\s&.,'-]{2,60}?)"
+            r"(?:\s+(?:and\s+(?:apply|applying|applied)"
+            r"|to\s+(?:the\s+)?(?:role|position)"
+            r"|for\s+(?:the\s+)?(?:role|position)"
+            r"|for\s+this\s+job)|\.|!|[\r\n])",
+        ]
+
+        for pattern in ats_body_patterns:
+            ats_match = re.search(pattern, body_plain, re.IGNORECASE)
+            if ats_match:
+                extracted = ats_match.group(1).strip()
+                # Trim common trailing clauses accidentally captured
+                extracted = re.split(
+                    r"\s+(?:and\s+(?:apply|applying|applied)"
+                    r"|to\s+(?:the\s+)?(?:role|position)"
+                    r"|for\s+(?:the\s+)?(?:role|position)"
+                    r"|for\s+this\s+job)\b",
+                    extracted,
+                    maxsplit=1,
+                    flags=re.IGNORECASE,
+                )[0].strip()
+                extracted = re.split(
+                    r",\s*you\b|\s+you\s+(?:still|may|will)\b",
+                    extracted,
+                    maxsplit=1,
+                    flags=re.IGNORECASE,
+                )[0].strip()
+                # Clean up trailing words and punctuation
+                extracted = re.sub(
+                    r"\s+(and|the|a|as|at|for|with|in)$",
+                    "",
+                    extracted,
+                    flags=re.IGNORECASE,
+                ).strip()
+                extracted = extracted.rstrip(".,;:")
+                if (
+                    extracted
+                    and len(extracted) > 1
+                    and self.company_validator.is_valid_company_name(extracted)
+                ):
+                    company = self.company_validator.normalize_company_name(extracted)
+                    logger.debug(
+                        f"[DEBUG] ATS body pattern extraction SUCCESS: {company}"
+                    )
+                    return company
+                else:
+                    logger.debug(
+                        f"[DEBUG] ATS body pattern matched but failed validation: "
+                        f"'{extracted}'"
+                    )
+
+        # Special case: IntelligenceCareers.gov (NSA ATS)
+        if domain_lower == "intelligencecareers.gov" and body:
+            intcareers_pattern = re.search(
+                r"application to (?:the\s+)?"
+                r"([A-Z][A-Za-z0-9\s&.,'-]+?)(?:\s+\(|\!|\.|$)",
+                body_plain,
+                re.IGNORECASE,
+            )
+            if intcareers_pattern:
+                extracted = intcareers_pattern.group(1).strip()
+                extracted = re.sub(r"\s+\(.*?\)\s*$", "", extracted).strip()
+                if extracted and self.company_validator.is_valid_company_name(extracted):
+                    company = self.company_validator.normalize_company_name(extracted)
+                    logger.debug(
+                        f"[DEBUG] IntelligenceCareers.gov agency extraction: {company}"
+                    )
+                    return company
+
+        return None
 
     def extract_from_subject_patterns(self, subject: str):
         """Extract company and job title from subject using regex patterns.
@@ -1452,6 +1689,9 @@ class CompanyResolver:
     def canonicalize_company_name(self, company: str, subject: str) -> str:
         """Map company candidate to canonical known name or alias.
 
+        If no alias/known match found, attempts to extract a cleaner company
+        name from patterns like "... position at CSA" within the candidate.
+
         Args:
             company: Candidate company name
             subject: Subject line for additional matching
@@ -1465,7 +1705,7 @@ class CompanyResolver:
         cand_lower = company.lower()
         subj_lower = subject.lower()
 
-        # Check aliases first
+        # Check aliases first (word boundary matching)
         aliases_lower = {
             k.lower(): v for k, v in self.company_data.get("aliases", {}).items()
         }
@@ -1483,7 +1723,61 @@ class CompanyResolver:
                 logger.debug(f"[DEBUG] Known company matched: {known}")
                 return known
 
+        # Fallback: extract text after "at" / "@" if candidate looks over-captured
+        # e.g. "the Senior Systems Security Engineer position at CSA" -> "CSA"
+        m_at = re.search(r"position at\s+(.+)$", company, re.IGNORECASE)
+        if not m_at:
+            parts = re.split(r"\bat\b|@", company, flags=re.IGNORECASE)
+            candidate_after_at = parts[-1].strip() if len(parts) > 1 else ""
+        else:
+            candidate_after_at = m_at.group(1).strip()
+
+        if candidate_after_at:
+            # Remove leading articles like 'the'
+            candidate_after_at = re.sub(
+                r"^the\s+", "", candidate_after_at, flags=re.IGNORECASE
+            ).strip()
+            # Shorten long captures to first 4 words
+            candidate_short = " ".join(candidate_after_at.split()[:4])
+            if candidate_short and not self.company_validator.looks_like_person(
+                candidate_short
+            ):
+                logger.debug(
+                    f"[DEBUG] Extracted company after 'at': {candidate_short}"
+                )
+                return candidate_short
+
         return company
+
+    def display_name_last_resort(self, sender: str):
+        """Last-resort display name fallback (PRIORITY 7).
+
+        Only used after subject patterns find nothing. Applies looser
+        person-name check: 2-word short names are rejected, others accepted.
+
+        Args:
+            sender: Full sender string with display name
+
+        Returns:
+            Company name if valid, None otherwise
+        """
+        candidate = self.extract_from_ats_display_name(sender, check_known=False)
+        if not candidate:
+            return None
+
+        words = candidate.split()
+        is_likely_person = len(words) == 2 and all(len(w) < 12 for w in words)
+
+        if not is_likely_person or candidate.lower() in {
+            c.lower() for c in self.known_companies
+        }:
+            logger.debug(f"[DEBUG] ATS display name fallback applied: {candidate}")
+            return candidate
+
+        logger.debug(
+            f"[DEBUG] ATS display name rejected (likely person name): {candidate}"
+        )
+        return None
 
 
 class MetadataExtractor:
@@ -1642,9 +1936,14 @@ COMPANIES_PATH = Path(__file__).parent / "json" / "companies.json"
 _company_validator = CompanyValidator(PATTERNS)
 _rule_classifier = RuleClassifier(PATTERNS)
 _domain_mapper = DomainMapper(COMPANIES_PATH)
-# NOTE: CompanyResolver class exists but is not yet wired into parse_subject().
-# It will be connected in Phase 3 (Medium risk). For now the inline logic in
-# parse_subject() is the authoritative code path.
+_company_resolver = CompanyResolver(
+    company_data=_domain_mapper.company_data,
+    domain_mapper=_domain_mapper,
+    company_validator=_company_validator,
+    known_companies=_domain_mapper.known_companies,
+    job_board_domains=_domain_mapper.job_board_domains,
+    ats_domains=_domain_mapper.ats_domains,
+)
 _metadata_extractor = MetadataExtractor(_rule_classifier)
 
 # --- Load personal_domains.json ---
@@ -2379,7 +2678,7 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
     elif organizer_domain and organizer_domain != domain_lower:
         # Prefer organizer domain for meeting invites (more accurate than relay servers)
         if re.search(
-            r"meeting id|passcode|join.*meeting|zoom\.us|teams\.microsoft", body, re.I
+            r"meeting id|passcode|join\s+(?:\S+\s+){0,3}meeting|zoom\.us|teams\.microsoft", body, re.I
         ):
             domain_lower = organizer_domain
             logger.debug(f"[DEBUG] Overriding sender domain with organizer domain for meeting invite: {organizer_domain}")
@@ -2407,7 +2706,7 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
             and "interview" not in subj_lower
             and confidence < 0.65
             and not (
-                body and re.search(r"meeting id|passcode|join.*meeting", body, re.I)
+                body and re.search(r"meeting id|passcode|join\s+(?:\S+\s+){0,3}meeting", body, re.I)
             )
         ):
             logger.debug("[DEBUG] Downgrading label interview_invite -> other (generic meeting, low confidence)")
@@ -2418,7 +2717,7 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
     if label in ("other", "response"):
         has_meeting_details = bool(
             re.search(
-                r"meeting id|passcode|join.*meeting|zoom\.us|meet\.google|teams\.microsoft",
+                r"meeting id|passcode|join\s+(?:\S+\s+){0,3}meeting|zoom\.us|meet\.google|teams\.microsoft",
                 body,
                 re.I,
             )
@@ -2439,313 +2738,42 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
 
     # PRIORITY 1: ATS domain with known sender prefix (most reliable)
     # Support subdomains of known ATS domains (e.g., talent.icims.com -> icims.com)
-    is_ats_domain = False
-    if domain_lower:
-        for ats_root in ATS_DOMAINS:
-            if domain_lower == ats_root or domain_lower.endswith(f".{ats_root}"):
-                is_ats_domain = True
-                logger.debug(f"[DEBUG] ATS domain detected: {domain_lower} matches {ats_root}")
-                break
+    is_ats_domain = _is_ats_domain(domain_lower) if domain_lower else False
     logger.debug(f"[DEBUG] is_ats_domain={is_ats_domain}, company={repr(company)}, sender={repr(sender)}")
     if not company and is_ats_domain and sender:
-        # First try to extract from sender display name (e.g., "Peraton" from "Peraton <peraton@icims.com>")
-        display_name, sender_email = parseaddr(sender)
-        if display_name:
-            display_name_clean = display_name.strip()
-            
-            # Handle "PersonName @ CompanyName" pattern (e.g., "Quinn @ Mondo" -> "Mondo")
-            # The @ separator is a strong signal that this is a "Person @ Company" format
-            if " @ " in display_name_clean or " at " in display_name_clean.lower():
-                # Extract company part after @ or "at"
-                if " @ " in display_name_clean:
-                    parts = display_name_clean.split(" @ ", 1)
-                else:
-                    parts = re.split(r"\s+at\s+", display_name_clean, maxsplit=1, flags=re.IGNORECASE)
-                if len(parts) == 2:
-                    person_part = parts[0].strip()
-                    company_part = parts[1].strip()
-                    # The @ pattern is a strong signal - if first part looks like a person name,
-                    # use the second part as the company (even if it's a short single word)
-                    if looks_like_person(person_part) and company_part:
-                        display_name_clean = company_part
-                        logger.debug(f"[DEBUG] Extracted company from 'Name @ Company' pattern: {display_name_clean}")
-            # Check if display name is a known company
-            if display_name_clean.lower() in {c.lower() for c in KNOWN_COMPANIES}:
-                # Find original casing from known list
-                for orig in _domain_mapper.company_data.get("known", []):
-                    if orig.lower() == display_name_clean.lower():
-                        company = orig
-                        break
-                if not company:
-                    company = display_name_clean
-                logger.debug(f"[DEBUG] ATS display name is known company: {company}")
-            # Check if display name matches an alias
-            elif display_name_clean.lower() in {k.lower() for k in _domain_mapper.company_data.get("aliases", {}).keys()}:
-                aliases_lower = {k.lower(): v for k, v in _domain_mapper.company_data.get("aliases", {}).items()}
-                company = aliases_lower[display_name_clean.lower()]
-                logger.debug(f"[DEBUG] ATS display name alias match: {display_name_clean} -> {company}")
-        # Try to extract from sender email prefix (e.g., ngc@myworkday.com)
-        if not company and sender_email and "@" in sender_email:
-            sender_prefix = sender_email.split("@", maxsplit=1)[0].strip().lower()
-            # Handle + in email addresses (e.g., peraton+autoreply -> peraton)
-            if "+" in sender_prefix:
-                sender_prefix = sender_prefix.split("+", maxsplit=1)[0]
-            # Check if prefix matches an alias
-            aliases_lower = {
-                k.lower(): v for k, v in _domain_mapper.company_data.get("aliases", {}).items()
-            }
-            if sender_prefix in aliases_lower:
-                company = aliases_lower[sender_prefix]
-                logger.debug(f"[DEBUG] ATS alias match: {sender_prefix} -> {company}")
-            # Check if prefix is a known company
-            elif sender_prefix in {c.lower() for c in KNOWN_COMPANIES}:
-                for orig in _domain_mapper.company_data.get("known", []):
-                    if orig.lower() == sender_prefix:
-                        company = orig
-                        break
-                logger.debug(f"[DEBUG] ATS prefix is known company: {company}")
+        company = _company_resolver.extract_from_ats_sender(sender, domain_lower) or ""
     # Job board application confirmations - extract actual employer from body
     # Works for Indeed, LinkedIn, Dice, etc. - any job board where subject contains "Application"
-    if (
-        not company
-        and body
-        and subject
-        and re.search(r"\bapplication\b", subject, re.IGNORECASE)
-    ):
-        # Need to get sender_email if not already extracted above
-        if "sender_email" not in locals() and sender:
+    if not company and body and subject:
+        # Need to get sender_email for job board body extraction
+        if sender:
             _, sender_email = parseaddr(sender)
         else:
             sender_email = ""
-        sender_email_lower = (sender_email or "").lower()
-
-        logger.debug(f"[DEBUG] Checking for job board application confirmation in subject: {subject[:50]}...")
-        # Check if this is a job board domain or matches job board sender patterns
-        job_board_sender_match = any(
-            pattern in sender_email_lower
-            for pattern in _domain_mapper.job_board_sender_patterns
+        extracted = _company_resolver.extract_from_job_board_body(
+            body, subject, sender_email or "", domain_lower
         )
-        is_job_board_confirmation = (
-            domain_lower in JOB_BOARD_DOMAINS
-            or job_board_sender_match
-            or "application" in subject.lower()
-        )
-
-        if is_job_board_confirmation:
-            logger.debug(f"[DEBUG] Job board confirmation detected, attempting body extraction")
-            logger.debug(f"[DEBUG] Body length: {len(body) if body else 0} chars")
-            # Extract plain text body for pattern matching
-            body_plain = body
-            try:
-                if body and ("<html" in body.lower() or "<style" in body.lower()):
-                    soup = BeautifulSoup(body, "html.parser")
-                    for tag in soup(["style", "script"]):
-                        tag.decompose()
-                    body_plain = soup.get_text(separator=" ", strip=True)
-                    logger.debug(f"[DEBUG] Extracted plain text, length: {len(body_plain)} chars")
-            except Exception as e:
-                body_plain = body
-                logger.debug(f"[DEBUG] HTML parsing failed: {e}, using raw body")
-            # Look for "The following items were sent to COMPANY" or "about your application" patterns
-            if body_plain:
-                # Try pattern 1: "sent to COMPANY"
-                job_board_pattern = re.search(
-                    r"(?:the following items were sent to|sent to)\s+([A-Z][A-Za-z0-9\s&.,'-]+?)\s*[.\n]",
-                    body_plain,
-                    re.IGNORECASE,
-                )
-                if job_board_pattern:
-                    logger.debug(f"[DEBUG] Pattern 1 matched: 'sent to COMPANY'")
-                else:
-                    logger.debug(f"[DEBUG] Pattern 1 did not match, trying pattern 2")
-                    # Try pattern 2: "about your application" with company name before it
-                    job_board_pattern = re.search(
-                        r"<strong>\s*<a[^>]+>([A-Z][A-Za-z0-9\s&.,'-]+?)</a>\s*</strong>.*?about your application",
-                        body,
-                        re.IGNORECASE | re.DOTALL,
-                    )
-                    if job_board_pattern:
-                        logger.debug(f"[DEBUG] Pattern 2 matched")
-
-                if job_board_pattern:
-                    extracted = job_board_pattern.group(1).strip()
-                    logger.debug(f"[DEBUG] Raw extracted company: '{extracted}'")
-                    # Clean up common trailing words
-                    extracted = re.sub(
-                        r"\s+(and|About|Your|Application|Details)$",
-                        "",
-                        extracted,
-                        flags=re.IGNORECASE,
-                    ).strip()
-                    # Remove trailing punctuation
-                    extracted = extracted.rstrip(".,;:")
-                    if (
-                        extracted
-                        and len(extracted) > 2
-                        and is_valid_company_name(extracted)
-                    ):
-                        company = extracted
-                        logger.debug(f"[DEBUG] Job board employer extraction SUCCESS: {company}")
-                    else:
-                        logger.debug(
-                            f"[DEBUG] Extracted company failed validation: '{extracted}'"
-                        )
-                else:
-                    logger.debug(f"[DEBUG] No job board pattern matched in body")
-                    # Show a snippet of the body to help debug
-                    snippet_idx = (
-                        body_plain.lower().find("sent to")
-                        if "sent to" in body_plain.lower()
-                        else 0
-                    )
-                    if snippet_idx >= 0:
-                        logger.debug(
-                            f"[DEBUG] Body snippet around 'sent to': ...{body_plain[snippet_idx:snippet_idx+150]}..."
-                        )
-            else:
-                logger.debug(f"[DEBUG] Body plain is empty, cannot extract company")
+        if extracted:
+            company = extracted
     # Generic ATS body patterns - look for company name in application confirmation text
     # Also trigger for ATS domains even without application keywords in subject
-    subject_has_app_keywords = (
-        "application" in subject.lower()
-        or "applying" in subject.lower()
-        or "applied" in subject.lower()
-    )
-    if (
-        not company
-        and body
-        and (subject_has_app_keywords or is_ats_domain)
-    ):
-        logger.debug(f"[DEBUG] Entering ATS body pattern extraction")
-        body_plain = body
-        try:
-            if body and ("<html" in body.lower() or "<style" in body.lower()):
-                soup = BeautifulSoup(body, "html.parser")
-                for tag in soup(["style", "script"]):
-                    tag.decompose()
-                body_plain = soup.get_text(separator=" ", strip=True)
-        except Exception:
-            body_plain = body
-
-        if body_plain:
-            logger.debug(f"[DEBUG] Body plain length: {len(body_plain)}, first 200 chars: {body_plain[:200]}")
-            # Pattern: "application for [POSITION] position here at COMPANY"
-            # Pattern: "application for our [POSITION] position at COMPANY"
-            # Pattern: "your application for [POSITION] at COMPANY"
-            # Pattern: "interest in COMPANY" (Future Technologies, etc.)
-            ats_body_patterns = [
-                r"position\s+(?:here\s+)?at\s+([A-Z][A-Za-z0-9\s&.,'-]+?)(?:\.|,|[\r\n]|\s+Thank|\s+you\b)",
-                r"position\s+(?:here\s+)?(?:at|with)\s+([A-Z][A-Za-z0-9\s&.,'-]{2,30})(?:\.|,|[\r\n])",
-                r"application\s+for\s+(?:our|the)\s+.{5,50}?\s+at\s+([A-Z][A-Za-z0-9\s&.,'-]+?)(?:\.|[\r\n])",
-                r"considering\s+us\s+at\s+([A-Z][A-Za-z0-9\s&.,'-]+?)\s+as",
-                r"considering\s+([A-Z][A-Za-z0-9\s&.,'-]+?)\s+as\s+(?:a\s+)?(?:potential|future)\s+employer",
-                r"(?:your\s+)?interest\s+in\s+(?:the\s+)?([A-Z][A-Za-z0-9\s&.,'-]{2,60}?)(?:\s+(?:and\s+(?:apply|applying|applied)|to\s+(?:the\s+)?(?:role|position)|for\s+(?:the\s+)?(?:role|position)|for\s+this\s+job)|\.|!|[\r\n])",
-            ]
-
-            for pattern in ats_body_patterns:
-                ats_match = re.search(pattern, body_plain, re.IGNORECASE)
-                if ats_match:
-                    extracted = ats_match.group(1).strip()
-                    # Trim common trailing clauses accidentally captured
-                    extracted = re.split(
-                        r"\s+(?:and\s+(?:apply|applying|applied)|to\s+(?:the\s+)?(?:role|position)|for\s+(?:the\s+)?(?:role|position)|for\s+this\s+job)\b",
-                        extracted,
-                        maxsplit=1,
-                        flags=re.IGNORECASE,
-                    )[0].strip()
-                    extracted = re.split(
-                        r",\s*you\b|\s+you\s+(?:still|may|will)\b",
-                        extracted,
-                        maxsplit=1,
-                        flags=re.IGNORECASE,
-                    )[0].strip()
-                    # Clean up trailing words and punctuation
-                    extracted = re.sub(
-                        r"\s+(and|the|a|as|at|for|with|in)$",
-                        "",
-                        extracted,
-                        flags=re.IGNORECASE,
-                    ).strip()
-                    extracted = extracted.rstrip(".,;:")
-                    if (
-                        extracted
-                        and len(extracted) > 1
-                        and is_valid_company_name(extracted)
-                    ):
-                        company = normalize_company_name(extracted)
-                        logger.debug(f"[DEBUG] ATS body pattern extraction SUCCESS: {company}")
-                        break
-                    else:
-                        logger.debug(
-                            f"[DEBUG] ATS body pattern matched but failed validation: '{extracted}'"
-                        )
-
-        # Special case: IntelligenceCareers.gov (NSA ATS) - extract agency from body
-        if not company and domain_lower == "intelligencecareers.gov" and body:
-            # Extract plain text body for pattern matching
-            body_plain = body
-            try:
-                if body and ("<html" in body.lower() or "<style" in body.lower()):
-                    soup = BeautifulSoup(body, "html.parser")
-                    for tag in soup(["style", "script"]):
-                        tag.decompose()
-                    body_plain = soup.get_text(separator=" ", strip=True)
-            except Exception:
-                body_plain = body
-
-            # Look for "application to the AGENCY" or "application to AGENCY" pattern
-            if body_plain:
-                intcareers_pattern = re.search(
-                    r"application to (?:the\s+)?([A-Z][A-Za-z0-9\s&.,'-]+?)(?:\s+\(|\!|\.|$)",
-                    body_plain,
-                    re.IGNORECASE,
-                )
-                if intcareers_pattern:
-                    extracted = intcareers_pattern.group(1).strip()
-                    # Clean up common suffixes
-                    extracted = re.sub(r"\s+\(.*?\)\s*$", "", extracted).strip()
-                    if extracted and is_valid_company_name(extracted):
-                        company = normalize_company_name(extracted)
-                        logger.debug(f"[DEBUG] IntelligenceCareers.gov agency extraction: {company}")
-        # Save display name as a fallback candidate (defer until after subject patterns)
-        ats_display_name_fallback = None
-        if not company:
-            display_name, _ = parseaddr(sender)
-            cleaned = display_name
-            
-            # Handle "PersonName @ CompanyName" pattern (e.g., "Quinn @ Mondo" -> "Mondo")
-            # The @ separator is a strong signal that this is a "Person @ Company" format
-            if " @ " in cleaned or re.search(r"\s+at\s+", cleaned, re.IGNORECASE):
-                if " @ " in cleaned:
-                    parts = cleaned.split(" @ ", 1)
-                else:
-                    parts = re.split(r"\s+at\s+", cleaned, maxsplit=1, flags=re.IGNORECASE)
-                if len(parts) == 2:
-                    person_part = parts[0].strip()
-                    company_part = parts[1].strip()
-                    # The @ pattern is a strong signal - if first part looks like a person name,
-                    # use the second part as the company (even if it's a short single word)
-                    if looks_like_person(person_part) and company_part:
-                        cleaned = company_part
-                        logger.debug(f"[DEBUG] Extracted company from 'Name @ Company' pattern: {cleaned}")
-            cleaned = re.sub(
-                r"\b(Workday|Recruiting Team|Careers|Talent Acquisition Team|HR|Hiring|Notification|Notifications|Team|Portal)\b",
-                "",
-                cleaned,
-                flags=re.I,
-            ).strip()
-            # Remove ATS platform suffixes (e.g., "@ icims", "@ Workday", etc.)
-            cleaned = re.sub(
-                r"\s*@\s*(icims|workday|greenhouse|lever|indeed)\s*$",
-                "",
-                cleaned,
-                flags=re.I,
-            ).strip()
-            # Clean up multiple spaces
-            cleaned = re.sub(r"\s+", " ", cleaned).strip()
-            if cleaned and len(cleaned) > 2:
-                ats_display_name_fallback = cleaned
-                logger.debug(f"[DEBUG] ATS display name candidate: {cleaned} (will use if subject patterns fail)")
+    if not company and body:
+        extracted = _company_resolver.extract_from_ats_body_patterns(
+            body, subject, domain_lower
+        )
+        if extracted:
+            company = extracted
+    # Save display name as a fallback candidate (defer until after subject patterns)
+    ats_display_name_fallback = None
+    if not company and sender:
+        ats_display_name_fallback = _company_resolver.extract_from_ats_display_name(
+            sender, check_known=False
+        )
+        if ats_display_name_fallback:
+            logger.debug(
+                f"[DEBUG] ATS display name candidate: {ats_display_name_fallback} "
+                f"(will use if subject patterns fail)"
+            )
     # PRIORITY 2: Domain mapping (direct company domains) with subdomain support
     # Skip if domain is (or is under) a known ATS platform; ATS handled separately above.
     company_from_domain = False
@@ -2774,43 +2802,13 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
 
     # PRIORITY 3.5: ATS display name (if known company or clearly not a person name)
     # Use this before generic subject patterns to avoid matching locations like "at Hampton, VA"
-    if (
-        not company
-        and "ats_display_name_fallback" in locals()
-        and ats_display_name_fallback
-    ):
-        # Check if it's a known company
-        if ats_display_name_fallback.lower() in {c.lower() for c in KNOWN_COMPANIES}:
-            company = ats_display_name_fallback
-            logger.debug(f"[DEBUG] ATS display name used (known company): {company}")
-        else:
-            # Check if it looks like a company (not a typical person name)
-            words = ats_display_name_fallback.split()
-            # Person names: typically 2-3 short words, all title case
-            # Companies: often contain "Corporation", "LLC", "Inc", or longer names
-            is_likely_company = (
-                len(words) >= 3  # 3+ words likely company
-                or any(
-                    w in ats_display_name_fallback
-                    for w in [
-                        "Corporation",
-                        "Inc",
-                        "LLC",
-                        "Ltd",
-                        "Group",
-                        "Technologies",
-                        "Systems",
-                    ]
-                )
-                or any(len(w) > 12 for w in words)  # Long words suggest company
-            )
-            if is_likely_company:
-                company = ats_display_name_fallback
-                logger.debug(f"[DEBUG] ATS display name used (company-like): {company}")
-            else:
-                logger.debug(
-                    f"[DEBUG] ATS display name deferred (may be person name): {ats_display_name_fallback}"
-                )
+    if not company and ats_display_name_fallback:
+        validated = _company_resolver.extract_from_ats_display_name(
+            sender, check_known=True
+        )
+        if validated:
+            company = validated
+            logger.debug(f"[DEBUG] ATS display name used (validated): {company}")
 
     # PRIORITY 4: Entity extraction (spaCy NER)
     if not company:
@@ -2825,141 +2823,21 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
         if m:
             company = m.group(1).strip()
 
-    # PRIORITY 6: Regex patterns
-    # Note: Patterns use limited word capture (1-3 words max for company names) to avoid over-matching
-    # Example: "Proofpoint - We have received your application" should extract "Proofpoint", not the whole phrase
-    subject_patterns = [
-        # Prefer stopping at separators like " application" or " -" to avoid over-capture
-        (
-            r"^([A-Z][a-zA-Z]+(?:\s+(?:[A-Z][a-zA-Z]+|&[A-Z]?))*?)(?:\s+application|\s+-)",
-            re.IGNORECASE,
-        ),
-        (
-            r"application (?:to|for|with)\s+([A-Z][\w&-]+(?:\s+[\w&-]+){0,2})\b",
-            re.IGNORECASE,
-        ),
-        (r"(?:from|with|at)\s+([A-Z][\w&-]+(?:\s+[\w&-]+){0,2})\b", re.IGNORECASE),
-        (
-            r"position\s+@\s+([A-Z][\w&-]+(?:\s+[\w&-]+){0,2})\b",
-            re.IGNORECASE,
-        ),  # catches "position @ Claroty"
-        (
-            r"^([A-Z][\w&-]+(?:\s+[\w&-]+){0,2}?)\s+(?:Job|Application|Interview)\b",
-            re.IGNORECASE,
-        ),  # Max 3 words, non-greedy
-        (
-            r"-\s*([A-Z][\w&-]+(?:\s+[\w&-]+){0,2}?)\s*-\s*",
-            0,
-        ),  # Between dashes, max 3 words
-        (
-            r"-\s+([A-Z][\w&-]+(?:\s+[\w&-]+){0,2})$",
-            0,
-        ),  # Trailing company after final dash (e.g., "... - Millennium Corporation")
-        # (moved earlier)
-        (
-            r"(?:your application with|application with|interest in|position at)\s+([A-Z][\w&-]+(?:\s+[\w&-]+){0,2})\b",
-            re.IGNORECASE,
-        ),
-        (
-            r"update on your ([A-Z][\w&-]+(?:\s+[\w&-]+){0,2}) application\b",
-            re.IGNORECASE,
-        ),
-        (
-            r"thank you for your application with\s+([A-Z][\w&-]+(?:\s+[\w&-]+){0,2})\b",
-            re.IGNORECASE,
-        ),
-        (
-            r"thank you for applying to\s+([A-Z][\w&-]+(?:\s+[\w&-]+){0,2})\b",
-            re.IGNORECASE,
-        ),
-        (
-            r"applying to\s+([A-Z][\w&-]+(?:\s+[\w&-]+){0,2})\b",
-            re.IGNORECASE,
-        ),
-        (r"@\s*([A-Z][\w&-]+(?:\s+[\w&-]+){0,2})\b", re.IGNORECASE),
-        # Removed the problematic pattern that was matching "Re:" - now handled by prefix stripping above
-        (
-            r"applying for ([\w\s\-]{1,50}) position @ ([A-Z][\w&-]+(?:\s+[\w&-]+){0,2})\b",
-            re.IGNORECASE,
-        ),  # special case
-    ]
-    # Handle special case: "applying for Field CTO position @ Claroty"
-    special_match = re.search(
-        r"applying for ([\w\s\-]+) position @ ([A-Z][\w\s&\-]+)", subject_clean
-    )
-    if special_match:
-        job_title = special_match.group(1).strip()
-        company = special_match.group(2).strip()
-
+    # PRIORITY 6: Regex patterns (delegated to CompanyResolver)
     # Skip subject pattern matching if we already have a reliable domain-mapped company
     # (prevents subject patterns from overwriting domain mappings with false positives)
-    if not company_from_domain:
-        for pat, flags in subject_patterns:
-            if not company:
-                match = re.search(pat, subject_clean, flags)
-                if match:
-                    candidate = normalize_company_name(match.group(1).strip())
-                    # Person-name safeguard specifically for the generic from/with/at capture or leading patterns
-                    if looks_like_person(candidate) and candidate.lower() not in {
-                        c.lower() for c in KNOWN_COMPANIES
-                    }:
-                        logger.debug(f"[DEBUG] Rejected candidate company as person name: {candidate}")
-                        continue
-                    company = candidate
+    if not company_from_domain and not company:
+        subj_company, subj_title = _company_resolver.extract_from_subject_patterns(
+            subject_clean
+        )
+        if subj_company:
+            company = subj_company
+        if subj_title and not job_title:
+            job_title = subj_title
 
-    # Prefer canonical known company names when candidate contains them as substrings
-    # (handles cases like "the Senior Systems Security Engineer position at CSA")
+    # Canonicalize: prefer known company names / aliases over raw regex captures
     if company:
-        # Try to find a known company or alias inside the candidate or subject
-        found = False
-        cand_lower = company.lower()
-        subj_lower = subject_clean.lower()
-        # Check aliases first (map lower->canonical)
-        aliases_lower = {
-            k.lower(): v for k, v in _domain_mapper.company_data.get("aliases", {}).items()
-        }
-        for alias_lower, canonical in aliases_lower.items():
-            # Use word boundary matching to avoid false matches like "arc" in "research"
-            alias_pattern = r"\b" + re.escape(alias_lower) + r"\b"
-            if re.search(alias_pattern, cand_lower) or re.search(
-                alias_pattern, subj_lower
-            ):
-                company = canonical
-                found = True
-                logger.debug(f"[DEBUG] Company alias matched: {alias_lower} -> {canonical}")
-                break
-        # Next check known companies list for substrings
-        if not found and KNOWN_COMPANIES:
-            for known in _domain_mapper.company_data.get("known", []):
-                if known.lower() in cand_lower or known.lower() in subj_lower:
-                    company = known
-                    found = True
-                    logger.debug(f"[DEBUG] Known company matched inside candidate/subject: {known}")
-                    break
-
-        # If still not found, handle patterns like "... position at CSA" by extracting text after ' at '
-        if not found:
-            m_at = re.search(r"position at\s+(.+)$", company, re.IGNORECASE)
-            if not m_at:
-                parts = re.split(r"\bat\b|@", company, flags=re.IGNORECASE)
-                if len(parts) > 1:
-                    candidate_after_at = parts[-1].strip()
-                else:
-                    candidate_after_at = ""
-            else:
-                candidate_after_at = m_at.group(1).strip()
-
-            if candidate_after_at:
-                # Remove leading articles like 'the'
-                candidate_after_at = re.sub(
-                    r"^the\s+", "", candidate_after_at, flags=re.IGNORECASE
-                ).strip()
-                # Shorten long captures to first 4 words
-                candidate_short = " ".join(candidate_after_at.split()[:4])
-                # If this shorter candidate looks like a company, use it
-                if candidate_short and not looks_like_person(candidate_short):
-                    logger.debug(f"[DEBUG] Extracted company after 'at': {candidate_short}")
-                    company = candidate_short
+        company = _company_resolver.canonicalize_company_name(company, subject_clean)
 
     # 🧼 Sanity checks
     if company and re.search(
@@ -2995,25 +2873,10 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
         company = ""
 
     # PRIORITY 7: ATS display name fallback (only if subject patterns found nothing)
-    if (
-        not company
-        and "ats_display_name_fallback" in locals()
-        and ats_display_name_fallback
-    ):
-        # Additional validation: check if it's a known company or looks like a person name
-        # Person names usually have 2-3 short words (first/last name)
-        words = ats_display_name_fallback.split()
-        is_likely_person = len(words) == 2 and all(len(w) < 12 for w in words)
-
-        if not is_likely_person or ats_display_name_fallback.lower() in {
-            c.lower() for c in KNOWN_COMPANIES
-        }:
-            company = ats_display_name_fallback
-            logger.debug(f"[DEBUG] ATS display name fallback applied: {company}")
-        else:
-            logger.debug(
-                f"[DEBUG] ATS display name rejected (likely person name): {ats_display_name_fallback}"
-            )
+    if not company and sender:
+        fallback = _company_resolver.display_name_last_resort(sender)
+        if fallback:
+            company = fallback
 
     # Job title fallback
     if not job_title:
@@ -3453,11 +3316,14 @@ def ingest_message(service, msg_id):
 
     # Upgrade: Calendar meeting invites with meeting details should be interview_invite
     # if they're from a company and have meeting/interview/call language
-    # Also check job_application since rules may have overridden based on subject alone
-    if result and result.get("label") in ("other", "response", "job_application"):
+    # NOTE: Do NOT include job_application here — application confirmations
+    # (e.g. "Thanks for applying") must never be upgraded to interview_invite,
+    # especially when the body contains resume text with incidental words like
+    # "meeting" or "joint" that can trigger false positives.
+    if result and result.get("label") in ("other", "response"):
         has_meeting_details = bool(
             re.search(
-                r"meeting id|passcode|join.*meeting|zoom\.us|meet\.google|teams\.microsoft|ms teams|microsoft teams",
+                r"meeting id|passcode|join\s+(?:\S+\s+){0,3}meeting|zoom\.us|meet\.google|teams\.microsoft|ms teams|microsoft teams",
                 body,
                 re.I,
             )

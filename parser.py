@@ -3112,6 +3112,694 @@ def _resolve_company_obj(company_name, metadata, confidence=0.0, *, log_prefix="
     return company_obj, canonical
 
 
+def _check_duplicates(msg_id, subject, metadata, company_source, stats, body_hash):
+    """Check for duplicate messages using body hash, exact match, and near-duplicate detection.
+
+    Three-tier check:
+    1. Body hash match (most reliable — catches exact content duplicates)
+    2. Exact timestamp match (for messages with empty/malformed bodies)
+    3. Near-duplicate (within 5-second window for quick re-sends)
+
+    Returns "ignored" if duplicate found, None otherwise.
+    """
+    ts = metadata["timestamp"]
+    sender_domain = (
+        metadata["sender"].split("@")[-1] if "@" in metadata["sender"] else ""
+    )
+    ignored_defaults = {
+        "subject": subject,
+        "body": metadata["body"],
+        "company_source": company_source or "",
+        "sender": metadata["sender"],
+        "sender_domain": sender_domain,
+        "date": ts,
+    }
+
+    # First check: Body hash match
+    if body_hash:
+        hash_dup = Message.objects.filter(body_hash=body_hash).first()
+        if hash_dup:
+            logger.debug(f"⚠️ BODY HASH duplicate detected: subject='{subject[:60]}...'")
+            logger.debug(f"   Existing msg_id: {hash_dup.msg_id}, New msg_id: {msg_id}")
+            logger.debug(f"   Body hash: {body_hash[:16]}...")
+            IgnoredMessage.objects.get_or_create(
+                msg_id=msg_id,
+                defaults={**ignored_defaults, "reason": "duplicate_body_hash"},
+            )
+            _increment_stat(stats, "total_ignored")
+            return "ignored"
+
+    # Second check: Exact timestamp match
+    exact_dup = Message.objects.filter(
+        subject=subject, sender=metadata["sender"], timestamp=ts
+    ).first()
+    if exact_dup:
+        logger.debug(f"⚠️ EXACT duplicate detected: subject='{subject}', sender='{metadata['sender']}', ts={ts}")
+        logger.debug(f"   Existing msg_id: {exact_dup.msg_id}, New msg_id: {msg_id}")
+        IgnoredMessage.objects.get_or_create(
+            msg_id=msg_id,
+            defaults={**ignored_defaults, "reason": "duplicate_exact"},
+        )
+        _increment_stat(stats, "total_ignored")
+        return "ignored"
+
+    # Third check: Near-duplicate (within 5-second window)
+    window_start = ts - timedelta(seconds=5)
+    window_end = ts + timedelta(seconds=5)
+    near_dup = Message.objects.filter(
+        subject=subject,
+        sender=metadata["sender"],
+        timestamp__gte=window_start,
+        timestamp__lte=window_end,
+    ).first()
+    if near_dup:
+        logger.debug(f"⚠️ Near duplicate detected: subject='{subject}', sender='{metadata['sender']}'")
+        logger.debug(f"   Existing timestamp: {near_dup.timestamp}, New timestamp: {ts}")
+        logger.debug(f"   Delta: {abs((near_dup.timestamp - ts).total_seconds())} seconds")
+        IgnoredMessage.objects.get_or_create(
+            msg_id=msg_id,
+            defaults={**ignored_defaults, "reason": "duplicate_near"},
+        )
+        _increment_stat(stats, "total_ignored")
+        return "ignored"
+
+    return None
+
+
+def _create_or_update_thread_tracking(
+    msg_id, metadata, result, company_obj, company_source,
+    parsed_subject, status_dates, status, reviewed, stats
+):
+    """Create or update ThreadTracking records after Message creation.
+
+    Handles:
+    - ML-derived date fallbacks (rejection/interview/prescreen dates)
+    - ThreadTracking creation for applications, interviews, prescreens
+    - ThreadTracking updates for existing records (rejection/interview updates)
+    - Fallback company recovery from Message when company_obj is missing
+    - Headhunter guard (skip ThreadTracking for headhunter sources)
+    - TF-IDF job-title matching for rejections without matching threads
+    """
+    ml_label = result.get("label") if result else None
+    rejection_date_final = status_dates["rejection_date"]
+    interview_date_final = status_dates["interview_date"]
+
+    # Treat both 'rejection' and 'rejected' as rejection outcomes
+    # Also treat 'cancelled' as a rejection (position was cancelled)
+    if not rejection_date_final and ml_label in ("rejected", "rejection", "cancelled"):
+        rejection_date_final = timezone.localtime(metadata["timestamp"]).date()
+        logger.debug(f"✓ Set rejection_date from ML label: {rejection_date_final}")
+    # If ML indicates an interview and confidence is sufficient, set a conservative interview_date
+    if not interview_date_final and ml_label and "interview" in str(ml_label).lower():
+        try:
+            ml_conf = float(result.get("confidence", 0.0)) if result else 0.0
+        except Exception:
+            ml_conf = 0.0
+        if ml_conf >= 0.7:
+            interview_date_final = timezone.localtime(metadata["timestamp"]).date()
+            logger.debug(f"✓ Set interview_date from ML label (message date): {interview_date_final}")
+    # If ML indicates a prescreen, set prescreen_date from message timestamp
+    prescreen_date_final = None
+    if ml_label == "prescreen":
+        prescreen_date_final = timezone.localtime(metadata["timestamp"]).date()
+        logger.debug(f"✓ Set prescreen_date from ML label: {prescreen_date_final}")
+
+    try:
+        message_obj = Message.objects.get(msg_id=msg_id)
+
+        # Guard: If company_obj is missing but message was created, log it
+        if not company_obj:
+            logger.debug(f"⚠️  Warning: Message created without company_obj for {msg_id}")
+            logger.debug(f"   Subject: {metadata.get('subject', '')[:60]}")
+            logger.debug(f"   ML Label: {ml_label}")
+            logger.debug(f"   ThreadTracking creation will be skipped")
+        if not message_obj:
+            logger.debug(f"⚠️  Warning: Could not retrieve Message object for {msg_id}")
+            logger.debug(f"   ThreadTracking creation will be skipped")
+
+        if company_obj and message_obj:
+            _update_thread_tracking_for_company(
+                metadata, result, company_obj, company_source, parsed_subject,
+                status, reviewed, stats, ml_label,
+                rejection_date_final, interview_date_final, prescreen_date_final
+            )
+        else:
+            _fallback_thread_tracking_creation(
+                msg_id, metadata, result, company_obj, company_source,
+                parsed_subject, status, reviewed, stats, ml_label,
+                rejection_date_final, interview_date_final, prescreen_date_final
+            )
+
+    except Exception as e:
+        logger.debug(f"❌ Failed to create ThreadTracking: {e}", exc_info=True)
+        _increment_stat(stats, "total_skipped")
+
+
+def _update_thread_tracking_for_company(
+    metadata, result, company_obj, company_source, parsed_subject,
+    status, reviewed, stats, ml_label,
+    rejection_date_final, interview_date_final, prescreen_date_final
+):
+    """Create/update ThreadTracking when both company and message are available."""
+    sender_domain = (metadata.get("sender_domain") or "").lower()
+    skip_application_creation = _is_headhunter_source(
+        sender_domain, company_obj, HEADHUNTER_DOMAINS, ml_label=ml_label
+    )
+
+    if skip_application_creation:
+        logger.debug("↩️ Skipping ThreadTracking creation for headhunter source/company")
+        return
+
+    if ml_label in ("job_application", "interview_invite", "prescreen", "cancelled"):
+        _create_thread_tracking_for_application(
+            metadata, result, company_obj, company_source, parsed_subject,
+            status, reviewed, stats, ml_label,
+            rejection_date_final, interview_date_final, prescreen_date_final
+        )
+    else:
+        _update_existing_thread_tracking(
+            metadata, result, company_obj, company_source, parsed_subject,
+            stats, ml_label,
+            rejection_date_final, interview_date_final, prescreen_date_final
+        )
+
+
+def _create_thread_tracking_for_application(
+    metadata, result, company_obj, company_source, parsed_subject,
+    status, reviewed, stats, ml_label,
+    rejection_date_final, interview_date_final, prescreen_date_final
+):
+    """Create ThreadTracking for application/interview/prescreen/cancelled labels."""
+    application_obj, created = ThreadTracking.objects.get_or_create(
+        thread_id=metadata["thread_id"],
+        defaults={
+            "company": company_obj,
+            "company_source": company_source,
+            "job_title": parsed_subject.get("job_title", ""),
+            "job_id": parsed_subject.get("job_id", ""),
+            "status": status,
+            "sent_date": timezone.localtime(metadata["timestamp"]).date(),
+            "rejection_date": rejection_date_final,
+            "interview_date": interview_date_final,
+            "prescreen_date": prescreen_date_final,
+            "ml_label": ml_label,
+            "ml_confidence": (
+                float(result.get("confidence", 0.0)) if result else 0.0
+            ),
+            "reviewed": reviewed,
+            "cancelled": ml_label == "cancelled",
+        },
+    )
+
+    if not created:
+        _update_existing_application_dates(
+            application_obj, company_obj, company_source, result, metadata,
+            ml_label, rejection_date_final, interview_date_final, prescreen_date_final
+        )
+
+    if created:
+        logger.debug("Stats: inserted++ (new application)")
+        _increment_stat(stats, "total_inserted")
+    else:
+        logger.debug("Stats: ignored++ (duplicate application)")
+        _increment_stat(stats, "total_ignored")
+
+
+def _update_existing_thread_tracking(
+    metadata, result, company_obj, company_source, parsed_subject,
+    stats, ml_label,
+    rejection_date_final, interview_date_final, prescreen_date_final
+):
+    """Update existing ThreadTracking for non-application labels (rejection, offer, etc.)."""
+    try:
+        application_obj = ThreadTracking.objects.get(
+            thread_id=metadata["thread_id"]
+        )
+        _update_existing_application_dates(
+            application_obj, company_obj, company_source, result, metadata,
+            ml_label, rejection_date_final, interview_date_final, prescreen_date_final
+        )
+    except ThreadTracking.DoesNotExist:
+        # No ThreadTracking with this thread_id - for rejections, try to find by company
+        if ml_label in ("rejected", "rejection", "cancelled") and company_obj:
+            _find_and_update_rejection_by_company(
+                metadata, company_obj, parsed_subject,
+                rejection_date_final
+            )
+        else:
+            logger.debug(
+                "ℹ️ No existing ThreadTracking for this thread; not creating because this is not a job_application email"
+            )
+
+
+def _update_existing_application_dates(
+    application_obj, company_obj, company_source, result, metadata,
+    ml_label, rejection_date_final, interview_date_final, prescreen_date_final
+):
+    """Update dates/company on an existing ThreadTracking record."""
+    updated = False
+    if application_obj.company != company_obj and company_obj is not None:
+        application_obj.company = company_obj
+        application_obj.company_source = company_source
+        updated = True
+        logger.debug(f"✓ Updated application company: {company_obj.name}")
+    if (
+        not application_obj.rejection_date
+        and ml_label in ("rejected", "rejection", "cancelled")
+    ):
+        application_obj.rejection_date = rejection_date_final
+        application_obj.status = "rejected"
+        # Check for cancelled position indicators in email text
+        if is_cancelled_position(metadata.get("subject", ""), metadata.get("body", "")):
+            application_obj.cancelled = True
+        updated = True
+    if not application_obj.interview_date and ml_label == "interview_invite":
+        application_obj.interview_date = interview_date_final
+        updated = True
+    if not application_obj.prescreen_date and ml_label == "prescreen":
+        application_obj.prescreen_date = prescreen_date_final
+        updated = True
+    if updated:
+        application_obj.save()
+        logger.debug("✓ Updated existing application with ML-derived dates")
+
+
+def _find_and_update_rejection_by_company(
+    metadata, company_obj, parsed_subject, rejection_date_final
+):
+    """Find ThreadTracking by company (TF-IDF matching) and update with rejection."""
+    job_title = parsed_subject.get("job_title", "") if isinstance(parsed_subject, dict) else ""
+    if not job_title:
+        job_title = extract_job_title_from_body(metadata.get("body", ""))
+    existing_tt = find_best_matching_application(
+        company_obj, job_title, metadata.get("subject", "")
+    )
+    if existing_tt:
+        if not existing_tt.rejection_date:
+            existing_tt.rejection_date = rejection_date_final
+        existing_tt.status = "rejected"
+        if is_cancelled_position(metadata.get("subject", ""), metadata.get("body", "")):
+            existing_tt.cancelled = True
+            logger.debug("✓ Detected 'cancelled' in email text, setting cancelled=True")
+        existing_tt.save()
+        logger.debug(f"✓ Updated existing ThreadTracking for {company_obj.name} (job: '{existing_tt.job_title}') with rejection_date={rejection_date_final}")
+    else:
+        logger.debug(f"ℹ️ No existing ThreadTracking found for {company_obj.name} to update with rejection")
+
+
+def _fallback_thread_tracking_creation(
+    msg_id, metadata, result, company_obj, company_source,
+    parsed_subject, status, reviewed, stats, ml_label,
+    rejection_date_final, interview_date_final, prescreen_date_final
+):
+    """Attempt fallback ThreadTracking creation when company_obj or message_obj is missing."""
+    if ml_label in ("job_application", "interview_invite", "prescreen") and not company_obj:
+        logger.debug("⚠️  job_application/interview_invite/prescreen without company - attempting fallback")
+        try:
+            fallback_msg = Message.objects.get(msg_id=msg_id)
+            if fallback_msg.company:
+                company_obj = fallback_msg.company
+                company_source = fallback_msg.company_source
+                logger.debug(f"✓ Retrieved company from Message: {company_obj.name}")
+                application_obj, created = ThreadTracking.objects.get_or_create(
+                    thread_id=metadata["thread_id"],
+                    defaults={
+                        "company": company_obj,
+                        "company_source": company_source,
+                        "job_title": parsed_subject.get("job_title", ""),
+                        "job_id": parsed_subject.get("job_id", ""),
+                        "status": status,
+                        "sent_date": timezone.localtime(metadata["timestamp"]).date(),
+                        "rejection_date": rejection_date_final,
+                        "interview_date": interview_date_final,
+                        "prescreen_date": prescreen_date_final,
+                        "ml_label": ml_label,
+                        "ml_confidence": (
+                            float(result.get("confidence", 0.0))
+                            if result
+                            else 0.0
+                        ),
+                        "reviewed": reviewed,
+                        "cancelled": ml_label == "cancelled",
+                    },
+                )
+                if created:
+                    logger.debug(
+                        f"✓ Created ThreadTracking via fallback for {company_obj.name}"
+                    )
+            else:
+                logger.debug("⚠️  Message exists but also has no company - cannot create ThreadTracking")
+        except Message.DoesNotExist:
+            logger.debug("⚠️  Fallback failed: Message not found")
+    logger.debug("Stats: skipped++ (missing company/message)")
+    _increment_stat(stats, "total_skipped")
+
+
+def _handle_reingest(
+    existing, msg_id, metadata, result, company_obj, company_source, company,
+    skip_company_assignment, parsed_subject, stats
+):
+    """Handle re-ingestion of an existing message.
+
+    Updates the existing Message record with new ML classification, company resolution,
+    and propagates changes to ThreadTracking. Preserves manual review state unless
+    OVERWRITE_REVIEWED env var is set.
+
+    Handles:
+    - User-sent message detection (initiated vs reply/forward)
+    - Personal domain noise classification
+    - Headhunter enforcement
+    - Forwarded message detection
+    - Auto-review criteria
+    - Reviewed message protection (snapshot/restore)
+    - Company domain/ATS updates
+    - ThreadTracking date propagation
+
+    Returns "skipped" always.
+    """
+    # Snapshot original fields so we can avoid overwriting reviewed messages
+    orig_ml_label = existing.ml_label
+    orig_confidence = getattr(existing, "confidence", None)
+    orig_company = getattr(existing, "company", None)
+    orig_company_source = getattr(existing, "company_source", None)
+    orig_reviewed = getattr(existing, "reviewed", False)
+
+    overwrite_reviewed = os.environ.get("OVERWRITE_REVIEWED", "").lower() in (
+        "1", "true", "yes",
+    )
+    logger.debug(f"Updating existing message: {msg_id}")
+    logger.debug("Stats: skipped++ (re-ingest)")
+
+    # Extract user email info for user-sent detection
+    user_email = (os.environ.get("USER_EMAIL_ADDRESS") or "").strip().lower()
+    sender_full = (metadata.get("sender") or "").lower()
+    sender_email = sender_full
+    if "<" in sender_full and ">" in sender_full:
+        sender_email = sender_full[
+            sender_full.index("<") + 1 : sender_full.index(">")
+        ]
+
+    subject = metadata.get("subject", "")
+    is_reply_or_forward = subject.lower().startswith(("re:", "fwd:", "fw:"))
+
+    # Determine recipient domain (used in multiple branches)
+    recipient_email = metadata.get("to", "").lower()
+    if not recipient_email:
+        body = metadata.get("body", "")
+        m = re.search(
+            r"^To:\s*([\w.\-+]+@[\w.\-]+)", body, re.MULTILINE | re.IGNORECASE
+        )
+        if m:
+            recipient_email = m.group(1).strip().lower()
+    recipient_domain = (
+        recipient_email.split("@")[-1] if "@" in recipient_email else ""
+    )
+
+    # CRITICAL: Only override label for user-initiated messages, NOT replies/forwards
+    if (
+        user_email
+        and sender_email.startswith(user_email)
+        and not is_reply_or_forward
+    ):
+        _reingest_user_initiated(
+            existing, metadata, result, company_obj, recipient_domain
+        )
+    elif user_email and sender_email.startswith(user_email) and is_reply_or_forward:
+        _reingest_user_reply(
+            existing, metadata, result, company_obj, company_source,
+            skip_company_assignment, recipient_domain
+        )
+    elif skip_company_assignment:
+        existing.company = None
+        existing.company_source = ""
+    elif company_obj:
+        existing.company = company_obj
+        existing.company_source = company_source
+
+    # Headhunter enforcement for re-ingestion
+    if result:
+        sender_domain = (metadata.get("sender_domain") or "").lower()
+        if _is_headhunter_source(sender_domain, company_obj, HEADHUNTER_DOMAINS):
+            logger.debug(f"[RE-INGEST HEADHUNTER] Forcing label to head_hunter (was: {result.get('label')})")
+            result["label"] = "head_hunter"
+            existing.company = None
+            existing.company_source = "headhunter_domain"
+
+    # Forwarded message detection for re-ingestion
+    subject_for_check = metadata.get("subject", "").strip()
+    if (
+        re.match(r"^(Fwd|FW|Fw):\s*", subject_for_check, re.IGNORECASE)
+        and company_obj
+    ):
+        logger.debug(f"[RE-INGEST FORWARD] Subject starts with Fwd/FW and company resolved: {company_obj.name}")
+        logger.debug(f"[RE-INGEST FORWARD] Original label: {result.get('label') if result else 'N/A'}, overriding to 'other'")
+        if result:
+            result["label"] = "other"
+            result["confidence"] = 0.95
+
+    # Update label/confidence for non-user messages
+    if result and not (user_email and sender_email.startswith(user_email)):
+        existing.ml_label = result["label"]
+        existing.confidence = result["confidence"]
+        existing.classification_source = result.get("fallback") or "ml"
+
+    # Auto-review criteria
+    if not existing.reviewed and (
+        result
+        and result.get("confidence", 0.0) >= 0.85
+        and result.get("label") not in ("noise", "other")
+        and company_obj is not None
+        and is_valid_company(company)
+    ):
+        if os.environ.get("SUPPRESS_AUTO_REVIEW", "").lower() not in (
+            "1", "true", "yes",
+        ):
+            existing.reviewed = True
+
+    # Restore originals if message was reviewed and overwrite not requested
+    if orig_reviewed and not overwrite_reviewed:
+        existing.ml_label = orig_ml_label
+        if orig_confidence is not None:
+            existing.confidence = orig_confidence
+        existing.company = orig_company
+        existing.company_source = orig_company_source
+
+    # Update company domain/ATS fields
+    if existing.company:
+        sender_domain = metadata.get("sender_domain", "").lower()
+        company_name = existing.company.name if existing.company else ""
+        update_company_domain_and_ats(existing.company, sender_domain, company_name)
+
+    existing.save()
+
+    # Propagate ml_label to ThreadTracking
+    try:
+        from tracker.utils import propagate_message_label_to_thread
+        propagate_message_label_to_thread(existing)
+    except Exception:
+        pass
+
+    # Update ThreadTracking dates during re-ingestion
+    _update_thread_tracking_on_reingest(metadata, result, company_obj, stats)
+
+    _increment_stat(stats, "total_skipped")
+    return "skipped"
+
+
+def _reingest_user_initiated(existing, metadata, result, company_obj, recipient_domain):
+    """Handle re-ingestion of user-initiated (non-reply) messages."""
+    ml_predicted_label = result.get("label") if result else None
+    ml_confidence = float(result.get("confidence", 0)) if result else 0
+
+    if ml_predicted_label == "noise" and ml_confidence > 0.5:
+        existing.ml_label = "noise"
+        existing.confidence = ml_confidence
+        logger.debug(f"[RE-INGEST] User-initiated message classified as noise by ML (confidence={ml_confidence:.2f})")
+    else:
+        if recipient_domain:
+            mapped_company = _map_company_by_domain(recipient_domain)
+            if mapped_company:
+                canonical_company = resolve_company_alias(normalize_company_name(mapped_company))
+                company_obj_local, _ = get_or_create_company_iexact(
+                    name=canonical_company,
+                    defaults={
+                        "first_contact": metadata["timestamp"],
+                        "last_contact": metadata["timestamp"],
+                    },
+                )
+                existing.company = company_obj_local
+                existing.company_source = "user_sent_to_company"
+        existing.ml_label = "other"
+        existing.confidence = 1.0
+        logger.debug(f"[RE-INGEST] User-initiated message: label='other', company={existing.company.name if existing.company else 'None'}")
+
+
+def _reingest_user_reply(
+    existing, metadata, result, company_obj, company_source,
+    skip_company_assignment, recipient_domain
+):
+    """Handle re-ingestion of user reply/forward messages."""
+    if recipient_domain in PERSONAL_DOMAINS:
+        existing.ml_label = "noise"
+        existing.confidence = 0.85
+        existing.company = None
+        existing.company_source = ""
+        logger.debug(f"[RE-INGEST] User reply to personal domain ({recipient_domain}), classified as noise")
+    else:
+        if result:
+            existing.ml_label = result["label"]
+            existing.confidence = result["confidence"]
+            existing.classification_source = result.get("fallback") or "ml"
+        if skip_company_assignment and existing.reviewed:
+            existing.company = None
+            existing.company_source = ""
+        elif company_obj:
+            existing.company = company_obj
+            existing.company_source = company_source
+        logger.debug(f"[RE-INGEST] User reply/forward to job domain updated: label={result['label'] if result else 'N/A'}, company={company_obj.name if company_obj else 'None'}")
+
+
+def _update_thread_tracking_on_reingest(metadata, result, company_obj, stats):
+    """Update ThreadTracking dates during re-ingestion."""
+    ml_label = result.get("label") if result else None
+    if not (company_obj and ml_label and ml_label != "head_hunter"):
+        return
+    try:
+        app = ThreadTracking.objects.filter(
+            thread_id=metadata["thread_id"]
+        ).first()
+        logger.debug(f"[Re-ingest] Looking for Application with thread_id={metadata['thread_id']}, found: {app is not None}")
+        if app:
+            logger.debug(f"[Re-ingest] App ml_label={app.ml_label}, rejection_date={app.rejection_date}, ml_label_param={ml_label}")
+            updated = False
+            if not app.rejection_date and ml_label in ("rejected", "rejection"):
+                app.rejection_date = timezone.localtime(metadata["timestamp"]).date()
+                updated = True
+                logger.debug(f"✓ Set rejection_date during re-ingest: {app.rejection_date}")
+                try:
+                    ml_conf = (
+                        float(result.get("confidence", 0.0)) if result else 0.0
+                    )
+                except Exception:
+                    ml_conf = 0.0
+                if (
+                    not app.interview_date
+                    and ml_label == "interview_invite"
+                    and ml_conf >= 0.7
+                ):
+                    app.interview_date = timezone.localtime(metadata["timestamp"]).date()
+                updated = True
+                logger.debug(f"✓ Set interview_date during re-ingest: {app.interview_date}")
+            if not app.ml_label or app.ml_label != ml_label:
+                app.ml_label = ml_label
+                app.ml_confidence = (
+                    float(result.get("confidence", 0.0)) if result else 0.0
+                )
+                updated = True
+            if updated:
+                app.save()
+                logger.debug("✓ Updated Application during re-ingest")
+        else:
+            logger.debug(f"[Re-ingest] No Application found for thread_id={metadata['thread_id']}")
+    except Exception as e:
+        logger.debug(f"Warning: Could not update Application during re-ingest: {e}")
+
+
+def _build_final_record(
+    msg_id, metadata, result, company, company_source,
+    parsed_subject, status_dates, status, follow_up_str, labels_str,
+    subject, body, stats
+):
+    """Assemble final record, log unresolved companies, and insert/update application.
+
+    Handles:
+    - Record dict assembly for applications table
+    - Unresolved company logging (UnresolvedCompany model)
+    - Early ignore for missing company/title/id
+    - Pattern-based ignore check
+    - Final insert_or_update_application call
+
+    Returns:
+        "ignored" if message should be skipped, or a dict with insertion details.
+    """
+    record = {
+        "thread_id": metadata["thread_id"],
+        "company": company,
+        "predicted_company": parsed_subject.get("predicted_company", ""),
+        "job_title": parsed_subject.get("job_title", ""),
+        "job_id": parsed_subject.get("job_id", ""),
+        "first_sent": metadata["date"],
+        "response_date": status_dates["response_date"],
+        "follow_up_dates": follow_up_str,
+        "rejection_date": status_dates["rejection_date"],
+        "interview_date": status_dates["interview_date"],
+        "status": status,
+        "labels": labels_str,
+        "subject": metadata["subject"],
+        "sender": metadata["sender"],
+        "sender_domain": metadata["sender_domain"],
+        "last_updated": metadata["last_updated"],
+        "company_source": company_source,
+    }
+
+    # Log unresolved companies for manual review
+    if not company and not should_ignore(subject, body):
+        UnresolvedCompany.objects.update_or_create(
+            msg_id=msg_id,
+            defaults={
+                "subject": metadata["subject"],
+                "body": metadata["body"],
+                "sender": metadata["sender"],
+                "sender_domain": metadata["sender_domain"],
+                "timestamp": metadata["timestamp"],
+            },
+        )
+        logger.debug(f"Logged unresolved company for manual review: {msg_id}")
+
+    # Check if record has enough data to be useful
+    if not record["company"] and not record["job_title"] and not record["job_id"]:
+        reason = "unclassified"
+        if not metadata["body"]:
+            reason = "missing_body"
+        elif metadata["body"] and not record["company"]:
+            reason = "missing_company"
+        logger.debug(f"Ignored due to: {reason} -> {metadata['subject']}")
+        logger.debug("Stats: ignored++ (unclassified)")
+        log_ignored_message(msg_id, metadata, reason=reason)
+        _increment_stat(stats, "total_ignored")
+        return "ignored"
+
+    record["company_job_index"] = build_company_job_index(
+        record.get("company", ""), record.get("job_title", ""), record.get("job_id", "")
+    )
+
+    logger.debug(f"company: {record['company']}")
+    logger.debug(f"job_title: {record['job_title']}")
+    logger.debug(f"job_id: {record['job_id']}")
+    logger.debug(f"company_source: {record['company_source']}")
+    logger.debug(f"company_job_index: {record['company_job_index']}")
+
+    if should_ignore(metadata["subject"], metadata["body"]):
+        logger.debug(f"Ignored by pattern: {metadata['subject']}")
+        logger.debug("Stats: ignored++ (pattern ignore)")
+        log_ignored_message(msg_id, metadata, reason="pattern_ignore")
+        _increment_stat(stats, "total_ignored")
+        return "ignored"
+
+    insert_or_update_application(record)
+    logger.debug(f"Logged: {metadata['subject']}")
+
+    final_label = result.get("label") if result else "unknown"
+    confidence = float(result.get("confidence", 0.0)) if result else 0.0
+    return {
+        "status": "inserted",
+        "label": final_label,
+        "confidence": confidence,
+        "company": company or "N/A",
+        "source": company_source or "none",
+    }
+
+
 def ingest_message(service, msg_id):
     """Ingest a single Gmail message by id into the local database.
 
@@ -3811,241 +4499,14 @@ def ingest_message(service, msg_id):
     logger.debug(f"confidence: {confidence}")
 
     #
-    # This is the re-ingest logic
+    # Re-ingest logic: update existing message if already in DB
     #
-    #  Skip logic (now safe to run after enrichment)
     existing = Message.objects.filter(msg_id=msg_id).first()
     if existing:
-        # Snapshot original fields so we can avoid overwriting reviewed messages
-        _ORIG_ML_LABEL = existing.ml_label
-        _ORIG_CONFIDENCE = getattr(existing, "confidence", None)
-        _ORIG_COMPANY = getattr(existing, "company", None)
-        _ORIG_COMPANY_SOURCE = getattr(existing, "company_source", None)
-        # Preserve the original reviewed state so we only restore originals
-        # when the message was actually reviewed before re-ingest.
-        _ORIG_REVIEWED = getattr(existing, "reviewed", False)
-        # Allow an explicit override via environment variable for batch jobs
-        OVERWRITE_REVIEWED = os.environ.get("OVERWRITE_REVIEWED", "").lower() in (
-            "1",
-            "true",
-            "yes",
+        return _handle_reingest(
+            existing, msg_id, metadata, result, company_obj, company_source, company,
+            skip_company_assignment, parsed_subject, stats
         )
-        logger.debug(f"Updating existing message: {msg_id}")
-        logger.debug(f"Stats: skipped++ (re-ingest)")
-        # Special handling for user-sent messages during re-ingestion
-        # ONLY apply 'other' label to user-INITIATED messages (not replies/forwards)
-        user_email = (os.environ.get("USER_EMAIL_ADDRESS") or "").strip().lower()
-        sender_full = (metadata.get("sender") or "").lower()
-        # Extract email address from "Name <email@domain.com>" format
-        sender_email = sender_full
-        if "<" in sender_full and ">" in sender_full:
-            sender_email = sender_full[
-                sender_full.index("<") + 1 : sender_full.index(">")
-            ]
-
-        subject = metadata.get("subject", "")
-        is_reply_or_forward = subject.lower().startswith(("re:", "fwd:", "fw:"))
-
-        # CRITICAL: Only override label for user-initiated messages, NOT replies/forwards
-        if (
-            user_email
-            and sender_email.startswith(user_email)
-            and not is_reply_or_forward
-        ):
-            # Force label to 'other' and map company from recipient domain
-            recipient_email = metadata.get("to", "").lower()
-            # Fallback: try to extract recipient from body for forwarded messages
-            if not recipient_email:
-                body = metadata.get("body", "")
-                m = re.search(
-                    r"^To:\s*([\w.\-+]+@[\w.\-]+)", body, re.MULTILINE | re.IGNORECASE
-                )
-                if m:
-                    recipient_email = m.group(1).strip().lower()
-
-            recipient_domain = (
-                recipient_email.split("@")[-1] if "@" in recipient_email else ""
-            )
-
-            # Check ML classification first - if it's noise, keep it as noise
-            ml_predicted_label = result.get("label") if result else None
-            ml_confidence = float(result.get("confidence", 0)) if result else 0
-
-            if ml_predicted_label == "noise" and ml_confidence > 0.5:
-                # Trust ML noise classification for user-sent messages (personal emails)
-                existing.ml_label = "noise"
-                existing.confidence = ml_confidence
-                logger.debug(f"[RE-INGEST] User-initiated message classified as noise by ML (confidence={ml_confidence:.2f})")
-            else:
-                # Non-noise user-initiated message → job outreach
-                if recipient_domain:
-                    mapped_company = _map_company_by_domain(recipient_domain)
-                    if mapped_company:
-                        # Resolve alias to canonical company name
-                        canonical_company = resolve_company_alias(normalize_company_name(mapped_company))
-                        company_obj, _ = get_or_create_company_iexact(
-                            name=canonical_company,
-                            defaults={
-                                "first_contact": metadata["timestamp"],
-                                "last_contact": metadata["timestamp"],
-                            },
-                        )
-                        existing.company = company_obj
-                        existing.company_source = "user_sent_to_company"
-                existing.ml_label = "other"
-                existing.confidence = 1.0
-                logger.debug(f"[RE-INGEST] User-initiated message: label='other', company={company_obj.name if company_obj else 'None'}")
-        elif user_email and sender_email.startswith(user_email) and is_reply_or_forward:
-            # Check if reply is to personal domain → classify as noise
-            if recipient_domain in PERSONAL_DOMAINS:
-                existing.ml_label = "noise"
-                existing.confidence = 0.85
-                existing.company = None
-                existing.company_source = ""
-                logger.debug(f"[RE-INGEST] User reply to personal domain ({recipient_domain}), classified as noise")
-            else:
-                # User replies/forwards to job domains: update with ML classification results
-                if result:
-                    existing.ml_label = result["label"]
-                    existing.confidence = result["confidence"]
-                    existing.classification_source = result.get("fallback") or "ml"
-                # Update company normally
-                if skip_company_assignment and existing.reviewed:
-                    existing.company = None
-                    existing.company_source = ""
-                elif company_obj:
-                    existing.company = company_obj
-                    existing.company_source = company_source
-                logger.debug(f"[RE-INGEST] User reply/forward to job domain updated: label={result['label'] if result else 'N/A'}, company={company_obj.name if company_obj else 'None'}")
-        # Update company (including clearing it for noise messages)
-        elif skip_company_assignment:
-            # Noise messages (reviewed or not) should have no company
-            existing.company = None
-            existing.company_source = ""
-        elif company_obj:
-            # Normal messages get the resolved company
-            existing.company = company_obj
-            existing.company_source = company_source
-
-        # Headhunter enforcement for re-ingestion: ALL headhunter messages should be head_hunter
-        if result:
-            sender_domain = (metadata.get("sender_domain") or "").lower()
-            if _is_headhunter_source(sender_domain, company_obj, HEADHUNTER_DOMAINS):
-                logger.debug(f"[RE-INGEST HEADHUNTER] Forcing label to head_hunter (was: {result.get('label')})")
-                result["label"] = "head_hunter"
-                # Clear company for headhunters
-                existing.company = None
-                existing.company_source = "headhunter_domain"
-
-        # Forwarded message detection for re-ingestion: override label to "other"
-        subject_for_check = metadata.get("subject", "").strip()
-        if (
-            re.match(r"^(Fwd|FW|Fw):\s*", subject_for_check, re.IGNORECASE)
-            and company_obj
-        ):
-            logger.debug(f"[RE-INGEST FORWARD] Subject starts with Fwd/FW and company resolved: {company_obj.name}")
-            logger.debug(f"[RE-INGEST FORWARD] Original label: {result.get('label') if result else 'N/A'}, overriding to 'other'")
-            if result:
-                result["label"] = "other"
-                result["confidence"] = 0.95
-
-        # Update label/confidence for non-user messages
-        if result and not (user_email and sender_email.startswith(user_email)):
-            existing.ml_label = result["label"]
-            existing.confidence = result["confidence"]
-            existing.classification_source = result.get("fallback") or "ml"
-
-        # Only auto-mark as reviewed if not already reviewed AND meets high-confidence criteria
-        # This preserves manual review status during re-ingestion
-        # Exclude "other" and "noise" from auto-review as they are typically status updates or non-actionable
-        if not existing.reviewed and (
-            result
-            and result.get("confidence", 0.0) >= 0.85
-            and result.get("label") not in ("noise", "other")
-            and company_obj is not None
-            and is_valid_company(company)
-        ):
-            # Allow callers to suppress auto-review (e.g., re-ingest from Label Messages UI)
-            if os.environ.get("SUPPRESS_AUTO_REVIEW", "").lower() not in (
-                "1",
-                "true",
-                "yes",
-            ):
-                existing.reviewed = True
-        # If the message was manually reviewed and overwrite is not requested,
-        # restore original label/confidence/company to avoid accidental ML overwrites.
-        # Only restore original label/confidence/company if the message was
-        # already reviewed before re-ingest and overwrite is not requested.
-        if _ORIG_REVIEWED and not OVERWRITE_REVIEWED:
-            existing.ml_label = _ORIG_ML_LABEL
-            if _ORIG_CONFIDENCE is not None:
-                existing.confidence = _ORIG_CONFIDENCE
-            existing.company = _ORIG_COMPANY
-            existing.company_source = _ORIG_COMPANY_SOURCE
-
-        # Update company domain/ATS fields during re-ingest (was missing before)
-        if existing.company:
-            sender_domain = metadata.get("sender_domain", "").lower()
-            company_name = existing.company.name if existing.company else ""
-            update_company_domain_and_ats(existing.company, sender_domain, company_name)
-
-        existing.save()
-        # Propagate ml_label to ThreadTracking so label changes reflect in dashboard
-        try:
-            from tracker.utils import propagate_message_label_to_thread
-
-            propagate_message_label_to_thread(existing)
-        except Exception:
-            # Keep parsing resilient; propagation is best-effort
-            pass
-
-        # ✅ Also update Application record during re-ingestion if dates are missing
-        ml_label = result.get("label") if result else None
-        # Skip ThreadTracking updates for headhunters (they shouldn't have ThreadTracking)
-        if company_obj and ml_label and ml_label != "head_hunter":
-            try:
-                app = ThreadTracking.objects.filter(
-                    thread_id=metadata["thread_id"]
-                ).first()
-                logger.debug(f"[Re-ingest] Looking for Application with thread_id={metadata['thread_id']}, found: {app is not None}")
-                if app:
-                    logger.debug(f"[Re-ingest] App ml_label={app.ml_label}, rejection_date={app.rejection_date}, ml_label_param={ml_label}")
-                    updated = False
-                    # Normalize: treat both 'rejected' and 'rejection' as rejection outcome
-                    if not app.rejection_date and ml_label in ("rejected", "rejection"):
-                        app.rejection_date = timezone.localtime(metadata["timestamp"]).date()
-                        updated = True
-                        logger.debug(f"✓ Set rejection_date during re-ingest: {app.rejection_date}")
-                        # Only set interview_date from ML label when confidence is high
-                        try:
-                            ml_conf = (
-                                float(result.get("confidence", 0.0)) if result else 0.0
-                            )
-                        except Exception:
-                            ml_conf = 0.0
-                        if (
-                            not app.interview_date
-                            and ml_label == "interview_invite"
-                            and ml_conf >= 0.7
-                        ):
-                            app.interview_date = timezone.localtime(metadata["timestamp"]).date()
-                        updated = True
-                        logger.debug(f"✓ Set interview_date during re-ingest: {app.interview_date}")
-                    if not app.ml_label or app.ml_label != ml_label:
-                        app.ml_label = ml_label
-                        app.ml_confidence = (
-                            float(result.get("confidence", 0.0)) if result else 0.0
-                        )
-                        updated = True
-                    if updated:
-                        app.save()
-                        logger.debug(f"✓ Updated Application during re-ingest")
-                else:
-                    logger.debug(f"[Re-ingest] No Application found for thread_id={metadata['thread_id']}")
-            except Exception as e:
-                logger.debug(f"Warning: Could not update Application during re-ingest: {e}")
-        _increment_stat(stats, "total_skipped")
-        return "skipped"
 
     reviewed = (
         result
@@ -4060,106 +4521,15 @@ def ingest_message(service, msg_id):
             f"Not reviewed: confidence={result.get('confidence', 0.0):.2f}, label={result.get('label')}, company={company}"
         )
 
-    # ✅ Enhanced duplicate detection: Use body hash for reliable deduplication
-    # This catches both Gmail re-ingestion and EML uploads of the same message
+    # ✅ Enhanced duplicate detection (extracted helper)
     ts = metadata["timestamp"]
     body = metadata["body"]
-
-    # Compute SHA256 hash of body content (normalized)
-    # Strip whitespace and normalize line endings for consistent hashing
     normalized_body = re.sub(r"\s+", " ", body or "").strip()
     body_hash = hashlib.sha256(normalized_body.encode("utf-8")).hexdigest()
 
-    # First check: Body hash match (most reliable - catches exact content duplicates)
-    if body_hash:
-        hash_duplicate_qs = Message.objects.filter(body_hash=body_hash)
-        if hash_duplicate_qs.exists():
-            existing = hash_duplicate_qs.first()
-            logger.debug(f"⚠️ BODY HASH duplicate detected: subject='{subject[:60]}...'")
-            logger.debug(f"   Existing msg_id: {existing.msg_id}, New msg_id: {msg_id}")
-            logger.debug(f"   Body hash: {body_hash[:16]}...")
-            logger.debug(f"   Skipping duplicate (same body content)")
-            IgnoredMessage.objects.get_or_create(
-                msg_id=msg_id,
-                defaults={
-                    "subject": subject,
-                    "body": metadata["body"],
-                    "company_source": company_source or "",
-                    "sender": metadata["sender"],
-                    "sender_domain": (
-                        metadata["sender"].split("@")[-1]
-                        if "@" in metadata["sender"]
-                        else ""
-                    ),
-                    "date": ts,
-                    "reason": "duplicate_body_hash",
-                },
-            )
-            _increment_stat(stats, "total_ignored")
-            return "ignored"
-
-    # Second check: Exact timestamp match (for messages with empty/malformed bodies)
-    exact_duplicate_qs = Message.objects.filter(
-        subject=subject,
-        sender=metadata["sender"],
-        timestamp=ts,
-    )
-    if exact_duplicate_qs.exists():
-        existing = exact_duplicate_qs.first()
-        logger.debug(f"⚠️ EXACT duplicate detected: subject='{subject}', sender='{metadata['sender']}', ts={ts}")
-        logger.debug(f"   Existing msg_id: {existing.msg_id}, New msg_id: {msg_id}")
-        logger.debug(f"   Skipping duplicate (same timestamp to the second)")
-        IgnoredMessage.objects.get_or_create(
-            msg_id=msg_id,
-            defaults={
-                "subject": subject,
-                "body": metadata["body"],
-                "company_source": company_source or "",
-                "sender": metadata["sender"],
-                "sender_domain": (
-                    metadata["sender"].split("@")[-1]
-                    if "@" in metadata["sender"]
-                    else ""
-                ),
-                "date": ts,
-                "reason": "duplicate_exact",
-            },
-        )
-        _increment_stat(stats, "total_ignored")
-        return "ignored"
-
-    # Third check: Near-duplicate (within 5-second window for quick re-sends)
-    window_start = ts - timedelta(seconds=5)
-    window_end = ts + timedelta(seconds=5)
-    near_duplicate_qs = Message.objects.filter(
-        subject=subject,
-        sender=metadata["sender"],
-        timestamp__gte=window_start,
-        timestamp__lte=window_end,
-    )
-    if near_duplicate_qs.exists():
-        existing = near_duplicate_qs.first()
-        logger.debug(f"⚠️ Near duplicate detected: subject='{subject}', sender='{metadata['sender']}'")
-        logger.debug(f"   Existing timestamp: {existing.timestamp}, New timestamp: {ts}")
-        logger.debug(f"   Delta: {abs((existing.timestamp - ts).total_seconds())} seconds")
-        IgnoredMessage.objects.get_or_create(
-            msg_id=msg_id,
-            defaults={
-                "subject": subject,
-                "body": metadata["body"],
-                "company_source": company_source or "",
-                "sender": metadata["sender"],
-                "sender_domain": (
-                    metadata["sender"].split("@")[-1]
-                    if "@" in metadata["sender"]
-                    else ""
-                ),
-                "date": ts,
-                "reason": "duplicate_near",
-            },
-        )
-        _increment_stat(stats, "total_ignored")
-        return "ignored"
+    dup_result = _check_duplicates(msg_id, subject, metadata, company_source, stats, body_hash)
+    if dup_result:
+        return dup_result
 
     # Headhunter enforcement: ALL messages from headhunter domains/companies should be labeled head_hunter
     if result:
@@ -4237,247 +4607,11 @@ def ingest_message(service, msg_id):
                 company=company_obj,
                 company_source=company_source,
             )
-    # ✅ Create or update Application record using Django ORM
-
-    # ✅ Fallback: if pattern-based extraction didn't find rejection/interview dates,
-    # but ML classified it as rejected/interview_invite, use message timestamp
-    ml_label = result.get("label") if result else None
-    rejection_date_final = status_dates["rejection_date"]
-    interview_date_final = status_dates["interview_date"]
-
-    # Treat both 'rejection' and 'rejected' as rejection outcomes
-    # Also treat 'cancelled' as a rejection (position was cancelled)
-    if not rejection_date_final and ml_label in ("rejected", "rejection", "cancelled"):
-        rejection_date_final = timezone.localtime(metadata["timestamp"]).date()
-        logger.debug(f"✓ Set rejection_date from ML label: {rejection_date_final}")
-    # If ML indicates an interview and confidence is sufficient, set a conservative interview_date
-    # Accept multiple label variants that contain 'interview'
-    if not interview_date_final and ml_label and "interview" in str(ml_label).lower():
-        # Only derive an interview_date from the ML label when confidence is high;
-        # otherwise leave interview_date unset so it doesn't create false positives.
-        try:
-            ml_conf = float(result.get("confidence", 0.0)) if result else 0.0
-        except Exception:
-            ml_conf = 0.0
-        if ml_conf >= 0.7:
-            # Set to the message timestamp date as the conservative interview milestone
-            interview_date_final = timezone.localtime(metadata["timestamp"]).date()
-            logger.debug(f"✓ Set interview_date from ML label (message date): {interview_date_final}")
-    # If ML indicates a prescreen, set prescreen_date from message timestamp
-    prescreen_date_final = None
-    if ml_label == "prescreen":
-        prescreen_date_final = timezone.localtime(metadata["timestamp"]).date()
-        logger.debug(f"✓ Set prescreen_date from ML label: {prescreen_date_final}")
-    try:
-        message_obj = Message.objects.get(msg_id=msg_id)
-
-        # Guard: If company_obj is missing but message was created, log it
-        if not company_obj:
-            logger.debug(f"⚠️  Warning: Message created without company_obj for {msg_id}")
-            logger.debug(f"   Subject: {metadata.get('subject', '')[:60]}")
-            logger.debug(f"   ML Label: {ml_label}")
-            logger.debug(f"   ThreadTracking creation will be skipped")
-        # Guard: If message_obj lookup failed, log it
-        if not message_obj:
-            logger.debug(f"⚠️  Warning: Could not retrieve Message object for {msg_id}")
-            logger.debug(f"   ThreadTracking creation will be skipped")
-        if company_obj and message_obj:
-            # Headhunter guard: do NOT create Application records for headhunters
-            sender_domain = (metadata.get("sender_domain") or "").lower()
-            skip_application_creation = _is_headhunter_source(
-                sender_domain, company_obj, HEADHUNTER_DOMAINS, ml_label=ml_label
-            )
-
-            if skip_application_creation:
-                logger.debug("↩️ Skipping ThreadTracking creation for headhunter source/company")
-                # Do not create or update Application for headhunters
-            else:
-                # Create ThreadTracking for applications, interview invites, prescreens, and cancelled positions
-                if ml_label in ("job_application", "interview_invite", "prescreen", "cancelled"):
-                    application_obj, created = ThreadTracking.objects.get_or_create(
-                        thread_id=metadata["thread_id"],
-                        defaults={
-                            "company": company_obj,
-                            "company_source": company_source,
-                            "job_title": parsed_subject.get("job_title", ""),
-                            "job_id": parsed_subject.get("job_id", ""),
-                            "status": status,
-                            "sent_date": timezone.localtime(metadata["timestamp"]).date(),
-                            "rejection_date": rejection_date_final,
-                            "interview_date": interview_date_final,
-                            "prescreen_date": prescreen_date_final,
-                            "ml_label": ml_label,
-                            "ml_confidence": (
-                                float(result.get("confidence", 0.0)) if result else 0.0
-                            ),
-                            "reviewed": reviewed,
-                            "cancelled": ml_label == "cancelled",
-                        },
-                    )
-
-                    # ✅ Update existing application if dates are missing but ML classified it
-                    if not created:
-                        updated = False
-                        # Also update company if it's different (fix company mismatch)
-                        if (
-                            application_obj.company != company_obj
-                            and company_obj is not None
-                        ):
-                            application_obj.company = company_obj
-                            application_obj.company_source = company_source
-                            updated = True
-                            logger.debug(f"✓ Updated application company: {company_obj.name}")
-                        if (
-                            not application_obj.rejection_date
-                            and ml_label in ("rejected", "rejection", "cancelled")
-                        ):
-                            application_obj.rejection_date = rejection_date_final
-                            application_obj.status = "rejected"
-                            # Check for cancelled in email text
-                            combined_text = (metadata.get("subject", "") + " " + metadata.get("body", "")).lower()
-                            if re.search(r'\b(?:cancelled|canceled|closed/cancelled|cancelled/closed)\b', combined_text):
-                                application_obj.cancelled = True
-                            updated = True
-                        if (
-                            not application_obj.interview_date
-                            and ml_label == "interview_invite"
-                        ):
-                            application_obj.interview_date = interview_date_final
-                            updated = True
-                        if (
-                            not application_obj.prescreen_date
-                            and ml_label == "prescreen"
-                        ):
-                            application_obj.prescreen_date = prescreen_date_final
-                            updated = True
-                        if updated:
-                            application_obj.save()
-                            logger.debug(f"✓ Updated existing application with ML-derived dates")
-                    if created:
-                        logger.debug("Stats: inserted++ (new application)")
-                        _increment_stat(stats, "total_inserted")
-                    else:
-                        logger.debug("Stats: ignored++ (duplicate application)")
-                        _increment_stat(stats, "total_ignored")
-                else:
-                    # Not an application email: update existing Application if present, do not create a new one
-                    try:
-                        application_obj = ThreadTracking.objects.get(
-                            thread_id=metadata["thread_id"]
-                        )
-                        updated = False
-                        # Also update company if it's different (fix company mismatch)
-                        if (
-                            application_obj.company != company_obj
-                            and company_obj is not None
-                        ):
-                            application_obj.company = company_obj
-                            application_obj.company_source = company_source
-                            updated = True
-                            logger.debug(f"✓ Updated application company: {company_obj.name}")
-                        if (
-                            not application_obj.rejection_date
-                            and ml_label in ("rejected", "rejection", "cancelled")
-                        ):
-                            application_obj.rejection_date = rejection_date_final
-                            application_obj.status = "rejected"
-                            # Check for cancelled position indicators in email text
-                            if is_cancelled_position(metadata.get("subject", ""), metadata.get("body", "")):
-                                application_obj.cancelled = True
-                            updated = True
-                        if (
-                            not application_obj.interview_date
-                            and ml_label == "interview_invite"
-                        ):
-                            application_obj.interview_date = interview_date_final
-                            updated = True
-                        if (
-                            not application_obj.prescreen_date
-                            and ml_label == "prescreen"
-                        ):
-                            application_obj.prescreen_date = prescreen_date_final
-                            updated = True
-                        if updated:
-                            application_obj.save()
-                            logger.debug("✓ Updated existing application (no new creation)")
-                    except ThreadTracking.DoesNotExist:
-                        # No ThreadTracking with this thread_id - for rejections, try to find by company
-                        if ml_label in ("rejected", "rejection", "cancelled") and company_obj:
-                            # Use TF-IDF job title matching to find the correct application
-                            job_title = parsed_subject.get("job_title", "") if isinstance(parsed_subject, dict) else ""
-                            # If no job title from subject, try extracting from body
-                            if not job_title:
-                                job_title = extract_job_title_from_body(metadata.get("body", ""))
-                            existing_tt = find_best_matching_application(
-                                company_obj,
-                                job_title,
-                                metadata.get("subject", "")
-                            )
-                            if existing_tt:
-                                # Update existing ThreadTracking with rejection info
-                                if not existing_tt.rejection_date:
-                                    existing_tt.rejection_date = rejection_date_final
-                                existing_tt.status = "rejected"
-                                # Check for cancelled position indicators in email text
-                                if is_cancelled_position(metadata.get("subject", ""), metadata.get("body", "")):
-                                    existing_tt.cancelled = True
-                                    logger.debug(f"✓ Detected 'cancelled' in email text, setting cancelled=True")
-                                existing_tt.save()
-                                logger.debug(f"✓ Updated existing ThreadTracking for {company_obj.name} (job: '{existing_tt.job_title}') with rejection_date={rejection_date_final}")
-                            else:
-                                logger.debug(f"ℹ️ No existing ThreadTracking found for {company_obj.name} to update with rejection")
-                        else:
-                            logger.debug(
-                                "ℹ️ No existing ThreadTracking for this thread; not creating because this is not a job_application email"
-                            )
-        else:
-            # Missing company_obj or message_obj - try fallback ThreadTracking creation if applicable
-            if ml_label in ("job_application", "interview_invite", "prescreen") and not company_obj:
-                logger.debug(f"⚠️  job_application/interview_invite/prescreen without company - attempting fallback")
-                # Try to extract company from Message if it was created
-                try:
-                    fallback_msg = Message.objects.get(msg_id=msg_id)
-                    if fallback_msg.company:
-                        company_obj = fallback_msg.company
-                        company_source = fallback_msg.company_source
-                        logger.debug(f"✓ Retrieved company from Message: {company_obj.name}")
-                        # Retry ThreadTracking creation with recovered company
-                        application_obj, created = ThreadTracking.objects.get_or_create(
-                            thread_id=metadata["thread_id"],
-                            defaults={
-                                "company": company_obj,
-                                "company_source": company_source,
-                                "job_title": parsed_subject.get("job_title", ""),
-                                "job_id": parsed_subject.get("job_id", ""),
-                                "status": status,
-                                "sent_date": timezone.localtime(metadata["timestamp"]).date(),
-                                "rejection_date": rejection_date_final,
-                                "interview_date": interview_date_final,
-                                "prescreen_date": prescreen_date_final,
-                                "ml_label": ml_label,
-                                "ml_confidence": (
-                                    float(result.get("confidence", 0.0))
-                                    if result
-                                    else 0.0
-                                ),
-                                "reviewed": reviewed,
-                                "cancelled": ml_label == "cancelled",
-                            },
-                        )
-                        if created:
-                            logger.debug(
-                                f"✓ Created ThreadTracking via fallback for {company_obj.name}"
-                            )
-                    else:
-                        logger.debug("⚠️  Message exists but also has no company - cannot create ThreadTracking")
-                except Message.DoesNotExist:
-                    logger.debug("⚠️  Fallback failed: Message not found")
-            logger.debug("Stats: skipped++ (missing company/message)")
-            _increment_stat(stats, "total_skipped")
-
-    except Exception as e:
-        logger.debug(f"❌ Failed to create ThreadTracking: {e}", exc_info=True)
-        _increment_stat(stats, "total_skipped")
+    # ✅ Create or update ThreadTracking record using extracted helper
+    _create_or_update_thread_tracking(
+        msg_id, metadata, result, company_obj, company_source,
+        parsed_subject, status_dates, status, reviewed, stats
+    )
 
     # Refresh stats before printing
     if hasattr(stats, "refresh_from_db"):
@@ -4486,79 +4620,12 @@ def ingest_message(service, msg_id):
         f"Stats updated: inserted={stats.total_inserted}, ignored={stats.total_ignored}, skipped={stats.total_skipped}"
     )
 
-    # Final record assembly for applications table
-    record = {
-        "thread_id": metadata["thread_id"],
-        "company": company,
-        "predicted_company": parsed_subject.get("predicted_company", ""),
-        "job_title": parsed_subject.get("job_title", ""),
-        "job_id": parsed_subject.get("job_id", ""),
-        "first_sent": metadata["date"],
-        "response_date": status_dates["response_date"],
-        "follow_up_dates": follow_up_str,
-        "rejection_date": status_dates["rejection_date"],
-        "interview_date": status_dates["interview_date"],
-        "status": status,
-        "labels": labels_str,
-        "subject": metadata["subject"],
-        "sender": metadata["sender"],
-        "sender_domain": metadata["sender_domain"],
-        "last_updated": metadata["last_updated"],
-        "company_source": company_source,
-    }
-    if not company and not should_ignore(subject, body):
-        UnresolvedCompany.objects.update_or_create(
-            msg_id=msg_id,
-            defaults={
-                "subject": metadata["subject"],
-                "body": metadata["body"],
-                "sender": metadata["sender"],
-                "sender_domain": metadata["sender_domain"],
-                "timestamp": metadata["timestamp"],
-            },
-        )
-        logger.debug(f"Logged unresolved company for manual review: {msg_id}")
-    if not record["company"] and not record["job_title"] and not record["job_id"]:
-        reason = "unclassified"
-        if not metadata["body"]:
-            reason = "missing_body"
-        elif metadata["body"] and not record["company"]:
-            reason = "missing_company"
-        logger.debug(f"Ignored due to: {reason} -> {metadata['subject']}")
-        logger.debug("Stats: ignored++ (unclassified)")
-        log_ignored_message(msg_id, metadata, reason=reason)
-        _increment_stat(stats, "total_ignored")
-        return "ignored"
-
-    record["company_job_index"] = build_company_job_index(
-        record.get("company", ""), record.get("job_title", ""), record.get("job_id", "")
+    # ✅ Build final record and insert/update application
+    return _build_final_record(
+        msg_id, metadata, result, company, company_source,
+        parsed_subject, status_dates, status, follow_up_str, labels_str,
+        subject, body, stats
     )
-
-    logger.debug(f"company: {record['company']}")
-    logger.debug(f"job_title: {record['job_title']}")
-    logger.debug(f"job_id: {record['job_id']}")
-    logger.debug(f"company_source: {record['company_source']}")
-    logger.debug(f"company_job_index: {record['company_job_index']}")
-    if should_ignore(metadata["subject"], metadata["body"]):
-        logger.debug(f"Ignored by pattern: {metadata['subject']}")
-        logger.debug("Stats: ignored++ (pattern ignore)")
-        log_ignored_message(msg_id, metadata, reason="pattern_ignore")
-        _increment_stat(stats, "total_ignored")
-        return "ignored"
-
-    insert_or_update_application(record)
-
-    logger.debug(f"Logged: {metadata['subject']}")
-    # Return details for logging
-    final_label = result.get("label") if result else "unknown"
-    confidence = float(result.get("confidence", 0.0)) if result else 0.0
-    return {
-        "status": "inserted",
-        "label": final_label,
-        "confidence": confidence,
-        "company": company or "N/A",
-        "source": company_source or "none",
-    }
 
 
 # Note: Company data loading moved to DomainMapper class

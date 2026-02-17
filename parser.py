@@ -2133,38 +2133,8 @@ def is_application_related(subject, body):
     return any(pattern.search(text) for pattern in APPLICATION_PATTERNS)
 
 
-def decode_part(data, encoding):
-    """Decode a MIME part body string using the provided encoding (delegates to EmailBodyParser)."""
-    return EmailBodyParser.decode_mime_part(data, encoding)
-
-
-# def extract_body(payload):
-#    """Best-effort plain-text body extraction for simple payloads."""
-##    if "parts" in payload:
-#        for part in payload["parts"]:
-#            mt = part.get("mimeType")
-#            data = part.get("body", {}).get("data")
-#            if not data:
-#               continue
-#            decoded = base64.urlsafe_b64decode(data).decode("utf-8", errors="ignore")
-#            if mt == "text/plain":
-#                return decoded
-#            if mt == "text/html":
-#                return strip_html_tags(decoded)
-#    data = payload.get("body", {}).get("data")
-#    return (
-#        base64.urlsafe_b64decode(data).decode("utf-8", errors="ignore") if data else ""
-#    )
-
-
-def extract_body_from_parts(parts):
-    """Extract the first HTML part's body from a Gmail message payload tree (delegates to EmailBodyParser)."""
-    return EmailBodyParser.extract_from_gmail_parts(parts)
-
-
-def _decode_header_value(raw_val: str) -> str:
-    """Decode RFC 2047 encoded header values to unicode (delegates to EmailBodyParser)."""
-    return EmailBodyParser.decode_header_value(raw_val)
+# Phase 8: decode_part, extract_body, extract_body_from_parts, _decode_header_value
+# wrappers removed — callers now use EmailBodyParser class methods directly.
 
 
 def parse_raw_message(raw_text: str) -> dict:
@@ -2477,7 +2447,7 @@ def extract_metadata(service, msg_id):
 
     body = ""
     parts = msg["payload"].get("parts", [])
-    body = extract_body_from_parts(parts)
+    body = EmailBodyParser.extract_from_gmail_parts(parts)
 
     for part in parts:
         mime_type = part.get("mimeType")
@@ -2489,7 +2459,7 @@ def extract_metadata(service, msg_id):
         data = part.get("body", {}).get("data")
         decoded = ""
         if data:
-            decoded = decode_part(data, encoding)
+            decoded = EmailBodyParser.decode_mime_part(data, encoding)
 
         if mime_type == "text/plain" and body == "Empty Body" and decoded:
             body = decoded.strip()
@@ -2645,7 +2615,7 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
     result = predict_with_fallback(
         predict_subject_type, subject, body, threshold=0.55, sender=sender
     )
-    confidence = _conf(result)
+    confidence = float(result.get("confidence", result.get("proba", 0.0))) if result else 0.0
     label = result["label"]
     bool(result.get("ignore", False))
 
@@ -4464,7 +4434,6 @@ JOB_BOARD_DOMAINS = _domain_mapper.job_board_domains
 KNOWN_COMPANIES = _domain_mapper.known_companies
 KNOWN_COMPANIES_CASED = _domain_mapper.known_companies_cased
 DOMAIN_TO_COMPANY = _domain_mapper.domain_to_company
-ALIASES = _domain_mapper.aliases
 company_data = _domain_mapper.company_data
 
 
@@ -4474,7 +4443,7 @@ company_data = _domain_mapper.company_data
 def _reload_domain_map_if_needed():
     """Reload all company data if companies.json has changed (delegates to DomainMapper)."""
     global DOMAIN_TO_COMPANY, ATS_DOMAINS, HEADHUNTER_DOMAINS, JOB_BOARD_DOMAINS
-    global KNOWN_COMPANIES, KNOWN_COMPANIES_CASED, ALIASES, company_data
+    global KNOWN_COMPANIES, KNOWN_COMPANIES_CASED, company_data
 
     _domain_mapper.reload_if_needed()
 
@@ -4485,7 +4454,6 @@ def _reload_domain_map_if_needed():
     JOB_BOARD_DOMAINS = _domain_mapper.job_board_domains
     KNOWN_COMPANIES = _domain_mapper.known_companies
     KNOWN_COMPANIES_CASED = _domain_mapper.known_companies_cased
-    ALIASES = _domain_mapper.aliases
     company_data = _domain_mapper.company_data
 
 
@@ -5091,16 +5059,6 @@ def ingest_message_from_eml(eml_content: str, fake_msg_id: str = None):
     except Exception as e:
         logger.debug(f"[EML] Failed to create message: {e}")
         return None
-
-
-# Phase 4: Also available as extract_confidence in tracker/utils/helpers.py
-def _conf(res) -> float:
-    if not res:
-        return 0.0
-    try:
-        return float(res.get("confidence", res.get("proba", 0.0)))
-    except Exception:
-        return 0.0
 
 
 # --- Helpers for domain handling ---

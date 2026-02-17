@@ -2945,6 +2945,173 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
     }
 
 
+# ====================================================================================
+# Phase 7: Shared helpers extracted from ingest_message / ingest_message_from_eml
+# ====================================================================================
+
+
+def _check_newsletter_auto_ignore(metadata, header_hints, msg_id, stats,
+                                  *, delete_existing=False, log_prefix=""):
+    """Check if a message should be auto-ignored as newsletter/bulk mail.
+
+    Returns "ignored" if the message should be skipped, or None to continue processing.
+    Only auto-ignores if the message is NOT application-related (ATS systems add
+    List-Unsubscribe headers even to application confirmations).
+
+    Args:
+        metadata: Message metadata dict with subject, body, classification_text, etc.
+        header_hints: Dict with is_newsletter, is_bulk, is_noreply flags.
+        msg_id: Gmail or EML message ID.
+        stats: IngestionStats instance for counters.
+        delete_existing: If True, delete any existing Message record (re-ingestion case).
+        log_prefix: Prefix for log messages (e.g. "[EML]").
+    """
+    body = metadata.get("body", "")
+    classification_text = metadata.get("classification_text", body)
+    app_text = body if body and body.strip() else classification_text
+    is_app_related = is_application_related(metadata["subject"], app_text[:500])
+
+    logger.debug(
+        f"{log_prefix}[HEADER HINTS] is_application_related={is_app_related}, "
+        f"is_newsletter={header_hints.get('is_newsletter')}, "
+        f"is_bulk={header_hints.get('is_bulk')}, "
+        f"is_noreply={header_hints.get('is_noreply')}"
+    )
+
+    if not is_app_related:
+        if header_hints.get("is_newsletter") or (
+            header_hints.get("is_bulk") and header_hints.get("is_noreply")
+        ):
+            logger.debug(f"{log_prefix}[HEADER HINTS] Auto-ignoring newsletter/bulk mail: {metadata['subject']}")
+            if delete_existing:
+                existing = Message.objects.filter(msg_id=msg_id).first()
+                if existing:
+                    logger.debug(f"{log_prefix}[RE-INGEST] Deleting existing Message record for newsletter: {msg_id}")
+                    existing.delete()
+            log_ignored_message(msg_id, metadata, reason="newsletter_headers")
+            _increment_stat(stats, "total_ignored")
+            return "ignored"
+    elif header_hints.get("is_newsletter"):
+        logger.debug(
+            f"{log_prefix}[HEADER HINTS] Newsletter header found but application-related "
+            f"(patterns.json), not ignoring: {metadata['subject']}"
+        )
+    return None
+
+
+def _apply_label_overrides(result, metadata, company, parse_result, *, log_prefix=""):
+    """Apply post-classification label overrides shared by both ingestion paths.
+
+    Handles:
+    1. Internal introduction override (referral/interview_invite → other)
+    2. Internal recruiter override (head_hunter → other when from company domain)
+    3. Personal domain override (→ noise)
+
+    Args:
+        result: ML classification result dict (modified in-place for ingest_message path).
+        metadata: Message metadata dict.
+        company: Resolved company name string (may be None).
+        parse_result: Result from parse_subject() (dict or str).
+        log_prefix: Prefix for log messages.
+
+    Returns:
+        (label, result_dict) — the final label string and (possibly modified) result dict.
+    """
+    label = result.get("label", "noise") if result else "noise"
+
+    # 1. Internal introduction override
+    if (
+        isinstance(parse_result, dict)
+        and parse_result.get("label") == "other"
+        and label in ("referral", "interview_invite")
+    ):
+        sender_domain = metadata.get("sender_domain")
+        if sender_domain and company:
+            mapped_domain_company = _map_company_by_domain(sender_domain)
+            if mapped_domain_company and mapped_domain_company.lower() == company.lower():
+                label = "other"
+                if isinstance(result, dict):
+                    result = dict(result)
+                    result["label"] = "other"
+                logger.debug(
+                    f"{log_prefix}[INTERNAL INTRODUCTION] Overriding label to 'other': "
+                    f"{sender_domain} matches {company}"
+                )
+
+    # 2. Internal recruiter override
+    original_ml_label = result.get("ml_label") or result.get("label") if result else None
+    if original_ml_label == "head_hunter":
+        sender_domain = metadata.get("sender_domain")
+        if sender_domain and sender_domain not in HEADHUNTER_DOMAINS:
+            mapped_company = _map_company_by_domain(sender_domain)
+            if mapped_company:
+                if label not in ("interview_invite", "rejection", "job_application", "offer"):
+                    label = "other"
+                    if isinstance(result, dict):
+                        result = dict(result)
+                        result["label"] = "other"
+                    logger.debug(
+                        f"{log_prefix}[INTERNAL RECRUITER] Overriding to 'other' for "
+                        f"internal recruiter: {sender_domain} → {mapped_company}"
+                    )
+                else:
+                    logger.debug(
+                        f"{log_prefix}[INTERNAL RECRUITER] Preserving meaningful label "
+                        f"'{label}' from internal recruiter: {sender_domain} → {mapped_company}"
+                    )
+
+    # 3. Personal domain override
+    sender_domain = metadata.get("sender_domain", "").lower()
+    if sender_domain and sender_domain in PERSONAL_DOMAINS:
+        if label != "head_hunter":
+            logger.debug(f"{log_prefix}[PERSONAL DOMAIN] Detected personal domain: {sender_domain}, overriding to 'noise'")
+            label = "noise"
+            if isinstance(result, dict):
+                result = dict(result)
+                result["label"] = "noise"
+        else:
+            logger.debug(
+                f"{log_prefix}[PERSONAL DOMAIN] Detected personal domain: {sender_domain}, "
+                f"but keeping head_hunter label"
+            )
+
+    return label, result
+
+
+def _resolve_company_obj(company_name, metadata, confidence=0.0, *, log_prefix=""):
+    """Resolve alias → get_or_create Company → set domain/ATS fields.
+
+    Args:
+        company_name: Raw company name string (may be None/empty).
+        metadata: Message metadata dict (needs sender_domain, timestamp/date).
+        confidence: ML confidence score for defaults.
+        log_prefix: Prefix for log messages.
+
+    Returns:
+        (company_obj, canonical_name) — Company instance (or None) and canonical name.
+    """
+    if not company_name or not company_name.strip():
+        return None, company_name
+
+    canonical = resolve_company_alias(company_name)
+    # Accept either 'timestamp' (Gmail) or 'date' (EML) for datetime field
+    ts = metadata.get("timestamp") or metadata.get("date")
+    company_obj, _ = get_or_create_company_iexact(
+        name=canonical,
+        defaults={
+            "first_contact": ts,
+            "last_contact": ts,
+            "confidence": confidence,
+        },
+    )
+
+    if company_obj:
+        sender_domain = metadata.get("sender_domain", "").lower()
+        update_company_domain_and_ats(company_obj, sender_domain, canonical)
+
+    return company_obj, canonical
+
+
 def ingest_message(service, msg_id):
     """Ingest a single Gmail message by id into the local database.
 
@@ -2980,34 +3147,12 @@ def ingest_message(service, msg_id):
     # Use header hints to improve classification
     header_hints = metadata.get("header_hints", {})
 
-    # Check if this is a transactional application-related message using patterns.json
-    # (ATS systems add List-Unsubscribe headers even to application confirmations)
-    app_text = body if body and body.strip() else classification_text
-    is_app_related = is_application_related(
-        metadata["subject"],
-        app_text[:500],  # Prefer body to avoid long header-only false negatives
+    # Auto-ignore newsletters and bulk mail (shared helper)
+    newsletter_result = _check_newsletter_auto_ignore(
+        metadata, header_hints, msg_id, stats, delete_existing=True
     )
-
-    logger.debug(f"[HEADER HINTS] is_application_related={is_app_related}, is_newsletter={header_hints.get('is_newsletter')}, is_bulk={header_hints.get('is_bulk')}, is_noreply={header_hints.get('is_noreply')}")
-    # Auto-ignore newsletters and bulk mail ONLY if NOT application-related
-    if not is_app_related:
-        if header_hints.get("is_newsletter") or (
-            header_hints.get("is_bulk") and header_hints.get("is_noreply")
-        ):
-            logger.debug(f"[HEADER HINTS] Auto-ignoring newsletter/bulk mail: {metadata['subject']}")
-            # Check if this message already exists in Message table (re-ingestion case)
-            existing = Message.objects.filter(msg_id=msg_id).first()
-            if existing:
-                logger.debug(f"[RE-INGEST] Deleting existing Message record for newsletter: {msg_id}")
-                existing.delete()
-
-            log_ignored_message(msg_id, metadata, reason="newsletter_headers")
-            _increment_stat(stats, "total_ignored")
-            return {"status": "ignored", "reason": "newsletter_headers"}
-    elif header_hints.get("is_newsletter"):
-        logger.debug(
-            f"[HEADER HINTS] Newsletter header found but application-related (patterns.json), not ignoring: {metadata['subject']}"
-        )
+    if newsletter_result:
+        return {"status": "ignored", "reason": "newsletter_headers"}
 
     # --- PATCH: User-sent message to company domain ---
     user_email = (os.environ.get("USER_EMAIL_ADDRESS") or "").strip().lower()
@@ -3652,20 +3797,10 @@ def ingest_message(service, msg_id):
         if company and not skip_company_assignment:
             # Final normalization before persistence
             company = normalize_company_name(company)
-            # Resolve alias to canonical company name
-            company = resolve_company_alias(company)
-            company_obj, _ = get_or_create_company_iexact(
-                name=company,
-                defaults={
-                    "first_contact": metadata["timestamp"],
-                    "last_contact": metadata["timestamp"],
-                    "confidence": confidence,
-                },
+            # Resolve alias, create company, set domain/ATS (shared helper)
+            company_obj, company = _resolve_company_obj(
+                company, metadata, confidence
             )
-            # Set company domain and/or ATS domain (shared helper)
-            if company_obj:
-                sender_domain = metadata.get("sender_domain", "").lower()
-                update_company_domain_and_ats(company_obj, sender_domain, company)
         elif skip_company_assignment:
             logger.debug(f"Skipping company assignment for {label_guard} message")
 
@@ -4751,21 +4886,13 @@ def ingest_message_from_eml(eml_content: str, fake_msg_id: str = None):
 
     # Check if application-related (use classification_text for pattern matching)
     header_hints = metadata.get("header_hints", {})
-    app_text = body if body and body.strip() else classification_text
-    is_app_related = is_application_related(
-        metadata["subject"], app_text[:500]
-    )
 
-    logger.debug(f"[EML HEADER HINTS] is_application_related={is_app_related}, is_newsletter={header_hints.get('is_newsletter')}, is_bulk={header_hints.get('is_bulk')}, is_noreply={header_hints.get('is_noreply')}")
-    # Auto-ignore newsletters and bulk mail ONLY if NOT application-related
-    if not is_app_related:
-        if header_hints.get("is_newsletter") or (
-            header_hints.get("is_bulk") and header_hints.get("is_noreply")
-        ):
-            logger.debug(f"[EML HEADER HINTS] Auto-ignoring newsletter/bulk mail: {metadata['subject']}")
-            log_ignored_message(fake_msg_id, metadata, reason="newsletter_headers")
-            _increment_stat(stats, "total_ignored")
-            return "ignored"
+    # Auto-ignore newsletters and bulk mail (shared helper)
+    newsletter_result = _check_newsletter_auto_ignore(
+        metadata, header_hints, fake_msg_id, stats, log_prefix="[EML] "
+    )
+    if newsletter_result:
+        return "ignored"
 
     # Continue with classification and company resolution
     # (Using the same logic as ingest_message but without Gmail service dependency)
@@ -4795,56 +4922,11 @@ def ingest_message_from_eml(eml_content: str, fake_msg_id: str = None):
     elif isinstance(parse_result, str):
         company = parse_result
 
-    # If parse_subject detected internal introduction and overrode label to 'other', apply to result
-    if (
-        isinstance(parse_result, dict)
-        and parse_result.get("label") == "other"
-        and ml_label in ("referral", "interview_invite")
-    ):
-        sender_domain = metadata.get("sender_domain")
-        if sender_domain and company:
-            mapped_domain_company = _map_company_by_domain(sender_domain)
-            if (
-                mapped_domain_company
-                and mapped_domain_company.lower() == company.lower()
-            ):
-                ml_label = "other"
-                logger.debug(f"[EML INTERNAL INTRODUCTION] Overriding ml_label to 'other' for internal introduction: {sender_domain} matches {company}")
-    # If ML originally predicted head_hunter but sender domain maps to actual company (internal recruiter),
-    # override to 'other' only for generic spam, preserve meaningful labels
-    original_ml_label = result.get("ml_label") or result.get(
-        "label"
-    )  # Check original ML prediction
-    if original_ml_label == "head_hunter":
-        sender_domain = metadata.get("sender_domain")
-        if sender_domain and sender_domain not in HEADHUNTER_DOMAINS:
-            mapped_company = _map_company_by_domain(sender_domain)
-            if mapped_company:
-                # Preserve meaningful application lifecycle labels
-                if ml_label not in (
-                    "interview_invite",
-                    "rejection",
-                    "job_application",
-                    "offer",
-                ):
-                    ml_label = "other"
-                    logger.debug(f"[EML INTERNAL RECRUITER] Overriding to 'other' for internal recruiter from company domain: {sender_domain} → {mapped_company}")
-                else:
-                    logger.debug(
-                        f"[EML INTERNAL RECRUITER] Preserving meaningful label '{ml_label}' from internal recruiter: {sender_domain} → {mapped_company}"
-                    )
-
-    # Check if sender domain is in personal domains list - override to noise
-    # EXCEPT for head_hunter (headhunters legitimately use personal domains)
-    sender_domain = metadata.get("sender_domain", "").lower()
-    if sender_domain and sender_domain in PERSONAL_DOMAINS:
-        if ml_label != "head_hunter":
-            logger.debug(f"[EML PERSONAL DOMAIN] Detected personal domain: {sender_domain}, overriding to 'noise'")
-            ml_label = "noise"
-        else:
-            logger.debug(
-                f"[EML PERSONAL DOMAIN] Detected personal domain: {sender_domain}, but keeping head_hunter label"
-            )
+    # Apply label overrides (internal intro, internal recruiter, personal domain)
+    ml_label, result = _apply_label_overrides(
+        result, metadata, company, parse_result, log_prefix="[EML] "
+    )
+    ml_confidence = result.get("confidence", 0.0) if result else 0.0
 
     # Skip company assignment for noise and head_hunter messages
     if ml_label in ("noise", "head_hunter"):
@@ -4852,23 +4934,11 @@ def ingest_message_from_eml(eml_content: str, fake_msg_id: str = None):
         logger.debug(f"[EML] Skipping company assignment for {ml_label} message")
     logger.debug(f"[EML] Parsed company: {company}")
     logger.debug(f"[EML] ML label: {ml_label}, confidence: {ml_confidence}")
-    # Get or create company object
-    company_obj = None
-    if company and company.strip():
-        # Resolve alias to canonical company name
-        canonical_company = resolve_company_alias(company)
-        company_obj, created = get_or_create_company_iexact(
-            name=canonical_company,
-            defaults={
-                "first_contact": date_obj,
-                "last_contact": date_obj,
-            },
-        )
-        
-        # Set company domain and/or ATS domain (shared helper)
-        if company_obj:
-            sender_domain = metadata.get("sender_domain", "").lower()
-            update_company_domain_and_ats(company_obj, sender_domain, canonical_company)
+
+    # Get or create company object (shared helper)
+    company_obj, canonical_company = _resolve_company_obj(
+        company, metadata, ml_confidence, log_prefix="[EML] "
+    )
 
     # Check for duplicates
     existing = Message.objects.filter(msg_id=fake_msg_id).first()

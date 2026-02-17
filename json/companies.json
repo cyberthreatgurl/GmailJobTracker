@@ -487,7 +487,8 @@
     "experis.com": "Experis",
     "cisecurity.org": "Center for Internet Security",
     "careers.globelifeinsurance.com": "Globe Life",
-    "hirepeaksconsulting.com": "HirePeaks Consulting"
+    "hirepeaksconsulting.com": "HirePeaks Consulting",
+    "summittechllc.com": "Summit Technologies"
   },
   "headhunter_domains": [
     "agreeya.com",
@@ -819,7 +820,8 @@
     "Experis": "https://www.experis.com/en/search",
     "CIS": "https://cisecurity.wd1.myworkdayjobs.com/CIS_External_Career_Site",
     "Center for Internet Security": "https://cisecurity.wd1.myworkdayjobs.com/CIS_External_Career_Site",
-    "Globe Life": "https://careers.globelifeinsurance.com/agent-careers"
+    "Globe Life": "https://careers.globelifeinsurance.com/agent-careers",
+    "Summit Technologies": "https://www.summittechllc.com/careers/"
   },
   "known": [
     "Obsidian",
@@ -1113,7 +1115,8 @@
     "Experis",
     "CIS",
     "Globe Life",
-    "HirePeaks Consulting"
+    "HirePeaks Consulting",
+    "Summit Technologies LLC"
   ],
   "ats_heuristic_patterns": [
     "workday",

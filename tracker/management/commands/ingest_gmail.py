@@ -194,6 +194,10 @@ class Command(BaseCommand):
                                 f"  → Inserted: label={label}, confidence={confidence:.2f}, company={company}, source={source}"
                             )
                             inserted += 1
+                        elif status == "re-ingested":
+                            # Re-ingest already logged by parser via log_console;
+                            # just count it here (not inserted or ignored).
+                            pass
                         else:
                             log_console(f"  → {status}")
                     elif ret == "ignored":

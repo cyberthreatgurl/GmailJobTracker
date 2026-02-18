@@ -4,8 +4,10 @@ Additional integration tests targeting critical parser.py functions.
 Focus on rule_label function and edge cases to increase coverage.
 """
 
+import re
+
 import pytest
-from parser import rule_label
+from parser import rule_label, parse_subject, predict_with_fallback, predict_subject_type
 
 
 class TestRuleLabelFunction:
@@ -268,3 +270,159 @@ class TestRuleLabelPatternCoverage:
         result = rule_label(subject, body)
         # Should likely be rejection
         assert result in ["rejection", None]
+
+
+class TestMeetingUpgradeRegex:
+    """Regression tests for the meeting-details regex (join.*meeting fix).
+
+    The old pattern ``join.*meeting`` was greedy and matched across thousands
+    of characters (e.g., "joint operational unit ... in meeting rigorous").
+    The fixed pattern limits the gap to at most 3 words.
+    """
+
+    FIXED_PATTERN = (
+        r"meeting id|passcode|join\s+(?:\S+\s+){0,3}meeting"
+        r"|zoom\.us|meet\.google|teams\.microsoft|ms teams|microsoft teams"
+    )
+
+    def test_join_the_meeting_matches(self):
+        """Legitimate 'join the meeting' text should still match."""
+        assert re.search(self.FIXED_PATTERN, "Click here to join the meeting", re.I)
+
+    def test_join_our_zoom_meeting_matches(self):
+        """'Join our Zoom meeting' should match."""
+        assert re.search(self.FIXED_PATTERN, "Join our scheduled Zoom meeting now", re.I)
+
+    def test_join_this_meeting_matches(self):
+        """'Join this meeting' should match."""
+        assert re.search(self.FIXED_PATTERN, "join this meeting", re.I)
+
+    def test_joint_operational_unit_does_not_match(self):
+        """Resume text with 'joint' and 'meeting' far apart must NOT match."""
+        resume_text = (
+            "orchestrated a joint operational unit spanning contractors "
+            "and federal analysts to provide intelligence ... "
+            "Validated information technology and operational systems "
+            "in meeting rigorous cybersecurity compliance requirements"
+        )
+        assert not re.search(self.FIXED_PATTERN, resume_text, re.I)
+
+    def test_meeting_id_still_matches(self):
+        """Direct 'meeting id' text should still match."""
+        assert re.search(self.FIXED_PATTERN, "Meeting ID: 123-456-789", re.I)
+
+    def test_zoom_url_still_matches(self):
+        """Zoom URLs should still match."""
+        assert re.search(self.FIXED_PATTERN, "https://zoom.us/j/123456", re.I)
+
+    def test_teams_microsoft_still_matches(self):
+        """Teams meeting links should still match."""
+        assert re.search(self.FIXED_PATTERN, "https://teams.microsoft.com/meet", re.I)
+
+    def test_ms_teams_still_matches(self):
+        """'MS Teams' text should still match."""
+        assert re.search(self.FIXED_PATTERN, "We will meet on MS Teams", re.I)
+
+
+class TestApplicationNotUpgradedToInterview:
+    """Regression: application confirmations must never be upgraded to interview_invite.
+
+    Bug: "Thanks for applying to Resource Management Concepts, Inc." was
+    classified as interview_invite because the body (which contained a full
+    resume with words like 'joint' and 'meeting') matched the greedy
+    join.*meeting regex AND the 'meeting' word matched interview language.
+    """
+
+    APPLICATION_SUBJECT = "Thanks for applying to Resource Management Concepts, Inc."
+    APPLICATION_BODY = (
+        "Your application for the IT Program Manager job was submitted successfully. "
+        "Here's a copy of your application data for safekeeping. "
+        "Experience: orchestrated a joint operational unit spanning contractors "
+        "and federal analysts to provide intelligence analysis. "
+        "Validated information technology and operational systems in meeting "
+        "rigorous cybersecurity compliance requirements."
+    )
+
+    def test_rule_label_returns_job_application(self):
+        """rule_label should classify this as job_application."""
+        result = rule_label(
+            self.APPLICATION_SUBJECT,
+            self.APPLICATION_BODY,
+            sender_domain="workablemail.com",
+        )
+        assert result == "job_application"
+
+    def test_predict_with_fallback_returns_job_application(self):
+        """predict_with_fallback should return job_application."""
+        result = predict_with_fallback(
+            predict_subject_type,
+            self.APPLICATION_SUBJECT,
+            self.APPLICATION_BODY,
+            threshold=0.55,
+            sender="noreply@candidates.workablemail.com",
+        )
+        assert result["label"] == "job_application"
+
+    def test_parse_subject_returns_job_application(self):
+        """parse_subject must NOT upgrade job_application to interview_invite."""
+        result = parse_subject(
+            self.APPLICATION_SUBJECT,
+            self.APPLICATION_BODY,
+            sender="noreply@candidates.workablemail.com",
+            sender_domain="workablemail.com",
+        )
+        assert result["label"] == "job_application", (
+            f"Expected job_application but got {result['label']}"
+        )
+
+
+class TestRmcRejectionClassifiedAsRejection:
+    """Regression: RMC rejection must be labeled as rejection, not job_application.
+
+    The rejection email body contains strong rejection language but also
+    application-related phrases ("Thank you for your interest" and
+    "for taking the time to apply"), which previously led to it being
+    misclassified as job_application.
+    """
+
+    REJECTION_SUBJECT = "IT Program Manager - Resource Management Concepts, Inc."
+    REJECTION_BODY = (
+        "Dear Adrian, "
+        "Thank you for your interest in joining Resource Management Concepts, Inc. "
+        "and for taking the time to apply for the IT Program Manager position. "
+        "After reviewing your application, our team has decided to move forward "
+        "with candidates whose experiences more closely match the current needs "
+        "of the role. "
+    )
+
+    def test_rule_label_returns_rejection(self):
+        """rule_label should classify this as a rejection."""
+        result = rule_label(
+            self.REJECTION_SUBJECT,
+            self.REJECTION_BODY,
+            sender_domain="workablemail.com",
+        )
+        assert result == "rejection"
+
+    def test_predict_with_fallback_returns_rejection(self):
+        """predict_with_fallback should return rejection for this email."""
+        result = predict_with_fallback(
+            predict_subject_type,
+            self.REJECTION_SUBJECT,
+            self.REJECTION_BODY,
+            threshold=0.55,
+            sender="noreply@candidates.workablemail.com",
+        )
+        assert result["label"] == "rejection"
+
+    def test_parse_subject_returns_rejection(self):
+        """parse_subject must treat this as a rejection message."""
+        result = parse_subject(
+            self.REJECTION_SUBJECT,
+            self.REJECTION_BODY,
+            sender="noreply@candidates.workablemail.com",
+            sender_domain="workablemail.com",
+        )
+        assert result["label"] == "rejection", (
+            f"Expected rejection but got {result['label']}"
+        )

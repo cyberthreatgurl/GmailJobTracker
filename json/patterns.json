@@ -200,6 +200,7 @@
       "\\bwe\\s+have\\s+decided\\s+to\\s+pursue\\s+other\\s+candidates\\b",
       "\\bwe\\s+have\\s+decided\\s+to\\s+consider\\s+candidates\\b",
       "\\bdecided\\s+to\\s+consider\\s+candidates.*more\\s+closely\\s+align\\b",
+      "\\bdecided\\s+to\\s+move\\s+forward\\s+with\\s+candidates\\s+whose\\s+experiences?\\s+more\\s+closely\\s+match\\b",
       "\\bkeep\\syour\\s(?:resume|application)\\son\\sfile\\b",
       "\\bdecided\\snot\\sto\\smove\\sforward\\swith\\syour\\sapplication\\b",
       "\\byour\\s+application\\s+will\\s+not\\s+advance\\b",

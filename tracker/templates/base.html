@@ -38,6 +38,7 @@
   <!-- Main Content - Scrolls naturally with page -->
   <main class="main-with-sidebar p-8 pl-2">
     <!-- Django Messages Display -->
+    {% block messages %}
     {% if messages %}
       <div class="messages mb-6">
         {% for message in messages %}
@@ -51,6 +52,7 @@
         {% endfor %}
       </div>
     {% endif %}
+    {% endblock messages %}
     
     {% block content %}{% endblock %}
   </main>

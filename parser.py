@@ -1651,7 +1651,7 @@ def _create_or_update_thread_tracking(
 
         if company_obj and message_obj:
             _update_thread_tracking_for_company(
-                metadata, result, company_obj, company_source, parsed_subject,
+                msg_id, metadata, result, company_obj, company_source, parsed_subject,
                 status, reviewed, stats, ml_label,
                 rejection_date_final, interview_date_final, prescreen_date_final
             )
@@ -1668,7 +1668,7 @@ def _create_or_update_thread_tracking(
 
 
 def _update_thread_tracking_for_company(
-    metadata, result, company_obj, company_source, parsed_subject,
+    msg_id, metadata, result, company_obj, company_source, parsed_subject,
     status, reviewed, stats, ml_label,
     rejection_date_final, interview_date_final, prescreen_date_final
 ):
@@ -1684,7 +1684,7 @@ def _update_thread_tracking_for_company(
 
     if ml_label in ("job_application", "interview_invite", "prescreen", "cancelled"):
         _create_thread_tracking_for_application(
-            metadata, result, company_obj, company_source, parsed_subject,
+            msg_id, metadata, result, company_obj, company_source, parsed_subject,
             status, reviewed, stats, ml_label,
             rejection_date_final, interview_date_final, prescreen_date_final
         )
@@ -1697,33 +1697,71 @@ def _update_thread_tracking_for_company(
 
 
 def _create_thread_tracking_for_application(
-    metadata, result, company_obj, company_source, parsed_subject,
+    msg_id, metadata, result, company_obj, company_source, parsed_subject,
     status, reviewed, stats, ml_label,
     rejection_date_final, interview_date_final, prescreen_date_final
 ):
-    """Create ThreadTracking for application/interview/prescreen/cancelled labels."""
+    """Create ThreadTracking for application/interview/prescreen/cancelled labels.
+
+    Handles the case where multiple distinct job_application messages share the
+    same Gmail thread_id (e.g., identical ATS confirmation subjects causing Gmail
+    to group them). When a second application arrives on an existing thread, a
+    separate ThreadTracking is created using the message's msg_id as thread_id.
+    """
+    tt_defaults = {
+        "company": company_obj,
+        "company_source": company_source,
+        "job_title": parsed_subject.get("job_title", ""),
+        "job_id": parsed_subject.get("job_id", ""),
+        "status": status,
+        "sent_date": timezone.localtime(metadata["timestamp"]).date(),
+        "rejection_date": rejection_date_final,
+        "interview_date": interview_date_final,
+        "prescreen_date": prescreen_date_final,
+        "ml_label": ml_label,
+        "ml_confidence": (
+            float(result.get("confidence", 0.0)) if result else 0.0
+        ),
+        "reviewed": reviewed,
+        "cancelled": ml_label == "cancelled",
+    }
+
     application_obj, created = ThreadTracking.objects.get_or_create(
         thread_id=metadata["thread_id"],
-        defaults={
-            "company": company_obj,
-            "company_source": company_source,
-            "job_title": parsed_subject.get("job_title", ""),
-            "job_id": parsed_subject.get("job_id", ""),
-            "status": status,
-            "sent_date": timezone.localtime(metadata["timestamp"]).date(),
-            "rejection_date": rejection_date_final,
-            "interview_date": interview_date_final,
-            "prescreen_date": prescreen_date_final,
-            "ml_label": ml_label,
-            "ml_confidence": (
-                float(result.get("confidence", 0.0)) if result else 0.0
-            ),
-            "reviewed": reviewed,
-            "cancelled": ml_label == "cancelled",
-        },
+        defaults=tt_defaults,
     )
 
     if not created:
+        # Check if this is a DIFFERENT application message on the same Gmail thread.
+        # Gmail groups messages with identical subjects into one thread, but each
+        # may be a separate job application (e.g., two roles at the same company
+        # with the same ATS confirmation subject).
+        if (
+            ml_label == "job_application"
+            and application_obj.ml_label == "job_application"
+            and msg_id != metadata["thread_id"]
+        ):
+            # This msg_id differs from the thread_id, so it's a distinct message.
+            # Check if we already created a TT for this specific message.
+            existing_for_msg = ThreadTracking.objects.filter(
+                thread_id=msg_id
+            ).exists()
+            if not existing_for_msg:
+                tt_defaults["sent_date"] = timezone.localtime(
+                    metadata["timestamp"]
+                ).date()
+                new_tt = ThreadTracking.objects.create(
+                    thread_id=msg_id,
+                    **tt_defaults,
+                )
+                logger.debug(
+                    f"✓ Created separate ThreadTracking (id={new_tt.id}) for "
+                    f"additional application on same Gmail thread "
+                    f"(msg_id={msg_id}, original thread_id={metadata['thread_id']})"
+                )
+                _increment_stat(stats, "total_inserted")
+                return
+
         _update_existing_application_dates(
             application_obj, company_obj, company_source, result, metadata,
             ml_label, rejection_date_final, interview_date_final, prescreen_date_final
@@ -2105,7 +2143,14 @@ def _reingest_user_reply(
 
 
 def _update_thread_tracking_on_reingest(metadata, result, company_obj, stats):
-    """Update ThreadTracking dates during re-ingestion."""
+    """Update ThreadTracking dates during re-ingestion.
+
+    Handles:
+    - Setting rejection_date for rejection/cancelled labels
+    - Body-based cancellation detection via is_cancelled_position()
+    - Cross-thread rejection propagation via TF-IDF matching when the
+      thread_id-matched TT appears to be a spurious record (no job_title)
+    """
     ml_label = result.get("label") if result else None
     if not (company_obj and ml_label and ml_label != "head_hunter"):
         return
@@ -2117,24 +2162,31 @@ def _update_thread_tracking_on_reingest(metadata, result, company_obj, stats):
         if app:
             logger.debug(f"[Re-ingest] App ml_label={app.ml_label}, rejection_date={app.rejection_date}, ml_label_param={ml_label}")
             updated = False
-            if not app.rejection_date and ml_label in ("rejected", "rejection"):
-                app.rejection_date = timezone.localtime(metadata["timestamp"]).date()
+            if not app.rejection_date and ml_label in ("rejected", "rejection", "cancelled"):
+                rejection_date = timezone.localtime(metadata["timestamp"]).date()
+                app.rejection_date = rejection_date
                 updated = True
                 logger.debug(f"✓ Set rejection_date during re-ingest: {app.rejection_date}")
+                # Body-based cancellation detection
+                if is_cancelled_position(
+                    metadata.get("subject", ""), metadata.get("body", "")
+                ) or ml_label == "cancelled":
+                    app.cancelled = True
+                    logger.debug("✓ Detected 'cancelled' in email text during re-ingest")
+            if (
+                not app.interview_date
+                and ml_label == "interview_invite"
+            ):
                 try:
                     ml_conf = (
                         float(result.get("confidence", 0.0)) if result else 0.0
                     )
                 except Exception:
                     ml_conf = 0.0
-                if (
-                    not app.interview_date
-                    and ml_label == "interview_invite"
-                    and ml_conf >= 0.7
-                ):
+                if ml_conf >= 0.7:
                     app.interview_date = timezone.localtime(metadata["timestamp"]).date()
-                updated = True
-                logger.debug(f"✓ Set interview_date during re-ingest: {app.interview_date}")
+                    updated = True
+                    logger.debug(f"✓ Set interview_date during re-ingest: {app.interview_date}")
             if not app.ml_label or app.ml_label != ml_label:
                 app.ml_label = ml_label
                 app.ml_confidence = (
@@ -2147,10 +2199,41 @@ def _update_thread_tracking_on_reingest(metadata, result, company_obj, stats):
                 log_console(
                     f"  → ThreadTracking updated: ml_label={app.ml_label}"
                     f", rejection_date={app.rejection_date}"
+                    f", cancelled={app.cancelled}"
                     f", thread_id={metadata['thread_id']}"
                 )
+
+            # Cross-thread rejection propagation: if the TT we found by thread_id
+            # has no job_title (likely a spurious record from a prior misclassification),
+            # also use TF-IDF matching to find and update the actual application.
+            if (
+                ml_label in ("rejected", "rejection", "cancelled")
+                and not app.job_title
+            ):
+                rejection_date = (
+                    app.rejection_date
+                    or timezone.localtime(metadata["timestamp"]).date()
+                )
+                logger.debug(
+                    f"[Re-ingest] TT id={app.id} has no job_title — "
+                    f"attempting cross-thread TF-IDF match for {company_obj.name}"
+                )
+                _find_and_update_rejection_by_company(
+                    metadata, company_obj, {}, rejection_date
+                )
         else:
-            logger.debug(f"[Re-ingest] No Application found for thread_id={metadata['thread_id']}")
+            # No TT for this thread_id — for rejections, try TF-IDF matching
+            if ml_label in ("rejected", "rejection", "cancelled") and company_obj:
+                rejection_date = timezone.localtime(metadata["timestamp"]).date()
+                logger.debug(
+                    f"[Re-ingest] No TT for thread_id={metadata['thread_id']}"
+                    f" — attempting TF-IDF match for {company_obj.name}"
+                )
+                _find_and_update_rejection_by_company(
+                    metadata, company_obj, {}, rejection_date
+                )
+            else:
+                logger.debug(f"[Re-ingest] No Application found for thread_id={metadata['thread_id']}")
     except Exception as e:
         logger.debug(f"Warning: Could not update Application during re-ingest: {e}")
 

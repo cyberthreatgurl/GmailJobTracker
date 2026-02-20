@@ -50,8 +50,11 @@
       "\\b(?:decided|chosen)\\s+to\\s+consider\\s+candidates.*(?:more\\s+closely\\s+align|better\\s+(?:match|fit))",
       "\\b(?:unable|not\\s+able)\\s+to\\s+(?:move\\s+forward|proceed)",
       "\\bnot\\s+to\\s+proceed\\s+with\\s+your\\s+application\\b",
+      "\\bwill\\s+not\\s+be\\s+proceeding\\s+with\\s+your\\b",
+      "\\bnot\\s+(?:be\\s+)?proceeding\\s+with\\s+your\\b",
       "\\bother\\s+(?:candidates|applicants)\\b",
-      "\\bposition\\s+(?:has\\s+been\\s+)?(?:closed|filled)\\b"
+      "\\bposition\\s+(?:has\\s+been\\s+)?(?:closed|filled)\\b",
+      "\\bposition\\s+(?:is|being)\\s+no\\s+longer\\s+available\\b"
     ],
     "status_update": [
       "\\b(?:still|currently|remains)\\s+under\\s+review\\b",
@@ -185,7 +188,7 @@
       "\\bwe.{0,30}not\\s+(?:be\\s+)?able.{0,30}selected\\s+you\\b",
       "\\bposition\\s+has\\s+been\\s+closed\\s+or\\s+filled\\b",
       "\\bmove\\sforward\\swith\\sothers\\b",
-      "\\bthe\\s+position\\s+is\\s+no\\s+longer\\s+available\\b",
+      "\\b(?:the\\s+)?position\\s+(?:is|being)\\s+no\\s+longer\\s+available\\b",
       "\\bhas\\sbeen\\sclosed\\sor\\sfilled\\b",
       "\\bhas\\s+(?:either\\s+)?been\\s+filled\\s+or\\s+closed\\b",
       "\\bhas\\s+(?:either\\s+)?been\\s+closed\\s+or\\s+filled\\b",
@@ -196,6 +199,8 @@
       "\\bwe\\s+have\\s+decided\\s+not\\s+to\\s+move\\s+forward\\b",
       "\\b(?:chosen|opted)\\s+not\\s+to\\s+(?:move\\s+forward|proceed)\\s+with\\s+your\\b",
       "\\b(?:decided|chosen|opted)\\s+not\\s+to\\s+proceed\\s+with\\s+your\\s+application\\b",
+      "\\bwill\\s+not\\s+be\\s+proceeding\\s+with\\s+your\\s+application\\b",
+      "\\bnot\\s+(?:be\\s+)?proceeding\\s+with\\s+your\\s+application\\b",
       "\\bproceed(?:ing)?\\swith\\s(?:other|another|an?\\salternative)\\scandidate(?:s)?\\b",
       "\\bwe\\s+have\\s+decided\\s+to\\s+pursue\\s+other\\s+candidates\\b",
       "\\bwe\\s+have\\s+decided\\s+to\\s+consider\\s+candidates\\b",

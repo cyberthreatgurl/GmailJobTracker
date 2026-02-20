@@ -33,7 +33,7 @@ class TestCancelledPatterns:
 
     def test_patterns_are_precompiled(self):
         """All patterns should be compiled regex objects."""
-        assert len(CANCELLED_PATTERNS) == 8
+        assert len(CANCELLED_PATTERNS) == 9
         for p in CANCELLED_PATTERNS:
             assert isinstance(p, re.Pattern), f"Expected compiled regex, got {type(p)}"
 

@@ -503,7 +503,11 @@
     "unisys.com": "Unisys",
     "hpe.com": "Hewlett Packard Enterprise",
     "ashcompanies.com": "American Specialty Health",
-    "zoneitsolutions.com": "Zone IT Solutions"
+    "zoneitsolutions.com": "Zone IT Solutions",
+    "maximus.com": "Maximus",
+    "carmax.com": "Carmax",
+    "catalent.com": "Catalent",
+    "insightglobal.com": "Insight Global"
   },
   "headhunter_domains": [
     "agreeya.com",
@@ -842,7 +846,10 @@
     "ANSER": "https://www.anser.org/careers/",
     "Main Sail": "https://www.mainsailgroup.com/jobs",
     "Zekiah": "https://www.zekiah.com/careers",
-    "Unisys": "http://www.unisys.com/careers/"
+    "Unisys": "http://www.unisys.com/careers/",
+    "Maximus": "https://maximus.avature.net/careers/USHome",
+    "Catalent": "https://www.catalent.com/careers/",
+    "Insight Global": "https://insightglobal.com/jobs/"
   },
   "known": [
     "Obsidian",
@@ -1150,7 +1157,11 @@
     "Unisys",
     "Hewlett Packard Enterprise",
     "American Specialty Health",
-    "Zone IT Solutions"
+    "Zone IT Solutions",
+    "Maximus",
+    "Carmax",
+    "Catalent",
+    "Insight Global"
   ],
   "ats_heuristic_patterns": [
     "workday",

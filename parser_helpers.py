@@ -40,6 +40,7 @@ CANCELLED_PATTERNS = [
         r'\b(?:role|position)\s+(?:has\s+been\s+)?(?:closed|cancelled|canceled)\b',
         r'\bnot\s+(?:to\s+)?(?:move\s+forward|proceed)\s+with\s+(?:filing|filling)\s+(?:this|the)\s+(?:role|position)\b',
         r'\b(?:cancelled|canceled|closed/cancelled|cancelled/closed)\b',
+        r'\bposition\s+(?:is|being)\s+no\s+longer\s+available\b',
     ]
 ]
 

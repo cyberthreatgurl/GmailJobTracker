@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.0] - 2026-02-20
+
+### Added
+- **Cross-thread rejection propagation safeguards** — Re-ingest and label propagation now update the correct application when rejection emails arrive on different Gmail threads.
+- **Multi-application same-thread handling** — Distinct `job_application` messages grouped by Gmail under one thread now create separate `ThreadTracking` records keyed by message id when needed.
+- **Regression test coverage**
+  - `tests/test_rejection_override_classification.py`
+  - `tests/test_rejection_propagation.py`
+  - `tests/test_multi_app_same_thread.py`
+
+### Changed
+- **Label Messages UX cleanup** — Top-page alert rendering was removed for the page-specific flow; errors remain modal-driven.
+- **Sidebar metrics** — Labeling progress moved into sidebar summary for compact display on smaller screens.
+
+### Fixed
+- **Rejection classification precedence** — Rule ordering now prioritizes rejection/cancelled signals before broad application patterns.
+- **Cancelled detection** — Added handling for wording such as "position is/being no longer available" to correctly set `cancelled=True`.
+- **Company Data Preview and Application Details counts** — Application thread lookup now includes records keyed by both Gmail thread id and message id, preventing undercounting.
+
 ## [2.1.0] - 2026-02-12
 
 ### Added

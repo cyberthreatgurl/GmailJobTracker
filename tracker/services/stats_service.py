@@ -192,6 +192,13 @@ class StatsService:
         # Calculate response rate and average response time
         # Response = has rejection_date, prescreen_date, or interview_date
         total_apps = ThreadTracking.objects.exclude(company__status="headhunter").count()
+
+        # Labeling progress stats
+        label_total_reviewed = Message.objects.filter(reviewed=True).count()
+        label_total_unreviewed = Message.objects.filter(reviewed=False).count()
+        label_total = label_total_reviewed + label_total_unreviewed
+        label_pct = round((label_total_reviewed / label_total * 100), 1) if label_total > 0 else 0
+
         responded_apps = ThreadTracking.objects.exclude(
             company__status="headhunter"
         ).filter(
@@ -250,6 +257,10 @@ class StatsService:
             "response_rate": response_rate,
             "responded_apps": responded_apps,
             "avg_response_days": avg_response_days,
+            "label_total_reviewed": label_total_reviewed,
+            "label_total_unreviewed": label_total_unreviewed,
+            "label_total": label_total,
+            "label_pct": label_pct,
         }
 
     @staticmethod

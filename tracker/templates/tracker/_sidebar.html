@@ -63,6 +63,18 @@
   <div class="bg-white p-4 rounded-lg mb-4 shadow-sm">
     <h2 class="text-sm font-semibold mb-3 text-gray-800">📊 Summary</h2>
     <ul class="list-none pl-0 m-0">
+      <!-- Labeling Progress -->
+      <li class="py-2 border-b border-gray-100">
+        <a href="{% url 'label_messages' %}" class="block hover:bg-gray-50 rounded -mx-1 px-1 transition-colors" title="Go to Label Messages">
+          <div class="flex justify-between text-xs text-gray-600 mb-1">
+            <span class="text-blue-600 hover:text-blue-800 font-medium">🏷️ Labeling Progress:</span>
+            <span class="font-semibold">{{ label_total_reviewed|default:0 }}/{{ label_total|default:0 }} ({{ label_pct|default:0 }}%)</span>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-1.5">
+            <div class="bg-blue-600 h-1.5 rounded-full transition-all" style="width: {{ label_pct|default:0 }}%"></div>
+          </div>
+        </a>
+      </li>
       <li class="flex justify-between py-2 text-xs text-gray-600 border-b border-gray-100">
         <a href="{% url 'label_companies' %}" class="text-blue-600 hover:text-blue-800 hover:underline">Total Companies:</a>
         <span>{{ companies|default:0 }}</span>

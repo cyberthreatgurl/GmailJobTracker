@@ -496,16 +496,17 @@ def reingest_admin(request):
                 # Capture stdout/stderr during ingestion for logging
                 log_buffer = io.StringIO()
                 
-                # Temporarily enable DEBUG for parser output
-                import parser as parser_module
-                original_debug = getattr(parser_module, 'DEBUG', False)
-                parser_module.DEBUG = True
+                # Enable DEBUG-level logging for parser during EML ingestion
+                import logging as _logging
+                _parser_logger = _logging.getLogger("parser")
+                _orig_level = _parser_logger.level
+                _parser_logger.setLevel(_logging.DEBUG)
                 
                 try:
                     with redirect_stdout(log_buffer), redirect_stderr(log_buffer):
                         result = ingest_message_from_eml(raw_content)
                 finally:
-                    parser_module.DEBUG = original_debug
+                    _parser_logger.setLevel(_orig_level)
                 
                 log_output = log_buffer.getvalue()
                 

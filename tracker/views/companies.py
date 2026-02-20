@@ -1169,18 +1169,26 @@ def label_companies(request):
     # Get all application threads for selected company (for Application Details section)
     # Include threads where ANY message has job_application label, not just thread-level label
     # This ensures we capture threads that started as applications but later got interview/rejection msgs
+    # Also include ThreadTracking records created with msg_id as thread_id (for multiple
+    # applications on the same Gmail thread—e.g., identical ATS subjects grouped by Gmail)
     application_threads = []
     if selected_company:
-        # Get thread_ids that have at least one job_application message
         from django.db.models import Q
-        application_thread_ids = Message.objects.filter(
+        app_messages = Message.objects.filter(
             company=selected_company,
             ml_label='job_application'
-        ).values_list('thread_id', flat=True).distinct()
-        
+        )
+        application_thread_ids = set(
+            app_messages.values_list('thread_id', flat=True).distinct()
+        )
+        application_msg_ids = set(
+            app_messages.values_list('msg_id', flat=True).distinct()
+        )
+        # TTs can be keyed by either Gmail thread_id or individual msg_id
+        all_tt_lookup_ids = application_thread_ids | application_msg_ids
+
         application_threads = list(ThreadTracking.objects.filter(
-            company=selected_company,
-            thread_id__in=application_thread_ids
+            Q(company=selected_company) & Q(thread_id__in=all_tt_lookup_ids)
         ).order_by('-sent_date'))
     
     # Get company documents

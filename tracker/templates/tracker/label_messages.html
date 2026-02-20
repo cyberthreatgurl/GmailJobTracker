@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load custom_filters %}
 {% block title %}🏷️ Label Messages - Bulk Mode{% endblock %}
+{% block messages %}{% endblock messages %}
 {% block extra_head %}
   <style>
     body {
@@ -31,28 +32,7 @@
       flex-direction: column;
       gap: 1rem;
     }
-    .progress-banner {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 1rem 1.5rem;
-      border-radius: 8px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .progress-banner h2 {
-      margin: 0;
-      font-size: 1.25rem;
-    }
-    .progress-stats {
-      display: flex;
-      gap: 2rem;
-      font-size: 0.9rem;
-    }
-    .progress-stats span {
-      font-weight: 600;
-      font-size: 1.1rem;
-    }
+
     .filter-bar {
       display: flex;
       gap: 1rem;
@@ -342,15 +322,16 @@
     <div style="flex-shrink: 0;">
       <h1>🏷️ Label Messages - Bulk Mode</h1>
 
-      <!-- Message Modal -->
-  {% if messages %}
-  <div id="messageModal" style="position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:9999;">
+      <!-- Error Modal (only shown when errors exist) -->
+  <div id="messageModal" style="position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); display:none; align-items:center; justify-content:center; z-index:9999;">
     <div style="background:white; border-radius:12px; padding:1.5rem 2rem; max-width:500px; box-shadow:0 10px 25px rgba(0,0,0,0.3);">
-      <div style="margin-bottom:1rem;">
+      <div id="errorMessages" style="margin-bottom:1rem;">
         {% for message in messages %}
-          <div style="padding:0.75rem; margin-bottom:0.5rem; border-radius:6px; {% if 'success' in message.tags %}background:#d1fae5; color:#065f46;{% elif 'info' in message.tags %}background:#dbeafe; color:#1e40af;{% elif 'error' in message.tags %}background:#fee2e2; color:#991b1b;{% else %}background:#f3f4f6; color:#374151;{% endif %}">
+          {% if 'error' in message.tags %}
+          <div class="error-msg" style="padding:0.75rem; margin-bottom:0.5rem; border-radius:6px; background:#fee2e2; color:#991b1b;">
             {{ message }}
           </div>
+          {% endif %}
         {% endfor %}
       </div>
       <button onclick="document.getElementById('messageModal').style.display='none'" style="width:100%; padding:0.75rem; background:#2563eb; color:white; border:none; border-radius:6px; font-weight:600; font-size:1rem; cursor:pointer;">
@@ -358,41 +339,15 @@
       </button>
     </div>
   </div>
-  {% endif %}
+  <script>
+    // Show modal only if error messages exist
+    if (document.querySelectorAll('#errorMessages .error-msg').length > 0) {
+      document.getElementById('messageModal').style.display = 'flex';
+    }
+  </script>
       
-  <!-- Progress Banner -->
-  <div class="progress-banner">
-    <h2>📊 Labeling Progress</h2>
-    <div class="progress-stats">
-      <div>
-        <div style="font-size: 0.8rem; opacity: 0.9;">Labeled</div>
-        <span>{{ total_reviewed }}</span>
-      </div>
-      <div>
-        <div style="font-size: 0.8rem; opacity: 0.9;">Total</div>
-        <span>{{ total_unreviewed|add:total_reviewed }}</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- Quick Add Company -->
-  <div style="background: white; margin: 0 1rem; padding: 0.75rem 1rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-    <p style="margin: 0 0 0.5rem 0; font-size: 0.9rem; color: #6b7280;">Enter company homepage URL to automatically populate details</p>
-    <form method="post" style="display:flex; gap:0.75rem; align-items:end;">
-      {% csrf_token %}
-      <input type="hidden" name="action" value="quick_add_company">
-      <div class="filter-group" style="flex: 1;">
-        <label>Homepage URL</label>
-        <input type="url" name="homepage_url" placeholder="e.g., https://www.company.com" style="width: 100%; padding: 0.4rem 0.6rem; border-radius: 4px; border: 1px solid #d1d5db; font-size: 0.9rem;" required>
-      </div>
-      <div>
-        <button type="submit" class="btn btn-primary" style="font-size:0.85rem;">🔍 Add</button>
-      </div>
-    </form>
-  </div>
-
-  <!-- Debug Summary (can remove later) -->
-  <div class="alert-info" style="margin: 0 1rem 1rem 1rem; padding: 0.5rem 0.75rem; border-radius: 6px;">
+  <!-- Page Info -->
+  <div class="alert-info" style="margin: 0 1rem 0.5rem 1rem; padding: 0.4rem 0.75rem; border-radius: 6px; font-size: 0.8rem;">
     Showing {{ message_list|length }} of {{ total_count }} results. Page {{ page }} of {{ total_pages }}.
   </div>
 

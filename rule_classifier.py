@@ -198,13 +198,16 @@ class RuleClassifier:
             return "cancelled"
 
         # Check rejection patterns FIRST (before application confirmation)
-        # This is critical because rejection emails often contain "your application to" language
-        # that would otherwise match the broad application confirmation patterns
-        # Example: "Your application to X at Company" in a rejection email
-        for rx in self._msg_label_patterns.get("rejection", []):
-            if rx.search(s):
-                logger.debug(f"[DEBUG rule_label] Early rejection match: {rx.pattern[:80]}")
-                return "rejection"
+        # This is critical because rejection emails often contain "your application to" or
+        # "application status" language that would match the broad application patterns.
+        #
+        # We check BOTH the full rejection patterns AND the rejection_override signals
+        # in a single pass. Either is sufficient to classify as rejection.
+        rejection_patterns = self._msg_label_patterns.get("rejection", [])
+        if any(rx.search(s) for rx in rejection_patterns) or \
+           any(rx.search(s) for rx in self._early_rejection_override):
+            logger.debug("[DEBUG rule_label] Rejection detected (patterns or override)")
+            return "rejection"
 
         # Check if this is a reply/follow-up email (RE:, Re:, FW:, Fwd:, etc.)
         is_reply = subject and any(rx.search(subject) for rx in self._reply_indicators)
@@ -241,29 +244,13 @@ class RuleClassifier:
                 logger.debug("[DEBUG rule_label] Early scheduling-language match -> interview_invite")
                 return "interview_invite"
 
-        # Check for rejection signals BEFORE application confirmation
-        # (to handle mixed messages like "Your application status... we decided not to proceed")
-        # This MUST run before job_application patterns, which include broad patterns
-        # like "application status" that would otherwise short-circuit rejection detection.
-        for rx in self._early_rejection_override:
-            if rx.search(s):
-                logger.debug(f"[DEBUG rule_label] Early rejection signal detected, checking rejection patterns")
-                # Verify with full rejection patterns
-                for pattern_rx in self._msg_label_patterns.get("rejection", []):
-                    if pattern_rx.search(s):
-                        logger.debug(f"[DEBUG rule_label] Rejection confirmed -> rejection")
-                        return "rejection"
-                # rejection_override matched but no full rejection pattern confirmed;
-                # still classify as rejection since override signals are strong
-                logger.debug(f"[DEBUG rule_label] Rejection override matched (no full pattern needed) -> rejection")
-                return "rejection"
-
-        # Check application confirmation patterns (after rejection override)
-        # This ensures "Thank you for applying" emails are not misclassified as rejections
-        # due to explanatory text like "if archived, that means you were not selected"
+        # Check application confirmation patterns
+        # Safe to check here because all rejection patterns (including overrides)
+        # have already been checked above. This handles "Thank you for applying"
+        # emails that also contain explanatory text about the review process.
         for rx in self._msg_label_patterns.get("job_application", []):
             if rx.search(s):
-                logger.debug(f"[DEBUG rule_label] Early application confirmation match: {rx.pattern[:80]}")
+                logger.debug(f"[DEBUG rule_label] Application confirmation match: {rx.pattern[:80]}")
                 return "job_application"
 
         # Early referral detection

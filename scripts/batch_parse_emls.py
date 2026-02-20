@@ -1,4 +1,4 @@
-    #!/usr/bin/env python3
+#!/usr/bin/env python3
 """Batch-parse .eml fixtures by invoking the Django management command.
 
 This avoids importing Django models directly from scripts and uses

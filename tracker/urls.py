@@ -30,6 +30,7 @@ urlpatterns = [
     ),
     path("aliases/reject/", views.reject_alias, name="reject_alias"),
     path("label_companies/", views.label_companies, name="label_companies"),
+    path("companies_in_city/", views.companies_in_city, name="companies_in_city"),
     path("company_threads/", views.company_threads, name="company_threads"),
     path("json_viewer/", views.json_file_viewer, name="json_file_viewer"),
     path("system-info/", views.system_info, name="system_info"),

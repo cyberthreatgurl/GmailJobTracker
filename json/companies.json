@@ -117,7 +117,8 @@
     "intrepid": "Intrepid Solutions and Services LLC",
     "Intrepid Solutions and Services LLC": "CIS",
     "CIS": "Center for Internet Security",
-    "Modern Technology Solutions": "MTSI"
+    "Modern Technology Solutions": "MTSI",
+    "v2x": "V2X Inc"
   },
   "ats_domains": [
     "Defense",
@@ -507,7 +508,8 @@
     "maximus.com": "Maximus",
     "carmax.com": "Carmax",
     "catalent.com": "Catalent",
-    "insightglobal.com": "Insight Global"
+    "insightglobal.com": "Insight Global",
+    "gov2x.com": "V2X Inc"
   },
   "headhunter_domains": [
     "agreeya.com",
@@ -849,7 +851,8 @@
     "Unisys": "http://www.unisys.com/careers/",
     "Maximus": "https://maximus.avature.net/careers/USHome",
     "Catalent": "https://www.catalent.com/careers/",
-    "Insight Global": "https://insightglobal.com/jobs/"
+    "Insight Global": "https://insightglobal.com/jobs/",
+    "V2X Inc": "https://gov2x.com/careers/"
   },
   "known": [
     "Obsidian",
@@ -1161,7 +1164,8 @@
     "Maximus",
     "Carmax",
     "Catalent",
-    "Insight Global"
+    "Insight Global",
+    "V2X"
   ],
   "ats_heuristic_patterns": [
     "workday",

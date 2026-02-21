@@ -2072,7 +2072,7 @@ def _handle_reingest(
     company_name = existing.company.name if existing.company else "N/A"
     changed = final_label != orig_ml_label
     log_console(
-        f"  → Re-ingested: label={final_label}"
+        f"  → Re-ingested [{msg_id}]: label={final_label}"
         f"{' (was ' + str(orig_ml_label) + ')' if changed else ''}"
         f", confidence={final_confidence:.2f}"
         f", company={company_name}"

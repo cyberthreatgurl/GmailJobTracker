@@ -1,7 +1,11 @@
 # ingest_gmail.py
 
 import os
+import tempfile
 from datetime import timedelta
+from contextlib import contextmanager
+
+import fcntl
 
 from django.core.management.base import BaseCommand
 from django.utils import timezone
@@ -10,6 +14,44 @@ from gmail_auth import get_gmail_service  # adjust if needed
 from parser import ingest_message
 from tracker.models import IngestionStats, ProcessedMessage
 from tracker_logger import log_console
+
+
+@contextmanager
+def _ingest_run_lock():
+    """Acquire a non-blocking process lock for ingest_gmail.
+
+    Prevents overlapping command runs that can cause one run to insert a message
+    while another re-ingests the same msg_id moments later.
+
+    Raises:
+        RuntimeError: If another ingest_gmail process already holds the lock.
+    """
+    lock_path = os.path.join(tempfile.gettempdir(), "gmailjobtracker_ingest_gmail.lock")
+    lock_file = open(lock_path, "a+", encoding="utf-8")
+    try:
+        try:
+            fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError as exc:
+            lock_file.seek(0)
+            holder = lock_file.read().strip() or "another process"
+            raise RuntimeError(
+                f"ingest_gmail already running (lock holder: {holder}). "
+                f"Skipping concurrent run."
+            ) from exc
+
+        lock_file.seek(0)
+        lock_file.truncate()
+        lock_file.write(f"pid={os.getpid()}")
+        lock_file.flush()
+
+        yield
+    finally:
+        try:
+            lock_file.seek(0)
+            lock_file.truncate()
+            fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
+        finally:
+            lock_file.close()
 
 
 def fetch_all_messages(service, max_results=500, after_date=None, custom_query=None):
@@ -77,166 +119,171 @@ class Command(BaseCommand):
         import sys
 
         try:
-            # Print metrics before if requested
-            if options.get("metrics_before"):
-                log_console("\n--- Parsing/ML Metrics BEFORE Ingestion ---\n")
-                subprocess.run([sys.executable, "manage.py", "report_parsing_metrics"])
-                log_console("\n--- End BEFORE Metrics ---\n")
+            with _ingest_run_lock():
+                # Print metrics before if requested
+                if options.get("metrics_before"):
+                    log_console("\n--- Parsing/ML Metrics BEFORE Ingestion ---\n")
+                    subprocess.run([sys.executable, "manage.py", "report_parsing_metrics"])
+                    log_console("\n--- End BEFORE Metrics ---\n")
 
-            service = get_gmail_service()
-            stats, _ = IngestionStats.objects.get_or_create(
-                date=timezone.localtime(timezone.now()).date()
-            )
-
-            # Single message mode
-            if options.get("limit_msg"):
-                msg_id = options["limit_msg"]
-                self.stdout.write(f"Ingesting single message: {msg_id}")
-                try:
-                    ingest_message(service, msg_id)
-                    ProcessedMessage.objects.get_or_create(gmail_id=msg_id)
-                    log_console(f"Successfully ingested {msg_id}")
-                except Exception as e:
-                    log_console(f"Failed: {e}")
-                return
-
-            # Calculate date range
-            days_back = options.get("days_back", 7)
-            after_date = timezone.localtime(timezone.now()) - timedelta(days=days_back)
-            custom_query = options.get("query")
-
-            log_console(f"Fetching Gmail messages from last {days_back} days...")
-            if custom_query:
-                log_console(f"Using custom query: {custom_query}")
-
-            # Fetch all messages from entire Gmail account (no label filtering)
-            all_msgs = fetch_all_messages(
-                service, after_date=after_date, custom_query=custom_query
-            )
-
-            all_msgs_by_id = {m["id"]: m for m in all_msgs}
-            log_console(f"Total messages fetched: {len(all_msgs_by_id)}")
-
-            # If --reparse-all, skip ProcessedMessage filtering and reprocess everything
-            if options.get("reparse_all"):
-                self.stdout.write(
-                    self.style.WARNING(
-                        "Re-parsing and re-ingesting ALL messages (ignoring ProcessedMessage table)!"
-                    )
+                service = get_gmail_service()
+                stats, _ = IngestionStats.objects.get_or_create(
+                    date=timezone.localtime(timezone.now()).date()
                 )
-            elif not options.get("force"):
-                processed_ids = set(
-                    ProcessedMessage.objects.filter(
-                        gmail_id__in=all_msgs_by_id.keys()
-                    ).values_list("gmail_id", flat=True)
+
+                # Single message mode
+                if options.get("limit_msg"):
+                    msg_id = options["limit_msg"]
+                    self.stdout.write(f"Ingesting single message: {msg_id}")
+                    try:
+                        ingest_message(service, msg_id)
+                        ProcessedMessage.objects.get_or_create(gmail_id=msg_id)
+                        log_console(f"Successfully ingested {msg_id}")
+                    except Exception as e:
+                        log_console(f"Failed: {e}")
+                    return
+
+                # Calculate date range
+                days_back = options.get("days_back", 7)
+                after_date = timezone.localtime(timezone.now()) - timedelta(days=days_back)
+                custom_query = options.get("query")
+
+                log_console(f"Fetching Gmail messages from last {days_back} days...")
+                if custom_query:
+                    log_console(f"Using custom query: {custom_query}")
+
+                # Fetch all messages from entire Gmail account (no label filtering)
+                all_msgs = fetch_all_messages(
+                    service, after_date=after_date, custom_query=custom_query
                 )
-                new_msgs = {
-                    k: v for k, v in all_msgs_by_id.items() if k not in processed_ids
-                }
-                log_console(
-                    f"Found {len(all_msgs_by_id)} messages, {len(new_msgs)} are new"
-                )
-                all_msgs_by_id = new_msgs
 
-            if not all_msgs_by_id:
-                log_console("No new Gmail messages found.")
-                return
+                all_msgs_by_id = {m["id"]: m for m in all_msgs}
+                log_console(f"Total messages fetched: {len(all_msgs_by_id)}")
 
-            log_console(f"Processing {len(all_msgs_by_id)} messages...")
-
-            fetched = inserted = ignored = 0
-
-            for msg in all_msgs_by_id.values():
-                msg_id = msg["id"]
-                try:
-                    # Get basic metadata for logging
-                    msg_meta = (
-                        service.users()
-                        .messages()
-                        .get(
-                            userId="me",
-                            id=msg_id,
-                            format="metadata",
-                            metadataHeaders=["Subject", "From", "Date"],
+                # If --reparse-all, skip ProcessedMessage filtering and reprocess everything
+                if options.get("reparse_all"):
+                    self.stdout.write(
+                        self.style.WARNING(
+                            "Re-parsing and re-ingesting ALL messages (ignoring ProcessedMessage table)!"
                         )
-                        .execute()
                     )
-                    headers = {
-                        h["name"]: h["value"]
-                        for h in msg_meta.get("payload", {}).get("headers", [])
+                elif not options.get("force"):
+                    processed_ids = set(
+                        ProcessedMessage.objects.filter(
+                            gmail_id__in=all_msgs_by_id.keys()
+                        ).values_list("gmail_id", flat=True)
+                    )
+                    new_msgs = {
+                        k: v for k, v in all_msgs_by_id.items() if k not in processed_ids
                     }
-                    subject = headers.get("Subject", "") or ""
-                    date = headers.get("Date", "") or ""
+                    log_console(
+                        f"Found {len(all_msgs_by_id)} messages, {len(new_msgs)} are new"
+                    )
+                    all_msgs_by_id = new_msgs
 
-                    # Log before processing
-                    log_console(f"Processing {date}: {subject}")
+                if not all_msgs_by_id:
+                    log_console("No new Gmail messages found.")
+                    return
 
-                    # Let ingest_message handle full classification with body
-                    ret = ingest_message(service, msg_id)
-                    fetched += 1
+                log_console(f"Processing {len(all_msgs_by_id)} messages...")
 
-                    # Mark as processed
-                    ProcessedMessage.objects.get_or_create(gmail_id=msg_id)
+                fetched = inserted = ignored = 0
 
-                    # Enhanced logging: Show what happened with this message
-                    if isinstance(ret, dict):
-                        status = ret.get("status", "unknown")
-                        if status == "ignored":
-                            reason = ret.get("reason", "unknown")
-                            log_console(f"  → Ignored: {reason}")
-                            ignored += 1
-                        elif status == "inserted":
-                            label = ret.get("label", "unknown")
-                            confidence = ret.get("confidence", 0)
-                            company = ret.get("company", "N/A")
-                            source = ret.get("source", "unknown")
-                            log_console(
-                                f"  → Inserted: label={label}, confidence={confidence:.2f}, company={company}, source={source}"
+                for msg in all_msgs_by_id.values():
+                    msg_id = msg["id"]
+                    try:
+                        # Get basic metadata for logging
+                        msg_meta = (
+                            service.users()
+                            .messages()
+                            .get(
+                                userId="me",
+                                id=msg_id,
+                                format="metadata",
+                                metadataHeaders=["Subject", "From", "Date"],
                             )
-                            inserted += 1
-                        elif status == "re-ingested":
-                            # Re-ingest already logged by parser via log_console;
-                            # just count it here (not inserted or ignored).
-                            pass
+                            .execute()
+                        )
+                        headers = {
+                            h["name"]: h["value"]
+                            for h in msg_meta.get("payload", {}).get("headers", [])
+                        }
+                        subject = headers.get("Subject", "") or ""
+                        date = headers.get("Date", "") or ""
+
+                        # Log before processing
+                        log_console(f"Processing [{msg_id}] {date}: {subject}")
+
+                        # Let ingest_message handle full classification with body
+                        ret = ingest_message(service, msg_id)
+                        fetched += 1
+
+                        # Mark as processed
+                        ProcessedMessage.objects.get_or_create(gmail_id=msg_id)
+
+                        # Enhanced logging: Show what happened with this message
+                        if isinstance(ret, dict):
+                            status = ret.get("status", "unknown")
+                            if status == "ignored":
+                                reason = ret.get("reason", "unknown")
+                                log_console(f"  → Ignored [{msg_id}]: {reason}")
+                                ignored += 1
+                            elif status == "inserted":
+                                label = ret.get("label", "unknown")
+                                confidence = ret.get("confidence", 0)
+                                company = ret.get("company", "N/A")
+                                source = ret.get("source", "unknown")
+                                log_console(
+                                    f"  → Inserted [{msg_id}]: label={label}, confidence={confidence:.2f}, company={company}, source={source}"
+                                )
+                                inserted += 1
+                            elif status == "re-ingested":
+                                # Re-ingest already logged by parser via log_console;
+                                # just count it here (not inserted or ignored).
+                                pass
+                            else:
+                                log_console(f"  → {status}")
+                        elif ret == "ignored":
+                            # Legacy string return
+                            log_console(f"  → Ignored [{msg_id}]")
+                            ignored += 1
                         else:
-                            log_console(f"  → {status}")
-                    elif ret == "ignored":
-                        # Legacy string return
-                        log_console(f"  → Ignored")
-                        ignored += 1
-                    else:
-                        # Legacy return values
-                        inserted_flag = False
-                        if isinstance(ret, bool):
-                            inserted_flag = ret
-                        elif isinstance(ret, int):
-                            inserted_flag = ret > 0
-                        else:
-                            inserted_flag = True if ret else False
+                            # Legacy return values
+                            inserted_flag = False
+                            if isinstance(ret, bool):
+                                inserted_flag = ret
+                            elif isinstance(ret, int):
+                                inserted_flag = ret > 0
+                            else:
+                                inserted_flag = True if ret else False
 
-                        if inserted_flag:
-                            log_console(f"  → Inserted")
-                            inserted += 1
-                        else:
-                            log_console(f"  → Skipped")
+                            if inserted_flag:
+                                log_console(f"  → Inserted [{msg_id}]")
+                                inserted += 1
+                            else:
+                                log_console(f"  → Skipped [{msg_id}]")
 
-                except Exception as e:
-                    log_console(f"Failed to ingest {msg_id}: {e}")
+                    except Exception as e:
+                        log_console(f"Failed to ingest {msg_id}: {e}")
 
-            # Persist aggregated stats
-            stats.total_fetched += fetched
-            stats.total_inserted += inserted
-            stats.total_ignored += ignored
-            stats.save()
+                # Persist aggregated stats
+                stats.total_fetched += fetched
+                stats.total_inserted += inserted
+                stats.total_ignored += ignored
+                stats.save()
 
-            log_console(
-                f"Stats for {stats.date}: Fetched={stats.total_fetched}, Inserted={stats.total_inserted}, Ignored={stats.total_ignored}"
-            )
+                log_console(
+                    f"Stats for {stats.date}: Fetched={stats.total_fetched}, Inserted={stats.total_inserted}, Ignored={stats.total_ignored}"
+                )
 
-            # Print metrics after if requested
-            if options.get("metrics_after"):
-                log_console("\n--- Parsing/ML Metrics AFTER Ingestion ---\n")
-                subprocess.run([sys.executable, "manage.py", "report_parsing_metrics"])
-                log_console("\n--- End AFTER Metrics ---\n")
+                # Print metrics after if requested
+                if options.get("metrics_after"):
+                    log_console("\n--- Parsing/ML Metrics AFTER Ingestion ---\n")
+                    subprocess.run([sys.executable, "manage.py", "report_parsing_metrics"])
+                    log_console("\n--- End AFTER Metrics ---\n")
+        except RuntimeError as e:
+            message = str(e)
+            log_console(message)
+            self.stdout.write(self.style.WARNING(message))
         except Exception as e:
             log_console(f"Ingestion failed: {e}")

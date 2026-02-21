@@ -20,6 +20,10 @@
     .message.success { background: #d1fae5; color: #065f46; border-left: 4px solid #10b981; }
     .message.error { background: #fee2e2; color: #991b1b; border-left: 4px solid #ef4444; }
     .message.info { background: #dbeafe; color: #1e40af; border-left: 4px solid #3b82f6; }
+    .post-selector-content * { font-size: 0.9rem !important; }
+    .post-selector-content h2 { font-size: 1rem !important; }
+    .post-selector-content h3 { font-size: 0.95rem !important; }
+    .post-selector-content small { font-size: 0.78rem !important; }
   </style>
 {% endblock %}
 {% block content %}
@@ -63,7 +67,7 @@
     </div>
 
     <!-- Scrollable Company Edit Form Content -->
-    <div style="flex: 1; overflow-y: auto; padding-right: 0.5rem;">
+    <div class="post-selector-content" style="flex: 1; overflow-y: auto; padding-right: 0.5rem;">
       {% if selected_company or creating_new_company %}
       {% if creating_new_company %}
       <!-- Creating New Company Form -->
@@ -712,6 +716,7 @@
         const homepageInput = document.getElementById('id_homepage');
         const homepageUrl = homepageInput.value.trim();
         const statusDiv = document.getElementById('populate_status');
+        const form = document.querySelector('.edit-form');
         
         if (!homepageUrl) {
           statusDiv.style.display = 'block';
@@ -726,20 +731,18 @@
         // Get CSRF token
         const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
         const companyId = {{ selected_company.id|default:"null" }};
+        const formData = new FormData(form);
+        formData.set('action', 'populate_from_homepage');
+        formData.set('company', companyId || '');
+        formData.set('homepage', homepageUrl);
         
         // Make AJAX request
         fetch(window.location.pathname, {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
             'X-Requested-With': 'XMLHttpRequest',
           },
-          body: new URLSearchParams({
-            'csrfmiddlewaretoken': csrfToken,
-            'action': 'populate_from_homepage',
-            'company': companyId || '',
-            'homepage': homepageUrl
-          })
+          body: formData
         })
         .then(response => response.json())
         .then(data => {
@@ -912,6 +915,15 @@
       {% if selected_company %}
       document.addEventListener('DOMContentLoaded', function() {
         loadCompanyNews({{ selected_company.id }});
+
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('auto_populate') === '1') {
+          populateCompanyInfo();
+          params.delete('auto_populate');
+          const cleaned = params.toString();
+          const nextUrl = cleaned ? `${window.location.pathname}?${cleaned}` : window.location.pathname;
+          window.history.replaceState({}, '', nextUrl);
+        }
       });
       {% endif %}
     </script>

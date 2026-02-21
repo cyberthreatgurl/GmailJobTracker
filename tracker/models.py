@@ -9,6 +9,7 @@ from django.utils import timezone
 import re
 
 from django.utils import timezone
+from tracker.location_normalization import canonicalize_city_key
 
 class Company(models.Model):
     name = models.CharField(
@@ -144,7 +145,7 @@ class CompanyOperatingCity(models.Model):
         """Normalize city for case-insensitive dedupe and searching."""
         cleaned = re.sub(r"\s+", " ", (self.city or "").strip())
         self.city = cleaned
-        self.normalized_city = cleaned.lower()
+        self.normalized_city = canonicalize_city_key(cleaned)
         super().save(*args, **kwargs)
 
     def __str__(self):

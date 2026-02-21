@@ -52,6 +52,24 @@ class CompaniesInCityTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, company.name)
 
+    def test_city_search_matches_state_abbrev_and_full_name_equally(self):
+        company = self._make_company("Company B3", location="Richmond, VA")
+        CompanyOperatingCity.objects.create(company=company, city="Roanoke, VA")
+
+        response = self.client.get("/companies_in_city/?city=Roanoke, Virginia")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, company.name)
+
+    def test_city_search_matches_typo_alias_mapping(self):
+        company = self._make_company("Company B4", location="Richmond, VA")
+        CompanyOperatingCity.objects.create(company=company, city="Dalgren, Virginia")
+
+        response = self.client.get("/companies_in_city/?city=Dahlgren, VA")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, company.name)
+
     def test_sync_operating_cities_creates_and_dedupes(self):
         company = self._make_company("Company C", location="Seattle")
 
@@ -79,3 +97,18 @@ class CompaniesInCityTests(TestCase):
             .values_list("city", flat=True)
         )
         self.assertEqual(cities, ["Dahlgren"])
+
+    def test_sync_operating_cities_canonicalizes_state_key(self):
+        company = self._make_company("Company E", location="Norfolk")
+
+        _sync_company_operating_cities(
+            company,
+            "Dahlgren, VA\nDahlgren, Virginia\nRoanoke, Virginia\nRoanoke, VA",
+        )
+
+        normalized = list(
+            CompanyOperatingCity.objects.filter(company=company)
+            .order_by("normalized_city")
+            .values_list("normalized_city", flat=True)
+        )
+        self.assertEqual(normalized, ["dahlgren, va", "roanoke, va"])

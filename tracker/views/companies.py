@@ -32,6 +32,7 @@ from tracker.models import (
 from tracker.services import CompanyService
 from tracker.services.news_service import NewsAggregator
 from tracker.forms import CompanyEditForm
+from tracker.location_normalization import canonicalize_city_key
 from tracker.views.helpers import build_sidebar_context
 from db import PATTERNS_PATH
 from scripts.import_gmail_filters import load_json
@@ -54,7 +55,9 @@ def _parse_operating_cities(raw_text):
         city = re.sub(r"\s+", " ", line.strip())
         if not city:
             continue
-        key = city.lower()
+        key = canonicalize_city_key(city)
+        if not key:
+            continue
         if key in seen:
             continue
         seen.add(key)
@@ -67,10 +70,24 @@ def _sync_company_operating_cities(company, raw_text):
     if not company:
         return
     desired = _parse_operating_cities(raw_text)
-    desired_keys = {city.lower() for city in desired}
+    desired_keys = {canonicalize_city_key(city) for city in desired}
 
     existing = list(CompanyOperatingCity.objects.filter(company=company))
-    existing_by_key = {row.normalized_city: row for row in existing}
+    existing_by_key = {}
+    duplicate_ids = set()
+
+    for row in existing:
+        key = canonicalize_city_key(row.city)
+        if not key:
+            duplicate_ids.add(row.id)
+            continue
+        if key in existing_by_key:
+            duplicate_ids.add(row.id)
+            continue
+        existing_by_key[key] = row
+
+    if duplicate_ids:
+        CompanyOperatingCity.objects.filter(id__in=duplicate_ids).delete()
 
     # Delete removed cities
     for key, row in existing_by_key.items():
@@ -79,16 +96,14 @@ def _sync_company_operating_cities(company, raw_text):
 
     # Create missing cities
     for city in desired:
-        key = city.lower()
+        key = canonicalize_city_key(city)
         if key not in existing_by_key:
             CompanyOperatingCity.objects.create(company=company, city=city)
 
 
 def _normalize_city_for_match(value):
     """Normalize city/location text for matching."""
-    cleaned = re.sub(r"[^a-z0-9\s,]", " ", (value or "").lower())
-    cleaned = re.sub(r"\s+", " ", cleaned).strip()
-    return cleaned
+    return canonicalize_city_key(value)
 
 
 def _company_matches_city(company, search_city_normalized, threshold=0.82):

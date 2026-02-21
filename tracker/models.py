@@ -99,6 +99,10 @@ class Company(models.Model):
         blank=True, 
         help_text="Last date when user manually searched this company's job postings"
     )
+    talent_network = models.BooleanField(
+        default=False,
+        help_text="Whether the user joined this company's talent network."
+    )
 
     def __str__(self):
         return self.name

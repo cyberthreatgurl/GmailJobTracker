@@ -1,0 +1,20 @@
+<div class="fixed top-3 right-4 z-20 bg-white px-3 py-2 rounded-lg shadow-sm border border-gray-200" style="min-width: 200px;">
+  <div class="font-semibold mb-1 text-gray-800" style="font-size:0.85rem;">⚙️ Quick Actions</div>
+  <select id="quickActionSelect" class="w-full border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" style="font-size:0.85rem; padding:0.3rem 0.45rem;" onchange="if(this.value) window.location.href = this.value;">
+    <option value="">-- Select Action --</option>
+    <option value="{% url 'manual_entry' %}">📝 Manual Entry</option>
+    <option value="/admin/tracker/message/upload-eml/">📧 Upload .eml File</option>
+    <option value="{% url 'label_messages' %}">🏷️ Label Messages</option>
+    <option value="{% url 'label_companies' %}">🏷️ Label Companies</option>
+    <option value="{% url 'job_search_tracker' %}">🔍 Job Search Tracker</option>
+    <option value="{% url 'missing_applications' %}">⚠️ Missing Applications</option>
+    <option value="{% url 'metrics' %}">View Metrics</option>
+    <option value="{% url 'company_threads' %}">Company Threads</option>
+    <option value="{% url 'json_file_viewer' %}">JSON File Viewer</option>
+    <option value="{% url 'configure_settings' %}">Configure Settings</option>
+    <option value="{% url 'manage_domains' %}">🌐 Domain Management</option>
+    <option value="{% url 'label_rule_debugger' %}">Label Rule Debugger</option>
+    <option value="{% url 'log_viewer' %}">Log Viewer</option>
+    <option value="{% url 'retrain_model' %}">🤖 Retrain Model</option>
+  </select>
+</div>

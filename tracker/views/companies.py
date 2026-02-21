@@ -9,6 +9,7 @@ import os
 import re
 import subprocess
 import sys
+from difflib import SequenceMatcher
 from datetime import datetime, timedelta
 from pathlib import Path
 from django.contrib import messages
@@ -81,6 +82,42 @@ def _sync_company_operating_cities(company, raw_text):
         key = city.lower()
         if key not in existing_by_key:
             CompanyOperatingCity.objects.create(company=company, city=city)
+
+
+def _normalize_city_for_match(value):
+    """Normalize city/location text for matching."""
+    cleaned = re.sub(r"[^a-z0-9\s,]", " ", (value or "").lower())
+    cleaned = re.sub(r"\s+", " ", cleaned).strip()
+    return cleaned
+
+
+def _company_matches_city(company, search_city_normalized, threshold=0.82):
+    """Return True if company HQ/additional cities match exact, partial, or fuzzy city query."""
+    if not search_city_normalized:
+        return False
+
+    candidate_texts = []
+
+    if company.location:
+        location_norm = _normalize_city_for_match(company.location)
+        if location_norm:
+            candidate_texts.append(location_norm)
+            city_part = location_norm.split(",", 1)[0].strip()
+            if city_part and city_part != location_norm:
+                candidate_texts.append(city_part)
+
+    for row in getattr(company, "operating_cities", []).all():
+        city_norm = _normalize_city_for_match(row.city)
+        if city_norm:
+            candidate_texts.append(city_norm)
+
+    for text in candidate_texts:
+        if search_city_normalized in text or text in search_city_normalized:
+            return True
+        if SequenceMatcher(None, search_city_normalized, text).ratio() >= threshold:
+            return True
+
+    return False
 
 
 def _scrape_and_analyze_company(homepage_url, timeout=10):
@@ -1312,27 +1349,29 @@ def label_companies(request):
 def companies_in_city(request):
     """Search companies by city using fuzzy matching on HQ and additional cities."""
     search_city = (request.GET.get("city") or "").strip()
+    search_city_normalized = _normalize_city_for_match(search_city)
 
     companies_qs = Company.objects.exclude(status="headhunter")
-    matches = Company.objects.none()
+    matches = []
 
     if search_city:
-        matches = (
-            companies_qs.filter(
-                Q(location__icontains=search_city)
-                | Q(operating_cities__city__icontains=search_city)
-            )
-            .distinct()
+        candidates = (
+            companies_qs.distinct()
             .order_by(Lower("name"))
             .prefetch_related("operating_cities")
         )
+        matches = [
+            company
+            for company in candidates
+            if _company_matches_city(company, search_city_normalized)
+        ]
 
     ctx = build_sidebar_context()
     ctx.update(
         {
             "search_city": search_city,
             "companies": matches,
-            "result_count": matches.count() if search_city else 0,
+            "result_count": len(matches) if search_city else 0,
         }
     )
     return render(request, "tracker/companies_in_city.html", ctx)

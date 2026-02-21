@@ -43,6 +43,15 @@ class CompaniesInCityTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, company.name)
 
+    def test_city_search_matches_additional_operating_city_typo(self):
+        company = self._make_company("Company B2", location="San Francisco, CA")
+        CompanyOperatingCity.objects.create(company=company, city="Arlington")
+
+        response = self.client.get("/companies_in_city/?city=Arlingtn")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, company.name)
+
     def test_sync_operating_cities_creates_and_dedupes(self):
         company = self._make_company("Company C", location="Seattle")
 

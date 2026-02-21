@@ -235,6 +235,11 @@ class CompanyEditForm(forms.ModelForm):
         label="Focus Area",
         help_text="Business focus area (e.g., Software as a Service, Mining, Network Security)",
     )
+    talent_network = forms.BooleanField(
+        required=False,
+        label="Joined Talent Network?",
+        help_text="Check if you joined this company's talent network.",
+    )
 
     class Meta:
         model = Company
@@ -244,6 +249,7 @@ class CompanyEditForm(forms.ModelForm):
             "domain",
             "ats",
             "homepage",
+            "talent_network",
             "contact_name",
             "contact_email",
             "status",

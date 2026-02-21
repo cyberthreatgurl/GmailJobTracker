@@ -694,6 +694,10 @@ def label_companies(request):
                                 "domain": scraped_data.get("domain", selected_company.domain),
                                 "homepage": homepage_url,
                                 "career_url": scraped_data.get("career_url", ""),
+                                "talent_network": request.POST.get(
+                                    "talent_network",
+                                    "on" if selected_company.talent_network else "",
+                                ),
                                 "ats": request.POST.get("ats", selected_company.ats or ""),
                                 "contact_name": request.POST.get("contact_name", selected_company.contact_name or ""),
                                 "contact_email": request.POST.get("contact_email", selected_company.contact_email or ""),
@@ -1020,6 +1024,7 @@ def label_companies(request):
                             "domain": scraped_data.get("domain", ""),
                             "homepage": homepage_url,
                             "career_url": scraped_data.get("career_url", ""),
+                            "talent_network": request.POST.get("talent_network", ""),
                             "ats": "",
                             "contact_name": "",
                             "contact_email": "",

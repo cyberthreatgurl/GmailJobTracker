@@ -97,6 +97,12 @@
           <small style="color:#6b7280; display:block; margin-top:0.25rem; margin-bottom:0.5rem;">Enter URL and click Populate to auto-fill, or fill manually</small>
           <label for="id_career_url">Career/Jobs URL</label>
           {{ form.career_url }}
+          <div style="display:flex; gap:1.5rem; margin-top:0.75rem; margin-bottom:0.75rem; padding:0.75rem; background:#fef3c7; border-radius:6px;">
+            <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer; font-size:0.9rem;">
+              {{ form.talent_network }}
+              <span style="color:#92400e;">Joined Talent Network?</span>
+            </label>
+          </div>
           <label for="id_alias">Alias (Optional)</label>
           {{ form.alias }}
           <small style="color:#6b7280; display:block; margin-top:0.25rem; margin-bottom:0.5rem;">Alternative name(s) or abbreviation(s). Separate multiple aliases with commas (e.g., 'AFS, Accenture Fed')</small>
@@ -225,6 +231,12 @@
           <div id="populate_status" style="margin-top:0.5rem; display:none;"></div>
           <label for="id_career_url">Career/Jobs URL</label>
           {{ form.career_url }}
+          <div style="display:flex; gap:1.5rem; margin-top:0.75rem; margin-bottom:0.75rem; padding:0.75rem; background:#fef3c7; border-radius:6px;">
+            <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer; font-size:0.9rem;">
+              {{ form.talent_network }}
+              <span style="color:#92400e;">Joined Talent Network?</span>
+            </label>
+          </div>
           <label for="id_alias">Alias (Optional)</label>
           {{ form.alias }}
           <small style="color:#6b7280; display:block; margin-top:0.25rem; margin-bottom:0.5rem;">Alternative name(s) or abbreviation(s). Separate multiple aliases with commas (e.g., 'AFS, Accenture Fed')</small>
@@ -247,6 +259,7 @@
             <h2 style="margin-top:0; color:#1e40af; font-size:1.1rem;">Company Data Preview</h2>
             <div style="margin-bottom:1rem;"><strong>Company:</strong> {{ selected_company.name }}</div>
             <div style="margin-bottom:1rem;"><strong>Messages in database:</strong> {{ message_count }} {% if message_count == 0 %}<span style="color:#9ca3af;">(No non-noise messages found)</span>{% endif %}</div>
+            <div style="margin-bottom:1rem;"><strong>Joined Talent Network:</strong> {% if selected_company.talent_network %}Yes{% else %}No{% endif %}</div>
             <div style="margin-bottom:1rem;">
               <strong>📋 Applications:</strong>
               <ul style="margin:0.5rem 0 0 0; padding-left:1.2rem; font-size:0.97rem; list-style:none;">

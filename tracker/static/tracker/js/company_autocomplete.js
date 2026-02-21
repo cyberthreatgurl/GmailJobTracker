@@ -285,15 +285,27 @@
       if (!query) return escapeHtml(name);
       const lowerName = name.toLowerCase();
       const lowerQuery = query.toLowerCase();
-      const idx = lowerName.indexOf(lowerQuery);
+      let idx = lowerName.indexOf(lowerQuery);
+
+      // Prefer start-of-word matches for readability (avoid odd mid-word splits).
+      const boundaryRegex = new RegExp(`(^|\\s|[\\-_/])${escapeRegExp(lowerQuery)}`);
+      const boundaryMatch = lowerName.match(boundaryRegex);
+      if (boundaryMatch) {
+        idx = (boundaryMatch.index || 0) + boundaryMatch[1].length;
+      }
+
       if (idx === -1) return escapeHtml(name);
       return (
         escapeHtml(name.substring(0, idx)) +
-        '<strong style="color:#1d4ed8;">' +
+        '<span style="color:#1d4ed8;font-weight:600;">' +
         escapeHtml(name.substring(idx, idx + query.length)) +
-        '</strong>' +
+        '</span>' +
         escapeHtml(name.substring(idx + query.length))
       );
+    }
+
+    function escapeRegExp(str) {
+      return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     }
 
     function doSearch(query) {

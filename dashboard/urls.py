@@ -32,5 +32,6 @@ urlpatterns = [
 
 # Serve static and media files during development
 if settings.DEBUG:
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    # Use django.contrib.staticfiles in DEBUG for /static/ so changes in
+    # tracker/static are served immediately without requiring collectstatic.
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

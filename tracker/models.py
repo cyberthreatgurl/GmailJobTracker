@@ -6,6 +6,7 @@ from django.db import models
 from django.core.validators import RegexValidator, URLValidator
 from django.utils.timezone import now
 from django.utils import timezone
+import re
 
 from django.utils import timezone
 
@@ -112,6 +113,42 @@ class Company(models.Model):
 
     def application_count(self):
         return self.threadtracking_set.count()
+
+
+class CompanyOperatingCity(models.Model):
+    """Additional city in which a company operates (beyond HQ location)."""
+
+    company = models.ForeignKey(
+        Company,
+        on_delete=models.CASCADE,
+        related_name="operating_cities",
+    )
+    city = models.CharField(max_length=255)
+    normalized_city = models.CharField(max_length=255, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["company", "normalized_city"],
+                name="uniq_company_normalized_city",
+            )
+        ]
+        indexes = [
+            models.Index(fields=["company"]),
+            models.Index(fields=["normalized_city"]),
+        ]
+        ordering = ["city"]
+
+    def save(self, *args, **kwargs):
+        """Normalize city for case-insensitive dedupe and searching."""
+        cleaned = re.sub(r"\s+", " ", (self.city or "").strip())
+        self.city = cleaned
+        self.normalized_city = cleaned.lower()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.company.name} - {self.city}"
 
 
 class CompanyNews(models.Model):

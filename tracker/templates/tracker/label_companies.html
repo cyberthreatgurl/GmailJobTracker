@@ -97,12 +97,15 @@
           <small style="color:#6b7280; display:block; margin-top:0.25rem; margin-bottom:0.5rem;">Enter URL and click Populate to auto-fill, or fill manually</small>
           <label for="id_career_url">Career/Jobs URL</label>
           {{ form.career_url }}
-          <div style="display:flex; gap:1.5rem; margin-top:0.75rem; margin-bottom:0.75rem; padding:0.75rem; background:#fef3c7; border-radius:6px;">
-            <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer; font-size:0.9rem;">
+          <div style="margin-top:0.35rem; margin-bottom:0.5rem;">
+            <label style="display:inline-flex; align-items:center; gap:0.35rem; cursor:pointer; font-size:0.78rem; color:#6b7280; font-weight:500; white-space:nowrap;">
+              <span>Joined Talent Network?</span>
               {{ form.talent_network }}
-              <span style="color:#92400e;">Joined Talent Network?</span>
             </label>
           </div>
+          <label for="id_operating_cities_text">Additional Operating Cities</label>
+          <textarea id="id_operating_cities_text" name="operating_cities_text" rows="3" style="width:100%; padding:0.65rem; border-radius:6px; border:1px solid #d1d5db; font-size:0.95rem;">{{ operating_cities_text|default:'' }}</textarea>
+          <small style="color:#6b7280; display:block; margin-top:0.25rem; margin-bottom:0.5rem;">One city per line (e.g., Dahlgren, Virginia). City-only values are allowed.</small>
           <label for="id_alias">Alias (Optional)</label>
           {{ form.alias }}
           <small style="color:#6b7280; display:block; margin-top:0.25rem; margin-bottom:0.5rem;">Alternative name(s) or abbreviation(s). Separate multiple aliases with commas (e.g., 'AFS, Accenture Fed')</small>
@@ -231,12 +234,15 @@
           <div id="populate_status" style="margin-top:0.5rem; display:none;"></div>
           <label for="id_career_url">Career/Jobs URL</label>
           {{ form.career_url }}
-          <div style="display:flex; gap:1.5rem; margin-top:0.75rem; margin-bottom:0.75rem; padding:0.75rem; background:#fef3c7; border-radius:6px;">
-            <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer; font-size:0.9rem;">
+          <div style="margin-top:0.35rem; margin-bottom:0.5rem;">
+            <label style="display:inline-flex; align-items:center; gap:0.35rem; cursor:pointer; font-size:0.78rem; color:#6b7280; font-weight:500; white-space:nowrap;">
+              <span>Joined Talent Network?</span>
               {{ form.talent_network }}
-              <span style="color:#92400e;">Joined Talent Network?</span>
             </label>
           </div>
+          <label for="id_operating_cities_text">Additional Operating Cities</label>
+          <textarea id="id_operating_cities_text" name="operating_cities_text" rows="3" style="width:100%; padding:0.65rem; border-radius:6px; border:1px solid #d1d5db; font-size:0.95rem;">{{ operating_cities_text|default:'' }}</textarea>
+          <small style="color:#6b7280; display:block; margin-top:0.25rem; margin-bottom:0.5rem;">One city per line (e.g., Dahlgren, Virginia). City-only values are allowed.</small>
           <label for="id_alias">Alias (Optional)</label>
           {{ form.alias }}
           <small style="color:#6b7280; display:block; margin-top:0.25rem; margin-bottom:0.5rem;">Alternative name(s) or abbreviation(s). Separate multiple aliases with commas (e.g., 'AFS, Accenture Fed')</small>
@@ -260,6 +266,14 @@
             <div style="margin-bottom:1rem;"><strong>Company:</strong> {{ selected_company.name }}</div>
             <div style="margin-bottom:1rem;"><strong>Messages in database:</strong> {{ message_count }} {% if message_count == 0 %}<span style="color:#9ca3af;">(No non-noise messages found)</span>{% endif %}</div>
             <div style="margin-bottom:1rem;"><strong>Joined Talent Network:</strong> {% if selected_company.talent_network %}Yes{% else %}No{% endif %}</div>
+            <div style="margin-bottom:1rem;">
+              <strong>Additional Operating Cities:</strong>
+              {% if operating_cities_list %}
+                {{ operating_cities_list|join:", " }}
+              {% else %}
+                <span style="color:#9ca3af;">None</span>
+              {% endif %}
+            </div>
             <div style="margin-bottom:1rem;">
               <strong>📋 Applications:</strong>
               <ul style="margin:0.5rem 0 0 0; padding-left:1.2rem; font-size:0.97rem; list-style:none;">

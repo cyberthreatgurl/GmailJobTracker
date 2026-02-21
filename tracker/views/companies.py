@@ -22,6 +22,7 @@ from parser import parse_subject, normalize_company_name
 from tracker.views.applications import check_for_existing_rejection
 from tracker.models import (
     Company,
+    CompanyOperatingCity,
     Message,
     ThreadTracking,
     UnresolvedCompany,
@@ -37,6 +38,49 @@ from scripts.import_gmail_filters import load_json
 # Module-level constants
 python_path = sys.executable
 logger = logging.getLogger(__name__)
+
+
+def _parse_operating_cities(raw_text):
+    """Parse multiline city input into unique cleaned city names.
+
+    Accepts one city per line and performs case-insensitive deduplication while
+    preserving first-seen order.
+    """
+    lines = (raw_text or "").splitlines()
+    seen = set()
+    cities = []
+    for line in lines:
+        city = re.sub(r"\s+", " ", line.strip())
+        if not city:
+            continue
+        key = city.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        cities.append(city[:255])
+    return cities
+
+
+def _sync_company_operating_cities(company, raw_text):
+    """Upsert additional operating cities for a company from multiline input."""
+    if not company:
+        return
+    desired = _parse_operating_cities(raw_text)
+    desired_keys = {city.lower() for city in desired}
+
+    existing = list(CompanyOperatingCity.objects.filter(company=company))
+    existing_by_key = {row.normalized_city: row for row in existing}
+
+    # Delete removed cities
+    for key, row in existing_by_key.items():
+        if key not in desired_keys:
+            row.delete()
+
+    # Create missing cities
+    for city in desired:
+        key = city.lower()
+        if key not in existing_by_key:
+            CompanyOperatingCity.objects.create(company=company, city=city)
 
 
 def _scrape_and_analyze_company(homepage_url, timeout=10):
@@ -326,6 +370,8 @@ def label_companies(request):
     form = None
     message_count = 0
     message_info_list = []
+    operating_cities_text = ""
+    operating_cities_list = []
     if selected_id and selected_id != "new":
         try:
             selected_company = Company.objects.get(id=selected_id)
@@ -356,6 +402,12 @@ def label_companies(request):
                         alias = ", ".join(alias_list) if alias_list else ""
             except Exception:
                 pass
+
+            operating_cities_list = list(
+                CompanyOperatingCity.objects.filter(company=selected_company)
+                .values_list("city", flat=True)
+            )
+            operating_cities_text = "\n".join(operating_cities_list)
         except Company.DoesNotExist:
             selected_company = None
             messages.warning(
@@ -706,6 +758,9 @@ def label_companies(request):
                                 "alias": alias,  # Preserve alias from companies.json
                             }
                             form = CompanyEditForm(form_data, instance=selected_company)
+                            operating_cities_text = request.POST.get(
+                                "operating_cities_text", operating_cities_text
+                            )
                             
                             # Show success or partial success message
                             if scraped_data.get("career_url"):
@@ -737,6 +792,9 @@ def label_companies(request):
                             
                             messages.error(request, f"❌ Failed to scrape homepage: {e}")
                             form = CompanyEditForm(instance=selected_company, initial={"career_url": career_url})
+                            operating_cities_text = request.POST.get(
+                                "operating_cities_text", operating_cities_text
+                            )
                     # Don't redirect - stay on page with populated form
                     
                 # Quick action: mark as ghosted
@@ -827,6 +885,7 @@ def label_companies(request):
                 # Handle regular form submission (Save Changes)
                 elif not request.POST.get("action"):  # No action means it's the main form
                     form = CompanyEditForm(request.POST, instance=selected_company)
+                    operating_cities_text = request.POST.get("operating_cities_text", "")
                     if form.is_valid():
                         # Get cleaned data before saving
                         career_url_input = (
@@ -981,6 +1040,9 @@ def label_companies(request):
                                     request, f"⚠️ Failed to save to companies.json: {e}"
                                 )
                         form.save()
+                        _sync_company_operating_cities(
+                            selected_company, operating_cities_text
+                        )
                         
                         # Return JSON for AJAX requests
                         is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
@@ -1011,6 +1073,7 @@ def label_companies(request):
             # Handle populate action for new company
             if request.POST.get("action") == "populate_from_homepage":
                 homepage_url = request.POST.get("homepage", "").strip()
+                operating_cities_text = request.POST.get("operating_cities_text", "")
                 if not homepage_url:
                     messages.error(request, "❌ Please enter a homepage URL first.")
                     form = CompanyEditForm(initial={"name": new_company_name})
@@ -1033,6 +1096,7 @@ def label_companies(request):
                             "notes": scraped_data.get("focus_analysis", ""),
                         }
                         form = CompanyEditForm(form_data)
+                        operating_cities_text = request.POST.get("operating_cities_text", "")
                         
                         # Show success or partial success message
                         if scraped_data.get("career_url"):
@@ -1053,10 +1117,12 @@ def label_companies(request):
                         
                         messages.error(request, f"❌ Failed to scrape homepage: {e}")
                         form = CompanyEditForm(initial={"name": new_company_name, "homepage": homepage_url, "notes": error_msg})
+                        operating_cities_text = request.POST.get("operating_cities_text", "")
             # Handle create action
             elif request.POST.get("action") == "create_new_company":
                 # User submitted the new company form
                 form = CompanyEditForm(request.POST)
+                operating_cities_text = request.POST.get("operating_cities_text", "")
                 
                 # Debug logging
                 logger.info(f"Create company form submitted. POST data: {dict(request.POST)}")
@@ -1086,6 +1152,9 @@ def label_companies(request):
                             if not new_company.status:
                                 new_company.status = "new"
                             new_company.save()
+                            _sync_company_operating_cities(
+                                new_company, operating_cities_text
+                            )
                             messages.success(request, f"✅ New Company: {new_company.name} added")
                             
                             # Save to companies.json (known array + domain mapping + career URL if provided)
@@ -1225,6 +1294,8 @@ def label_companies(request):
             "ghosted_days_threshold": ghosted_days_threshold,
             "message_count": message_count,
             "message_info_list": message_info_list,
+            "operating_cities_text": operating_cities_text,
+            "operating_cities_list": operating_cities_list,
             "creating_new_company": creating_new_company,
             "new_company_name": new_company_name,
             "application_threads": application_threads,
@@ -1235,6 +1306,36 @@ def label_companies(request):
         }
     )
     return render(request, "tracker/label_companies.html", ctx)
+
+
+@login_required
+def companies_in_city(request):
+    """Search companies by city using fuzzy matching on HQ and additional cities."""
+    search_city = (request.GET.get("city") or "").strip()
+
+    companies_qs = Company.objects.exclude(status="headhunter")
+    matches = Company.objects.none()
+
+    if search_city:
+        matches = (
+            companies_qs.filter(
+                Q(location__icontains=search_city)
+                | Q(operating_cities__city__icontains=search_city)
+            )
+            .distinct()
+            .order_by(Lower("name"))
+            .prefetch_related("operating_cities")
+        )
+
+    ctx = build_sidebar_context()
+    ctx.update(
+        {
+            "search_city": search_city,
+            "companies": matches,
+            "result_count": matches.count() if search_city else 0,
+        }
+    )
+    return render(request, "tracker/companies_in_city.html", ctx)
 
 
 @login_required
@@ -2571,6 +2672,7 @@ def refresh_company_news(request, company_id):
 __all__ = [
     "delete_company",
     "label_companies",
+    "companies_in_city",
     "merge_companies",
     "manage_domains",
     "job_search_tracker",

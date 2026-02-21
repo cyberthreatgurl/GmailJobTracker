@@ -140,6 +140,10 @@
     <label for="dashboard_company" style="font-size:0.9rem;">Go to Company:</label>
     <input type="text" id="dashboard_company" autocomplete="off" placeholder="Search companies..." style="padding:0.3rem 0.5rem; border-radius:4px; border:1px solid #d1d5db; font-size:0.9rem; min-width:260px;">
     <input type="hidden" id="dashboard_company_id">
+
+    <label for="dashboard_city" style="font-size:0.9rem; margin-left:0.75rem;">Search by City:</label>
+    <input type="text" id="dashboard_city" placeholder="e.g., Dahlgren" style="padding:0.3rem 0.5rem; border-radius:4px; border:1px solid #d1d5db; font-size:0.9rem; min-width:200px;">
+    <button type="button" id="dashboard_city_btn" style="background:#2563eb; color:white; border:none; border-radius:6px; padding:0.35rem 0.7rem; font-size:0.85rem; cursor:pointer;">Find Companies</button>
   </div>
   
   {% load static %}
@@ -158,6 +162,23 @@
           }
         }
       });
+
+      const cityInput = document.getElementById('dashboard_city');
+      const cityButton = document.getElementById('dashboard_city_btn');
+      function runCitySearch() {
+        const city = (cityInput && cityInput.value ? cityInput.value.trim() : '');
+        if (!city) return;
+        window.location.href = '/companies_in_city/?city=' + encodeURIComponent(city);
+      }
+      if (cityButton) cityButton.addEventListener('click', runCitySearch);
+      if (cityInput) {
+        cityInput.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            runCitySearch();
+          }
+        });
+      }
     });
   </script>
 

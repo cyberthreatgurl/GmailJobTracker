@@ -155,22 +155,27 @@
 
       currentItems.forEach(function (item, idx) {
         const row = document.createElement('div');
-        row.className = 'ca-item p-2 px-3 cursor-pointer text-sm border-b border-gray-100 flex items-center gap-2 hover:bg-blue-50';
+        row.className = 'ca-item p-2 px-3 cursor-pointer text-sm border-b border-gray-100 hover:bg-blue-50';
         row.dataset.index = idx;
-        
-        // Inline styles fallback if Tailwind not built
-        row.style.cssText =
-          'padding:0.45rem 0.75rem;cursor:pointer;font-size:0.9rem;' +
-          'border-bottom:1px solid #f3f4f6;display:flex;align-items:center;gap:0.5rem;';
 
         if (item.type === 'create') {
+          row.className = 'ca-item p-2 px-3 cursor-pointer text-sm border-b border-gray-100 flex items-center gap-2 hover:bg-blue-50';
+          row.style.cssText =
+            'padding:0.45rem 0.75rem;cursor:pointer;font-size:0.9rem;color:#1f2937;' +
+            'border-bottom:1px solid #f3f4f6;display:flex;align-items:center;gap:0.5rem;';
           row.innerHTML =
             '<span class="text-blue-600 font-semibold" style="color:#2563eb;font-weight:600;">＋</span>' +
             '<span class="text-blue-600" style="color:#2563eb;">Create New Company</span>';
         } else if (item.type === 'extra') {
+          row.style.cssText =
+            'padding:0.45rem 0.75rem;cursor:pointer;font-size:0.9rem;color:#1f2937;' +
+            'border-bottom:1px solid #f3f4f6;';
           row.innerHTML = '<span class="text-gray-500 italic" style="color:#6b7280;font-style:italic;">' +
             escapeHtml(item.name) + '</span>';
         } else {
+          row.style.cssText =
+            'padding:0.45rem 0.75rem;cursor:pointer;font-size:0.9rem;color:#1f2937;' +
+            'border-bottom:1px solid #f3f4f6;white-space:normal;';
           // Highlight matching substring
           row.innerHTML = highlightMatch(item.name, input.value);
         }
@@ -203,7 +208,7 @@
        row.dataset.index = idx;
        // Fallback styles
        row.style.cssText =
-          'padding:0.45rem 0.75rem;cursor:pointer;font-size:0.9rem;' +
+         'padding:0.45rem 0.75rem;cursor:pointer;font-size:0.9rem;color:#1f2937;' +
           'border-bottom:1px solid #f3f4f6;display:flex;align-items:center;gap:0.5rem;';
        row.innerHTML =
             '<span class="text-blue-600 font-semibold" style="color:#2563eb;font-weight:600;">＋</span>' +

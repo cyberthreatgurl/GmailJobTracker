@@ -63,18 +63,6 @@
   <div class="bg-white p-4 rounded-lg mb-4 shadow-sm">
     <h2 class="text-sm font-semibold mb-3 text-gray-800">📊 Summary</h2>
     <ul class="list-none pl-0 m-0">
-      <!-- Labeling Progress -->
-      <li class="py-2 border-b border-gray-100">
-        <a href="{% url 'label_messages' %}" class="block hover:bg-gray-50 rounded -mx-1 px-1 transition-colors" title="Go to Label Messages">
-          <div class="flex justify-between text-xs text-gray-600 mb-1">
-            <span class="text-blue-600 hover:text-blue-800 font-medium">🏷️ Labeling Progress:</span>
-            <span class="font-semibold">{{ label_total_reviewed|default:0 }}/{{ label_total|default:0 }} ({{ label_pct|default:0 }}%)</span>
-          </div>
-          <div class="w-full bg-gray-200 rounded-full h-1.5">
-            <div class="bg-blue-600 h-1.5 rounded-full transition-all" style="width: {{ label_pct|default:0 }}%"></div>
-          </div>
-        </a>
-      </li>
       <li class="flex justify-between py-2 text-xs text-gray-600 border-b border-gray-100">
         <a href="{% url 'label_companies' %}" class="text-blue-600 hover:text-blue-800 hover:underline">Total Companies:</a>
         <span>{{ companies|default:0 }}</span>
@@ -97,6 +85,10 @@
       </li>
       <li class="flex justify-between py-2 text-xs text-gray-600" title="Average days from application to first response (rejection, prescreen, or interview)">
         Avg Response Time: <span>{% if avg_response_days %}{{ avg_response_days }} days{% else %}N/A{% endif %}</span>
+      </li>
+      <li class="flex justify-between py-2 text-xs text-gray-600 border-t border-gray-100 mt-1">
+        <a href="{% url 'label_messages' %}" class="text-blue-600 hover:text-blue-800 hover:underline" title="Go to Label Messages">🏷️ Labeling:</a>
+        <span class="font-semibold">{{ label_total_reviewed|default:0 }}/{{ label_total|default:0 }} ({{ label_pct|default:0 }}%)</span>
       </li>
     </ul>
   </div>
@@ -127,31 +119,6 @@
     {% else %}
       <p class="text-xs text-gray-500">No ingestion stats available yet.</p>
     {% endif %}
-  </div>
-
-
-  <!-- Quick Actions -->
-  <div class="bg-white p-4 rounded-lg mb-4 shadow-sm">
-    <h2 class="text-sm font-semibold mb-3 text-gray-800">⚙️ Quick Actions</h2>
-    <div class="flex flex-col gap-2">
-      <select id="quickActionSelect" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" onchange="if(this.value) window.location.href = this.value;">
-        <option value="">-- Select Action --</option>
-        <option value="{% url 'manual_entry' %}">📝 Manual Entry</option>
-        <option value="/admin/tracker/message/upload-eml/">📧 Upload .eml File</option>
-        <option value="{% url 'label_messages' %}">🏷️ Label Messages</option>
-        <option value="{% url 'label_companies' %}">🏷️ Label Companies</option>
-        <option value="{% url 'job_search_tracker' %}">🔍 Job Search Tracker</option>
-        <option value="{% url 'missing_applications' %}">⚠️ Missing Applications</option>
-        <option value="{% url 'metrics' %}">View Metrics</option>
-        <option value="{% url 'company_threads' %}">Company Threads</option>
-        <option value="{% url 'json_file_viewer' %}">JSON File Viewer</option>
-        <option value="{% url 'configure_settings' %}">Configure Settings</option>
-        <option value="{% url 'manage_domains' %}">🌐 Domain Management</option>
-        <option value="{% url 'label_rule_debugger' %}">Label Rule Debugger</option>
-        <option value="{% url 'log_viewer' %}">Log Viewer</option>
-        <option value="{% url 'retrain_model' %}">🤖 Retrain Model</option>
-      </select>
-    </div>
   </div>
 </div>
 

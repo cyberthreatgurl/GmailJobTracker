@@ -45,6 +45,8 @@
       "\\b(?:congratulations|congrats).*\\s+(?:been\\s+)?referred\\s+(?:you\\s+)?to\\s+(?:work\\s+at|join)\\b"
     ],
     "rejection_override": [
+      "\\bconfirmation\\s+of\\s+withdraw(?:al)?\\s+from\\b",
+      "\\byou\\s+have\\s+successfully\\s+withdrawn\\s+from\\b",
       "\\b(?:move|moved|moving)\\s+forward\\s+with\\s+(?:other|another|an?\\s+alternative)\\s+candidate",
       "\\b(?:decided|chosen|opted)\\s+not\\s+to\\s+(?:move\\s+forward|proceed)",
       "\\b(?:decided|chosen)\\s+to\\s+consider\\s+candidates.*(?:more\\s+closely\\s+align|better\\s+(?:match|fit))",
@@ -160,6 +162,9 @@
       "\\breviewing\\s+your\\s+application\\b"
     ],
     "rejection": [
+      "\\bconfirmation\\s+of\\s+withdraw(?:al)?\\s+from\\b",
+      "\\byou\\s+have\\s+successfully\\s+withdrawn\\s+from\\b",
+      "\\bsuccessfully\\s+withdrawn\\s+from\\b",
       "\\bemail_jobs_application_rejected",
       "\\byour\\s+application\\s+to\\b.{0,200}\\b(?:not\\s+selected|not\\s+moving\\s+forward|decided\\s+not\\s+to|chosen|declined|rejected|unfortunately|regret|no\\s+longer)",
       "\\byour\\s+application\\s+to\\b.{0,200}(?:another\\s+candidate|other\\s+candidate|different\\s+candidate|filled\\s+the\\s+position)",

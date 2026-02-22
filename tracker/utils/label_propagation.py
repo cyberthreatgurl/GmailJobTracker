@@ -142,15 +142,29 @@ def _check_cancelled_from_body(message: Message) -> bool:
         return False
 
 
+def _check_withdrawn_from_body(message: Message) -> bool:
+    """Check if message body/subject indicates a withdrawn application.
+
+    Uses is_withdrawn_position() from parser_helpers for pattern matching.
+    """
+    try:
+        from parser_helpers import is_withdrawn_position
+        return is_withdrawn_position(
+            message.subject or "", message.body or ""
+        )
+    except ImportError:
+        return False
+
+
 def _propagate_rejection_to_company(
-    message: Message, msg_date, exclude_thread_id: str, is_cancelled: bool
+    message: Message, msg_date, exclude_thread_id: str, is_cancelled: bool, is_withdrawn: bool = False
 ) -> None:
-    """Propagate rejection/cancelled to other ThreadTracking records for the same company.
+    """Propagate rejection/cancelled/withdrawn to other ThreadTracking records for the same company.
 
     When a rejection arrives on a different thread than the original application,
     the thread_id-based lookup finds the wrong TT (or a spurious one created from
     a misclassification). This function ensures the actual application TT for the
-    same company also gets updated with rejection_date and cancelled status.
+    same company also gets updated with rejection_date and cancelled/withdrawn status.
 
     Only updates the earliest application (by sent_date) for the company that
     doesn't already have a rejection_date.
@@ -163,11 +177,13 @@ def _propagate_rejection_to_company(
         other_tt.rejection_date = msg_date
         if is_cancelled and not other_tt.cancelled:
             other_tt.cancelled = True
+        if is_withdrawn and not other_tt.withdrew:
+            other_tt.withdrew = True
         other_tt.save()
         logger.debug(
             f"✓ Cross-thread rejection propagation: updated TT id={other_tt.id}"
             f" ('{other_tt.job_title}') for {message.company.name}"
-            f", rejection_date={msg_date}, cancelled={other_tt.cancelled}"
+            f", rejection_date={msg_date}, cancelled={other_tt.cancelled}, withdrew={other_tt.withdrew}"
         )
 
 
@@ -254,7 +270,7 @@ def propagate_message_label_to_thread(message: Message) -> Optional[ThreadTracki
                         # Clear prescreen_date if it was set from old label
                         if old_label == "prescreen" and tt.prescreen_date == msg_date:
                             tt.prescreen_date = None
-                    elif message.ml_label in ("rejection", "cancelled") and not tt.rejection_date:
+                    elif message.ml_label in ("rejection", "cancelled", "withdrew") and not tt.rejection_date:
                         tt.rejection_date = msg_date
                         # Body-based cancellation detection
                         is_cancelled = (
@@ -263,6 +279,14 @@ def propagate_message_label_to_thread(message: Message) -> Optional[ThreadTracki
                         )
                         if is_cancelled:
                             tt.cancelled = True
+                        
+                        # Body-based withdrawn detection
+                        is_withdrawn = (
+                            message.ml_label == "withdrew"
+                            or _check_withdrawn_from_body(message)
+                        )
+                        if is_withdrawn:
+                            tt.withdrew = True
 
                 if message.confidence is not None and (
                     tt.ml_confidence is None or tt.ml_confidence != message.confidence
@@ -277,15 +301,19 @@ def propagate_message_label_to_thread(message: Message) -> Optional[ThreadTracki
                 # This handles cases where a rejection arrives on a different
                 # thread than the application, or when a spurious TT was created
                 # from a prior misclassification.
-                if message.ml_label in ("rejection", "cancelled"):
+                if message.ml_label in ("rejection", "cancelled", "withdrew"):
                     if not is_cancelled:
                         is_cancelled = (
                             message.ml_label == "cancelled"
                             or _check_cancelled_from_body(message)
                         )
+                    is_withdrawn = (
+                        message.ml_label == "withdrew"
+                        or _check_withdrawn_from_body(message)
+                    )
                     if _should_propagate_cross_thread(message, tt):
                         _propagate_rejection_to_company(
-                            message, msg_date, thread_id, is_cancelled
+                            message, msg_date, thread_id, is_cancelled, is_withdrawn
                         )
 
                 return tt
@@ -294,11 +322,11 @@ def propagate_message_label_to_thread(message: Message) -> Optional[ThreadTracki
             # For prescreen/interview/rejection messages, check if company already has a ThreadTracking
             # and update that one instead of creating a duplicate
             if (
-                message.ml_label in ("prescreen", "interview_invite", "rejection", "cancelled")
+                message.ml_label in ("prescreen", "interview_invite", "rejection", "cancelled", "withdrew")
                 and message.company
             ):
                 existing_tt = None
-                if message.ml_label in ("rejection", "cancelled"):
+                if message.ml_label in ("rejection", "cancelled", "withdrew"):
                     # For rejection labels, only update when there is a confident title match.
                     existing_tt = _find_company_rejection_target(message, exclude_thread_id="")
                 else:
@@ -316,7 +344,7 @@ def propagate_message_label_to_thread(message: Message) -> Optional[ThreadTracki
                     elif message.ml_label == "interview_invite" and not existing_tt.interview_date:
                         existing_tt.interview_date = msg_date
                         changed = True
-                    elif message.ml_label in ("rejection", "cancelled") and not existing_tt.rejection_date:
+                    elif message.ml_label in ("rejection", "cancelled", "withdrew") and not existing_tt.rejection_date:
                         existing_tt.rejection_date = msg_date
                         is_cancelled = (
                             message.ml_label == "cancelled"
@@ -324,6 +352,12 @@ def propagate_message_label_to_thread(message: Message) -> Optional[ThreadTracki
                         )
                         if is_cancelled:
                             existing_tt.cancelled = True
+                        is_withdrawn = (
+                            message.ml_label == "withdrew"
+                            or _check_withdrawn_from_body(message)
+                        )
+                        if is_withdrawn:
+                            existing_tt.withdrew = True
                         changed = True
                     if changed:
                         existing_tt.save()

@@ -208,6 +208,11 @@ DEBUG=1 python manage.py ingest_gmail --days 7
 - **[markdown/EXTRACTION_LOGIC.md](../markdown/EXTRACTION_LOGIC.md)** - Company resolution deep dive
 - **[markdown/DASHBOARD_OVERVIEW.md](../markdown/DASHBOARD_OVERVIEW.md)** - Dashboard features
 
+
+For all git pushes by default, include [skip-CI] in the commit message (for example: [skip ci]).
+
+Only run CI/CD when I explicitly request it.
+
 ---
 
 **Last Updated:** 2026-02-06

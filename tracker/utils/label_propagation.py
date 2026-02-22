@@ -4,12 +4,128 @@ Functions for propagating message labels to ThreadTracking records.
 """
 
 import logging
+import re
+from difflib import SequenceMatcher
 from typing import Optional
 from django.db import transaction
 
 from tracker.models import Message, ThreadTracking
 
 logger = logging.getLogger("parser")
+
+
+def _normalize_title(text: str) -> str:
+    """Normalize job-title text for approximate matching."""
+    if not text:
+        return ""
+    normalized = re.sub(r"[^a-z0-9]+", " ", text.lower()).strip()
+    return re.sub(r"\s+", " ", normalized)
+
+
+def _extract_rejection_title(message: Message) -> str:
+    """Extract a candidate role title from a rejection/cancelled message subject/body."""
+    subject = (message.subject or "").strip()
+    body = (message.body or "").strip()
+
+    patterns = [
+        r"application\s+status\s+for\s+(.+)$",
+        r"rejection\s+for\s+(.+)$",
+        r"confirmation\s+of\s+withdraw\s+from\s+(.+)$",
+        r"withdraw(?:al)?\s+from\s+(.+)$",
+        r"for\s+the\s+(.+?)\s+position",
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, subject, flags=re.IGNORECASE)
+        if match:
+            return match.group(1).strip(" .:-")
+
+    body_match = re.search(
+        r"(?:position|role)\s*[:\-]\s*([^\n\r.]{6,120})",
+        body,
+        flags=re.IGNORECASE,
+    )
+    if body_match:
+        return body_match.group(1).strip(" .:-")
+
+    return ""
+
+
+def _find_company_rejection_target(message: Message, exclude_thread_id: str) -> Optional[ThreadTracking]:
+    """Find a single, confident ThreadTracking target for cross-thread rejection updates."""
+    if not message.company:
+        return None
+
+    candidates = list(
+        ThreadTracking.objects.filter(
+            company=message.company,
+        )
+        .exclude(thread_id=exclude_thread_id)
+    )
+    if not candidates:
+        return None
+
+    extracted_title = _normalize_title(_extract_rejection_title(message))
+    if not extracted_title:
+        logger.debug(
+            "ℹ️ Skipping cross-thread rejection propagation for %s: no title evidence",
+            message.company.name,
+        )
+        return None
+
+    scored_candidates = []
+    for candidate in candidates:
+        candidate_title = _normalize_title(candidate.job_title or "")
+        if not candidate_title:
+            continue
+        score = SequenceMatcher(None, extracted_title, candidate_title).ratio()
+        scored_candidates.append((candidate, score))
+
+    if not scored_candidates:
+        return None
+
+    scored_candidates.sort(
+        key=lambda item: (item[1], item[0].rejection_date is None),
+        reverse=True,
+    )
+    best_candidate, best_score = scored_candidates[0]
+    second_score = scored_candidates[1][1] if len(scored_candidates) > 1 else 0.0
+
+    if best_score < 0.72 or (best_score - second_score) < 0.08:
+        logger.debug(
+            "ℹ️ Skipping cross-thread rejection propagation for %s: ambiguous match"
+            " (best=%.3f, second=%.3f, title='%s')",
+            message.company.name,
+            best_score,
+            second_score,
+            extracted_title,
+        )
+        return None
+
+    return best_candidate
+
+
+def _should_propagate_cross_thread(message: Message, current_tt: ThreadTracking) -> bool:
+    """Decide whether a rejection should propagate beyond the current thread TT.
+
+    If the current TT already has a confident title match to the rejection message,
+    do not propagate to other applications at the same company.
+    """
+    if not current_tt:
+        return True
+
+    current_title = _normalize_title(current_tt.job_title or "")
+    extracted_title = _normalize_title(_extract_rejection_title(message))
+
+    if not current_title:
+        # Current TT is likely spurious/incomplete; allow cross-thread repair.
+        return True
+
+    if not extracted_title:
+        # No evidence to justify touching other application records.
+        return False
+
+    score = SequenceMatcher(None, extracted_title, current_title).ratio()
+    return score < 0.72
 
 
 def _check_cancelled_from_body(message: Message) -> bool:
@@ -42,15 +158,7 @@ def _propagate_rejection_to_company(
     if not message.company:
         return
 
-    other_tt = (
-        ThreadTracking.objects.filter(
-            company=message.company,
-            rejection_date__isnull=True,
-        )
-        .exclude(thread_id=exclude_thread_id)
-        .order_by("sent_date")
-        .first()
-    )
+    other_tt = _find_company_rejection_target(message, exclude_thread_id)
     if other_tt:
         other_tt.rejection_date = msg_date
         if is_cancelled and not other_tt.cancelled:
@@ -175,9 +283,10 @@ def propagate_message_label_to_thread(message: Message) -> Optional[ThreadTracki
                             message.ml_label == "cancelled"
                             or _check_cancelled_from_body(message)
                         )
-                    _propagate_rejection_to_company(
-                        message, msg_date, thread_id, is_cancelled
-                    )
+                    if _should_propagate_cross_thread(message, tt):
+                        _propagate_rejection_to_company(
+                            message, msg_date, thread_id, is_cancelled
+                        )
 
                 return tt
 
@@ -188,10 +297,15 @@ def propagate_message_label_to_thread(message: Message) -> Optional[ThreadTracki
                 message.ml_label in ("prescreen", "interview_invite", "rejection", "cancelled")
                 and message.company
             ):
-                # Look for existing ThreadTracking for this company
-                existing_tt = ThreadTracking.objects.filter(
-                    company=message.company
-                ).order_by("sent_date").first()
+                existing_tt = None
+                if message.ml_label in ("rejection", "cancelled"):
+                    # For rejection labels, only update when there is a confident title match.
+                    existing_tt = _find_company_rejection_target(message, exclude_thread_id="")
+                else:
+                    # For prescreen/interview labels, keep existing earliest-company fallback.
+                    existing_tt = ThreadTracking.objects.filter(
+                        company=message.company
+                    ).order_by("sent_date").first()
                 
                 if existing_tt:
                     # Update the existing record with the date

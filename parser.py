@@ -1267,7 +1267,16 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
             subject_clean,
             re.IGNORECASE,
         )
-        job_title = title_match.group(1).strip() if title_match else ""
+        if title_match:
+            job_title = title_match.group(1).strip()
+        else:
+            withdraw_match = re.search(
+                r"\bconfirmation\s+of\s+withdraw(?:al)?\s+from\s+(.+)$",
+                subject_clean,
+                re.IGNORECASE,
+            )
+            if withdraw_match:
+                job_title = withdraw_match.group(1).strip(" .:-")
 
     # Job ID (delegate to MetadataExtractor)
     job_id = MetadataExtractor.extract_job_id(subject_clean)
@@ -1853,8 +1862,10 @@ def _find_and_update_rejection_by_company(
             logger.debug("✓ Detected 'cancelled' in email text, setting cancelled=True")
         existing_tt.save()
         logger.debug(f"✓ Updated existing ThreadTracking for {company_obj.name} (job: '{existing_tt.job_title}') with rejection_date={rejection_date_final}")
+        return existing_tt
     else:
         logger.debug(f"ℹ️ No existing ThreadTracking found for {company_obj.name} to update with rejection")
+        return None
 
 
 def _fallback_thread_tracking_creation(
@@ -2162,17 +2173,41 @@ def _update_thread_tracking_on_reingest(metadata, result, company_obj, stats):
         if app:
             logger.debug(f"[Re-ingest] App ml_label={app.ml_label}, rejection_date={app.rejection_date}, ml_label_param={ml_label}")
             updated = False
-            if not app.rejection_date and ml_label in ("rejected", "rejection", "cancelled"):
+            matched_other_application = False
+
+            if (
+                ml_label in ("rejected", "rejection", "cancelled")
+                and not app.job_title
+            ):
                 rejection_date = timezone.localtime(metadata["timestamp"]).date()
-                app.rejection_date = rejection_date
-                updated = True
-                logger.debug(f"✓ Set rejection_date during re-ingest: {app.rejection_date}")
-                # Body-based cancellation detection
-                if is_cancelled_position(
-                    metadata.get("subject", ""), metadata.get("body", "")
-                ) or ml_label == "cancelled":
-                    app.cancelled = True
-                    logger.debug("✓ Detected 'cancelled' in email text during re-ingest")
+                logger.debug(
+                    f"[Re-ingest] TT id={app.id} has no job_title — "
+                    f"attempting targeted cross-thread match for {company_obj.name}"
+                )
+                matched_target = _find_and_update_rejection_by_company(
+                    metadata, company_obj, {}, rejection_date
+                )
+                matched_other_application = bool(
+                    matched_target and matched_target.id != app.id
+                )
+
+            if not app.rejection_date and ml_label in ("rejected", "rejection", "cancelled"):
+                if matched_other_application:
+                    logger.debug(
+                        f"[Re-ingest] Skipping rejection update on placeholder TT id={app.id}; "
+                        "matched another application by role title"
+                    )
+                else:
+                    rejection_date = timezone.localtime(metadata["timestamp"]).date()
+                    app.rejection_date = rejection_date
+                    updated = True
+                    logger.debug(f"✓ Set rejection_date during re-ingest: {app.rejection_date}")
+                    # Body-based cancellation detection
+                    if is_cancelled_position(
+                        metadata.get("subject", ""), metadata.get("body", "")
+                    ) or ml_label == "cancelled":
+                        app.cancelled = True
+                        logger.debug("✓ Detected 'cancelled' in email text during re-ingest")
             if (
                 not app.interview_date
                 and ml_label == "interview_invite"
@@ -2203,24 +2238,6 @@ def _update_thread_tracking_on_reingest(metadata, result, company_obj, stats):
                     f", thread_id={metadata['thread_id']}"
                 )
 
-            # Cross-thread rejection propagation: if the TT we found by thread_id
-            # has no job_title (likely a spurious record from a prior misclassification),
-            # also use TF-IDF matching to find and update the actual application.
-            if (
-                ml_label in ("rejected", "rejection", "cancelled")
-                and not app.job_title
-            ):
-                rejection_date = (
-                    app.rejection_date
-                    or timezone.localtime(metadata["timestamp"]).date()
-                )
-                logger.debug(
-                    f"[Re-ingest] TT id={app.id} has no job_title — "
-                    f"attempting cross-thread TF-IDF match for {company_obj.name}"
-                )
-                _find_and_update_rejection_by_company(
-                    metadata, company_obj, {}, rejection_date
-                )
         else:
             # No TT for this thread_id — for rejections, try TF-IDF matching
             if ml_label in ("rejected", "rejection", "cancelled") and company_obj:
@@ -3264,43 +3281,119 @@ def find_best_matching_application(company_obj, rejection_job_title: str, reject
     Returns:
         ThreadTracking object if a match is found, None otherwise
     """
-    # Get all applications for this company that don't already have a rejection date
-    applications = list(ThreadTracking.objects.filter(
-        company=company_obj,
-        rejection_date__isnull=True
-    ).exclude(status="rejected"))
-    
-    if not applications:
-        # Fall back to any application for this company
-        applications = list(ThreadTracking.objects.filter(company=company_obj))
-    
-    if not applications:
+    all_applications = list(
+        ThreadTracking.objects.filter(company=company_obj).order_by("-sent_date", "-id")
+    )
+    if not all_applications:
+        return None
+
+    open_applications = [
+        app for app in all_applications
+        if not app.rejection_date and app.status != "rejected"
+    ]
+    if not open_applications:
         return None
     
-    if len(applications) == 1:
-        # Only one application - use it directly
-        logger.debug(f"[EML JOB MATCH] Single application found for {company_obj.name}, using it directly")
-        return applications[0]
+    if len(open_applications) == 1:
+        only_app = open_applications[0]
+        total_company_apps = ThreadTracking.objects.filter(company=company_obj).count()
+        rejection_text = (rejection_job_title or rejection_subject or "").strip()
+        app_text = (only_app.job_title or "").strip()
+
+        # If this company has/had multiple applications, avoid auto-matching the
+        # last unrejected record unless title similarity is still confident.
+        if total_company_apps > 1:
+            if not rejection_text or not app_text:
+                logger.debug(
+                    "[EML JOB MATCH] Single open app but multi-app history and"
+                    " missing title evidence; skipping match"
+                )
+                return None
+            try:
+                vectorizer = TfidfVectorizer(
+                    analyzer='char_wb',
+                    ngram_range=(2, 4),
+                    lowercase=True,
+                    min_df=1
+                )
+                matrix = vectorizer.fit_transform([rejection_text, app_text])
+                score = cosine_similarity(matrix[0:1], matrix[1:2]).flatten()[0]
+                if score < max(threshold, 0.55):
+                    logger.debug(
+                        "[EML JOB MATCH] Single open app rejected: weak title"
+                        " similarity %.3f for multi-app company",
+                        score,
+                    )
+                    return None
+            except Exception as exc:
+                logger.debug(
+                    "[EML JOB MATCH] Single open app similarity check failed (%s);"
+                    " skipping match",
+                    exc,
+                )
+                return None
+
+        logger.debug(
+            f"[EML JOB MATCH] Single application found for {company_obj.name}, using it directly"
+        )
+
+        # If best title match across all company applications is already rejected,
+        # this is likely a re-processing of the same rejection/withdrawal.
+        if total_company_apps > 1 and rejection_text:
+            all_titles = [rejection_text] + [app.job_title or "" for app in all_applications]
+            if any(text.strip() for text in all_titles[1:]):
+                try:
+                    vectorizer = TfidfVectorizer(
+                        analyzer='char_wb',
+                        ngram_range=(2, 4),
+                        lowercase=True,
+                        min_df=1
+                    )
+                    matrix = vectorizer.fit_transform(all_titles)
+                    all_scores = cosine_similarity(matrix[0:1], matrix[1:]).flatten()
+                    best_any_idx = all_scores.argmax()
+                    best_any = all_applications[best_any_idx]
+                    best_any_score = all_scores[best_any_idx]
+                    if (
+                        best_any.id != only_app.id
+                        and (best_any.rejection_date or best_any.status == "rejected")
+                        and best_any_score >= max(threshold, 0.55)
+                    ):
+                        logger.debug(
+                            "[EML JOB MATCH] Best overall match already rejected"
+                            " (%.3f); returning it to prevent spillover",
+                            best_any_score,
+                        )
+                        return best_any
+                except Exception as exc:
+                    logger.debug(
+                        "[EML JOB MATCH] Best-overall comparison failed (%s);"
+                        " skipping single-open fallback",
+                        exc,
+                    )
+                    return None
+
+        return only_app
     
     # Multiple applications - use TF-IDF to find best match
     # Build corpus: rejection text + all application job titles
     rejection_text = rejection_job_title or rejection_subject or ""
     if not rejection_text.strip():
-        # No job title info - just return the most recent application
-        logger.debug(f"[EML JOB MATCH] No job title to match, using most recent application")
-        return applications[0]
+        # No title evidence across multiple applications is ambiguous; do not guess.
+        logger.debug("[EML JOB MATCH] No job title evidence with multiple applications; skipping match")
+        return None
     
     # Build corpus with application job titles (or subjects as fallback)
     corpus = [rejection_text]
-    for app in applications:
+    for app in all_applications:
         app_text = app.job_title or ""
         corpus.append(app_text)
     
     # Filter out empty strings to avoid TF-IDF issues
     if not any(text.strip() for text in corpus[1:]):
-        # All applications have empty job titles - return most recent
-        logger.debug(f"[EML JOB MATCH] No job titles in existing applications, using most recent")
-        return applications[0]
+        # All applications have empty titles, so matching is ambiguous.
+        logger.debug("[EML JOB MATCH] Existing applications have empty job titles; skipping match")
+        return None
     
     try:
         # Use TF-IDF with character n-grams for fuzzy matching
@@ -3320,25 +3413,34 @@ def find_best_matching_application(company_obj, rejection_job_title: str, reject
         # Find best match
         best_idx = similarities.argmax()
         best_score = similarities[best_idx]
+        second_score = 0.0
+        if len(similarities) > 1:
+            second_score = sorted(similarities, reverse=True)[1]
         
         logger.debug(f"[EML JOB MATCH] Rejection job title: '{rejection_text}'")
-        for i, (app, sim) in enumerate(zip(applications, similarities)):
+        for i, (app, sim) in enumerate(zip(all_applications, similarities)):
             marker = " ← BEST MATCH" if i == best_idx else ""
             logger.debug(f"[EML JOB MATCH]   App #{i+1}: '{app.job_title}' (similarity: {sim:.3f}){marker}")
         
-        if best_score >= threshold:
+        if best_score >= threshold and (best_score - second_score) >= 0.05:
+            best_match = all_applications[best_idx]
+            if best_match.rejection_date or best_match.status == "rejected":
+                logger.debug(
+                    "[EML JOB MATCH] Best title match already rejected; returning it to prevent spillover"
+                )
+                return best_match
             logger.debug(f"[EML JOB MATCH] Selected application with similarity {best_score:.3f} >= threshold {threshold}")
-            return applications[best_idx]
+            return best_match
         else:
-            logger.debug(f"[EML JOB MATCH] Best match {best_score:.3f} < threshold {threshold}, no confident match")
-            # Return best match anyway if it's reasonable (> 0.1), else return None
-            if best_score >= 0.1:
-                return applications[best_idx]
+            logger.debug(
+                f"[EML JOB MATCH] No confident match (best={best_score:.3f}, "
+                f"second={second_score:.3f}, threshold={threshold})"
+            )
             return None
             
     except Exception as e:
-        logger.debug(f"[EML JOB MATCH] TF-IDF matching failed: {e}, falling back to first application")
-        return applications[0] if applications else None
+        logger.debug(f"[EML JOB MATCH] TF-IDF matching failed: {e}, skipping match")
+        return None
 
 
 def ingest_message_from_eml(eml_content: str, fake_msg_id: str = None):

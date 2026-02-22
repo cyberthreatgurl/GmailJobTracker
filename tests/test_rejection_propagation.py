@@ -1,9 +1,9 @@
 """Regression tests for cross-thread rejection propagation.
 
 Tests the fix for the scenario where a rejection email arrives on a different
-thread than the original job application. Previously, both propagate_message_label_to_thread()
-and _update_thread_tracking_on_reingest() would find a spurious ThreadTracking by thread_id
-and never reach the company-based/TF-IDF fallback that would update the actual application.
+thread than the original job application. We still support cross-thread updates,
+but only when there is confident role-title evidence. This prevents one rejection
+from marking unrelated same-company applications.
 
 Also tests body-based cancellation detection (is_cancelled_position) during rejection
 propagation, ensuring cancelled=True is set when the email body indicates the position
@@ -90,8 +90,7 @@ def rejection_message(company):
 
 
 class TestPropagateRejectionCrossThread:
-    """Test that propagate_message_label_to_thread() updates BOTH the thread_id-matched
-    TT and the actual application TT from the same company."""
+    """Test scoped cross-thread behavior for rejection propagation."""
 
     def test_rejection_propagates_to_actual_application(
         self, company, application_tt, spurious_tt, rejection_message
@@ -183,7 +182,7 @@ class TestPropagateRejectionCrossThread:
     def test_propagation_only_updates_earliest_application(
         self, company, spurious_tt, rejection_message
     ):
-        """When multiple open applications exist, only the earliest gets updated."""
+        """Ambiguous matches should not update unrelated same-company applications."""
         from tracker.utils.label_propagation import propagate_message_label_to_thread
 
         early_tt = ThreadTracking.objects.create(
@@ -209,11 +208,109 @@ class TestPropagateRejectionCrossThread:
 
         early_tt.refresh_from_db()
         late_tt.refresh_from_db()
-        assert early_tt.rejection_date is not None, (
-            "Earliest application should get rejection_date"
+        assert early_tt.rejection_date is None, (
+            "Ambiguous fallback should not update unrelated application"
         )
         assert late_tt.rejection_date is None, (
-            "Later application should NOT be affected"
+            "Ambiguous fallback should not update unrelated application"
+        )
+
+    def test_updates_only_matching_role_when_company_has_multiple_applications(self, company):
+        """A rejection should update only the matching role, not all company applications."""
+        from tracker.utils.label_propagation import propagate_message_label_to_thread
+
+        cyber_tt = ThreadTracking.objects.create(
+            thread_id="thread_cyber",
+            company=company,
+            company_source="domain_mapping",
+            job_title="Senior Cybersecurity Engineer",
+            job_id="",
+            status="application",
+            sent_date=datetime.date(2026, 2, 1),
+            ml_label="job_application",
+        )
+        isss_tt = ThreadTracking.objects.create(
+            thread_id="thread_isss",
+            company=company,
+            company_source="domain_mapping",
+            job_title="Senior Information System Security Specialist",
+            job_id="",
+            status="application",
+            sent_date=datetime.date(2026, 2, 2),
+            ml_label="job_application",
+        )
+
+        msg = Message.objects.create(
+            msg_id="msg_reject_cyber_only",
+            thread_id="thread_spurious",
+            company=company,
+            sender="workday@bah.com",
+            subject="Confirmation of withdraw from Senior Cybersecurity Engineer",
+            body="We confirm your withdrawal request.",
+            timestamp=timezone.now(),
+            ml_label="rejection",
+            confidence=0.94,
+        )
+
+        propagate_message_label_to_thread(msg)
+
+        cyber_tt.refresh_from_db()
+        isss_tt.refresh_from_db()
+        assert cyber_tt.rejection_date is not None, (
+            "Matching role should receive rejection update"
+        )
+        assert isss_tt.rejection_date is None, (
+            "Non-matching role should not be marked rejected"
+        )
+
+    def test_thread_matched_role_does_not_propagate_to_other_company_role(self, company):
+        """If thread-matched TT role already matches, do not touch other company roles."""
+        from tracker.utils.label_propagation import propagate_message_label_to_thread
+
+        withdrawn_tt = ThreadTracking.objects.create(
+            thread_id="thread_withdrawn_isss",
+            company=company,
+            company_source="domain_mapping",
+            job_title="Senior Information System Security Specialist",
+            job_id="",
+            status="application",
+            sent_date=datetime.date(2026, 2, 1),
+            ml_label="job_application",
+        )
+        other_tt = ThreadTracking.objects.create(
+            thread_id="thread_other_cyber",
+            company=company,
+            company_source="domain_mapping",
+            job_title="Senior Cybersecurity Engineer",
+            job_id="",
+            status="application",
+            sent_date=datetime.date(2026, 2, 2),
+            ml_label="job_application",
+        )
+
+        msg = Message.objects.create(
+            msg_id="msg_withdraw_isss_only",
+            thread_id="thread_withdrawn_isss",
+            company=company,
+            sender="careers@bah.com",
+            subject="Confirmation of withdraw from Senior Information System Security Specialist",
+            body="You have successfully withdrawn from this position.",
+            timestamp=timezone.now(),
+            ml_label="rejection",
+            confidence=0.96,
+        )
+
+        result = propagate_message_label_to_thread(msg)
+        assert result is not None
+        assert result.thread_id == "thread_withdrawn_isss"
+
+        withdrawn_tt.refresh_from_db()
+        other_tt.refresh_from_db()
+        assert withdrawn_tt.rejection_date is not None, (
+            "Withdrawn role should be marked rejected"
+        )
+        assert other_tt.rejection_date is None, (
+            "Other same-company role must remain untouched"
         )
 
     def test_no_thread_id_match_falls_through_to_company(self, company, db):
@@ -318,7 +415,7 @@ class TestUpdateThreadTrackingOnReingest:
     def test_reingest_sets_cancelled_on_spurious_tt(
         self, company, application_tt, spurious_tt
     ):
-        """During reingest, spurious TT should get cancelled=True from body detection."""
+        """During reingest, placeholder TT should stay untouched when a role match exists."""
         from parser import _update_thread_tracking_on_reingest
 
         metadata = self._make_metadata()
@@ -328,8 +425,12 @@ class TestUpdateThreadTrackingOnReingest:
         _update_thread_tracking_on_reingest(metadata, result, company, stats)
 
         spurious_tt.refresh_from_db()
-        assert spurious_tt.rejection_date is not None
-        assert spurious_tt.cancelled is True
+        assert spurious_tt.rejection_date is None
+        assert spurious_tt.cancelled is False
+
+        application_tt.refresh_from_db()
+        assert application_tt.rejection_date is not None
+        assert application_tt.cancelled is True
 
     def test_reingest_cross_thread_finds_actual_application(
         self, company, application_tt, spurious_tt
@@ -417,3 +518,57 @@ class TestUpdateThreadTrackingOnReingest:
         ) as mock_find:
             _update_thread_tracking_on_reingest(metadata, result, company, stats)
             mock_find.assert_called_once()
+
+    def test_reingest_withdrawal_does_not_reject_other_company_role(self, company):
+        """Re-ingesting one role withdrawal must not reject another role at same company."""
+        from parser import _update_thread_tracking_on_reingest
+
+        placeholder_tt = ThreadTracking.objects.create(
+            thread_id="thread_placeholder",
+            company=company,
+            company_source="domain_mapping",
+            job_title="",
+            job_id="",
+            status="application",
+            sent_date=datetime.date(2026, 2, 20),
+            ml_label="job_application",
+        )
+        withdrawn_role_tt = ThreadTracking.objects.create(
+            thread_id="thread_real_withdrawn",
+            company=company,
+            company_source="domain_mapping",
+            job_title="Senior Information System Security Specialist",
+            job_id="",
+            status="application",
+            sent_date=datetime.date(2026, 2, 1),
+            ml_label="job_application",
+        )
+        other_role_tt = ThreadTracking.objects.create(
+            thread_id="thread_other_role",
+            company=company,
+            company_source="domain_mapping",
+            job_title="Senior Cybersecurity Engineer",
+            job_id="",
+            status="application",
+            sent_date=datetime.date(2026, 2, 2),
+            ml_label="job_application",
+        )
+
+        metadata = {
+            "thread_id": "thread_placeholder",
+            "timestamp": timezone.now(),
+            "subject": "Confirmation of withdraw from Senior Information System Security Specialist",
+            "body": "You have successfully withdrawn from Senior Information System Security Specialist.",
+        }
+        result = {"label": "rejection", "confidence": 1.0}
+        stats = MagicMock()
+
+        _update_thread_tracking_on_reingest(metadata, result, company, stats)
+
+        placeholder_tt.refresh_from_db()
+        withdrawn_role_tt.refresh_from_db()
+        other_role_tt.refresh_from_db()
+
+        assert placeholder_tt.rejection_date is None
+        assert withdrawn_role_tt.rejection_date is not None
+        assert other_role_tt.rejection_date is None

@@ -182,3 +182,37 @@ class TestRejectionBodyToThreadTracking:
         )
         assert matched is not None
         assert matched.job_title == "Python Developer"
+
+    def test_single_remaining_open_app_does_not_auto_match_wrong_role(self, db):
+        """If one role was already rejected, a repeated rejection for another role must not
+        auto-match the last open application at the same company."""
+        from tracker.models import Company, ThreadTracking
+
+        company = Company.objects.create(
+            name="Maximus", first_contact="2026-01-01", last_contact="2026-01-01"
+        )
+        ThreadTracking.objects.create(
+            thread_id="thread_isss",
+            company=company,
+            status="rejected",
+            job_title="Senior Information System Security Specialist",
+            sent_date="2026-02-01",
+            rejection_date="2026-02-22",
+        )
+        open_other = ThreadTracking.objects.create(
+            thread_id="thread_cyber",
+            company=company,
+            status="application",
+            job_title="Senior Cybersecurity Engineer",
+            sent_date="2026-02-02",
+        )
+
+        matched = find_best_matching_application(
+            company,
+            "Senior Information System Security Specialist",
+            "Confirmation of withdraw from Senior Information System Security Specialist",
+        )
+        assert matched is None
+
+        open_other.refresh_from_db()
+        assert open_other.rejection_date is None

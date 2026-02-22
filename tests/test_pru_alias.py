@@ -60,7 +60,8 @@ if 'pru' in aliases:
 
 if result.get('company') == 'Prudential':
     print("\n✅ SUCCESS: Company correctly extracted as 'Prudential'")
-    sys.exit(0)
+    if __name__ == "__main__":
+        sys.exit(0)
 else:
     print(f"\n❌ FAILED: Expected 'Prudential', got '{result.get('company', 'N/A')}'")
     sys.exit(1)

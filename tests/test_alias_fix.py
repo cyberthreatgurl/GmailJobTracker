@@ -16,6 +16,9 @@ django.setup()
 from tracker.models import Company, CompanyAlias
 from parser import resolve_company_alias
 
+import pytest
+
+@pytest.mark.django_db
 def test_alias_resolution():
     """Test that alias resolution works correctly."""
     print("=" * 80)

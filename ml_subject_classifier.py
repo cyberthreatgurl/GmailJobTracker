@@ -143,6 +143,7 @@ def rule_label(subject: str, body: str = "") -> str | None:
         "offer",  # most specific
         "head_hunter",  # recruiter blasts over noise
         "noise",  # newsletters, OTP, promos
+        "withdrew",  # explicit withdrawals
         "rejection",  # explicit negatives
         "interview",  # interview scheduling/confirmation
         "prescreen",  # screening questions

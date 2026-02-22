@@ -426,3 +426,34 @@ class TestRmcRejectionClassifiedAsRejection:
         assert result["label"] == "rejection", (
             f"Expected rejection but got {result['label']}"
         )
+
+
+class TestWithdrawalConfirmationSubject:
+    """Regression: withdrawal confirmations should not be dropped as missing_company."""
+
+    SUBJECT = "Confirmation of withdraw from Senior Information System Security Specialist"
+    BODY = (
+        "Hello Adrian, "
+        "You have successfully withdrawn from Senior Information System Security Specialist. "
+        "This action is final."
+    )
+
+    def test_parse_subject_labels_as_rejection(self):
+        """parse_subject should classify withdrawal confirmations as rejection."""
+        result = parse_subject(
+            self.SUBJECT,
+            self.BODY,
+            sender="careers@maximus.com",
+            sender_domain="maximus.com",
+        )
+        assert result["label"] == "rejection"
+
+    def test_parse_subject_extracts_job_title_from_subject(self):
+        """parse_subject should extract role title after 'withdraw from'."""
+        result = parse_subject(
+            self.SUBJECT,
+            self.BODY,
+            sender="careers@maximus.com",
+            sender_domain="maximus.com",
+        )
+        assert result["job_title"] == "Senior Information System Security Specialist"

@@ -67,6 +67,7 @@ from ml_entity_extraction import extract_entities
 from ml_subject_classifier import predict_subject_type
 from parser_helpers import (
     is_cancelled_position,
+    is_withdrawn_position,
     _increment_stat,
     _is_headhunter_source,
 )
@@ -1733,6 +1734,7 @@ def _create_thread_tracking_for_application(
         ),
         "reviewed": reviewed,
         "cancelled": ml_label == "cancelled",
+        "withdrew": ml_label == "withdrew",
     }
 
     application_obj, created = ThreadTracking.objects.get_or_create(
@@ -1800,7 +1802,7 @@ def _update_existing_thread_tracking(
         )
     except ThreadTracking.DoesNotExist:
         # No ThreadTracking with this thread_id - for rejections, try to find by company
-        if ml_label in ("rejected", "rejection", "cancelled") and company_obj:
+        if ml_label in ("rejected", "rejection", "cancelled", "withdrew") and company_obj:
             _find_and_update_rejection_by_company(
                 metadata, company_obj, parsed_subject,
                 rejection_date_final
@@ -1824,13 +1826,15 @@ def _update_existing_application_dates(
         logger.debug(f"✓ Updated application company: {company_obj.name}")
     if (
         not application_obj.rejection_date
-        and ml_label in ("rejected", "rejection", "cancelled")
+        and ml_label in ("rejected", "rejection", "cancelled", "withdrew")
     ):
         application_obj.rejection_date = rejection_date_final
         application_obj.status = "rejected"
         # Check for cancelled position indicators in email text
         if is_cancelled_position(metadata.get("subject", ""), metadata.get("body", "")):
             application_obj.cancelled = True
+        if is_withdrawn_position(metadata.get("subject", ""), metadata.get("body", "")):
+            application_obj.withdrew = True
         updated = True
     if not application_obj.interview_date and ml_label == "interview_invite":
         application_obj.interview_date = interview_date_final
@@ -1860,6 +1864,9 @@ def _find_and_update_rejection_by_company(
         if is_cancelled_position(metadata.get("subject", ""), metadata.get("body", "")):
             existing_tt.cancelled = True
             logger.debug("✓ Detected 'cancelled' in email text, setting cancelled=True")
+        if is_withdrawn_position(metadata.get("subject", ""), metadata.get("body", "")):
+            existing_tt.withdrew = True
+            logger.debug("✓ Detected 'withdrew' in email text, setting withdrew=True")
         existing_tt.save()
         logger.debug(f"✓ Updated existing ThreadTracking for {company_obj.name} (job: '{existing_tt.job_title}') with rejection_date={rejection_date_final}")
         return existing_tt
@@ -1902,6 +1909,7 @@ def _fallback_thread_tracking_creation(
                         ),
                         "reviewed": reviewed,
                         "cancelled": ml_label == "cancelled",
+                        "withdrew": ml_label == "withdrew",
                     },
                 )
                 if created:
@@ -2176,7 +2184,7 @@ def _update_thread_tracking_on_reingest(metadata, result, company_obj, stats):
             matched_other_application = False
 
             if (
-                ml_label in ("rejected", "rejection", "cancelled")
+                ml_label in ("rejected", "rejection", "cancelled", "withdrew")
                 and not app.job_title
             ):
                 rejection_date = timezone.localtime(metadata["timestamp"]).date()
@@ -2191,7 +2199,7 @@ def _update_thread_tracking_on_reingest(metadata, result, company_obj, stats):
                     matched_target and matched_target.id != app.id
                 )
 
-            if not app.rejection_date and ml_label in ("rejected", "rejection", "cancelled"):
+            if not app.rejection_date and ml_label in ("rejected", "rejection", "cancelled", "withdrew"):
                 if matched_other_application:
                     logger.debug(
                         f"[Re-ingest] Skipping rejection update on placeholder TT id={app.id}; "
@@ -2208,6 +2216,11 @@ def _update_thread_tracking_on_reingest(metadata, result, company_obj, stats):
                     ) or ml_label == "cancelled":
                         app.cancelled = True
                         logger.debug("✓ Detected 'cancelled' in email text during re-ingest")
+                    if is_withdrawn_position(
+                        metadata.get("subject", ""), metadata.get("body", "")
+                    ) or ml_label == "withdrew":
+                        app.withdrew = True
+                        logger.debug("✓ Detected 'withdrew' in email text during re-ingest")
             if (
                 not app.interview_date
                 and ml_label == "interview_invite"
@@ -2240,7 +2253,7 @@ def _update_thread_tracking_on_reingest(metadata, result, company_obj, stats):
 
         else:
             # No TT for this thread_id — for rejections, try TF-IDF matching
-            if ml_label in ("rejected", "rejection", "cancelled") and company_obj:
+            if ml_label in ("rejected", "rejection", "cancelled", "withdrew") and company_obj:
                 rejection_date = timezone.localtime(metadata["timestamp"]).date()
                 logger.debug(
                     f"[Re-ingest] No TT for thread_id={metadata['thread_id']}"

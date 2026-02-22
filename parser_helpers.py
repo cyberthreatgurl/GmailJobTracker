@@ -61,6 +61,34 @@ def is_cancelled_position(subject: str, body: str) -> bool:
     return any(p.search(combined) for p in CANCELLED_PATTERNS)
 
 
+WITHDRAWN_PATTERNS = [
+    re.compile(p, re.IGNORECASE)
+    for p in [
+        r'\b(?:I|we)\s+(?:have\s+)?(?:withdrawn?|withdrew)\s+(?:my|our)\s+(?:application|candidacy)\b',
+        r'\bwithdraw(?:ing|n)?\s+(?:from|my)\s+(?:consideration|the\s+process|this\s+position)\b',
+        r'\b(?:decided|choosing)\s+to\s+withdraw\b',
+        r'\bno\s+longer\s+(?:interested|pursuing)\b',
+        r'\bconfirmation\s+of\s+withdraw(?:al)?\s+from\b',
+    ]
+]
+
+
+def is_withdrawn_position(subject: str, body: str) -> bool:
+    """Check if combined subject+body text indicates the user withdrew their application.
+
+    Uses pre-compiled WITHDRAWN_PATTERNS for efficient matching.
+
+    Args:
+        subject: Email subject line
+        body: Email body text
+
+    Returns:
+        True if any withdrawn pattern matches
+    """
+    combined = subject + " " + body
+    return any(p.search(combined) for p in WITHDRAWN_PATTERNS)
+
+
 # =============================================================================
 # Phase 2: Extracted stat helper
 # =============================================================================

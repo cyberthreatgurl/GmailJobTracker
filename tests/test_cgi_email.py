@@ -16,6 +16,9 @@ django.setup()
 from tracker.models import Company, Message
 from parser import ingest_message_from_eml
 
+import pytest
+
+@pytest.mark.django_db
 def test_cgi_email_ingestion():
     """Test that CGI email uses alias to resolve to CGI Inc."""
     print("=" * 80)

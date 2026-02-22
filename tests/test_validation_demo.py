@@ -255,6 +255,7 @@ class TestThreadTrackingValidation:
             assert 'job_title' in exc_info.value.error_dict
 
 
+@pytest.mark.django_db
 class TestFormValidation:
     """Test form validators"""
 
@@ -262,7 +263,8 @@ class TestFormValidation:
         """Valid form data should pass"""
         data = {
             'entry_type': 'application',
-            'company_name': 'Test Company, Inc.',
+            'company_select': '__new__',
+            'new_company_name': 'Test Company, Inc.',
             'job_title': 'Software Engineer II',
             'job_id': 'JOB-12345',
             'application_date': now().date(),
@@ -275,12 +277,12 @@ class TestFormValidation:
         """Invalid company name should fail in form"""
         data = {
             'entry_type': 'application',
-            'company_name': 'Company<script>',
+            'new_company_name': 'Company<script>',
             'application_date': now().date(),
         }
         form = ManualEntryForm(data)
         assert not form.is_valid()
-        assert 'company_name' in form.errors
+        assert 'new_company_name' in form.errors
 
     def test_invalid_job_id_in_form(self):
         """Invalid job ID should fail in form"""

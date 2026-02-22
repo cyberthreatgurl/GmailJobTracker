@@ -43,6 +43,7 @@ class RuleClassifier:
             "prescreen": "prescreen",
             "job_application": "application",
             "rejection": "rejection",
+            "withdrew": "withdrew",
             "offer": "offer",
             "noise": "noise",
             "head_hunter": "head_hunter",

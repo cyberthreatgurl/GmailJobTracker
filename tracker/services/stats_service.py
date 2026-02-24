@@ -53,6 +53,9 @@ class StatsService:
         # Load headhunter domains from companies.json
         headhunter_domains = StatsService._load_headhunter_domains()
 
+        # Count all companies in the database
+        total_companies_count = Company.objects.count()
+
         # Count companies with actual applications (ThreadTracking records)
         companies_count = (
             Company.objects.filter(threadtracking__isnull=False)
@@ -243,6 +246,7 @@ class StatsService:
 
         return {
             "companies": companies_count,
+            "total_companies_count": total_companies_count,
             "applications": applications_count,
             "applications_count": applications_count,
             "applications_week": applications_week,

@@ -65,6 +65,10 @@
     <ul class="list-none pl-0 m-0">
       <li class="flex justify-between py-2 text-xs text-gray-600 border-b border-gray-100">
         <a href="{% url 'label_companies' %}" class="text-blue-600 hover:text-blue-800 hover:underline">Total Companies:</a>
+        <span>{{ total_companies_count|default:0 }}</span>
+      </li>
+      <li class="flex justify-between py-2 text-xs text-gray-600 border-b border-gray-100">
+        <a href="{% url 'label_companies' %}" class="text-blue-600 hover:text-blue-800 hover:underline">Applied To:</a>
         <span>{{ companies|default:0 }}</span>
       </li>
       <li class="flex justify-between py-2 text-xs text-gray-600 border-b border-gray-100">

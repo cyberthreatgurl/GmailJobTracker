@@ -84,7 +84,9 @@
       "\\b(?:position|job|role|requisition|opportunity)\\s+(?:has\\s+been\\s+)?(?:cancelled|canceled|closed)\\b",
       "\\b(?:cancelled|canceled)\\s+(?:the\\s+)?(?:position|job|role|requisition)\\b",
       "\\bno\\s+longer\\s+(?:filling|hiring\\s+for)\\s+(?:this|the)\\s+(?:position|role)\\b",
-      "\\bhas\\s+been\\s+(?:closed/?cancelled|cancelled/?closed|cancelled|canceled|closed)\\b"
+      "\\bhas\\s+been\\s+(?:closed/?cancelled|cancelled/?closed|cancelled|canceled|closed)\\b",
+      "\\bno\\s+longer\\s+considering\\s+(?:candidates|applicants)\\b",
+      "\\bbusiness\\s+needs\\s+have\\s+changed\\b"
     ],
     "prescreen": [
       "\\bbrief\\s+phone\\s+call\\b",
@@ -211,7 +213,8 @@
       "\\bkeep\\syour\\s(?:resume|application)\\son\\sfile\\b",
       "\\bdecided\\snot\\sto\\smove\\sforward\\swith\\syour\\sapplication\\b",
       "\\byour\\s+application\\s+will\\s+not\\s+advance\\b",
-      "\\bonly\\sadvance\\sa\\sfew\\s+candidates\\b"
+      "\\bonly\\sadvance\\sa\\sfew\\s+candidates\\b",
+      "\\bno\\s+longer\\s+considering\\s+(?:candidates|applicants)\\s+for\\b"
     ],
     "offer": [
       "\\smake\\syou\\san\\soffer\\b"

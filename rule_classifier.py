@@ -198,6 +198,12 @@ class RuleClassifier:
             logger.debug("[DEBUG rule_label] Early cancelled match - position was cancelled")
             return "cancelled"
 
+        # Check withdrew FIRST (before rejection)
+        withdrew_patterns = self._msg_label_patterns.get("withdrew", [])
+        if any(rx.search(s) for rx in withdrew_patterns):
+            logger.debug("[DEBUG rule_label] Withdrew detected")
+            return "withdrew"
+
         # Check rejection patterns FIRST (before application confirmation)
         # This is critical because rejection emails often contain "your application to" or
         # "application status" language that would match the broad application patterns.
@@ -276,6 +282,7 @@ class RuleClassifier:
         for label in (
             "offer",
             "cancelled",
+            "withdrew",
             "rejection",
             "head_hunter",
             "noise",

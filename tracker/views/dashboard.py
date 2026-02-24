@@ -726,23 +726,28 @@ def dashboard(request):
     def unique_by_company(
         items, id_key="company_id", name_key="company__name", count_key=None
     ):
-        seen = set()
-        out = []
+        seen = {}
         for it in items:
             cid = it.get(id_key)
             cname = it.get(name_key)
-            if cid is not None and cid not in seen and cname:
-                item_dict = {"id": cid, "name": cname}
-                # Include count if available
-                if count_key and count_key in it:
-                    item_dict["count"] = it[count_key]
-                # Include cancelled/withdrew flags if available
-                if "cancelled" in it:
-                    item_dict["cancelled"] = it["cancelled"]
-                if "withdrew" in it:
-                    item_dict["withdrew"] = it["withdrew"]
-                out.append(item_dict)
-                seen.add(cid)
+            if cid is not None and cname:
+                if cid not in seen:
+                    item_dict = {"id": cid, "name": cname}
+                    if count_key and count_key in it:
+                        item_dict["count"] = it[count_key]
+                    if "cancelled" in it:
+                        item_dict["cancelled"] = it["cancelled"]
+                    if "withdrew" in it:
+                        item_dict["withdrew"] = it["withdrew"]
+                    seen[cid] = item_dict
+                else:
+                    # Aggregate flags if already seen
+                    if "cancelled" in it and it["cancelled"]:
+                        seen[cid]["cancelled"] = True
+                    if "withdrew" in it and it["withdrew"]:
+                        seen[cid]["withdrew"] = True
+        
+        out = list(seen.values())
         # sort by name for a stable display
         out.sort(key=lambda x: (x["name"] or "").lower())
         return out

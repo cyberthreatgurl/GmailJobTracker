@@ -885,8 +885,16 @@
       function uniqueById(arr) {
         const map = new Map();
         for (const item of arr) {
-          if (item && item.id != null && !map.has(item.id)) {
-            map.set(item.id, item);
+          if (item && item.id != null) {
+            if (!map.has(item.id)) {
+              // Clone the item so we don't mutate the original array elements
+              map.set(item.id, { ...item });
+            } else {
+              // Aggregate flags if already seen
+              const existing = map.get(item.id);
+              if (item.cancelled) existing.cancelled = true;
+              if (item.withdrew) existing.withdrew = true;
+            }
           }
         }
         return Array.from(map.values());

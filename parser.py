@@ -1805,7 +1805,7 @@ def _update_existing_thread_tracking(
         if ml_label in ("rejected", "rejection", "cancelled", "withdrew") and company_obj:
             _find_and_update_rejection_by_company(
                 metadata, company_obj, parsed_subject,
-                rejection_date_final
+                rejection_date_final, ml_label
             )
         else:
             logger.debug(
@@ -1824,18 +1824,20 @@ def _update_existing_application_dates(
         application_obj.company_source = company_source
         updated = True
         logger.debug(f"✓ Updated application company: {company_obj.name}")
-    if (
-        not application_obj.rejection_date
-        and ml_label in ("rejected", "rejection", "cancelled", "withdrew")
-    ):
-        application_obj.rejection_date = rejection_date_final
-        application_obj.status = "rejected"
-        # Check for cancelled position indicators in email text
-        if is_cancelled_position(metadata.get("subject", ""), metadata.get("body", "")):
-            application_obj.cancelled = True
-        if is_withdrawn_position(metadata.get("subject", ""), metadata.get("body", "")):
-            application_obj.withdrew = True
-        updated = True
+    if ml_label in ("rejected", "rejection", "cancelled", "withdrew"):
+        if not application_obj.rejection_date:
+            application_obj.rejection_date = rejection_date_final
+            application_obj.status = "rejected"
+            updated = True
+        # Check for cancelled/withdrew position indicators in email text even if rejection_date was already set
+        if is_cancelled_position(metadata.get("subject", ""), metadata.get("body", "")) or ml_label == "cancelled":
+            if not application_obj.cancelled:
+                application_obj.cancelled = True
+                updated = True
+        if is_withdrawn_position(metadata.get("subject", ""), metadata.get("body", "")) or ml_label == "withdrew":
+            if not application_obj.withdrew:
+                application_obj.withdrew = True
+                updated = True
     if not application_obj.interview_date and ml_label == "interview_invite":
         application_obj.interview_date = interview_date_final
         updated = True
@@ -1848,23 +1850,25 @@ def _update_existing_application_dates(
 
 
 def _find_and_update_rejection_by_company(
-    metadata, company_obj, parsed_subject, rejection_date_final
+    metadata, company_obj, parsed_subject, rejection_date_final, ml_label=None
 ):
     """Find ThreadTracking by company (TF-IDF matching) and update with rejection."""
     job_title = parsed_subject.get("job_title", "") if isinstance(parsed_subject, dict) else ""
     if not job_title:
         job_title = extract_job_title_from_body(metadata.get("body", ""))
+    
+    include_rejected = ml_label in ("withdrew", "cancelled")
     existing_tt = find_best_matching_application(
-        company_obj, job_title, metadata.get("subject", "")
+        company_obj, job_title, metadata.get("subject", ""), include_rejected=include_rejected
     )
     if existing_tt:
         if not existing_tt.rejection_date:
             existing_tt.rejection_date = rejection_date_final
         existing_tt.status = "rejected"
-        if is_cancelled_position(metadata.get("subject", ""), metadata.get("body", "")):
+        if is_cancelled_position(metadata.get("subject", ""), metadata.get("body", "")) or ml_label == "cancelled":
             existing_tt.cancelled = True
             logger.debug("✓ Detected 'cancelled' in email text, setting cancelled=True")
-        if is_withdrawn_position(metadata.get("subject", ""), metadata.get("body", "")):
+        if is_withdrawn_position(metadata.get("subject", ""), metadata.get("body", "")) or ml_label == "withdrew":
             existing_tt.withdrew = True
             logger.debug("✓ Detected 'withdrew' in email text, setting withdrew=True")
         existing_tt.save()
@@ -2046,12 +2050,12 @@ def _handle_reingest(
             existing.reviewed = True
 
     # Restore originals if message was reviewed and overwrite not requested
-    # EXCEPTION: Allow rejection to override job_application for reviewed messages
-    # — a rejection is a definitive status change that must always be applied.
+    # EXCEPTION: Allow rejection/withdrew to override job_application for reviewed messages
+    # — a rejection/withdrawal is a definitive status change that must always be applied.
     new_label = result.get("label") if result else None
     rejection_upgrade = (
-        new_label in ("rejection", "rejected", "cancelled")
-        and orig_ml_label in ("job_application", "other", "response", None)
+        new_label in ("rejection", "rejected", "cancelled", "withdrew")
+        and orig_ml_label in ("job_application", "other", "response", "rejection", "rejected", None)
     )
     if orig_reviewed and not overwrite_reviewed and not rejection_upgrade:
         existing.ml_label = orig_ml_label
@@ -2193,34 +2197,41 @@ def _update_thread_tracking_on_reingest(metadata, result, company_obj, stats):
                     f"attempting targeted cross-thread match for {company_obj.name}"
                 )
                 matched_target = _find_and_update_rejection_by_company(
-                    metadata, company_obj, {}, rejection_date
+                    metadata, company_obj, {}, rejection_date, ml_label
                 )
                 matched_other_application = bool(
                     matched_target and matched_target.id != app.id
                 )
 
-            if not app.rejection_date and ml_label in ("rejected", "rejection", "cancelled", "withdrew"):
-                if matched_other_application:
-                    logger.debug(
-                        f"[Re-ingest] Skipping rejection update on placeholder TT id={app.id}; "
-                        "matched another application by role title"
-                    )
-                else:
-                    rejection_date = timezone.localtime(metadata["timestamp"]).date()
-                    app.rejection_date = rejection_date
-                    updated = True
-                    logger.debug(f"✓ Set rejection_date during re-ingest: {app.rejection_date}")
+            if ml_label in ("rejected", "rejection", "cancelled", "withdrew"):
+                if not app.rejection_date:
+                    if matched_other_application:
+                        logger.debug(
+                            f"[Re-ingest] Skipping rejection update on placeholder TT id={app.id}; "
+                            "matched another application by role title"
+                        )
+                    else:
+                        rejection_date = timezone.localtime(metadata["timestamp"]).date()
+                        app.rejection_date = rejection_date
+                        updated = True
+                        logger.debug(f"✓ Set rejection_date during re-ingest: {app.rejection_date}")
+                
+                if not matched_other_application:
                     # Body-based cancellation detection
                     if is_cancelled_position(
                         metadata.get("subject", ""), metadata.get("body", "")
                     ) or ml_label == "cancelled":
-                        app.cancelled = True
-                        logger.debug("✓ Detected 'cancelled' in email text during re-ingest")
+                        if not app.cancelled:
+                            app.cancelled = True
+                            updated = True
+                            logger.debug("✓ Detected 'cancelled' in email text during re-ingest")
                     if is_withdrawn_position(
                         metadata.get("subject", ""), metadata.get("body", "")
                     ) or ml_label == "withdrew":
-                        app.withdrew = True
-                        logger.debug("✓ Detected 'withdrew' in email text during re-ingest")
+                        if not app.withdrew:
+                            app.withdrew = True
+                            updated = True
+                            logger.debug("✓ Detected 'withdrew' in email text during re-ingest")
             if (
                 not app.interview_date
                 and ml_label == "interview_invite"
@@ -2260,7 +2271,7 @@ def _update_thread_tracking_on_reingest(metadata, result, company_obj, stats):
                     f" — attempting TF-IDF match for {company_obj.name}"
                 )
                 _find_and_update_rejection_by_company(
-                    metadata, company_obj, {}, rejection_date
+                    metadata, company_obj, {}, rejection_date, ml_label
                 )
             else:
                 logger.debug(f"[Re-ingest] No Application found for thread_id={metadata['thread_id']}")
@@ -3279,7 +3290,7 @@ def extract_job_title_from_body(body: str | None) -> str:
     return ""
 
 
-def find_best_matching_application(company_obj, rejection_job_title: str, rejection_subject: str, threshold: float = 0.3):
+def find_best_matching_application(company_obj, rejection_job_title: str, rejection_subject: str, threshold: float = 0.3, include_rejected: bool = False):
     """Find the best matching ThreadTracking record for a rejection email using TF-IDF similarity.
     
     When a rejection email comes in on a different thread, we need to match it to the correct
@@ -3290,6 +3301,7 @@ def find_best_matching_application(company_obj, rejection_job_title: str, reject
         rejection_job_title: Job title extracted from the rejection email
         rejection_subject: Full subject line from the rejection email (fallback if no job_title)
         threshold: Minimum similarity score to consider a match (default 0.3)
+        include_rejected: Whether to include already rejected applications in the search
     
     Returns:
         ThreadTracking object if a match is found, None otherwise
@@ -3300,10 +3312,13 @@ def find_best_matching_application(company_obj, rejection_job_title: str, reject
     if not all_applications:
         return None
 
-    open_applications = [
-        app for app in all_applications
-        if not app.rejection_date and app.status != "rejected"
-    ]
+    if include_rejected:
+        open_applications = all_applications
+    else:
+        open_applications = [
+            app for app in all_applications
+            if not app.rejection_date and app.status != "rejected"
+        ]
     if not open_applications:
         return None
     

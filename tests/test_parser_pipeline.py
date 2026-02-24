@@ -439,14 +439,14 @@ class TestWithdrawalConfirmationSubject:
     )
 
     def test_parse_subject_labels_as_rejection(self):
-        """parse_subject should classify withdrawal confirmations as rejection."""
+        """parse_subject should classify withdrawal confirmations as withdrew."""
         result = parse_subject(
             self.SUBJECT,
             self.BODY,
             sender="careers@maximus.com",
             sender_domain="maximus.com",
         )
-        assert result["label"] == "rejection"
+        assert result["label"] == "withdrew"
 
     def test_parse_subject_extracts_job_title_from_subject(self):
         """parse_subject should extract role title after 'withdraw from'."""

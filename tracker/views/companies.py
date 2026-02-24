@@ -14,6 +14,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from django.db.models import Q, Count, F, Case, When, Value
@@ -2716,18 +2717,34 @@ def get_company_news(request, company_id):
                 logger.warning(f"Failed to fetch news for {company.name}: {e}")
                 company_news.error_message = str(e)
                 company_news.save()
+                hidden = set(company_news.hidden_urls or [])
+                user_arts = [a for a in (company_news.user_articles or []) if a.get("url") not in hidden]
+                display_arts = [a for a in (company_news.articles or []) if a.get("url") not in hidden]
+                merged = sorted(
+                    user_arts + display_arts,
+                    key=lambda a: a.get("date") or "",
+                    reverse=True,
+                )
                 return JsonResponse({
                     "success": True,
-                    "articles": company_news.articles or [],
-                    "all_articles": company_news.all_articles or [],
+                    "articles": merged,
+                    "all_articles": [a for a in (company_news.all_articles or []) if a.get("url") not in hidden],
                     "last_fetched": company_news.last_fetched.isoformat() if company_news.last_fetched else None,
                     "error": f"Could not fetch news: {str(e)[:100]}",
                 })
 
+        hidden = set(company_news.hidden_urls or [])
+        user_arts = [a for a in (company_news.user_articles or []) if a.get("url") not in hidden]
+        display_arts = [a for a in (company_news.articles or []) if a.get("url") not in hidden]
+        merged = sorted(
+            user_arts + display_arts,
+            key=lambda a: a.get("date") or "",
+            reverse=True,
+        )
         return JsonResponse({
             "success": True,
-            "articles": company_news.articles or [],
-            "all_articles": company_news.all_articles or [],
+            "articles": merged,
+            "all_articles": [a for a in (company_news.all_articles or []) if a.get("url") not in hidden],
             "last_fetched": company_news.last_fetched.isoformat() if company_news.last_fetched else None,
             "error": None,
         })
@@ -2747,6 +2764,117 @@ def refresh_company_news(request, company_id):
     return get_company_news(request, company_id)
 
 
+@login_required
+@require_POST
+def add_company_news_url(request, company_id):
+    """Fetch a user-supplied URL and add it to the company's news list."""
+    import requests as http_requests
+    from bs4 import BeautifulSoup
+    from django.utils.timezone import now as tz_now
+    from tracker.models import Company, CompanyNews
+
+    company = get_object_or_404(Company, pk=company_id)
+    url = request.POST.get("url", "").strip()
+    if not url:
+        return JsonResponse({"error": "URL is required."}, status=400)
+
+    from urllib.parse import urlparse
+
+    # Derive a human-readable default title from the URL path
+    parsed = urlparse(url)
+    path_slug = (parsed.path.rstrip("/").split("/")[-1] or parsed.netloc).replace("-", " ").replace("_", " ")
+    default_title = path_slug.capitalize() if path_slug else url
+    source_domain = parsed.netloc or "user_added"
+
+    title = default_title
+    snippet = ""
+    fetch_note = ""
+
+    # Best-effort fetch — use curl_cffi to impersonate Chrome's TLS fingerprint,
+    # which bypasses JA3-based bot detection (e.g. Cloudflare, Akamai) that rejects
+    # the standard Python requests TLS stack regardless of HTTP headers.
+    try:
+        from curl_cffi import requests as cffi_requests
+        resp = cffi_requests.get(url, impersonate="chrome", timeout=15, allow_redirects=True)
+        resp.raise_for_status()
+        soup = BeautifulSoup(resp.text, "html.parser")
+
+        # Prefer og:title > <title>
+        og_title = soup.find("meta", attrs={"property": "og:title"})
+        if og_title and og_title.get("content"):
+            title = og_title["content"].strip()
+        elif soup.find("title"):
+            title = soup.find("title").get_text(strip=True)
+
+        og_desc = soup.find("meta", attrs={"property": "og:description"})
+        if og_desc and og_desc.get("content"):
+            snippet = og_desc["content"].strip()
+        if not snippet:
+            para = soup.find("p")
+            snippet = para.get_text(strip=True)[:300] if para else ""
+    except Exception as fetch_exc:
+        fetch_note = f"(Could not fetch page: {fetch_exc})"
+        logger.info("add_company_news_url: fetch failed for %s — %s", url, fetch_exc)
+
+    article = {
+        "title": (title or url)[:200],
+        "url": url,
+        "date": tz_now().isoformat(),
+        "date_display": tz_now().strftime("%B %d, %Y"),
+        "source": source_domain,
+        "snippet": snippet or fetch_note,
+        "user_added": True,
+    }
+
+    try:
+        company_news, _ = CompanyNews.objects.get_or_create(company=company)
+        user_articles = list(company_news.user_articles or [])
+        if not any(a.get("url") == url for a in user_articles):
+            user_articles.append(article)
+        hidden = [u for u in (company_news.hidden_urls or []) if u != url]
+        company_news.user_articles = user_articles
+        company_news.hidden_urls = hidden
+        company_news.save(update_fields=["user_articles", "hidden_urls"])
+        return JsonResponse(article)
+    except Exception as exc:
+        return JsonResponse({"error": str(exc)}, status=500)
+
+
+@login_required
+@require_POST
+def remove_company_news_article(request, company_id):
+    """Remove a news article by URL.
+
+    User-added articles are hard-deleted from user_articles.
+    Auto-scraped articles are soft-deleted into hidden_urls so the RSS
+    fetcher doesn't re-surface them.
+    """
+    from tracker.models import Company, CompanyNews
+
+    company = get_object_or_404(Company, pk=company_id)
+    url = request.POST.get("url", "").strip()
+    if not url:
+        return JsonResponse({"error": "URL required."}, status=400)
+    company_news, _ = CompanyNews.objects.get_or_create(company=company)
+
+    user_articles = list(company_news.user_articles or [])
+    was_user_added = any(a.get("url") == url for a in user_articles)
+
+    if was_user_added:
+        # Hard delete — permanently remove from the user's own list
+        company_news.user_articles = [a for a in user_articles if a.get("url") != url]
+        company_news.save(update_fields=["user_articles"])
+        return JsonResponse({"status": "ok", "deleted": "hard"})
+    else:
+        # Soft delete — hide auto-scraped article so it won't reappear
+        hidden = list(company_news.hidden_urls or [])
+        if url not in hidden:
+            hidden.append(url)
+        company_news.hidden_urls = hidden
+        company_news.save(update_fields=["hidden_urls"])
+        return JsonResponse({"status": "ok", "deleted": "soft"})
+
+
 __all__ = [
     "delete_company",
     "label_companies",
@@ -2760,4 +2888,6 @@ __all__ = [
     "delete_company_document",
     "get_company_news",
     "refresh_company_news",
+    "add_company_news_url",
+    "remove_company_news_article",
 ]

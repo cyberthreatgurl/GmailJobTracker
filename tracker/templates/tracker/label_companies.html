@@ -464,6 +464,13 @@
               </span>
               <button id="news-refresh-btn" type="button" onclick="refreshCompanyNews({{ selected_company.id }})" style="background: #f59e0b; color: white; font-weight: 600; border-radius: 4px; padding: 0.25rem 0.75rem; border: none; cursor: pointer; font-size: 0.85rem; margin-right: 0.5rem;">🔄 Refresh</button>
             </summary>
+            <div id="news-add-bar" style="padding: 0.5rem 1.5rem; display: flex; gap: 0.5rem; align-items: center; border-top: 1px solid #fde68a;">
+              <input id="news-add-url-input" type="url" placeholder="Paste a URL to add it as a news article..."
+                style="flex:1;font-size:0.8rem;border:1px solid #fcd34d;border-radius:4px;padding:0.3rem 0.6rem;" />
+              <button type="button" onclick="addNewsUrl({{ selected_company.id }})"
+                style="background:#10b981;color:white;font-weight:600;border-radius:4px;padding:0.3rem 0.75rem;border:none;cursor:pointer;font-size:0.8rem;white-space:nowrap;">➕ Add URL</button>
+            </div>
+            <div id="news-add-feedback" style="font-size:0.75rem;padding:0 1.5rem 0.35rem;display:none;"></div>
             <div id="news-content" style="padding: 0 1.5rem 1.5rem 1.5rem;">
               <div style="text-align: center; padding: 2rem; color: #92400e;">
                 <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">⏳</div>
@@ -779,7 +786,7 @@
       }
       
       // Render news articles into the news section
-      function renderNewsContent(data) {
+      function renderNewsContent(data, companyId) {
         const container = document.getElementById('news-content');
         const titleSpan = document.getElementById('news-title');
         if (!container) return;
@@ -806,7 +813,10 @@
               + `<div style="font-size:0.75rem;color:#6b7280;margin-bottom:0.5rem;">📅 ${escapeHtml(dateDisplay)}</div>`
               + snippet
               + `<div style="display:flex;justify-content:space-between;align-items:center;font-size:0.75rem;color:#999;"><span>${escapeHtml(dateDisplay)}</span><span style="background:#f0f0f0;padding:0.15rem 0.4rem;border-radius:3px;color:#666;">${escapeHtml(source)}</span></div>`
-              + `<div style="margin-top:0.5rem;"><a href="${a.url}" target="_blank" style="font-size:0.8rem;color:#0066cc;text-decoration:none;">Read more →</a></div>`
+              + `<div style="margin-top:0.5rem;display:flex;justify-content:space-between;align-items:center;">`
+              + `<a href="${a.url}" target="_blank" style="font-size:0.8rem;color:#0066cc;text-decoration:none;">Read more →</a>`
+              + (companyId ? `<button onclick="removeNewsArticle(${companyId}, '${encodeURIComponent(a.url)}')" title="Hide this article" style="background:none;border:none;cursor:pointer;color:#d1d5db;font-size:0.9rem;padding:0;line-height:1;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#d1d5db'">✕</button>` : '')
+              + `</div>`
               + `</div>`;
           });
           html += '</div>';
@@ -836,6 +846,58 @@
         container.innerHTML = html;
       }
 
+      function getCsrfToken() {
+        const val = `; ${document.cookie}`;
+        const parts = val.split(`; csrftoken=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+        return '';
+      }
+
+      async function addNewsUrl(companyId) {
+        const input = document.getElementById('news-add-url-input');
+        const feedback = document.getElementById('news-add-feedback');
+        const url = input.value.trim();
+        if (!url) { feedback.style.display = 'block'; feedback.style.color = '#c33'; feedback.textContent = 'Please enter a URL.'; return; }
+        feedback.style.display = 'block';
+        feedback.style.color = '#666';
+        feedback.textContent = '⏳ Fetching article…';
+        try {
+          const resp = await fetch(`/company/${companyId}/news/add_url/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': getCsrfToken(), 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `url=${encodeURIComponent(url)}`
+          });
+          const data = await resp.json();
+          if (!resp.ok) { feedback.style.color = '#c33'; feedback.textContent = '❌ ' + (data.error || 'Failed to add article.'); return; }
+          feedback.style.color = '#10b981';
+          feedback.textContent = `✅ Added: ${data.title || url}`;
+          input.value = '';
+          loadCompanyNews(companyId);
+        } catch (e) {
+          feedback.style.color = '#c33';
+          feedback.textContent = '❌ Network error: ' + e.message;
+        }
+      }
+
+      async function removeNewsArticle(companyId, encodedUrl) {
+        if (!confirm('Hide this article from Recent News?')) return;
+        const url = decodeURIComponent(encodedUrl);
+        try {
+          const resp = await fetch(`/company/${companyId}/news/remove_article/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': getCsrfToken(), 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `url=${encodeURIComponent(url)}`
+          });
+          if (resp.ok) {
+            loadCompanyNews(companyId);
+          } else {
+            alert('Failed to hide article.');
+          }
+        } catch (e) {
+          alert('Network error: ' + e.message);
+        }
+      }
+
       function escapeHtml(str) {
         if (!str) return '';
         const div = document.createElement('div');
@@ -847,7 +909,7 @@
       function loadCompanyNews(companyId) {
         fetch(`/company/${companyId}/news/`)
           .then(r => r.json())
-          .then(data => renderNewsContent(data))
+          .then(data => renderNewsContent(data, companyId))
           .catch(err => {
             const container = document.getElementById('news-content');
             if (container) container.innerHTML = `<div style="background:#fee;border:1px solid #fcc;border-radius:6px;padding:1rem;color:#c33;">❌ Failed to load news: ${err.message}</div>`;
@@ -865,7 +927,7 @@
         fetch(`/company/${companyId}/news/?force=1`)
           .then(r => r.json())
           .then(data => {
-            renderNewsContent(data);
+            renderNewsContent(data, companyId);
             showNotification('✅ News refreshed', '#10b981');
             button.innerHTML = originalText;
             button.disabled = false;

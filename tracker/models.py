@@ -195,6 +195,14 @@ class CompanyNews(models.Model):
         default=24,
         help_text='How many hours before cache expires and refresh needed'
     )
+    hidden_urls = models.JSONField(
+        default=list,
+        help_text='URLs the user has explicitly hidden from Recent News'
+    )
+    user_articles = models.JSONField(
+        default=list,
+        help_text='Articles manually added by the user (not from RSS/API)'
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

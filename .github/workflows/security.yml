@@ -62,7 +62,7 @@ jobs:
           format: 'sarif'
           output: 'trivy-results.sarif'
         env:
-          TRIVY_DB_REPOSITORY: ghcr.io/aquasec/trivy-db:2
+          TRIVY_DB_REPOSITORY: ghcr.io/aquasecurity/trivy-db:2
           TRIVY_USERNAME: ${{ github.actor }}
           TRIVY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
 

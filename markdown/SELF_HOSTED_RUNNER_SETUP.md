@@ -112,7 +112,54 @@ https://github.com/cyberthreatgurl/GmailJobTracker/actions
 The **"Build Docker Image"** job runs on GitHub's cloud runners.
 The **"Deploy"** job runs on your self-hosted runner.
 
-## 🔧 Troubleshooting
+## � Running Python Scripts & Management Commands
+
+> **Important:** All Python dependencies (`requirements.txt`) are installed **inside the Docker container**, not on the host machine. Running scripts directly with `python3` on the host will fail with `ModuleNotFoundError`.
+
+### ✅ Correct: Run commands inside the container
+
+```bash
+# Run any management command
+docker exec -it gmailtracker python manage.py ingest_gmail --days-back 7
+
+# Re-authenticate Gmail OAuth (generates token.pickle)
+docker exec -it gmailtracker python gmail_auth.py
+
+# Open an interactive shell inside the container
+docker exec -it gmailtracker bash
+
+# Reclassify all messages
+docker exec -it gmailtracker python manage.py reclassify_messages
+
+# Run migrations
+docker exec -it gmailtracker python manage.py migrate
+```
+
+### ❌ Wrong: Running directly on the host
+
+```bash
+# This will fail — host has no project dependencies installed
+python3 gmail_auth.py   # ModuleNotFoundError: No module named 'google'
+```
+
+### 🔑 Re-authenticating Gmail OAuth
+
+The `token.pickle` file stores your active Gmail OAuth session. If it expires or is missing, re-authenticate **inside the container**:
+
+```bash
+docker exec -it gmailtracker python gmail_auth.py
+```
+
+Then copy the generated token out of the container to persist it across container restarts (since `model/` is volume-mounted, `token.pickle` already persists if it lives at `/app/model/token.pickle`):
+
+```bash
+# Verify token location inside container
+docker exec -it gmailtracker ls /app/model/token.pickle
+```
+
+---
+
+## �🔧 Troubleshooting
 
 ### Runner Not Starting
 

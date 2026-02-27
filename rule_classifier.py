@@ -198,6 +198,15 @@ class RuleClassifier:
             logger.debug("[DEBUG rule_label] Early cancelled match - position was cancelled")
             return "cancelled"
 
+        # Early noise guard: if subject clearly signals noise (e.g. newsletter, digest,
+        # sale, promotion), bail out BEFORE any job-related label checks. This prevents
+        # marketing emails from matching withdrew/rejection/etc. patterns found in the body.
+        noise_patterns = self._msg_label_patterns.get("noise", [])
+        subject_text_only = subject or ""
+        if any(rx.search(subject_text_only) for rx in noise_patterns):
+            logger.debug("[DEBUG rule_label] Early noise match on subject -> noise")
+            return "noise"
+
         # Check withdrew FIRST (before rejection)
         withdrew_patterns = self._msg_label_patterns.get("withdrew", [])
         if any(rx.search(s) for rx in withdrew_patterns):

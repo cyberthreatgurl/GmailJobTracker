@@ -178,7 +178,8 @@
     "us.greenhouse-jobs.com",
     "us.greenhouse-mail.io",
     "usastaffing.gov",
-    "workday.com"
+    "workday.com",
+    "gt.com"
   ],
   "domain_to_company": {
     "abacustech.com": "Abacus Technology",
@@ -526,7 +527,10 @@
     "zscaler.com": "Zscaler",
     "southsix.com": "South 6",
     "upwind.io": "Upwind",
-    "ara.com": "ARA"
+    "ara.com": "ARA",
+    "prescientedge.com": "Prescient Edge",
+    "grantthornton.com": "Grant Thornton",
+    "alphaomega.com": "Alpha Omega"
   },
   "headhunter_domains": [
     "agreeya.com",
@@ -884,7 +888,10 @@
     "GHD": "http://www.ghd.com/en/careers",
     "Gridiron IT": "https://gridironit.com/join-us/",
     "South 6": "https://southsix.com/join-our-team",
-    "Upwind": "https://www.upwind.io/partners/join-the-lineup"
+    "Upwind": "https://www.upwind.io/partners/join-the-lineup",
+    "Prescient Edge": "https://prescientedge.com/careers/",
+    "Grant Thornton": "https://www.grantthornton.com/careers",
+    "Alpha Omega": "https://alphaomega.com/careers/"
   },
   "known": [
     "Obsidian",
@@ -1210,7 +1217,10 @@
     "GHD",
     "South 6",
     "Upwind Security",
-    "ARA"
+    "ARA",
+    "Prescient Edge",
+    "Grant Thornton",
+    "Alpha Omega"
   ],
   "ats_heuristic_patterns": [
     "workday",

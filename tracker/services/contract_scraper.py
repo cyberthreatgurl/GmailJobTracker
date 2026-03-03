@@ -625,7 +625,8 @@ class ContractScraperService:
         # store the full text.
         # Look for semicolons before any award language
         award_split = re.split(
-            r"\b(?:was|were(?: each)?|is|are)\s+awarded\b",
+            r"\b(?:was|were(?:\s+each)?|is|are)\s+(?:being\s+|each\s+)?awarded\b"
+            r"|\bhas\s+been\s+(?:added\s+as\s+an\s+awardee|awarded)\b",
             clean_text,
             maxsplit=1,
         )
@@ -654,20 +655,29 @@ class ContractScraperService:
             r"Northern\s+Mariana\s+Islands)"
         )
 
-        # Extract company name and location from the opening of the paragraph
-        # Pattern 1: "Company Name, City, State, ..." or
-        #           "Company Name, City State, ..." (comma between city and state is optional)
-        #           "Company Name, City, State (CONTRACT), ..."
-        # City can contain: "St. Petersburg", "Fort Worth", "South Salt Lake", "McKinney", "Guánica"
-        # Updated pattern to handle cities with mixed case and accented characters
-        # But DON'T match if it starts with "The $" (contract details first)
+        # Extract company name and location from the opening of the paragraph.
+        # IMPORTANT: Always match against pre_award (text before "is being awarded")
+        # rather than the full paragraph — this prevents the regex from scanning
+        # past the contract details and picking up a state name from the work
+        # location section (e.g. treating all of Arizona as the city when the
+        # actual state has a typo like "Florda").
+        company_source_text = pre_award.rstrip(", ").strip()
+        if multi_awardee:
+            company_source_text = clean_text.split(";")[0].strip()
+        # Strip editorial prefixes so they don't pollute the company name
+        company_source_text = re.sub(r"^(?:UPDATE|CORRECTION):\s*", "", company_source_text).strip()
+
         company_match = None
-        if not parse_text.startswith(("The $", "A $", "An $")):
+        # Skip Pattern 1 for paragraphs that don't lead with a company name
+        _skip_pattern1 = company_source_text.startswith(
+            ("The $", "A $", "An $", "CORRECTION:", "An existing", "This contract")
+        )
+        if not _skip_pattern1:
             company_match = re.match(
                 r"^(?:UPDATE:\s+)?(.+?),\s+"
                 r"([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ.'\-\s]+?),?\s+"  # Optional comma after city
                 + _state_re,
-                parse_text,
+                company_source_text,
             )
 
         # Pattern 2 (fallback): "...announced...to Company, City, State" format
@@ -676,20 +686,54 @@ class ContractScraperService:
                 r",\s+to\s+([^,]+),\s+"
                 r"([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ.'\-\s]+?),?\s+"
                 + _state_re,
-                parse_text,
+                company_source_text,
             )
 
-        if not company_match:
+        # Pattern 3 (fallback): comma-split on pre_award when the state is
+        # misspelled or non-standard (e.g. "Florda" instead of "Florida").
+        # Format is always: Company Name, City, State[, ...]
+        # Take everything up to the last two comma-delimited tokens as the name.
+        if not company_match and len(award_split) > 1:
+            # Strip parentheticals (contract numbers, dollar values) before splitting
+            # so they don't create spurious comma-separated tokens.
+            source_no_parens = re.sub(r"\([^)]*\)", "", company_source_text)
+            source_no_parens = re.sub(r"\s+", " ", source_no_parens).strip()
+            parts = [p.strip() for p in source_no_parens.split(",") if p.strip()]
+            if len(parts) >= 3:
+                logger.debug(
+                    "Using comma-split fallback for company name (possible state typo): %.80s",
+                    company_source_text,
+                )
+                company_name_raw = ", ".join(parts[:-2])
+                city = parts[-2]
+                state = parts[-1]
+                company_location = f"{city}, {state}"
+                # Sanitise — strip trailing parens/contract refs
+                company_name_raw = re.sub(r"\s*\([^)]*\)\s*$", "", company_name_raw).strip()
+                company_name_raw = company_name_raw.rstrip(",").strip()
+
+
+        if not company_match and 'company_name_raw' not in locals():
             logger.debug("Could not parse company from paragraph: %.80s...", clean_text)
             return None
 
-        company_name_raw = company_match.group(1).strip()
-        city = company_match.group(2).strip()
-        state = company_match.group(3).strip()
-        company_location = f"{city}, {state}"
+        if company_match:
+            company_name_raw = company_match.group(1).strip()
+            city = company_match.group(2).strip()
+            state = company_match.group(3).strip()
+            company_location = f"{city}, {state}"
 
         # Remove trailing comma if present
         company_name_raw = company_name_raw.rstrip(",").strip()
+        # Safety guard: if name is suspiciously long (> 120 chars) the regex
+        # probably matched too broadly — discard this entry.
+        if len(company_name_raw) > 120:
+            logger.warning(
+                "Discarding contract paragraph — parsed company name too long (%d chars): %.120s",
+                len(company_name_raw),
+                company_name_raw,
+            )
+            return None
 
         # Extract dollar amount
         amount = None

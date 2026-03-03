@@ -1355,6 +1355,14 @@ def label_companies(request):
             selected_company.defense_contracts.order_by("-article_date")[:20]
         )
 
+    # Get interaction records for selected company
+    company_interactions = []
+    if selected_company:
+        from tracker.models import CompanyInteraction
+        company_interactions = list(
+            CompanyInteraction.objects.filter(company=selected_company).order_by("-interaction_date")
+        )
+
     # News is loaded asynchronously via AJAX after page render (see get_company_news endpoint)
     # We only pass whether a company is selected so the template can render the placeholder
     company_news = None
@@ -1380,6 +1388,7 @@ def label_companies(request):
             "company_contracts": company_contracts,
             "company_news": company_news,
             "news_error": news_error,
+            "company_interactions": company_interactions,
         }
     )
     return render(request, "tracker/label_companies.html", ctx)
@@ -2875,6 +2884,63 @@ def remove_company_news_article(request, company_id):
         return JsonResponse({"status": "ok", "deleted": "soft"})
 
 
+@login_required
+def add_company_interaction(request, company_id):
+    """Add a new interaction record for a company."""
+    from tracker.models import Company, CompanyInteraction
+    from django.utils.dateparse import parse_datetime
+
+    company = get_object_or_404(Company, pk=company_id)
+    if request.method != "POST":
+        return JsonResponse({"error": "POST required."}, status=405)
+
+    contact_person = request.POST.get("contact_person", "").strip()
+    if not contact_person:
+        return JsonResponse({"error": "Contact person is required."}, status=400)
+
+    is_phone = request.POST.get("is_phone") == "on"
+    is_video = request.POST.get("is_video") == "on"
+    is_text = request.POST.get("is_text") == "on"
+    is_chat = request.POST.get("is_chat") == "on"
+    if not any([is_phone, is_video, is_text, is_chat]):
+        return JsonResponse({"error": "At least one interaction type must be selected."}, status=400)
+
+    raw_date = request.POST.get("interaction_date", "").strip()
+    interaction_date = parse_datetime(raw_date) if raw_date else now()
+    if not interaction_date:
+        return JsonResponse({"error": "Invalid date/time format."}, status=400)
+
+    CompanyInteraction.objects.create(
+        company=company,
+        interaction_date=interaction_date,
+        is_phone=is_phone,
+        is_video=is_video,
+        is_text=is_text,
+        is_chat=is_chat,
+        contact_person=contact_person,
+        contact_phone=request.POST.get("contact_phone", "").strip() or None,
+        contact_email=request.POST.get("contact_email", "").strip() or None,
+        notes=request.POST.get("notes", "").strip() or None,
+    )
+
+    messages.success(request, f"✅ Interaction with {contact_person} saved.")
+    return redirect(f"/label_companies/?company={company_id}")
+
+
+@login_required
+def delete_company_interaction(request, company_id, interaction_id):
+    """Delete a company interaction record."""
+    from tracker.models import CompanyInteraction
+
+    if request.method != "POST":
+        return JsonResponse({"error": "POST required."}, status=405)
+
+    interaction = get_object_or_404(CompanyInteraction, pk=interaction_id, company_id=company_id)
+    interaction.delete()
+    messages.success(request, "🗑️ Interaction deleted.")
+    return redirect(f"/label_companies/?company={company_id}")
+
+
 __all__ = [
     "delete_company",
     "label_companies",
@@ -2890,4 +2956,6 @@ __all__ = [
     "refresh_company_news",
     "add_company_news_url",
     "remove_company_news_article",
+    "add_company_interaction",
+    "delete_company_interaction",
 ]

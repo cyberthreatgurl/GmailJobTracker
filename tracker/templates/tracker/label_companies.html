@@ -318,6 +318,21 @@
                 {% endfor %}
               </ul>
             </div>
+            {% if company_interactions %}
+            <div style="margin-bottom: 0.75rem;">
+              <strong>🤝 Interactions:</strong>
+              <ul style="margin:0.4rem 0 0 0; padding-left:0; font-size:0.9rem; list-style:none;">
+                {% for interaction in company_interactions %}
+                <li style="margin-bottom:0.25rem; color:#374151;">
+                  <span style="color:#6b7280;">{{ interaction.interaction_date|date:"M d, Y" }}</span>
+                  &mdash; <span style="font-size:0.82rem; background:#d1fae5; border-radius:3px; padding:0.1rem 0.35rem;">{{ interaction.type_icons }}</span>
+                  &mdash; {{ interaction.contact_person }}
+                </li>
+                {% endfor %}
+              </ul>
+            </div>
+            {% endif %}
+
             <div style="max-height: 240px; overflow-y: auto;">
               <strong>All Email Dates, Labels &amp; Subjects:</strong>
               <ul style="margin:0.5rem 0 0 0; padding-left:1.2rem; font-size:0.97rem; list-style:none;">
@@ -480,6 +495,120 @@
           </details>
           {% endif %}
 
+          <!-- Interactions Section -->
+          {% if selected_company %}
+          <details style="background: #d1fae5; border-radius: 8px; padding: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+            <summary style="cursor: pointer; padding: 1rem 1.5rem; font-weight: 600; color: #065f46; font-size: 1rem; list-style: none; display: flex; align-items: center; gap: 0.5rem;">
+              <span style="transition: transform 0.2s;">▶</span> 🤝 Interactions ({{ company_interactions|length }} record{{ company_interactions|length|pluralize }})
+            </summary>
+            <div style="padding: 0 1.5rem 1.5rem 1.5rem;">
+
+              <!-- Add New Interaction Form -->
+              <form method="post" action="{% url 'add_company_interaction' selected_company.id %}"
+                    style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 1.5rem;"
+                    onsubmit="return validateInteractionForm(this);">
+                {% csrf_token %}
+
+                <div style="margin-bottom: 1rem;">
+                  <label for="id_interaction_date" style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.25rem;">📅 Date &amp; Time:</label>
+                  <input type="datetime-local" name="interaction_date" id="id_interaction_date"
+                         value="{% now 'Y-m-d' %}T{% now 'H:i' %}"
+                         style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem;" />
+                </div>
+
+                <div style="margin-bottom: 1rem;">
+                  <label style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.5rem;">📞 Interaction Type <span style="color:#ef4444;">*</span> <small style="font-weight:400; color:#6b7280;">(select at least one)</small></label>
+                  <div style="display: flex; gap: 1.5rem; flex-wrap: wrap; padding: 0.75rem; background: #f0fdf4; border-radius: 6px;">
+                    <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer;">
+                      <input type="checkbox" name="is_phone" class="interaction-type-cb" style="width:1rem;height:1rem;"> ☎️ Phone Call
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer;">
+                      <input type="checkbox" name="is_video" class="interaction-type-cb" style="width:1rem;height:1rem;"> 🎥 Video Call
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer;">
+                      <input type="checkbox" name="is_text" class="interaction-type-cb" style="width:1rem;height:1rem;"> 💬 Text
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer;">
+                      <input type="checkbox" name="is_chat" class="interaction-type-cb" style="width:1rem;height:1rem;"> 🖥️ Chat
+                    </label>
+                  </div>
+                  <small id="interaction-type-error" style="color:#ef4444;display:none;">Please select at least one interaction type.</small>
+                </div>
+
+                <div style="margin-bottom: 1rem;">
+                  <label for="id_contact_person" style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.25rem;">👤 Contact Person <span style="color:#ef4444;">*</span></label>
+                  <input type="text" name="contact_person" id="id_contact_person" required
+                         placeholder="e.g., Jane Smith"
+                         style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem; box-sizing: border-box;" />
+                </div>
+
+                <div style="display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap;">
+                  <div style="flex: 1; min-width: 200px;">
+                    <label for="id_contact_phone" style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.25rem;">📱 Contact Phone <small style="font-weight:400; color:#6b7280;">(optional)</small></label>
+                    <input type="text" name="contact_phone" id="id_contact_phone"
+                           placeholder="e.g., 555-867-5309"
+                           style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem; box-sizing: border-box;" />
+                  </div>
+                  <div style="flex: 1; min-width: 200px;">
+                    <label for="id_contact_email" style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.25rem;">✉️ Contact Email <small style="font-weight:400; color:#6b7280;">(optional)</small></label>
+                    <input type="email" name="contact_email" id="id_contact_email"
+                           placeholder="e.g., jane@company.com"
+                           style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem; box-sizing: border-box;" />
+                  </div>
+                </div>
+
+                <div style="margin-bottom: 1.25rem;">
+                  <label for="id_interaction_notes" style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.25rem;">📝 Notes <small style="font-weight:400; color:#6b7280;">(optional)</small></label>
+                  <textarea name="notes" id="id_interaction_notes" rows="4"
+                            placeholder="What was discussed? Any action items?"
+                            style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem; resize: vertical; font-family: inherit; box-sizing: border-box; min-height: 80px; max-height: 400px; overflow-y: auto;"></textarea>
+                </div>
+
+                <div style="display: flex; gap: 0.75rem;">
+                  <button type="submit" style="background: #059669; color: white; font-weight: 600; border-radius: 6px; padding: 0.5rem 1.25rem; border: none; cursor: pointer;">💾 Save Interaction</button>
+                  <button type="reset" style="background: #f3f4f6; color: #374151; font-weight: 600; border-radius: 6px; padding: 0.5rem 1.25rem; border: 1px solid #d1d5db; cursor: pointer;">✖ Cancel</button>
+                </div>
+              </form>
+
+              <!-- Existing Interactions List -->
+              {% if company_interactions %}
+              <div>
+                <h4 style="color: #065f46; margin: 0 0 0.75rem 0; font-size: 0.95rem;">Past Interactions:</h4>
+                {% for interaction in company_interactions %}
+                <div style="background: white; border-radius: 6px; padding: 0.85rem 1rem; margin-bottom: 0.6rem; border: 1px solid #a7f3d0; display: flex; gap: 1rem; align-items: flex-start;">
+                  <div style="flex: 1;">
+                    <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-bottom: 0.3rem;">
+                      <span style="color: #6b7280; font-size: 0.85rem; white-space: nowrap;">{{ interaction.interaction_date|date:"M d, Y H:i" }}</span>
+                      <span style="background: #d1fae5; color: #065f46; border-radius: 3px; padding: 0.1rem 0.4rem; font-size: 0.8rem; font-weight: 600;">{{ interaction.type_icons }}</span>
+                      <span style="font-weight: 600; color: #374151;">{{ interaction.contact_person }}</span>
+                    </div>
+                    {% if interaction.contact_phone or interaction.contact_email %}
+                    <div style="font-size: 0.82rem; color: #6b7280; margin-bottom: 0.25rem;">
+                      {% if interaction.contact_phone %}📱 {{ interaction.contact_phone }}{% endif %}
+                      {% if interaction.contact_phone and interaction.contact_email %} &nbsp;|&nbsp; {% endif %}
+                      {% if interaction.contact_email %}✉️ {{ interaction.contact_email }}{% endif %}
+                    </div>
+                    {% endif %}
+                    {% if interaction.notes %}
+                    <div style="font-size: 0.88rem; color: #374151; margin-top: 0.25rem; white-space: pre-wrap;">{{ interaction.notes }}</div>
+                    {% endif %}
+                  </div>
+                  <form method="post" action="{% url 'delete_company_interaction' selected_company.id interaction.id %}"
+                        style="margin: 0; flex-shrink: 0;"
+                        onsubmit="return confirm('Delete this interaction record?');">
+                    {% csrf_token %}
+                    <button type="submit" style="background: #fee2e2; color: #991b1b; border: none; border-radius: 4px; padding: 0.35rem 0.6rem; cursor: pointer; font-size: 0.85rem;" title="Delete">🗑️</button>
+                  </form>
+                </div>
+                {% endfor %}
+              </div>
+              {% else %}
+              <p style="color: #6b7280; font-size: 0.95rem; margin: 0;">No interactions recorded yet.</p>
+              {% endif %}
+            </div>
+          </details>
+          {% endif %}
+
           <!-- Application Details Section -->
           {% if application_threads %}
           <details style="background: #dbeafe; border-radius: 8px; padding: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
@@ -633,6 +762,20 @@
           document.getElementById('id_application_text').value = selected.dataset.text || '';
         });
       })();
+    </script>
+
+    <script>
+      function validateInteractionForm(form) {
+        const typeBoxes = form.querySelectorAll('.interaction-type-cb');
+        const anyChecked = Array.from(typeBoxes).some(cb => cb.checked);
+        const errEl = document.getElementById('interaction-type-error');
+        if (!anyChecked) {
+          if (errEl) errEl.style.display = 'inline';
+          return false;
+        }
+        if (errEl) errEl.style.display = 'none';
+        return true;
+      }
     </script>
 
     <script>

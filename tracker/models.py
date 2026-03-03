@@ -262,6 +262,75 @@ class CompanyNews(models.Model):
         self.updated_at = timezone.now()
 
 
+class CompanyInteraction(models.Model):
+    """Records a direct interaction with a contact at a company during the job search process."""
+
+    PHONE = "phone"
+    VIDEO = "video"
+    TEXT = "text"
+    CHAT = "chat"
+
+    company = models.ForeignKey(
+        Company,
+        on_delete=models.CASCADE,
+        related_name="interactions",
+    )
+    interaction_date = models.DateTimeField(
+        help_text="Date and time of the interaction"
+    )
+    is_phone = models.BooleanField(default=False, help_text="Phone call")
+    is_video = models.BooleanField(default=False, help_text="Video call")
+    is_text = models.BooleanField(default=False, help_text="Text message")
+    is_chat = models.BooleanField(default=False, help_text="Chat / IM")
+    contact_person = models.CharField(
+        max_length=255,
+        help_text="Name of the person you interacted with (required)",
+    )
+    contact_phone = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True,
+        help_text="Phone number of the contact (optional)",
+    )
+    contact_email = models.EmailField(
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text="Email address of the contact (optional)",
+    )
+    notes = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Notes about the interaction",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-interaction_date"]
+        indexes = [
+            models.Index(fields=["company"]),
+            models.Index(fields=["interaction_date"]),
+        ]
+
+    def __str__(self):
+        return f"{self.company.name} – {self.contact_person} ({self.interaction_date:%Y-%m-%d})"
+
+    @property
+    def type_icons(self):
+        """Return emoji string for the interaction types checked."""
+        icons = []
+        if self.is_phone:
+            icons.append("☎️ Phone")
+        if self.is_video:
+            icons.append("🎥 Video")
+        if self.is_text:
+            icons.append("💬 Text")
+        if self.is_chat:
+            icons.append("🖥️ Chat")
+        return ", ".join(icons) if icons else "—"
+
+
 class ThreadTracking(models.Model):
     """
     Tracks a Gmail thread related to a job application.

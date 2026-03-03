@@ -28,6 +28,8 @@ __all__ = [
     "defense_contracts",
     "fetch_contracts_ajax",
     "create_company_popup",
+    "link_contract_company",
+    "search_companies_for_linking",
 ]
 
 
@@ -266,6 +268,69 @@ def create_company_popup(request):
         "form": form,
         "created_company": created_company,
     })
+
+
+@login_required
+def link_contract_company(request, contract_id):
+    """
+    AJAX endpoint to manually link or unlink a DefenseContract to an existing Company record.
+
+    POST params:
+    - company_id: PK of the Company to link, or empty/"0" to unlink
+
+    Returns JSON with the linked company details, or {company_id: null} on unlink.
+    """
+    if request.method != "POST":
+        return JsonResponse({"error": "POST required"}, status=405)
+
+    try:
+        contract = DefenseContract.objects.get(pk=contract_id)
+    except DefenseContract.DoesNotExist:
+        return JsonResponse({"error": "Contract not found"}, status=404)
+
+    company_id = request.POST.get("company_id", "").strip()
+    if not company_id or company_id == "0":
+        contract.company = None
+        contract.save(update_fields=["company", "updated_at"])
+        logger.info("Unlinked contract %s from company", contract_id)
+        return JsonResponse({"success": True, "company_id": None, "company_name": None})
+
+    try:
+        company = Company.objects.get(pk=int(company_id))
+    except (Company.DoesNotExist, ValueError):
+        return JsonResponse({"error": "Company not found"}, status=404)
+
+    contract.company = company
+    contract.save(update_fields=["company", "updated_at"])
+    logger.info("Linked contract %s -> company '%s' (%s)", contract_id, company.name, company.id)
+    return JsonResponse({
+        "success": True,
+        "company_id": company.id,
+        "company_name": company.name,
+        "company_url": f"/label_companies/?company={company.id}",
+    })
+
+
+@login_required
+def search_companies_for_linking(request):
+    """
+    AJAX company search used by the contract linking modal.
+
+    GET params:
+    - q: Search string (min 1 char)
+
+    Returns JSON list of up to 20 matching Company records.
+    """
+    q = request.GET.get("q", "").strip()
+    if not q:
+        return JsonResponse({"companies": []})
+
+    companies = list(
+        Company.objects.filter(name__icontains=q)
+        .order_by("name")[:20]
+        .values("id", "name", "status", "location")
+    )
+    return JsonResponse({"companies": companies})
 
 
 def _sync_company_to_json(company, domain):

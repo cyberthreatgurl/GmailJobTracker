@@ -62,5 +62,7 @@ urlpatterns = [
     path("company/<int:company_id>/interactions/<int:interaction_id>/delete/", views.delete_company_interaction, name="delete_company_interaction"),
     path("defense_contracts/", views.defense_contracts, name="defense_contracts"),
     path("defense_contracts/create_company/", views.create_company_popup, name="create_company_popup"),
+    path("defense_contracts/<int:contract_id>/link_company/", views.link_contract_company, name="link_contract_company"),
     path("api/fetch_contracts/", views.fetch_contracts_ajax, name="fetch_contracts_ajax"),
+    path("api/companies/search/", views.search_companies_for_linking, name="search_companies_for_linking"),
 ]

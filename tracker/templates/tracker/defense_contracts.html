@@ -179,13 +179,14 @@
   {% if contracts %}
   <div class="space-y-3">
     {% for contract in contracts %}
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 hover:border-blue-300 transition-colors">
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 hover:border-blue-300 transition-colors" data-contract-id="{{ contract.id }}">
       <div class="p-4">
         <!-- Header Row -->
         <div class="flex flex-wrap items-start justify-between gap-2 mb-2">
           <div class="flex-1">
             <div class="flex items-center gap-2 flex-wrap">
               <h3 class="text-base font-semibold text-gray-900">
+                <span id="company-name-display-{{ contract.id }}">
                 {% if contract.company %}
                   <a href="{% url 'label_companies' %}?company={{ contract.company.id }}"
                      class="text-blue-600 hover:text-blue-800 hover:underline">
@@ -194,6 +195,7 @@
                 {% else %}
                   {{ contract.company_name_raw }}
                 {% endif %}
+                </span>
               </h3>
               {% if contract.data_source == 'war_gov' %}
               <span class="inline-flex items-center bg-green-100 text-green-800 text-[0.65rem] font-medium px-1.5 py-0.5 rounded" title="Department of Defense contract from war.gov">DoD</span>
@@ -211,14 +213,35 @@
               📍 {{ contract.company_location }}
               {% if contract.contract_number %} · 📝 {{ contract.contract_number }}{% endif %}
             </div>
-            {% if not contract.company %}
-            <button type="button"
-                    onclick="openCreateCompany('{{ contract.company_name_raw|escapejs }}', '{{ contract.company_location|escapejs }}', '{{ contract.get_branch_display|escapejs }} contract – {{ contract.article_date|date:'M d, Y' }}{% if contract.amount_display %} – {{ contract.amount_display|escapejs }}{% endif %}')"
-                    class="inline-flex items-center gap-1 mt-1.5 text-[0.7rem] text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded px-1.5 py-0.5 transition-colors border border-transparent hover:border-blue-200"
-                    title="Create a new company record from this contract">
-              <span>＋</span> Create Company
-            </button>
-            {% endif %}
+            <div id="company-actions-{{ contract.id }}" class="flex items-center gap-1.5 flex-wrap mt-1.5">
+              {% if not contract.company %}
+              <button type="button"
+                      onclick="openCreateCompany('{{ contract.company_name_raw|escapejs }}', '{{ contract.company_location|escapejs }}', '{{ contract.get_branch_display|escapejs }} contract – {{ contract.article_date|date:'M d, Y' }}{% if contract.amount_display %} – {{ contract.amount_display|escapejs }}{% endif %}')"
+                      class="inline-flex items-center gap-1 text-[0.7rem] text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded px-1.5 py-0.5 transition-colors border border-transparent hover:border-blue-200"
+                      title="Create a new company record from this contract">
+                <span>＋</span> Create Company
+              </button>
+              <button type="button"
+                      onclick="openLinkModal({{ contract.id }}, '{{ contract.company_name_raw|escapejs }}')"
+                      class="inline-flex items-center gap-1 text-[0.7rem] text-emerald-600 hover:text-emerald-800 hover:bg-emerald-50 rounded px-1.5 py-0.5 transition-colors border border-transparent hover:border-emerald-200"
+                      title="Link this contract to an existing company record">
+                🔗 Link to Existing
+              </button>
+              {% else %}
+              <button type="button"
+                      onclick="openLinkModal({{ contract.id }}, '{{ contract.company_name_raw|escapejs }}')"
+                      class="inline-flex items-center gap-1 text-[0.7rem] text-amber-600 hover:text-amber-800 hover:bg-amber-50 rounded px-1.5 py-0.5 transition-colors border border-transparent hover:border-amber-200"
+                      title="Change the linked company for this contract">
+                ✏️ Change Link
+              </button>
+              <button type="button"
+                      onclick="unlinkContract({{ contract.id }}, this)"
+                      class="inline-flex items-center gap-1 text-[0.7rem] text-red-500 hover:text-red-700 hover:bg-red-50 rounded px-1.5 py-0.5 transition-colors border border-transparent hover:border-red-200"
+                      title="Remove the company link for this contract">
+                ✖ Unlink
+              </button>
+              {% endif %}
+            </div>
           </div>
           <div class="text-right">
             <div class="text-lg font-bold text-green-700">{{ contract.amount_display }}</div>
@@ -345,9 +368,6 @@
   
   /**
    * Open a popup window to create a new company from a defense contract.
-   * @param {string} name - Company name from the contract
-   * @param {string} location - Company location from the contract
-   * @param {string} notes - Pre-filled notes (branch, date, amount)
    */
   function openCreateCompany(name, location, notes) {
     const params = new URLSearchParams();
@@ -444,5 +464,169 @@
         text.textContent = 'Fetch Latest';
       });
   }
+  // ── Company Linking Modal ──────────────────────────────────────────────────
+
+  const LINK_URL = '{% url "link_contract_company" 0 %}'.replace('/0/', '/__ID__/');
+  const SEARCH_URL = '{% url "search_companies_for_linking" %}';
+  const LABEL_URL = '/label_companies/?company=';
+
+  let linkingContractId = null;
+  let searchTimer = null;
+
+  function openLinkModal(contractId, rawName) {
+    linkingContractId = contractId;
+    document.getElementById('linkModalTitle').textContent = '🔗 Link "' + rawName + '" to a Company';
+    document.getElementById('linkSearchInput').value = rawName;
+    document.getElementById('linkSearchResults').innerHTML = '';
+    document.getElementById('linkModal').classList.remove('hidden');
+    document.getElementById('linkSearchInput').focus();
+    // Auto-search with the raw name pre-filled
+    runCompanySearch(rawName);
+  }
+
+  function closeLinkModal() {
+    document.getElementById('linkModal').classList.add('hidden');
+    linkingContractId = null;
+  }
+
+  function runCompanySearch(q) {
+    if (!q || q.trim().length === 0) {
+      document.getElementById('linkSearchResults').innerHTML = '';
+      return;
+    }
+    const url = SEARCH_URL + '?q=' + encodeURIComponent(q.trim());
+    fetch(url)
+      .then(r => r.json())
+      .then(data => {
+        const container = document.getElementById('linkSearchResults');
+        if (!data.companies || data.companies.length === 0) {
+          container.innerHTML = '<p class="text-sm text-gray-500 italic px-2 py-3">No matching companies found.</p>';
+          return;
+        }
+        container.innerHTML = data.companies.map(c => {
+          const status = c.status ? ` <span class="text-xs text-gray-400">(${c.status})</span>` : '';
+          const loc = c.location ? ` <span class="text-xs text-gray-400">${c.location}</span>` : '';
+          return `<button type="button"
+            onclick="selectCompany(${c.id}, '${c.name.replace(/'/g, "\\'")}')"
+            class="w-full text-left px-3 py-2 hover:bg-emerald-50 border-b border-gray-100 last:border-0 flex items-center justify-between gap-2 text-sm">
+            <span class="font-medium text-gray-800">${c.name}${status}</span>
+            ${loc ? `<span class="text-xs text-gray-400 whitespace-nowrap">${c.location}</span>` : ''}
+          </button>`;
+        }).join('');
+      })
+      .catch(() => {
+        document.getElementById('linkSearchResults').innerHTML = '<p class="text-sm text-red-500 px-2 py-3">Search failed.</p>';
+      });
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const input = document.getElementById('linkSearchInput');
+    if (input) {
+      input.addEventListener('input', function () {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(() => runCompanySearch(this.value), 250);
+      });
+    }
+    // Close modal on backdrop click
+    document.getElementById('linkModal').addEventListener('click', function (e) {
+      if (e.target === this) closeLinkModal();
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') closeLinkModal();
+    });
+  });
+
+  function selectCompany(companyId, companyName) {
+    if (!linkingContractId) return;
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '{{ csrf_token }}';
+    const url = LINK_URL.replace('__ID__', linkingContractId);
+    const formData = new FormData();
+    formData.append('csrfmiddlewaretoken', csrfToken);
+    formData.append('company_id', companyId);
+    fetch(url, { method: 'POST', body: formData, headers: { 'X-CSRFToken': csrfToken } })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          // Update company name display
+          const nameSpan = document.getElementById('company-name-display-' + linkingContractId);
+          if (nameSpan) {
+            nameSpan.innerHTML = `<a href="${LABEL_URL}${data.company_id}" class="text-blue-600 hover:text-blue-800 hover:underline">${nameSpan.textContent.trim()}</a>`;
+          }
+          // Update action buttons
+          const actionsDiv = document.getElementById('company-actions-' + linkingContractId);
+          if (actionsDiv) {
+            actionsDiv.innerHTML = `
+              <span class="text-xs text-emerald-600 font-medium">✅ Linked to ${data.company_name}</span>
+              <button type="button" onclick="openLinkModal(${linkingContractId}, document.getElementById('company-name-display-${linkingContractId}').textContent.trim())"
+                class="inline-flex items-center gap-1 text-[0.7rem] text-amber-600 hover:text-amber-800 hover:bg-amber-50 rounded px-1.5 py-0.5 transition-colors border border-transparent hover:border-amber-200">✏️ Change Link</button>
+              <button type="button" onclick="unlinkContract(${linkingContractId}, this)"
+                class="inline-flex items-center gap-1 text-[0.7rem] text-red-500 hover:text-red-700 hover:bg-red-50 rounded px-1.5 py-0.5 transition-colors border border-transparent hover:border-red-200">✖ Unlink</button>
+            `;
+          }
+          closeLinkModal();
+        } else {
+          alert('Error: ' + (data.error || 'Could not link company.'));
+        }
+      })
+      .catch(() => alert('Network error while linking company.'));
+  }
+
+  function unlinkContract(contractId, btn) {
+    if (!confirm('Remove the company link for this contract?')) return;
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '{{ csrf_token }}';
+    const url = LINK_URL.replace('__ID__', contractId);
+    const formData = new FormData();
+    formData.append('csrfmiddlewaretoken', csrfToken);
+    formData.append('company_id', '0');
+    fetch(url, { method: 'POST', body: formData, headers: { 'X-CSRFToken': csrfToken } })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          // Remove link from name display
+          const nameSpan = document.getElementById('company-name-display-' + contractId);
+          if (nameSpan) {
+            const a = nameSpan.querySelector('a');
+            if (a) nameSpan.innerHTML = a.textContent;
+          }
+          // Restore "Create Company" + "Link" buttons
+          const rawNameEl = nameSpan;
+          const rawName = rawNameEl ? rawNameEl.textContent.trim() : '';
+          const actionsDiv = document.getElementById('company-actions-' + contractId);
+          if (actionsDiv) {
+            actionsDiv.innerHTML = `
+              <button type="button" onclick="openLinkModal(${contractId}, '${rawName.replace(/'/g, "\\'")}')"
+                class="inline-flex items-center gap-1 text-[0.7rem] text-emerald-600 hover:text-emerald-800 hover:bg-emerald-50 rounded px-1.5 py-0.5 transition-colors border border-transparent hover:border-emerald-200">
+                🔗 Link to Existing</button>
+            `;
+          }
+        } else {
+          alert('Error: ' + (data.error || 'Could not unlink.'));
+        }
+      })
+      .catch(() => alert('Network error while unlinking.'));
+  }
+
 </script>
+
+<!-- Company Link Modal -->
+<div id="linkModal" class="hidden fixed inset-0 z-50 flex items-center justify-center" style="background: rgba(0,0,0,0.4);">
+  <div class="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4" onclick="event.stopPropagation()">
+    <div class="flex items-center justify-between px-5 py-4 border-b border-gray-200">
+      <h3 id="linkModalTitle" class="text-base font-semibold text-gray-900">🔗 Link to Company</h3>
+      <button onclick="closeLinkModal()" class="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
+    </div>
+    <div class="p-4">
+      <input type="text" id="linkSearchInput" placeholder="Search by company name..."
+             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 mb-3" />
+      <div id="linkSearchResults" class="max-h-72 overflow-y-auto border border-gray-200 rounded-lg divide-y divide-gray-100 bg-white">
+        <p class="text-sm text-gray-400 italic px-3 py-3">Type to search...</p>
+      </div>
+      <p class="text-xs text-gray-400 mt-2">Click a company to link it. Only existing Company records are shown.</p>
+    </div>
+    <div class="px-5 py-3 border-t border-gray-100 flex justify-end">
+      <button onclick="closeLinkModal()" class="text-sm text-gray-500 hover:text-gray-700 px-4 py-1.5 rounded border border-gray-300 hover:bg-gray-50">Cancel</button>
+    </div>
+  </div>
+</div>
+
 {% endblock %}

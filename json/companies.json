@@ -123,7 +123,8 @@
     "DCS Corp": "DCS",
     "ITS": "ITS Aerospace",
     "Concept Plus LLC": "Concept Plus",
-    "Strategic Alliance Business Group": "Strategic Alliance Business Group LLC"
+    "Strategic Alliance Business Group": "Strategic Alliance Business Group LLC",
+    "General Dynamic Information Technology": "General Dynamics Information Technology"
   },
   "ats_domains": [
     "Defense",
@@ -547,7 +548,11 @@
     "navyfederal.org": "Navy Federal Credit Union",
     "dcscorp.com": "DCS",
     "conceptplus.com": "Concept Plus",
-    "sabg.com": "Strategic Alliance Business Group LLC"
+    "sabg.com": "Strategic Alliance Business Group LLC",
+    "shift5.io": "Shift5",
+    "cyverity.com": "Cyverity",
+    "crescendo.ai": "Crescendo",
+    "yakshna.com": "Yakshna Solutions"
   },
   "headhunter_domains": [
     "agreeya.com",
@@ -914,7 +919,9 @@
     "DCS": "https://careers.dcscorp.com/en-US/",
     "ASRC Federal": "https://www.asrcfederal.com/careers/",
     "Concept Plus": "https://conceptplus.com/careers/",
-    "Strategic Alliance Business Group LLC": "https://sabg.com/careers/"
+    "Strategic Alliance Business Group LLC": "https://sabg.com/careers/",
+    "Shift5": "http://shift5.io/careers",
+    "Yakshna Solutions": "http://www.yakshna.com/careers"
   },
   "known": [
     "Obsidian",
@@ -1247,7 +1254,11 @@
     "Navy Federal Credit Union",
     "DCS",
     "Concept Plus",
-    "SABG"
+    "SABG",
+    "Shift5",
+    "Cyverity",
+    "Crescendo",
+    "Yakshna Solutions"
   ],
   "ats_heuristic_patterns": [
     "workday",

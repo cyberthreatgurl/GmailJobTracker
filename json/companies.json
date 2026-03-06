@@ -124,7 +124,12 @@
     "ITS": "ITS Aerospace",
     "Concept Plus LLC": "Concept Plus",
     "Strategic Alliance Business Group": "Strategic Alliance Business Group LLC",
-    "General Dynamic Information Technology": "General Dynamics Information Technology"
+    "General Dynamic Information Technology": "General Dynamics Information Technology",
+    "Raytheon": "RTX",
+    "IDT": "Innovative Defense Technologies",
+    "Sonalysts": "Sonalysts, inc.",
+    "Red River": "Red River",
+    "AIT": "Actionable Intelligence Technologies"
   },
   "ats_domains": [
     "Defense",
@@ -454,7 +459,7 @@
     "rite-solutions.com": "Rite-Solutions",
     "rmcweb.com": "Resource Management Concepts",
     "roberthalf.com": "Robert Half",
-    "rtx.com": "RTX Corp.",
+    "rtx.com": "RTX",
     "sabre.com": "Sabre",
     "sabresystems.com": "Sabre Systems, LLC",
     "saic.com": "SAIC",
@@ -552,7 +557,13 @@
     "shift5.io": "Shift5",
     "cyverity.com": "Cyverity",
     "crescendo.ai": "Crescendo",
-    "yakshna.com": "Yakshna Solutions"
+    "yakshna.com": "Yakshna Solutions",
+    "idtus.com": "Innovative Defense Technologies",
+    "sonalysts.com": "Sonalysts, inc.",
+    "anomali.com": "Anomali",
+    "exabeam.com": "Exabeam",
+    "redriver.com": "Red River",
+    "aitcfis.com": "Actionable Intelligence Technologies"
   },
   "headhunter_domains": [
     "agreeya.com",
@@ -921,7 +932,13 @@
     "Concept Plus": "https://conceptplus.com/careers/",
     "Strategic Alliance Business Group LLC": "https://sabg.com/careers/",
     "Shift5": "http://shift5.io/careers",
-    "Yakshna Solutions": "http://www.yakshna.com/careers"
+    "Yakshna Solutions": "http://www.yakshna.com/careers",
+    "RTX": "https://careers.rtx.com",
+    "Innovative Defense Technologies": "https://idtus.com/careers/",
+    "Sonalysts, inc.": "http://www.sonalysts.com/careers/",
+    "Anomali": "http://www.anomali.com/company/careers",
+    "Exabeam": "http://www.exabeam.com/company/careers/",
+    "Red River": "https://redriver.com/company/careers"
   },
   "known": [
     "Obsidian",
@@ -1258,7 +1275,14 @@
     "Shift5",
     "Cyverity",
     "Crescendo",
-    "Yakshna Solutions"
+    "Yakshna Solutions",
+    "Raytheon",
+    "Innovative Defense Technologies",
+    "Sonalysts Inc.",
+    "Anomali",
+    "Exabeam",
+    "Red River Technology",
+    "Actionable Intelligence Technologies"
   ],
   "ats_heuristic_patterns": [
     "workday",

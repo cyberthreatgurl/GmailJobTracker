@@ -20,6 +20,11 @@ from django.utils.timezone import now
 from tracker.forms import CompanyEditForm
 from tracker.models import Company, DefenseContract, ScrapedArticle
 from tracker.services.contract_scraper import ContractScraperService
+from django.core.management import call_command
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
+from django.conf import settings
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +35,8 @@ __all__ = [
     "create_company_popup",
     "link_contract_company",
     "search_companies_for_linking",
+    "upload_contract_json",
+    "upload_contracts_csv",
 ]
 
 
@@ -364,3 +371,87 @@ def _sync_company_to_json(company, domain):
                 json.dump(data, f, indent=2, ensure_ascii=False)
     except Exception as exc:
         logger.warning("Failed to sync company to companies.json: %s", exc)
+
+
+@login_required
+def upload_contract_json(request):
+    """
+    Handle manual upload of a USASpending contract JSON file.
+
+    This function parses a JSON file containing a single contract record
+    (as returned by the USASpending API) and creates or updates a
+    DefenseContract record.
+    """
+    if request.method == "POST" and request.FILES.get("contract_json"):
+        try:
+            json_file = request.FILES.get("contract_json")
+            data = json.load(json_file)
+            
+            # Simple validation: ensure it's a dict and has 'piid'
+            if not isinstance(data, dict):
+                raise ValueError("JSON content must be a dictionary")
+            
+            piid = data.get("piid")
+            if not piid:
+                raise ValueError("Missing 'piid' (Contract Number) in JSON")
+
+            # Extract fields
+            award_data = {
+                "award_id": str(data.get("id", "")),
+                "generated_internal_id": data.get("generated_unique_award_id", ""),
+                "description": data.get("description", ""),
+                "amount": float(data.get("total_obligation", 0.0) or 0.0),
+                "article_date": data.get("date_signed") or now().date(),
+                "data_source": "usaspending",
+                "usaspending_published": True,
+            }
+
+            # Create or update contract
+            contract, created = DefenseContract.objects.update_or_create(
+                contract_number=piid,
+                defaults=award_data
+            )
+            
+            action = "Created" if created else "Updated"
+            messages.success(request, f"{action} contract {piid} from JSON upload.")
+            logger.info("Manually uploaded contract %s (%s)", piid, action)
+
+        except Exception as e:
+            logger.error("Failed to upload contract JSON: %s", e)
+            messages.error(request, f"Error uploading JSON: {str(e)}")
+    
+    return redirect("defense_contracts")
+
+@login_required
+def upload_contracts_csv(request):
+    """
+    Handle manual upload of a USASpending contracts CSV file.
+    """
+    if request.method == "POST":
+        csv_file = request.FILES.get("csv_file")
+        if not csv_file:
+            messages.error(request, "No file selected.")
+        elif not csv_file.name.lower().endswith('.csv'):
+            messages.error(request, "Please upload a valid CSV file.")
+        else:
+            tmp_path = None
+            try:
+                # Save to temporary file
+                path = default_storage.save(f"tmp/{csv_file.name}", ContentFile(csv_file.read()))
+                # get full path for management command
+                tmp_path = os.path.join(settings.MEDIA_ROOT, path)
+
+                # Call management command
+                call_command('load_contracts_csv', tmp_path)
+                messages.success(request, f"Successfully imported contracts from {csv_file.name}.")
+                
+            except Exception as e:
+                logger.exception("Error uploading contracts CSV")
+                messages.error(request, f"Error processing file: {str(e)}")
+            finally:
+                # Clean up
+                if tmp_path and os.path.exists(tmp_path):
+                    os.remove(tmp_path)
+
+    return redirect("defense_contracts")
+

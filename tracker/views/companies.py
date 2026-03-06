@@ -32,6 +32,7 @@ from tracker.models import (
 )
 from tracker.services import CompanyService
 from tracker.services.news_service import NewsAggregator
+from tracker.services.usaspending_service import USASpendingService
 from tracker.forms import CompanyEditForm
 from tracker.location_normalization import canonicalize_city_key
 from tracker.views.helpers import build_sidebar_context
@@ -1350,7 +1351,13 @@ def label_companies(request):
     
     # Get defense contracts linked to this company
     company_contracts = []
+    total_contract_amount = 0
     if selected_company:
+        from django.db.models import Sum
+        contracts_qs = selected_company.defense_contracts.all()
+        # Calculate total amount
+        agg = contracts_qs.aggregate(total=Sum('amount'))
+        total_contract_amount = agg['total'] or 0
         company_contracts = list(
             selected_company.defense_contracts.order_by("-article_date")[:20]
         )
@@ -1385,7 +1392,9 @@ def label_companies(request):
             "new_company_name": new_company_name,
             "application_threads": application_threads,
             "company_documents": company_documents,
-            "company_contracts": company_contracts,
+            "company_contracts": company_contracts, # Renamed to match the variable populated above
+            "contracts": company_contracts,         # Also map to 'contracts' for template usage
+            "total_contract_amount": total_contract_amount,
             "company_news": company_news,
             "news_error": news_error,
             "company_interactions": company_interactions,
@@ -1419,7 +1428,7 @@ def companies_in_city(request):
     ctx.update(
         {
             "search_city": search_city,
-            "companies": matches,
+            "city_companies": matches,
             "result_count": len(matches) if search_city else 0,
         }
     )
@@ -2941,6 +2950,33 @@ def delete_company_interaction(request, company_id, interaction_id):
     return redirect(f"/label_companies/?company={company_id}")
 
 
+@login_required
+def refresh_company_contracts(request, company_id):
+    """Fetch/Refresh USASpending contracts for a specific company."""
+    if request.method != "POST":
+        return JsonResponse({"status": "error", "message": "POST required"}, status=405)
+
+    try:
+        company = get_object_or_404(Company, pk=company_id)
+        service = USASpendingService()
+        
+        # We pass the company.name; the service normalizes it internally
+        result = service.fetch_contracts_for_company(company.name)
+        
+        msg = f"Fetched {result['created']} new, {result['updated']} updated contracts."
+        if result['errors'] > 0:
+            msg += f" ({result['errors']} errors)"
+            
+        return JsonResponse({
+            "status": "success",
+            "message": msg,
+            "data": result
+        })
+    except Exception as e:
+        logger.error("Error refreshing contracts for company %s: %s", company_id, e)
+        return JsonResponse({"status": "error", "message": str(e)}, status=500)
+
+
 __all__ = [
     "delete_company",
     "label_companies",
@@ -2958,4 +2994,5 @@ __all__ = [
     "remove_company_news_article",
     "add_company_interaction",
     "delete_company_interaction",
+    "refresh_company_contracts",
 ]

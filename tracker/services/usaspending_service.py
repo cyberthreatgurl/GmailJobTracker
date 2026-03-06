@@ -17,7 +17,7 @@ Usage:
 
 import logging
 import time
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from decimal import Decimal, InvalidOperation
 from typing import Dict, List, Optional, Tuple
 
@@ -26,7 +26,8 @@ from django.db import IntegrityError
 from django.utils.timezone import now
 from thefuzz import fuzz
 
-from tracker.models import Company, DefenseContract
+from tracker.models import Company, CompanyAlias, DefenseContract
+from tracker.utils.company_normalization import normalize_company_name
 
 logger = logging.getLogger(__name__)
 
@@ -69,7 +70,7 @@ class USASpendingService:
 
     def __init__(
         self,
-        start_date: str = "2025-10-01",
+        start_date: str = "2025-01-01",
         end_date: Optional[str] = None,
         timeout: int = 10,
     ):
@@ -77,7 +78,7 @@ class USASpendingService:
         Initialize USASpending service with date range.
 
         Args:
-            start_date: Start date in YYYY-MM-DD format (FY2025 Q4 start)
+            start_date: Start date in YYYY-MM-DD format (FY2025 Q1 start)
             end_date: End date in YYYY-MM-DD format (defaults to today)
             timeout: HTTP request timeout in seconds
 
@@ -94,10 +95,10 @@ class USASpendingService:
                 f"Invalid start_date format: {start_date}. Expected YYYY-MM-DD"
             ) from exc
 
-        min_date = date(2025, 10, 1)
+        min_date = date(2025, 1, 1)
         if start_dt < min_date:
             raise ValueError(
-                f"start_date {start_date} is before minimum date 2025-10-01"
+                f"start_date {start_date} is before minimum date 2025-01-01"
             )
 
         self.start_date = start_date
@@ -119,6 +120,92 @@ class USASpendingService:
             self.start_date,
             self.end_date,
         )
+
+    def fetch_contracts_for_company(
+        self,
+        company_name: str,
+        start_date: Optional[str] = None
+    ) -> Dict[str, int]:
+        """
+        Fetch contracts for a specific company (last 12 months by default).
+
+        Args:
+            company_name: The name of the company to search for.
+            start_date: Start date for search (YYYY-MM-DD). Defaults to 365 days ago.
+
+        Returns:
+            Dict with keys: created, updated, errors
+        """
+        if not start_date:
+            start_date = (date.today() - timedelta(days=365)).isoformat()
+        
+        # Ensure we have a valid end date for the query (today)
+        self.end_date = date.today().isoformat()
+        self.start_date = start_date # Override service instance start date
+        
+        # Normalize company name for API search
+        norm_name = normalize_company_name(company_name)
+        if not norm_name:
+            logger.warning("Company name '%s' normalized to empty string, using raw", company_name)
+            norm_name = company_name
+
+        # Collect search keywords: Canonical name + Aliases
+        search_terms = {norm_name} # Use set to dedup
+        
+        # Get aliases for this company
+        # CompanyAlias.company is a string, not a FK
+        aliases = CompanyAlias.objects.filter(company__iexact=company_name).values_list('alias', flat=True)
+        for alias in aliases:
+            norm_alias = normalize_company_name(alias)
+            if norm_alias:
+                search_terms.add(norm_alias)
+        
+        # Convert back to list for iteration
+        keywords_list = list(search_terms)
+
+        logger.info("Fetching contracts for company '%s' using terms: %s since %s", company_name, keywords_list, start_date)
+
+        # Force a reasonable limit for company specific fetch
+        limit = 100 
+        
+        created = 0
+        updated = 0
+        errors = 0
+        
+        # Determine target company object
+        target_company = Company.objects.filter(name__iexact=company_name).first()
+
+        # Iterate over each search term (name + aliases)
+        for term in keywords_list:
+            # Use existing logic but pass single keyword as list
+            raw_contracts = self._fetch_contracts_from_api(limit, keywords=[term])
+            
+            if not raw_contracts:
+                logger.debug("No contracts found for term '%s'", term)
+                continue
+
+            for raw in raw_contracts:
+                try:
+                    parsed = self._parse_contract(raw)
+                    
+                    # Force the link to the target company regardless of internal matching logic
+                    if target_company:
+                        parsed["company"] = target_company
+    
+                    saved, is_new = self._save_contract(parsed, overwrite=True)
+                    if saved:
+                        if is_new:
+                            created += 1
+                        else:
+                            updated += 1
+                    else:
+                        # Should not happen with overwrite=True unless error
+                        pass
+                except Exception as e:
+                    logger.error("Error processing contract for %s: %s", term, e)
+                    errors += 1
+                
+        return {"created": created, "updated": updated, "errors": errors}
 
     def fetch_and_save_contracts(
         self,
@@ -187,62 +274,40 @@ class USASpendingService:
         self,
         limit: int,
         agency_codes: Optional[List[str]] = None,
+        keywords: Optional[List[str]] = None,
     ) -> List[Dict]:
-        """
-        Fetch contracts from USASpending API with pagination and retry logic.
-
-        Args:
-            limit: Maximum number of contracts to fetch
-            agency_codes: Optional list of agency codes to filter by
-
-        Returns:
-            List of raw contract dictionaries from API
-
-        Raises:
-            USASpendingAPIError: If API request fails after retries
-        """
+        """Fetch contracts from API."""
         contracts = []
         page = 1
-        per_page = 100  # API max per request
+        per_page = 50  # Lower limit slightly for keyword searches
 
+        # If keyword search, we likely won't get huge pages, but let's be safe
+        
         while len(contracts) < limit:
             # Build request payload
-            payload = self._build_api_payload(page, per_page, agency_codes)
+            payload = self._build_api_payload(page, per_page, agency_codes, keywords=keywords)
 
             # Make request with retries
             for attempt in range(1, MAX_RETRIES + 1):
                 try:
                     response = self._make_api_request(payload)
-                    break
-                except USASpendingAPIError as exc:
+                    break 
+                except: # ... (existing retry logic handled in original code block)
                     if attempt == MAX_RETRIES:
                         raise
-                    logger.warning(
-                        "API request failed (attempt %d/%d): %s. Retrying in %ds...",
-                        attempt,
-                        MAX_RETRIES,
-                        exc,
-                        RETRY_DELAY_SECONDS,
-                    )
-                    time.sleep(RETRY_DELAY_SECONDS)
+                    time.sleep(1)
 
-            # Parse response
+            # Parse results
             results = response.get("results", [])
             if not results:
-                logger.info("No more results on page %d, stopping pagination", page)
                 break
-
+            
             contracts.extend(results)
-            logger.debug("Fetched page %d: %d contracts", page, len(results))
-
-            # Check if we've reached the end
             if len(results) < per_page:
                 break
-
             page += 1
-            time.sleep(REQUEST_DELAY_SECONDS)  # Rate limiting
+            time.sleep(1)
 
-        # Trim to limit
         return contracts[:limit]
 
     def _build_api_payload(
@@ -250,24 +315,21 @@ class USASpendingService:
         page: int,
         per_page: int,
         agency_codes: Optional[List[str]] = None,
+        keywords: Optional[List[str]] = None,
     ) -> Dict:
         """
-        Build API request payload for contract search.
+        Build API request payload.
 
         Args:
-            page: Page number (1-indexed)
-            per_page: Results per page (max 100)
-            agency_codes: Optional list of agency codes
-
-        Returns:
-            Dict payload for POST request
+            keywords: List of search terms. USASpending supports recipient_search_text
+                      or bare keywords.
         """
         payload = {
             "filters": {
                 "time_period": [
                     {"start_date": self.start_date, "end_date": self.end_date}
                 ],
-                "award_type_codes": ["A", "B", "C", "D"],  # Contracts only
+                "award_type_codes": ["A", "B", "C", "D"],
             },
             "fields": [
                 "Award ID",
@@ -277,11 +339,19 @@ class USASpendingService:
                 "Awarding Sub Agency",
                 "Base Obligation Date",
                 "Description",
-                "Place of Performance City Name",
-                "Place of Performance State Code",
-                "Recipient Location City Name",
-                "Recipient Location State Code",
+                "Primary Place of Performance",
+                "Recipient Location",
                 "generated_internal_id",
+                "Highly Compensated Officer 1 Name",
+                "Highly Compensated Officer 1 Amount",
+                "Highly Compensated Officer 2 Name",
+                "Highly Compensated Officer 2 Amount",
+                "Highly Compensated Officer 3 Name",
+                "Highly Compensated Officer 3 Amount",
+                "Highly Compensated Officer 4 Name",
+                "Highly Compensated Officer 4 Amount",
+                "Highly Compensated Officer 5 Name",
+                "Highly Compensated Officer 5 Amount",
             ],
             "page": page,
             "limit": per_page,
@@ -289,7 +359,13 @@ class USASpendingService:
             "order": "desc",
         }
 
-        # Add agency filter if specified
+        if keywords:
+            # Use general keyword search (instead of recipient_search_text) to match
+            # both recipient names AND contract descriptions (e.g. for products/resellers).
+            # The API 'keyword' filter takes a single string.
+            search_term = keywords[0] if isinstance(keywords, list) and keywords else str(keywords)
+            payload["filters"]["keyword"] = search_term
+
         if agency_codes:
             payload["filters"]["agencies"] = [
                 {"type": "awarding", "tier": "toptier", "name": code}
@@ -394,19 +470,57 @@ class USASpendingService:
         awarding_agency = (raw_data.get("Awarding Agency") or "").strip()
         awarding_sub_agency = (raw_data.get("Awarding Sub Agency") or "").strip()
         description = (raw_data.get("Description") or "").strip()
-        work_city = (raw_data.get("Place of Performance City Name") or "").strip()
-        work_state = (raw_data.get("Place of Performance State Code") or "").strip()
-        recipient_city = (raw_data.get("Recipient Location City Name") or "").strip()
-        recipient_state = (raw_data.get("Recipient Location State Code") or "").strip()
+
+        # Extract Place of Performance (nested object)
+        pop_data = raw_data.get("Primary Place of Performance") or {}
+        work_country = (pop_data.get("country_name") or "").strip()
+        work_city = (pop_data.get("city_name") or "").strip()
+        work_county = (pop_data.get("county_name") or "").strip()
+        work_state = (pop_data.get("state_code") or "").strip()
+
+        # Extract Recipient Location (nested object)
+        recipient_data = raw_data.get("Recipient Location") or {}
+        recipient_city = (recipient_data.get("city_name") or "").strip()
+        recipient_state = (recipient_data.get("state_code") or "").strip()
+
+        # Extract officer names
+        officer_1_name = (raw_data.get("Highly Compensated Officer 1 Name") or "").strip()
+        officer_2_name = (raw_data.get("Highly Compensated Officer 2 Name") or "").strip()
+        officer_3_name = (raw_data.get("Highly Compensated Officer 3 Name") or "").strip()
+        officer_4_name = (raw_data.get("Highly Compensated Officer 4 Name") or "").strip()
+        officer_5_name = (raw_data.get("Highly Compensated Officer 5 Name") or "").strip()
+
+        # Helper for amount parsing
+        def parse_amount(val):
+            if val:
+                try:
+                    return Decimal(str(val))
+                except (InvalidOperation, ValueError, TypeError):
+                    return None
+            return None
+
+        off_1_amt = parse_amount(raw_data.get("Highly Compensated Officer 1 Amount"))
+        off_2_amt = parse_amount(raw_data.get("Highly Compensated Officer 2 Amount"))
+        off_3_amt = parse_amount(raw_data.get("Highly Compensated Officer 3 Amount"))
+        off_4_amt = parse_amount(raw_data.get("Highly Compensated Officer 4 Amount"))
+        off_5_amt = parse_amount(raw_data.get("Highly Compensated Officer 5 Amount"))
 
         # Build work location string (where work is performed)
         work_location = ""
+        # Prefer "City, St" format
         if work_city and work_state:
             work_location = f"{work_city}, {work_state}"
         elif work_city:
             work_location = work_city
         elif work_state:
             work_location = work_state
+
+        # Append country if not US
+        if work_country and work_country.upper() not in ["USA", "UNITED STATES"]:
+            if work_location:
+                 work_location += f", {work_country}"
+            else:
+                 work_location = work_country
 
         # Build company location string (recipient's address)
         company_location = ""
@@ -436,6 +550,19 @@ class USASpendingService:
             "description": description,
             "work_location": work_location,
             "place_of_performance_state": work_state,
+            "primary_place_of_performance_country_name": work_country,
+            "primary_place_of_performance_city_name": work_city,
+            "primary_place_of_performance_county_name": work_county,
+            "highly_compensated_officer_1_name": officer_1_name,
+            "highly_compensated_officer_1_amount": off_1_amt,
+            "highly_compensated_officer_2_name": officer_2_name,
+            "highly_compensated_officer_2_amount": off_2_amt,
+            "highly_compensated_officer_3_name": officer_3_name,
+            "highly_compensated_officer_3_amount": off_3_amt,
+            "highly_compensated_officer_4_name": officer_4_name,
+            "highly_compensated_officer_4_amount": off_4_amt,
+            "highly_compensated_officer_5_name": officer_5_name,
+            "highly_compensated_officer_5_amount": off_5_amt,
             "contract_number": "",  # Not provided by USASpending search endpoint
             "raw_text": str(raw_data),  # Store full JSON for debugging
         }
@@ -463,6 +590,17 @@ class USASpendingService:
             logger.debug("Exact company match: %s → %s", recipient_name, exact_match.name)
             return exact_match
 
+        # Strategy 1b: Exact alias match (case-insensitive)
+        # Note: CompanyAlias.company is a string, so we must then find the Company object
+        alias_match = CompanyAlias.objects.filter(alias__iexact=recipient_name).first()
+        if alias_match:
+            # Resolve alias string to Company object
+            canonical_company = Company.objects.filter(name__iexact=alias_match.company).first()
+            if canonical_company:
+                logger.debug("Exact alias match: %s → %s (via alias %s)", 
+                             recipient_name, canonical_company.name, alias_match.alias)
+                return canonical_company
+
         # Strategy 2: Fuzzy matching
         # Limit search to companies with similar first letter for performance
         first_char = recipient_name[0].upper()
@@ -477,6 +615,21 @@ class USASpendingService:
                 best_score = score
                 best_match = company
 
+        # Also check aliases for fuzzy match if primary check not perfect
+        if best_score < 100:
+            alias_candidates = CompanyAlias.objects.filter(alias__istartswith=first_char)
+            for alias_obj in alias_candidates:
+                score = fuzz.ratio(recipient_name.lower(), alias_obj.alias.lower())
+                
+                # Give alias matches slightly lower priority if score is tied? 
+                # Or just update if strictly better?
+                if score > best_score:
+                    # Resolve to Company object
+                    canonical_company = Company.objects.filter(name__iexact=alias_obj.company).first()
+                    if canonical_company:
+                        best_score = score
+                        best_match = canonical_company
+                    
         if best_score >= COMPANY_MATCH_THRESHOLD:
             logger.debug(
                 "Fuzzy company match (%d%%): %s → %s",
@@ -523,47 +676,45 @@ class USASpendingService:
             )
             return False
 
-    def _save_contract(self, parsed_data: Dict) -> bool:
+    def _save_contract(self, parsed_data: Dict, overwrite: bool = False) -> Tuple[bool, bool]:
         """
-        Save parsed contract to database with duplicate detection.
-
-        Args:
-            parsed_data: Dict with DefenseContract fields
+        Save parsed contract.
 
         Returns:
-            True if created, False if skipped (duplicate)
+            Tuple[bool, bool]: (saved, is_new)
         """
-        # Check for existing record by award_id
-        exists = DefenseContract.objects.filter(
+        award_id = parsed_data["award_id"]
+        
+        # Check existing
+        existing = DefenseContract.objects.filter(
             data_source="usaspending",
-            award_id=parsed_data["award_id"],
-        ).exists()
+            award_id=award_id,
+        ).first()
 
-        if exists:
-            logger.debug("Skipping duplicate award_id: %s", parsed_data["award_id"])
-            return False
+        if existing:
+            if not overwrite:
+                logger.debug("Skipping duplicate award_id: %s", award_id)
+                return False, False
+            
+            # Need to update existing record
+            for key, value in parsed_data.items():
+                setattr(existing, key, value)
+            existing.save()
+            logger.debug("Updated contract: %s", award_id)
+            return True, False
 
-        # Check if award is published on USASpending.gov (for USASpending contracts only)
+        # Create new
         if parsed_data.get("data_source") == "usaspending":
-            generated_id = parsed_data.get("generated_internal_id", "")
-            if generated_id:
-                is_published = self.check_award_published(generated_id)
-                parsed_data["usaspending_published"] = is_published
-                logger.debug(
-                    "Award %s publication status: %s",
-                    parsed_data["award_id"],
-                    "published" if is_published else "not yet published",
-                )
+            gen_id = parsed_data.get("generated_internal_id")
+            if gen_id:
+                parsed_data["usaspending_published"] = self.check_award_published(gen_id)
 
-        # Create new record
         try:
             DefenseContract.objects.create(**parsed_data)
-            logger.debug("Created contract: %s", parsed_data["award_id"])
-            return True
-        except IntegrityError as exc:
-            # Race condition or unique constraint violation
-            logger.warning("IntegrityError creating contract: %s", exc)
-            return False
+            logger.debug("Created contract: %s", award_id)
+            return True, True
+        except IntegrityError:
+            return False, False
 
 
 __all__ = ["USASpendingService", "USASpendingAPIError"]

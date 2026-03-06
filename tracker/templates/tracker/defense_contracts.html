@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load humanize %}
 
 {% block title %}Government Contract Awards – GmailJobTracker{% endblock %}
 
@@ -12,7 +13,17 @@
         Sources: <a href="https://www.war.gov/News/Contracts/" target="_blank" class="text-blue-600 hover:underline">DoD (war.gov)</a> · <a href="https://www.usaspending.gov/" target="_blank" class="text-blue-600 hover:underline">USASpending.gov</a>
       </p>
     </div>
-    <div class="flex gap-2">
+    
+    <!-- Action Toolbar - margin-right added to avoid overlap with fixed Quick Actions -->
+    <div class="flex gap-2 mr-64">
+      <form action="{% url 'upload_contracts_csv' %}" method="post" enctype="multipart/form-data" class="contents">
+          {% csrf_token %}
+          <label class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg px-4 py-2.5 transition-colors shadow-sm cursor-pointer" title="Upload USASpending CSV Report">
+              <span>📤</span>
+              <span class="hidden sm:inline">Upload CSV</span>
+              <input type="file" name="csv_file" accept=".csv" class="hidden" onchange="if(confirm('Upload and import contracts from ' + this.files[0].name + '?')) this.form.submit(); else this.value='';">
+          </label>
+      </form>
       <button id="fetchContractsBtn"
               onclick="fetchContracts(false)"
               class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg px-4 py-2.5 transition-colors shadow-sm">
@@ -179,7 +190,7 @@
   {% if contracts %}
   <div class="space-y-3">
     {% for contract in contracts %}
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 hover:border-blue-300 transition-colors" data-contract-id="{{ contract.id }}">
+    <div id="contract-{{ contract.id }}" class="bg-white rounded-lg shadow-sm border border-gray-200 hover:border-blue-300 transition-colors" data-contract-id="{{ contract.id }}">
       <div class="p-4">
         <!-- Header Row -->
         <div class="flex flex-wrap items-start justify-between gap-2 mb-2">
@@ -287,8 +298,33 @@
             {% if contract.work_location %}
             <p class="text-xs"><strong>📍 Work Location:</strong> {{ contract.work_location }}</p>
             {% endif %}
-            {% if contract.place_of_performance_state %}
-            <p class="text-xs"><strong>📍 Performance State:</strong> {{ contract.place_of_performance_state }}</p>
+            {% if contract.data_source == 'usaspending' %}
+            <p class="text-xs"><strong>📍 Performance State:</strong> {{ contract.place_of_performance_state|default:"-" }}</p>
+            <p class="text-xs"><strong>📍 Performance County:</strong> {{ contract.primary_place_of_performance_county_name|default:"-" }}</p>
+            <p class="text-xs"><strong>🌍 Performance Country:</strong> {{ contract.primary_place_of_performance_country_name|default:"-" }}</p>
+            
+            <div class="mt-2 text-xs border-t border-gray-100 pt-2">
+                <strong>👔 Highly Compensated Officers:</strong>
+                {% if contract.highly_compensated_officer_1_name %}
+                <ul class="list-disc list-inside mt-1 ml-1 text-gray-500">
+                    <li>{{ contract.highly_compensated_officer_1_name }}{% if contract.highly_compensated_officer_1_amount %} – ${{ contract.highly_compensated_officer_1_amount|floatformat:0|intcomma }}{% endif %}</li>
+                    {% if contract.highly_compensated_officer_2_name %}
+                    <li>{{ contract.highly_compensated_officer_2_name }}{% if contract.highly_compensated_officer_2_amount %} – ${{ contract.highly_compensated_officer_2_amount|floatformat:0|intcomma }}{% endif %}</li>
+                    {% endif %}
+                    {% if contract.highly_compensated_officer_3_name %}
+                    <li>{{ contract.highly_compensated_officer_3_name }}{% if contract.highly_compensated_officer_3_amount %} – ${{ contract.highly_compensated_officer_3_amount|floatformat:0|intcomma }}{% endif %}</li>
+                    {% endif %}
+                    {% if contract.highly_compensated_officer_4_name %}
+                    <li>{{ contract.highly_compensated_officer_4_name }}{% if contract.highly_compensated_officer_4_amount %} – ${{ contract.highly_compensated_officer_4_amount|floatformat:0|intcomma }}{% endif %}</li>
+                    {% endif %}
+                    {% if contract.highly_compensated_officer_5_name %}
+                    <li>{{ contract.highly_compensated_officer_5_name }}{% if contract.highly_compensated_officer_5_amount %} – ${{ contract.highly_compensated_officer_5_amount|floatformat:0|intcomma }}{% endif %}</li>
+                    {% endif %}
+                </ul>
+                {% else %}
+                <p class="text-gray-400 italic ml-1">No officer compensation data available.</p>
+                {% endif %}
+            </div>
             {% endif %}
             {% if contract.completion_date %}
             <p class="text-xs"><strong>📅 Completion:</strong> {{ contract.completion_date }}</p>

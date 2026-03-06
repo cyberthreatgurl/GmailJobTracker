@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load humanize %}
 {% block title %}Label Companies - GmailJobTracker{% endblock %}
 {% block extra_head %}
   <style>
@@ -167,6 +168,7 @@
               <input type="hidden" name="company" value="{{ selected_company.id }}" />
               <button type="submit" name="action" value="reingest_company" style="background:#ca8a04; color:white; font-weight:600; border-radius:6px; padding:0.45rem 1rem; border:none; cursor:pointer;" title="Re-ingest all messages from this company">🔄 Re-ingest</button>
             </form>
+            <button type="button" onclick="refreshContracts({{ selected_company.id }})" style="background:#0891b2; color:white; font-weight:600; border-radius:6px; padding:0.45rem 1rem; border:none; cursor:pointer;" title="Fetch latest USASpending contracts">🏛️ Refresh Contracts</button>
             {# Status is now auto-calculated based on latest message and GHOSTED_DAYS_THRESHOLD #}
             <a href="{% url 'manual_entry' %}?company={{ selected_company.id }}" style="background:#2563eb; color:white; font-weight:600; border-radius:6px; padding:0.45rem 1rem; border:none; cursor:pointer; text-decoration:none; display:inline-block;" title="Create a new application for this company">➕ Create Application</a>
             <form method="get" action="{% url 'delete_company' selected_company.id %}" style="margin:0;">
@@ -276,6 +278,19 @@
                 {{ operating_cities_list|join:", " }}
               {% else %}
                 <span style="color:#9ca3af;">None</span>
+              {% endif %}
+            </div>
+            <div style="margin-bottom:1rem;">
+              <strong>🏛️ USASpending Contracts:</strong>
+              {% if total_contract_amount and total_contract_amount > 0 %}
+                 <div style="font-size:1.1rem; font-weight:700; color:#059669; margin-top:0.25rem; word-break: break-word;">
+                   ${{ total_contract_amount|floatformat:0|intcomma }}
+                 </div>
+                 <div style="margin-top:0.25rem; font-size:0.8rem; color:#6b7280; margin-bottom:0.5rem;">
+                   Total awarded value (last 12 months)
+                 </div>
+              {% else %}
+                <span style="color:#9ca3af; display:block; margin-top:0.25rem;">No contracts linked.</span>
               {% endif %}
             </div>
             <div style="margin-bottom:1rem;">
@@ -410,47 +425,39 @@
           <!-- Government Contracts Section (expandable) -->
           {% if company_contracts %}
           <details style="background: #ecfdf5; border-radius: 8px; padding: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
-            <summary style="cursor: pointer; padding: 1rem 1.5rem; font-weight: 600; color: #065f46; font-size: 1rem; list-style: none; display: flex; align-items: center; gap: 0.5rem;">
+            <summary style="cursor: pointer; padding: 0.75rem 1rem; font-weight: 600; color: #065f46; font-size: 0.95rem; list-style: none; display: flex; align-items: center; gap: 0.5rem;">
               <span style="transition: transform 0.2s;">▶</span> 🏛️ Government Contracts ({{ company_contracts|length }})
             </summary>
-            <div style="padding: 0 1.5rem 1.5rem 1.5rem;">
+            <div style="padding: 0 1rem 1rem 1rem; max-height:500px; overflow-y:auto;">
               {% for contract in company_contracts %}
-              <div style="background: white; border-radius: 6px; padding: 1rem; margin-bottom: 0.75rem; border: 1px solid #a7f3d0;">
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; margin-bottom: 0.5rem;">
+              <div style="background: white; border-radius: 6px; padding: 0.5rem; margin-bottom: 0.4rem; border: 1px solid #a7f3d0;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; margin-bottom: 0.25rem;">
                   <div>
-                    <span style="font-weight: 600; color: #065f46;">{{ contract.amount_display }}</span>
+                    <span style="font-weight: 600; color: #065f46; font-size: 0.9rem;">{{ contract.amount_display }}</span>
                     {% if contract.is_modification %}
-                    <span style="background: #e2e8f0; color: #475569; font-size: 0.65rem; font-weight: 600; padding: 0.15rem 0.4rem; border-radius: 4px; margin-left: 0.25rem;">MOD</span>
+                    <span style="background: #e2e8f0; color: #475569; font-size: 0.6rem; font-weight: 600; padding: 0.1rem 0.3rem; border-radius: 4px; margin-left: 0.25rem;">MOD</span>
                     {% endif %}
                     {% if contract.is_small_business %}
-                    <span style="background: #fef3c7; color: #92400e; font-size: 0.65rem; font-weight: 600; padding: 0.15rem 0.4rem; border-radius: 4px; margin-left: 0.25rem;">SB</span>
+                    <span style="background: #fef3c7; color: #92400e; font-size: 0.6rem; font-weight: 600; padding: 0.1rem 0.3rem; border-radius: 4px; margin-left: 0.25rem;">SB</span>
                     {% endif %}
                   </div>
                   <div style="text-align: right;">
-                    <span style="font-size: 0.8rem; color: #6b7280;">{{ contract.article_date|date:"M d, Y" }}</span>
-                    <div style="font-size: 0.7rem; color: #9ca3af;">{{ contract.get_branch_display }}</div>
+                    <span style="font-size: 0.75rem; color: #6b7280;">{{ contract.article_date|date:"M d, Y" }}</span>
+                    <div style="font-size: 0.65rem; color: #9ca3af;">{{ contract.get_branch_display }}</div>
                   </div>
                 </div>
                 {% if contract.contract_number %}
-                <div style="font-size: 0.8rem; color: #6b7280; margin-bottom: 0.25rem;">📝 {{ contract.contract_number }}</div>
+                <div style="font-size: 0.7rem; color: #6b7280; margin-bottom: 0.15rem;">📝 {{ contract.contract_number }}</div>
                 {% endif %}
-                <div style="font-size: 0.85rem; color: #374151; margin-bottom: 0.5rem;">{{ contract.description|truncatewords:30 }}</div>
+                <div style="font-size: 0.75rem; color: #374151; margin-bottom: 0.25rem;">{{ contract.description|truncatewords:30 }}</div>
                 {% if contract.work_location %}
-                <div style="font-size: 0.75rem; color: #6b7280;">📍 {{ contract.work_location|truncatewords:15 }}</div>
+                <div style="font-size: 0.7rem; color: #6b7280;">📍 {{ contract.work_location|truncatewords:15 }}</div>
                 {% endif %}
                 {% if contract.completion_date %}
-                <div style="font-size: 0.75rem; color: #6b7280;">📅 Completion: {{ contract.completion_date }}</div>
+                <div style="font-size: 0.7rem; color: #6b7280;">📅 Completion: {{ contract.completion_date }}</div>
                 {% endif %}
-                <div style="margin-top: 0.5rem;">
-                  {% if contract.data_source == 'war_gov' %}
-                  <a href="{{ contract.source_url }}" target="_blank" style="font-size: 0.75rem; color: #2563eb; text-decoration: none;">View on war.gov →</a>
-                  {% elif contract.data_source == 'usaspending' %}
-                    {% if contract.usaspending_published %}
-                    <a href="{{ contract.source_url }}" target="_blank" style="font-size: 0.75rem; color: #2563eb; text-decoration: none;">View on USASpending.gov →</a>
-                    {% else %}
-                    <span style="font-size: 0.75rem; color: #d97706;">⏳ Not yet available on usaspending.gov</span>
-                    {% endif %}
-                  {% endif %}
+                <div style="margin-top: 0.25rem;">
+                  <a href="{% url 'defense_contracts' %}?search={{ selected_company.name|urlencode }}#contract-{{ contract.id }}" target="_blank" style="font-size: 0.75rem; color: #2563eb; text-decoration: none;">View details &rarr;</a>
                 </div>
               </div>
               {% endfor %}
@@ -1046,6 +1053,46 @@
         const div = document.createElement('div');
         div.textContent = str;
         return div.innerHTML;
+      }
+
+      async function refreshContracts(companyId) {
+        if (!confirm('Fetch latest contracts from USASpending for this company?')) return;
+        
+        const btn = document.querySelector('button[onclick^="refreshContracts"]');
+        let originalText = '🏛️ Refresh Contracts'; 
+        if (btn) {
+             originalText = btn.innerHTML;
+             btn.innerHTML = '⏳ Fetching...';
+             btn.disabled = true;
+        }
+
+        try {
+            // Get CSRF token from the page
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            
+            const resp = await fetch(`/company/${companyId}/refresh_contracts/`, {
+                method: 'POST',
+                headers: { 
+                    'X-CSRFToken': csrfToken,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            const data = await resp.json();
+            
+            if (data.status === 'success') {
+                alert('✅ ' + data.message);
+            } else {
+                alert('❌ Error: ' + (data.message || 'Unknown error'));
+            }
+        } catch (e) {
+            alert('❌ Network error: ' + e.message);
+        } finally {
+            if (btn) {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
       }
 
       // Load news asynchronously after page render

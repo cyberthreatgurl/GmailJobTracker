@@ -31,7 +31,7 @@ from bs4 import BeautifulSoup
 from django.db import IntegrityError
 from django.utils.timezone import now
 
-from tracker.models import Company, DefenseContract, ScrapedArticle
+from tracker.models import Company, CompanyAlias, DefenseContract, ScrapedArticle
 
 logger = logging.getLogger(__name__)
 
@@ -143,12 +143,22 @@ class ContractScraperService:
 
     @property
     def company_name_cache(self) -> Dict[str, int]:
-        """Lazy-load a lowercase company name → id mapping for matching."""
+        """Lazy-load a lowercase company name → id mapping for matching, including aliases."""
         if self._company_name_cache is None:
+            # 1. Map canonical company names
             self._company_name_cache = {
                 company.name.lower(): company.id
                 for company in Company.objects.all()
             }
+            # 2. Map aliases to same company ID
+            # Note: CompanyAlias.company is a string name, not a FK
+            for alias_obj in CompanyAlias.objects.all():
+                canonical_name_lower = alias_obj.company.lower()
+                # Only add if we know the canonical company
+                if canonical_name_lower in self._company_name_cache:
+                    canonical_id = self._company_name_cache[canonical_name_lower]
+                    self._company_name_cache[alias_obj.alias.lower()] = canonical_id
+                
         return self._company_name_cache
 
     def invalidate_company_cache(self):

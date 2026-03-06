@@ -20,9 +20,9 @@
   {% if search_city %}
     <div style="margin-bottom:0.9rem; color:#374151; font-size:0.95rem;">Found <strong>{{ result_count }}</strong> compan{{ result_count|pluralize:"y,ies" }} matching "{{ search_city }}".</div>
 
-    {% if companies %}
+    {% if city_companies %}
       <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap:1rem;">
-        {% for company in companies %}
+        {% for company in city_companies %}
           <div style="background:white; border:1px solid #e5e7eb; border-radius:8px; padding:1rem; box-shadow:0 1px 2px rgba(0,0,0,0.04);">
             <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:0.5rem; margin-bottom:0.5rem;">
               <h2 style="margin:0; font-size:1.05rem; color:#111827;">{{ company.name }}</h2>
@@ -46,13 +46,13 @@
               {% endwith %}
             </div>
 
-            <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
-              <a href="{% url 'label_companies' %}?company={{ company.id }}" style="background:#2563eb; color:white; text-decoration:none; border-radius:6px; padding:0.45rem 0.7rem; font-size:0.85rem; font-weight:600;">Open Company</a>
+            <div style="display:flex; gap:0.35rem; align-items:center; flex-wrap:nowrap;">
+              <a href="{% url 'label_companies' %}?company={{ company.id }}" style="background:#2563eb; color:white; text-decoration:none; border-radius:4px; padding:0.25rem 0.4rem; font-size:0.75rem; font-weight:500; white-space:nowrap;">Open Company</a>
               {% if company.homepage %}
-                <a href="{{ company.homepage }}" target="_blank" rel="noopener noreferrer" style="background:#059669; color:white; text-decoration:none; border-radius:6px; padding:0.45rem 0.7rem; font-size:0.85rem; font-weight:600;">Visit Website</a>
+                <a href="{{ company.homepage }}" target="_blank" rel="noopener noreferrer" style="background:#059669; color:white; text-decoration:none; border-radius:4px; padding:0.25rem 0.4rem; font-size:0.75rem; font-weight:500; white-space:nowrap;">Website</a>
               {% endif %}
               {% if company.id %}
-                <a href="{% url 'job_search_tracker' %}" style="background:#7c3aed; color:white; text-decoration:none; border-radius:6px; padding:0.45rem 0.7rem; font-size:0.85rem; font-weight:600;">Job Search Tracker</a>
+                <a href="{% url 'job_search_tracker' %}" style="background:#7c3aed; color:white; text-decoration:none; border-radius:4px; padding:0.25rem 0.4rem; font-size:0.75rem; font-weight:500; white-space:nowrap;">Job Tracker</a>
               {% endif %}
             </div>
           </div>

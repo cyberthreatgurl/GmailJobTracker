@@ -5,6 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0] - 2026-03-06
+
+### MAJOR BREAKING CHANGES
+- **Database Schema**: Significant updates to `DefenseContract` and `Company` models to support granular federal contract data (DUNS, Officers, Parent Awards).
+- **Location Normalization**: Moved to a strict city/state/country model for USASpending imports.
+
+### Added
+- **CSV Import for USASpending**: New feature to bulk import contract data from USASpending.gov exports.
+  - **Drag-and-Drop Upload**: Added import button to Contracts Dashboard.
+  - **Robust Parsing**: `load_contracts_csv` management command handles headers, dates, amounts, and officer compensation.
+  - **Schema Documentation**: Added `markdown/CONTRACTS_CSV_SCHEMA.md`.
+
+- **Alias-Aware Scraping**: The scrapers for both War.gov and USASpending.gov now utilize the `CompanyAlias` table.
+  - **War.gov**: Checks all known aliases when parsing contract paragraphs.
+  - **USASpending**: Performs additional API queries for every known alias of a tracked company to ensure no contracts are missed.
+  - **Automatic Linking**: Contracts found via alias are automatically linked to the canonical Company record.
+
+- **USASpending API Improvements**:
+  - **Location Fix**: Updated parser to correctly extract `primary_place_of_performance` from nested JSON objects (fixing "None, None" locations).
+  - **Detailed Fields**: Now capturing Officer names/compensation, DUNS numbers, and Product Service Descriptions.
+
+### Fixed
+- **Nav Bar Summary**: Fixed variable name collision in "Companies in City" view that caused list objects to display instead of counts.
+- **UI Polish**:
+  - Contracts Dashboard: Moved action buttons to top-right toolbar for better accessibility.
+  - Companies in City: Compacted button styles and fixed layout.
+
 ## [2.3.0] - 2026-02-20
 
 ### Added

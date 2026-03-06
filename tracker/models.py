@@ -45,6 +45,12 @@ class Company(models.Model):
             )
         ]
     )  # New field for ATS domain
+    duns_number = models.CharField(
+        max_length=20, 
+        blank=True, 
+        null=True, 
+        help_text="Data Universal Numbering System (DUNS) number"
+    )
     homepage = models.URLField(
         max_length=512,
         blank=True,
@@ -919,6 +925,34 @@ class DefenseContract(models.Model):
         help_text="Two-letter state code for work location (NEW for USASpending)",
     )
     
+    primary_place_of_performance_country_name = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Primary place of performance country (USASpending)"
+    )
+    primary_place_of_performance_city_name = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Primary place of performance city (USASpending)"
+    )
+    primary_place_of_performance_county_name = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Primary place of performance county (USASpending)"
+    )
+
+    # Highly compensated officers (5)
+    highly_compensated_officer_1_name = models.CharField(max_length=255, blank=True)
+    highly_compensated_officer_1_amount = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
+    highly_compensated_officer_2_name = models.CharField(max_length=255, blank=True)
+    highly_compensated_officer_2_amount = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
+    highly_compensated_officer_3_name = models.CharField(max_length=255, blank=True)
+    highly_compensated_officer_3_amount = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
+    highly_compensated_officer_4_name = models.CharField(max_length=255, blank=True)
+    highly_compensated_officer_4_amount = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
+    highly_compensated_officer_5_name = models.CharField(max_length=255, blank=True)
+    highly_compensated_officer_5_amount = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
+    
     completion_date = models.CharField(
         max_length=100,
         blank=True,
@@ -931,6 +965,22 @@ class DefenseContract(models.Model):
     )
 
     # Metadata
+    recipient_parent_duns = models.CharField(
+        max_length=20, 
+        blank=True, 
+        null=True,
+        help_text="Parent company DUNS number"
+    )
+    recipient_doing_business_as_name = models.CharField(
+        max_length=255, 
+        blank=True, 
+        help_text="Doing Business As (DBA) name"
+    )
+    product_or_service_description = models.TextField(
+        blank=True,
+        help_text="Description of the product or service category"
+    )
+
     is_modification = models.BooleanField(
         default=False,
         help_text="True if this is a modification to an existing contract"

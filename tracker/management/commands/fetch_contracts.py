@@ -6,7 +6,7 @@ Usage:
     python manage.py fetch_contracts
 
     # Fetch from USASpending.gov
-    python manage.py fetch_contracts --source usaspending --limit 100
+    python manage.py fetch_contracts --source usaspending --limit 500
 
     # Fetch from both sources
     python manage.py fetch_contracts --source all --limit 50
@@ -41,7 +41,7 @@ class Command(BaseCommand):
         parser.add_argument(
             "--limit",
             type=int,
-            default=100,
+            default=500,
             help="Maximum contracts to fetch from USASpending API (default: 100)",
         )
         parser.add_argument(
@@ -54,7 +54,7 @@ class Command(BaseCommand):
         parser.add_argument(
             "--max-articles",
             type=int,
-            default=5,
+            default=20,
             help="Maximum number of daily contract articles to process from war.gov (default: 5)",
         )
         parser.add_argument(

@@ -252,10 +252,16 @@ class CompanyEditForm(forms.ModelForm):
             "talent_network",
             "contact_name",
             "contact_email",
+            "uei",
+            "duns_number",
             "status",
             "notes",
             "focus_area",
         ]
+        labels = {
+            "duns_number": "DUNS Number",
+            "uei": "UEI (SAM.gov)",
+        }
         help_texts = {
             "domain": "Primary company domain",
             "ats": "Applicant Tracking System domain",

@@ -51,6 +51,12 @@ class Company(models.Model):
         null=True, 
         help_text="Data Universal Numbering System (DUNS) number"
     )
+    uei = models.CharField(
+        max_length=12,
+        blank=True,
+        null=True,
+        help_text="Unique Entity Identifier (UEI) from SAM.gov"
+    )
     homepage = models.URLField(
         max_length=512,
         blank=True,
@@ -1077,3 +1083,58 @@ class ScrapedArticle(models.Model):
 
     def __str__(self):
         return f"{self.title} ({self.contracts_found} contracts)"
+
+
+class SamGovOpportunity(models.Model):
+    """
+    Detailed contract opportunity from SAM.gov API.
+    A helper model to store fetched opportunities for browsing and analysis.
+    """
+    title = models.CharField(max_length=500, help_text="Contract title")
+    solicitation_number = models.CharField(
+        max_length=150, 
+        blank=True, 
+        null=True, 
+        unique=True,
+        help_text="Solicitation number (e.g., N0001924R0012)"
+    )
+    posted_date = models.DateField(help_text="Date the opportunity was posted")
+    response_date = models.DateField(blank=True, null=True, help_text="Deadline for response")
+    type = models.CharField(max_length=100, help_text="Opportunity type (e.g., Presolicitation)")
+    base_type = models.CharField(max_length=100, blank=True, null=True, help_text="Base type")
+    
+    # Nested fields
+    award = models.JSONField(blank=True, null=True, help_text="Award details as JSON")
+    
+    full_parent_path_name = models.CharField(max_length=500, blank=True, null=True, help_text="Agency hierarchy path")
+    department = models.CharField(max_length=255, blank=True, null=True)
+    office = models.CharField(max_length=255, blank=True, null=True)
+    sub_office = models.CharField(max_length=255, blank=True, null=True)
+    
+    naics_code = models.CharField(max_length=20, blank=True, null=True)
+    naics_codes = models.JSONField(blank=True, null=True, help_text="List of NAICS codes")
+    
+    # Point of Contact (stored as JSON to capture full structure)
+    point_of_contact = models.JSONField(blank=True, null=True, help_text="Primary point of contact details")
+    
+    description = models.TextField(blank=True, null=True)
+    resource_links = models.JSONField(blank=True, null=True, help_text="Links to attachments/resources")
+    
+    ui_link = models.URLField(max_length=500, blank=True, null=True, help_text="Link to SAM.gov UI")
+    
+    # Debugging
+    raw_response = models.JSONField(blank=True, null=True, help_text="Full JSON response from API")
+
+    fetched_at = models.DateTimeField(auto_now_add=True, help_text="When this opportunity was first fetched")
+    last_updated_at = models.DateTimeField(auto_now=True, help_text="When this record was last updated")
+
+    class Meta:
+        ordering = ["-posted_date", "-fetched_at"]
+        verbose_name_plural = "Federal Contract Opportunities"
+        indexes = [
+            models.Index(fields=["posted_date"]),
+            models.Index(fields=["solicitation_number"]),
+        ]
+
+    def __str__(self):
+        return f"{self.solicitation_number or 'No Solicitation #'} - {self.title[:50]}"

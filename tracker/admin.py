@@ -19,6 +19,7 @@ from .models import (
     MessageLabel,
     ModelTrainingLabelMetric,
     ModelTrainingRun,
+    SamGovOpportunity,
     ScrapedArticle,
     ThreadTracking,
     Ticket,
@@ -583,3 +584,12 @@ admin.site.register(ModelTrainingRun)
 admin.site.register(ModelTrainingLabelMetric)
 admin.site.register(GmailFilterImportLog)
 admin.site.register(AppSetting)
+
+class SamGovOpportunityAdmin(admin.ModelAdmin):
+    list_display = ("title", "solicitation_number", "posted_date", "type", "fetched_at")
+    list_filter = ("type", "posted_date")
+    search_fields = ("title", "solicitation_number", "description")
+    ordering = ("-posted_date",)
+    readonly_fields = ("fetched_at",)
+
+admin.site.register(SamGovOpportunity, SamGovOpportunityAdmin)

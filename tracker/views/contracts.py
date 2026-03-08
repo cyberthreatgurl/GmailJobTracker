@@ -309,12 +309,24 @@ def link_contract_company(request, contract_id):
 
     contract.company = company
     contract.save(update_fields=["company", "updated_at"])
-    logger.info("Linked contract %s -> company '%s' (%s)", contract_id, company.name, company.id)
+    
+    # Auto-link other contracts with the same raw company name
+    updated_qs = DefenseContract.objects.filter(
+        company_name_raw=contract.company_name_raw,
+        company__isnull=True
+    )
+    updated_ids = list(updated_qs.values_list('id', flat=True))
+    updated_count = updated_qs.update(company=company)
+
+    logger.info("Linked contract %s -> company '%s' (%s). Auto-linked %d others.", 
+        contract_id, company.name, company.id, updated_count)
     return JsonResponse({
         "success": True,
         "company_id": company.id,
         "company_name": company.name,
         "company_url": f"/label_companies/?company={company.id}",
+        "updated_count": updated_count,
+        "updated_ids": updated_ids,
     })
 
 

@@ -512,12 +512,14 @@
   function openLinkModal(contractId, rawName) {
     linkingContractId = contractId;
     document.getElementById('linkModalTitle').textContent = '🔗 Link "' + rawName + '" to a Company';
-    document.getElementById('linkSearchInput').value = rawName;
+    // Pre-populate with first 4 chars if possible
+    const searchTerm = rawName.length >= 4 ? rawName.substring(0, 4) : rawName;
+    document.getElementById('linkSearchInput').value = searchTerm;
     document.getElementById('linkSearchResults').innerHTML = '';
     document.getElementById('linkModal').classList.remove('hidden');
     document.getElementById('linkSearchInput').focus();
     // Auto-search with the raw name pre-filled
-    runCompanySearch(rawName);
+    runCompanySearch(searchTerm);
   }
 
   function closeLinkModal() {
@@ -572,6 +574,28 @@
     });
   });
 
+  function updateContractRowUI(contractId, companyData) {
+      // Update company name display
+      const nameSpan = document.getElementById('company-name-display-' + contractId);
+      if (nameSpan) {
+        const rawName = nameSpan.textContent.trim();
+        nameSpan.innerHTML = `<a href="${LABEL_URL}${companyData.company_id}" class="text-blue-600 hover:text-blue-800 hover:underline">${rawName}</a>`;
+        
+        // Update action buttons
+        const actionsDiv = document.getElementById('company-actions-' + contractId);
+        if (actionsDiv) {
+            const escapedName = rawName.replace(/'/g, "\\'");
+            actionsDiv.innerHTML = `
+              <span class="text-xs text-emerald-600 font-medium">✅ Linked to ${companyData.company_name}</span>
+              <button type="button" onclick="openLinkModal(${contractId}, '${escapedName}')"
+                class="inline-flex items-center gap-1 text-[0.7rem] text-amber-600 hover:text-amber-800 hover:bg-amber-50 rounded px-1.5 py-0.5 transition-colors border border-transparent hover:border-amber-200">✏️ Change Link</button>
+              <button type="button" onclick="unlinkContract(${contractId}, this)"
+                class="inline-flex items-center gap-1 text-[0.7rem] text-red-500 hover:text-red-700 hover:bg-red-50 rounded px-1.5 py-0.5 transition-colors border border-transparent hover:border-red-200">✖ Unlink</button>
+            `;
+        }
+      }
+  }
+
   function selectCompany(companyId, companyName) {
     if (!linkingContractId) return;
     const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '{{ csrf_token }}';
@@ -583,22 +607,24 @@
       .then(r => r.json())
       .then(data => {
         if (data.success) {
-          // Update company name display
-          const nameSpan = document.getElementById('company-name-display-' + linkingContractId);
-          if (nameSpan) {
-            nameSpan.innerHTML = `<a href="${LABEL_URL}${data.company_id}" class="text-blue-600 hover:text-blue-800 hover:underline">${nameSpan.textContent.trim()}</a>`;
+          // Update the primary contract row
+          updateContractRowUI(linkingContractId, data);
+          
+          // Update any other auto-linked rows
+          if (data.updated_ids && data.updated_ids.length > 0) {
+              data.updated_ids.forEach(id => {
+                  if (id !== linkingContractId) {
+                      updateContractRowUI(id, data);
+                  }
+              });
+              
+              // Optional: Show a toast about the bulk update
+              if (data.updated_count > 0) {
+                  // If we had a toast system, call it here. For now, the visual update is enough.
+                  console.log(`Auto-linked ${data.updated_count} other contracts.`);
+              }
           }
-          // Update action buttons
-          const actionsDiv = document.getElementById('company-actions-' + linkingContractId);
-          if (actionsDiv) {
-            actionsDiv.innerHTML = `
-              <span class="text-xs text-emerald-600 font-medium">✅ Linked to ${data.company_name}</span>
-              <button type="button" onclick="openLinkModal(${linkingContractId}, document.getElementById('company-name-display-${linkingContractId}').textContent.trim())"
-                class="inline-flex items-center gap-1 text-[0.7rem] text-amber-600 hover:text-amber-800 hover:bg-amber-50 rounded px-1.5 py-0.5 transition-colors border border-transparent hover:border-amber-200">✏️ Change Link</button>
-              <button type="button" onclick="unlinkContract(${linkingContractId}, this)"
-                class="inline-flex items-center gap-1 text-[0.7rem] text-red-500 hover:text-red-700 hover:bg-red-50 rounded px-1.5 py-0.5 transition-colors border border-transparent hover:border-red-200">✖ Unlink</button>
-            `;
-          }
+          
           closeLinkModal();
         } else {
           alert('Error: ' + (data.error || 'Could not link company.'));

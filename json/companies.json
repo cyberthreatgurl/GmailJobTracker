@@ -129,7 +129,10 @@
     "IDT": "Innovative Defense Technologies",
     "Sonalysts": "Sonalysts, inc.",
     "Red River": "Red River",
-    "AIT": "Actionable Intelligence Technologies"
+    "AIT": "Actionable Intelligence Technologies",
+    "Deloitte": "Deloitte",
+    "BlueHalo": "AeroVironment",
+    "Galapagos": "Galapagos Federal"
   },
   "ats_domains": [
     "Defense",
@@ -230,7 +233,7 @@
     "astrazeneca-us.com": "AstraZeneca US",
     "astrazeneca.com": "AstraZeneca US",
     "astrion.us": "Astrion",
-    "avinc.com": "AeroVironment, Inc.",
+    "avinc.com": "AeroVironment",
     "axonius.com": "Axonius",
     "az-recruitment.com": "AstraZeneca US",
     "b4corp.com": "B4Corp",
@@ -563,7 +566,14 @@
     "anomali.com": "Anomali",
     "exabeam.com": "Exabeam",
     "redriver.com": "Red River",
-    "aitcfis.com": "Actionable Intelligence Technologies"
+    "aitcfis.com": "Actionable Intelligence Technologies",
+    "deloitte.com": "Deloitte",
+    "threatintelligenceplatform.com": "Threat Intelligence Platform",
+    "threatmon.io": "ThreatMon",
+    "valkyrie.com": "Valkyrie Enterprises",
+    "technomics.net": "Technomics",
+    "galapagosllc.com": "Galapagos Federal",
+    "steelcloud.com": "SteelCloud"
   },
   "headhunter_domains": [
     "agreeya.com",
@@ -938,7 +948,15 @@
     "Sonalysts, inc.": "http://www.sonalysts.com/careers/",
     "Anomali": "http://www.anomali.com/company/careers",
     "Exabeam": "http://www.exabeam.com/company/careers/",
-    "Red River": "https://redriver.com/company/careers"
+    "Red River": "https://redriver.com/company/careers",
+    "Deloitte": "https://www.deloitte.com/us/en/careers/deloitte-life/awards-and-recognition.html?icid=top_awards-and-recognition",
+    "ThreatMon": "https://threatmon.io/become-a-partner/",
+    "Valkyrie Enterprises": "https://www.valkyrie.com/careers",
+    "Technomics": "https://www.technomics.net/careers/",
+    "AeroVironment": "https://avav.wd1.myworkdayjobs.com/AVAV",
+    "Galapagos": "http://www.galapagosllc.com/Galapagos/Careers",
+    "Galapagos Federal": "http://www.galapagosllc.com/Galapagos/Careers",
+    "SteelCloud": "https://www.steelcloud.com/careers/"
   },
   "known": [
     "Obsidian",
@@ -1282,7 +1300,18 @@
     "Anomali",
     "Exabeam",
     "Red River Technology",
-    "Actionable Intelligence Technologies"
+    "Actionable Intelligence Technologies",
+    "Systems Engineering Group",
+    "Deloitte Touche Tohmatsu Limited",
+    "Threat Intelligence Platform",
+    "ThreatMon",
+    "Thundercat Technology",
+    "Valkyrie Enterprises",
+    "BlackSky Geospatial Solutions LLC",
+    "TECHNOMICS INC",
+    "BlueHalo Labs",
+    "Galapagos Federal",
+    "SteelCloud"
   ],
   "ats_heuristic_patterns": [
     "workday",

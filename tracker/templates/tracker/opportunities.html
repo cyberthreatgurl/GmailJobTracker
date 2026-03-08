@@ -1,0 +1,303 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}SAM.gov Opportunities – GmailJobTracker{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+  <!-- Page Header -->
+  <div class="flex flex-wrap items-center gap-8 mb-6">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">🏛️ SAM.gov Contract Opportunities</h1>
+      <p class="text-sm text-gray-500 mt-1">
+        Source: <a href="https://sam.gov/content/opportunities" target="_blank" class="text-blue-600 hover:underline">SAM.gov</a>
+      </p>
+    </div>
+    
+    <!-- Action Toolbar -->
+    <div class="flex gap-2">
+      <form method="get" class="flex gap-2">
+          <input type="text" name="q" value="{{ query }}" placeholder="Search by keyword/title..." 
+                 class="px-3 py-2 border rounded-lg text-sm focus:ring-blue-500 focus:border-blue-500 w-64">
+          <button type="submit" 
+                  class="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg px-4 py-2 transition-colors text-sm">
+            Search
+          </button>
+      </form>
+      
+      <form method="get" action="">
+          <input type="hidden" name="fetch" value="true">
+          <button type="submit"
+                  class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg px-4 py-2 transition-colors shadow-sm text-sm">
+            <span>📥</span>
+            <span>Fetch Latest</span>
+          </button>
+      </form>
+      
+      <!-- Upload CSV Button -->
+      <button onclick="document.getElementById('uploadModal').classList.remove('hidden')" 
+              class="inline-flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg px-4 py-2 transition-colors shadow-sm text-sm">
+        <span>📂</span>
+        <span>Upload CSV</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Messages -->
+  {% if messages %}
+  <div class="mb-6 space-y-2">
+      {% for message in messages %}
+      <div class="p-3 rounded-lg text-sm {% if message.tags == 'success' %}bg-green-50 text-green-800 border-green-200{% elif message.tags == 'error' %}bg-red-50 text-red-800 border-red-200{% else %}bg-blue-50 text-blue-800 border-blue-200{% endif %} border">
+          {{ message }}
+      </div>
+      {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- Results Table -->
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm text-left">
+        <thead class="bg-gray-50 text-gray-700 font-semibold border-b border-gray-200">
+          <tr>
+            <th class="px-4 py-3 min-w-[300px]">Title / Solicitation</th>
+            <th class="px-4 py-3 w-32">Posted</th>
+            <th class="px-4 py-3 w-32">Response Date</th>
+            <th class="px-4 py-3 w-40">Type</th>
+            <th class="px-4 py-3 w-48">Department / Office</th>
+            <th class="px-4 py-3 w-24">NAICS</th>
+            <th class="px-4 py-3 w-20">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+          {% for opp in page_obj %}
+          <tr class="hover:bg-gray-50 transition-colors group">
+            <td class="px-4 py-3 align-top">
+              <div class="font-medium text-blue-700 hover:underline mb-1">
+                <a href="{{ opp.ui_link }}" target="_blank">{{ opp.title }}</a>
+              </div>
+              <div class="text-xs text-gray-500 font-mono mb-1">
+                {{ opp.solicitation_number|default:"No Solicitation #" }}
+              </div>
+              
+              <!-- Description Preview -->
+              {% if opp.description and "api.sam.gov/prod/opportunities" not in opp.description %}
+              <div class="text-xs text-gray-600 line-clamp-2 mb-2">
+                  {{ opp.description|striptags }}
+              </div>
+              {% endif %}
+
+              <!-- Nested Details (Award, POC) -->
+              <div class="text-xs space-y-1">
+                  {% if opp.point_of_contact %}
+                  <div class="text-gray-500 flex gap-1 items-center">
+                    <span class="text-xs">👤</span>
+                    {% for poc in opp.point_of_contact %}
+                        {% if forloop.first %}
+                        <span title="{{ poc.email }}">{{ poc.fullName }} ({{ poc.title|default:"POC" }})</span>
+                        {% endif %}
+                    {% endfor %}
+                  </div>
+                  {% endif %}
+                  
+                  {% if opp.resource_links %}
+                   <div class="text-gray-500 flex gap-1 items-center">
+                    <span class="text-xs">📎</span>
+                    <span>{{ opp.resource_links|length }} resource(s)</span>
+                   </div>
+                  {% endif %}
+                  
+                  <!-- Metadata hidden for modal -->
+                  <div id="debug-{{ opp.id }}" class="hidden">{{ opp.raw_response|json_script:"json-data" }}</div>
+                  <script>
+                    window.oppData = window.oppData || {};
+                    window.oppData[{{ opp.id }}] = {{ opp.raw_response|default:"{}"|safe }};
+                  </script>
+              </div>
+            </td>
+            <td class="px-4 py-3 align-top whitespace-nowrap text-gray-600">
+              {{ opp.posted_date|date:"M d, Y" }}
+            </td>
+            <td class="px-4 py-3 align-top whitespace-nowrap text-gray-600">
+              {% if opp.response_date %}
+                {{ opp.response_date|date:"M d, Y" }}
+              {% else %}
+                <span class="text-gray-400">-</span>
+              {% endif %}
+            </td>
+            <td class="px-4 py-3 align-top">
+               <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
+                   {{ opp.type }}
+               </span>
+               {% if opp.base_type %}
+               <div class="text-xs text-gray-500 mt-1">Base: {{ opp.base_type }}</div>
+               {% endif %}
+            </td>
+            <td class="px-4 py-3 align-top text-gray-600">
+              <div class="font-medium text-gray-900">{{ opp.department|default:"-" }}</div>
+              <div class="text-xs">{{ opp.office|default:"" }}</div>
+              <div class="text-xs italic text-gray-400 mt-1">{{ opp.sub_office|default:"" }}</div>
+            </td>
+            <td class="px-4 py-3 align-top font-mono text-gray-600">
+              {{ opp.naics_code|default:"-" }}
+            </td>
+            <td class="px-4 py-3 align-top text-right">
+              <div class="flex flex-col gap-2 items-end">
+                <a href="{{ opp.ui_link }}" target="_blank"
+                   class="inline-flex items-center justify-center p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                   title="View on SAM.gov">
+                  ↗️
+                </a>
+                
+                <a href="{% url 'refresh_opportunity' opp.id %}" 
+                   onclick="return confirm('Refresh this opportunity from SAM.gov?')"
+                   class="inline-flex items-center justify-center px-2 py-1 text-xs font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded border border-emerald-200 transition-colors shadow-sm"
+                   title="Refresh data from API">
+                   🔄 Refresh
+                </a>
+                
+                <button onclick="openDebugModal({{ opp.id }})" class="text-xs text-gray-400 hover:text-blue-600 underline cursor-pointer mt-1">
+                  [Debug]
+                </button>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" class="px-4 py-12 text-center text-gray-500">
+              <div class="text-4xl mb-3">📭</div>
+              <p class="text-lg font-medium text-gray-900">No opportunities found</p>
+              <p class="mt-1">Try fetching fresh data or adjusting your search.</p>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    
+    <!-- Pagination -->
+    {% if page_obj.paginator.num_pages > 1 %}
+    <div class="bg-gray-50 px-4 py-3 border-t border-gray-200 flex items-center justify-between sm:px-6">
+      <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+        <div>
+          <p class="text-sm text-gray-700">
+            Showing
+            <span class="font-medium">{{ page_obj.start_index }}</span>
+            to
+            <span class="font-medium">{{ page_obj.end_index }}</span>
+            of
+            <span class="font-medium">{{ page_obj.paginator.count }}</span>
+            results
+          </p>
+        </div>
+        <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+          {% if page_obj.has_previous %}
+          <a href="?page={{ page_obj.previous_page_number }}&q={{ query }}" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+            <span class="sr-only">Previous</span>
+            ◀
+          </a>
+          {% endif %}
+          
+          <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+          </span>
+
+          {% if page_obj.has_next %}
+          <a href="?page={{ page_obj.next_page_number }}&q={{ query }}" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+            <span class="sr-only">Next</span>
+            ▶
+          </a>
+          {% endif %}
+        </nav>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Upload Modal -->
+  <div id="uploadModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-75 z-50 overflow-y-auto">
+    <div class="min-h-screen px-4 text-center flex items-center justify-center">
+        <div class="fixed inset-0 transition-opacity" aria-hidden="true" onclick="document.getElementById('uploadModal').classList.add('hidden')"></div>
+        <div class="inline-block w-full max-w-lg p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-2xl relative">
+            <h3 class="text-lg font-bold text-gray-900 mb-4">Upload SAM.gov CSV</h3>
+            
+            <form method="post" enctype="multipart/form-data" class="space-y-4">
+            {% csrf_token %}
+            <div class="flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md hover:bg-gray-50 transition-colors">
+                <div class="space-y-1 text-center">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                        <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    <div class="flex text-sm text-gray-600">
+                        <label for="file-upload" class="relative cursor-pointer bg-white rounded-md font-medium text-purple-600 hover:text-purple-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-purple-500">
+                        <span>Upload a file</span>
+                        <input id="file-upload" name="csv_file" type="file" accept=".csv" required class="sr-only" onchange="document.getElementById('file-name').textContent = this.files[0].name">
+                        </label>
+                        <p class="pl-1">or drag and drop</p>
+                    </div>
+                    <p class="text-xs text-gray-500">CSV up to 10MB</p>
+                    <p id="file-name" class="text-xs text-emerald-600 font-semibold mt-2"></p>
+                </div>
+            </div>
+            
+            <div class="flex justify-end gap-2 mt-4">
+                <button type="button" onclick="document.getElementById('uploadModal').classList.add('hidden')"
+                        class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                Cancel
+                </button>
+                <button type="submit" 
+                        class="px-4 py-2 text-sm font-medium text-white bg-purple-600 border border-transparent rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
+                Ingest
+                </button>
+            </div>
+            </form>
+        </div>
+    </div>
+  </div>
+
+  <!-- Debug JSON Modal -->
+  <div id="debugModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-75 z-50 overflow-y-auto">
+    <div class="min-h-screen px-4 text-center">
+      <div class="fixed inset-0 transition-opacity" aria-hidden="true" onclick="closeDebugModal()"></div>
+      <span class="inline-block h-screen align-middle" aria-hidden="true">&#8203;</span>
+      <div class="inline-block w-full max-w-4xl p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-2xl relative">
+         <button onclick="closeDebugModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+           <span class="text-2xl">&times;</span>
+         </button>
+         <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">API Response Debug</h3>
+         <div class="bg-gray-100 p-4 rounded-lg overflow-auto max-h-[70vh]">
+            <pre id="debugContent" class="text-xs font-mono"></pre>
+         </div>
+         <div class="mt-4 text-right">
+            <button onclick="closeDebugModal()" class="inline-flex justify-center px-4 py-2 text-sm font-medium text-blue-900 bg-blue-100 border border-transparent rounded-md hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500">
+              Close
+            </button>
+         </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function openDebugModal(id) {
+       const data = window.oppData && window.oppData[id];
+       if (data) {
+           document.getElementById('debugContent').textContent = JSON.stringify(data, null, 2);
+           document.getElementById('debugModal').classList.remove('hidden');
+       } else {
+           alert("No debug data available for this record (fetched before fix).");
+       }
+    }
+
+    function closeDebugModal() {
+        document.getElementById('debugModal').classList.add('hidden');
+    }
+    
+    // Close on escape key
+    document.addEventListener('keydown', function(event) {
+        if (event.key === "Escape") {
+            closeDebugModal();
+        }
+    });
+  </script>
+</div>
+{% endblock %}

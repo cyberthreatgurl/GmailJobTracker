@@ -70,7 +70,7 @@ class USASpendingService:
 
     def __init__(
         self,
-        start_date: str = "2025-01-01",
+        start_date: str = "2024-01-01",
         end_date: Optional[str] = None,
         timeout: int = 10,
     ):
@@ -95,10 +95,10 @@ class USASpendingService:
                 f"Invalid start_date format: {start_date}. Expected YYYY-MM-DD"
             ) from exc
 
-        min_date = date(2025, 1, 1)
+        min_date = date(2024, 1, 1)
         if start_dt < min_date:
             raise ValueError(
-                f"start_date {start_date} is before minimum date 2025-01-01"
+                f"start_date {start_date} is before minimum date 2024-01-01"
             )
 
         self.start_date = start_date
@@ -163,7 +163,7 @@ class USASpendingService:
         # Convert back to list for iteration
         keywords_list = list(search_terms)
 
-        logger.info("Fetching contracts for company '%s' using terms: %s since %s", company_name, keywords_list, start_date)
+        logger.info("Fetching contracts for company '%s' since %s", company_name, start_date)
 
         # Force a reasonable limit for company specific fetch
         limit = 100 
@@ -175,35 +175,53 @@ class USASpendingService:
         # Determine target company object
         target_company = Company.objects.filter(name__iexact=company_name).first()
 
-        # Iterate over each search term (name + aliases)
-        for term in keywords_list:
-            # Use existing logic but pass single keyword as list
-            raw_contracts = self._fetch_contracts_from_api(limit, keywords=[term])
-            
-            if not raw_contracts:
-                logger.debug("No contracts found for term '%s'", term)
-                continue
+        # Strategy: Use UEI (Unique Entity ID) if available for precise matching.
+        # Otherwise, fall back to keyword search using company name and aliases.
+        searches = []
+        if target_company and target_company.uei:
+            logger.info("Using UEI '%s' for company '%s'", target_company.uei, company_name)
+            searches.append({
+                'term': target_company.uei,
+                'kwargs': {'recipient_identifiers': [target_company.uei]}
+            })
+        else:
+            logger.info("Using keywords for company '%s': %s", company_name, keywords_list)
+            for term in keywords_list:
+                searches.append({
+                    'term': term,
+                    'kwargs': {'keywords': [term]}
+                })
 
-            for raw in raw_contracts:
-                try:
-                    parsed = self._parse_contract(raw)
-                    
-                    # Force the link to the target company regardless of internal matching logic
-                    if target_company:
-                        parsed["company"] = target_company
-    
-                    saved, is_new = self._save_contract(parsed, overwrite=True)
-                    if saved:
-                        if is_new:
-                            created += 1
-                        else:
-                            updated += 1
-                    else:
-                        # Should not happen with overwrite=True unless error
-                        pass
-                except Exception as e:
-                    logger.error("Error processing contract for %s: %s", term, e)
-                    errors += 1
+        # Process each search pass
+        for search in searches:
+            term = search['term']
+            try:
+                raw_contracts = self._fetch_contracts_from_api(limit, **search['kwargs'])
+                
+                if not raw_contracts:
+                    logger.debug("No contracts found for term '%s'", term)
+                    continue
+
+                for raw in raw_contracts:
+                    try:
+                        parsed = self._parse_contract(raw)
+                        
+                        # Force the link to the target company regardless of internal matching logic
+                        if target_company:
+                            parsed["company"] = target_company
+        
+                        saved, is_new = self._save_contract(parsed, overwrite=True)
+                        if saved:
+                            if is_new:
+                                created += 1
+                            else:
+                                updated += 1
+                    except Exception as e:
+                        logger.error("Error processing contract for %s: %s", term, e)
+                        errors += 1
+            except Exception as e:
+                logger.error("Error fetching contracts for term '%s': %s", term, e)
+                errors += 1
                 
         return {"created": created, "updated": updated, "errors": errors}
 
@@ -275,6 +293,7 @@ class USASpendingService:
         limit: int,
         agency_codes: Optional[List[str]] = None,
         keywords: Optional[List[str]] = None,
+        recipient_identifiers: Optional[List[str]] = None,
     ) -> List[Dict]:
         """Fetch contracts from API."""
         contracts = []
@@ -285,7 +304,13 @@ class USASpendingService:
         
         while len(contracts) < limit:
             # Build request payload
-            payload = self._build_api_payload(page, per_page, agency_codes, keywords=keywords)
+            payload = self._build_api_payload(
+                page, 
+                per_page, 
+                agency_codes, 
+                keywords=keywords,
+                recipient_identifiers=recipient_identifiers
+            )
 
             # Make request with retries
             for attempt in range(1, MAX_RETRIES + 1):
@@ -316,6 +341,7 @@ class USASpendingService:
         per_page: int,
         agency_codes: Optional[List[str]] = None,
         keywords: Optional[List[str]] = None,
+        recipient_identifiers: Optional[List[str]] = None,
     ) -> Dict:
         """
         Build API request payload.
@@ -323,6 +349,8 @@ class USASpendingService:
         Args:
             keywords: List of search terms. USASpending supports recipient_search_text
                       or bare keywords.
+            recipient_identifiers: List of recipient identifiers (UEI, DUNS, Name) 
+                                   for specific recipient search.
         """
         payload = {
             "filters": {
@@ -352,6 +380,9 @@ class USASpendingService:
                 "Highly Compensated Officer 4 Amount",
                 "Highly Compensated Officer 5 Name",
                 "Highly Compensated Officer 5 Amount",
+                # Include UEI/DUNS for downstream processing
+                "Recipient UEI", 
+                "Recipient DUNS", 
             ],
             "page": page,
             "limit": per_page,
@@ -359,7 +390,10 @@ class USASpendingService:
             "order": "desc",
         }
 
-        if keywords:
+        if recipient_identifiers:
+            # Prefer recipient_search_text (UEI/DUNS/Name exact matches)
+            payload["filters"]["recipient_search_text"] = recipient_identifiers
+        elif keywords:
             # Use general keyword search (instead of recipient_search_text) to match
             # both recipient names AND contract descriptions (e.g. for products/resellers).
             # The API 'keyword' filter takes a single string.

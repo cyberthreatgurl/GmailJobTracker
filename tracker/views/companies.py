@@ -555,16 +555,42 @@ def label_companies(request):
                             # Also include messages from company's domain or ATS domain
                             domains_to_check = []
                             if selected_company.domain:
-                                domains_to_check.append(selected_company.domain)
+                                domains_to_check.append(selected_company.domain.strip().lower())
                             if selected_company.ats:
-                                domains_to_check.append(selected_company.ats)
+                                domains_to_check.append(selected_company.ats.strip().lower())
+
+                            # Filter out broad ATS domains and common email providers
+                            try:
+                                with open("json/companies.json", "r", encoding="utf-8") as f:
+                                    company_data = json.load(f)
+                                ats_metadata = set(d.lower() for d in company_data.get("ats_domains", []))
+                            except Exception:
+                                ats_metadata = set()
+                                logging.warning("Could not load ats_domains from companies.json")
+
+                            common_providers = {
+                                "gmail.com", "yahoo.com", "outlook.com", "hotmail.com", "icloud.com",
+                                "aol.com", "protonmail.com", "me.com", "msn.com", "live.com",
+                                "googlemail.com", "yandex.com", "mail.com", "zoho.com"
+                            }
+                            
+                            safe_domains = []
+                            for d in domains_to_check:
+                                is_broad_ats = d in ats_metadata
+                                is_common_provider = d in common_providers
+                                if not is_broad_ats and not is_common_provider:
+                                    safe_domains.append(d)
+                                else:
+                                    logging.warning(
+                                        f"Skipping broad re-ingest domain '{d}' for company '{selected_company.name}'"
+                                    )
 
                             # Build query to include sender domains
-                            if domains_to_check:
+                            if safe_domains:
                                 from django.db.models import Q
 
                                 domain_query = Q()
-                                for domain in domains_to_check:
+                                for domain in safe_domains:
                                     domain_query |= Q(sender__icontains=f"@{domain}")
 
                                 # Combine: messages assigned to company OR from company domains

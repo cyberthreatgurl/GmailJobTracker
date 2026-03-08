@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.0] - 2026-03-08
+
+### Changed
+- **Re-Ingest Company Safety**: `label_companies` view now strictly filters out broad ATS domains (e.g., `myworkdayjobs.com`) and common email providers (e.g., `gmail.com`) when re-ingesting company emails. Only company-specific subdomains or the company's primary domain are used for matching.
+- **Message Labeling**: When bulk labeling messages as "noise" from the `label_messages` view, the associated company is now automatically cleared (set to NULL), and the message is marked as `reviewed`.
+- **Parser Reliability**:
+  - Fixed issue where `ThreadTracking` records were not correctly updating their company link when the underlying `Message` company was changed during re-ingestion.
+  - Added specific handling for "Red River" (conflicting with "river" common noun check) in `patterns.json`.
+  - Added "river", "network", "security" to `corp_markers` in `patterns.json` to prevent valid tech company names from being rejected as person names.
+- **Configuration Updates**:
+  - Added "Red River" and its alias "redriver" to `json/companies.json`.
+
 ## [3.0.0] - 2026-03-06
 
 ### MAJOR BREAKING CHANGES

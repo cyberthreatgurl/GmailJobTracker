@@ -526,7 +526,11 @@
     "partners",
     "associates",
     "labs",
-    "industries"
+    "industries",
+    "river",
+    "network",
+    "networks",
+    "security"
   ],
   "newsletter_headers": [
     "List-Id",

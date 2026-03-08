@@ -202,15 +202,32 @@ class RuleClassifier:
         # This prevents marketing/transactional emails from matching withdrew/rejection/etc.
         # patterns in their body (e.g. "no longer wish to receive", "one-time code").
         noise_patterns = self._msg_label_patterns.get("noise", [])
+        noise_excludes = self._msg_label_excludes.get("noise", [])
         subject_text_only = subject or ""
+        
+        # Helper to check if noise excludes match
+        def is_excluded_noise(text_to_check):
+            if not noise_excludes:
+                return False
+            return any(ex.search(text_to_check) for ex in noise_excludes)
+
+        # Check subject for noise patterns
         if any(rx.search(subject_text_only) for rx in noise_patterns):
-            logger.debug("[DEBUG rule_label] Early noise match on subject -> noise")
-            return "noise"
-        # Also check full text — catches noise signals in the body (e.g. "one-time security code"
-        # in a bank notification) before withdrew/rejection early checks are evaluated.
+            # Must verify it's not excluded (e.g. "Application Received")
+            if not is_excluded_noise(s):
+                logger.debug("[DEBUG rule_label] Early noise match on subject -> noise")
+                return "noise"
+            else:
+                logger.debug("[DEBUG rule_label] Early noise match on subject but EXCLUDED -> continuing")
+
+        # Also check full text — catches noise signals in the body
         if any(rx.search(s) for rx in noise_patterns):
-            logger.debug("[DEBUG rule_label] Early noise match on body -> noise")
-            return "noise"
+            # Must verify it's not excluded (e.g. "Thank you for applying")
+            if not is_excluded_noise(s):
+                logger.debug("[DEBUG rule_label] Early noise match on body -> noise")
+                return "noise"
+            else:
+                logger.debug("[DEBUG rule_label] Early noise match on body but EXCLUDED -> continuing")
 
         # Check withdrew FIRST (before rejection)
         withdrew_patterns = self._msg_label_patterns.get("withdrew", [])

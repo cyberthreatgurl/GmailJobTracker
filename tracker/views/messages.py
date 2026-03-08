@@ -80,7 +80,11 @@ def label_messages(request):
                         # Use centralized helper to save+propagate label changes
                         # This is a manual/admin action — allow overwriting reviewed flags
                         label_message_and_propagate(
-                            msg, bulk_label, confidence=1.0, overwrite_reviewed=True
+                            msg,
+                            bulk_label,
+                            confidence=1.0,
+                            overwrite_reviewed=True,
+                            set_reviewed=True,
                         )
                         if msg.thread_id:
                             touched_threads.add(msg.thread_id)

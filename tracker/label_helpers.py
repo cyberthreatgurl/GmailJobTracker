@@ -9,6 +9,7 @@ def label_message_and_propagate(
     label: str,
     confidence: Optional[float] = None,
     overwrite_reviewed: bool = False,
+    set_reviewed: bool = False,
 ) -> None:
     """Set a Message's ml_label and confidence, save, and propagate to ThreadTracking.
 
@@ -26,6 +27,9 @@ def label_message_and_propagate(
     msg.ml_label = label
     if confidence is not None:
         msg.confidence = confidence
+    if set_reviewed:
+        msg.reviewed = True
+
     # Respect Message.save behaviour (clearing company for reviewed noise messages)
     msg.save()
     try:

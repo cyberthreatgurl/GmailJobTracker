@@ -860,7 +860,24 @@ def extract_metadata(service, msg_id):
 
     body = ""
     parts = msg["payload"].get("parts", [])
-    body = EmailBodyParser.extract_from_gmail_parts(parts)
+    extracted_html = EmailBodyParser.extract_from_gmail_parts(parts)
+    body = extracted_html
+
+    # Ensure raw HTML is saved and body is converted to plain text
+    # extract_from_gmail_parts prefers HTML, so if we got content, treat it as HTML
+    if body and body != "Empty Body":
+        body_html = body  # Save raw HTML for metadata
+        try:
+            # Convert to plain text using BeautifulSoup to strip tags/scripts
+            soup = BeautifulSoup(body, "html.parser")
+            for script in soup(["script", "style"]):
+                script.extract()
+            text = soup.get_text(separator=" ", strip=True)
+            if text:
+                body = text
+        except Exception as e:
+            logger.debug(f"Failed to convert HTML body to text: {e}")
+            # fall back to keeping raw HTML in body if conversion fails
 
     for part in parts:
         mime_type = part.get("mimeType")
@@ -1391,7 +1408,8 @@ def _check_newsletter_auto_ignore(metadata, header_hints, msg_id, stats,
     body = metadata.get("body", "")
     classification_text = metadata.get("classification_text", body)
     app_text = body if body and body.strip() else classification_text
-    is_app_related = is_application_related(metadata["subject"], app_text[:500])
+    # Check full text (or larger snippet) to ensure we catch application patterns even in HTML-heavy bodies
+    is_app_related = is_application_related(metadata["subject"], app_text[:10000])
 
     logger.debug(
         f"{log_prefix}[HEADER HINTS] is_application_related={is_app_related}, "
@@ -2185,7 +2203,18 @@ def _update_thread_tracking_on_reingest(metadata, result, company_obj, stats):
         if app:
             logger.debug(f"[Re-ingest] App ml_label={app.ml_label}, rejection_date={app.rejection_date}, ml_label_param={ml_label}")
             updated = False
+            
+            # Update company if different (and valid)
+            if company_obj and app.company != company_obj:
+                app.company = company_obj
+                # If we have a source, use it, otherwise keep existing
+                # (Can't easily plumb company_source here without changing signature, 
+                # but company update is the priority)
+                updated = True
+                logger.debug(f"✓ Updated ThreadTracking company during re-ingest: {company_obj.name}")
+
             matched_other_application = False
+
 
             if (
                 ml_label in ("rejected", "rejection", "cancelled", "withdrew")

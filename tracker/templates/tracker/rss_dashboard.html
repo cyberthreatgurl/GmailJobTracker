@@ -1,0 +1,342 @@
+
+{% extends "tracker/dashboard.html" %}
+
+{% block title %}News / RSS{% endblock %}
+
+{% block content %}
+<div class="px-6 py-4">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-semibold text-gray-800 flex items-center gap-2">
+            📰 News & RSS Feed
+            {% if query %}<span class="text-sm font-normal text-gray-500">Search: "{{ query }}"</span>{% endif %}
+        </h1>
+        <div class="flex items-center gap-2">
+			<!-- Add Feed Button -->
+			<button class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-sm flex items-center gap-1.5 transition-colors"
+                onclick="document.getElementById('addFeedModal').classList.remove('hidden')">
+                ➕ Add Feed
+            </button>
+			
+            <!-- Refetch Button -->
+            <button id="fetchFeedsBtn" onclick="fetchFeeds()" 
+                    class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded text-sm flex items-center gap-1.5 transition-colors">
+                <span id="fetchBtnIcon">🔄</span>
+                <span id="fetchBtnText">Fetch Latest</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Filters & Search -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+        <form method="get" class="flex flex-wrap gap-4 items-end">
+            <!-- Search -->
+            <div class="flex-grow min-w-[200px]">
+                <label class="block text-xs font-medium text-gray-500 mb-1">Search Articles</label>
+                <div class="relative">
+                    <input type="text" name="q" value="{{ query }}" placeholder="Search headlines..." 
+                           class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 pl-8">
+                    <span class="absolute left-2.5 top-2 text-gray-400">🔍</span>
+                </div>
+            </div>
+
+            <!-- Feed Filter -->
+            <div class="min-w-[200px]">
+                <label class="block text-xs font-medium text-gray-500 mb-1">Filter by Feed</label>
+                <select name="feed" class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500" onchange="this.form.submit()">
+                    <option value="">All Feeds</option>
+                    {% for feed in feeds %}
+                        <option value="{{ feed.id }}" {% if selected_feed == feed.id %}selected{% endif %}>{{ feed.title }} ({{ feed.category }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+             <!-- Category Filter -->
+            <div class="min-w-[150px]">
+                <label class="block text-xs font-medium text-gray-500 mb-1">Filter by Category</label>
+                <select name="category" class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500" onchange="this.form.submit()">
+                    <option value="">All Categories</option>
+                    {% for cat in categories %}
+                        <option value="{{ cat }}" {% if selected_category == cat %}selected{% endif %}>{{ cat }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Submit -->
+            <button type="submit" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-1.5 rounded text-sm transition-colors border border-gray-300">
+                Filter
+            </button>
+            
+            {% if query or selected_feed or selected_category %}
+                <a href="{% url 'rss_dashboard' %}" class="text-sm text-gray-500 hover:text-gray-700 underline">Clear</a>
+            {% endif %}
+        </form>
+    </div>
+
+    <!-- Article List -->
+    <div class="space-y-4">
+        {% for article in page_obj %}
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow">
+            <!-- Header -->
+            <div class="flex justify-between items-start gap-4 mb-2">
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold text-gray-900 leading-tight">
+                        <a href="{{ article.link }}" target="_blank" class="hover:text-blue-600 hover:underline">
+                            {{ article.title }}
+                        </a>
+                    </h3>
+                    <div class="flex items-center gap-2 mt-1 text-xs text-gray-500">
+                        <span class="font-medium text-gray-700">{{ article.feed.title }}</span>
+                        <span class="bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded border border-gray-200">{{ article.feed.category }}</span>
+                        <span>•</span>
+                        <span>{{ article.pub_date|date:"M d, Y H:i" }}</span>
+                        {% if article.author %}
+                        <span>•</span>
+                        <span>{{ article.author }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Action Area -->
+                <div class="flex flex-col items-end gap-2 min-w-[140px]" id="article-actions-{{ article.id }}">
+                    {% if article.company %}
+                        <span class="text-xs text-emerald-600 font-medium bg-emerald-50 px-2 py-1 rounded border border-emerald-100 flex items-center gap-1">
+                            ✅ Linked: <a href="{% url 'label_companies' %}?company={{ article.company.id }}" class="hover:underline">{{ article.company.name }}</a>
+                        </span>
+                        <div class="flex gap-1">
+                            <button onclick="openLinkModal({{ article.id }}, '{{ article.title|escapejs }}')" 
+                                    class="text-[10px] text-amber-600 hover:bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">
+                                Change
+                            </button>
+                            <button onclick="unlinkArticle({{ article.id }})" 
+                                    class="text-[10px] text-red-600 hover:bg-red-50 px-1.5 py-0.5 rounded border border-red-200">
+                                Unlink
+                            </button>
+                        </div>
+                    {% else %}
+                        <button onclick="openLinkModal({{ article.id }}, '{{ article.title|escapejs }}')" 
+                                class="text-xs bg-white hover:bg-emerald-50 text-emerald-600 border border-emerald-200 hover:border-emerald-300 px-2 py-1 rounded transition-colors flex items-center gap-1">
+                            🔗 Link to Company
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Content Snippet -->
+            <div class="text-sm text-gray-600 line-clamp-2 prose prose-sm max-w-none">
+                {{ article.description|striptags|truncatewords:50 }}
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-12 bg-gray-50 rounded-lg border border-gray-200 border-dashed">
+            <div class="text-4xl mb-2">📭</div>
+            <h3 class="text-lg font-medium text-gray-900">No articles found</h3>
+            <p class="text-gray-500 text-sm mt-1">Try fetching latest feeds or adjusting your filters.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <div class="mt-6 flex justify-center">
+        <nav class="flex items-center gap-1">
+            {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}&q={{ query }}&feed={{ selected_feed }}&category={{ selected_category }}" 
+                   class="px-3 py-1 text-sm border rounded hover:bg-gray-50">Previous</a>
+            {% endif %}
+            
+            <span class="px-3 py-1 text-sm text-gray-500">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+            </span>
+
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}&q={{ query }}&feed={{ selected_feed }}&category={{ selected_category }}" 
+                   class="px-3 py-1 text-sm border rounded hover:bg-gray-50">Next</a>
+            {% endif %}
+        </nav>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Add Feed Modal -->
+<div id="addFeedModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+        <h2 class="text-xl font-semibold mb-4 text-gray-800">Add New RSS Feed</h2>
+        <form method="post" action="{% url 'rss_add_feed' %}">
+            {% csrf_token %}
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">RSS/Atom URL</label>
+                <input type="url" name="feed_url" required placeholder="https://example.com/feed.xml"
+                       class="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                <input type="text" name="category" list="categoryList" placeholder="Uncategorized"
+                       class="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500">
+                <datalist id="categoryList">
+                    {% for cat in categories %}
+                        <option value="{{ cat }}">
+                    {% endfor %}
+                </datalist>
+            </div>
+            <div class="flex justify-end gap-2">
+                <button type="button" onclick="document.getElementById('addFeedModal').classList.add('hidden')"
+                        class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded">Cancel</button>
+                <button type="submit" class="px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded">Add Feed</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Link Company Modal (Reusing structure from Defense Contracts) -->
+<div id="linkModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-lg mx-4 flex flex-col max-h-[80vh]">
+        <div class="px-4 py-3 border-b flex justify-between items-center bg-gray-50 rounded-t-lg">
+            <h3 id="linkModalTitle" class="text-sm font-semibold text-gray-800">Link Article to Company</h3>
+            <button onclick="closeLinkModal()" class="text-gray-400 hover:text-gray-600 text-xl font-bold">&times;</button>
+        </div>
+        <div class="p-4 border-b bg-white">
+            <input type="text" id="linkSearchInput" placeholder="Search companies..." class="w-full px-3 py-2 border rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div id="linkSearchResults" class="overflow-y-auto flex-1 p-2 space-y-1">
+            <!-- Results populate here -->
+        </div>
+        <div class="px-4 py-3 bg-gray-50 border-t rounded-b-lg flex justify-end">
+            <button onclick="closeLinkModal()" class="px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-200 rounded border border-gray-300">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- Fetch Logic ---
+    function fetchFeeds() {
+        const btn = document.getElementById('fetchFeedsBtn');
+        const icon = document.getElementById('fetchBtnIcon');
+        const text = document.getElementById('fetchBtnText');
+        
+        btn.disabled = true;
+        btn.classList.add('opacity-75', 'cursor-not-allowed');
+        icon.textContent = '⏳';
+        text.textContent = 'Fetching...';
+        
+        const csrfToken = '{{ csrf_token }}';
+        
+        fetch('{% url "rss_fetch_ajax" %}', {
+            method: 'POST',
+            headers: {'X-CSRFToken': csrfToken}
+        })
+        .then(r => r.json())
+        .then(data => {
+            if(data.success) {
+                location.reload(); 
+            } else {
+                alert("Error: " + data.error);
+            }
+        })
+        .catch(err => alert("Network Error: " + err))
+        .finally(() => {
+            btn.disabled = false;
+            btn.classList.remove('opacity-75');
+            icon.textContent = '🔄';
+            text.textContent = 'Fetch Latest';
+        });
+    }
+
+    // --- Link Logic (Adapted from Defense Contracts) ---
+    let linkingArticleId = null;
+    let searchTimer = null;
+    
+    // Shared constants
+    const SEARCH_URL = "{% url 'search_companies_for_linking' %}";
+    const LINK_URL_TEMPLATE = "{% url 'rss_link_article' 0 %}"; // Dummy ID 0
+    
+    function openLinkModal(articleId, title) {
+        linkingArticleId = articleId;
+        document.getElementById('linkModal').classList.remove('hidden');
+        document.getElementById('linkSearchInput').value = '';
+        document.getElementById('linkSearchResults').innerHTML = '<p class="text-xs text-gray-500 p-2">Type to search...</p>';
+        document.getElementById('linkSearchInput').focus();
+    }
+    
+    function closeLinkModal() {
+        document.getElementById('linkModal').classList.add('hidden');
+        linkingArticleId = null;
+    }
+    
+    document.getElementById('linkSearchInput').addEventListener('input', function() {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(() => runCompanySearch(this.value), 250);
+    });
+    
+    function runCompanySearch(q) {
+        if (!q || q.trim().length === 0) return;
+        
+        fetch(`${SEARCH_URL}?q=${encodeURIComponent(q)}`)
+            .then(r => r.json())
+            .then(data => {
+                const container = document.getElementById('linkSearchResults');
+                if (!data.companies.length) {
+                    container.innerHTML = '<p class="text-xs text-gray-500 p-2">No companies found.</p>';
+                    return;
+                }
+                container.innerHTML = data.companies.map(c => `
+                    <button onclick="selectCompany(${c.id}, '${c.name.replace(/'/g, "\\'")}')" 
+                            class="w-full text-left px-3 py-2 hover:bg-blue-50 border-b last:border-0 border-gray-100 text-sm">
+                        <div class="font-medium text-gray-800">${c.name}</div>
+                        <div class="text-xs text-gray-500">${c.location || ''}</div>
+                    </button>
+                `).join('');
+            });
+    }
+    
+    function selectCompany(companyId, companyName) {
+        if (!linkingArticleId) return;
+        
+        const csrfToken = '{{ csrf_token }}';
+        const url = LINK_URL_TEMPLATE.replace('0', linkingArticleId);
+        
+        const formData = new FormData();
+        formData.append('company_id', companyId);
+        
+        fetch(url, {
+            method: 'POST',
+            body: formData,
+            headers: {'X-CSRFToken': csrfToken}
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                // Update UI instantly
+                const container = document.getElementById(`article-actions-${linkingArticleId}`);
+                if (data.company_id) {
+                    container.innerHTML = `
+                        <span class="text-xs text-emerald-600 font-medium bg-emerald-50 px-2 py-1 rounded border border-emerald-100 flex items-center gap-1">
+                            ✅ Linked: <a href="{% url 'label_companies' %}?company=${data.company_id}" class="hover:underline">${data.company_name}</a>
+                        </span>
+                        <div class="flex gap-1">
+                            <button onclick="openLinkModal(${linkingArticleId}, '')" 
+                                    class="text-[10px] text-amber-600 hover:bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">
+                                Change
+                            </button>
+                            <button onclick="unlinkArticle(${linkingArticleId})" 
+                                    class="text-[10px] text-red-600 hover:bg-red-50 px-1.5 py-0.5 rounded border border-red-200">
+                                Unlink
+                            </button>
+                        </div>
+                    `;
+                }
+                closeLinkModal();
+            } else {
+                alert("Error linking: " + data.error);
+            }
+        });
+    }
+    
+    function unlinkArticle(articleId) {
+        if(!confirm("Unlink this article?")) return;
+        
+        // Linking to ID 0 acts as unlink
+        linkingArticleId = articleId;
+        selectCompany(0, ""); 
+    }
+</script>
+{% endblock %}

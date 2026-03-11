@@ -1138,3 +1138,59 @@ class SamGovOpportunity(models.Model):
 
     def __str__(self):
         return f"{self.solicitation_number or 'No Solicitation #'} - {self.title[:50]}"
+
+
+class RSSFeed(models.Model):
+    """
+    User-configurable RSS feed subscription.
+    """
+    title = models.CharField(max_length=500, help_text="Feed title")
+    feed_url = models.URLField(max_length=1000, unique=True, help_text="RSS Feed URL")
+    site_url = models.URLField(max_length=1000, blank=True, null=True, help_text="Main website URL")
+    category = models.CharField(max_length=100, blank=True, default="Uncategorized", help_text="Folder/Category name")
+    
+    last_fetched = models.DateTimeField(null=True, blank=True, help_text="Timestamp of last successful fetch")
+    is_active = models.BooleanField(default=True, help_text="If False, will skip fetching")
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["category", "title"]
+        verbose_name = "RSS Feed"
+        verbose_name_plural = "RSS Feeds"
+
+    def __str__(self):
+        return f"{self.title} ({self.category})"
+
+
+class RSSArticle(models.Model):
+    """
+    News item fetched from an RSS Feed.
+    Can be linked to a Company record for job search context.
+    """
+    feed = models.ForeignKey(RSSFeed, on_delete=models.CASCADE, related_name="articles")
+    title = models.CharField(max_length=1000, help_text="Article headline")
+    link = models.URLField(max_length=2000, unique=True, help_text="Direct link to article")
+    description = models.TextField(blank=True, null=True, help_text="Article summary or content snippet")
+    author = models.CharField(max_length=255, blank=True, null=True, help_text="Author name")
+    
+    pub_date = models.DateTimeField(null=True, blank=True, help_text="Publication date from feed")
+    guid = models.CharField(max_length=1000, unique=True, help_text="Unique ID from feed")
+    
+    # Capability to link to a Company (same logic as Contracts)
+    company = models.ForeignKey("Company", on_delete=models.SET_NULL, null=True, blank=True, related_name="news_mentions")
+    
+    fetched_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-pub_date", "-fetched_at"]
+        verbose_name = "RSS Article"
+        verbose_name_plural = "RSS Articles"
+        indexes = [
+            models.Index(fields=["pub_date"]),
+            models.Index(fields=["guid"]),
+        ]
+
+    def __str__(self):
+        return self.title[:100]

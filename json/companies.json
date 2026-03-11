@@ -135,7 +135,8 @@
     "BlueHalo": "AeroVironment",
     "Galapagos": "Galapagos Federal",
     "akamai": "Akamai Technologies",
-    "ZP Group": "Zachary Piper Solutions"
+    "ZP Group": "Zachary Piper Solutions",
+    "Client Solution Architects": "CSA Associates"
   },
   "ats_domains": [
     "Defense",
@@ -1342,7 +1343,8 @@
     "Business Communications",
     "Akamai Technologies",
     "Zachary Piper Solutions",
-    "Rippling"
+    "Rippling",
+    "Client Solution Architects"
   ],
   "ats_heuristic_patterns": [
     "workday",

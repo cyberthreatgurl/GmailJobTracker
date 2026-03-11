@@ -15,6 +15,7 @@ This dashboard provides a secure, local-only interface for tracking job applicat
 - **Interactive labeling interface** with auto-retraining
 - **Label debugger** with priority-order testing at `/label-companies/`
 - **Defense contract awards** scraped from war.gov with search/filter at `/defense_contracts/`
+- **RSS Feed Reader** for industry news at `/news/`
 - **Environment diagnostics** via `/admin/environment_status/`
 
 ### Intelligent Classification

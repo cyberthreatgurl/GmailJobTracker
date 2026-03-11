@@ -71,4 +71,9 @@ urlpatterns = [
     path("api/fetch_contracts/", views.fetch_contracts_ajax, name="fetch_contracts_ajax"),
     path("api/companies/search/", views.search_companies_for_linking, name="search_companies_for_linking"),
     path("api/upload_contract_json/", views.upload_contract_json, name="upload_contract_json"),
+    path("news/", views.rss_dashboard, name="rss_dashboard"),
+    path("news/fetch/", views.fetch_feeds_ajax, name="rss_fetch_ajax"),
+    path("news/add/", views.add_feed, name="rss_add_feed"),
+    path("news/delete/", views.delete_feed, name="rss_delete_feed"),
+    path("news/link/<int:article_id>/", views.link_article_to_company, name="rss_link_article"),
 ]

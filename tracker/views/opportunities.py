@@ -1,7 +1,7 @@
 import logging
 import csv
 import io
-from datetime import datetime
+from datetime import datetime, timedelta
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -58,11 +58,23 @@ def opportunities_dashboard(request):
     # If user clicks "Fetch Latest"
     if "fetch" in request.GET:
         client = SamGovClient()
-        # Set search range starting Jan 1, 2024 to catch opportunities with future deadlines
+        
+        # Determine start date: Max of (90 days ago, Last Ingested Date)
+        # This optimizes for speed (incremental update) while staying within API limits
+        default_start_date = (datetime.now() - timedelta(days=90)).date()
+        start_date = default_start_date
+
+        latest_opp = SamGovOpportunity.objects.order_by("-posted_date").first()
+        if latest_opp and latest_opp.posted_date:
+            # If we have recent data, start from the last known posted date
+            # This avoids re-fetching months of data we already have
+            if latest_opp.posted_date > default_start_date:
+                start_date = latest_opp.posted_date
+
         params = {
             "limit": 10, 
             "sort": "-postedDate",
-            "postedFrom": "01/01/2024",
+            "postedFrom": start_date.strftime("%m/%d/%Y"),
             "postedTo": datetime.now().strftime("%m/%d/%Y")
         }
         

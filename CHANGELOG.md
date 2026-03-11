@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.2.0] - 2026-03-10
+
+### Added
+- **RSS Feed Reader**: New "News / RSS" dashboard in the sidebar.
+    - **Dashboard**: View latest articles from subscribed feeds with search, filter by feed/category, and pagination.
+    - **Feed Management**: Add invalid feeds or valid ones, delete feeds (updates local OPML automatically).
+    - **Linking**: Link articles directly to known companies in the database (similar to Defense Contracts).
+    - **Ingestion**: `import_opml` management command to sync from OPML file.
+    - **Fetching**: `fetch_rss` management command to pull latest articles (deduplicated by GUID).
+- **Navigation**: Added "News / RSS" link to the sidebar.
+
 ## [3.1.0] - 2026-03-08
 
 ### Changed

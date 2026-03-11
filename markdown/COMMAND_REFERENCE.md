@@ -792,3 +792,41 @@ python manage.py loaddata backup.json
 python manage.py export_companies
 python manage.py export_labels
 ```
+
+### 📰 RSS Feed Commands
+
+#### `import_opml`
+
+Import feeds from an OPML subscription file (e.g. from FeedBro).
+
+```bash
+# Import default OPML file (feedbro-subscriptions-20260310-110531.opml)
+python manage.py import_opml
+
+# Import a custom OPML file
+python manage.py import_opml some_other_subscriptions.opml
+```
+
+**Function**:
+
+- Reads an OPML file
+- Creates `RSSFeed` records for each subscription
+- Preserves folder structure as `category`
+- Idempotent (safe to re-run, existing feeds skipped)
+
+#### `fetch_rss`
+
+Fetch the latest articles from all active RSS feeds.
+
+```bash
+# Fetch latest articles
+python manage.py fetch_rss
+```
+
+**Function**:
+
+- Iterates all `RSSFeed` where `is_active=True`
+- Downloads and parses the feed XML/RSS
+- Creates `RSSArticle` records
+- Deduplicates based on `link` (GUID)
+- Logs errors per feed (continues processing others)

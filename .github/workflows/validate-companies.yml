@@ -29,4 +29,5 @@ jobs:
 
       - name: Run companies.json validation
         run: |
+          export PYTHONPATH=$PYTHONPATH:.
           python -m scripts.validate_companies

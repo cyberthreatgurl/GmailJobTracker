@@ -397,6 +397,8 @@ if "message_labels" in PATTERNS:
         app_pattern_sources.extend(PATTERNS["message_labels"]["interview"])
     if "cancelled" in PATTERNS["message_labels"]:
         app_pattern_sources.extend(PATTERNS["message_labels"]["cancelled"])
+    if "head_hunter" in PATTERNS["message_labels"]:
+        app_pattern_sources.extend(PATTERNS["message_labels"]["head_hunter"])
 
 # Add early detection patterns for rejections and interviews
 if "early_detection" in PATTERNS:

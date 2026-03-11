@@ -275,6 +275,7 @@
       "(?i)\\b(?:found your (?:resume|profile)|saw your (?:resume|profile) on LinkedIn|via LinkedIn message|I\\s+found\\s+your\\s+profile)\\b",
       "(?i)\\b(?:opportunity|role|position|opening)\\b.*\\b(?:recruiter|talent acquisition|headhunter|sourcing)\\b",
       "(?i)\\blooking\\sfor\\s(?:candidates|someone|a\\s|an\\s)\\b",
+      "(?i)\\bour\\s+client\\s+is\\s+looking\\s+for\\b",
       "(?i)\\brecruit(ment|er|ing|ment\\sexecutive)?\\b",
       "(?i)\\b(?:recruiter|recruiting|talent acquisition|headhunter|sourcing)\\b(?s:.*?)(?:\\b\\d{3}[-.\\s]\\d{3}[-.\\s]\\d{4}\\b|mailto:|\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}\\b|LinkedIn|via LinkedIn)"
     ],
@@ -337,6 +338,7 @@
   },
   "message_label_excludes": {
     "noise": [
+      "(?i)\\bour\\s+client\\s+is\\s+looking\\s+for\\b",
       "\\bjob\\s+application\\s+(?:has\\s+been\\s+)?received\\b",
       "\\bjob\\s+application\\s+(?:has\\s+been\\s+)?submitted\\b",
       "\\byour\\s+(?:[A-Z][a-z]+\\s+)?(?:job\\s+)?application\\b",
@@ -375,7 +377,6 @@
     "head_hunter": [
       "\\bnewsletter\\b",
       "\\bdigest\\b",
-      "\\bunsubscribe\\b",
       "\\bweekly\\b",
       "\\bdaily\\b",
       "\\breport\\b",
@@ -401,8 +402,6 @@
       "\\bworkday\\b",
       "\\btalent\\.icims\\b",
       "\\bindeed\\b",
-      "\\b(list-|List-)Unsubscribe\\b",
-      "\\bOne-Click\\b",
       "^Auto-Submitted:\\s*(?:auto-generated|auto-replied)\\b",
       "^X-Auto-Response-Suppress:\\s*All\\b",
       "^Precedence:\\s*(?:bulk|list|junk)\\b",

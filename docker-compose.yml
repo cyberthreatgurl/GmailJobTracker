@@ -1,32 +1,63 @@
 services:
+  db:
+    image: postgres:16-alpine
+    container_name: gmailtracker-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=${DB_NAME:-tracker}
+      - POSTGRES_USER=${DB_USERNAME:-gmailtracker}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-changeme}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    networks:
+      - gmailtracker-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-gmailtracker} -d ${DB_NAME:-tracker}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   web:
     image: ghcr.io/cyberthreatgurl/gmailjobtracker:${IMAGE_TAG:-latest}
     container_name: gmailtracker
     restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
     ports:
       - "8001:8001"
     environment:
+      # Django core
       - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY:-django-insecure-docker-default-key-change-me}
       - DEBUG=${DEBUG:-False}
       - ALLOWED_HOSTS=${ALLOWED_HOSTS:-localhost,127.0.0.1}
+      # PostgreSQL connection
+      - DB_NAME=${DB_NAME:-tracker}
+      - DB_USERNAME=${DB_USERNAME:-gmailtracker}
+      - DB_PASSWORD=${DB_PASSWORD:-changeme}
+      - DB_HOST=db
+      - DB_PORT=5432
+      # Gmail integration
       - GMAIL_ROOT_FILTER_LABEL=${GMAIL_ROOT_FILTER_LABEL:-#job-hunt}
-      - DATABASE_PATH=/app/db/job_tracker.db
+      - USER_EMAIL_ADDRESS=${USER_EMAIL_ADDRESS:-}
+      # API keys
+      - SAM_GOV_API_KEY=${SAM_GOV_API_KEY:-}
+      - NEWS_API_KEY=${NEWS_API_KEY:-}
+      - GOOGLE_NEWS_API_KEY=${GOOGLE_NEWS_API_KEY:-}
+      # Application tuning
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
       - AUTO_REVIEW_CONFIDENCE=${AUTO_REVIEW_CONFIDENCE:-0.85}
       - ML_CONFIDENCE_THRESHOLD=${ML_CONFIDENCE_THRESHOLD:-0.55}
       - DEFAULT_DAYS_BACK=${DEFAULT_DAYS_BACK:-7}
       - MAX_MESSAGES_PER_BATCH=${MAX_MESSAGES_PER_BATCH:-500}
       - GHOSTED_DAYS_THRESHOLD=${GHOSTED_DAYS_THRESHOLD:-30}
+      - TZ=${TZ:-America/New_York}
+      - REPORTING_DEFAULT_START_DATE=${REPORTING_DEFAULT_START_DATE:-2025-01-01}
     volumes:
-      # Persistent data volumes
-      - ./db:/app/db
       - ./logs:/app/logs
       - ./model:/app/model
-      # Configuration volumes (json files are included in the image, mount directory to override)
+      # Configuration overrides (companies.json, patterns.json, credentials.json, etc.)
       - ./json:/app/json
-      # Gmail OAuth credentials via existing directory mounts:
-      # - token.pickle -> model/token.pickle
-      # - credentials.json -> json/credentials.json
     networks:
       - gmailtracker-network
     healthcheck:
@@ -34,7 +65,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 40s
+      start_period: 60s
 
 networks:
   gmailtracker-network:
@@ -44,3 +75,4 @@ volumes:
   db-data:
   logs-data:
   model-data:
+

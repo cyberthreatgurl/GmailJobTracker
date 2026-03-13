@@ -30,3 +30,4 @@ matplotlib==3.10.6
 psutil>=5.9
 thefuzz==0.22.1
 psycopg2-binary==2.9.10
+gunicorn==23.0.0

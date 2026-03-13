@@ -76,21 +76,15 @@
         </thead>
         <tbody class="divide-y divide-gray-200">
           {% for opp in page_obj %}
-          <tr class="hover:bg-gray-50 transition-colors group">
+          <tr class="hover:bg-gray-50 transition-colors group cursor-pointer" onclick="toggleOppDesc(event, {{ opp.id }})">
             <td class="px-4 py-3 align-top">
               <div class="font-medium text-blue-700 hover:underline mb-1">
-                <a href="{{ opp.ui_link }}" target="_blank">{{ opp.title }}</a>
+                <a href="{{ opp.ui_link }}" target="_blank" onclick="event.stopPropagation()">{{ opp.title }}</a>
               </div>
-              <div class="text-xs text-gray-500 font-mono mb-1">
+              <div class="text-xs text-gray-500 font-mono mb-1 flex items-center gap-1.5">
+                <span id="opp-caret-{{ opp.id }}" class="text-gray-400 text-[0.6rem] transition-transform duration-150">▶</span>
                 {{ opp.solicitation_number|default:"No Solicitation #" }}
               </div>
-              
-              <!-- Description Preview -->
-              {% if opp.description and "api.sam.gov/prod/opportunities" not in opp.description %}
-              <div class="text-xs text-gray-600 line-clamp-2 mb-2">
-                  {{ opp.description|striptags }}
-              </div>
-              {% endif %}
 
               <!-- Nested Details (Award, POC) -->
               <div class="text-xs space-y-1">
@@ -111,13 +105,6 @@
                     <span>{{ opp.resource_links|length }} resource(s)</span>
                    </div>
                   {% endif %}
-                  
-                  <!-- Metadata hidden for modal -->
-                  <div id="debug-{{ opp.id }}" class="hidden"></div>
-                  <script>
-                    window.oppData = window.oppData || {};
-                    // Fetch on demand
-                  </script>
               </div>
             </td>
             <td class="px-4 py-3 align-top whitespace-nowrap text-gray-600">
@@ -152,22 +139,38 @@
             <td class="px-4 py-3 align-top text-right">
               <div class="flex flex-col gap-2 items-end">
                 <a href="{{ opp.ui_link }}" target="_blank"
+                   onclick="event.stopPropagation()"
                    class="inline-flex items-center justify-center p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                    title="View on SAM.gov">
                   ↗️
                 </a>
                 
                 <a href="{% url 'refresh_opportunity' opp.id %}" 
-                   onclick="return confirm('Refresh this opportunity from SAM.gov?')"
+                   onclick="event.stopPropagation(); return confirm('Refresh this opportunity from SAM.gov?')"
                    class="inline-flex items-center justify-center px-2 py-1 text-xs font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded border border-emerald-200 transition-colors shadow-sm"
                    title="Refresh data from API">
                    🔄 Refresh
                 </a>
                 
-                <button onclick="openDebugModal({{ opp.id }})" class="text-xs text-gray-400 hover:text-blue-600 underline cursor-pointer mt-1">
+                <button onclick="event.stopPropagation(); openDebugModal({{ opp.id }})" class="text-xs text-gray-400 hover:text-blue-600 underline cursor-pointer mt-1">
                   [Debug]
                 </button>
               </div>
+            </td>
+          </tr>
+          <!-- Expandable description row -->
+          <tr id="opp-desc-{{ opp.id }}" class="hidden bg-blue-50 border-b border-blue-100">
+            <td colspan="8" class="px-6 py-4">
+              {% if opp.description and "api.sam.gov/prod/opportunities" not in opp.description %}
+              <div class="text-sm text-gray-800 space-y-2 max-w-4xl">{{ opp.description|striptags|linebreaksbr }}</div>
+              {% else %}
+              <div id="opp-desc-body-{{ opp.id }}">
+                <button onclick="loadOppDescription(event, {{ opp.id }}, this)"
+                        class="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-blue-700 bg-white border border-blue-300 rounded-md hover:bg-blue-50 transition-colors">
+                  📥 Load Description from SAM.gov
+                </button>
+              </div>
+              {% endif %}
             </td>
           </tr>
           {% empty %}
@@ -286,6 +289,54 @@
   </div>
 
   <script>
+    // Expand/collapse description rows
+    const _oppExpanded = {};
+
+    function toggleOppDesc(event, id) {
+      // Don't toggle if the click was on a link or button
+      if (event.target.closest('a, button')) return;
+      const row = document.getElementById('opp-desc-' + id);
+      const caret = document.getElementById('opp-caret-' + id);
+      if (!row) return;
+      const isOpen = !row.classList.contains('hidden');
+      if (isOpen) {
+        row.classList.add('hidden');
+        if (caret) caret.style.transform = '';
+      } else {
+        row.classList.remove('hidden');
+        if (caret) caret.style.transform = 'rotate(90deg)';
+      }
+    }
+
+    function loadOppDescription(event, id, btn) {
+      event.stopPropagation();
+      btn.disabled = true;
+      btn.textContent = '⏳ Loading...';
+      fetch('/opportunities/refresh-json/' + id + '/')
+        .then(r => r.json())
+        .then(data => {
+          const container = document.getElementById('opp-desc-body-' + id);
+          if (!container) return;
+          if (data.ok && data.description) {
+            // Replace the button with the description text
+            const div = document.createElement('div');
+            div.className = 'text-sm text-gray-800 space-y-2 max-w-4xl';
+            div.innerHTML = data.description
+              .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+              .replace(/\r?\n\r?\n/g, '<br><br>')
+              .replace(/\r?\n/g, '<br>');
+            container.replaceWith(div);
+          } else {
+            btn.disabled = false;
+            btn.textContent = '❌ ' + (data.error || 'Not found') + ' – view on SAM.gov';
+          }
+        })
+        .catch(() => {
+          btn.disabled = false;
+          btn.textContent = '❌ Load failed – try again';
+        });
+    }
+
     function openDebugModal(id) {
        const modal = document.getElementById('debugModal');
        const content = document.getElementById('debugContent');

@@ -456,36 +456,104 @@
             <summary style="cursor: pointer; padding: 0.75rem 1rem; font-weight: 600; color: #065f46; font-size: 0.95rem; list-style: none; display: flex; align-items: center; gap: 0.5rem;">
               <span style="transition: transform 0.2s;">▶</span> 🏛️ Government Contracts ({{ company_contracts|length }})
             </summary>
-            <div style="padding: 0 1rem 1rem 1rem; max-height:500px; overflow-y:auto;">
+            <div style="padding: 0 0.75rem 0.75rem 0.75rem; max-height:600px; overflow-y:auto;">
               {% for contract in company_contracts %}
-              <div style="background: white; border-radius: 6px; padding: 0.5rem; margin-bottom: 0.4rem; border: 1px solid #a7f3d0;">
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; margin-bottom: 0.25rem;">
-                  <div>
-                    <span style="font-weight: 600; color: #065f46; font-size: 0.9rem;">{{ contract.amount_display }}</span>
-                    {% if contract.is_modification %}
-                    <span style="background: #e2e8f0; color: #475569; font-size: 0.6rem; font-weight: 600; padding: 0.1rem 0.3rem; border-radius: 4px; margin-left: 0.25rem;">MOD</span>
-                    {% endif %}
-                    {% if contract.is_small_business %}
-                    <span style="background: #fef3c7; color: #92400e; font-size: 0.6rem; font-weight: 600; padding: 0.1rem 0.3rem; border-radius: 4px; margin-left: 0.25rem;">SB</span>
-                    {% endif %}
+              <div id="co-contract-{{ contract.id }}" style="background: white; border-radius: 6px; margin-bottom: 0.5rem; border: 1px solid #d1fae5; overflow: hidden;">
+                <div style="padding: 0.6rem 0.75rem;">
+
+                  <!-- Header row: source badges + amount + date -->
+                  <div style="display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.35rem;">
+                    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem;">
+                      {% if contract.data_source == 'war_gov' %}
+                      <span style="background:#dcfce7; color:#166534; font-size:0.6rem; font-weight:600; padding:0.1rem 0.35rem; border-radius:4px;">DoD</span>
+                      {% if contract.source_url %}<a href="{{ contract.source_url }}" target="_blank" style="background:#f3f4f6; color:#374151; font-size:0.6rem; font-weight:500; padding:0.1rem 0.35rem; border-radius:4px; text-decoration:none;">war.gov ⧉</a>{% endif %}
+                      {% elif contract.data_source == 'usaspending' %}
+                      <span style="background:#dbeafe; color:#1e40af; font-size:0.6rem; font-weight:600; padding:0.1rem 0.35rem; border-radius:4px;">Federal</span>
+                      {% if contract.source_url %}<a href="{{ contract.source_url }}" target="_blank" style="background:#f3f4f6; color:#374151; font-size:0.6rem; font-weight:500; padding:0.1rem 0.35rem; border-radius:4px; text-decoration:none;">SAM.gov DataSource ⧉</a>{% endif %}
+                      {% endif %}
+                      {% if contract.is_small_business %}<span style="background:#fef3c7; color:#92400e; font-size:0.6rem; font-weight:600; padding:0.1rem 0.35rem; border-radius:4px;">SB</span>{% endif %}
+                      {% if contract.is_modification %}<span style="background:#f1f5f9; color:#475569; font-size:0.6rem; font-weight:600; padding:0.1rem 0.35rem; border-radius:4px;">MOD</span>{% endif %}
+                    </div>
+                    <div style="text-align:right; flex-shrink:0;">
+                      <div style="font-size:0.95rem; font-weight:700; color:#15803d;">{{ contract.amount_display }}</div>
+                      <div style="font-size:0.7rem; color:#6b7280;">{{ contract.article_date|date:"M d, Y" }}</div>
+                    </div>
                   </div>
-                  <div style="text-align: right;">
-                    <span style="font-size: 0.75rem; color: #6b7280;">{{ contract.article_date|date:"M d, Y" }}</span>
-                    <div style="font-size: 0.65rem; color: #9ca3af;">{{ contract.get_branch_display }}</div>
+
+                  <!-- Location / NAICS / PSC row -->
+                  <div style="font-size:0.7rem; color:#6b7280; margin-bottom:0.3rem;">
+                    {% if contract.company_location %}📍 {{ contract.company_location }}{% endif %}
+                    {% if contract.contract_number %} · 📝 {{ contract.contract_number }}{% endif %}
+                    {% if contract.naics_code %} · 🏭 {{ contract.naics_code }}{% if contract.naics_description %} – {{ contract.naics_description }}{% endif %}{% endif %}
+                    {% if contract.product_service_code %} · 📦 {{ contract.product_service_code }}{% if contract.product_service_code_description %} – {{ contract.product_service_code_description }}{% endif %}{% endif %}
                   </div>
-                </div>
-                {% if contract.contract_number %}
-                <div style="font-size: 0.7rem; color: #6b7280; margin-bottom: 0.15rem;">📝 {{ contract.contract_number }}</div>
-                {% endif %}
-                <div style="font-size: 0.75rem; color: #374151; margin-bottom: 0.25rem;">{{ contract.description|truncatewords:30 }}</div>
-                {% if contract.work_location %}
-                <div style="font-size: 0.7rem; color: #6b7280;">📍 {{ contract.work_location|truncatewords:15 }}</div>
-                {% endif %}
-                {% if contract.completion_date %}
-                <div style="font-size: 0.7rem; color: #6b7280;">📅 Completion: {{ contract.completion_date }}</div>
-                {% endif %}
-                <div style="margin-top: 0.25rem;">
-                  <a href="{% url 'defense_contracts' %}?search={{ selected_company.name|urlencode }}#contract-{{ contract.id }}" target="_blank" style="font-size: 0.75rem; color: #2563eb; text-decoration: none;">View details &rarr;</a>
+
+                  <!-- Branch / Agency badges -->
+                  {% if contract.data_source == 'war_gov' and contract.branch %}
+                  <div style="margin-bottom:0.35rem;">
+                    <span style="display:inline-block; font-size:0.65rem; font-weight:600; padding:0.15rem 0.5rem; border-radius:999px;
+                      {% if contract.branch == 'army' %}background:#dcfce7; color:#166534;
+                      {% elif contract.branch == 'navy' %}background:#dbeafe; color:#1e40af;
+                      {% elif contract.branch == 'air_force' %}background:#e0f2fe; color:#0c4a6e;
+                      {% elif contract.branch == 'defense_logistics_agency' %}background:#ffedd5; color:#9a3412;
+                      {% elif contract.branch == 'special_operations' %}background:#fee2e2; color:#991b1b;
+                      {% elif contract.branch == 'missile_defense' %}background:#ede9fe; color:#5b21b6;
+                      {% else %}background:#f3f4f6; color:#374151;
+                      {% endif %}">{{ contract.get_branch_display }}</span>
+                  </div>
+                  {% elif contract.data_source == 'usaspending' %}
+                  <div style="margin-bottom:0.35rem; display:flex; flex-wrap:wrap; gap:0.3rem;">
+                    {% if contract.awarding_agency %}<span style="background:#e0e7ff; color:#3730a3; font-size:0.65rem; font-weight:600; padding:0.15rem 0.5rem; border-radius:999px;">🏛️ {{ contract.awarding_agency }}</span>{% endif %}
+                    {% if contract.awarding_sub_agency %}<span style="background:#ede9fe; color:#5b21b6; font-size:0.65rem; padding:0.15rem 0.5rem; border-radius:999px;">{{ contract.awarding_sub_agency }}</span>{% endif %}
+                  </div>
+                  {% endif %}
+
+                  <!-- Description + expandable details -->
+                  <details>
+                    <summary style="cursor:pointer; font-size:0.8rem; color:#374151; list-style:none; display:flex; align-items:flex-start; gap:0.3rem;">
+                      <span style="flex-shrink:0; color:#9ca3af; margin-top:0.1rem;">▶</span>
+                      <span>{% if contract.description %}{{ contract.description|truncatewords:25 }}{% else %}<em style="color:#9ca3af;">No description available.</em>{% endif %}</span>
+                    </summary>
+                    <div style="margin-top:0.4rem; padding-top:0.4rem; border-top:1px solid #f3f4f6; font-size:0.75rem; color:#4b5563; display:flex; flex-direction:column; gap:0.2rem;">
+                      {% if contract.work_location %}
+                      <div><strong>📍 Work Location:</strong> {{ contract.work_location }}</div>
+                      {% endif %}
+                      {% if contract.data_source == 'usaspending' %}
+                      <div><strong>📍 Performance State:</strong> {{ contract.place_of_performance_state|default:"–" }}</div>
+                      <div><strong>📍 Performance County:</strong> {{ contract.primary_place_of_performance_county_name|default:"–" }}</div>
+                      <div><strong>🌍 Performance Country:</strong> {{ contract.primary_place_of_performance_country_name|default:"–" }}</div>
+                      <div style="margin-top:0.3rem; padding-top:0.3rem; border-top:1px solid #f3f4f6;">
+                        <strong>👔 Highly Compensated Officers:</strong>
+                        {% if contract.highly_compensated_officer_1_name %}
+                        <ul style="list-style:disc; padding-left:1rem; margin-top:0.2rem; color:#6b7280;">
+                          <li>{{ contract.highly_compensated_officer_1_name }}{% if contract.highly_compensated_officer_1_amount %} – ${{ contract.highly_compensated_officer_1_amount|floatformat:0|intcomma }}{% endif %}</li>
+                          {% if contract.highly_compensated_officer_2_name %}<li>{{ contract.highly_compensated_officer_2_name }}{% if contract.highly_compensated_officer_2_amount %} – ${{ contract.highly_compensated_officer_2_amount|floatformat:0|intcomma }}{% endif %}</li>{% endif %}
+                          {% if contract.highly_compensated_officer_3_name %}<li>{{ contract.highly_compensated_officer_3_name }}{% if contract.highly_compensated_officer_3_amount %} – ${{ contract.highly_compensated_officer_3_amount|floatformat:0|intcomma }}{% endif %}</li>{% endif %}
+                          {% if contract.highly_compensated_officer_4_name %}<li>{{ contract.highly_compensated_officer_4_name }}{% if contract.highly_compensated_officer_4_amount %} – ${{ contract.highly_compensated_officer_4_amount|floatformat:0|intcomma }}{% endif %}</li>{% endif %}
+                          {% if contract.highly_compensated_officer_5_name %}<li>{{ contract.highly_compensated_officer_5_name }}{% if contract.highly_compensated_officer_5_amount %} – ${{ contract.highly_compensated_officer_5_amount|floatformat:0|intcomma }}{% endif %}</li>{% endif %}
+                        </ul>
+                        {% else %}
+                        <span style="color:#9ca3af; font-style:italic; margin-left:0.25rem;">No officer compensation data available.</span>
+                        {% endif %}
+                      </div>
+                      {% endif %}
+                      {% if contract.completion_date %}<div><strong>📅 Completion:</strong> {{ contract.completion_date }}</div>{% endif %}
+                      {% if contract.contracting_activity %}<div><strong>🏢 Contracting Activity:</strong> {{ contract.contracting_activity }}</div>{% endif %}
+                      {% if contract.award_id %}<div><strong>🆔 Award ID:</strong> {{ contract.award_id }}</div>{% endif %}
+                      <div style="margin-top:0.25rem;">
+                        {% if contract.data_source == 'war_gov' and contract.source_url %}
+                        <a href="{{ contract.source_url }}" target="_blank" style="color:#2563eb; text-decoration:none;">View on war.gov →</a>
+                        {% elif contract.data_source == 'usaspending' %}
+                          {% if contract.usaspending_published and contract.source_url %}
+                          <a href="{{ contract.source_url }}" target="_blank" style="color:#2563eb; text-decoration:none;">View on USASpending.gov →</a>
+                          {% else %}
+                          <span style="color:#d97706;">⏳ Not yet available on usaspending.gov</span>
+                          {% endif %}
+                        {% endif %}
+                      </div>
+                    </div>
+                  </details>
+
                 </div>
               </div>
               {% endfor %}

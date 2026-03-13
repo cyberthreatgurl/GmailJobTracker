@@ -197,9 +197,9 @@
             <span class="text-xs text-gray-500 h-8 inline-flex items-center">to</span>
             <input type="date" id="endDateInput" class="text-xs px-2 h-8 border border-gray-300 rounded" />
             <select id="quickRange" class="text-xs px-2 h-8 border border-gray-300 rounded bg-white">
-              <option value="today" selected>Today</option>
+              <option value="today">Today</option>
               <option value="all">All</option>
-              <option value="7">Last 7 days</option>
+              <option value="7" selected>Last 7 days</option>
               <option value="14">Last 14 days</option>
               <option value="30">Last 30 days</option>
               <option value="60">Last 60 days</option>
@@ -212,9 +212,9 @@
             <div class="flex gap-2 items-center">
               <span class="text-xs font-medium text-gray-700 h-8 inline-flex items-center whitespace-nowrap">X-Axis:</span>
               <select id="xAxisType" class="text-xs px-2 h-8 border border-gray-300 rounded bg-white">
-                <option value="date">Date</option>
+                <option value="date" selected>Date</option>
                 <option value="week">Week</option>
-                <option value="month" selected>Month</option>
+                <option value="month">Month</option>
               </select>
             </div>
             <div class="flex gap-2 items-center relative">
@@ -240,12 +240,12 @@
       </div>
     </div>
 
-    <!-- Company Focus Areas Word Cloud (1/3 width) -->
+    <!-- Top 10 Focus Areas (1/3 width) -->
     <div style="flex: 0 0 33.333%; max-width: 33.333%;">
       <div class="h-full" style="background: white; padding: 1rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; flex-direction: column;">
-        <h2 style="font-size: 0.9rem; color: #1f2937; margin: 0 0 0.75rem 0;">💼 Company Focus Areas</h2>
-        <div id="wordCloudContainer" style="flex: 1; display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; align-items: center; padding: 0.75rem; background: #f9fafb; border-radius: 6px; align-content: center;">
-          <!-- Words will be inserted here by JavaScript -->
+        <h2 style="font-size: 0.9rem; color: #1f2937; margin: 0 0 0.75rem 0;">&#127775; Top 10 Focus Areas</h2>
+        <div id="focusAreaList" style="flex: 1; display: flex; flex-direction: column; gap: 0.35rem; overflow-y: auto;">
+          <!-- Rows inserted by JavaScript -->
         </div>
       </div>
     </div>
@@ -276,51 +276,39 @@
   {% endif %}
 
   <script>
-    // Focus Area Word Cloud
+    // Top 10 Focus Areas
     (function() {
       const wordData = {{ focus_area_wordcloud_data|safe }};
-      const container = document.getElementById('wordCloudContainer');
-      
+      const container = document.getElementById('focusAreaList');
+
       if (!wordData || wordData.length === 0) {
-        container.innerHTML = '<p style="color: #6b7280; font-style: italic;">No focus areas set yet. Add focus areas to companies to see the word cloud.</p>';
+        container.innerHTML = '<p style="color:#6b7280;font-style:italic;font-size:0.8rem;">No focus areas set yet.</p>';
         return;
       }
-      
-      // Find max frequency for scaling
-      const maxFreq = Math.max(...wordData.map(item => item[1]));
-      const minFreq = Math.min(...wordData.map(item => item[1]));
-      
-      // Generate color palette
-      const colors = ['#2563eb', '#7c3aed', '#db2777', '#dc2626', '#ea580c', '#d97706', '#059669', '#0891b2'];
-      
-      // Create word elements
-      wordData.forEach(([word, freq], index) => {
-        const link = document.createElement('a');
-        link.href = `/job_search_tracker/?focus_area=${encodeURIComponent(word)}`;
-        link.textContent = word;
-        
-        // Scale font size between 0.6rem and 1.2rem based on frequency (smaller for word cloud)
-        const fontSize = 0.6 + (freq - minFreq) / (maxFreq - minFreq) * 0.6;
-        link.style.fontSize = fontSize + 'rem';
-        link.style.color = colors[index % colors.length];
-        link.style.fontWeight = freq > maxFreq * 0.7 ? '600' : freq > maxFreq * 0.4 ? '500' : '400';
-        link.style.cursor = 'pointer';
-        link.style.padding = '0.2rem 0.4rem';
-        link.style.transition = 'transform 0.2s, color 0.2s';
-        link.style.textDecoration = 'none';
-        link.title = `${word}: ${freq} ${freq === 1 ? 'company' : 'companies'} - Click to view in Job Search Tracker`;
-        
-        // Hover effect
-        link.addEventListener('mouseenter', () => {
-          link.style.transform = 'scale(1.1)';
-          link.style.textDecoration = 'underline';
-        });
-        link.addEventListener('mouseleave', () => {
-          link.style.transform = 'scale(1)';
-          link.style.textDecoration = 'none';
-        });
-        
-        container.appendChild(link);
+
+      const top10 = wordData.slice(0, 10);
+      const maxCount = top10[0][1];
+      const barColors = ['#2563eb','#7c3aed','#db2777','#dc2626','#ea580c','#d97706','#059669','#0891b2','#0284c7','#6d28d9'];
+
+      top10.forEach(([phrase, count], idx) => {
+        const pct = Math.round((count / maxCount) * 100);
+        const row = document.createElement('a');
+        row.href = `/job_search_tracker/?focus_area=${encodeURIComponent(phrase)}`;
+        row.style.cssText = 'display:block;text-decoration:none;color:inherit;border-radius:5px;overflow:hidden;padding:0.3rem 0.5rem;background:#f9fafb;border:1px solid #e5e7eb;transition:background 0.15s;';
+        row.title = `${count} ${count === 1 ? 'company' : 'companies'} — click to filter Job Search Tracker`;
+        row.addEventListener('mouseenter', () => row.style.background = '#eff6ff');
+        row.addEventListener('mouseleave', () => row.style.background = '#f9fafb');
+
+        row.innerHTML = `
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.2rem;">
+            <span style="font-size:0.8rem;font-weight:500;color:#1f2937;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:75%;">${idx + 1}. ${phrase}</span>
+            <span style="font-size:0.75rem;font-weight:600;color:${barColors[idx]};white-space:nowrap;margin-left:0.4rem;">${count} co.</span>
+          </div>
+          <div style="height:4px;background:#e5e7eb;border-radius:2px;">
+            <div style="height:100%;width:${pct}%;background:${barColors[idx]};border-radius:2px;"></div>
+          </div>`;
+
+        container.appendChild(row);
       });
     })();
   </script>
@@ -546,13 +534,12 @@
     endDateInput.min = minDateStr;
     endDateInput.max = maxDateStr;
 
-    // Initialize to today's date (default)
+    // Initialize to last 7 days (default)
     const today = new Date();
-    const todayStr = formatDate(today);
-    const clampedToday = clampDateStr(todayStr);
-    
-    startDateInput.value = clampedToday;
-    endDateInput.value = clampedToday;
+    const sevenDaysAgo = new Date(today);
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6); // 7 days inclusive
+    startDateInput.value = clampDateStr(formatDate(sevenDaysAgo));
+    endDateInput.value = clampDateStr(formatDate(today));
 
     function clampDateStr(str) {
       if (str < minDateStr) return minDateStr;
@@ -757,11 +744,13 @@
     });
 
     function resetActivityDateRange() {
-      quickRange.value = 'today';
+      quickRange.value = '7';
       const today = new Date();
-      const todayStr = clampDateStr(formatDate(today));
-      startDateInput.value = todayStr;
-      endDateInput.value = todayStr;
+      const sevenDaysAgo = new Date(today);
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
+      startDateInput.value = clampDateStr(formatDate(sevenDaysAgo));
+      endDateInput.value = clampDateStr(formatDate(today));
+      document.getElementById('xAxisType').value = 'date';
       updateActivityChartByDates();
     }
 

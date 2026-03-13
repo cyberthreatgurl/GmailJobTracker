@@ -29,11 +29,12 @@ def ingestion_status_api(request):
 
 
 def company_search_api(request):
-    """JSON API for company name typeahead search.
+    """JSON API for company name / UEI / DUNS typeahead search.
 
     GET /api/company_search/?q=<query>&limit=<n>
-    Returns: [{"id": 1, "name": "Acme Corp"}, ...]
+    Returns: [{"id": 1, "name": "Acme Corp", "uei": "...", "duns_number": "..."}, ...]
     """
+    from django.db.models import Q
     from tracker.models import Company
 
     query = request.GET.get("q", "").strip()
@@ -43,9 +44,13 @@ def company_search_api(request):
         return JsonResponse([], safe=False)
 
     results = (
-        Company.objects.filter(name__icontains=query)
+        Company.objects.filter(
+            Q(name__icontains=query)
+            | Q(uei__icontains=query)
+            | Q(duns_number__icontains=query)
+        )
         .order_by("name")
-        .values("id", "name")[:limit]
+        .values("id", "name", "uei", "duns_number")[:limit]
     )
     return JsonResponse(list(results), safe=False)
 

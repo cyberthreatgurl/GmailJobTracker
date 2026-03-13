@@ -78,3 +78,26 @@ class SamGovClient:
         except Exception as e:
             logger.error(f"SAM.gov API Error: {e}")
             return {"error": str(e)}
+
+    def fetch_description(self, notice_id):
+        """
+        Directly fetch description HTML for a given notice/solicitation ID.
+
+        Uses the SAM.gov v1 notice description endpoint, which accepts the same
+        identifier that appears in https://sam.gov/opp/{noticeId}/view URLs.
+        Returns the raw HTML string on success, or None on failure.
+        """
+        if not self.api_key or not notice_id:
+            return None
+        try:
+            resp = requests.get(
+                "https://api.sam.gov/prod/opportunities/v1/noticedesc",
+                params={"noticeid": notice_id, "api_key": self.api_key},
+                timeout=15,
+            )
+            resp.raise_for_status()
+            text = resp.text.strip()
+            return text or None
+        except Exception as e:
+            logger.error(f"SAM.gov description fetch error for notice '{notice_id}': {e}")
+            return None

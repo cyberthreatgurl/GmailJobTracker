@@ -22,5 +22,11 @@
     "display_name": "Job Search",
     "color": "#8b5cf6",
     "ml_label": "job_search"
+  },
+  {
+    "label": "new_companies",
+    "display_name": "New Companies",
+    "color": "#f59e0b",
+    "ml_label": "new_companies"
   }
 ]

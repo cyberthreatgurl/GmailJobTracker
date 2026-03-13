@@ -1231,6 +1231,7 @@ class ContractIgnoreRule(models.Model):
         ('naics', 'NAICS Code'),
         ('psc', 'PSC Code'),
         ('domain', 'Domain'),
+        ('sector', 'NAICS Sector (2-digit)'),
     ]
     rule_type = models.CharField(max_length=10, choices=RULE_TYPES, default='term')
     value = models.CharField(max_length=255, help_text='Exact code or substring to match')

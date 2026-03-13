@@ -29,6 +29,68 @@ import os
 logger = logging.getLogger(__name__)
 
 # Export view functions so they are importable from tracker.views
+@login_required
+def refresh_usaspending_award(request, contract_id):
+    """Re-fetch a single USASpending award from the API and update it in-place.
+
+    POSTing to this endpoint finds the DefenseContract by pk, then uses the
+    USASpendingService to search for the award by its award_id (the PIID /
+    contract number), saving the freshest data with overwrite=True.
+    Redirects back to the defense_contracts page on completion.
+    """
+    from django.shortcuts import get_object_or_404
+    from tracker.services.usaspending_service import USASpendingService
+
+    if request.method != "POST":
+        return redirect("defense_contracts")
+
+    contract = get_object_or_404(DefenseContract, pk=contract_id, data_source="usaspending")
+
+    if not contract.award_id:
+        messages.error(request, "❌ Cannot refresh: this record has no Award ID to look up.")
+        return redirect("defense_contracts")
+
+    try:
+        # Build a minimal service instance (date range doesn’t matter for keyword search)
+        service = USASpendingService(start_date="2020-01-01")
+
+        # Search the API using the award_id (PIID) as a keyword — this returns the one
+        # matching record and _save_contract(..., overwrite=True) updates all fields.
+        raw_contracts = service._fetch_contracts_from_api(  # pylint: disable=protected-access
+            limit=5,
+            keywords=[contract.award_id],
+        )
+
+        updated = 0
+        for raw in raw_contracts:
+            try:
+                parsed = service._parse_contract(raw)  # pylint: disable=protected-access
+                # Preserve the company link if already set
+                if contract.company and not parsed.get("company"):
+                    parsed["company"] = contract.company
+                saved, is_new = service._save_contract(parsed, overwrite=True)  # pylint: disable=protected-access
+                if saved:
+                    updated += 1
+            except Exception as exc:  # pylint: disable=broad-except
+                logger.warning("Skipping raw record during single-award refresh: %s", exc)
+
+        if updated:
+            messages.success(
+                request,
+                f"✅ Refreshed award {contract.award_id} — {updated} record(s) updated from USASpending.",
+            )
+        else:
+            messages.warning(
+                request,
+                f"⚠️ No matching records returned from USASpending for award {contract.award_id}.",
+            )
+    except Exception as exc:  # pylint: disable=broad-except
+        logger.error("Failed to refresh award %s: %s", contract.award_id, exc)
+        messages.error(request, f"❌ Error refreshing award: {exc}")
+
+    return redirect(request.META.get("HTTP_REFERER", "defense_contracts"))
+
+
 __all__ = [
     "defense_contracts",
     "fetch_contracts_ajax",
@@ -37,7 +99,59 @@ __all__ = [
     "search_companies_for_linking",
     "upload_contract_json",
     "upload_contracts_csv",
+    "add_contract_ignore_rule",
+    "update_naics_description",
+    "refresh_usaspending_award",
 ]
+
+
+@login_required
+def update_naics_description(request):
+    """AJAX endpoint: update the description for a NAICSCode record."""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required'}, status=405)
+    import re
+    from tracker.models import NAICSCode
+    code = request.POST.get('code', '').strip()
+    description = request.POST.get('description', '').strip()
+    create_if_missing = request.POST.get('create_if_missing', '').strip() == '1'
+    if not code:
+        return JsonResponse({'error': 'Missing code'}, status=400)
+    if not re.fullmatch(r'[A-Za-z0-9 ,\-()\/.&]+', description):
+        return JsonResponse({'error': 'Invalid characters: only letters, numbers, spaces, commas, dashes, and parentheses are allowed.'}, status=400)
+    obj = NAICSCode.objects.filter(code=code).first()
+    if obj:
+        obj.description = description
+        obj.save(update_fields=['description'])
+    elif create_if_missing:
+        NAICSCode.objects.create(code=code, description=description)
+    else:
+        return JsonResponse({'error': f'not_found', 'code': code}, status=404)
+    return JsonResponse({'status': 'ok', 'code': code, 'description': description})
+
+
+@login_required
+def add_contract_ignore_rule(request):
+    """AJAX endpoint: quickly add a NAICS or PSC code to the ignore list."""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required'}, status=405)
+    from tracker.models import ContractIgnoreRule
+    rule_type = request.POST.get('rule_type', '').strip()
+    value = request.POST.get('value', '').strip()
+    if rule_type not in ('naics', 'psc') or not value:
+        return JsonResponse({'error': 'Invalid rule_type or value'}, status=400)
+    rule, created = ContractIgnoreRule.objects.get_or_create(
+        rule_type=rule_type, value=value,
+        defaults={'is_active': True, 'should_delete': False}
+    )
+    if not created and not rule.is_active:
+        rule.is_active = True
+        rule.save(update_fields=['is_active'])
+    return JsonResponse({
+        'status': 'created' if created else 'exists',
+        'rule_type': rule_type,
+        'value': value,
+    })
 
 
 @login_required
@@ -57,12 +171,12 @@ def defense_contracts(request):
     source_filter = request.GET.get("source", "all")
     branch_filter = request.GET.get("branch", "")
     agency_filter = request.GET.get("agency", "").strip()
-    days_back = request.GET.get("days", "90")  # Default to 90 days for broader view
+    days_back = request.GET.get("days", "7")  # Default to 7 days for faster page load
 
     try:
         days_back = int(days_back)
     except (ValueError, TypeError):
-        days_back = 30
+        days_back = 7
 
     # Build queryset with filters
     contracts_qs = DefenseContract.objects.select_related("company")
@@ -109,7 +223,7 @@ def defense_contracts(request):
         elif rule.rule_type == 'naics':
             contracts_qs = contracts_qs.exclude(naics_code=rule.value)
         elif rule.rule_type == 'psc':
-            contracts_qs = contracts_qs.exclude(product_or_service_code=rule.value)
+            contracts_qs = contracts_qs.exclude(product_service_code=rule.value)
         elif rule.rule_type == 'domain':
             if rule.naics_codes.exists():
                 naics_list = list(rule.naics_codes.values_list('code', flat=True))
@@ -119,6 +233,10 @@ def defense_contracts(request):
                     Q(awarding_agency__icontains=rule.value) |
                     Q(description__icontains=rule.value)
                 )
+        elif rule.rule_type == 'sector':
+            naics_list = list(rule.naics_codes.values_list('code', flat=True))
+            if naics_list:
+                contracts_qs = contracts_qs.exclude(naics_code__in=naics_list)
 
     contracts_qs = contracts_qs.order_by("-article_date", "branch", "company_name_raw")
 

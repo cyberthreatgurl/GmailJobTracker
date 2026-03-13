@@ -2,15 +2,24 @@ import logging
 import csv
 import io
 from datetime import datetime, timedelta
-from django.shortcuts import render, redirect
+from django.http import JsonResponse
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.utils.dateparse import parse_date, parse_datetime
+from django.conf import settings
+from django.db.models import Q
 from tracker.models import SamGovOpportunity
 from tracker.services.sam_gov_service import SamGovClient
 
 logger = logging.getLogger(__name__)
+
+@login_required
+def get_opportunity_debug(request, opportunity_id):
+    """Fetch raw API response for debugging."""
+    opp = get_object_or_404(SamGovOpportunity.objects.only('raw_response'), id=opportunity_id)
+    return JsonResponse(opp.raw_response or {}, safe=False)
 
 @login_required
 def opportunities_dashboard(request):
@@ -19,6 +28,8 @@ def opportunities_dashboard(request):
     Fetches real-time data from SAM.gov API and saves interesting ones locally.
     """
     query = request.GET.get("q", "")
+    psc_query = request.GET.get("psc", "")
+    exclude_psc_query = request.GET.get("exclude_psc", "")
     page_number = request.GET.get("page", 1)
     
     # Handle CSV Upload
@@ -113,14 +124,41 @@ def opportunities_dashboard(request):
             messages.error(request, f"Error interacting with SAM.gov: {e}")
             
         # Redirect api clean URL after fetch prevents re-submission
-        return redirect(f"{request.path}?q={query}" if query else request.path)
+        url = request.path
+        params_list = []
+        if query:
+            params_list.append(f"q={query}")
+        if psc_query:
+            params_list.append(f"psc={psc_query}")
+        if exclude_psc_query:
+            params_list.append(f"exclude_psc={exclude_psc_query}")
+            
+        if params_list:
+            url += "?" + "&".join(params_list)
+            
+        return redirect(url)
 
     # Display saved opportunities (Local Search)
-    qs = SamGovOpportunity.objects.all().order_by("-posted_date", "-fetched_at")
+    qs = SamGovOpportunity.objects.defer("raw_response").order_by("-posted_date", "-fetched_at")
     
     # Local filtering if query persists (searching local DB)
     if query:
-        qs = qs.filter(title__icontains=query)
+        search_terms = query.split()
+        for term in search_terms:
+            qs = qs.filter(
+                Q(title__icontains=term) |
+                Q(description__icontains=term) |
+                Q(department__icontains=term) |
+                Q(office__icontains=term) |
+                Q(solicitation_number__icontains=term) |
+                Q(product_service_code__icontains=term)
+            )
+            
+    if psc_query:
+        qs = qs.filter(product_service_code__icontains=psc_query)
+
+    if exclude_psc_query:
+        qs = qs.exclude(product_service_code__icontains=exclude_psc_query)
 
     paginator = Paginator(qs, 15)
     page_obj = paginator.get_page(page_number)
@@ -128,6 +166,8 @@ def opportunities_dashboard(request):
     return render(request, "tracker/opportunities.html", {
         "page_obj": page_obj,
         "query": query,
+        "psc_query": psc_query,
+        "exclude_psc_query": exclude_psc_query,
     })
 
 
@@ -164,6 +204,12 @@ def _save_opportunity(data, save_mode='create_or_update'):
             if SamGovOpportunity.objects.filter(solicitation_number=solicitation).exists():
                 return None, False
 
+        # Construct public UI link manually if noticeId is present (more reliable than API's workspace link)
+        ui_link = data.get("uiLink", "")
+        notice_id = data.get("noticeId")
+        if notice_id:
+             ui_link = f"https://sam.gov/opp/{notice_id}/view"
+
         opp, created = SamGovOpportunity.objects.update_or_create(
             solicitation_number=solicitation,
             defaults={
@@ -178,11 +224,12 @@ def _save_opportunity(data, save_mode='create_or_update'):
                 "office": data.get("office", ""),
                 "sub_office": data.get("subOffice", ""),
                 "naics_code": data.get("naicsCode", ""),
+                "product_service_code": data.get("classificationCode", ""),
                 "naics_codes": data.get("naicsCodes", []),
                 "point_of_contact": data.get("pointOfContact", []),
                 "description": data.get("description", ""),
                 "resource_links": data.get("resourceLinks", []),
-                "ui_link": data.get("uiLink", ""),
+                "ui_link": ui_link,
                 "raw_response": data,  # Save full JSON for debugging
             }
         )
@@ -228,7 +275,7 @@ def _map_csv_row_to_api_format(row):
         "naicsCode": row.get("NAICS Code") or row.get("NAICS"),
         "classificationCode": row.get("Classification Code") or row.get("PSC"),
         "pointOfContact": poc,
-        "uiLink": f"https://sam.gov/opp/{solicitation}/view",
+        "uiLink": f"https://sam.gov/search/?index=opp&page=1&sort=-relevance&pageSize=25&sf=SF&kwd={solicitation}&mode=search",
         "raw_response": row # special handling -> we put row into raw_response so `_save_ops` picks it up
     }
 
@@ -261,28 +308,40 @@ def _parse_csv_date(date_str):
 def refresh_opportunity(request, opportunity_id):
     """
     Manually refresh a single opportunity from SAM.gov API.
+    Attempts to find the record within the last year first.
+    If not found and the local record is older, tries searching the older time window.
     """
     try:
         opp = SamGovOpportunity.objects.get(pk=opportunity_id)
         client = SamGovClient()
         
-        # Try finding it exactly by solicitation number
-        params = {"solicitationNumber": opp.solicitation_number, "limit": 1}
-        response = client.search_opportunities(params=params)
+        # Strategy 1: Search recent (last 364 days)
+        # This catches any active updates or recently posted items
+        end_date = datetime.now().date()
+        start_date = end_date - timedelta(days=364)
         
-        # Check success
-        if "opportunitiesData" in response and response["opportunitiesData"]:
-            item = response["opportunitiesData"][0]
+        found_data = _fetch_with_date_window(client, opp.solicitation_number, start_date, end_date)
+        
+        # Strategy 2: If nothing found, try the specific posted_date window from DB
+        # Only needed if the local record is older than our search window
+        if not found_data and opp.posted_date and opp.posted_date < start_date:
+            # Shift window to capture the specific old posted date
+            # We set window from (posted_date) to (posted_date + 364 days)
+            # This ensures we find the record even if it hasn't been updated recently
+            old_start = opp.posted_date
+            old_end = old_start + timedelta(days=364)
+            found_data = _fetch_with_date_window(client, opp.solicitation_number, old_start, old_end)
+            
+        if found_data:
             # Force update 
-            result, _ = _save_opportunity(item, save_mode='create_or_update')
+            result, _ = _save_opportunity(found_data, save_mode='create_or_update')
             if result:
                  messages.success(request, f"Successfully refreshed '{opp.solicitation_number}'")
             else:
-                 messages.error(request, "Failed to update record.")
-        elif "error" in response:
-             messages.error(request, f"API Error: {response['error']}")
+                 messages.error(request, "Failed to update record (save error).")
         else:
-             messages.warning(request, "Opportunity not found in API (might be archived or removed).")
+            # If we tried both or just recent and failed
+            messages.warning(request, "Opportunity not found in API (archive search logic may be needed).")
 
     except SamGovOpportunity.DoesNotExist:
         messages.error(request, "Opportunity not found.")
@@ -291,3 +350,32 @@ def refresh_opportunity(request, opportunity_id):
         messages.error(request, f"Refresh failed: {e}")
         
     return redirect("opportunities_dashboard")
+
+def _fetch_with_date_window(client, solicitation, start_date, end_date):
+    """Helper to try fetching with a specific date window."""
+    
+    # Try solicitationNumber first
+    params = {
+        "solicitationNumber": solicitation,
+        "limit": 1,
+        "postedFrom": start_date.strftime("%m/%d/%Y"),
+        "postedTo": end_date.strftime("%m/%d/%Y")
+    }
+    response = client.search_opportunities(params=params)
+    
+    if "opportunitiesData" in response and response["opportunitiesData"]:
+        return response["opportunitiesData"][0]
+        
+    # If not found, try noticeId (fallback for imported data where we mapped noticeId -> sol#)
+    params = {
+        "noticeId": solicitation,
+        "limit": 1,
+        "postedFrom": start_date.strftime("%m/%d/%Y"),
+        "postedTo": end_date.strftime("%m/%d/%Y")
+    }
+    response = client.search_opportunities(params=params)
+    
+    if "opportunitiesData" in response and response["opportunitiesData"]:
+        return response["opportunitiesData"][0]
+        
+    return None

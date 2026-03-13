@@ -37,6 +37,17 @@ class TestRuleLabelFunction:
         # May detect interview or return None if no strong match
         assert result in ["interview_invite", None]
 
+    def test_rule_label_prescreen_red_river(self):
+        """Test specific Red River prescreen email."""
+        subject = "Preliminary Call with Red River - Sr. Cybersecurity Engineer Opportunity"
+        body = """
+        I would like to schedule a brief call to learn more about your background and experience.
+        Please use the link below to schedule a time that works best for you:
+        Book time with Scott Fulton
+        """
+        result = rule_label(subject, body)
+        assert result == "prescreen"
+
     def test_rule_label_detects_noise(self):
         """Noise patterns like unsubscribe links should be detected."""
         subject = "Weekly Newsletter"

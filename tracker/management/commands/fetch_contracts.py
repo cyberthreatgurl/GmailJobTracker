@@ -65,7 +65,7 @@ class Command(BaseCommand):
         parser.add_argument(
             "--force-refresh",
             action="store_true",
-            help="[war.gov only] Re-fetch articles even if already scraped (bypass cache)",
+            help="Re-fetch articles/contracts even if already scraped/saved (bypass cache/overwrite)",
         )
         # Search argument (works for both sources)
         parser.add_argument(
@@ -158,7 +158,9 @@ class Command(BaseCommand):
 
         try:
             result = service.fetch_and_save_contracts(
-                limit=limit, agency_codes=agencies
+                limit=limit,
+                agency_codes=agencies,
+                overwrite=options["force_refresh"],
             )
 
             self.stdout.write("")
@@ -168,6 +170,7 @@ class Command(BaseCommand):
             self.stdout.write(
                 self.style.SUCCESS(f"  ✨ Contracts created:  {result['created']}")
             )
+            self.stdout.write(f"  🔄 Contracts updated:  {result['updated']}")
             self.stdout.write(f"  ⏭️  Contracts skipped:  {result['skipped']}")
             if result.get("errors", 0) > 0:
                 self.stdout.write(

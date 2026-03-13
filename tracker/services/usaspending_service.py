@@ -229,6 +229,7 @@ class USASpendingService:
         self,
         limit: int = 500,
         agency_codes: Optional[List[str]] = None,
+        overwrite: bool = False,
     ) -> Dict[str, int]:
         """
         Fetch contracts from USASpending API and save to database.
@@ -236,6 +237,7 @@ class USASpendingService:
         Args:
             limit: Maximum number of contracts to fetch (capped at 1000)
             agency_codes: List of agency codes to filter by (e.g., ['DOD', 'DHS'])
+            overwrite: Whether to overwrite existing records (default: False)
 
         Returns:
             Dict with keys: created, skipped, errors
@@ -269,14 +271,20 @@ class USASpendingService:
 
         # Process and save contracts
         created = 0
+        updated = 0
         skipped = 0
         errors = 0
 
         for raw_contract in raw_contracts:
             try:
                 parsed = self._parse_contract(raw_contract)
-                if self._save_contract(parsed):
-                    created += 1
+                saved, is_new = self._save_contract(parsed, overwrite=overwrite)
+                
+                if saved:
+                    if is_new:
+                        created += 1
+                    else:
+                        updated += 1
                 else:
                     skipped += 1
             except Exception as exc:  # pylint: disable=broad-except
@@ -284,9 +292,9 @@ class USASpendingService:
                 errors += 1
 
         logger.info(
-            "Completed: %d created, %d skipped, %d errors", created, skipped, errors
+            "Completed: %d created, %d updated, %d skipped, %d errors", created, updated, skipped, errors
         )
-        return {"created": created, "skipped": skipped, "errors": errors}
+        return {"created": created, "updated": updated, "skipped": skipped, "errors": errors}
 
     def _fetch_contracts_from_api(
         self,
@@ -383,6 +391,11 @@ class USASpendingService:
                 # Include UEI/DUNS for downstream processing
                 "Recipient UEI", 
                 "Recipient DUNS", 
+                # Classification Codes
+                "Product or Service Code",
+                "Product or Service Code Description",
+                "NAICS Code",
+                "NAICS Description",
             ],
             "page": page,
             "limit": per_page,
@@ -524,6 +537,12 @@ class USASpendingService:
         officer_4_name = (raw_data.get("Highly Compensated Officer 4 Name") or "").strip()
         officer_5_name = (raw_data.get("Highly Compensated Officer 5 Name") or "").strip()
 
+        # Classification Codes
+        psc_code = (raw_data.get("Product or Service Code") or "").strip()
+        psc_description = (raw_data.get("Product or Service Code Description") or "").strip()
+        naics_code = (raw_data.get("NAICS Code") or "").strip()
+        naics_description = (raw_data.get("NAICS Description") or "").strip()
+
         # Helper for amount parsing
         def parse_amount(val):
             if val:
@@ -597,6 +616,10 @@ class USASpendingService:
             "highly_compensated_officer_4_amount": off_4_amt,
             "highly_compensated_officer_5_name": officer_5_name,
             "highly_compensated_officer_5_amount": off_5_amt,
+            "product_service_code": psc_code,
+            "product_service_code_description": psc_description,
+            "naics_code": naics_code,
+            "naics_description": naics_description,
             "contract_number": "",  # Not provided by USASpending search endpoint
             "raw_text": str(raw_data),  # Store full JSON for debugging
         }

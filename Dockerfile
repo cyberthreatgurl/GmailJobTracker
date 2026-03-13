@@ -1,6 +1,6 @@
 # Multi-stage Dockerfile for GmailJobTracker
 # Stage 1: Build dependencies
-FROM python:3.11-slim AS builder
+FROM python:3.13-slim AS builder
 
 WORKDIR /app
 
@@ -17,7 +17,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     pip install -r requirements.txt
 
 # Stage 2: Runtime
-FROM python:3.11-slim
+FROM python:3.13-slim
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \
@@ -27,12 +27,13 @@ ENV PYTHONUNBUFFERED=1 \
 WORKDIR /app
 
 # Install runtime dependencies only (single layer, cleaned)
+# libpq5 is required by psycopg2-binary on slim images
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends sqlite3 \
+    && apt-get install -y --no-install-recommends libpq5 \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy Python dependencies from builder
-COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=builder /usr/local/lib/python3.13/site-packages /usr/local/lib/python3.13/site-packages
 COPY --from=builder /usr/local/bin /usr/local/bin
 
 # Copy application code
@@ -55,7 +56,7 @@ RUN printf "BUILD_DATE=%s\nVCS_REF=%s\nVERSION=%s\n" \
 
 # Create necessary directories with proper permissions
 RUN mkdir -p /app/db /app/logs /app/model /app/staticfiles /app/json && \
-    chmod -R 755 /app/db /app/logs /app/model /app/staticfiles /app/json
+    chmod -R 755 /app/logs /app/model /app/staticfiles /app/json
 
 # Download spaCy model
 # Cache the model to speed up rebuilds
@@ -82,5 +83,6 @@ EXPOSE 8001
 COPY --chmod=755 docker-entrypoint.sh /usr/local/bin/
 ENTRYPOINT ["docker-entrypoint.sh"]
 
-# Default command
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8001"]
+# Default command: use gunicorn for production
+# Override GUNICORN_WORKERS via env var (default: 3)
+CMD ["gunicorn", "--bind", "0.0.0.0:8001", "--workers", "3", "--timeout", "120", "--access-logfile", "-", "dashboard.wsgi:application"]

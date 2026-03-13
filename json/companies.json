@@ -139,7 +139,9 @@
     "Client Solution Architects": "CSA Associates",
     "ASTRION GROUP": "Astrion",
     "BIT": "Big Impact Tech",
-    "Technica Corporation": "Technica"
+    "Technica Corporation": "Technica",
+    "Manifest Cyber": "Manifest Cyber",
+    "SRC": "Scientific Research Corporation"
   },
   "ats_domains": [
     "Defense",
@@ -594,7 +596,9 @@
     "gcyber.com": "GCyber",
     "technicacorp.com": "Technica",
     "gdmissionsystems.com": "General Dynamics Mission Systems",
-    "anavationllc.com": "AnaVation"
+    "anavationllc.com": "AnaVation",
+    "manifestcyber.com": "Manifest Cyber",
+    "clridge.com": "Clear Ridge Defense"
   },
   "headhunter_domains": [
     "agreeya.com",
@@ -990,7 +994,10 @@
     "GCyber": "https://www.gcyber.com/careers",
     "Technica": "https://technicacorp.com/careers/",
     "General Dynamics Mission Systems": "https://gdmissionsystems.com/careers",
-    "AnaVation": "https://anavationllc.com/careers/"
+    "AnaVation": "https://anavationllc.com/careers/",
+    "Manifest": "http://www.manifestcyber.com/careers",
+    "Manifest Cyber": "http://www.manifestcyber.com/careers",
+    "Clear Ridge Defense": "https://clridge.com/careers/"
   },
   "known": [
     "Red River",
@@ -1362,7 +1369,9 @@
     "GCYBER",
     "Technica Corporation",
     "General Dynamics Mission Systems",
-    "AnaVation"
+    "AnaVation",
+    "Manifest",
+    "Clear Ridge Defense"
   ],
   "ats_heuristic_patterns": [
     "workday",

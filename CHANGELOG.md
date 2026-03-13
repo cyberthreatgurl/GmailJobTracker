@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.3.0] - 2026-03-13
+
+### Added
+- **SAM.gov Description Fetching**: "Load Description" button on the RFP page now correctly resolves SAM.gov description URLs stored at ingest time. Falls back to a direct notice-description API call using the internal UUID from `raw_response`/`ui_link`, fixing cases where the search API could not locate the record.
+- **New Companies Series**: Added "New Companies" series to the Job Search Activity chart (amber, counts companies by `first_contact` date).
+- **UEI / DUNS Search**: Company autocomplete (Label Companies + Dashboard) now searches by UEI and DUNS number in addition to name; matching rows show a grey `UEI · DUNS` subtitle.
+- **Per-Contract USASpending Refresh**: Individual "🔄 Refresh from USASpending" button on each USASpending contract card to re-fetch and update a single record (including NAICS code).
+- **Location Filter – Job Search Tracker**: New Location filter on the Job Search Tracker page; searches both `company.location` and `CompanyOperatingCity.city`.
+
+### Changed
+- **Dashboard Defaults**: Job Search Activity chart now defaults to "Last 7 days" with Date x-axis.
+- **Dashboard – Top 10 Focus Areas**: Replaced the word cloud with a ranked top-10 focus area list with inline bar indicators and links to Job Search Tracker filtered by that focus area.
+- **Dashboard – Interviews With**: Fixed "Interviews With" box not showing companies when the earliest interview date fell outside the selected date window. Now tracks the *most recent* interview date per company so the JS date-range filter works correctly.
+- **Defense Contracts Page**: Default date range reduced from 90 days to 7 days for significantly faster page load.
+
+### Fixed
+- **SAM.gov `fetch_description`**: Added `SamGovClient.fetch_description(notice_id)` method that calls the v1 notice-description endpoint directly, bypassing the date-windowed search API.
+- **`refresh_opportunity` (full-page refresh)**: Also resolves description URLs and uses the direct description fallback when the search API returns nothing.
+
 ## [3.2.0] - 2026-03-10
 
 ### Added

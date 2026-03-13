@@ -1,4 +1,5 @@
 import logging
+import re
 import csv
 import io
 import time
@@ -141,7 +142,31 @@ def opportunities_dashboard(request):
 
     # Display saved opportunities (Local Search)
     qs = SamGovOpportunity.objects.defer("raw_response").order_by("-posted_date", "-fetched_at")
-    
+
+    # Apply active contract ignore rules (same rules as defense contracts page)
+    from tracker.models import ContractIgnoreRule
+    from django.db.models import Q as _Q
+    ignored_naics = set()
+    ignored_psc = set()
+    ignored_terms = []
+    for rule in ContractIgnoreRule.objects.filter(is_active=True).prefetch_related('naics_codes'):
+        if rule.rule_type == 'naics':
+            ignored_naics.add(rule.value)
+        elif rule.rule_type == 'psc':
+            ignored_psc.add(rule.value)
+        elif rule.rule_type in ('domain', 'sector'):
+            ignored_naics.update(rule.naics_codes.values_list('code', flat=True))
+        elif rule.rule_type == 'term':
+            ignored_terms.append(rule.value)
+    if ignored_naics:
+        qs = qs.exclude(naics_code__in=ignored_naics)
+    if ignored_psc:
+        qs = qs.exclude(product_service_code__in=ignored_psc)
+    for term in ignored_terms:
+        qs = qs.exclude(
+            _Q(title__icontains=term) | _Q(description__icontains=term)
+        )
+
     # Local filtering if query persists (searching local DB)
     if query:
         search_terms = query.split()
@@ -184,12 +209,39 @@ def _parse_api_date(date_str):
         return dt.date()
     return None
 
+def _normalize_naics_code(raw_value):
+    """
+    Normalize a raw naics_code value to a 6-digit numeric code string.
+    SAM.gov sometimes returns the full description instead of the numeric code.
+    Handles formats: '541519', '541519 - IT Services', 'Information Technology'.
+    Returns the best available value (numeric code preferred, original if no match).
+    """
+    import re
+    if not raw_value:
+        return raw_value
+    stripped = str(raw_value).strip()
+    # If it starts with 4-8 digits, those digits are the code
+    m = re.match(r'^(\d{4,8})', stripped)
+    if m:
+        return m.group(1)
+    # Otherwise try a description lookup against the NAICSCode table
+    from tracker.models import NAICSCode
+    match = NAICSCode.objects.filter(description__iexact=stripped).first()
+    if match:
+        return match.code
+    # Partial description match (some descriptions differ slightly in punctuation)
+    match = NAICSCode.objects.filter(description__icontains=stripped[:40]).first()
+    if match:
+        return match.code
+    return stripped
+
+
 def _save_opportunity(data, save_mode='create_or_update'):
     """
     Helpers to save/update a SamGovOpportunity from API dict.
     save_mode: 'create_only' - don't overwrite existing
                'create_or_update' - standard behavior
-    
+
     Returns (record, created_bool)
     """
     try:
@@ -224,7 +276,7 @@ def _save_opportunity(data, save_mode='create_or_update'):
                 "department": data.get("department", ""),
                 "office": data.get("office", ""),
                 "sub_office": data.get("subOffice", ""),
-                "naics_code": data.get("naicsCode", "") or data.get("naics", ""),
+                "naics_code": _normalize_naics_code(data.get("naicsCode", "") or data.get("naics", "")),
                 "product_service_code": data.get("classificationCode") or data.get("pscCode") or data.get("psc") or "",
                 "naics_codes": data.get("naicsCodes", []),
                 "point_of_contact": data.get("pointOfContact", []),
@@ -306,6 +358,67 @@ def _parse_csv_date(date_str):
 
 
 @login_required
+def refresh_opportunity_json(request, opportunity_id):
+    """
+    AJAX endpoint: refresh a single opportunity and return updated fields as JSON.
+    Used by the inline 'Load Description' button on the opportunities page.
+    """
+    try:
+        opp = SamGovOpportunity.objects.get(pk=opportunity_id)
+        client = SamGovClient()
+
+        # Step 1: If the stored description is already a SAM.gov URL, resolve it directly.
+        # This is the common case: the API returned a URL instead of text at ingest time.
+        stored_desc = opp.description or ''
+        if 'api.sam.gov/prod/opportunities' in stored_desc:
+            desc = _resolve_description(client, stored_desc, '')
+            if desc:
+                opp.description = desc
+                opp.save(update_fields=['description'])
+                return JsonResponse({'ok': True, 'description': desc})
+
+        # Step 2: Try the search API to get a fresh copy of the record.
+        end_date = datetime.now().date()
+        start_date = end_date - timedelta(days=364)
+        found_data = _fetch_with_date_window(client, opp.solicitation_number, start_date, end_date)
+        if not found_data and opp.posted_date and opp.posted_date < start_date:
+            old_start = opp.posted_date
+            old_end = old_start + timedelta(days=364)
+            found_data = _fetch_with_date_window(client, opp.solicitation_number, old_start, old_end)
+        if found_data:
+            result, _ = _save_opportunity(found_data, save_mode='create_or_update')
+            if result:
+                desc = _resolve_description(client, result.description or '', found_data.get('noticeId', ''))
+                if desc:
+                    result.description = desc
+                    result.save(update_fields=['description'])
+                    return JsonResponse({'ok': True, 'description': desc})
+
+        # Step 3: Last-resort direct description fetch using the internal noticeId UUID.
+        # The solicitation_number (e.g. "1333HK26C00000007") doesn't work here — we need
+        # the UUID that SAM.gov uses internally, sourced from raw_response or ui_link.
+        notice_id = ''
+        if opp.raw_response and isinstance(opp.raw_response, dict):
+            notice_id = opp.raw_response.get('noticeId', '')
+        if not notice_id and opp.ui_link:
+            m = re.search(r'/opp/([0-9a-f]{8,}[0-9a-f]*)/view', opp.ui_link, re.IGNORECASE)
+            if m:
+                notice_id = m.group(1)
+        if notice_id:
+            direct_desc = client.fetch_description(notice_id)
+            if direct_desc:
+                opp.description = direct_desc
+                opp.save(update_fields=['description'])
+                return JsonResponse({'ok': True, 'description': direct_desc})
+        return JsonResponse({'ok': False, 'error': 'Not found in SAM.gov API'})
+    except SamGovOpportunity.DoesNotExist:
+        return JsonResponse({'ok': False, 'error': 'Record not found'}, status=404)
+    except Exception as e:
+        logger.error(f'refresh_opportunity_json error for {opportunity_id}: {e}')
+        return JsonResponse({'ok': False, 'error': str(e)}, status=500)
+
+
+@login_required
 def refresh_opportunity(request, opportunity_id):
     """
     Manually refresh a single opportunity from SAM.gov API.
@@ -346,12 +459,23 @@ def refresh_opportunity(request, opportunity_id):
             # Force update 
             result, _ = _save_opportunity(found_data, save_mode='create_or_update')
             if result:
-                 messages.success(request, f"Successfully refreshed '{opp.solicitation_number}'")
+                # Resolve description URL if the API returned a link instead of text
+                desc = _resolve_description(client, result.description or '', opp.solicitation_number)
+                if desc:
+                    result.description = desc
+                    result.save(update_fields=['description'])
+                messages.success(request, f"Successfully refreshed '{opp.solicitation_number}'")
             else:
-                 messages.error(request, "Failed to update record (save error).")
+                messages.error(request, "Failed to update record (save error).")
         else:
-            # If we tried all strategies and failed
-            messages.warning(request, "Opportunity not found in API even after checking past 3 years.")
+            # Fallback: try fetching description directly by notice ID
+            direct_desc = client.fetch_description(opp.solicitation_number)
+            if direct_desc:
+                opp.description = direct_desc
+                opp.save(update_fields=['description'])
+                messages.success(request, f"Description loaded from SAM.gov for '{opp.solicitation_number}'")
+            else:
+                messages.warning(request, "Opportunity not found in API even after checking past 3 years.")
 
     except SamGovOpportunity.DoesNotExist:
         messages.error(request, "Opportunity not found.")
@@ -360,6 +484,27 @@ def refresh_opportunity(request, opportunity_id):
         messages.error(request, f"Refresh failed: {e}")
         
     return redirect("opportunities_dashboard")
+
+def _resolve_description(client, desc, notice_id):
+    """
+    If `desc` is a SAM.gov description URL, follow it to fetch the real content.
+    Falls back to a direct notice-description lookup using `notice_id`.
+    Returns the resolved description text (may be HTML) or empty string.
+    """
+    if desc and 'api.sam.gov/prod/opportunities' in desc:
+        # Extract noticeId from the URL if present
+        m = re.search(r'noticeid=([^&\s]+)', desc, re.IGNORECASE)
+        url_notice_id = m.group(1) if m else notice_id
+        fetched = client.fetch_description(url_notice_id)
+        if fetched:
+            return fetched
+    elif desc:
+        return desc
+    # Try direct lookup using the stored notice_id as a last resort
+    if notice_id:
+        return client.fetch_description(notice_id) or ''
+    return ''
+
 
 def _fetch_with_date_window(client, solicitation, start_date, end_date):
     """Helper to try fetching with a specific date window."""

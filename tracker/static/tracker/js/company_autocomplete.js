@@ -177,7 +177,15 @@
             'padding:0.45rem 0.75rem;cursor:pointer;font-size:0.9rem;color:#1f2937;' +
             'border-bottom:1px solid #f3f4f6;white-space:normal;';
           // Highlight matching substring
-          row.innerHTML = highlightMatch(item.name, input.value);
+          let rowHtml = highlightMatch(item.name, input.value);
+          // Show UEI / DUNS as a subtitle so the user can confirm the correct entity
+          const subtitleParts = [];
+          if (item.uei) subtitleParts.push('UEI ' + escapeHtml(item.uei));
+          if (item.duns) subtitleParts.push('DUNS ' + escapeHtml(item.duns));
+          if (subtitleParts.length) {
+            rowHtml += '<br><span style="font-size:0.76rem;color:#9ca3af;">' + subtitleParts.join('·') + '</span>';
+          }
+          row.innerHTML = rowHtml;
         }
 
         row.addEventListener('mousedown', function (e) {
@@ -314,7 +322,7 @@
 
           // Add API results
           results.forEach(function (c) {
-            currentItems.push({ id: c.id, name: c.name, type: 'company' });
+            currentItems.push({ id: c.id, name: c.name, uei: c.uei || '', duns: c.duns_number || '', type: 'company' });
           });
 
           // Add "Create New" option if enabled

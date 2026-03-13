@@ -173,6 +173,8 @@
           Search
         </button>
         <a href="{% url 'defense_contracts' %}"
+           id="resetFiltersBtn"
+           onclick="localStorage.removeItem('contracts_filters')"
            class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded-lg px-4 py-2 text-sm transition-colors inline-block">
           Reset
         </a>
@@ -249,8 +251,10 @@
             <div class="text-xs text-gray-500 mt-0.5">
               📍 {{ contract.company_location }}
               {% if contract.contract_number %} · 📝 {{ contract.contract_number }}{% endif %}
-              {% if contract.naics_code %} · <span title="{{ contract.naics_description|default:'' }}">🏭 {{ contract.naics_code }}</span>{% endif %}
-              {% if contract.product_service_code %} · <span title="{{ contract.product_service_code_description|default:'' }}">📦 {{ contract.product_service_code }}</span>{% endif %}
+              {% if contract.naics_code %} · <span title="{{ contract.naics_description|default:'' }}">🏭 {{ contract.naics_code }}{% if contract.naics_description %} – {{ contract.naics_description }}{% endif %}</span>
+                <button type="button" onclick="addIgnoreRule('naics', '{{ contract.naics_code|escapejs }}', this)" title="Add NAICS {{ contract.naics_code }} to ignore list" class="text-red-400 hover:text-red-600 text-[0.6rem] ml-0.5 cursor-pointer">🚫</button>{% endif %}
+              {% if contract.product_service_code %} · <span title="{{ contract.product_service_code_description|default:'' }}">📦 {{ contract.product_service_code }}{% if contract.product_service_code_description %} – {{ contract.product_service_code_description }}{% endif %}</span>
+                <button type="button" onclick="addIgnoreRule('psc', '{{ contract.product_service_code|escapejs }}', this)" title="Add PSC {{ contract.product_service_code }} to ignore list" class="text-red-400 hover:text-red-600 text-[0.6rem] ml-0.5 cursor-pointer">🚫</button>{% endif %}
             </div>
             <div id="company-actions-{{ contract.id }}" class="flex items-center gap-1.5 flex-wrap mt-1.5">
               {% if not contract.company %}
@@ -321,38 +325,15 @@
           <summary class="cursor-pointer text-sm text-gray-700 line-clamp-2 group-open:line-clamp-none">
             {% if contract.description %}
               {{ contract.description|truncatewords:40 }}
-            {% elif contract.product_or_service_description %}
-              {{ contract.product_or_service_description|truncatewords:40 }}
-            {% elif contract.naics_description %}
-              {{ contract.naics_description|truncatewords:40 }}
             {% else %}
               <span class="italic text-gray-400">No explicit description available.</span>
             {% endif %}
           </summary>
           <div class="mt-2 text-sm text-gray-600 space-y-1">
-            <p>
-            {% if contract.description %}
-              {{ contract.description }}
-            {% elif contract.product_or_service_description %}
-              {{ contract.product_or_service_description }}
-            {% elif contract.naics_description %}
-              {{ contract.naics_description }}
-            {% else %}
-              <span class="italic text-gray-400">No explicit description available for this award.</span>
-            {% endif %}
-            </p>
             {% if contract.work_location %}
             <p class="text-xs"><strong>📍 Work Location:</strong> {{ contract.work_location }}</p>
             {% endif %}
             {% if contract.data_source == 'usaspending' %}
-            <p class="text-xs">
-                <strong>🏭 NAICS Code:</strong> {{ contract.naics_code|default:"-" }}
-                {% if contract.naics_description %}<span class="text-gray-600">– {{ contract.naics_description }}</span>{% endif %}
-            </p>
-            <p class="text-xs">
-                <strong>📦 Product Service Code (PSC):</strong> {{ contract.product_service_code|default:"-" }}
-                {% if contract.product_service_code_description %}<span class="text-gray-600">– {{ contract.product_service_code_description }}</span>{% endif %}
-            </p>
             <p class="text-xs"><strong>📍 Performance State:</strong> {{ contract.place_of_performance_state|default:"-" }}</p>
             <p class="text-xs"><strong>📍 Performance County:</strong> {{ contract.primary_place_of_performance_county_name|default:"-" }}</p>
             <p class="text-xs"><strong>🌍 Performance Country:</strong> {{ contract.primary_place_of_performance_country_name|default:"-" }}</p>
@@ -389,15 +370,21 @@
             {% if contract.award_id %}
             <p class="text-xs"><strong>🆔 Award ID:</strong> {{ contract.award_id }}</p>
             {% endif %}
-            <p class="text-xs text-gray-400 mt-1">
+            <p class="text-xs text-gray-400 mt-1 flex flex-wrap items-center gap-3">
               {% if contract.data_source == 'war_gov' %}
-              <a href="{{ contract.source_url }}" target="_blank" class="text-blue-500 hover:underline">View on war.gov →</a>
+              <a href="{{ contract.source_url }}" target="_blank" class="text-blue-500 hover:underline">View on war.gov &rarr;</a>
               {% elif contract.data_source == 'usaspending' %}
                 {% if contract.usaspending_published %}
-                <a href="{{ contract.source_url }}" target="_blank" class="text-blue-500 hover:underline">View on USASpending.gov →</a>
+                <a href="{{ contract.source_url }}" target="_blank" class="text-blue-500 hover:underline">View on USASpending.gov &rarr;</a>
                 {% else %}
-                <span class="text-amber-600">⏳ Not yet available on usaspending.gov</span>
+                <span class="text-amber-600">&hourglass; Not yet available on usaspending.gov</span>
                 {% endif %}
+                <form method="post" action="{% url 'refresh_usaspending_award' contract.id %}" style="display:inline;" onsubmit="this.querySelector('button').disabled=true; this.querySelector('button').textContent='Refreshing…';">
+                  {% csrf_token %}
+                  <button type="submit" class="text-xs text-indigo-600 hover:text-indigo-800 hover:underline bg-transparent border-none cursor-pointer p-0" title="Re-fetch this award from USASpending API to update NAICS, officers, and other fields">
+                    🔄 Refresh from USASpending
+                  </button>
+                </form>
               {% endif %}
             </p>
           </div>
@@ -477,6 +464,48 @@
 
 {% block extra_scripts %}
 <script>
+  const CSRF_TOKEN = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '{{ csrf_token }}';
+
+  // ── Filter persistence ──────────────────────────────────────────────────────
+  const FILTER_KEY = 'contracts_filters';
+  const FILTER_PARAMS = ['q', 'source', 'branch', 'agency', 'days'];
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const params = new URLSearchParams(window.location.search);
+    const hasParams = FILTER_PARAMS.some(p => params.has(p));
+
+    if (hasParams) {
+      const toSave = {};
+      FILTER_PARAMS.forEach(p => { toSave[p] = params.get(p) || ''; });
+      localStorage.setItem(FILTER_KEY, JSON.stringify(toSave));
+    } else {
+      const saved = JSON.parse(localStorage.getItem(FILTER_KEY) || 'null');
+      if (saved && FILTER_PARAMS.some(p => saved[p])) {
+        const url = new URL(window.location.href);
+        FILTER_PARAMS.forEach(p => { if (saved[p]) url.searchParams.set(p, saved[p]); });
+        window.location.replace(url.toString());
+      }
+    }
+  });
+  // ────────────────────────────────────────────────────────────────────────────
+
+  function addIgnoreRule(ruleType, value, btn) {
+    btn.disabled = true;
+    btn.textContent = '⏳';
+    fetch('{% url "add_contract_ignore_rule" %}', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRFToken': CSRF_TOKEN},
+      body: 'rule_type=' + encodeURIComponent(ruleType) + '&value=' + encodeURIComponent(value)
+    }).then(r => r.json()).then(data => {
+      btn.textContent = '✅';
+      btn.classList.remove('text-red-400');
+      btn.classList.add('text-green-500');
+    }).catch(() => {
+      btn.textContent = '❌';
+      btn.disabled = false;
+    });
+  }
+
   /**
    * Toggle visibility of branch/agency filter dropdowns based on selected source.
    */

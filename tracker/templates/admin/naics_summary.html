@@ -1,0 +1,209 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block title %}NAICS Code Summary{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <h1>NAICS Code Summary – Non-Ignored Contracts</h1>
+  <p style="color:#666;">
+    Showing NAICS codes present in the <strong>{{ total_contracts }}</strong> contracts that are <em>not</em> excluded by any active ignore rule.
+    Click <strong>Ignore</strong> to create a new <code>naics</code> rule for that code.
+    Click a description to edit it (letters, numbers, spaces, commas, dashes, and parentheses only).
+  </p>
+
+  <div id="edit-error" style="display:none;color:#ba2121;background:#fff3f3;border:1px solid #d9534f;padding:8px 12px;border-radius:4px;margin-bottom:12px;"></div>
+
+  <!-- Confirmation dialog for unknown NAICS codes -->
+  <div id="confirm-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9999;align-items:center;justify-content:center;">
+    <div style="background:#fff;border-radius:6px;padding:24px 28px;max-width:480px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,0.25);">
+      <h3 style="margin:0 0 12px;font-size:1rem;color:#ba2121;">⚠️ NAICS Code Not in Official List</h3>
+      <p id="confirm-message" style="margin:0 0 20px;font-size:0.9rem;color:#333;line-height:1.5;"></p>
+      <div style="display:flex;gap:10px;justify-content:flex-end;">
+        <button id="confirm-no" onclick="dismissConfirm()"
+                style="padding:6px 18px;border:1px solid #ccc;border-radius:4px;background:#f5f5f5;cursor:pointer;font-size:0.9em;">
+          No, cancel
+        </button>
+        <button id="confirm-yes"
+                style="padding:6px 18px;border:none;border-radius:4px;background:#417690;color:#fff;cursor:pointer;font-size:0.9em;">
+          Yes, save anyway
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="module" style="margin-bottom:16px;">
+    <h2 style="padding:8px 12px;">
+      {{ rows|length }} distinct NAICS codes &nbsp;
+      <a href="{% url 'custom_admin:tracker_contractignorerule_changelist' %}" class="button" style="font-size:0.8em;">
+        ← Ignore Rules
+      </a>
+    </h2>
+    <table style="width:100%;border-collapse:collapse;">
+      <thead>
+        <tr style="background:#417690;color:#fff;">
+          <th style="padding:8px 12px;text-align:left;">NAICS Code</th>
+          <th style="padding:8px 12px;text-align:left;">Description <span style="font-weight:normal;font-size:0.8em;">(click to edit)</span></th>
+          <th style="padding:8px 12px;text-align:right;">Contracts</th>
+          <th style="padding:8px 12px;text-align:center;">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+        <tr style="{% cycle 'background:#f8f8f8;' '' %}border-bottom:1px solid #e0e0e0;" id="row-{{ row.naics_code }}">
+          <td style="padding:6px 12px;font-family:monospace;font-weight:bold;">{{ row.naics_code }}</td>
+          <td style="padding:6px 12px;">
+            <span class="desc-display"
+                  data-code="{{ row.naics_code|escapejs }}"
+                  title="Click to edit"
+                  onclick="startEdit(this)"
+                  style="cursor:pointer;border-bottom:1px dashed #aaa;">{{ row.description|default:"—" }}</span>
+            <span class="desc-edit" style="display:none;">
+              <input type="text"
+                     data-code="{{ row.naics_code|escapejs }}"
+                     data-original="{{ row.description|escapejs }}"
+                     value="{{ row.description|escapejs }}"
+                     style="width:90%;padding:2px 6px;border:1px solid #417690;border-radius:3px;font-size:0.9em;"
+                     onkeydown="handleEditKey(event, this)"
+                     onblur="saveEdit(this)" />
+              <span style="font-size:0.75em;color:#888;margin-left:4px;">Enter to save · Esc to cancel</span>
+            </span>
+          </td>
+          <td style="padding:6px 12px;text-align:right;font-weight:bold;">{{ row.count }}</td>
+          <td style="padding:6px 12px;text-align:center;">
+            <button type="button"
+                    onclick="ignoreCode('{{ row.naics_code|escapejs }}', this)"
+                    style="background:#ba2121;color:#fff;border:none;border-radius:4px;padding:4px 10px;cursor:pointer;font-size:0.85em;">
+              🚫 Ignore
+            </button>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" style="padding:16px;text-align:center;color:#888;">No contracts found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+const CSRF = '{{ csrf_token }}';
+const VALID_DESC = /^[A-Za-z0-9 ,\-()\/.&]+$/;
+
+function showError(msg) {
+  const el = document.getElementById('edit-error');
+  el.textContent = msg;
+  el.style.display = 'block';
+  setTimeout(() => { el.style.display = 'none'; }, 5000);
+}
+
+function startEdit(span) {
+  const cell = span.parentElement;
+  span.style.display = 'none';
+  const editSpan = cell.querySelector('.desc-edit');
+  editSpan.style.display = 'inline';
+  editSpan.querySelector('input').focus();
+  editSpan.querySelector('input').select();
+}
+
+function cancelEdit(input) {
+  const cell = input.closest('td');
+  input.value = input.dataset.original;
+  cell.querySelector('.desc-edit').style.display = 'none';
+  const display = cell.querySelector('.desc-display');
+  display.style.display = 'inline';
+}
+
+function handleEditKey(e, input) {
+  if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
+  if (e.key === 'Escape') { e.preventDefault(); cancelEdit(input); }
+}
+
+function dismissConfirm() {
+  document.getElementById('confirm-overlay').style.display = 'none';
+  document.getElementById('confirm-yes').onclick = null;
+}
+
+function postDescription(code, description, createIfMissing) {
+  return fetch('/api/update_naics_description/', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRFToken': CSRF},
+    body: 'code=' + encodeURIComponent(code) +
+          '&description=' + encodeURIComponent(description) +
+          (createIfMissing ? '&create_if_missing=1' : '')
+  }).then(r => r.json().then(data => ({ ok: r.ok, status: r.status, data })));
+}
+
+function applySuccessfulSave(input, description) {
+  const cell = input.closest('td');
+  const display = cell.querySelector('.desc-display');
+  display.textContent = description || '—';
+  input.dataset.original = description;
+  cell.querySelector('.desc-edit').style.display = 'none';
+  display.style.display = 'inline';
+  display.style.background = '#d4edda';
+  setTimeout(() => { display.style.background = ''; }, 1200);
+}
+
+function saveEdit(input) {
+  if (input.closest('.desc-edit').style.display === 'none') return;
+
+  const code = input.dataset.code;
+  const original = input.dataset.original;
+  const value = input.value.trim();
+
+  if (value === original) { cancelEdit(input); return; }
+
+  if (value && !VALID_DESC.test(value)) {
+    showError('Invalid characters: only letters, numbers, spaces, commas, dashes, and parentheses are allowed.');
+    input.focus();
+    return;
+  }
+
+  postDescription(code, value, false).then(({ ok, status, data }) => {
+    if (ok) {
+      applySuccessfulSave(input, value);
+    } else if (status === 404 && data.error === 'not_found') {
+      // Show confirmation dialog
+      const overlay = document.getElementById('confirm-overlay');
+      document.getElementById('confirm-message').textContent =
+        `NAICS code ${code} was not found in the official Census.gov list. ` +
+        `Are you sure you want to save the description "${value}" for this code?`;
+      overlay.style.display = 'flex';
+      document.getElementById('confirm-yes').onclick = function () {
+        dismissConfirm();
+        postDescription(code, value, true).then(({ ok: ok2, data: data2 }) => {
+          if (ok2) {
+            applySuccessfulSave(input, value);
+          } else {
+            showError(data2.error || 'Save failed.');
+            input.focus();
+          }
+        }).catch(() => { showError('Save failed. Please try again.'); input.focus(); });
+      };
+    } else {
+      showError(data.error || 'Save failed.');
+      input.focus();
+    }
+  }).catch(() => { showError('Save failed. Please try again.'); input.focus(); });
+}
+
+function ignoreCode(code, btn) {
+  btn.disabled = true;
+  btn.textContent = '⏳';
+  fetch('{% url "add_contract_ignore_rule" %}', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRFToken': CSRF},
+    body: 'rule_type=naics&value=' + encodeURIComponent(code)
+  }).then(r => r.json()).then(data => {
+    btn.textContent = '✅ Ignored';
+    btn.style.background = '#28a745';
+    const row = document.getElementById('row-' + code);
+    if (row) row.style.opacity = '0.4';
+  }).catch(() => {
+    btn.textContent = '❌ Error';
+    btn.disabled = false;
+  });
+}
+</script>
+{% endblock %}

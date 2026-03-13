@@ -41,44 +41,72 @@
 
 <!-- Filter Toggle -->
 <div class="bg-white rounded-lg shadow p-4 mb-4 border border-gray-200">
-    <div class="flex items-center justify-between">
+    <form method="get" action="{% url 'job_search_tracker' %}" class="flex flex-wrap items-center gap-3">
+        {% if show_new_only %}<input type="hidden" name="new_only" value="true">{% endif %}
+
+        <!-- Location filter -->
         <div class="flex items-center gap-2">
-            <span class="text-sm font-semibold text-gray-700">Filter:</span>
-            {% if focus_area_filter %}
-                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800 border border-purple-300">
-                    🎯 Focus Area: {{ focus_area_filter }} ({{ total_companies }})
-                </span>
-            {% elif show_new_only %}
-                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800 border border-yellow-300">
-                    🆕 Showing New Companies Added Today ({{ total_companies }})
-                </span>
-            {% else %}
-                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-600">
-                    Showing All Companies
-                </span>
-            {% endif %}
+            <label for="location-filter" class="text-sm font-semibold text-gray-700 whitespace-nowrap">📍 Location:</label>
+            <input id="location-filter" type="text" name="location" value="{{ location_filter }}"
+                   placeholder="City, state, or county…"
+                   class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 w-48">
         </div>
-        <div class="flex gap-2">
-            {% if focus_area_filter or show_new_only %}
-                <a href="{% url 'job_search_tracker' %}" 
-                   class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-sm">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                    Clear Filter
-                </a>
-            {% endif %}
-            {% if not show_new_only %}
-                <a href="{% url 'job_search_tracker' %}?new_only=true" 
-                   class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 shadow-sm">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                    </svg>
-                    Show New Today Only
-                </a>
-            {% endif %}
+
+        <!-- Focus area filter -->
+        <div class="flex items-center gap-2">
+            <label for="focus-area-filter" class="text-sm font-semibold text-gray-700 whitespace-nowrap">🎯 Focus Area:</label>
+            <input id="focus-area-filter" type="text" name="focus_area" value="{{ focus_area_filter }}"
+                   placeholder="e.g. defense, AI…"
+                   class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 w-40">
         </div>
+
+        <button type="submit"
+                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 shadow-sm">
+            Apply
+        </button>
+
+        {% if location_filter or focus_area_filter or show_new_only %}
+        <a href="{% url 'job_search_tracker' %}"
+           class="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 shadow-sm">
+            ✕ Clear All
+        </a>
+        {% endif %}
+    </form>
+
+    <!-- Active-filter badges -->
+    {% if location_filter or focus_area_filter or show_new_only %}
+    <div class="flex flex-wrap gap-2 mt-3">
+        {% if location_filter %}
+        <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800 border border-blue-300">
+            📍 Location: {{ location_filter }}
+            <a href="?{% if focus_area_filter %}focus_area={{ focus_area_filter }}&{% endif %}{% if show_new_only %}new_only=true{% endif %}" class="ml-1 text-blue-500 hover:text-blue-700">✕</a>
+        </span>
+        {% endif %}
+        {% if focus_area_filter %}
+        <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800 border border-purple-300">
+            🎯 Focus Area: {{ focus_area_filter }}
+            <a href="?{% if location_filter %}location={{ location_filter }}&{% endif %}{% if show_new_only %}new_only=true{% endif %}" class="ml-1 text-purple-500 hover:text-purple-700">✕</a>
+        </span>
+        {% endif %}
+        {% if show_new_only %}
+        <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800 border border-yellow-300">
+            🆕 New Today Only
+            <a href="?{% if location_filter %}location={{ location_filter }}&{% endif %}{% if focus_area_filter %}focus_area={{ focus_area_filter }}{% endif %}" class="ml-1 text-yellow-600 hover:text-yellow-800">✕</a>
+        </span>
+        {% endif %}
+        <span class="text-sm text-gray-500 self-center">{{ total_companies }} companies shown</span>
     </div>
+    {% endif %}
+
+    <!-- New Today shortcut (only shown when not already filtering new only) -->
+    {% if not show_new_only %}
+    <div class="mt-3">
+        <a href="{% url 'job_search_tracker' %}?new_only=true{% if location_filter %}&location={{ location_filter }}{% endif %}{% if focus_area_filter %}&focus_area={{ focus_area_filter }}{% endif %}"
+           class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-yellow-600 hover:bg-yellow-700 shadow-sm">
+            🆕 Show New Today Only
+        </a>
+    </div>
+    {% endif %}
 </div>
 
 <!-- Companies Table -->

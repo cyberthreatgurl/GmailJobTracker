@@ -398,6 +398,20 @@ def dashboard(request):
             )
             search_map = {r["day"]: r["count"] for r in search_by_day}
             data = [search_map.get(d, 0) for d in app_date_list]
+        elif ml_label == "new_companies":
+            # New companies added per day - based on first_contact date
+            new_co_q = Company.objects.filter(first_contact__isnull=False)
+            if app_start_date:
+                new_co_q = new_co_q.filter(first_contact__date__gte=app_start_date)
+            if hh_companies:
+                new_co_q = new_co_q.exclude(id__in=hh_companies)
+            new_co_by_day = (
+                new_co_q.annotate(day=TruncDate("first_contact"))
+                .values("day")
+                .annotate(count=Count("id"))
+            )
+            new_co_map = {r["day"]: r["count"] for r in new_co_by_day}
+            data = [new_co_map.get(d, 0) for d in app_date_list]
         else:
             # Message-based series (referral, head_hunter, noise, etc.)
             msgs_by_day = (
@@ -626,16 +640,17 @@ def dashboard(request):
             company_id__in=hh_company_list
         )
 
-    # Use a dict to track the earliest interview per company (deduplicate by company_id)
+    # Use a dict to track the most recent interview per company (deduplicate by company_id)
     interview_by_company = {}
 
     for item in interview_companies_qs:
         company_id = item["company_id"]
         interview_date = item["interview_date"]
-        # Keep the EARLIEST interview_date per company (first contact)
+        # Keep the MOST RECENT interview_date per company so the JS date-range filter
+        # shows the company if its latest interview falls within the selected window
         if (
             company_id not in interview_by_company
-            or interview_date < interview_by_company[company_id]["interview_date"]
+            or interview_date > interview_by_company[company_id]["interview_date"]
         ):
             interview_by_company[company_id] = {
                 "company_id": company_id,
@@ -673,10 +688,10 @@ def dashboard(request):
         if company_id in tracked_companies:
             continue
 
-        # Keep the EARLIEST message-based interview per company (first contact)
+        # Keep the MOST RECENT message-based interview per company
         if (
             company_id not in interview_by_company
-            or msg_date < interview_by_company[company_id]["interview_date"]
+            or msg_date > interview_by_company[company_id]["interview_date"]
         ):
             interview_by_company[company_id] = {
                 "company_id": company_id,

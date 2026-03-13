@@ -2364,20 +2364,28 @@ def job_search_tracker(request):
     # Check for filter parameters
     show_new_only = request.GET.get('new_only', 'false').lower() == 'true'
     focus_area_filter = request.GET.get('focus_area', '').strip()
-    
+    location_filter = request.GET.get('location', '').strip()
+
     # Get all companies ordered by last search date (nulls last)
     companies = Company.objects.annotate(
         message_count=Count('message')
     )
-    
+
     # Filter for companies added today if requested
     today_start = now().replace(hour=0, minute=0, second=0, microsecond=0)
     if show_new_only:
         companies = companies.filter(first_contact__gte=today_start)
-    
+
     # Filter by focus area if specified
     if focus_area_filter:
         companies = companies.filter(focus_area__icontains=focus_area_filter)
+
+    # Filter by location: match Company.location OR any CompanyOperatingCity.city
+    if location_filter:
+        companies = companies.filter(
+            Q(location__icontains=location_filter) |
+            Q(operating_cities__city__icontains=location_filter)
+        ).distinct()
     
     companies = companies.order_by(
         F('last_job_search_date').desc(nulls_last=True),
@@ -2432,8 +2440,9 @@ def job_search_tracker(request):
         "searched_this_month": searched_this_month,
         "show_new_only": show_new_only,
         "focus_area_filter": focus_area_filter,
+        "location_filter": location_filter,
     }
-    
+
     return render(request, "tracker/job_search_tracker.html", ctx)
 
 

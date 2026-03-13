@@ -1,110 +1,70 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='UTF-8'?>
 <opml version="1.0">
-<head>
-<title>Feed Subscriptions</title>
-</head>
-<body>
-      <outline text="kaver68&#39;s Email Updates - Tracked Events from GovTrack.us" title="kaver68&#39;s Email Updates - Tracked Events from GovTrack.us" type="rss" 
-            xmlUrl="https://www.govtrack.us/events/events.rss?list_id=SLmppSQbj4MVO4T7" htmlUrl="https://www.govtrack.us/congress/bills/browse?text=transgender"/>
-      <outline text="Virginia Railway Express (VRE) - Virginia to DC Commuter Train" title="Virginia Railway Express (VRE) - Virginia to DC Commuter Train" type="rss" 
-            xmlUrl="https://www.reddit.com/r/VARailwayExpress.rss" htmlUrl="https://www.reddit.com/r/VARailwayExpress"/>
-  <outline title="Cyber" text="Cyber">
-      <outline text="AIScoop" title="AIScoop" type="rss" 
-            xmlUrl="https://aiscoop.com/feed/" htmlUrl="https://aiscoop.com/"/>
-      <outline text="CyberScoop" title="CyberScoop" type="rss" 
-            xmlUrl="https://cyberscoop.com/feed/" htmlUrl="https://cyberscoop.com/"/>
-      <outline text="BleepingComputer" title="BleepingComputer" type="rss" 
-            xmlUrl="https://www.bleepingcomputer.com/feed/" htmlUrl="https://www.bleepingcomputer.com/"/>
-      <outline text="Techdirt" title="Techdirt" type="rss" 
-            xmlUrl="https://www.techdirt.com/feed/" htmlUrl="https://www.techdirt.com"/>
-      <outline text="The Record from Recorded Future News" title="The Record from Recorded Future News" type="rss" 
-            xmlUrl="https://therecord.media/feed" htmlUrl="https://therecord.media/feed"/>
-      <outline text="Munich Reinsurance unites global security teams to boost resilience, cut costs | CSO Online" title="Munich Reinsurance unites global security teams to boost resilience, cut costs | CSO Online" type="rss" 
-            xmlUrl="https://www.csoonline.com/feed/" htmlUrl="https://www.csoonline.com"/>
-      <outline text="Cybersecurity Dive - Latest News" title="Cybersecurity Dive - Latest News" type="rss" 
-            xmlUrl="https://www.cybersecuritydive.com/feeds/news/" htmlUrl="https://www.cybersecuritydive.com/news/"/>
-      <outline text="Talkin&#39; About [Infosec] News, Powered by Black Hills Information Security" title="Talkin&#39; About [Infosec] News, Powered by Black Hills Information Security" type="rss" 
-            xmlUrl="https://feeds.blubrry.com/feeds/bhis.xml" htmlUrl="https://bhisnews.transistor.fm"/>
-      <outline text="Eclypsium | Supply Chain Security for the Modern Enterprise" title="Eclypsium | Supply Chain Security for the Modern Enterprise" type="rss" 
-            xmlUrl="https://eclypsium.com/feed/ " htmlUrl="https://eclypsium.com/home/"/>
+  <head>
+    <title>Feed Subscriptions</title>
+  </head>
+  <body>
+    <outline text="kaver68's Email Updates - Tracked Events from GovTrack.us" title="kaver68's Email Updates - Tracked Events from GovTrack.us" type="rss" xmlUrl="https://www.govtrack.us/events/events.rss?list_id=SLmppSQbj4MVO4T7" htmlUrl="https://www.govtrack.us/congress/bills/browse?text=transgender" />
+    <outline text="Virginia Railway Express (VRE) - Virginia to DC Commuter Train" title="Virginia Railway Express (VRE) - Virginia to DC Commuter Train" type="rss" xmlUrl="https://www.reddit.com/r/VARailwayExpress.rss" htmlUrl="https://www.reddit.com/r/VARailwayExpress" />
+    <outline title="Cyber" text="Cyber">
+      <outline text="AIScoop" title="AIScoop" type="rss" xmlUrl="https://aiscoop.com/feed/" htmlUrl="https://aiscoop.com/" />
+      <outline text="CyberScoop" title="CyberScoop" type="rss" xmlUrl="https://cyberscoop.com/feed/" htmlUrl="https://cyberscoop.com/" />
+      <outline text="BleepingComputer" title="BleepingComputer" type="rss" xmlUrl="https://www.bleepingcomputer.com/feed/" htmlUrl="https://www.bleepingcomputer.com/" />
+      <outline text="Techdirt" title="Techdirt" type="rss" xmlUrl="https://www.techdirt.com/feed/" htmlUrl="https://www.techdirt.com" />
+      <outline text="The Record from Recorded Future News" title="The Record from Recorded Future News" type="rss" xmlUrl="https://therecord.media/feed" htmlUrl="https://therecord.media/feed" />
+      <outline text="Munich Reinsurance unites global security teams to boost resilience, cut costs | CSO Online" title="Munich Reinsurance unites global security teams to boost resilience, cut costs | CSO Online" type="rss" xmlUrl="https://www.csoonline.com/feed/" htmlUrl="https://www.csoonline.com" />
+      <outline text="Cybersecurity Dive - Latest News" title="Cybersecurity Dive - Latest News" type="rss" xmlUrl="https://www.cybersecuritydive.com/feeds/news/" htmlUrl="https://www.cybersecuritydive.com/news/" />
+      <outline text="Talkin' About [Infosec] News, Powered by Black Hills Information Security" title="Talkin' About [Infosec] News, Powered by Black Hills Information Security" type="rss" xmlUrl="https://feeds.blubrry.com/feeds/bhis.xml" htmlUrl="https://bhisnews.transistor.fm" />
+      <outline text="Eclypsium | Supply Chain Security for the Modern Enterprise" title="Eclypsium | Supply Chain Security for the Modern Enterprise" type="rss" xmlUrl="https://eclypsium.com/feed/ " htmlUrl="https://eclypsium.com/home/" />
+    </outline>
+    <outline title="#Job Loss" text="#Job Loss">
+      <outline text="Transmittals" title="Transmittals" type="rss" xmlUrl="https://www.chcoc.gov/transmittals/rssfeed" htmlUrl="https://chcoc.gov/transmittals?keys=&amp;field_date_transmittals_value%5Bvalue%5D" />
+      <outline text="News, Information, &amp; Discussion for Federal Employees" title="News, Information, &amp; Discussion for Federal Employees" type="rss" xmlUrl="https://www.reddit.com/r/fednews/.rss" htmlUrl="https://www.reddit.com/r/fednews/" />
+      <outline text="GovCom Talent Talks" title="GovCom Talent Talks" type="rss" xmlUrl="https://feeds.buzzsprout.com/2456335.rss" htmlUrl="https://www.buzzsprout.com/2456335" />
+      <outline text="firedfeds" title="firedfeds" type="rss" xmlUrl="https://www.reddit.com/r/firedfeds.rss" htmlUrl="https://www.reddit.com/r/firedfeds" />
+      <outline text="Federal News Network" title="Federal News Network" type="rss" xmlUrl="https://federalnewsnetwork.com/feed/" htmlUrl="https://federalnewsnetwork.com" />
+    </outline>
+    <outline title="Hacking" text="Hacking">
+      <outline text="Blog – Hackaday" title="Blog – Hackaday" type="rss" xmlUrl="https://hackaday.com/blog/feed/" htmlUrl="https://hackaday.com" />
+      <outline text="Boing Boing" title="Boing Boing" type="rss" xmlUrl="https://boingboing.net/feed" htmlUrl="https://boingboing.net/" />
+      <outline text="Home Assistant" title="Home Assistant" type="rss" xmlUrl="https://www.reddit.com/r/homeassistant.rss" htmlUrl="https://www.reddit.com/r/homeassistant" />
+      <outline text="ESP32 - WiFi-enabled microcontrollers from Espressif" title="ESP32 - WiFi-enabled microcontrollers from Espressif" type="rss" xmlUrl="https://www.reddit.com/r/esp32/.rss" htmlUrl="https://www.reddit.com/r/esp32/" />
+      <outline text="hackrf SDR" title="hackrf SDR" type="rss" xmlUrl="https://www.reddit.com/r/hackrf.rss" htmlUrl="https://www.reddit.com/r/hackrf" />
+      <outline text="LILYGO" title="LILYGO" type="rss" xmlUrl="https://www.reddit.com/r/LilyGO.rss" htmlUrl="https://www.reddit.com/r/LilyGO" />
+      <outline text="ESPHome.io" title="ESPHome.io" type="rss" xmlUrl="https://www.reddit.com/r/Esphome.rss" htmlUrl="https://www.reddit.com/r/Esphome" />
+      <outline text="Security Onion" title="Security Onion" type="rss" xmlUrl="https://blog.securityonion.net/feeds/posts/default?alt=rss" htmlUrl="https://blog.securityonion.net/" />
+    </outline>
+    <outline title="Technology" text="Technology">
+      <outline text="/r/Technology" title="/r/Technology" type="rss" xmlUrl="https://www.reddit.com/r/technology/.rss" htmlUrl="https://www.reddit.com/r/technology/" />
+      <outline text="Slashdot" title="Slashdot" type="rss" xmlUrl="https://rss.slashdot.org/Slashdot/slashdotMain" htmlUrl="https://slashdot.org/" />
+      <outline text="Pidgin IM" title="Pidgin IM" type="rss" xmlUrl="https://sourceforge.net/projects/pidgin/rss?path=/Pidgin3/2.90.0" htmlUrl="https://sourceforge.net" />
+      <outline text="Technology - Federal News Network" title="Technology - Federal News Network" type="rss" xmlUrl="https://federalnewsnetwork.com/category/technology-main/feed/" htmlUrl="https://federalnewsnetwork.com" />
+    </outline>
+    <outline text="Kelly's bookshelf: read" title="Kelly's bookshelf: read" type="rss" xmlUrl="https://www.goodreads.com/review/list_rss/151487430?key=GWUpkq3xKjqchz7HexbbpEA9v6V0PUQPWp-eXR8iQ29DWDXm&amp;shelf=read" htmlUrl="https://www.goodreads.com/review/list_rss/151487430?key=GWUpkq3xKjqchz7HexbbpEA9v6V0PUQPWp-eXR8iQ29DWDXm&amp;shelf=read" />
+    <outline text="Plex" title="Plex" type="rss" xmlUrl="http://www.reddit.com/r/PleX/.rss" htmlUrl="https://www.reddit.com/r/PleX/" />
+    <outline text="Meshtastic Blog" title="Meshtastic Blog" type="rss" xmlUrl="https://meshtastic.org/blog/rss.xml" htmlUrl="https://meshtastic.org/blog/" />
+    <outline text="VR2XKP's Blog" title="VR2XKP's Blog" type="rss" xmlUrl="https://www.vr2xkp.org/feed/" htmlUrl="https://www.vr2xkp.org" />
+    <outline title="Ham Radio" text="Ham Radio">
+      <outline text="BaoFeng Radios" title="BaoFeng Radios" type="rss" xmlUrl="http://baofengtech.com/feed/" htmlUrl="https://baofengtech.com" />
+    </outline>
+    <outline title="Home Network Stuff" text="Home Network Stuff">
+      <outline text="TechXplainator" title="TechXplainator" type="rss" xmlUrl="https://techxplainator.com/feed/" htmlUrl="https://techxplainator.com" />
+      <outline text="Homelab" title="Homelab" type="rss" xmlUrl="https://www.reddit.com/r/homelab/.rss" htmlUrl="https://www.reddit.com/r/homelab/" />
+      <outline text="Security Onion" title="Security Onion" type="rss" xmlUrl="https://blog.securityonion.net/feeds/posts/default" htmlUrl="https://blog.securityonion.net/" />
+    </outline>
+    <outline title="Science" text="Science">
   </outline>
-  <outline title="#Job Loss" text="#Job Loss">
-      <outline text="Transmittals" title="Transmittals" type="rss" 
-            xmlUrl="https://www.chcoc.gov/transmittals/rssfeed" htmlUrl="https://chcoc.gov/transmittals?keys=&amp;field_date_transmittals_value%5Bvalue%5D"/>
-      <outline text="News, Information, &#38; Discussion for Federal Employees" title="News, Information, &#38; Discussion for Federal Employees" type="rss" 
-            xmlUrl="https://www.reddit.com/r/fednews/.rss" htmlUrl="https://www.reddit.com/r/fednews/"/>
-      <outline text="GovCom Talent Talks" title="GovCom Talent Talks" type="rss" 
-            xmlUrl="https://feeds.buzzsprout.com/2456335.rss" htmlUrl="https://www.buzzsprout.com/2456335"/>
-      <outline text="firedfeds" title="firedfeds" type="rss" 
-            xmlUrl="https://www.reddit.com/r/firedfeds.rss" htmlUrl="https://www.reddit.com/r/firedfeds"/>
-      <outline text="Federal News Network" title="Federal News Network" type="rss" 
-            xmlUrl="https://federalnewsnetwork.com/feed/" htmlUrl="https://federalnewsnetwork.com"/>
-  </outline>
-  <outline title="Hacking" text="Hacking">
-      <outline text="Blog – Hackaday" title="Blog – Hackaday" type="rss" 
-            xmlUrl="https://hackaday.com/blog/feed/" htmlUrl="https://hackaday.com"/>
-      <outline text="Boing Boing" title="Boing Boing" type="rss" 
-            xmlUrl="https://boingboing.net/feed" htmlUrl="https://boingboing.net/"/>
-      <outline text="Home Assistant" title="Home Assistant" type="rss" 
-            xmlUrl="https://www.reddit.com/r/homeassistant.rss" htmlUrl="https://www.reddit.com/r/homeassistant"/>
-      <outline text="ESP32 - WiFi-enabled microcontrollers from Espressif" title="ESP32 - WiFi-enabled microcontrollers from Espressif" type="rss" 
-            xmlUrl="https://www.reddit.com/r/esp32/.rss" htmlUrl="https://www.reddit.com/r/esp32/"/>
-      <outline text="hackrf SDR" title="hackrf SDR" type="rss" 
-            xmlUrl="https://www.reddit.com/r/hackrf.rss" htmlUrl="https://www.reddit.com/r/hackrf"/>
-      <outline text="LILYGO" title="LILYGO" type="rss" 
-            xmlUrl="https://www.reddit.com/r/LilyGO.rss" htmlUrl="https://www.reddit.com/r/LilyGO"/>
-      <outline text="ESPHome.io" title="ESPHome.io" type="rss" 
-            xmlUrl="https://www.reddit.com/r/Esphome.rss" htmlUrl="https://www.reddit.com/r/Esphome"/>
-      <outline text="Security Onion" title="Security Onion" type="rss" 
-            xmlUrl="https://blog.securityonion.net/feeds/posts/default?alt=rss" htmlUrl="https://blog.securityonion.net/"/>
-  </outline>
-  <outline title="Technology" text="Technology">
-      <outline text="/r/Technology" title="/r/Technology" type="rss" 
-            xmlUrl="https://www.reddit.com/r/technology/.rss" htmlUrl="https://www.reddit.com/r/technology/"/>
-      <outline text="Slashdot" title="Slashdot" type="rss" 
-            xmlUrl="https://rss.slashdot.org/Slashdot/slashdotMain" htmlUrl="https://slashdot.org/"/>
-      <outline text="Pidgin IM" title="Pidgin IM" type="rss" 
-            xmlUrl="https://sourceforge.net/projects/pidgin/rss?path=/Pidgin3/2.90.0" htmlUrl="https://sourceforge.net"/>
-      <outline text="Technology - Federal News Network" title="Technology - Federal News Network" type="rss" 
-            xmlUrl="https://federalnewsnetwork.com/category/technology-main/feed/" htmlUrl="https://federalnewsnetwork.com"/>
-  </outline>
-      <outline text="Kelly&#39;s bookshelf: read" title="Kelly&#39;s bookshelf: read" type="rss" 
-            xmlUrl="https://www.goodreads.com/review/list_rss/151487430?key=GWUpkq3xKjqchz7HexbbpEA9v6V0PUQPWp-eXR8iQ29DWDXm&amp;shelf=read" htmlUrl="https://www.goodreads.com/review/list_rss/151487430?key=GWUpkq3xKjqchz7HexbbpEA9v6V0PUQPWp-eXR8iQ29DWDXm&amp;shelf=read"/>
-      <outline text="Plex" title="Plex" type="rss" 
-            xmlUrl="http://www.reddit.com/r/PleX/.rss" htmlUrl="https://www.reddit.com/r/PleX/"/>
-      <outline text="Meshtastic Blog" title="Meshtastic Blog" type="rss" 
-            xmlUrl="https://meshtastic.org/blog/rss.xml" htmlUrl="https://meshtastic.org/blog/"/>
-      <outline text="VR2XKP&#39;s Blog" title="VR2XKP&#39;s Blog" type="rss" 
-            xmlUrl="https://www.vr2xkp.org/feed/" htmlUrl="https://www.vr2xkp.org"/>
-  <outline title="Ham Radio" text="Ham Radio">
-      <outline text="BaoFeng Radios" title="BaoFeng Radios" type="rss" 
-            xmlUrl="http://baofengtech.com/feed/" htmlUrl="https://baofengtech.com"/>
-  </outline>
-  <outline title="Home Network Stuff" text="Home Network Stuff">
-      <outline text="TechXplainator" title="TechXplainator" type="rss" 
-            xmlUrl="https://techxplainator.com/feed/" htmlUrl="https://techxplainator.com"/>
-      <outline text="Homelab" title="Homelab" type="rss" 
-            xmlUrl="https://www.reddit.com/r/homelab/.rss" htmlUrl="https://www.reddit.com/r/homelab/"/>
-      <outline text="Security Onion" title="Security Onion" type="rss" 
-            xmlUrl="https://blog.securityonion.net/feeds/posts/default" htmlUrl="https://blog.securityonion.net/"/>
-  </outline>
-  <outline title="Science" text="Science">
-  </outline>
-  <outline title="AI" text="AI">
-      <outline text="Radar" title="Radar" type="rss" 
-            xmlUrl="https://www.oreilly.com/radar/feed/index.xml" htmlUrl="https://www.oreilly.com/radar"/>
-      <outline text="Google Colab - Medium" title="Google Colab - Medium" type="rss" 
-            xmlUrl="https://medium.com/feed/google-colab" htmlUrl="https://medium.com/google-colab?source=rss----62c4dda927b1---4"/>
-  </outline>
-      <outline text="Humble Bundle Blog" title="Humble Bundle Blog" type="rss" 
-            xmlUrl="http://blog.humblebundle.com/rss" htmlUrl="https://blog.humblebundle.com/"/>
-      <outline text="Blubrry Podcasting" title="Blubrry Podcasting" type="rss" 
-            xmlUrl="https://blubrry.com/feed" htmlUrl="https://blubrry.com/"/>
-      <outline text="Hacker News" title="Hacker News" type="rss" 
-            xmlUrl="https://news.ycombinator.com/rss" htmlUrl="https://news.ycombinator.com/"/>
-      <outline text="AMPYX CYBER" title="AMPYX CYBER" type="rss" 
-            xmlUrl="https://ampyxcyber.com/home?format=rss" htmlUrl="https://ampyxcyber.com/"/>
-      <outline text="Top stories - Google News" title="Top stories - Google News" type="rss" 
-            xmlUrl="https://news.google.com/rss" htmlUrl="https://news.google.com/?hl=en-US&amp;gl=US&amp;ceid=US:en"/>
-</body>
+    <outline title="AI" text="AI">
+      <outline text="Radar" title="Radar" type="rss" xmlUrl="https://www.oreilly.com/radar/feed/index.xml" htmlUrl="https://www.oreilly.com/radar" />
+      <outline text="Google Colab - Medium" title="Google Colab - Medium" type="rss" xmlUrl="https://medium.com/feed/google-colab" htmlUrl="https://medium.com/google-colab?source=rss----62c4dda927b1---4" />
+    </outline>
+    <outline text="Humble Bundle Blog" title="Humble Bundle Blog" type="rss" xmlUrl="http://blog.humblebundle.com/rss" htmlUrl="https://blog.humblebundle.com/" />
+    <outline text="Blubrry Podcasting" title="Blubrry Podcasting" type="rss" xmlUrl="https://blubrry.com/feed" htmlUrl="https://blubrry.com/" />
+    <outline text="Hacker News" title="Hacker News" type="rss" xmlUrl="https://news.ycombinator.com/rss" htmlUrl="https://news.ycombinator.com/" />
+    <outline text="AMPYX CYBER" title="AMPYX CYBER" type="rss" xmlUrl="https://ampyxcyber.com/home?format=rss" htmlUrl="https://ampyxcyber.com/" />
+    <outline text="Top stories - Google News" title="Top stories - Google News" type="rss" xmlUrl="https://news.google.com/rss" htmlUrl="https://news.google.com/?hl=en-US&amp;gl=US&amp;ceid=US:en" />
+    <outline text="Uncategorized" title="Uncategorized">
+      <outline text="Clear Ridge Defense" title="Clear Ridge Defense" type="rss" xmlUrl="https://clridge.com/feed/" htmlUrl="https://clridge.com" />
+    </outline>
+  </body>
 </opml>

@@ -37,6 +37,10 @@ class Command(BaseCommand):
                         Q(awarding_agency__icontains=rule.value) |
                         Q(description__icontains=rule.value)
                     )
+            elif rule.rule_type == 'sector':
+                naics_list = list(rule.naics_codes.values_list('code', flat=True))
+                if naics_list:
+                    qs = qs.filter(naics_code__in=naics_list)
 
             count = qs.count()
             if count > 0:

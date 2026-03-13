@@ -609,8 +609,8 @@ class ContractIgnoreRuleForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         if 'naics_codes' in self.fields:
             instance = kwargs.get('instance')
-            if instance and instance.pk and instance.rule_type == 'domain':
-                # Only show the NAICS codes belonging to this specific domain
+            if instance and instance.pk and instance.rule_type in ('domain', 'sector'):
+                # Only show the NAICS codes belonging to this specific rule
                 self.fields['naics_codes'].queryset = instance.naics_codes.all().order_by('code')
             else:
                 self.fields['naics_codes'].queryset = NAICSCode.objects.all().order_by('code')
@@ -623,6 +623,71 @@ class ContractIgnoreRuleAdmin(admin.ModelAdmin):
     list_editable = ('should_delete', 'is_active')
     filter_horizontal = ('naics_codes',)
     actions = ['enable_rules', 'disable_rules', 'flag_for_deletion']
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path(
+                'naics-summary/',
+                self.admin_site.admin_view(self.naics_summary_view),
+                name='naics_summary',
+            ),
+        ]
+        return custom_urls + urls
+
+    def naics_summary_view(self, request):
+        """Show non-ignored NAICS codes ranked by contract count."""
+        from django.db.models import Count, Q
+        from tracker.models import DefenseContract, ContractIgnoreRule, NAICSCode
+        from django.shortcuts import render
+
+        # Build the set of ignored NAICS codes from all active rules
+        ignored_codes = set()
+        for rule in ContractIgnoreRule.objects.filter(is_active=True).prefetch_related('naics_codes'):
+            if rule.rule_type in ('naics',):
+                ignored_codes.add(rule.value)
+            elif rule.rule_type in ('domain', 'sector'):
+                ignored_codes.update(rule.naics_codes.values_list('code', flat=True))
+
+        qs = (
+            DefenseContract.objects
+            .exclude(naics_code__isnull=True)
+            .exclude(naics_code='')
+            .exclude(naics_code__in=ignored_codes)
+            .values('naics_code')
+            .annotate(count=Count('id'))
+            .order_by('-count')
+        )
+
+        # Attach descriptions
+        desc_map = dict(NAICSCode.objects.values_list('code', 'description'))
+        rows = [
+            {
+                'naics_code': row['naics_code'],
+                'description': desc_map.get(row['naics_code'], ''),
+                'count': row['count'],
+            }
+            for row in qs
+        ]
+
+        total_contracts = (
+            DefenseContract.objects
+            .exclude(naics_code__in=ignored_codes)
+            .count()
+        )
+
+        context = {
+            **self.admin_site.each_context(request),
+            'title': 'NAICS Code Summary',
+            'rows': rows,
+            'total_contracts': total_contracts,
+        }
+        return render(request, 'admin/naics_summary.html', context)
+
+    def changelist_view(self, request, extra_context=None):
+        extra_context = extra_context or {}
+        extra_context['naics_summary_url'] = 'naics-summary/'
+        return super().changelist_view(request, extra_context=extra_context)
 
     @admin.action(description='Activate selected rules (Set is_active=True)')
     def enable_rules(self, request, queryset):

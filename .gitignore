@@ -12,6 +12,7 @@ dist/
 build/
 .venv/
 venv/
+imports/
 ENV/
 env/
 tests/email/

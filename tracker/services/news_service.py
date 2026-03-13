@@ -130,8 +130,10 @@ class NewsAggregator:
 
         articles = []
         errors = []
+        providers_tried = 0
 
         # Try providers in order
+        providers_tried += 1
         try:
             articles = self._fetch_gnews(
                 company_name,
@@ -148,6 +150,7 @@ class NewsAggregator:
 
         # Fallback to Google News RSS
         if len(articles) < num_articles:
+            providers_tried += 1
             try:
                 rss_articles = self._fetch_google_news_rss(
                 company_name,
@@ -165,6 +168,7 @@ class NewsAggregator:
 
         # If Google News didn't return enough, try NewsAPI
         if len(articles) < num_articles and self.newsapi_key:
+            providers_tried += 1
             try:
                 newsapi_articles = self._fetch_newsapi(
                     company_name,
@@ -181,10 +185,16 @@ class NewsAggregator:
                 errors.append(f"NewsAPI: {str(e)}")
                 logger.warning(f"NewsAPI failed: {e}")
 
-        if not articles and errors:
+        # Only raise if ALL attempted providers failed via exception
+        if not articles and errors and len(errors) == providers_tried:
             error_msg = "; ".join(errors)
-            logger.error(f"All news providers failed: {error_msg}")
+            logger.error(f"All attempted news providers failed with errors: {error_msg}")
             raise Exception(f"Failed to fetch news: {error_msg}")
+            
+        # If we got no articles but at least one provider didn't throw an exception,
+        # it just means no news exists for this company.
+        if not articles:
+            logger.info(f"No news found for {company_name} after searching {providers_tried} providers.")
 
         # Deduplicate, filter, and sort
         unique_articles = self._deduplicate_articles(articles)
@@ -389,8 +399,10 @@ class NewsAggregator:
         if not self.newsapi_key:
             raise ValueError("NEWS_API_KEY not configured in .env")
 
+        # NewsAPI free tier limits queries to ~28 days in the past
+        clamped_days_back = min(days_back, 27)
         from_date = (
-            (timezone.now() - timedelta(days=days_back)).date().isoformat()
+            (timezone.now() - timedelta(days=clamped_days_back)).date().isoformat()
         )
 
         params = {

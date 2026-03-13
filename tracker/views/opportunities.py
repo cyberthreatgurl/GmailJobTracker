@@ -1,6 +1,7 @@
 import logging
 import csv
 import io
+import time
 from datetime import datetime, timedelta
 from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
@@ -223,8 +224,8 @@ def _save_opportunity(data, save_mode='create_or_update'):
                 "department": data.get("department", ""),
                 "office": data.get("office", ""),
                 "sub_office": data.get("subOffice", ""),
-                "naics_code": data.get("naicsCode", ""),
-                "product_service_code": data.get("classificationCode", ""),
+                "naics_code": data.get("naicsCode", "") or data.get("naics", ""),
+                "product_service_code": data.get("classificationCode") or data.get("pscCode") or data.get("psc") or "",
                 "naics_codes": data.get("naicsCodes", []),
                 "point_of_contact": data.get("pointOfContact", []),
                 "description": data.get("description", ""),
@@ -326,12 +327,21 @@ def refresh_opportunity(request, opportunity_id):
         # Only needed if the local record is older than our search window
         if not found_data and opp.posted_date and opp.posted_date < start_date:
             # Shift window to capture the specific old posted date
-            # We set window from (posted_date) to (posted_date + 364 days)
-            # This ensures we find the record even if it hasn't been updated recently
             old_start = opp.posted_date
             old_end = old_start + timedelta(days=364)
             found_data = _fetch_with_date_window(client, opp.solicitation_number, old_start, old_end)
             
+        # Strategy 3: Iterate back 3 years if still missing (useful when posted_date is unknown)
+        if not found_data and not opp.posted_date:
+            for i in range(1, 4):  # Try 3 previous years
+                s = start_date - timedelta(days=365 * i)
+                e = s + timedelta(days=365)
+                # Respect API limits (wait slightly between calls)
+                time.sleep(1)
+                found_data = _fetch_with_date_window(client, opp.solicitation_number, s, e)
+                if found_data:
+                    break
+        
         if found_data:
             # Force update 
             result, _ = _save_opportunity(found_data, save_mode='create_or_update')
@@ -340,8 +350,8 @@ def refresh_opportunity(request, opportunity_id):
             else:
                  messages.error(request, "Failed to update record (save error).")
         else:
-            # If we tried both or just recent and failed
-            messages.warning(request, "Opportunity not found in API (archive search logic may be needed).")
+            # If we tried all strategies and failed
+            messages.warning(request, "Opportunity not found in API even after checking past 3 years.")
 
     except SamGovOpportunity.DoesNotExist:
         messages.error(request, "Opportunity not found.")
@@ -359,23 +369,25 @@ def _fetch_with_date_window(client, solicitation, start_date, end_date):
         "solicitationNumber": solicitation,
         "limit": 1,
         "postedFrom": start_date.strftime("%m/%d/%Y"),
-        "postedTo": end_date.strftime("%m/%d/%Y")
+        "postedTo": end_date.strftime("%m/%d/%Y"),
     }
-    response = client.search_opportunities(params=params)
-    
-    if "opportunitiesData" in response and response["opportunitiesData"]:
-        return response["opportunitiesData"][0]
+    data = client.search_opportunities(params)
+    if data.get("opportunitiesData"):
+        return data["opportunitiesData"][0]
         
-    # If not found, try noticeId (fallback for imported data where we mapped noticeId -> sol#)
-    params = {
-        "noticeId": solicitation,
-        "limit": 1,
-        "postedFrom": start_date.strftime("%m/%d/%Y"),
-        "postedTo": end_date.strftime("%m/%d/%Y")
-    }
-    response = client.search_opportunities(params=params)
-    
-    if "opportunitiesData" in response and response["opportunitiesData"]:
-        return response["opportunitiesData"][0]
+    # If not found, try noticeId (it might be a special notice where solicitationNumber is not set)
+    params.pop("solicitationNumber")
+    params["noticeId"] = solicitation
+    data = client.search_opportunities(params)
+    if data.get("opportunitiesData"):
+        return data["opportunitiesData"][0]
+        
+    # If not found, try keyword search (for cases like "FA251827RCNECTS" vs "FA2518-27-R-CNECTS")
+    # This acts as a fuzzy fallback
+    params.pop("noticeId")
+    params["keywords"] = solicitation
+    data = client.search_opportunities(params)
+    if data.get("opportunitiesData"):
+        return data["opportunitiesData"][0]
         
     return None

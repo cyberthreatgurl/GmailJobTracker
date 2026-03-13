@@ -1,0 +1,4382 @@
+{
+    "Technical & Engineering (TE)": [
+        {
+            "code": "336611",
+            "title": "Ship Building and Repairing"
+        },
+        {
+            "code": "488190",
+            "title": "Other Support Activities for Air Transportation"
+        },
+        {
+            "code": "488999",
+            "title": "All Other Support Activities for Transportation"
+        },
+        {
+            "code": "541310",
+            "title": "Architectural Services"
+        },
+        {
+            "code": "541330",
+            "title": "Engineering Services"
+        },
+        {
+            "code": "541330 (Exception 1)",
+            "title": "Military and Aerospace Equipment and Military Weapons"
+        },
+        {
+            "code": "541330 (Exception 2)",
+            "title": "Contracts and Subcontracts for Engineering Services Awarded Under the National Energy Policy Act of 1992"
+        },
+        {
+            "code": "541330 (Exception 3)",
+            "title": "Marine Engineering and Naval Architecture"
+        },
+        {
+            "code": "541350",
+            "title": "Building Inspection Services"
+        },
+        {
+            "code": "541360",
+            "title": "Geophysical Surveying and Mapping Services"
+        },
+        {
+            "code": "541370",
+            "title": "Surveying and Mapping (except Geophysical) Services"
+        },
+        {
+            "code": "541380",
+            "title": "Testing Laboratories"
+        },
+        {
+            "code": "541611",
+            "title": "Administrative Management and General Management Consulting Services"
+        },
+        {
+            "code": "541690",
+            "title": "Other Scientific and Technical Consulting Services"
+        },
+        {
+            "code": "541990",
+            "title": "All Other Professional, Scientific and Technical Services"
+        },
+        {
+            "code": "611512",
+            "title": "Flight Training"
+        },
+        {
+            "code": "R412",
+            "title": "Support- Professional: Simulation"
+        },
+        {
+            "code": "R425",
+            "title": "Support- Professional: Engineering/Technical"
+        },
+        {
+            "code": "R428",
+            "title": "Support- Professional: Industrial Hygienics"
+        }
+    ],
+    "Management & Advisory (MA)": [
+        {
+            "code": "541611",
+            "title": "Administrative Management and General Management Consulting Services"
+        },
+        {
+            "code": "541612",
+            "title": "Human Resources Consulting Services"
+        },
+        {
+            "code": "541613",
+            "title": "Marketing Consulting Services"
+        },
+        {
+            "code": "541614",
+            "title": "Process, Physical Distribution, and Logistics Consulting Services"
+        },
+        {
+            "code": "541618",
+            "title": "Other Management Consulting Services"
+        },
+        {
+            "code": "541620",
+            "title": "Environmental Consulting Services"
+        },
+        {
+            "code": "541690",
+            "title": "Other Scientific and Technical Consulting Services"
+        },
+        {
+            "code": "541990",
+            "title": "All Other Professional, Scientific and Technical Services"
+        },
+        {
+            "code": "R405",
+            "title": "Support- Professional: Operations Research/Quantitative Analysis"
+        },
+        {
+            "code": "R406",
+            "title": "Support- Professional: Policy Review/Development"
+        },
+        {
+            "code": "R408",
+            "title": "Support- Professional: Program Management/Support"
+        },
+        {
+            "code": "R410",
+            "title": "Support- Professional: Program Evaluation/Review/Development"
+        },
+        {
+            "code": "R422",
+            "title": "Support- Professional: Market Research/Public Opinion"
+        },
+        {
+            "code": "R426",
+            "title": "Support- Professional: Communications"
+        },
+        {
+            "code": "R707",
+            "title": "Support- Management: Contract/Procurement/Acquisition Support"
+        },
+        {
+            "code": "R708",
+            "title": "Support- Management: Public Relations"
+        }
+    ],
+    "Intelligence (INT)": [
+        {
+            "code": "541330",
+            "title": "Engineering Services"
+        },
+        {
+            "code": "541330 (Exception 1)",
+            "title": "Military and Aerospace Equipment and Military Weapons"
+        },
+        {
+            "code": "541330 (Exception 2)",
+            "title": "Contracts and Subcontracts for Engineering Services Awarded Under the National Energy Policy Act of 1992"
+        },
+        {
+            "code": "541330 (Exception 3)",
+            "title": "Marine Engineering and Naval Architecture"
+        },
+        {
+            "code": "541611",
+            "title": "Administrative Management and General Management Consulting Services"
+        },
+        {
+            "code": "541614",
+            "title": "Process, Physical Distribution and Logistics Consulting Services"
+        },
+        {
+            "code": "541618",
+            "title": "Other Management Consulting Services"
+        },
+        {
+            "code": "541690",
+            "title": "Other Scientific and Technical Consulting Services"
+        },
+        {
+            "code": "541715",
+            "title": "Research and Development in the Physical, Engineering, and Life Sciences (except Nanotechnology and Biotechnology)"
+        },
+        {
+            "code": "541715 (Exception 1)",
+            "title": "Aircraft, Aircraft Engine and Engine Parts"
+        },
+        {
+            "code": "541715 (Exception 2)",
+            "title": "Other Aircraft Parts and Auxiliary Equipment"
+        },
+        {
+            "code": "541715 (Exception 3)",
+            "title": "Guided Missiles and Space Vehicles, Their Propulsion Units and Propulsion Parts"
+        },
+        {
+            "code": "541720",
+            "title": "Research and Development in the Social Sciences and Humanities"
+        },
+        {
+            "code": "541990",
+            "title": "All Other Professional, Scientific and Technical Services"
+        },
+        {
+            "code": "561499",
+            "title": "All Other Business Support Services"
+        },
+        {
+            "code": "561611",
+            "title": "Investigation Services"
+        },
+        {
+            "code": "R423",
+            "title": "Support - Professional: Intelligence"
+        },
+        {
+            "code": "B538",
+            "title": "Special Studies/Analysis - Intelligence"
+        }
+    ],
+    "Research & Development (RD)": [
+        {
+            "code": "541330",
+            "title": "Engineering Services"
+        },
+        {
+            "code": "541380",
+            "title": "Testing Laboratories"
+        },
+        {
+            "code": "541611",
+            "title": "Administrative Management and General Management Consulting Services"
+        },
+        {
+            "code": "541690",
+            "title": "Other Scientific and Technical Consulting Services"
+        },
+        {
+            "code": "541713",
+            "title": "Research and Technology in Nanotechnology"
+        },
+        {
+            "code": "541714",
+            "title": "Research and Technology in Biotechnology (except Nanobiotechnology)"
+        },
+        {
+            "code": "541715",
+            "title": "Research and Development in the Physical, Engineering, and Life Sciences (except Nanotechnology and Biotechnology)"
+        },
+        {
+            "code": "541715 (Exception 1)",
+            "title": "Aircraft, Aircraft Engine and Engine Parts"
+        },
+        {
+            "code": "541715 (Exception 2)",
+            "title": "Other Aircraft Parts and Auxiliary Equipment"
+        },
+        {
+            "code": "541715 (Exception 3)",
+            "title": "Guided Missiles and Space Vehicles, Their Propulsion Units and Propulsion Parts"
+        },
+        {
+            "code": "541720",
+            "title": "Research and Development in the Social Sciences and Humanities"
+        },
+        {
+            "code": "541990",
+            "title": "All Other Professional, Scientific and Technical Services"
+        },
+        {
+            "code": "621511",
+            "title": "Medical Laboratories"
+        },
+        {
+            "code": "541711",
+            "title": "Research and Development in Biotechnology"
+        },
+        {
+            "code": "541712",
+            "title": "Research and Development in the Physical, Engineering, and Life Sciences (except Biotechnology)"
+        },
+        {
+            "code": "541712 Exception A",
+            "title": "Research and Development in Aircraft"
+        },
+        {
+            "code": "541712 Exception B",
+            "title": "Research and Development in Aircraft Parts, and Auxiliary Equipment, and Aircraft Engine Parts"
+        },
+        {
+            "code": "541712 Exception C",
+            "title": "Research and Development in Space Vehicles and Guided Missiles, their Propulsion Units, their Propulsion Units Parts, and their Auxiliary Equipment and Parts"
+        },
+        {
+            "code": "AA11",
+            "title": "AGRICULTURE R&D SERVICES; AGRICULTURAL RESEARCH AND SERVICES; BASIC RESEARCH"
+        },
+        {
+            "code": "AA12",
+            "title": "AGRICULTURE R&D SERVICES; AGRICULTURAL RESEARCH AND SERVICES; APPLIED RESEARCH"
+        },
+        {
+            "code": "AA13",
+            "title": "AGRICULTURE R&D SERVICES; AGRICULTURAL RESEARCH AND SERVICES; EXPERIMENTAL DEVELOPMENT"
+        },
+        {
+            "code": "AB11",
+            "title": "COMMUNITY AND REGIONAL DEVELOPMENT R&D SERVICES; COMMUNITY DEVELOPMENT; BASIC RESEARCH"
+        },
+        {
+            "code": "AB12",
+            "title": "COMMUNITY AND REGIONAL DEVELOPMENT R&D SERVICES; COMMUNITY DEVELOPMENT; APPLIED RESEARCH"
+        },
+        {
+            "code": "AB13",
+            "title": "COMMUNITY AND REGIONAL DEVELOPMENT R&D SERVICES; COMMUNITY DEVELOPMENT; EXPERIMENTAL DEVELOPMENT"
+        },
+        {
+            "code": "AB21",
+            "title": "COMMUNITY AND REGIONAL DEVELOPMENT R&D SERVICES; AREA AND REGIONAL DEVELOPMENT; BASIC RESEARCH"
+        },
+        {
+            "code": "AB22",
+            "title": "COMMUNITY AND REGIONAL DEVELOPMENT R&D SERVICES; AREA AND REGIONAL DEVELOPMENT; APPLIED RESEARCH"
+        },
+        {
+            "code": "AB23",
+            "title": "COMMUNITY & REGIONAL DEVELOPMENT R&D SVCS; AREA & REGIONAL DEVELOPMENT; EXPERIMENTAL DEVELOPMENT"
+        },
+        {
+            "code": "AC11",
+            "title": "NATIONAL DEFENSE R&D SERVICES; DEPARTMENT OF DEFENSE - MILITARY; BASIC RESEARCH"
+        },
+        {
+            "code": "AC12",
+            "title": "NATIONAL DEFENSE R&D SERVICES; DEPARTMENT OF DEFENSE - MILITARY; APPLIED RESEARCH"
+        },
+        {
+            "code": "AC13",
+            "title": "NATIONAL DEFENSE R&D SERVICES; DEPARTMENT OF DEFENSE - MILITARY; EXPERIMENTAL DEVELOPMENT"
+        },
+        {
+            "code": "AC21",
+            "title": "NATIONAL DEFENSE R&D SERVICES; ATOMIC ENERGY DEFENSE ACTIVITIES; BASIC RESEARCH"
+        },
+        {
+            "code": "AC22",
+            "title": "NATIONAL DEFENSE R&D SERVICES; ATOMIC ENERGY DEFENSE ACTIVITIES; APPLIED RESEARCH"
+        },
+        {
+            "code": "AC23",
+            "title": "NATIONAL DEFENSE R&D SERVICES; ATOMIC ENERGY DEFENSE ACTIVITIES; EXPERIMENTAL DEVELOPMENT"
+        },
+        {
+            "code": "AC31",
+            "title": "NATIONAL DEFENSE R&D SERVICES; DEFENSE-RELATED ACTIVITIES; BASIC RESEARCH"
+        },
+        {
+            "code": "AC32",
+            "title": "NATIONAL DEFENSE R&D SERVICES; DEFENSE-RELATED ACTIVITIES; APPLIED RESEARCH"
+        },
+        {
+            "code": "AC33",
+            "title": "NATIONAL DEFENSE R&D SERVICES; DEFENSE-RELATED ACTIVITIES; EXPERIMENTAL DEVELOPMENT"
+        },
+        {
+            "code": "AF11",
+            "title": "EDUCATION, TRAINING, EMPLOYMENT, & SOCIAL SVCS R&D SVCS; EDUCATION SVCS R&D; BASIC RESEARCH"
+        },
+        {
+            "code": "AF12",
+            "title": "EDUCATION, TRAINING, EMPLOYMENT, & SOCIAL SVCS R&D SVCS; EDUCATION SVCS R&D; APPLIED RESEARCH"
+        },
+        {
+            "code": "AF13",
+            "title": "EDUCATION, TRAINING, EMPLOYMENT, & SOCIAL SVCS R&D SVCS; EDUC SVCS R&D; EXPERIMENTAL DEVELOPMENT"
+        },
+        {
+            "code": "AF21",
+            "title": "EDUCATION, TRAINING, EMPLOYMENT, & SOCIAL SVCS R&D SVCS; TRAINING & LABOR R&D; BASIC RESEARCH"
+        },
+        {
+            "code": "AF22",
+            "title": "EDUCATION, TRAINING, EMPLOYMENT, & SOCIAL SVCS R&D SVCS; TRAINING & LABOR R&D; APPLIED RESEARCH"
+        },
+        {
+            "code": "AF23",
+            "title": "EDUCATION, TRAINING, EMPLOYMENT, & SOCIAL SVCS R&D; TRAINING & LABOR R&D; EXPERIMENTAL DEVELOPMENT"
+        },
+        {
+            "code": "AF31",
+            "title": "EDUCATION, TRAINING, EMPLOYMENT, & SOCIAL SVCS R&D SVCS; SOCIAL SVCS R&D; BASIC RESEARCH"
+        },
+        {
+            "code": "AF32",
+            "title": "EDUCATION, TRAINING, EMPLOYMENT, & SOCIAL SVCS R&D SVCS; SOCIAL SVCS R&D; APPLIED RESEARCH"
+        },
+        {
+            "code": "AF33",
+            "title": "EDUCATION, TRAINING, EMPLOYMENT, & SOCIAL SVCS R&D SVCS; SOCIAL SVCS R&D; EXPERIMENTAL DEVELOPMENT"
+        },
+        {
+            "code": "AG11",
+            "title": "ENERGY R&D SERVICES; ENERGY SUPPLY; BASIC RESEARCH"
+        },
+        {
+            "code": "AG12",
+            "title": "ENERGY R&D SERVICES; ENERGY SUPPLY; APPLIED RESEARCH"
+        },
+        {
+            "code": "AG13",
+            "title": "ENERGY R&D SERVICES; ENERGY SUPPLY; EXPERIMENTAL DEVELOPMENT"
+        },
+        {
+            "code": "AG21",
+            "title": "ENERGY R&D SERVICES; ENERGY CONSERVATION; BASIC RESEARCH"
+        },
+        {
+            "code": "AG22",
+            "title": "ENERGY R&D SERVICES; ENERGY CONSERVATION; APPLIED RESEARCH"
+        },
+        {
+            "code": "AG23",
+            "title": "ENERGY R&D SERVICES; ENERGY CONSERVATION; EXPERIMENTAL DEVELOPMENT"
+        },
+        {
+            "code": "AG31",
+            "title": "ENERGY R&D SERVICES; EMERGENCY ENERGY PREPAREDNESS; BASIC RESEARCH"
+        },
+        {
+            "code": "AG32",
+            "title": "ENERGY R&D SERVICES; EMERGENCY ENERGY PREPAREDNESS; APPLIED RESEARCH"
+        },
+        {
+            "code": "AG33",
+            "title": "ENERGY R&D SERVICES; EMERGENCY ENERGY PREPAREDNESS; EXPERIMENTAL DEVELOPMENT"
+        },
+        {
+            "code": "AG41",
+            "title": "ENERGY R&D SERVICES; ENERGY INFORMATION, POLICY AND REGULATION; BASIC RESEARCH"
+        },
+        {
+            "code": "AG42",
+            "title": "ENERGY R&D SERVICES; ENERGY INFORMATION, POLICY AND REGULATION; APPLIED RESEARCH"
+        },
+        {
+            "code": "AG43",
+            "title": "ENERGY R&D SERVICES; ENERGY INFORMATION, POLICY AND REGULATION; EXPERIMENTAL DEVELOPMENT"
+        },
+        {
+            "code": "AH11",
+            "title": "NATURAL RESOURCES AND ENVIRONMENT R&D SERVICES; WATER RESOURCES; BASIC RESEARCH"
+        },
+        {
+            "code": "AH12",
+            "title": "NATURAL RESOURCES AND ENVIRONMENT R&D SERVICES; WATER RESOURCES; APPLIED RESEARCH"
+        },
+        {
+            "code": "AH13",
+            "title": "NATURAL RESOURCES AND ENVIRONMENT R&D SERVICES; WATER RESOURCES; EXPERIMENTAL DEVELOPMENT"
+        },
+        {
+            "code": "AH21",
+            "title": "NATURAL RESOURCES AND ENVIRONMENT R&D SERVICES; CONSERVATION AND LAND MANAGEMENT; BASIC RESEARCH"
+        },
+        {
+            "code": "AH22",
+            "title": "NATURAL RESOURCES AND ENVIRONMENT R&D SERVICES; CONSERVATION AND LAND MANAGEMENT; APPLIED RESEARCH"
+        },
+        {
+            "code": "AH23",
+            "title": "NATURAL RESOURCES & ENVIRONMENT R&D SVCS; CONSERVATION & LAND MANAGEMENT; EXPERIMENTAL DEVELOPMENT"
+        },
+        {
+            "code": "AH31",
+            "title": "NATURAL RESOURCES AND ENVIRONMENT R&D SERVICES; RECREATIONAL RESOURCES; BASIC RESEARCH"
+        },
+        {
+            "code": "AH32",
+            "title": "NATURAL RESOURCES AND ENVIRONMENT R&D SERVICES; RECREATIONAL RESOURCES; APPLIED RESEARCH"
+        },
+        {
+            "code": "AH33",
+            "title": "NATURAL RESOURCES AND ENVIRONMENT R&D SERVICES; RECREATIONAL RESOURCES; EXPERIMENTAL DEVELOPMENT"
+        },
+        {
+            "code": "AH41",
+            "title": "NATURAL RESOURCES AND ENVIRONMENT R&D SERVICES; POLLUTION CONTROL AND ABATEMENT; BASIC RESEARCH"
+        },
+        {
+            "code": "AH42",
+            "title": "NATURAL RESOURCES AND ENVIRONMENT R&D SERVICES; POLLUTION CONTROL AND ABATEMENT; APPLIED RESEARCH"
+        },
+        {
+            "code": "AH43",
+            "title": "NATURAL RESOURCES & ENVIRONMENT R&D SVCS; POLLUTION CONTROL & ABATEMENT; EXPERIMENTAL DEVELOPMENT"
+        },
+        {
+            "code": "AH51",
+            "title": "NATURAL RESOURCES AND ENVIRONMENT R&D SERVICES; OTHER NATURAL RESOURCES; BASIC RESEARCH"
+        },
+        {
+            "code": "AH52",
+            "title": "NATURAL RESOURCES AND ENVIRONMENT R&D SERVICES; OTHER NATURAL RESOURCES; APPLIED RESEARCH"
+        },
+        {
+            "code": "AH53",
+            "title": "NATURAL RESOURCES AND ENVIRONMENT R&D SERVICES; OTHER NATURAL RESOURCES; EXPERIMENTAL DEVELOPMENT"
+        },
+        {
+            "code": "AJ11",
+            "title": "GENERAL SCIENCE AND TECHNOLOGY R&D SERVICES; GENERAL SCIENCE AND TECHNOLOGY; BASIC RESEARCH"
+        },
+        {
+            "code": "AJ12",
+            "title": "GENERAL SCIENCE AND TECHNOLOGY R&D SERVICES; GENERAL SCIENCE AND TECHNOLOGY; APPLIED RESEARCH"
+        },
+        {
+            "code": "AJ13",
+            "title": "GENERAL SCIENCE & TECHNOLOGY R&D SVCS; GENERAL SCIENCE & TECHNOLOGY; EXPERIMENTAL DEVELOPMENT"
+        },
+        {
+            "code": "AK11",
+            "title": "COMMERCE AND HOUSING CREDIT R&D SERVICES; COMMERCE AND HOUSING CREDIT; BASIC RESEARCH"
+        },
+        {
+            "code": "AK12",
+            "title": "COMMERCE AND HOUSING CREDIT R&D SERVICES; COMMERCE AND HOUSING CREDIT; APPLIED RESEARCH"
+        },
+        {
+            "code": "AK13",
+            "title": "COMMERCE AND HOUSING CREDIT R&D SERVICES; COMMERCE AND HOUSING CREDIT; EXPERIMENTAL DEVELOPMENT"
+        },
+        {
+            "code": "AL11",
+            "title": "INCOME SECURITY R&D SERVICES; INCOME SECURITY; BASIC RESEARCH"
+        },
+        {
+            "code": "AL12",
+            "title": "INCOME SECURITY R&D SERVICES; INCOME SECURITY; APPLIED RESEARCH"
+        },
+        {
+            "code": "AL13",
+            "title": "INCOME SECURITY R&D SERVICES; INCOME SECURITY; EXPERIMENTAL DEVELOPMENT"
+        },
+        {
+            "code": "AM11",
+            "title": "INTERNATIONAL AFFAIRS R&D SERVICES; INTERNATIONAL AFFAIRS; BASIC RESEARCH"
+        },
+        {
+            "code": "AM12",
+            "title": "INTERNATIONAL AFFAIRS R&D SERVICES; INTERNATIONAL AFFAIRS; APPLIED RESEARCH"
+        },
+        {
+            "code": "AM13",
+            "title": "INTERNATIONAL AFFAIRS R&D SERVICES; INTERNATIONAL AFFAIRS; EXPERIMENTAL DEVELOPMENT"
+        },
+        {
+            "code": "AN11",
+            "title": "HEALTH R&D SERVICES; HEALTH CARE SERVICES; BASIC RESEARCH"
+        },
+        {
+            "code": "AN12",
+            "title": "HEALTH R&D SERVICES; HEALTH CARE SERVICES; APPLIED RESEARCH"
+        },
+        {
+            "code": "AN13",
+            "title": "HEALTH R&D SERVICES; HEALTH CARE SERVICES; EXPERIMENTAL DEVELOPMENT"
+        },
+        {
+            "code": "AN21",
+            "title": "HEALTH R&D SERVICES; HEALTH RESEARCH AND TRAINING; BASIC RESEARCH"
+        },
+        {
+            "code": "AN22",
+            "title": "HEALTH R&D SERVICES; HEALTH RESEARCH AND TRAINING; APPLIED RESEARCH"
+        },
+        {
+            "code": "AN23",
+            "title": "HEALTH R&D SERVICES; HEALTH RESEARCH AND TRAINING; EXPERIMENTAL DEVELOPMENT"
+        },
+        {
+            "code": "AN31",
+            "title": "HEALTH R&D SERVICES; CONSUMER AND OCCUPATIONAL HEALTH AND SAFETY; BASIC RESEARCH"
+        },
+        {
+            "code": "AN32",
+            "title": "HEALTH R&D SERVICES; CONSUMER AND OCCUPATIONAL HEALTH AND SAFETY; APPLIED RESEARCH"
+        },
+        {
+            "code": "AN33",
+            "title": "HEALTH R&D SERVICES; CONSUMER AND OCCUPATIONAL HEALTH AND SAFETY; EXPERIMENTAL DEVELOPMENT"
+        },
+        {
+            "code": "AN41",
+            "title": "HEALTH R&D SERVICES; HEALTH CARE - OTHER; BASIC RESEARCH"
+        },
+        {
+            "code": "AN42",
+            "title": "HEALTH R&D SERVICES; HEALTH CARE - OTHER; APPLIED RESEARCH"
+        },
+        {
+            "code": "AN43",
+            "title": "HEALTH R&D SERVICES; HEALTH CARE - OTHER; EXPERIMENTAL DEVELOPMENT"
+        },
+        {
+            "code": "AR11",
+            "title": "SPACE R&D SERVICES; SPACE FLIGHT, RESEARCH AND SUPPORTING ACTIVITIES; BASIC RESEARCH"
+        },
+        {
+            "code": "AR12",
+            "title": "SPACE R&D SERVICES; SPACE FLIGHT, RESEARCH AND SUPPORTING ACTIVITIES; APPLIED RESEARCH"
+        },
+        {
+            "code": "AR13",
+            "title": "SPACE R&D SERVICES; SPACE FLIGHT, RESEARCH AND SUPPORTING ACTIVITIES; EXPERIMENTAL DEVELOPMENT"
+        },
+        {
+            "code": "AS11",
+            "title": "TRANSPORTATION R&D SERVICES; SURFACE TRANSPORTATION, PUBLIC TRANSIT, AND RAIL; BASIC RESEARCH"
+        },
+        {
+            "code": "AS12",
+            "title": "TRANSPORTATION R&D SERVICES; SURFACE TRANSPORTATION, PUBLIC TRANSIT, AND RAIL; APPLIED RESEARCH"
+        },
+        {
+            "code": "AS13",
+            "title": "TRANSPORTATION R&D SVCS; SURFACE TRANSPORTATION, PUBLIC TRANSIT, & RAIL; EXPERIMENTAL DEVELOPMENT"
+        },
+        {
+            "code": "AS21",
+            "title": "TRANSPORTATION R&D SERVICES; AEROSPACE RESEARCH; BASIC RESEARCH"
+        },
+        {
+            "code": "AS22",
+            "title": "TRANSPORTATION R&D SERVICES; AEROSPACE RESEARCH; APPLIED RESEARCH"
+        },
+        {
+            "code": "AS23",
+            "title": "TRANSPORTATION R&D SERVICES; AEROSPACE RESEARCH; EXPERIMENTAL DEVELOPMENT"
+        },
+        {
+            "code": "AS31",
+            "title": "TRANSPORTATION R&D SERVICES; WATER TRANSPORTATION; BASIC RESEARCH"
+        },
+        {
+            "code": "AS32",
+            "title": "TRANSPORTATION R&D SERVICES; WATER TRANSPORTATION; APPLIED RESEARCH"
+        },
+        {
+            "code": "AS33",
+            "title": "TRANSPORTATION R&D SERVICES; WATER TRANSPORTATION; EXPERIMENTAL DEVELOPMENT"
+        },
+        {
+            "code": "AS41",
+            "title": "TRANSPORTATION R&D SVCS; PIPELINES; HAZ MAT; CROSS-FUNCTIONAL TRANSPORTATION; BASIC RESEARCH"
+        },
+        {
+            "code": "AS42",
+            "title": "TRANSPORTATION R&D SVCS; PIPELINES; HAZ MAT; CROSS-FUNCTIONAL TRANSPORTATION; APPLIED RESEARCH"
+        },
+        {
+            "code": "AS43",
+            "title": "TRANSPORTATION R&D SVCS; PIPELINES; HAZ MAT; CROSS-FUNCTIONAL TRANSP; EXPERIMENTAL DEVELOPMENT"
+        },
+        {
+            "code": "AA21",
+            "title": "R&D- AGRICULTURE: MARKETING (BASIC RESEARCH)"
+        },
+        {
+            "code": "AA22",
+            "title": "R&D- AGRICULTURE: MARKETING (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AA23",
+            "title": "R&D- AGRICULTURE: MARKETING (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AA24",
+            "title": "R&D- AGRICULTURE: MARKETING (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AA25",
+            "title": "R&D- AGRICULTURE: MARKETING (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AA31",
+            "title": "R&D- AGRICULTURE: PRODUCTION (BASIC RESEARCH)"
+        },
+        {
+            "code": "AA32",
+            "title": "R&D- AGRICULTURE: PRODUCTION (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AA33",
+            "title": "R&D- AGRICULTURE: PRODUCTION (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AA34",
+            "title": "R&D- AGRICULTURE: PRODUCTION (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AA35",
+            "title": "R&D- AGRICULTURE: PRODUCTION (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AA91",
+            "title": "R&D- AGRICULTURE: OTHER (BASIC RESEARCH)"
+        },
+        {
+            "code": "AA92",
+            "title": "R&D- AGRICULTURE: OTHER (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AA93",
+            "title": "R&D- AGRICULTURE: OTHER (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AA94",
+            "title": "R&D- AGRICULTURE: OTHER (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AA95",
+            "title": "R&D- AGRICULTURE: OTHER (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AB31",
+            "title": "R&D- COMMUNITY SERVICE/DEVELOPMENT: RURAL (BASIC RESEARCH)"
+        },
+        {
+            "code": "AB32",
+            "title": "R&D- COMMUNITY SERVICE/DEVELOPMENT: RURAL (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AB33",
+            "title": "R&D- COMMUNITY SERVICE/DEVELOPMENT: RURAL (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AB34",
+            "title": "R&D- COMMUNITY SERVICE/DEVELOPMENT: RURAL (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AB35",
+            "title": "R&D- COMMUNITY SERVICE/DEVELOPMENT: RURAL (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AB41",
+            "title": "R&D- COMMUNITY SERVICE/DEVELOPMENT: URBAN (BASIC RESEARCH)"
+        },
+        {
+            "code": "AB42",
+            "title": "R&D- COMMUNITY SERVICE/DEVELOPMENT: URBAN (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AB43",
+            "title": "R&D- COMMUNITY SERVICE/DEVELOPMENT: URBAN (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AB44",
+            "title": "R&D- COMMUNITY SERVICE/DEVELOPMENT: URBAN (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AB45",
+            "title": "R&D- COMMUNITY SERVICE/DEVELOPMENT: URBAN (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AB91",
+            "title": "R&D- COMMUNITY SERVICE/DEVELOPMENT: OTHER (BASIC RESEARCH)"
+        },
+        {
+            "code": "AB92",
+            "title": "R&D- COMMUNITY SERVICE/DEVELOPMENT: OTHER (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AB93",
+            "title": "R&D- COMMUNITY SERVICE/DEVELOPMENT: OTHER (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AB94",
+            "title": "R&D- COMMUNITY SERVICE/DEVELOPMENT: OTHER (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AB95",
+            "title": "R&D- COMMUNITY SERVICE/DEVELOPMENT: OTHER (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AC41",
+            "title": "R&D- DEFENSE SYSTEM: TANK/AUTOMOTIVE (BASIC RESEARCH)"
+        },
+        {
+            "code": "AC42",
+            "title": "R&D- DEFENSE SYSTEM: TANK/AUTOMOTIVE (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AC43",
+            "title": "R&D- DEFENSE SYSTEM: TANK/AUTOMOTIVE (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AC44",
+            "title": "R&D- DEFENSE SYSTEM: TANK/AUTOMOTIVE (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AC45",
+            "title": "R&D- DEFENSE SYSTEM: TANK/AUTOMOTIVE (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AC51",
+            "title": "R&D- DEFENSE SYSTEM: WEAPONS (BASIC RESEARCH)"
+        },
+        {
+            "code": "AC52",
+            "title": "R&D- DEFENSE SYSTEM: WEAPONS (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AC53",
+            "title": "R&D- DEFENSE SYSTEM: WEAPONS (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AC54",
+            "title": "R&D- DEFENSE SYSTEM: WEAPONS (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AC55",
+            "title": "R&D- DEFENSE SYSTEM: WEAPONS (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AC61",
+            "title": "R&D- DEFENSE SYSTEM: ELECTRONICS/COMMUNICATION EQUIPMENT (BASIC RESEARCH)"
+        },
+        {
+            "code": "AC62",
+            "title": "R&D- DEFENSE SYSTEM: ELECTRONICS/COMMUNICATION EQUIPMENT (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AC63",
+            "title": "R&D- DEFENSE SYSTEM: ELECTRONICS/COMMUNICATION EQUIPMENT (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AC64",
+            "title": "R&D- DEFENSE SYSTEM: ELECTRONICS/COMMUNICATION EQUIPMENT (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AC65",
+            "title": "R&D- DEFENSE SYSTEM: ELECTRONICS/COMMUNICATION EQUIPMENT (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AC91",
+            "title": "R&D- DEFENSE SYSTEM: MISCELLANEOUS HARD GOODS (BASIC RESEARCH)"
+        },
+        {
+            "code": "AC92",
+            "title": "R&D- DEFENSE SYSTEM: MISCELLANEOUS HARD GOODS (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AC93",
+            "title": "R&D- DEFENSE SYSTEM: MISCELLANEOUS HARD GOODS (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AC94",
+            "title": "R&D- DEFENSE SYSTEM: MISCELLANEOUS HARD GOODS (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AC95",
+            "title": "R&D- DEFENSE SYSTEM: MISCELLANEOUS HARD GOODS (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AD11",
+            "title": "R&D- DEFENSE OTHER: AMMUNITION (BASIC RESEARCH)"
+        },
+        {
+            "code": "AD12",
+            "title": "R&D- DEFENSE OTHER: AMMUNITION (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AD13",
+            "title": "R&D- DEFENSE OTHER: AMMUNITION (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AD14",
+            "title": "R&D- DEFENSE OTHER: AMMUNITION (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AD15",
+            "title": "R&D- DEFENSE OTHER: AMMUNITION (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AD21",
+            "title": "R&D- DEFENSE OTHER: SERVICES (BASIC RESEARCH)"
+        },
+        {
+            "code": "AD22",
+            "title": "R&D- DEFENSE OTHER: SERVICES (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AD23",
+            "title": "R&D- DEFENSE OTHER: SERVICES (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AD24",
+            "title": "R&D- DEFENSE OTHER: SERVICES (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AD25",
+            "title": "R&D- DEFENSE OTHER: SERVICES (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AD31",
+            "title": "R&D- DEFENSE OTHER: SUBSISTENCE (BASIC RESEARCH)"
+        },
+        {
+            "code": "AD32",
+            "title": "R&D- DEFENSE OTHER: SUBSISTENCE (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AD33",
+            "title": "R&D- DEFENSE OTHER: SUBSISTENCE (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AD34",
+            "title": "R&D- DEFENSE OTHER: SUBSISTENCE (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AD35",
+            "title": "R&D- DEFENSE OTHER: SUBSISTENCE (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AD41",
+            "title": "R&D- DEFENSE OTHER: TEXTILES/CLOTHING/EQUIPAGE (BASIC RESEARCH)"
+        },
+        {
+            "code": "AD42",
+            "title": "R&D- DEFENSE OTHER: TEXTILES/CLOTHING/EQUIPAGE (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AD43",
+            "title": "R&D- DEFENSE OTHER: TEXTILES/CLOTHING/EQUIPAGE (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AD44",
+            "title": "R&D- DEFENSE OTHER: TEXTILES/CLOTHING/EQUIPAGE (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AD45",
+            "title": "R&D- DEFENSE OTHER: TEXTILES/CLOTHING/EQUIPAGE (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AD51",
+            "title": "R&D- DEFENSE OTHER: FUELS/LUBRICANTS (BASIC RESEARCH)"
+        },
+        {
+            "code": "AD52",
+            "title": "R&D- DEFENSE OTHER: FUELS/LUBRICANTS (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AD53",
+            "title": "R&D- DEFENSE OTHER: FUELS/LUBRICANTS (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AD54",
+            "title": "R&D- DEFENSE OTHER: FUELS/LUBRICANTS (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AD55",
+            "title": "R&D- DEFENSE OTHER: FUELS/LUBRICANTS (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AD61",
+            "title": "R&D- DEFENSE OTHER: CONSTRUCTION (BASIC RESEARCH)"
+        },
+        {
+            "code": "AD62",
+            "title": "R&D- DEFENSE OTHER: CONSTRUCTION (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AD63",
+            "title": "R&D- DEFENSE OTHER: CONSTRUCTION (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AD64",
+            "title": "R&D- DEFENSE OTHER: CONSTRUCTION (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AD65",
+            "title": "R&D- DEFENSE OTHER: CONSTRUCTION (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AD91",
+            "title": "R&D- DEFENSE OTHER: OTHER (BASIC RESEARCH)"
+        },
+        {
+            "code": "AD92",
+            "title": "R&D- DEFENSE OTHER: OTHER (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AD93",
+            "title": "R&D- DEFENSE OTHER: OTHER (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AD94",
+            "title": "R&D- DEFENSE OTHER: OTHER (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AD95",
+            "title": "R&D- DEFENSE OTHER: OTHER (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AE11",
+            "title": "R&D- ECONOMIC GROWTH: EMPLOYMENT GROWTH/PRODUCTIVITY (BASIC RESEARCH)"
+        },
+        {
+            "code": "AE12",
+            "title": "R&D- ECONOMIC GROWTH: EMPLOYMENT GROWTH/PRODUCTIVITY (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AE13",
+            "title": "R&D- ECONOMIC GROWTH: EMPLOYMENT GROWTH/PRODUCTIVITY (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AE14",
+            "title": "R&D- ECONOMIC GROWTH: EMPLOYMENT GROWTH/PRODUCTIVITY (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AE15",
+            "title": "R&D- ECONOMIC GROWTH: EMPLOYMENT GROWTH/PRODUCTIVITY (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AE21",
+            "title": "R&D- ECONOMIC GROWTH: PRODUCT/SERVICE IMPROVEMENT (BASIC RESEARCH)"
+        },
+        {
+            "code": "AE22",
+            "title": "R&D- ECONOMIC GROWTH: PRODUCT/SERVICE IMPROVEMENT (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AE23",
+            "title": "R&D- ECONOMIC GROWTH: PRODUCT/SERVICE IMPROVEMENT (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AE24",
+            "title": "R&D- ECONOMIC GROWTH: PRODUCT/SERVICE IMPROVEMENT (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AE25",
+            "title": "R&D- ECONOMIC GROWTH: PRODUCT/SERVICE IMPROVEMENT (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AE31",
+            "title": "R&D- ECONOMIC GROWTH: MANUFACTURING TECHNOLOGY (BASIC RESEARCH)"
+        },
+        {
+            "code": "AE32",
+            "title": "R&D- ECONOMIC GROWTH: MANUFACTURING TECHNOLOGY (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AE33",
+            "title": "R&D- ECONOMIC GROWTH: MANUFACTURING TECHNOLOGY (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AE34",
+            "title": "R&D- ECONOMIC GROWTH: MANUFACTURING TECHNOLOGY (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AE35",
+            "title": "R&D- ECONOMIC GROWTH: MANUFACTURING TECHNOLOGY (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AE91",
+            "title": "R&D- ECONOMIC GROWTH: OTHER (BASIC RESEARCH)"
+        },
+        {
+            "code": "AE92",
+            "title": "R&D- ECONOMIC GROWTH: OTHER (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AE93",
+            "title": "R&D- ECONOMIC GROWTH: OTHER (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AE94",
+            "title": "R&D- ECONOMIC GROWTH: OTHER (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AE95",
+            "title": "R&D- ECONOMIC GROWTH: OTHER (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AG51",
+            "title": "R&D- ENERGY: NUCLEAR (BASIC RESEARCH)"
+        },
+        {
+            "code": "AG52",
+            "title": "R&D- ENERGY: NUCLEAR (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AG53",
+            "title": "R&D- ENERGY: NUCLEAR (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AG54",
+            "title": "R&D- ENERGY: NUCLEAR (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AG55",
+            "title": "R&D- ENERGY: NUCLEAR (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AG61",
+            "title": "R&D- ENERGY: PETROLEUM (BASIC RESEARCH)"
+        },
+        {
+            "code": "AG62",
+            "title": "R&D- ENERGY: PETROLEUM (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AG63",
+            "title": "R&D- ENERGY: PETROLEUM (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AG64",
+            "title": "R&D- ENERGY: PETROLEUM (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AG65",
+            "title": "R&D- ENERGY: PETROLEUM (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AG71",
+            "title": "R&D- ENERGY: SOLAR/PHOTOVOLTAIC (BASIC RESEARCH)"
+        },
+        {
+            "code": "AG72",
+            "title": "R&D- ENERGY: SOLAR/PHOTOVOLTAIC (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AG73",
+            "title": "R&D- ENERGY: SOLAR/PHOTOVOLTAIC (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AG74",
+            "title": "R&D- ENERGY: SOLAR/PHOTOVOLTAIC (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AG75",
+            "title": "R&D- ENERGY: SOLAR/PHOTOVOLTAIC (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AG81",
+            "title": "R&D- ENERGY: CONSERVATION (BASIC RESEARCH)"
+        },
+        {
+            "code": "AG82",
+            "title": "R&D- ENERGY: CONSERVATION (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AG83",
+            "title": "R&D- ENERGY: CONSERVATION (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AG84",
+            "title": "R&D- ENERGY: CONSERVATION (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AG85",
+            "title": "R&D- ENERGY: CONSERVATION (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AG91",
+            "title": "R&D- ENERGY: OTHER (BASIC RESEARCH)"
+        },
+        {
+            "code": "AG92",
+            "title": "R&D- ENERGY: OTHER (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AG93",
+            "title": "R&D- ENERGY: OTHER (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AG94",
+            "title": "R&D- ENERGY: OTHER (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AG95",
+            "title": "R&D- ENERGY: OTHER (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AH91",
+            "title": "R&D- ENVIRONMENTAL PROTECTION: OTHER (BASIC RESEARCH)"
+        },
+        {
+            "code": "AH92",
+            "title": "R&D- ENVIRONMENTAL PROTECTION: OTHER (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AH93",
+            "title": "R&D- ENVIRONMENTAL PROTECTION: OTHER (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AH94",
+            "title": "R&D- ENVIRONMENTAL PROTECTION: OTHER (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AH95",
+            "title": "R&D- ENVIRONMENTAL PROTECTION: OTHER (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AJ21",
+            "title": "R&D- GENERAL SCIENCE/TECHNOLOGY: MATHEMATICAL/COMPUTER SCIENCES (BASIC RESEARCH)"
+        },
+        {
+            "code": "AJ22",
+            "title": "R&D- GENERAL SCI/TECH: MATHEMATICAL/COMPUTER SCIENCES (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AJ23",
+            "title": "R&D- GENERAL SCIENCE/TECHNOLOGY: MATHEMATICAL/COMPUTER SCIENCES (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AJ24",
+            "title": "R&D- GENERAL SCIENCE/TECHNOLOGY: MATHEMATICAL/COMPUTER SCIENCES (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AJ25",
+            "title": "R&D- GENERAL SCIENCE/TECHNOLOGY: MATHEMATICAL/COMPUTER SCIENCES (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AJ31",
+            "title": "R&D- GENERAL SCIENCE/TECHNOLOGY: ENVIRONMENTAL SCIENCES (BASIC RESEARCH)"
+        },
+        {
+            "code": "AJ32",
+            "title": "R&D- GENERAL SCIENCE/TECHNOLOGY: ENVIRONMENTAL SCIENCES (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AJ33",
+            "title": "R&D- GENERAL SCIENCE/TECHNOLOGY: ENVIRONMENTAL SCIENCES (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AJ34",
+            "title": "R&D- GENERAL SCIENCE/TECHNOLOGY: ENVIRONMENTAL SCIENCES (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AJ35",
+            "title": "R&D- GENERAL SCIENCE/TECHNOLOGY: ENVIRONMENTAL SCIENCES (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AJ41",
+            "title": "R&D- GENERAL SCIENCE/TECHNOLOGY: ENGINEERING (BASIC RESEARCH)"
+        },
+        {
+            "code": "AJ42",
+            "title": "R&D- GENERAL SCIENCE/TECHNOLOGY: ENGINEERING (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AJ43",
+            "title": "R&D- GENERAL SCIENCE/TECHNOLOGY: ENGINEERING (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AJ44",
+            "title": "R&D- GENERAL SCIENCE/TECHNOLOGY: ENGINEERING (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AJ45",
+            "title": "R&D- GENERAL SCIENCE/TECHNOLOGY: ENGINEERING (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AJ51",
+            "title": "R&D- GENERAL SCIENCE/TECHNOLOGY: LIFE SCIENCES (BASIC RESEARCH)"
+        },
+        {
+            "code": "AJ52",
+            "title": "R&D- GENERAL SCIENCE/TECHNOLOGY: LIFE SCIENCES (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AJ53",
+            "title": "R&D- GENERAL SCIENCE/TECHNOLOGY: LIFE SCIENCES (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AJ54",
+            "title": "R&D- GENERAL SCIENCE/TECHNOLOGY: LIFE SCIENCES (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AJ55",
+            "title": "R&D- GENERAL SCIENCE/TECHNOLOGY: LIFE SCIENCES (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AJ61",
+            "title": "R&D- GENERAL SCIENCE/TECHNOLOGY: PSYCHOLOGICAL SCIENCES (BASIC RESEARCH)"
+        },
+        {
+            "code": "AJ62",
+            "title": "R&D- GENERAL SCIENCE/TECHNOLOGY: PSYCHOLOGICAL SCIENCES (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AJ63",
+            "title": "R&D- GENERAL SCIENCE/TECHNOLOGY: PSYCHOLOGICAL SCIENCES (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AJ64",
+            "title": "R&D- GENERAL SCIENCE/TECHNOLOGY: PSYCHOLOGICAL SCIENCES (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AJ65",
+            "title": "R&D- GENERAL SCIENCE/TECHNOLOGY: PSYCHOLOGICAL SCIENCES (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AJ71",
+            "title": "R&D- GENERAL SCIENCE/TECHNOLOGY: SOCIAL SCIENCES (BASIC RESEARCH)"
+        },
+        {
+            "code": "AJ72",
+            "title": "R&D- GENERAL SCIENCE/TECHNOLOGY: SOCIAL SCIENCES (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AJ73",
+            "title": "R&D- GENERAL SCIENCE/TECHNOLOGY: SOCIAL SCIENCES (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AJ74",
+            "title": "R&D- GENERAL SCIENCE/TECHNOLOGY: SOCIAL SCIENCES (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AJ75",
+            "title": "R&D- GENERAL SCIENCE/TECHNOLOGY: SOCIAL SCIENCES (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AJ91",
+            "title": "R&D- GENERAL SCIENCE/TECHNOLOGY: OTHER (BASIC RESEARCH)"
+        },
+        {
+            "code": "AJ92",
+            "title": "R&D- GENERAL SCIENCE/TECHNOLOGY: OTHER (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AJ93",
+            "title": "R&D- GENERAL SCIENCE/TECHNOLOGY: OTHER (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AJ94",
+            "title": "R&D- GENERAL SCIENCE/TECHNOLOGY: OTHER (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AJ95",
+            "title": "R&D- GENERAL SCIENCE/TECHNOLOGY: OTHER (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AL21",
+            "title": "R&D- INCOME SECURITY: INCOME MAINTENANCE (BASIC RESEARCH)"
+        },
+        {
+            "code": "AL22",
+            "title": "R&D- INCOME SECURITY: INCOME MAINTENANCE (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AL23",
+            "title": "R&D- INCOME SECURITY: INCOME MAINTENANCE (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AL24",
+            "title": "R&D- INCOME SECURITY: INCOME MAINTENANCE (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AL25",
+            "title": "R&D- INCOME SECURITY: INCOME MAINTENANCE (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AL91",
+            "title": "R&D- INCOME SECURITY: OTHER (BASIC RESEARCH)"
+        },
+        {
+            "code": "AL92",
+            "title": "R&D- INCOME SECURITY: OTHER (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AL93",
+            "title": "R&D- INCOME SECURITY: OTHER (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AL94",
+            "title": "R&D- INCOME SECURITY: OTHER (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AL95",
+            "title": "R&D- INCOME SECURITY: OTHER (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AN51",
+            "title": "R&D- MEDICAL: MENTAL HEALTH (BASIC RESEARCH)"
+        },
+        {
+            "code": "AN52",
+            "title": "R&D- MEDICAL: MENTAL HEALTH (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AN53",
+            "title": "R&D- MEDICAL: MENTAL HEALTH (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AN54",
+            "title": "R&D- MEDICAL: MENTAL HEALTH (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AN55",
+            "title": "R&D- MEDICAL: MENTAL HEALTH (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AN61",
+            "title": "R&D- MEDICAL: REHABILITATIVE ENGINEERING (BASIC RESEARCH)"
+        },
+        {
+            "code": "AN62",
+            "title": "R&D- MEDICAL: REHABILITATIVE ENGINEERING (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AN63",
+            "title": "R&D- MEDICAL: REHABILITATIVE ENGINEERING (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AN64",
+            "title": "R&D- MEDICAL: REHABILITATIVE ENGINEERING (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AN65",
+            "title": "R&D- MEDICAL: REHABILITATIVE ENGINEERING (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AN71",
+            "title": "R&D- MEDICAL: SPECIALIZED MEDICAL SERVICES (BASIC RESEARCH)"
+        },
+        {
+            "code": "AN72",
+            "title": "R&D- MEDICAL: SPECIALIZED MEDICAL SERVICES (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AN73",
+            "title": "R&D- MEDICAL: SPECIALIZED MEDICAL SERVICES (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AN74",
+            "title": "R&D- MEDICAL: SPECIALIZED MEDICAL SERVICES (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AN75",
+            "title": "R&D- MEDICAL: SPECIALIZED MEDICAL SERVICES (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AN81",
+            "title": "R&D- MEDICAL: AIDS RESEARCH (BASIC RESEARCH)"
+        },
+        {
+            "code": "AN82",
+            "title": "R&D- MEDICAL: AIDS RESEARCH (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AN83",
+            "title": "R&D- MEDICAL: AIDS RESEARCH (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AN84",
+            "title": "R&D- MEDICAL: AIDS RESEARCH (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AN85",
+            "title": "R&D- MEDICAL: AIDS RESEARCH (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AN91",
+            "title": "R&D- MEDICAL: OTHER (BASIC RESEARCH)"
+        },
+        {
+            "code": "AN92",
+            "title": "R&D- MEDICAL: OTHER (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AN93",
+            "title": "R&D- MEDICAL: OTHER (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AN94",
+            "title": "R&D- MEDICAL: OTHER (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AN95",
+            "title": "R&D- MEDICAL: OTHER (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AP21",
+            "title": "R&D- NATURAL RESOURCE: LAND (BASIC RESEARCH)"
+        },
+        {
+            "code": "AP22",
+            "title": "R&D- NATURAL RESOURCE: LAND (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AP23",
+            "title": "R&D- NATURAL RESOURCE: LAND (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AP24",
+            "title": "R&D- NATURAL RESOURCE: LAND (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AP25",
+            "title": "R&D- NATURAL RESOURCE: LAND (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AP31",
+            "title": "R&D- NATURAL RESOURCE: MINERAL (BASIC RESEARCH)"
+        },
+        {
+            "code": "AP32",
+            "title": "R&D- NATURAL RESOURCE: MINERAL (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AP33",
+            "title": "R&D- NATURAL RESOURCE: MINERAL (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AP34",
+            "title": "R&D- NATURAL RESOURCE: MINERAL (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AP35",
+            "title": "R&D- NATURAL RESOURCE: MINERAL (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AP41",
+            "title": "R&D- NATURAL RESOURCE: RECREATION (BASIC RESEARCH)"
+        },
+        {
+            "code": "AP42",
+            "title": "R&D- NATURAL RESOURCE: RECREATION (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AP43",
+            "title": "R&D- NATURAL RESOURCE: RECREATION (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AP44",
+            "title": "R&D- NATURAL RESOURCE: RECREATION (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AP45",
+            "title": "R&D- NATURAL RESOURCE: RECREATION (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AP51",
+            "title": "R&D- NATURAL RESOURCE: MARINE AND OCEANOGRAPHIC (BASIC RESEARCH)"
+        },
+        {
+            "code": "AP52",
+            "title": "R&D- NATURAL RESOURCE: MARINE AND OCEANOGRAPHIC (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AP53",
+            "title": "R&D- NATURAL RESOURCE: MARINE AND OCEANOGRAPHIC (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AP54",
+            "title": "R&D- NATURAL RESOURCE: MARINE AND OCEANOGRAPHIC (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AP55",
+            "title": "R&D- NATURAL RESOURCE: MARINE AND OCEANOGRAPHIC (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AP61",
+            "title": "R&D- NATURAL RESOURCE: MARINE FISHERIES (BASIC RESEARCH)"
+        },
+        {
+            "code": "AP62",
+            "title": "R&D- NATURAL RESOURCE: MARINE FISHERIES (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AP63",
+            "title": "R&D- NATURAL RESOURCE: MARINE FISHERIES (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AP64",
+            "title": "R&D- NATURAL RESOURCE: MARINE FISHERIES (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AP65",
+            "title": "R&D- NATURAL RESOURCE: MARINE FISHERIES (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AP71",
+            "title": "R&D- NATURAL RESOURCE: ATMOSPHERIC (BASIC RESEARCH)"
+        },
+        {
+            "code": "AP72",
+            "title": "R&D- NATURAL RESOURCE: ATMOSPHERIC (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AP73",
+            "title": "R&D- NATURAL RESOURCE: ATMOSPHERIC (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AP74",
+            "title": "R&D- NATURAL RESOURCE: ATMOSPHERIC (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AP75",
+            "title": "R&D- NATURAL RESOURCE: ATMOSPHERIC (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AP91",
+            "title": "R&D- NATURAL RESOURCE: OTHER (BASIC RESEARCH)"
+        },
+        {
+            "code": "AP92",
+            "title": "R&D- NATURAL RESOURCE: OTHER (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AP93",
+            "title": "R&D- NATURAL RESOURCE: OTHER (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AP94",
+            "title": "R&D- NATURAL RESOURCE: OTHER (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AP95",
+            "title": "R&D- NATURAL RESOURCE: OTHER (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AQ12",
+            "title": "R&D- SOCIAL SERVICES: GERIATRIC OTHER THAN MEDICAL (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AQ13",
+            "title": "R&D- SOCIAL SERVICES: GERIATRIC OTHER THAN MEDICAL (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AQ14",
+            "title": "R&D- SOCIAL SERVICES: GERIATRIC OTHER THAN MEDICAL (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AQ15",
+            "title": "R&D- SOCIAL SERVICES: GERIATRIC OTHER THAN MEDICAL (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AQ91",
+            "title": "R&D- SOCIAL SERVICES: OTHER (BASIC RESEARCH)"
+        },
+        {
+            "code": "AQ93",
+            "title": "R&D- SOCIAL SERVICES: OTHER (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AQ94",
+            "title": "R&D- SOCIAL SERVICES: OTHER (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AQ95",
+            "title": "R&D- SOCIAL SERVICES: OTHER (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AR21",
+            "title": "R&D- SPACE: SCIENCE/APPLICATIONS (BASIC RESEARCH)"
+        },
+        {
+            "code": "AR22",
+            "title": "R&D- SPACE: SCIENCE/APPLICATIONS (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AR23",
+            "title": "R&D- SPACE: SCIENCE/APPLICATIONS (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AR25",
+            "title": "R&D- SPACE: SCIENCE/APPLICATIONS (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AR31",
+            "title": "R&D- SPACE: FLIGHT (BASIC RESEARCH)"
+        },
+        {
+            "code": "AR32",
+            "title": "R&D- SPACE: FLIGHT (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AR33",
+            "title": "R&D- SPACE: FLIGHT (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AR34",
+            "title": "R&D- SPACE: FLIGHT (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AR41",
+            "title": "R&D- SPACE: OPERATIONS, TRACKING AND DATA ACQUISITION (BASIC RESEARCH)"
+        },
+        {
+            "code": "AR42",
+            "title": "R&D- SPACE: OPERATIONS, TRACKING AND DATA ACQUISITION (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AR43",
+            "title": "R&D- SPACE: OPERATIONS, TRACKING AND DATA ACQUISITION (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AR44",
+            "title": "R&D- SPACE: OPERATIONS, TRACKING AND DATA ACQUISITION (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AR45",
+            "title": "R&D- SPACE: OPERATIONS, TRACKING AND DATA ACQUISITION (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AR61",
+            "title": "R&D- SPACE: STATION (BASIC RESEARCH)"
+        },
+        {
+            "code": "AR62",
+            "title": "R&D- SPACE: STATION (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AR63",
+            "title": "R&D- SPACE: STATION (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AR64",
+            "title": "R&D- SPACE: STATION (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AR65",
+            "title": "R&D- SPACE: STATION (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AR72",
+            "title": "R&D- SPACE: COMMERCIAL PROGRAMS (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AR73",
+            "title": "R&D- SPACE: COMMERCIAL PROGRAMS (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AR74",
+            "title": "R&D- SPACE: COMMERCIAL PROGRAMS (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AR75",
+            "title": "R&D- SPACE: COMMERCIAL PROGRAMS (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AR76",
+            "title": "R&D- SPACE: COMMERCIAL PROGRAMS (MANAGEMENT/SUPPORT)"
+        },
+        {
+            "code": "AR92",
+            "title": "R&D- SPACE: OTHER (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AR93",
+            "title": "R&D- SPACE: OTHER (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AR94",
+            "title": "R&D- SPACE: OTHER (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AR95",
+            "title": "R&D- SPACE: OTHER (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AS91",
+            "title": "R&D- MODAL TRANSPORTATION: OTHER MODAL (BASIC RESEARCH)"
+        },
+        {
+            "code": "AS92",
+            "title": "R&D- MODAL TRANSPORTATION: OTHER MODAL (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AS93",
+            "title": "R&D- MODAL TRANSPORTATION: OTHER MODAL (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AS94",
+            "title": "R&D- MODAL TRANSPORTATION: OTHER MODAL (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AS95",
+            "title": "R&D- MODAL TRANSPORTATION: OTHER MODAL (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AT11",
+            "title": "R&D- OTHER TRANSPORTATION: HIGHWAYS, ROADS, AND BRIDGES (BASIC RESEARCH)"
+        },
+        {
+            "code": "AT12",
+            "title": "R&D- OTHER TRANSPORTATION: HIGHWAYS, ROADS, AND BRIDGES (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AT13",
+            "title": "R&D- OTHER TRANSPORTATION: HIGHWAYS, ROADS, AND BRIDGES (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AT14",
+            "title": "R&D- OTHER TRANSPORTATION: HIGHWAYS, ROADS, AND BRIDGES (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AT15",
+            "title": "R&D- OTHER TRANSPORTATION: HIGHWAYS, ROADS, AND BRIDGES (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AT21",
+            "title": "R&D- OTHER TRANSPORTATION: HUMAN FACTORS CONCERNING TRANSPORTATION (BASIC RESEARCH)"
+        },
+        {
+            "code": "AT22",
+            "title": "R&D- OTHER TRANSPORTATION: HUMAN FACTORS (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AT23",
+            "title": "R&D- OTHER TRANSPORTATION: HUMAN FACTORS CONCERNING TRANSPORTATION (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AT24",
+            "title": "R&D- OTHER TRANSPORTATION: HUMAN FACTORS CONCERNING TRANSPORTATION (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AT25",
+            "title": "R&D- OTHER TRANSPORTATION: HUMAN FACTORS CONCERNING TRANSPORTATION (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AT31",
+            "title": "R&D- OTHER TRANSPORTATION: NAVIGATION AND NAVIGATIONAL AIDS (BASIC RESEARCH)"
+        },
+        {
+            "code": "AT32",
+            "title": "R&D- OTHER TRANSPORTATION: NAVIGATION/NAVIGATIONAL AIDS (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AT33",
+            "title": "R&D- OTHER TRANSPORTATION: NAVIGATION AND NAVIGATIONAL AIDS (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AT34",
+            "title": "R&D- OTHER TRANSPORTATION: NAVIGATION AND NAVIGATIONAL AIDS (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AT35",
+            "title": "R&D- OTHER TRANSPORTATION: NAVIGATION AND NAVIGATIONAL AIDS (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AT41",
+            "title": "R&D- OTHER TRANSPORTATION: PASSENGER SAFETY AND SECURITY (BASIC RESEARCH)"
+        },
+        {
+            "code": "AT42",
+            "title": "R&D- OTHER TRANSPORTATION: PASSENGER SAFETY AND SECURITY (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AT43",
+            "title": "R&D- OTHER TRANSPORTATION: PASSENGER SAFETY AND SECURITY (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AT44",
+            "title": "R&D- OTHER TRANSPORTATION: PASSENGER SAFETY AND SECURITY (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AT45",
+            "title": "R&D- OTHER TRANSPORTATION: PASSENGER SAFETY AND SECURITY (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AT51",
+            "title": "R&D- OTHER TRANSPORTATION: PIPELINE SAFETY (BASIC RESEARCH)"
+        },
+        {
+            "code": "AT52",
+            "title": "R&D- OTHER TRANSPORTATION: PIPELINE SAFETY (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AT53",
+            "title": "R&D- OTHER TRANSPORTATION: PIPELINE SAFETY (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AT54",
+            "title": "R&D- OTHER TRANSPORTATION: PIPELINE SAFETY (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AT55",
+            "title": "R&D- OTHER TRANSPORTATION: PIPELINE SAFETY (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AT61",
+            "title": "R&D- OTHER TRANSPORTATION: TRAFFIC MANAGEMENT (BASIC RESEARCH)"
+        },
+        {
+            "code": "AT62",
+            "title": "R&D- OTHER TRANSPORTATION: TRAFFIC MANAGEMENT (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AT63",
+            "title": "R&D- OTHER TRANSPORTATION: TRAFFIC MANAGEMENT (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AT64",
+            "title": "R&D- OTHER TRANSPORTATION: TRAFFIC MANAGEMENT (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AT65",
+            "title": "R&D- OTHER TRANSPORTATION: TRAFFIC MANAGEMENT (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AT71",
+            "title": "R&D- OTHER TRANSPORTATION: TUNNELS AND OTHER SUBSURFACE STRUCTURES (BASIC RESEARCH)"
+        },
+        {
+            "code": "AT72",
+            "title": "R&D- OTHER TRANSPORTATION: TUNNELS/OTHER SUBSURF STRUC (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AT73",
+            "title": "R&D- OTHER TRANSPORTATION: TUNNELS AND OTHER SUBSURFACE STRUCTURES (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AT74",
+            "title": "R&D- OTHER TRANSPORTATION: TUNNELS AND OTHER SUBSURFACE STRUCTURES (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AT75",
+            "title": "R&D- OTHER TRANSPORTATION: TUNNELS AND OTHER SUBSURFACE STRUCTURES (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AT81",
+            "title": "R&D- OTHER TRANSPORTATION: TRANSPORTING HAZARDOUS MATERIALS (BASIC RESEARCH)"
+        },
+        {
+            "code": "AT82",
+            "title": "R&D- OTHER TRANSPORTATION: TRANSPORTING HAZ MAT (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AT83",
+            "title": "R&D- OTHER TRANSPORTATION: TRANSPORTING HAZARDOUS MATERIALS (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AT84",
+            "title": "R&D- OTHER TRANSPORTATION: TRANSPORTING HAZARDOUS MATERIALS (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AT85",
+            "title": "R&D- OTHER TRANSPORTATION: TRANSPORTING HAZARDOUS MATERIALS (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AT91",
+            "title": "R&D- OTHER TRANSPORTATION: OTHER GENERAL (BASIC RESEARCH)"
+        },
+        {
+            "code": "AT92",
+            "title": "R&D- OTHER TRANSPORTATION: OTHER GENERAL (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AT93",
+            "title": "R&D- OTHER TRANSPORTATION: OTHER GENERAL (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AT94",
+            "title": "R&D- OTHER TRANSPORTATION: OTHER GENERAL (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AT95",
+            "title": "R&D- OTHER TRANSPORTATION: OTHER GENERAL (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AV11",
+            "title": "R&D- MINING: SUBSURFACE MINING EQUIPMENT (BASIC RESEARCH)"
+        },
+        {
+            "code": "AV12",
+            "title": "R&D- MINING: SUBSURFACE MINING EQUIPMENT (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AV13",
+            "title": "R&D- MINING: SUBSURFACE MINING EQUIPMENT (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AV14",
+            "title": "R&D- MINING: SUBSURFACE MINING EQUIPMENT (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AV15",
+            "title": "R&D- MINING: SUBSURFACE MINING EQUIPMENT (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AV21",
+            "title": "R&D- MINING: SURFACE MINING EQUIPMENT (BASIC RESEARCH)"
+        },
+        {
+            "code": "AV22",
+            "title": "R&D- MINING: SURFACE MINING EQUIPMENT (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AV23",
+            "title": "R&D- MINING: SURFACE MINING EQUIPMENT (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AV24",
+            "title": "R&D- MINING: SURFACE MINING EQUIPMENT (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AV25",
+            "title": "R&D- MINING: SURFACE MINING EQUIPMENT (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AV31",
+            "title": "R&D- MINING: SUBSURFACE MINING METHODS (BASIC RESEARCH)"
+        },
+        {
+            "code": "AV32",
+            "title": "R&D- MINING: SUBSURFACE MINING METHODS (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AV33",
+            "title": "R&D- MINING: SUBSURFACE MINING METHODS (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AV34",
+            "title": "R&D- MINING: SUBSURFACE MINING METHODS (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AV35",
+            "title": "R&D- MINING: SUBSURFACE MINING METHODS (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AV41",
+            "title": "R&D- MINING: SURFACE MINING METHODS (BASIC RESEARCH)"
+        },
+        {
+            "code": "AV42",
+            "title": "R&D- MINING: SURFACE MINING METHODS (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AV43",
+            "title": "R&D- MINING: SURFACE MINING METHODS (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AV44",
+            "title": "R&D- MINING: SURFACE MINING METHODS (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AV45",
+            "title": "R&D- MINING: SURFACE MINING METHODS (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AV51",
+            "title": "R&D- MINING: MINING RECLAMATION METHODS (BASIC RESEARCH)"
+        },
+        {
+            "code": "AV52",
+            "title": "R&D- MINING: MINING RECLAMATION METHODS (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AV53",
+            "title": "R&D- MINING: MINING RECLAMATION METHODS (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AV54",
+            "title": "R&D- MINING: MINING RECLAMATION METHODS (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AV55",
+            "title": "R&D- MINING: MINING RECLAMATION METHODS (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AV61",
+            "title": "R&D- MINING: MINING SAFETY (BASIC RESEARCH)"
+        },
+        {
+            "code": "AV62",
+            "title": "R&D- MINING: MINING SAFETY (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AV63",
+            "title": "R&D- MINING: MINING SAFETY (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AV64",
+            "title": "R&D- MINING: MINING SAFETY (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AV65",
+            "title": "R&D- MINING: MINING SAFETY (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AV71",
+            "title": "R&D- MINING: METALLURGICAL (BASIC RESEARCH)"
+        },
+        {
+            "code": "AV72",
+            "title": "R&D- MINING: METALLURGICAL (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AV73",
+            "title": "R&D- MINING: METALLURGICAL (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AV74",
+            "title": "R&D- MINING: METALLURGICAL (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AV75",
+            "title": "R&D- MINING: METALLURGICAL (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AV91",
+            "title": "R&D- MINING: OTHER MINING ACTIVITIES (BASIC RESEARCH)"
+        },
+        {
+            "code": "AV92",
+            "title": "R&D- MINING: OTHER MINING ACTIVITIES (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AV93",
+            "title": "R&D- MINING: OTHER MINING ACTIVITIES (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AV94",
+            "title": "R&D- MINING: OTHER MINING ACTIVITIES (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AV95",
+            "title": "R&D- MINING: OTHER MINING ACTIVITIES (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AZ11",
+            "title": "R&D- OTHER RESEARCH AND DEVELOPMENT (BASIC RESEARCH)"
+        },
+        {
+            "code": "AZ12",
+            "title": "R&D- OTHER RESEARCH AND DEVELOPMENT (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AZ13",
+            "title": "R&D- OTHER RESEARCH AND DEVELOPMENT (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AZ14",
+            "title": "R&D- OTHER RESEARCH AND DEVELOPMENT (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AZ15",
+            "title": "R&D- OTHER RESEARCH AND DEVELOPMENT (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        }
+    ],
+    "Enterprise Solutions (ENT)": [
+        {
+            "code": "336611",
+            "title": "Ship Building and Repairing"
+        },
+        {
+            "code": "541330",
+            "title": "Engineering Services"
+        },
+        {
+            "code": "541330 (Exception 1)",
+            "title": "Military and Aerospace Equipment and Military Weapons"
+        },
+        {
+            "code": "541330 (Exception 2)",
+            "title": "Contracts and Subcontracts for Engineering Services Awarded Under the National Energy Policy Act of 1992"
+        },
+        {
+            "code": "541330 (Exception 3)",
+            "title": "Marine Engineering and Naval Architecture"
+        },
+        {
+            "code": "541611",
+            "title": "Administrative Management and General Management Consulting Services"
+        },
+        {
+            "code": "541614",
+            "title": "Process, Physical Distribution, and Logistics Consulting Services"
+        },
+        {
+            "code": "541620",
+            "title": "Environmental Consulting Services"
+        },
+        {
+            "code": "541690",
+            "title": "Other Scientific and Technical Consulting Services"
+        },
+        {
+            "code": "541715",
+            "title": "Research and Development in the Physical, Engineering, and Life Sciences (except Nanotechnology and Biotechnology)"
+        },
+        {
+            "code": "541715 (Exception 1)",
+            "title": "Aircraft, Aircraft Engine and Engine Parts"
+        },
+        {
+            "code": "541715 (Exception 2)",
+            "title": "Other Aircraft Parts and Auxiliary Equipment"
+        },
+        {
+            "code": "541715 (Exception 3)",
+            "title": "Guided Missiles and Space Vehicles, Their Propulsion Units and Propulsion Parts"
+        },
+        {
+            "code": "541990",
+            "title": "All Other Professional, Scientific and Technical Services"
+        },
+        {
+            "code": "561210",
+            "title": "Facilities Support Services"
+        },
+        {
+            "code": "562910",
+            "title": "Remediation Services"
+        },
+        {
+            "code": "562910 Exception",
+            "title": "Environmental Remediation Services"
+        },
+        {
+            "code": "541712",
+            "title": "Research and Development in the Physical, Engineering, and Life Sciences (except Biotechnology)"
+        },
+        {
+            "code": "541712 Exception A",
+            "title": "Research and Development in Aircraft"
+        },
+        {
+            "code": "541712 Exception B",
+            "title": "Research and Development in Aircraft Parts, and Auxiliary Equipment, and Aircraft Engine Parts"
+        },
+        {
+            "code": "541712 Exception C",
+            "title": "Research and Development in Space Vehicles and Guided Missiles, their Propulsion Units, their Propulsion Units Parts, and their Auxiliary Equipment and Parts"
+        },
+        {
+            "code": "TBD",
+            "title": "TBD"
+        }
+    ],
+    "Facilities (FAC)": [
+        {
+            "code": "238160",
+            "title": "Roofing Contractors"
+        },
+        {
+            "code": "238210",
+            "title": "Electrical Contractors and Other Wiring Installation Contractors"
+        },
+        {
+            "code": "238220",
+            "title": "Plumbing, Heating, and Air-Conditioning Contractors"
+        },
+        {
+            "code": "238290",
+            "title": "Other Building Equipment Contractors"
+        },
+        {
+            "code": "238320",
+            "title": "Painting and Wall Covering Contractors"
+        },
+        {
+            "code": "238990",
+            "title": "All Other Specialty Trade Contractors"
+        },
+        {
+            "code": "485999",
+            "title": "All Other Transit and Ground Passenger transportation"
+        },
+        {
+            "code": "488190",
+            "title": "Other Support Activities for Air Transportation"
+        },
+        {
+            "code": "488490",
+            "title": "Other Support Activities for Road Transportation"
+        },
+        {
+            "code": "488999",
+            "title": "All Other Support Activities for Transportation"
+        },
+        {
+            "code": "531311",
+            "title": "Residential Property Managers"
+        },
+        {
+            "code": "531312",
+            "title": "Nonresidential Property Managers"
+        },
+        {
+            "code": "541320",
+            "title": "Landscape Architectural Services"
+        },
+        {
+            "code": "541330",
+            "title": "Engineering Services"
+        },
+        {
+            "code": "541350",
+            "title": "Building Inspection Services"
+        },
+        {
+            "code": "541611",
+            "title": "Administrative Management and General Management Consulting Services"
+        },
+        {
+            "code": "541614",
+            "title": "Process, Physical Distribution and Logistics Consulting Services"
+        },
+        {
+            "code": "541690",
+            "title": "Other Scientific and Technical Consulting Services"
+        },
+        {
+            "code": "541990",
+            "title": "All Other Professional, Scientific and Technical Services"
+        },
+        {
+            "code": "561210",
+            "title": "Facilities Support Services"
+        },
+        {
+            "code": "561621",
+            "title": "Security Systems Services (except Locksmiths)"
+        },
+        {
+            "code": "561710",
+            "title": "Exterminating and Pest Control Services"
+        },
+        {
+            "code": "561720",
+            "title": "Janitorial Services"
+        },
+        {
+            "code": "561730",
+            "title": "Landscaping Services"
+        },
+        {
+            "code": "561990",
+            "title": "All Other Support Services"
+        },
+        {
+            "code": "562111",
+            "title": "Solid Waste Collection"
+        },
+        {
+            "code": "562112",
+            "title": "Hazardous Waste Collection"
+        },
+        {
+            "code": "562211",
+            "title": "Hazardous Waste Treatment and Disposal"
+        },
+        {
+            "code": "811310",
+            "title": "Commercial and Industrial Machinery and Equipment (except Automotive and Electronic) Repair and Maintenance"
+        },
+        {
+            "code": "H310",
+            "title": "INSPECTION- WEAPONS"
+        },
+        {
+            "code": "H311",
+            "title": "INSPECTION- NUCLEAR ORDNANCE"
+        },
+        {
+            "code": "H312",
+            "title": "INSPECTION- FIRE CONTROL EQUIPMENT"
+        },
+        {
+            "code": "H313",
+            "title": "INSPECTION- AMMUNITION AND EXPLOSIVES"
+        },
+        {
+            "code": "H314",
+            "title": "INSPECTION- GUIDED MISSILES"
+        },
+        {
+            "code": "H315",
+            "title": "INSPECTION- AIRCRAFT AND AIRFRAME STRUCTURAL COMPONENTS"
+        },
+        {
+            "code": "H316",
+            "title": "INSPECTION- AIRCRAFT COMPONENTS AND ACCESSORIES"
+        },
+        {
+            "code": "H317",
+            "title": "INSPECTION- AIRCRAFT LAUNCHING, LANDING, AND GROUND HANDLING EQUIPMENT"
+        },
+        {
+            "code": "H318",
+            "title": "INSPECTION- SPACE VEHICLES"
+        },
+        {
+            "code": "H319",
+            "title": "INSPECTION- SHIPS, SMALL CRAFT, PONTOONS, AND FLOATING DOCKS"
+        },
+        {
+            "code": "H320",
+            "title": "INSPECTION- SHIP AND MARINE EQUIPMENT"
+        },
+        {
+            "code": "H322",
+            "title": "INSPECTION- RAILWAY EQUIPMENT"
+        },
+        {
+            "code": "H323",
+            "title": "INSPECTION- GROUND EFFECT VEHICLES, MOTOR VEHICLES, TRAILERS, AND CYCLES"
+        },
+        {
+            "code": "H324",
+            "title": "INSPECTION- TRACTORS"
+        },
+        {
+            "code": "H325",
+            "title": "INSPECTION- VEHICULAR EQUIPMENT COMPONENTS"
+        },
+        {
+            "code": "H326",
+            "title": "INSPECTION- TIRES AND TUBES"
+        },
+        {
+            "code": "H328",
+            "title": "INSPECTION- ENGINES, TURBINES, AND COMPONENTS"
+        },
+        {
+            "code": "H329",
+            "title": "INSPECTION- ENGINE ACCESSORIES"
+        },
+        {
+            "code": "H330",
+            "title": "INSPECTION- MECHANICAL POWER TRANSMISSION EQUIPMENT"
+        },
+        {
+            "code": "H331",
+            "title": "INSPECTION- BEARINGS"
+        },
+        {
+            "code": "H332",
+            "title": "INSPECTION- WOODWORKING MACHINERY AND EQUIPMENT"
+        },
+        {
+            "code": "H334",
+            "title": "INSPECTION- METALWORKING MACHINERY"
+        },
+        {
+            "code": "H335",
+            "title": "INSPECTION- SERVICE AND TRADE EQUIPMENT"
+        },
+        {
+            "code": "H336",
+            "title": "INSPECTION- SPECIAL INDUSTRY MACHINERY"
+        },
+        {
+            "code": "H337",
+            "title": "INSPECTION- AGRICULTURAL MACHINERY AND EQUIPMENT"
+        },
+        {
+            "code": "H338",
+            "title": "INSPECTION- CONSTRUCTION, MINING, EXCAVATING, AND HIGHWAY MAINTENANCE EQUIPMENT"
+        },
+        {
+            "code": "H339",
+            "title": "INSPECTION- MATERIALS HANDLING EQUIPMENT"
+        },
+        {
+            "code": "H340",
+            "title": "INSPECTION- ROPE, CABLE, CHAIN, AND FITTINGS"
+        },
+        {
+            "code": "H341",
+            "title": "INSPECTION- REFRIGERATION, AIR CONDITIONING, AND AIR CIRCULATING EQUIPMENT"
+        },
+        {
+            "code": "H342",
+            "title": "INSPECTION- FIRE FIGHTING/RESCUE/SAFETY EQUIPMENT; ENVIRON PROTECT EQUIPMENT/MATLS"
+        },
+        {
+            "code": "H343",
+            "title": "INSPECTION- PUMPS AND COMPRESSORS"
+        },
+        {
+            "code": "H344",
+            "title": "INSPECTION- FURNACE, STEAM PLANT, AND DRYING EQUIPMENT; NUCLEAR REACTORS"
+        },
+        {
+            "code": "H345",
+            "title": "INSPECTION- PLUMBING, HEATING, AND WASTE DISPOSAL EQUIPMENT"
+        },
+        {
+            "code": "H346",
+            "title": "INSPECTION- WATER PURIFICATION AND SEWAGE TREATMENT EQUIPMENT"
+        },
+        {
+            "code": "H347",
+            "title": "INSPECTION- PIPE, TUBING, HOSE, AND FITTINGS"
+        },
+        {
+            "code": "H348",
+            "title": "INSPECTION- VALVES"
+        },
+        {
+            "code": "H349",
+            "title": "INSPECTION- MAINTENANCE AND REPAIR SHOP EQUIPMENT"
+        },
+        {
+            "code": "H351",
+            "title": "INSPECTION- HAND TOOLS"
+        },
+        {
+            "code": "H352",
+            "title": "INSPECTION- MEASURING TOOLS"
+        },
+        {
+            "code": "H353",
+            "title": "INSPECTION- HARDWARE AND ABRASIVES"
+        },
+        {
+            "code": "H354",
+            "title": "INSPECTION- PREFABRICATED STRUCTURES AND SCAFFOLDING"
+        },
+        {
+            "code": "H355",
+            "title": "INSPECTION- LUMBER, MILLWORK, PLYWOOD, AND VENEER"
+        },
+        {
+            "code": "H356",
+            "title": "INSPECTION- CONSTRUCTION AND BUILDING MATERIALS"
+        },
+        {
+            "code": "H358",
+            "title": "INSPECTION- COMMUNICATION, DETECTION, AND COHERENT RADIATION EQUIPMENT"
+        },
+        {
+            "code": "H359",
+            "title": "INSPECTION- ELECTRICAL AND ELECTRONIC EQUIPMENT COMPONENTS"
+        },
+        {
+            "code": "H360",
+            "title": "INSPECTION- FIBER OPTICS MATERIALS, COMPONENTS, ASSEMBLIES, AND ACCESSORIES"
+        },
+        {
+            "code": "H361",
+            "title": "INSPECTION- ELECTRIC WIRE AND POWER DISTRIBUTION EQUIPMENT"
+        },
+        {
+            "code": "H362",
+            "title": "INSPECTION- LIGHTING FIXTURES AND LAMPS"
+        },
+        {
+            "code": "H363",
+            "title": "INSPECTION- ALARM, SIGNAL, AND SECURITY DETECTION SYSTEMS"
+        },
+        {
+            "code": "H365",
+            "title": "INSPECTION- MEDICAL, DENTAL, AND VETERINARY EQUIPMENT AND SUPPLIES"
+        },
+        {
+            "code": "H366",
+            "title": "INSPECTION- INSTRUMENTS AND LABORATORY EQUIPMENT"
+        },
+        {
+            "code": "H367",
+            "title": "INSPECTION- PHOTOGRAPHIC EQUIPMENT"
+        },
+        {
+            "code": "H368",
+            "title": "INSPECTION- CHEMICALS AND CHEMICAL PRODUCTS"
+        },
+        {
+            "code": "H369",
+            "title": "INSPECTION- TRAINING AIDS AND DEVICES"
+        },
+        {
+            "code": "H370",
+            "title": "INSPECTION- ADP EQUIPMENT/SOFTWARE/SUPPLIES/SUPPORT EQUIPMENT"
+        },
+        {
+            "code": "H371",
+            "title": "INSPECTION- FURNITURE"
+        },
+        {
+            "code": "H372",
+            "title": "INSPECTION- HOUSEHOLD AND COMMERCIAL FURNISHINGS AND APPLIANCES"
+        },
+        {
+            "code": "H373",
+            "title": "INSPECTION- FOOD PREPARATION AND SERVING EQUIPMENT"
+        },
+        {
+            "code": "H374",
+            "title": "INSPECTION- OFFICE MACHINES, TEXT PROCESSING SYSTEMS, AND VISIBLE RECORD EQUIPMENT"
+        },
+        {
+            "code": "H375",
+            "title": "INSPECTION- OFFICE SUPPLIES AND DEVICES"
+        },
+        {
+            "code": "H376",
+            "title": "INSPECTION- BOOKS, MAPS, AND OTHER PUBLICATIONS"
+        },
+        {
+            "code": "H377",
+            "title": "INSPECTION- MUSICAL INST/PHONOGRAPH/HOME RADIO"
+        },
+        {
+            "code": "H378",
+            "title": "INSPECTION- RECREATIONAL AND ATHLETIC EQUIPMENT"
+        },
+        {
+            "code": "H379",
+            "title": "INSPECTION- CLEANING EQUIPMENT AND SUPPLIES"
+        },
+        {
+            "code": "H380",
+            "title": "INSPECTION- BRUSHES, PAINTS, SEALERS, AND ADHESIVES"
+        },
+        {
+            "code": "H381",
+            "title": "INSPECTION- CONTAINERS, PACKAGING, AND PACKING SUPPLIES"
+        },
+        {
+            "code": "H383",
+            "title": "INSPECTION- TEXTILES, LEATHER, FURS, APPAREL AND SHOE FINDINGS, TENTS AND FLAGS"
+        },
+        {
+            "code": "H384",
+            "title": "INSPECTION- CLOTHING, INDIVIDUAL EQUIPMENT, AND INSIGNIA"
+        },
+        {
+            "code": "H385",
+            "title": "INSPECTION- TOILETRIES"
+        },
+        {
+            "code": "H387",
+            "title": "INSPECTION- AGRICULTURAL SUPPLIES"
+        },
+        {
+            "code": "H388",
+            "title": "INSPECTION- LIVE ANIMALS"
+        },
+        {
+            "code": "H389",
+            "title": "INSPECTION- SUBSISTENCE"
+        },
+        {
+            "code": "H391",
+            "title": "INSPECTION- FUELS, LUBRICANTS, OILS, AND WAXES"
+        },
+        {
+            "code": "H393",
+            "title": "INSPECTION- NONMETALLIC FABRICATED MATERIALS"
+        },
+        {
+            "code": "H394",
+            "title": "INSPECTION- NONMETALLIC CRUDE MATERIALS"
+        },
+        {
+            "code": "H395",
+            "title": "INSPECTION- METAL BARS, SHEETS, AND SHAPES"
+        },
+        {
+            "code": "H396",
+            "title": "INSPECTION- ORES, MINERALS, AND THEIR PRIMARY PRODUCTS"
+        },
+        {
+            "code": "H399",
+            "title": "INSPECTION- MISCELLANEOUS"
+        },
+        {
+            "code": "J010",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- WEAPONS"
+        },
+        {
+            "code": "J011",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- NUCLEAR ORDNANCE"
+        },
+        {
+            "code": "J012",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- FIRE CONTROL EQUIPMENT"
+        },
+        {
+            "code": "J013",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- AMMUNITION AND EXPLOSIVES"
+        },
+        {
+            "code": "J014",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- GUIDED MISSILES"
+        },
+        {
+            "code": "J015",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- AIRCRAFT AND AIRFRAME STRUCTURAL COMPONENTS"
+        },
+        {
+            "code": "J016",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- AIRCRAFT COMPONENTS AND ACCESSORIES"
+        },
+        {
+            "code": "J017",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- AIRCRAFT LAUNCHING, LANDING, AND GROUND HANDLING EQUIPMENT"
+        },
+        {
+            "code": "J018",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- SPACE VEHICLES"
+        },
+        {
+            "code": "J019",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- SHIPS, SMALL CRAFT, PONTOONS, AND FLOATING DOCKS"
+        },
+        {
+            "code": "J020",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- SHIP AND MARINE EQUIPMENT"
+        },
+        {
+            "code": "J022",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- RAILWAY EQUIPMENT"
+        },
+        {
+            "code": "J023",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- GROUND EFFECT VEHICLES, MOTOR VEHICLES, TRAILERS, AND CYCLES"
+        },
+        {
+            "code": "J024",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- TRACTORS"
+        },
+        {
+            "code": "J025",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- VEHICULAR EQUIPMENT COMPONENTS"
+        },
+        {
+            "code": "J026",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- TIRES AND TUBES"
+        },
+        {
+            "code": "J028",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- ENGINES, TURBINES, AND COMPONENTS"
+        },
+        {
+            "code": "J029",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- ENGINE ACCESSORIES"
+        },
+        {
+            "code": "J030",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- MECHANICAL POWER TRANSMISSION EQUIPMENT"
+        },
+        {
+            "code": "J031",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- BEARINGS"
+        },
+        {
+            "code": "J032",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- WOODWORKING MACHINERY AND EQUIPMENT"
+        },
+        {
+            "code": "J034",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- METALWORKING MACHINERY"
+        },
+        {
+            "code": "J035",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- SERVICE AND TRADE EQUIPMENT"
+        },
+        {
+            "code": "J036",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- SPECIAL INDUSTRY MACHINERY"
+        },
+        {
+            "code": "J037",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- AGRICULTURAL MACHINERY AND EQUIPMENT"
+        },
+        {
+            "code": "J038",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- CONSTRUCTION/MINING/EXCAVATING/HIGHWAY MAINTENANCE EQUIPMENT"
+        },
+        {
+            "code": "J039",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- MATERIALS HANDLING EQUIPMENT"
+        },
+        {
+            "code": "J040",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- ROPE, CABLE, CHAIN, AND FITTINGS"
+        },
+        {
+            "code": "J041",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- REFRIGERATION, AIR CONDITIONING, AND AIR CIRCULATING EQUIPMENT"
+        },
+        {
+            "code": "J042",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIP- FIRE FIGHTING/RESCUE/SAFETY EQUIP; ENVIRON PROTECT EQUIP/MATLS"
+        },
+        {
+            "code": "J043",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- PUMPS AND COMPRESSORS"
+        },
+        {
+            "code": "J044",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- FURNACE, STEAM PLANT, AND DRYING EQUIPMENT; NUCLEAR REACTORS"
+        },
+        {
+            "code": "J045",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- PLUMBING, HEATING, AND WASTE DISPOSAL EQUIPMENT"
+        },
+        {
+            "code": "J046",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- WATER PURIFICATION AND SEWAGE TREATMENT EQUIPMENT"
+        },
+        {
+            "code": "J047",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- PIPE, TUBING, HOSE, AND FITTINGS"
+        },
+        {
+            "code": "J048",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- VALVES"
+        },
+        {
+            "code": "J049",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- MAINTENANCE AND REPAIR SHOP EQUIPMENT"
+        },
+        {
+            "code": "J051",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- HAND TOOLS"
+        },
+        {
+            "code": "J052",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- MEASURING TOOLS"
+        },
+        {
+            "code": "J053",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- HARDWARE AND ABRASIVES"
+        },
+        {
+            "code": "J054",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- PREFABRICATED STRUCTURES AND SCAFFOLDING"
+        },
+        {
+            "code": "J055",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- LUMBER, MILLWORK, PLYWOOD, AND VENEER"
+        },
+        {
+            "code": "J056",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- CONSTRUCTION AND BUILDING MATERIALS"
+        },
+        {
+            "code": "J059",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- ELECTRICAL AND ELECTRONIC EQUIPMENT COMPONENTS"
+        },
+        {
+            "code": "J061",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- ELECTRIC WIRE AND POWER DISTRIBUTION EQUIPMENT"
+        },
+        {
+            "code": "J062",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- LIGHTING FIXTURES AND LAMPS"
+        },
+        {
+            "code": "J063",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- ALARM, SIGNAL, AND SECURITY DETECTION SYSTEMS"
+        },
+        {
+            "code": "J065",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- MEDICAL, DENTAL, AND VETERINARY EQUIPMENT AND SUPPLIES"
+        },
+        {
+            "code": "J066",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- INSTRUMENTS AND LABORATORY EQUIPMENT"
+        },
+        {
+            "code": "J067",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- PHOTOGRAPHIC EQUIPMENT"
+        },
+        {
+            "code": "J068",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- CHEMICALS AND CHEMICAL PRODUCTS"
+        },
+        {
+            "code": "J069",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- TRAINING AIDS AND DEVICES"
+        },
+        {
+            "code": "J071",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- FURNITURE"
+        },
+        {
+            "code": "J072",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- HOUSEHOLD AND COMMERCIAL FURNISHINGS AND APPLIANCES"
+        },
+        {
+            "code": "J073",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- FOOD PREPARATION AND SERVING EQUIPMENT"
+        },
+        {
+            "code": "J074",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- OFFICE MACHINES/TEXT PROCESSING SYS/VISIBLE RECORD EQUIPMENT"
+        },
+        {
+            "code": "J075",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- OFFICE SUPPLIES AND DEVICES"
+        },
+        {
+            "code": "J076",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- BOOKS, MAPS, AND OTHER PUBLICATIONS"
+        },
+        {
+            "code": "J077",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- MUSICAL INST/PHONOGRAPH/HOME RADIO"
+        },
+        {
+            "code": "J078",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- RECREATIONAL AND ATHLETIC EQUIPMENT"
+        },
+        {
+            "code": "J079",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- CLEANING EQUIPMENT AND SUPPLIES"
+        },
+        {
+            "code": "J080",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- BRUSHES, PAINTS, SEALERS, AND ADHESIVES"
+        },
+        {
+            "code": "J081",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- CONTAINERS, PACKAGING, AND PACKING SUPPLIES"
+        },
+        {
+            "code": "J083",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- TEXTILES, LEATHER, FURS, APPAREL/SHOE FINDINGS, TENTS/FLAGS"
+        },
+        {
+            "code": "J084",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- CLOTHING, INDIVIDUAL EQUIPMENT, AND INSIGNIA"
+        },
+        {
+            "code": "J085",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- TOILETRIES"
+        },
+        {
+            "code": "J087",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- AGRICULTURAL SUPPLIES"
+        },
+        {
+            "code": "J088",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- LIVE ANIMALS"
+        },
+        {
+            "code": "J089",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- SUBSISTENCE"
+        },
+        {
+            "code": "J091",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- FUELS, LUBRICANTS, OILS, AND WAXES"
+        },
+        {
+            "code": "J093",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- NONMETALLIC FABRICATED MATERIALS"
+        },
+        {
+            "code": "J094",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- NONMETALLIC CRUDE MATERIALS"
+        },
+        {
+            "code": "J095",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- METAL BARS, SHEETS, AND SHAPES"
+        },
+        {
+            "code": "J096",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- ORES, MINERALS, AND THEIR PRIMARY PRODUCTS"
+        },
+        {
+            "code": "M1AA",
+            "title": "OPERATION OF OFFICE BUILDINGS"
+        },
+        {
+            "code": "M1AB",
+            "title": "OPERATION OF CONFERENCE SPACE AND FACILITIES"
+        },
+        {
+            "code": "M1AZ",
+            "title": "OPERATION OF OTHER ADMINISTRATIVE FACILITIES AND SERVICE BUILDINGS"
+        },
+        {
+            "code": "M1BA",
+            "title": "OPERATION OF AIR TRAFFIC CONTROL TOWERS"
+        },
+        {
+            "code": "M1BB",
+            "title": "OPERATION OF AIR TRAFFIC CONTROL TRAINING FACILITIES"
+        },
+        {
+            "code": "M1BC",
+            "title": "OPERATION OF RADAR AND NAVIGATIONAL FACILITIES"
+        },
+        {
+            "code": "M1BD",
+            "title": "OPERATION OF AIRPORT RUNWAYS AND TAXIWAYS"
+        },
+        {
+            "code": "M1BE",
+            "title": "OPERATION OF AIRPORT TERMINALS"
+        },
+        {
+            "code": "M1BF",
+            "title": "OPERATION OF MISSILE SYSTEM FACILITIES"
+        },
+        {
+            "code": "M1BG",
+            "title": "OPERATION OF ELECTRONIC AND COMMUNICATIONS FACILITIES"
+        },
+        {
+            "code": "M1BZ",
+            "title": "OPERATION OF OTHER AIRFIELD STRUCTURES"
+        },
+        {
+            "code": "M1CA",
+            "title": "OPERATION OF SCHOOLS"
+        },
+        {
+            "code": "M1CZ",
+            "title": "OPERATION OF OTHER EDUCATIONAL BUILDINGS"
+        },
+        {
+            "code": "M1DA",
+            "title": "OPERATION OF HOSPITALS AND INFIRMARIES"
+        },
+        {
+            "code": "M1DB",
+            "title": "OPERATION OF LABORATORIES AND CLINICS"
+        },
+        {
+            "code": "M1DZ",
+            "title": "OPERATION OF OTHER HOSPITAL BUILDINGS"
+        },
+        {
+            "code": "M1EA",
+            "title": "OPERATION OF AMMUNITION FACILITIES"
+        },
+        {
+            "code": "M1EB",
+            "title": "OPERATION OF MAINTENANCE BUILDINGS"
+        },
+        {
+            "code": "M1EC",
+            "title": "OPERATION OF PRODUCTION BUILDINGS"
+        },
+        {
+            "code": "M1ED",
+            "title": "OPERATION OF SHIP CONSTRUCTION AND REPAIR FACILITIES"
+        },
+        {
+            "code": "M1EE",
+            "title": "OPERATION OF TANK AUTOMOTIVE FACILITIES"
+        },
+        {
+            "code": "M1EZ",
+            "title": "OPERATION OF OTHER INDUSTRIAL BUILDINGS"
+        },
+        {
+            "code": "M1FA",
+            "title": "OPERATION OF FAMILY HOUSING FACILITIES"
+        },
+        {
+            "code": "M1FB",
+            "title": "OPERATION OF RECREATIONAL BUILDINGS"
+        },
+        {
+            "code": "M1FC",
+            "title": "OPERATION OF TROOP HOUSING FACILITIES"
+        },
+        {
+            "code": "M1FD",
+            "title": "OPERATION OF DINING FACILITIES"
+        },
+        {
+            "code": "M1FE",
+            "title": "OPERATION OF RELIGIOUS FACILITIES"
+        },
+        {
+            "code": "M1FF",
+            "title": "OPERATION OF PENAL FACILITIES"
+        },
+        {
+            "code": "M1FZ",
+            "title": "OPERATION OF OTHER RESIDENTIAL BUILDINGS"
+        },
+        {
+            "code": "M1GA",
+            "title": "OPERATION OF AMMUNITION STORAGE BUILDINGS"
+        },
+        {
+            "code": "M1GB",
+            "title": "OPERATION OF FOOD OR GRAIN STORAGE BUILDINGS"
+        },
+        {
+            "code": "M1GC",
+            "title": "OPERATION OF FUEL STORAGE BUILDINGS"
+        },
+        {
+            "code": "M1GD",
+            "title": "OPERATION OF OPEN STORAGE FACILITIES"
+        },
+        {
+            "code": "M1GZ",
+            "title": "OPERATION OF OTHER WAREHOUSE BUILDINGS"
+        },
+        {
+            "code": "M1HA",
+            "title": "OPERATION OF GOVERNMENT-OWNED CONTRACTOR-OPERATED (GOCO) R&D FACILITIES"
+        },
+        {
+            "code": "M1HB",
+            "title": "OPERATION OF GOVERNMENT-OWNED GOVERNMENT-OPERATED (GOGO) R&D FACILITIES"
+        },
+        {
+            "code": "M1HC",
+            "title": "OPERATION OF GOVERNMENT-OWNED CONTRACTOR-OPERATED (GOCO) ENVIRONMENTAL LABORATORIES"
+        },
+        {
+            "code": "M1HZ",
+            "title": "OPERATION OF GOVERNMENT-OWNED GOVERNMENT-OPERATED (GOGO) ENVIRONMENTAL LABORATORIES"
+        },
+        {
+            "code": "M1JA",
+            "title": "OPERATION OF MUSEUMS AND EXHIBITION BUILDINGS"
+        },
+        {
+            "code": "M1JB",
+            "title": "OPERATION OF TESTING AND MEASUREMENT BUILDINGS"
+        },
+        {
+            "code": "M1JZ",
+            "title": "OPERATION OF MISCELLANEOUS BUILDINGS"
+        },
+        {
+            "code": "M1KA",
+            "title": "OPERATION OF DAMS"
+        },
+        {
+            "code": "M1KB",
+            "title": "OPERATION OF CANALS"
+        },
+        {
+            "code": "M1KC",
+            "title": "OPERATION OF MINE FIRE CONTROL FACILITIES"
+        },
+        {
+            "code": "M1KD",
+            "title": "OPERATION OF MINE SUBSIDENCE CONTROL FACILITIES"
+        },
+        {
+            "code": "M1KE",
+            "title": "OPERATION OF SURFACE MINE RECLAMATION FACILITIES"
+        },
+        {
+            "code": "M1KF",
+            "title": "OPERATION OF DREDGING FACILITIES"
+        },
+        {
+            "code": "M1KZ",
+            "title": "OPERATION OF OTHER CONSERVATION AND DEVELOPMENT FACILITIES"
+        },
+        {
+            "code": "M1LA",
+            "title": "OPERATION OF AIRPORT SERVICE ROADS"
+        },
+        {
+            "code": "M1LB",
+            "title": "OPERATION OF HIGHWAYS, ROADS, STREETS, BRIDGES, AND RAILWAYS"
+        },
+        {
+            "code": "M1LC",
+            "title": "OPERATION OF TUNNELS AND SUBSURFACE STRUCTURES"
+        },
+        {
+            "code": "M1LZ",
+            "title": "OPERATION OF PARKING FACILITIES"
+        },
+        {
+            "code": "M1MA",
+            "title": "OPERATION OF EPG FACILITIES - COAL"
+        },
+        {
+            "code": "M1MB",
+            "title": "OPERATION OF EPG FACILITIES - GAS"
+        },
+        {
+            "code": "M1MC",
+            "title": "OPERATION OF EPG FACILITIES - GEOTHERMAL"
+        },
+        {
+            "code": "M1MD",
+            "title": "OPERATION OF EPG FACILITIES - HYDRO"
+        },
+        {
+            "code": "M1ME",
+            "title": "OPERATION OF EPG FACILITIES - NUCLEAR"
+        },
+        {
+            "code": "M1MF",
+            "title": "OPERATION OF EPG FACILITIES - PETROLEUM"
+        },
+        {
+            "code": "M1MG",
+            "title": "OPERATION OF EPG FACILITIES - SOLAR"
+        },
+        {
+            "code": "M1MH",
+            "title": "OPERATION OF EPG FACILITIES - WIND"
+        },
+        {
+            "code": "M1MZ",
+            "title": "OPERATION OF EPG FACILITIES - OTHER, INCLUDING TRANSMISSION"
+        },
+        {
+            "code": "M1NA",
+            "title": "OPERATION OF FUEL SUPPLY FACILITIES"
+        },
+        {
+            "code": "M1NB",
+            "title": "OPERATION OF HEATING AND COOLING PLANTS"
+        },
+        {
+            "code": "M1NC",
+            "title": "OPERATION OF POLLUTION ABATEMENT AND CONTROL FACILITIES"
+        },
+        {
+            "code": "M1ND",
+            "title": "OPERATION OF SEWAGE AND WASTE FACILITIES"
+        },
+        {
+            "code": "M1NE",
+            "title": "OPERATION OF WATER SUPPLY FACILITIES"
+        },
+        {
+            "code": "M1NZ",
+            "title": "OPERATION OF OTHER UTILITIES"
+        },
+        {
+            "code": "M1PA",
+            "title": "OPERATION OF RECREATION FACILITIES (NON-BUILDING)"
+        },
+        {
+            "code": "M1PB",
+            "title": "OPERATION OF EXHIBIT DESIGN (NON-BUILDING)"
+        },
+        {
+            "code": "M1PC",
+            "title": "OPERATION OF UNIMPROVED REAL PROPERTY (LAND)"
+        },
+        {
+            "code": "M1PD",
+            "title": "OPERATION OF WASTE TREATMENT AND STORAGE FACILITIES"
+        },
+        {
+            "code": "M1PZ",
+            "title": "OPERATION OF OTHER NON-BUILDING FACILITIES"
+        },
+        {
+            "code": "M1QA",
+            "title": "OPERATION OF RESTORATION OF REAL PROPERTY (PUBLIC OR PRIVATE)"
+        },
+        {
+            "code": "N012",
+            "title": "INSTALLATION OF EQUIPMENT- FIRE CONTROL EQUIPMENT"
+        },
+        {
+            "code": "N041",
+            "title": "INSTALLATION OF EQUIPMENT- REFRIGERATION, AIR CONDITIONING, AND AIR CIRCULATING EQUIPMENT"
+        },
+        {
+            "code": "N042",
+            "title": "INSTALLATION OF EQUIPMENT- FIRE FIGHTING, RESCUE, AND SAFETY EQUIPMENT; ENVIRONMENTAL PROTECTION EQUIPMENT AND MATERIALS"
+        },
+        {
+            "code": "N043",
+            "title": "INSTALLATION OF EQUIPMENT- PUMPS AND COMPRESSORS"
+        },
+        {
+            "code": "N044",
+            "title": "INSTALLATION OF EQUIPMENT- FURNACE, STEAM PLANT, AND DRYING EQUIPMENT; NUCLEAR REACTORS"
+        },
+        {
+            "code": "N045",
+            "title": "INSTALLATION OF EQUIPMENT- PLUMBING, HEATING, AND WASTE DISPOSAL EQUIPMENT"
+        },
+        {
+            "code": "N046",
+            "title": "INSTALLATION OF EQUIPMENT- WATER PURIFICATION AND SEWAGE TREATMENT EQUIPMENT"
+        },
+        {
+            "code": "N049",
+            "title": "INSTALLATION OF EQUIPMENT- MAINTENANCE AND REPAIR SHOP EQUIPMENT"
+        },
+        {
+            "code": "N059",
+            "title": "INSTALLATION OF EQUIPMENT- ELECTRICAL AND ELECTRONIC EQUIPMENT COMPONENTS"
+        },
+        {
+            "code": "N063",
+            "title": "INSTALLATION OF EQUIPMENT- ALARM, SIGNAL, AND SECURITY DETECTION SYSTEMS"
+        },
+        {
+            "code": "S111",
+            "title": "UTILITIES- GAS"
+        },
+        {
+            "code": "S112",
+            "title": "UTILITIES- ELECTRIC"
+        },
+        {
+            "code": "S114",
+            "title": "UTILITIES- WATER"
+        },
+        {
+            "code": "S119",
+            "title": "UTILITIES- OTHER"
+        },
+        {
+            "code": "S201",
+            "title": "HOUSEKEEPING- CUSTODIAL JANITORIAL"
+        },
+        {
+            "code": "S202",
+            "title": "HOUSEKEEPING- FIRE PROTECTION"
+        },
+        {
+            "code": "S203",
+            "title": "HOUSEKEEPING- FOOD"
+        },
+        {
+            "code": "S204",
+            "title": "HOUSEKEEPING- FUELING AND OTHER PETROLEUM EXCLUDES: STORAGE"
+        },
+        {
+            "code": "S205",
+            "title": "HOUSEKEEPING- TRASH/GARBAGE COLLECTION"
+        },
+        {
+            "code": "S206",
+            "title": "HOUSEKEEPING- GUARD"
+        },
+        {
+            "code": "S207",
+            "title": "HOUSEKEEPING- INSECT/RODENT CONTROL"
+        },
+        {
+            "code": "S208",
+            "title": "HOUSEKEEPING- LANDSCAPING/GROUNDSKEEPING"
+        },
+        {
+            "code": "S209",
+            "title": "HOUSEKEEPING- LAUNDRY/DRYCLEANING"
+        },
+        {
+            "code": "S211",
+            "title": "HOUSEKEEPING- SURVEILLANCE"
+        },
+        {
+            "code": "S212",
+            "title": "HOUSEKEEPING- SOLID FUEL HANDLING"
+        },
+        {
+            "code": "S214",
+            "title": "HOUSEKEEPING- CARPET LAYING/CLEANING"
+        },
+        {
+            "code": "S216",
+            "title": "HOUSEKEEPING- FACILITIES OPERATIONS SUPPORT"
+        },
+        {
+            "code": "S217",
+            "title": "HOUSEKEEPING- INTERIOR PLANTSCAPING"
+        },
+        {
+            "code": "S218",
+            "title": "HOUSEKEEPING- SNOW REMOVAL/SALT"
+        },
+        {
+            "code": "S222",
+            "title": "HOUSEKEEPING- WASTE TREATMENT/STORAGE"
+        },
+        {
+            "code": "Z1AA",
+            "title": "MAINTENANCE OF OFFICE BUILDINGS"
+        },
+        {
+            "code": "Z1AB",
+            "title": "MAINTENANCE OF CONFERENCE SPACE AND FACILITIES"
+        },
+        {
+            "code": "Z1AZ",
+            "title": "MAINTENANCE OF OTHER ADMINISTRATIVE FACILITIES AND SERVICE BUILDINGS"
+        },
+        {
+            "code": "Z1BA",
+            "title": "MAINTENANCE OF AIR TRAFFIC CONTROL TOWERS"
+        },
+        {
+            "code": "Z1BB",
+            "title": "MAINTENANCE OF AIR TRAFFIC CONTROL TRAINING FACILITIES"
+        },
+        {
+            "code": "Z1BC",
+            "title": "MAINTENANCE OF RADAR AND NAVIGATIONAL FACILITIES"
+        },
+        {
+            "code": "Z1BD",
+            "title": "MAINTENANCE OF AIRPORT RUNWAYS AND TAXIWAYS"
+        },
+        {
+            "code": "Z1BE",
+            "title": "MAINTENANCE OF AIRPORT TERMINALS"
+        },
+        {
+            "code": "Z1BF",
+            "title": "MAINTENANCE OF MISSILE SYSTEM FACILITIES"
+        },
+        {
+            "code": "Z1BG",
+            "title": "MAINTENANCE OF ELECTRONIC AND COMMUNICATIONS FACILITIES"
+        },
+        {
+            "code": "Z1BZ",
+            "title": "MAINTENANCE OF OTHER AIRFIELD STRUCTURES"
+        },
+        {
+            "code": "Z1CA",
+            "title": "MAINTENANCE OF SCHOOLS"
+        },
+        {
+            "code": "Z1CZ",
+            "title": "MAINTENANCE OF OTHER EDUCATIONAL BUILDINGS"
+        },
+        {
+            "code": "Z1DA",
+            "title": "MAINTENANCE OF HOSPITALS AND INFIRMARIES"
+        },
+        {
+            "code": "Z1DB",
+            "title": "MAINTENANCE OF LABORATORIES AND CLINICS"
+        },
+        {
+            "code": "Z1DZ",
+            "title": "MAINTENANCE OF OTHER HOSPITAL BUILDINGS"
+        },
+        {
+            "code": "Z1EA",
+            "title": "MAINTENANCE OF AMMUNITION FACILITIES"
+        },
+        {
+            "code": "Z1EB",
+            "title": "MAINTENANCE OF MAINTENANCE BUILDINGS"
+        },
+        {
+            "code": "Z1EC",
+            "title": "MAINTENANCE OF PRODUCTION BUILDINGS"
+        },
+        {
+            "code": "Z1ED",
+            "title": "MAINTENANCE OF SHIP CONSTRUCTION AND REPAIR FACILITIES"
+        },
+        {
+            "code": "Z1EE",
+            "title": "MAINTENANCE OF TANK AUTOMOTIVE FACILITIES"
+        },
+        {
+            "code": "Z1EZ",
+            "title": "MAINTENANCE OF OTHER INDUSTRIAL BUILDINGS"
+        },
+        {
+            "code": "Z1FA",
+            "title": "MAINTENANCE OF FAMILY HOUSING FACILITIES"
+        },
+        {
+            "code": "Z1FB",
+            "title": "MAINTENANCE OF RECREATIONAL BUILDINGS"
+        },
+        {
+            "code": "Z1FC",
+            "title": "MAINTENANCE OF TROOP HOUSING FACILITIES"
+        },
+        {
+            "code": "Z1FD",
+            "title": "MAINTENANCE OF DINING FACILITIES"
+        },
+        {
+            "code": "Z1FE",
+            "title": "MAINTENANCE OF RELIGIOUS FACILITIES"
+        },
+        {
+            "code": "Z1FF",
+            "title": "MAINTENANCE OF PENAL FACILITIES"
+        },
+        {
+            "code": "Z1FZ",
+            "title": "MAINTENANCE OF OTHER RESIDENTIAL BUILDINGS"
+        },
+        {
+            "code": "Z1GA",
+            "title": "MAINTENANCE OF AMMUNITION STORAGE BUILDINGS"
+        },
+        {
+            "code": "Z1GB",
+            "title": "MAINTENANCE OF FOOD OR GRAIN STORAGE BUILDINGS"
+        },
+        {
+            "code": "Z1GC",
+            "title": "MAINTENANCE OF FUEL STORAGE BUILDINGS"
+        },
+        {
+            "code": "Z1GD",
+            "title": "MAINTENANCE OF OPEN STORAGE FACILITIES"
+        },
+        {
+            "code": "Z1GZ",
+            "title": "MAINTENANCE OF OTHER WAREHOUSE BUILDINGS"
+        },
+        {
+            "code": "Z1HA",
+            "title": "MAINTENANCE OF GOVERNMENT-OWNED CONTRACTOR-OPERATED (GOCO) R&D FACILITIES"
+        },
+        {
+            "code": "Z1HB",
+            "title": "MAINTENANCE OF GOVERNMENT-OWNED GOVERNMENT-OPERATED (GOGO) R&D FACILITIES"
+        },
+        {
+            "code": "Z1HC",
+            "title": "MAINTENANCE OF GOVERNMENT-OWNED CONTRACTOR-OPERATED (GOCO) ENVIRONMENTAL LABORATORIES"
+        },
+        {
+            "code": "Z1HZ",
+            "title": "MAINTENANCE OF GOVERNMENT-OWNED GOVERNMENT-OPERATED (GOGO) ENVIRONMENTAL LABORATORIES"
+        },
+        {
+            "code": "Z1JA",
+            "title": "MAINTENANCE OF MUSEUMS AND EXHIBITION BUILDINGS"
+        },
+        {
+            "code": "Z1JB",
+            "title": "MAINTENANCE OF TESTING AND MEASUREMENT BUILDINGS"
+        },
+        {
+            "code": "Z1JZ",
+            "title": "MAINTENANCE OF MISCELLANEOUS BUILDINGS"
+        },
+        {
+            "code": "Z1KA",
+            "title": "MAINTENANCE OF DAMS"
+        },
+        {
+            "code": "Z1KB",
+            "title": "MAINTENANCE OF CANALS"
+        },
+        {
+            "code": "Z1KC",
+            "title": "MAINTENANCE OF MINE FIRE CONTROL FACILITIES"
+        },
+        {
+            "code": "Z1KD",
+            "title": "MAINTENANCE OF MINE SUBSIDENCE CONTROL FACILITIES"
+        },
+        {
+            "code": "Z1KE",
+            "title": "MAINTENANCE OF SURFACE MINE RECLAMATION FACILITIES"
+        },
+        {
+            "code": "Z1KF",
+            "title": "MAINTENANCE OF DREDGING FACILITIES"
+        },
+        {
+            "code": "Z1KZ",
+            "title": "MAINTENANCE OF OTHER CONSERVATION AND DEVELOPMENT FACILITIES"
+        },
+        {
+            "code": "Z1LA",
+            "title": "MAINTENANCE OF AIRPORT SERVICE ROADS"
+        },
+        {
+            "code": "Z1LB",
+            "title": "MAINTENANCE OF HIGHWAYS/ROADS/STREETS/BRIDGES/RAILWAYS"
+        },
+        {
+            "code": "Z1LC",
+            "title": "MAINTENANCE OF TUNNELS AND SUBSURFACE STRUCTURES"
+        },
+        {
+            "code": "Z1LZ",
+            "title": "MAINTENANCE OF PARKING FACILITIES"
+        },
+        {
+            "code": "Z1MA",
+            "title": "MAINTENANCE OF EPG FACILITIES - COAL"
+        },
+        {
+            "code": "Z1MB",
+            "title": "MAINTENANCE OF EPG FACILITIES - GAS"
+        },
+        {
+            "code": "Z1MC",
+            "title": "MAINTENANCE OF EPG FACILITIES - GEOTHERMAL"
+        },
+        {
+            "code": "Z1MD",
+            "title": "MAINTENANCE OF EPG FACILITIES - HYDRO"
+        },
+        {
+            "code": "Z1ME",
+            "title": "MAINTENANCE OF EPG FACILITIES - NUCLEAR"
+        },
+        {
+            "code": "Z1MF",
+            "title": "MAINTENANCE OF EPG FACILITIES - PETROLEUM"
+        },
+        {
+            "code": "Z1MG",
+            "title": "MAINTENANCE OF EPG FACILITIES - SOLAR"
+        },
+        {
+            "code": "Z1MH",
+            "title": "MAINTENANCE OF EPG FACILITIES - WIND"
+        },
+        {
+            "code": "Z1MZ",
+            "title": "MAINTENANCE OF EPG FACILITIES - OTHER, INCLUDING TRANSMISSION"
+        },
+        {
+            "code": "Z1NA",
+            "title": "MAINTENANCE OF FUEL SUPPLY FACILITIES"
+        },
+        {
+            "code": "Z1NB",
+            "title": "MAINTENANCE OF HEATING AND COOLING PLANTS"
+        },
+        {
+            "code": "Z1NC",
+            "title": "MAINTENANCE OF POLLUTION ABATEMENT AND CONTROL FACILITIES"
+        },
+        {
+            "code": "Z1ND",
+            "title": "MAINTENANCE OF SEWAGE AND WASTE FACILITIES"
+        },
+        {
+            "code": "Z1NE",
+            "title": "MAINTENANCE OF WATER SUPPLY FACILITIES"
+        },
+        {
+            "code": "Z1NZ",
+            "title": "MAINTENANCE OF OTHER UTILITIES"
+        },
+        {
+            "code": "Z1PA",
+            "title": "MAINTENANCE OF RECREATION FACILITIES (NON-BUILDING)"
+        },
+        {
+            "code": "Z1PB",
+            "title": "MAINTENANCE OF EXHIBIT DESIGN (NON-BUILDING)"
+        },
+        {
+            "code": "Z1PC",
+            "title": "MAINTENANCE OF UNIMPROVED REAL PROPERTY (LAND)"
+        },
+        {
+            "code": "Z1PD",
+            "title": "MAINTENANCE OF WASTE TREATMENT AND STORAGE FACILITIES"
+        },
+        {
+            "code": "Z1PZ",
+            "title": "MAINTENANCE OF OTHER NON-BUILDING FACILITIES"
+        },
+        {
+            "code": "Z1QA",
+            "title": "MAINTENANCE OF RESTORATION OF REAL PROPERTY (PUBLIC OR PRIVATE)"
+        },
+        {
+            "code": "Z2AA",
+            "title": "REPAIR OR ALTERATION OF OFFICE BUILDINGS"
+        },
+        {
+            "code": "Z2AB",
+            "title": "REPAIR OR ALTERATION OF CONFERENCE SPACE AND FACILITIES"
+        },
+        {
+            "code": "Z2AZ",
+            "title": "REPAIR OR ALTERATION OF OTHER ADMINISTRATIVE FACILITIES AND SERVICE BUILDINGS"
+        },
+        {
+            "code": "Z2BA",
+            "title": "REPAIR OR ALTERATION OF AIR TRAFFIC CONTROL TOWERS"
+        },
+        {
+            "code": "Z2BB",
+            "title": "REPAIR OR ALTERATION OF AIR TRAFFIC CONTROL TRAINING FACILITIES"
+        },
+        {
+            "code": "Z2BC",
+            "title": "REPAIR OR ALTERATION OF RADAR AND NAVIGATIONAL FACILITIES"
+        },
+        {
+            "code": "Z2BD",
+            "title": "REPAIR OR ALTERATION OF AIRPORT RUNWAYS AND TAXIWAYS"
+        },
+        {
+            "code": "Z2BE",
+            "title": "REPAIR OR ALTERATION OF AIRPORT TERMINALS"
+        },
+        {
+            "code": "Z2BF",
+            "title": "REPAIR OR ALTERATION OF MISSILE SYSTEM FACILITIES"
+        },
+        {
+            "code": "Z2BG",
+            "title": "REPAIR OR ALTERATION OF ELECTRONIC AND COMMUNICATIONS FACILITIES"
+        },
+        {
+            "code": "Z2BZ",
+            "title": "REPAIR OR ALTERATION OF OTHER AIRFIELD STRUCTURES"
+        },
+        {
+            "code": "Z2CA",
+            "title": "REPAIR OR ALTERATION OF SCHOOLS"
+        },
+        {
+            "code": "Z2CZ",
+            "title": "REPAIR OR ALTERATION OF OTHER EDUCATIONAL BUILDINGS"
+        },
+        {
+            "code": "Z2DA",
+            "title": "REPAIR OR ALTERATION OF HOSPITALS AND INFIRMARIES"
+        },
+        {
+            "code": "Z2DB",
+            "title": "REPAIR OR ALTERATION OF LABORATORIES AND CLINICS"
+        },
+        {
+            "code": "Z2DZ",
+            "title": "REPAIR OR ALTERATION OF OTHER HOSPITAL BUILDINGS"
+        },
+        {
+            "code": "Z2EA",
+            "title": "REPAIR OR ALTERATION OF AMMUNITION FACILITIES"
+        },
+        {
+            "code": "Z2EB",
+            "title": "REPAIR OR ALTERATION OF MAINTENANCE BUILDINGS"
+        },
+        {
+            "code": "Z2EC",
+            "title": "REPAIR OR ALTERATION OF PRODUCTION BUILDINGS"
+        },
+        {
+            "code": "Z2ED",
+            "title": "REPAIR OR ALTERATION OF SHIP CONSTRUCTION AND REPAIR FACILITIES"
+        },
+        {
+            "code": "Z2EE",
+            "title": "REPAIR OR ALTERATION OF TANK AUTOMOTIVE FACILITIES"
+        },
+        {
+            "code": "Z2EZ",
+            "title": "REPAIR OR ALTERATION OF OTHER INDUSTRIAL BUILDINGS"
+        },
+        {
+            "code": "Z2FA",
+            "title": "REPAIR OR ALTERATION OF FAMILY HOUSING FACILITIES"
+        },
+        {
+            "code": "Z2FB",
+            "title": "REPAIR OR ALTERATION OF RECREATIONAL BUILDINGS"
+        },
+        {
+            "code": "Z2FC",
+            "title": "REPAIR OR ALTERATION OF TROOP HOUSING FACILITIES"
+        },
+        {
+            "code": "Z2FD",
+            "title": "REPAIR OR ALTERATION OF DINING FACILITIES"
+        },
+        {
+            "code": "Z2FE",
+            "title": "REPAIR OR ALTERATION OF RELIGIOUS FACILITIES"
+        },
+        {
+            "code": "Z2FF",
+            "title": "REPAIR OR ALTERATION OF PENAL FACILITIES"
+        },
+        {
+            "code": "Z2FZ",
+            "title": "REPAIR OR ALTERATION OF OTHER RESIDENTIAL BUILDINGS"
+        },
+        {
+            "code": "Z2GA",
+            "title": "REPAIR OR ALTERATION OF AMMUNITION STORAGE BUILDINGS"
+        },
+        {
+            "code": "Z2GB",
+            "title": "REPAIR OR ALTERATION OF FOOD OR GRAIN STORAGE BUILDINGS"
+        },
+        {
+            "code": "Z2GC",
+            "title": "REPAIR OR ALTERATION OF FUEL STORAGE BUILDINGS"
+        },
+        {
+            "code": "Z2GD",
+            "title": "REPAIR OR ALTERATION OF OPEN STORAGE FACILITIES"
+        },
+        {
+            "code": "Z2GZ",
+            "title": "REPAIR OR ALTERATION OF OTHER WAREHOUSE BUILDINGS"
+        },
+        {
+            "code": "Z2HA",
+            "title": "REPAIR OR ALTERATION OF GOVERNMENT-OWNED CONTRACTOR-OPERATED (GOCO) R&D FACILITIES"
+        },
+        {
+            "code": "Z2HB",
+            "title": "REPAIR OR ALTERATION OF GOVERNMENT-OWNED GOVERNMENT-OPERATED (GOGO) R&D FACILITIES"
+        },
+        {
+            "code": "Z2HC",
+            "title": "REPAIR OR ALTERATION OF GOVERNMENT-OWNED CONTRACTOR-OPERATED (GOCO) ENVIRONMENTAL LABORATORIES"
+        },
+        {
+            "code": "Z2HZ",
+            "title": "REPAIR OR ALTERATION OF GOVERNMENT-OWNED GOVERNMENT-OPERATED (GOGO) ENVIRONMENTAL LABORATORIES"
+        },
+        {
+            "code": "Z2JA",
+            "title": "REPAIR OR ALTERATION OF MUSEUMS AND EXHIBITION BUILDINGS"
+        },
+        {
+            "code": "Z2JB",
+            "title": "REPAIR OR ALTERATION OF TESTING AND MEASUREMENT BUILDINGS"
+        },
+        {
+            "code": "Z2JZ",
+            "title": "REPAIR OR ALTERATION OF MISCELLANEOUS BUILDINGS"
+        },
+        {
+            "code": "Z2KA",
+            "title": "REPAIR OR ALTERATION OF DAMS"
+        },
+        {
+            "code": "Z2KB",
+            "title": "REPAIR OR ALTERATION OF CANALS"
+        },
+        {
+            "code": "Z2KC",
+            "title": "REPAIR OR ALTERATION OF MINE FIRE CONTROL FACILITIES"
+        },
+        {
+            "code": "Z2KD",
+            "title": "REPAIR OR ALTERATION OF MINE SUBSIDENCE CONTROL FACILITIES"
+        },
+        {
+            "code": "Z2KE",
+            "title": "REPAIR OR ALTERATION OF SURFACE MINE RECLAMATION FACILITIES"
+        },
+        {
+            "code": "Z2KF",
+            "title": "REPAIR OR ALTERATION OF DREDGING FACILITIES"
+        },
+        {
+            "code": "Z2KZ",
+            "title": "REPAIR OR ALTERATION OF OTHER CONSERVATION AND DEVELOPMENT FACILITIES"
+        },
+        {
+            "code": "Z2LA",
+            "title": "REPAIR OR ALTERATION OF AIRPORT SERVICE ROADS"
+        },
+        {
+            "code": "Z2LB",
+            "title": "REPAIR OR ALTERATION OF HIGHWAYS/ROADS/STREETS/BRIDGES/RAILWAYS"
+        },
+        {
+            "code": "Z2LC",
+            "title": "REPAIR OR ALTERATION OF TUNNELS AND SUBSURFACE STRUCTURES"
+        },
+        {
+            "code": "Z2LZ",
+            "title": "REPAIR OR ALTERATION OF PARKING FACILITIES"
+        },
+        {
+            "code": "Z2MA",
+            "title": "REPAIR OR ALTERATION OF EPG FACILITIES - COAL"
+        },
+        {
+            "code": "Z2MB",
+            "title": "REPAIR OR ALTERATION OF EPG FACILITIES - GAS"
+        },
+        {
+            "code": "Z2MC",
+            "title": "REPAIR OR ALTERATION OF EPG FACILITIES - GEOTHERMAL"
+        },
+        {
+            "code": "Z2MD",
+            "title": "REPAIR OR ALTERATION OF EPG FACILITIES - HYDRO"
+        },
+        {
+            "code": "Z2ME",
+            "title": "REPAIR OR ALTERATION OF EPG FACILITIES - NUCLEAR"
+        },
+        {
+            "code": "Z2MF",
+            "title": "REPAIR OR ALTERATION OF EPG FACILITIES - PETROLEUM"
+        },
+        {
+            "code": "Z2MG",
+            "title": "REPAIR OR ALTERATION OF EPG FACILITIES - SOLAR"
+        },
+        {
+            "code": "Z2MH",
+            "title": "REPAIR OR ALTERATION OF EPG FACILITIES - WIND"
+        },
+        {
+            "code": "Z2MZ",
+            "title": "REPAIR OR ALTERATION OF EPG FACILITIES - OTHER, INCLUDING TRANSMISSION"
+        },
+        {
+            "code": "Z2NA",
+            "title": "REPAIR OR ALTERATION OF FUEL SUPPLY FACILITIES"
+        },
+        {
+            "code": "Z2NB",
+            "title": "REPAIR OR ALTERATION OF HEATING AND COOLING PLANTS"
+        },
+        {
+            "code": "Z2NC",
+            "title": "REPAIR OR ALTERATION OF POLLUTION ABATEMENT AND CONTROL FACILITIES"
+        },
+        {
+            "code": "Z2ND",
+            "title": "REPAIR OR ALTERATION OF SEWAGE AND WASTE FACILITIES"
+        },
+        {
+            "code": "Z2NE",
+            "title": "REPAIR OR ALTERATION OF WATER SUPPLY FACILITIES"
+        },
+        {
+            "code": "Z2NZ",
+            "title": "REPAIR OR ALTERATION OF OTHER UTILITIES"
+        },
+        {
+            "code": "Z2PA",
+            "title": "REPAIR OR ALTERATION OF RECREATION FACILITIES (NON-BUILDING)"
+        },
+        {
+            "code": "Z2PB",
+            "title": "REPAIR OR ALTERATION OF EXHIBIT DESIGN (NON-BUILDING)"
+        },
+        {
+            "code": "Z2PC",
+            "title": "REPAIR OR ALTERATION OF UNIMPROVED REAL PROPERTY (LAND)"
+        },
+        {
+            "code": "Z2PD",
+            "title": "REPAIR OR ALTERATION OF WASTE TREATMENT AND STORAGE FACILITIES"
+        },
+        {
+            "code": "Z2PZ",
+            "title": "REPAIR OR ALTERATION OF OTHER NON-BUILDING FACILITIES"
+        },
+        {
+            "code": "Z2QA",
+            "title": "REPAIR OR ALTERATION OF RESTORATION OF REAL PROPERTY (PUBLIC OR PRIVATE)"
+        },
+        {
+            "code": "J058",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- COMMUNICATION, DETECTION, AND COHERENT RADIATION EQUIPMENT"
+        },
+        {
+            "code": "J060",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- FIBER OPTICS MATERIALS, COMPONENTS, ASSEMBLIES, AND ACCESSORIES"
+        },
+        {
+            "code": "J070",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- ADP EQUIPMENT/SOFTWARE/SUPPLIES/SUPPORT EQUIPMENT"
+        },
+        {
+            "code": "J099",
+            "title": "MAINT/REPAIR/REBUILD OF EQUIPMENT- MISCELLANEOUS"
+        }
+    ],
+    "Environmental Services (ENV)": [
+        {
+            "code": "541330",
+            "title": "Engineering Services"
+        },
+        {
+            "code": "541360",
+            "title": "Geophysical Surveying and Mapping Services"
+        },
+        {
+            "code": "541380",
+            "title": "Testing Laboratories"
+        },
+        {
+            "code": "541620",
+            "title": "Environmental Consulting Services"
+        },
+        {
+            "code": "541690",
+            "title": "Other Scientific and Technical Consulting Services"
+        },
+        {
+            "code": "541990",
+            "title": "All Other Professional, Scientific and Technical Services"
+        },
+        {
+            "code": "561210",
+            "title": "Facilities Support Services"
+        },
+        {
+            "code": "562112",
+            "title": "Hazardous Waste Collection"
+        },
+        {
+            "code": "562211",
+            "title": "Hazardous Waste Treatment and Disposal"
+        },
+        {
+            "code": "562910",
+            "title": "Remediation Services"
+        },
+        {
+            "code": "562910 (Exception)",
+            "title": "Environmental Remediation Services14"
+        },
+        {
+            "code": "AH11",
+            "title": "NATURAL RESOURCES AND ENVIRONMENT R&D SERVICES; WATER RESOURCES; BASIC RESEARCH"
+        },
+        {
+            "code": "AH12",
+            "title": "NATURAL RESOURCES AND ENVIRONMENT R&D SERVICES; WATER RESOURCES; APPLIED RESEARCH"
+        },
+        {
+            "code": "AH13",
+            "title": "NATURAL RESOURCES AND ENVIRONMENT R&D SERVICES; WATER RESOURCES; EXPERIMENTAL DEVELOPMENT"
+        },
+        {
+            "code": "AH14",
+            "title": "NATURAL RESOURCES AND ENVIRONMENT R&D SERVICES; WATER RESOURCES; R&D ADMINISTRATIVE EXPENSES"
+        },
+        {
+            "code": "AH15",
+            "title": "NATURAL RESOURCES & ENVIRONMENT R&D SVCS; WATER RESOURCES; R&D FACILITIES & MAJ EQUIP"
+        },
+        {
+            "code": "AH21",
+            "title": "NATURAL RESOURCES AND ENVIRONMENT R&D SERVICES; CONSERVATION AND LAND MANAGEMENT; BASIC RESEARCH"
+        },
+        {
+            "code": "AH22",
+            "title": "NATURAL RESOURCES AND ENVIRONMENT R&D SERVICES; CONSERVATION AND LAND MANAGEMENT; APPLIED RESEARCH"
+        },
+        {
+            "code": "AH23",
+            "title": "NATURAL RESOURCES & ENVIRONMENT R&D SVCS; CONSERVATION & LAND MANAGEMENT; EXPERIMENTAL DEVELOPMENT"
+        },
+        {
+            "code": "AH24",
+            "title": "NATURAL RESOURCES & ENVIRONMENT R&D SVCS; CONSERVATION & LAND MGMT; R&D ADMINISTRATIVE EXPENSES"
+        },
+        {
+            "code": "AH25",
+            "title": "NATURAL RESOURCES & ENVIRONMENT R&D SVCS; CONSERVATION & LAND MGMT; R&D FACILITIES & MAJ EQUIP"
+        },
+        {
+            "code": "AH31",
+            "title": "NATURAL RESOURCES AND ENVIRONMENT R&D SERVICES; RECREATIONAL RESOURCES; BASIC RESEARCH"
+        },
+        {
+            "code": "AH32",
+            "title": "NATURAL RESOURCES AND ENVIRONMENT R&D SERVICES; RECREATIONAL RESOURCES; APPLIED RESEARCH"
+        },
+        {
+            "code": "AH33",
+            "title": "NATURAL RESOURCES AND ENVIRONMENT R&D SERVICES; RECREATIONAL RESOURCES; EXPERIMENTAL DEVELOPMENT"
+        },
+        {
+            "code": "AH34",
+            "title": "NATURAL RESOURCES AND ENVIRONMENT R&D SERVICES; RECREATIONAL RESOURCES; R&D ADMINISTRATIVE EXPENSES"
+        },
+        {
+            "code": "AH35",
+            "title": "NATURAL RESOURCES & ENVIRONMENT R&D SVCS; RECREATIONAL RESOURCES; R&D FACILITIES & MAJ EQUIP"
+        },
+        {
+            "code": "AH41",
+            "title": "NATURAL RESOURCES AND ENVIRONMENT R&D SERVICES; POLLUTION CONTROL AND ABATEMENT; BASIC RESEARCH"
+        },
+        {
+            "code": "AH42",
+            "title": "NATURAL RESOURCES AND ENVIRONMENT R&D SERVICES; POLLUTION CONTROL AND ABATEMENT; APPLIED RESEARCH"
+        },
+        {
+            "code": "AH43",
+            "title": "NATURAL RESOURCES & ENVIRONMENT R&D SVCS; POLLUTION CONTROL & ABATEMENT; EXPERIMENTAL DEVELOPMENT"
+        },
+        {
+            "code": "AH44",
+            "title": "NATURAL RESOURCES & ENVIRONMENT R&D SVCS; POLLUTION CONTROL & ABATEMENT; R&D ADMINISTRATIVE EXPENSES"
+        },
+        {
+            "code": "AH45",
+            "title": "NATURAL RESOURCES & ENVIRONMENT R&D SVCS; POLLUTION CONTROL & ABATEMENT; R&D FACILITIES & MAJ EQUIP"
+        },
+        {
+            "code": "AH51",
+            "title": "NATURAL RESOURCES AND ENVIRONMENT R&D SERVICES; OTHER NATURAL RESOURCES; BASIC RESEARCH"
+        },
+        {
+            "code": "AH52",
+            "title": "NATURAL RESOURCES AND ENVIRONMENT R&D SERVICES; OTHER NATURAL RESOURCES; APPLIED RESEARCH"
+        },
+        {
+            "code": "AH53",
+            "title": "NATURAL RESOURCES AND ENVIRONMENT R&D SERVICES; OTHER NATURAL RESOURCES; EXPERIMENTAL DEVELOPMENT"
+        },
+        {
+            "code": "AH54",
+            "title": "NATURAL RESOURCES & ENVIRONMENT R&D SVCS; OTHER NATURAL RESOURCES; R&D ADMINISTRATIVE EXPENSES"
+        },
+        {
+            "code": "AH55",
+            "title": "NATURAL RESOURCES & ENVIRONMENT R&D SVCS; OTHER NATURAL RESOURCES; R&D FACILITIES & MAJ EQUIP"
+        },
+        {
+            "code": "B502",
+            "title": "SPECIAL STUDIES/ANALYSIS - AIR QUALITY ANALYSIS"
+        },
+        {
+            "code": "B503",
+            "title": "SPECIAL STUDIES/ANALYSIS - ARCHEOLOGICAL/PALEONTOLOGICAL STUDIES"
+        },
+        {
+            "code": "B504",
+            "title": "SPECIAL STUDIES/ANALYSIS - CHEMICAL/BIOLOGICAL STUDIES AND ANALYSIS"
+        },
+        {
+            "code": "B509",
+            "title": "SPECIAL STUDIES/ANALYSIS - ENDANGERED SPECIES STUDIES - PLANT AND ANIMAL"
+        },
+        {
+            "code": "B510",
+            "title": "SPECIAL STUDIES/ANALYSIS - ENVIRONMENTAL STUDIES AND ASSESSMENTS"
+        },
+        {
+            "code": "B516",
+            "title": "SPECIAL STUDIES/ANALYSIS - ANIMAL AND FISHERIES STUDIES"
+        },
+        {
+            "code": "B517",
+            "title": "SPECIAL STUDIES/ANALYSIS - GEOLOGICAL STUDIES"
+        },
+        {
+            "code": "B518",
+            "title": "SPECIAL STUDIES/ANALYSIS - GEOPHYSICAL STUDIES"
+        },
+        {
+            "code": "B519",
+            "title": "SPECIAL STUDIES/ANALYSIS - GEOTECHNICAL STUDIES"
+        },
+        {
+            "code": "B520",
+            "title": "SPECIAL STUDIES/ANALYSIS - GRAZING/RANGE STUDIES"
+        },
+        {
+            "code": "B525",
+            "title": "SPECIAL STUDIES/ANALYSIS - NATURAL RESOURCE STUDIES"
+        },
+        {
+            "code": "B526",
+            "title": "SPECIAL STUDIES/ANALYSIS - OCEANOLOGICAL STUDIES"
+        },
+        {
+            "code": "B530",
+            "title": "SPECIAL STUDIES/ANALYSIS - SEISMOLOGICAL STUDIES"
+        },
+        {
+            "code": "B532",
+            "title": "SPECIAL STUDIES/ANALYSIS - SOIL STUDIES"
+        },
+        {
+            "code": "B533",
+            "title": "SPECIAL STUDIES/ANALYSIS - WATER QUALITY STUDIES"
+        },
+        {
+            "code": "B534",
+            "title": "SPECIAL STUDIES/ANALYSIS - WILDLIFE STUDIES"
+        },
+        {
+            "code": "F004",
+            "title": "NATURAL RESOURCES/CONSERVATION - FOREST/RANGE FIRE REHABILITATION SERVICES (NON-CONSTRUCTION)"
+        },
+        {
+            "code": "F011",
+            "title": "NATURAL RESOURCES/CONSERVATION - SURFACE MINING RECLAMATION SERVICES (NON-CONSTRUCTION)"
+        },
+        {
+            "code": "F101",
+            "title": "ENVIRONMENTAL SYSTEMS PROTECTION- AIR QUALITY SUPPORT"
+        },
+        {
+            "code": "F103",
+            "title": "ENVIRONMENTAL SYSTEMS PROTECTION- WATER QUALITY SUPPORT"
+        },
+        {
+            "code": "F105",
+            "title": "ENVIRONMENTAL SYSTEMS PROTECTION- PESTICIDES SUPPORT"
+        },
+        {
+            "code": "F107",
+            "title": "ENVIRONMENTAL SYSTEMS PROTECTION- TOXIC AND HAZARDOUS SUBSTANCE ANALYSIS"
+        },
+        {
+            "code": "F108",
+            "title": "ENVIRONMENTAL SYSTEMS PROTECTION- ENVIRONMENTAL REMEDIATION"
+        },
+        {
+            "code": "F109",
+            "title": "ENVIRONMENTAL SYSTEMS PROTECTION- LEAKING UNDERGROUND STORAGE TANK SUPPORT"
+        },
+        {
+            "code": "F110",
+            "title": "ENVIRON SYS PROTECT- DEVELOPMENT OF ENVIRON IMPACT STMTS/ASSESSMENTS, TECH ANALYSIS/ENVIRON AUDITS"
+        },
+        {
+            "code": "F111",
+            "title": "ENVIRONMENTAL SYSTEMS PROTECTION- MULTIPLE POLLUTANT SUPPORT"
+        },
+        {
+            "code": "F112",
+            "title": "ENVIRONMENTAL SYSTEMS PROTECTION- OIL SPILL RESPONSE"
+        },
+        {
+            "code": "F113",
+            "title": "ENVIRONMENTAL SYSTEMS PROTECTION- WETLANDS CONSERVATION AND SUPPORT"
+        },
+        {
+            "code": "F114",
+            "title": "ENVIRONMENTAL SYSTEMS PROTECTION- ENVIRONMENTAL LICENSING AND PERMITTING"
+        },
+        {
+            "code": "F115",
+            "title": "ENVIRONMENTAL SYSTEMS PROTECTION- ENVIRONMENTAL CONSULTING AND LEGAL SUPPORT"
+        },
+        {
+            "code": "AH16",
+            "title": "R&D- ENVIRONMENTAL PROTECTION: POLLUTION CONTROL/ABATEMENT (MANAGEMENT/SUPPORT)"
+        },
+        {
+            "code": "AH17",
+            "title": "R&D- ENVIRONMENTAL PROTECTION: POLLUTION CONTROL/ABATEMENT (COMMERCIALIZED)"
+        },
+        {
+            "code": "AH26",
+            "title": "R&D- ENVIRONMENTAL PROTECTION: AIR POLLUTION (MANAGEMENT/SUPPORT)"
+        },
+        {
+            "code": "AH27",
+            "title": "R&D- ENVIRONMENTAL PROTECTION: AIR POLLUTION (COMMERCIALIZED)"
+        },
+        {
+            "code": "AH36",
+            "title": "R&D- ENVIRONMENTAL PROTECTION: WATER POLLUTION (MANAGEMENT/SUPPORT)"
+        },
+        {
+            "code": "AH37",
+            "title": "R&D- ENVIRONMENTAL PROTECTION: WATER POLLUTION (COMMERCIALIZED)"
+        },
+        {
+            "code": "AH46",
+            "title": "R&D- ENVIRONMENTAL PROTECTION: NOISE POLLUTION (MANAGEMENT/SUPPORT)"
+        },
+        {
+            "code": "AH47",
+            "title": "R&D- ENVIRONMENTAL PROTECTION: NOISE POLLUTION (COMMERCIALIZED)"
+        },
+        {
+            "code": "AH91",
+            "title": "R&D- ENVIRONMENTAL PROTECTION: OTHER (BASIC RESEARCH)"
+        },
+        {
+            "code": "AH92",
+            "title": "R&D- ENVIRONMENTAL PROTECTION: OTHER (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT)"
+        },
+        {
+            "code": "AH93",
+            "title": "R&D- ENVIRONMENTAL PROTECTION: OTHER (ADVANCED DEVELOPMENT)"
+        },
+        {
+            "code": "AH94",
+            "title": "R&D- ENVIRONMENTAL PROTECTION: OTHER (ENGINEERING DEVELOPMENT)"
+        },
+        {
+            "code": "AH95",
+            "title": "R&D- ENVIRONMENTAL PROTECTION: OTHER (OPERATIONAL SYSTEMS DEVELOPMENT)"
+        },
+        {
+            "code": "AH96",
+            "title": "R&D- ENVIRONMENTAL PROTECTION: OTHER (MANAGEMENT/SUPPORT)"
+        },
+        {
+            "code": "AH97",
+            "title": "R&D- ENVIRONMENTAL PROTECTION: OTHER (COMMERCIALIZED)"
+        }
+    ],
+    "Logistics (LOG)": [
+        {
+            "code": "336611",
+            "title": "Ship Building and Repairing"
+        },
+        {
+            "code": "481211",
+            "title": "Nonscheduled Chartered Passenger Air Transportation"
+        },
+        {
+            "code": "485991",
+            "title": "Special Needs Transportation"
+        },
+        {
+            "code": "485999",
+            "title": "All Other Transit and Ground Passenger Transportation"
+        },
+        {
+            "code": "488111",
+            "title": "Air Traffic Control"
+        },
+        {
+            "code": "488190",
+            "title": "Other Support Activities for Air Transportation"
+        },
+        {
+            "code": "488999",
+            "title": "All Other Support Activities for Transportation"
+        },
+        {
+            "code": "492110",
+            "title": "Couriers and Express Delivery Services"
+        },
+        {
+            "code": "493110",
+            "title": "General Warehousing and Storage"
+        },
+        {
+            "code": "493120",
+            "title": "Refrigerated Warehousing and Storage"
+        },
+        {
+            "code": "493190",
+            "title": "Other Warehousing and Storage"
+        },
+        {
+            "code": "541614",
+            "title": "Process, Physical Distribution and Logistics Consulting Services"
+        },
+        {
+            "code": "811118",
+            "title": "Other Automotive Mechanical and Electrical Repair and Maintenance"
+        },
+        {
+            "code": "811121",
+            "title": "Automotive Body, Paint and Interior Repair and Maintenance"
+        },
+        {
+            "code": "811198",
+            "title": "All Other Automotive Repair and Maintenance"
+        },
+        {
+            "code": "R706",
+            "title": "Support - Management: Logistics Support"
+        },
+        {
+            "code": "V001",
+            "title": "Transportation/Travel/Relocation - Motor Pool and Packing/Crating"
+        },
+        {
+            "code": "V002",
+            "title": "Transportation/Travel/Relocation - Motor Pool and Packing/Crating: Motor Pool Operations"
+        },
+        {
+            "code": "V003",
+            "title": "Transportation/Travel/Relocation - Motor Pool and Packing/Crating: Packing/Crating"
+        },
+        {
+            "code": "V119",
+            "title": "Transportation/Travel/Relocation - Transportation: Other"
+        }
+    ]
+}

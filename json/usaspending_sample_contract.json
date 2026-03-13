@@ -1,17 +1,17 @@
 {
-  "id": 355788459,
-  "generated_unique_award_id": "CONT_AWD_HC108426FA484_9700_HC108424D0002_9700",
-  "piid": "HC108426FA484",
+  "id": 355914320,
+  "generated_unique_award_id": "CONT_AWD_HC108426FA521_9700_HC108424D0002_9700",
+  "piid": "HC108426FA521",
   "category": "contract",
   "type": "C",
   "type_description": "DELIVERY ORDER",
-  "description": "DMOB001424EBM: PROCURE DMCC DEVICES AND SERVICES IN SUPPORT OF THE DEPARTMENT OF HOMELAND SECURITY-UNITED STATES COAST, TELECOMMUNICATION AND INFORMATION SYSTEMS COMMAND.",
-  "total_obligation": 1973.59,
+  "description": "DMOB001461EBM PROCURE DMCC DEVICES AND SERVICES IN SUPPORT OF THE DEPARTMENT OF TRANSPORTATION (DOT), HEADQUARTERS DOT.",
+  "total_obligation": 9146.76,
   "subaward_count": 0,
   "total_subaward_amount": null,
-  "date_signed": "2026-03-04",
-  "base_exercised_options": 1973.59,
-  "base_and_all_options": 1973.59,
+  "date_signed": "2026-03-10",
+  "base_exercised_options": 9146.76,
+  "base_and_all_options": 9146.76,
   "total_account_outlay": 0,
   "total_account_obligation": 0,
   "account_outlays_by_defc": [],
@@ -101,20 +101,20 @@
     "national_interest_action_description": null
   },
   "funding_agency": {
-    "id": 772,
+    "id": 755,
     "has_agency_page": true,
     "toptier_agency": {
-      "name": "Department of Homeland Security",
-      "code": "070",
-      "abbreviation": "DHS",
-      "slug": "department-of-homeland-security"
+      "name": "Department of Transportation",
+      "code": "069",
+      "abbreviation": "DOT",
+      "slug": "department-of-transportation"
     },
     "subtier_agency": {
-      "name": "U.S. Coast Guard",
-      "code": "7008",
-      "abbreviation": "USCG"
+      "name": "Maritime Administration",
+      "code": "6938",
+      "abbreviation": "MARAD"
     },
-    "office_agency_name": "USCG FINANCE CENTER"
+    "office_agency_name": "DOT  MARITIME ADMINISTRATION"
   },
   "awarding_agency": {
     "id": 1217,
@@ -133,9 +133,9 @@
     "office_agency_name": "IT CONTRACTING DIVISION - PL84"
   },
   "period_of_performance": {
-    "start_date": "2026-03-19",
+    "start_date": "2026-03-26",
     "end_date": "2029-09-30",
-    "last_modified_date": "2026-03-04",
+    "last_modified_date": "2026-03-10",
     "potential_end_date": "2029-09-30 00:00:00"
   },
   "recipient": {

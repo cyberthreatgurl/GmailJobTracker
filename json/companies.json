@@ -138,7 +138,8 @@
     "ZP Group": "Zachary Piper Solutions",
     "Client Solution Architects": "CSA Associates",
     "ASTRION GROUP": "Astrion",
-    "BIT": "Big Impact Tech"
+    "BIT": "Big Impact Tech",
+    "Technica Corporation": "Technica"
   },
   "ats_domains": [
     "Defense",
@@ -589,7 +590,11 @@
     "bcianswers.com": "Business Communications, Inc.",
     "akamai.com": "Akamai Technologies",
     "zacharypiper.com": "Zachary Piper Solutions",
-    "bigimpacttech.com": "Big Impact Tech"
+    "bigimpacttech.com": "Big Impact Tech",
+    "gcyber.com": "GCyber",
+    "technicacorp.com": "Technica",
+    "gdmissionsystems.com": "General Dynamics Mission Systems",
+    "anavationllc.com": "AnaVation"
   },
   "headhunter_domains": [
     "agreeya.com",
@@ -981,7 +986,11 @@
     "Business Communications, Inc.": "https://www.bcianswers.com/careers/",
     "Akamai Technologies": "https://www.akamai.com/careers",
     "Zachary Piper Solutions": "https://zacharypiper.com/working-at-zps/",
-    "Big Impact Tech": "https://www.linkedin.com/company/big-impact-tech/jobs/"
+    "Big Impact Tech": "https://www.linkedin.com/company/big-impact-tech/jobs/",
+    "GCyber": "https://www.gcyber.com/careers",
+    "Technica": "https://technicacorp.com/careers/",
+    "General Dynamics Mission Systems": "https://gdmissionsystems.com/careers",
+    "AnaVation": "https://anavationllc.com/careers/"
   },
   "known": [
     "Red River",
@@ -1349,7 +1358,11 @@
     "Zachary Piper Solutions",
     "Rippling",
     "Client Solution Architects",
-    "Big Impact Tech"
+    "Big Impact Tech",
+    "GCYBER",
+    "Technica Corporation",
+    "General Dynamics Mission Systems",
+    "AnaVation"
   ],
   "ats_heuristic_patterns": [
     "workday",

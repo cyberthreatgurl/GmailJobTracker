@@ -52,7 +52,6 @@ def test_ingest_ignored_reason_logging(monkeypatch, fake_stats, fake_message_mod
             "interview_date": None,
         },
     )
-    monkeypatch.setattr("parser.insert_email_text", lambda *a, **k: None)
 
     # Parsed subject flags the message as ignored
     monkeypatch.setattr(
@@ -120,7 +119,6 @@ def test_ingest_ignored(monkeypatch, fake_stats, fake_message_model):
             "interview_date": None,
         },
     )
-    monkeypatch.setattr("parser.insert_email_text", lambda *a, **k: None)
     monkeypatch.setattr("parser.parse_subject", lambda *a, **k: {"ignore": True})
     monkeypatch.setattr("parser.log_ignored_message", lambda *a, **k: None)
     monkeypatch.setattr("parser.get_stats", lambda: fake_stats)
@@ -159,7 +157,6 @@ def test_ingest_skipped(monkeypatch, fake_stats, fake_message_model):
             "interview_date": None,
         },
     )
-    monkeypatch.setattr("parser.insert_email_text", lambda *a, **k: None)
     monkeypatch.setattr("parser.parse_subject", lambda *a, **k: {"ignore": False})
     monkeypatch.setattr("parser.get_stats", lambda: fake_stats)
 
@@ -183,7 +180,6 @@ def test_thank_you_message_does_not_set_interview_date(
     captured_record = {}
 
     monkeypatch.setattr(
-        "parser.insert_or_update_application",
         lambda record: captured_record.update(record),
     )
 
@@ -231,7 +227,6 @@ def test_thank_you_message_does_not_set_interview_date(
         },
     )
 
-    monkeypatch.setattr("parser.insert_email_text", lambda *a, **k: None)
     monkeypatch.setattr("parser.classify_message", lambda b: None)
     monkeypatch.setattr("parser.get_stats", lambda: fake_stats)
 
@@ -245,7 +240,6 @@ def test_ingest_subject_parse(monkeypatch, fake_stats, fake_message_model):
     queryset, manager = fake_message_model
     captured_record = {}
     monkeypatch.setattr(
-        "parser.insert_or_update_application",
         lambda record: captured_record.update(record),
     )
 
@@ -273,7 +267,6 @@ def test_ingest_subject_parse(monkeypatch, fake_stats, fake_message_model):
             "interview_date": None,
         },
     )
-    monkeypatch.setattr("parser.insert_email_text", lambda *a, **k: None)
     # Mock predict_subject_type to return job_application label with high confidence
     monkeypatch.setattr(
         "parser.predict_subject_type",
@@ -313,7 +306,6 @@ def test_ingest_ml_fallback(monkeypatch, fake_stats, fake_message_model):
     queryset, manager = fake_message_model
     captured_record = {}
     monkeypatch.setattr(
-        "parser.insert_or_update_application",
         lambda record: captured_record.update(record),
     )
 
@@ -344,7 +336,6 @@ def test_ingest_ml_fallback(monkeypatch, fake_stats, fake_message_model):
             "interview_date": None,
         },
     )
-    monkeypatch.setattr("parser.insert_email_text", lambda *a, **k: None)
 
     # Mock predict_subject_type
     monkeypatch.setattr(
@@ -380,7 +371,6 @@ def test_ingest_record_shape(monkeypatch, fake_stats, fake_message_model):
     queryset, manager = fake_message_model
     captured_record = {}
     monkeypatch.setattr(
-        "parser.insert_or_update_application",
         lambda record: captured_record.update(record),
     )
 
@@ -409,7 +399,6 @@ def test_ingest_record_shape(monkeypatch, fake_stats, fake_message_model):
             "interview_date": "2025-10-05",
         },
     )
-    monkeypatch.setattr("parser.insert_email_text", lambda *a, **k: None)
 
     # Mock predict_subject_type
     monkeypatch.setattr(

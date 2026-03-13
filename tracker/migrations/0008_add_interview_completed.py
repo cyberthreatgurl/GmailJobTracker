@@ -32,7 +32,7 @@ class Migration(migrations.Migration):
             database_operations=[
                 # Add field to the actual table (which is still called tracker_application)
                 migrations.RunSQL(
-                    sql="ALTER TABLE tracker_application ADD COLUMN interview_completed BOOL NOT NULL DEFAULT 0",
+                    sql="ALTER TABLE tracker_application ADD COLUMN interview_completed BOOL NOT NULL DEFAULT FALSE",
                     reverse_sql="ALTER TABLE tracker_application DROP COLUMN interview_completed",
                 ),
             ],

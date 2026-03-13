@@ -1,0 +1,518 @@
+{
+    "FAC": [
+        {
+            "code": "541320",
+            "title": "Landscape Architectural Services"
+        },
+        {
+            "code": "561730",
+            "title": "Landscaping Services"
+        },
+        {
+            "code": "541350",
+            "title": "Building Inspection Services"
+        },
+        {
+            "code": "531311",
+            "title": "Residential Property Managers"
+        },
+        {
+            "code": "811310",
+            "title": "Commercial and Industrial Machinery and Equipment (except Automotive and Electronic) Repair and Maintenance"
+        },
+        {
+            "code": "561710",
+            "title": "Exterminating and Pest Control Services"
+        },
+        {
+            "code": "488490",
+            "title": "Other Support Activities for Road Transportation"
+        },
+        {
+            "code": "238160",
+            "title": "Roofing Contractors"
+        },
+        {
+            "code": "238210",
+            "title": "Electrical Contractors and Other Wiring Installation Contractors"
+        },
+        {
+            "code": "238220",
+            "title": "Plumbing, Heating, and AirConditioning Contractors"
+        },
+        {
+            "code": "238320",
+            "title": "Painting and Wall Covering Contractors"
+        },
+        {
+            "code": "238990",
+            "title": "All Other Specialty Trade Contractors"
+        },
+        {
+            "code": "485999",
+            "title": "All Other Transit and Ground Passenger transportation"
+        },
+        {
+            "code": "531312",
+            "title": "Nonresidential Property Managers"
+        },
+        {
+            "code": "541614",
+            "title": "Process, Physical Distribution and Logistics Consulting Services"
+        },
+        {
+            "code": "238290",
+            "title": "Other Building Equipment Contractors"
+        },
+        {
+            "code": "561720",
+            "title": "Janitorial Services"
+        },
+        {
+            "code": "541611",
+            "title": "Administrative Management and General Management Consulting Services"
+        },
+        {
+            "code": "488999",
+            "title": "All Other Support Activities for Transportation"
+        },
+        {
+            "code": "561621",
+            "title": "Security Systems Services (except Locksmiths)"
+        },
+        {
+            "code": "541330",
+            "title": "Engineering Services"
+        },
+        {
+            "code": "488190",
+            "title": "Other Support Activities for Air Transportation"
+        },
+        {
+            "code": "541330",
+            "title": "Except, Contracts and Subcontracts for Engineering Services Awarded Under the National Energy Policy Act of 1992"
+        },
+        {
+            "code": "541330",
+            "title": "Except, Marine Engineering and Naval Architecture"
+        },
+        {
+            "code": "541330",
+            "title": "Except, Military and Aerospace Equipment and Military Weapons"
+        },
+        {
+            "code": "561210",
+            "title": "Facilities Support Services"
+        },
+        {
+            "code": "562111",
+            "title": "Solid Waste Collection"
+        },
+        {
+            "code": "562112",
+            "title": "Hazardous Waste Collection"
+        }
+    ],
+    "LOG": [
+        {
+            "code": "811118",
+            "title": "Other Automotive Mechanical and Electrical Repair and Maintenance"
+        },
+        {
+            "code": "811121",
+            "title": "Automotive Body, Paint and Interior Repair and Maintenance"
+        },
+        {
+            "code": "811198",
+            "title": "All Other Automotive Repair and Maintenance"
+        },
+        {
+            "code": "485991",
+            "title": "Special Needs Transportation"
+        },
+        {
+            "code": "485999",
+            "title": "All Other Transit and Ground Passenger transportation"
+        },
+        {
+            "code": "541614",
+            "title": "Process, Physical Distribution and Logistics Consulting Services"
+        },
+        {
+            "code": "488999",
+            "title": "All Other Support Activities for Transportation"
+        },
+        {
+            "code": "541330",
+            "title": "Engineering Services"
+        },
+        {
+            "code": "493110",
+            "title": "General Warehousing and Storage"
+        },
+        {
+            "code": "493120",
+            "title": "Refrigerated Warehousing and Storage"
+        },
+        {
+            "code": "493190",
+            "title": "Other Warehousing and Storage"
+        },
+        {
+            "code": "488111",
+            "title": "Air Traffic Contol"
+        },
+        {
+            "code": "488190",
+            "title": "Other Support Activities for Air Transportation"
+        },
+        {
+            "code": "541330",
+            "title": "Except, Contracts and Subcontracts for Engineering Services Awarded Under the National Energy Policy Act of 1992"
+        },
+        {
+            "code": "541330",
+            "title": "Except, Marine Engineering and Naval Architecture"
+        },
+        {
+            "code": "541330",
+            "title": "Except, Military and Aerospace Equipment and Military Weapons"
+        },
+        {
+            "code": "561210",
+            "title": "Facilities Support Services"
+        },
+        {
+            "code": "336611",
+            "title": "Ship Building and Repairing"
+        },
+        {
+            "code": "481211",
+            "title": "Nonscheduled Chartered Passenger Air Transportation"
+        },
+        {
+            "code": "492110",
+            "title": "Couriers and Express Delivery Services"
+        }
+    ],
+    "T&E": [
+        {
+            "code": "541350",
+            "title": "Building Inspection Services"
+        },
+        {
+            "code": "541310",
+            "title": "Architectural Services"
+        },
+        {
+            "code": "541370",
+            "title": "Surveying and Mapping (except Geophysical) Services"
+        },
+        {
+            "code": "541380",
+            "title": "Testing Laboratories"
+        },
+        {
+            "code": "541611",
+            "title": "Administrative Management and General Management Consulting Services"
+        },
+        {
+            "code": "488999",
+            "title": "All Other Support Activities for Transportation"
+        },
+        {
+            "code": "541330",
+            "title": "Engineering Services"
+        },
+        {
+            "code": "541360",
+            "title": "Geophysical Surveying and Mapping Services"
+        },
+        {
+            "code": "488190",
+            "title": "Other Support Activities for Air Transportation"
+        },
+        {
+            "code": "541330",
+            "title": "Except, Contracts and Subcontracts for Engineering Services Awarded Under the National Energy Policy Act of 1992"
+        },
+        {
+            "code": "541330",
+            "title": "Except, Marine Engineering and Naval Architecture"
+        },
+        {
+            "code": "541330",
+            "title": "Except, Military and Aerospace Equipment and Military Weapons"
+        },
+        {
+            "code": "336611",
+            "title": "Ship Building and Repairing"
+        }
+    ],
+    "ALL": [
+        {
+            "code": "561990",
+            "title": "All Other Support Services"
+        },
+        {
+            "code": "541690",
+            "title": "Other Scientific and Technical Consulting Services"
+        },
+        {
+            "code": "541990",
+            "title": "All Other Professional, Scientific and Technical Services"
+        }
+    ],
+    "R&D": [
+        {
+            "code": "541380",
+            "title": "Testing Laboratories"
+        },
+        {
+            "code": "541611",
+            "title": "Administrative Management and General Management Consulting Services"
+        },
+        {
+            "code": "541330",
+            "title": "Engineering Services"
+        },
+        {
+            "code": "541720",
+            "title": "Research and Development in the Social Sciences and Humanities"
+        },
+        {
+            "code": "621511",
+            "title": "Medical Laboratories"
+        },
+        {
+            "code": "541330",
+            "title": "Except, Contracts and Subcontracts for Engineering Services Awarded Under the National Energy Policy Act of 1992"
+        },
+        {
+            "code": "541330",
+            "title": "Except, Marine Engineering and Naval Architecture"
+        },
+        {
+            "code": "541330",
+            "title": "Except, Military and Aerospace Equipment and Military Weapons"
+        },
+        {
+            "code": "541713",
+            "title": "Research and Technology in Nanotechnology"
+        },
+        {
+            "code": "541714",
+            "title": "Research and Technology in Biotechnology (except Nanobiotechnology)"
+        },
+        {
+            "code": "541715",
+            "title": "Except, Aircraft, Aircraft Engine and Engine Parts"
+        },
+        {
+            "code": "541715",
+            "title": "Research and Development in the Physical, Engineering, and Life Sciences (except Nanotechnology and Biotechnology)"
+        },
+        {
+            "code": "541715",
+            "title": "Except, Guided Missiles and Space Vehicles, Their\nPropulsion Units and Propulsion Parts"
+        },
+        {
+            "code": "541715",
+            "title": "Except, Other Aircraft Parts and Auxiliary Equipment"
+        }
+    ],
+    "ENV": [
+        {
+            "code": "541380",
+            "title": "Testing Laboratories"
+        },
+        {
+            "code": "541620",
+            "title": "Environmental Consulting Services"
+        },
+        {
+            "code": "562910",
+            "title": "Remediation Services"
+        },
+        {
+            "code": "541330",
+            "title": "Engineering Services"
+        },
+        {
+            "code": "541360",
+            "title": "Geophysical Surveying and Mapping Services"
+        },
+        {
+            "code": "541330",
+            "title": "Except, Contracts and Subcontracts for Engineering Services Awarded Under the National Energy Policy Act of 1992"
+        },
+        {
+            "code": "541330",
+            "title": "Except, Marine Engineering and Naval Architecture"
+        },
+        {
+            "code": "541330",
+            "title": "Except, Military and Aerospace Equipment and Military Weapons"
+        },
+        {
+            "code": "561210",
+            "title": "Facilities Support Services"
+        },
+        {
+            "code": "562112",
+            "title": "Hazardous Waste Collection"
+        },
+        {
+            "code": "562211",
+            "title": "Hazardous Waste Treatment and Disposal"
+        },
+        {
+            "code": "562910",
+            "title": "Except, Environmental Remediation Services"
+        }
+    ],
+    "M&A": [
+        {
+            "code": "541613",
+            "title": "Marketing Consulting Services"
+        },
+        {
+            "code": "541618",
+            "title": "Other Management Consulting Services"
+        },
+        {
+            "code": "541620",
+            "title": "Environmental Consulting Services"
+        },
+        {
+            "code": "541614",
+            "title": "Process, Physical Distribution and Logistics Consulting Services"
+        },
+        {
+            "code": "561499",
+            "title": "All Other Business Support Services"
+        },
+        {
+            "code": "541611",
+            "title": "Administrative Management and General Management Consulting Services"
+        },
+        {
+            "code": "541612",
+            "title": "Human Resources Consulting Services"
+        }
+    ],
+    "INT": [
+        {
+            "code": "541618",
+            "title": "Other Management Consulting Services"
+        },
+        {
+            "code": "541614",
+            "title": "Process, Physical Distribution and Logistics Consulting Services"
+        },
+        {
+            "code": "561499",
+            "title": "All Other Business Support Services"
+        },
+        {
+            "code": "541611",
+            "title": "Administrative Management and General Management Consulting Services"
+        },
+        {
+            "code": "561611",
+            "title": "Investigation Services"
+        },
+        {
+            "code": "541330",
+            "title": "Engineering Services"
+        },
+        {
+            "code": "541330",
+            "title": "Except, Contracts and Subcontracts for Engineering Services Awarded Under the National Energy Policy Act of 1992"
+        },
+        {
+            "code": "541330",
+            "title": "Except, Marine Engineering and Naval Architecture"
+        },
+        {
+            "code": "541330",
+            "title": "Except, Military and Aerospace Equipment and Military Weapons"
+        },
+        {
+            "code": "541715",
+            "title": "Except, Aircraft, Aircraft Engine and Engine Parts"
+        },
+        {
+            "code": "541715",
+            "title": "Research and Development in the Physical, Engineering, and Life Sciences (except Nanotechnology and Biotechnology)"
+        },
+        {
+            "code": "541715",
+            "title": "Except, Guided Missiles and Space Vehicles, Their\nPropulsion Units and Propulsion Parts"
+        },
+        {
+            "code": "541715",
+            "title": "Except, Other Aircraft Parts and Auxiliary Equipment"
+        }
+    ],
+    "ENT": [
+        {
+            "code": "541620",
+            "title": "Environmental Consulting Services"
+        },
+        {
+            "code": "541614",
+            "title": "Process, Physical Distribution and Logistics Consulting Services"
+        },
+        {
+            "code": "541611",
+            "title": "Administrative Management and General Management Consulting Services"
+        },
+        {
+            "code": "562910",
+            "title": "Remediation Services"
+        },
+        {
+            "code": "541330",
+            "title": "Engineering Services"
+        },
+        {
+            "code": "541330",
+            "title": "Except, Contracts and Subcontracts for Engineering Services Awarded Under the National Energy Policy Act of 1992"
+        },
+        {
+            "code": "541330",
+            "title": "Except, Marine Engineering and Naval Architecture"
+        },
+        {
+            "code": "541330",
+            "title": "Except, Military and Aerospace Equipment and Military Weapons"
+        },
+        {
+            "code": "561210",
+            "title": "Facilities Support Services"
+        },
+        {
+            "code": "541715",
+            "title": "Research and Development in the Physical, Engineering, and Life Sciences (except Nanotechnology and Biotechnology)"
+        },
+        {
+            "code": "336611",
+            "title": "Ship Building and Repairing"
+        },
+        {
+            "code": "541715",
+            "title": "Except, Guided Missiles and Space Vehicles, Their\nPropulsion Units and Propulsion Parts"
+        },
+        {
+            "code": "541715",
+            "title": "Except, Other Aircraft Parts and Auxiliary Equipment"
+        }
+    ],
+    "Small Business": [
+        {
+            "code": "Size S",
+            "title": "tandard (May 2022) - in Millions or # of employees"
+        }
+    ]
+}

@@ -21,6 +21,7 @@ Usage:
     python manage.py fetch_contracts --search "cybersecurity"
 """
 
+from django.core.management import call_command
 from django.core.management.base import BaseCommand
 
 from tracker.services.contract_scraper import ContractScraperService
@@ -88,10 +89,18 @@ class Command(BaseCommand):
             self._fetch_war_gov(options)
         elif source == "usaspending":
             self._fetch_usaspending(options)
+            
+        # Clean any ignored contracts upon completion
+        if not options.get("dry_run"):
+            call_command("clean_ignored_contracts")
         elif source == "all":
             self._fetch_war_gov(options)
             self.stdout.write("")  # Blank line between sources
             self._fetch_usaspending(options)
+            
+        # Clean any ignored contracts upon completion
+        if not options.get("dry_run"):
+            call_command("clean_ignored_contracts")
 
     def _fetch_war_gov(self, options):
         """Fetch contracts from war.gov (DoD only)."""

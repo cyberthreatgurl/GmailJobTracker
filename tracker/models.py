@@ -1139,8 +1139,8 @@ class SamGovOpportunity(models.Model):
     office = models.CharField(max_length=255, blank=True, null=True)
     sub_office = models.CharField(max_length=255, blank=True, null=True)
     
-    naics_code = models.CharField(max_length=20, blank=True, null=True)
-    product_service_code = models.CharField(max_length=20, blank=True, null=True, help_text="Product Service Code (PSC)")
+    naics_code = models.CharField(max_length=255, blank=True, null=True)
+    product_service_code = models.CharField(max_length=255, blank=True, null=True, help_text="Product Service Code (PSC)")
     naics_codes = models.JSONField(blank=True, null=True, help_text="List of NAICS codes")
     
     # Point of Contact (stored as JSON to capture full structure)
@@ -1224,3 +1224,46 @@ class RSSArticle(models.Model):
 
     def __str__(self):
         return self.title[:100]
+
+class ContractIgnoreRule(models.Model):
+    RULE_TYPES = [
+        ('term', 'Term (Keyword)'),
+        ('naics', 'NAICS Code'),
+        ('psc', 'PSC Code'),
+        ('domain', 'Domain'),
+    ]
+    rule_type = models.CharField(max_length=10, choices=RULE_TYPES, default='term')
+    value = models.CharField(max_length=255, help_text='Exact code or substring to match')
+    should_delete = models.BooleanField(
+        default=False, 
+        help_text='If checked, matching default contracts will be deleted permanently during import instead of just hidden.'
+    )
+    is_active = models.BooleanField(default=True)
+    naics_codes = models.ManyToManyField(
+        'NAICSCode', 
+        blank=True, 
+        help_text='(Optional) Select specific NAICS codes to ignore. If you leave this blank, the rule ignores EVERYTHING that matches the domain. If you select items here, the rule ONLY ignores items matching BOTH the Domain AND these NAICS codes.'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['rule_type', 'value']
+
+    def __str__(self):
+        return f'{self.get_rule_type_display()}: {self.value}'
+
+
+class NAICSCode(models.Model):
+    code = models.CharField(max_length=10, unique=True)
+    description = models.TextField()
+
+    def __str__(self):
+        return f'{self.code} - {self.description}'
+
+class PSCCode(models.Model):
+    code = models.CharField(max_length=10, unique=True)
+    description = models.TextField()
+
+    def __str__(self):
+        return f'{self.code} - {self.description}'
+

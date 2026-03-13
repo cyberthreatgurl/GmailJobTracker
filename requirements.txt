@@ -265,3 +265,4 @@ wrapt==1.17.3
 
 # The following packages are considered to be unsafe in a requirements file:
 # setuptools
+psycopg2-binary==2.9.10

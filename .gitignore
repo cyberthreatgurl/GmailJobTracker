@@ -11,6 +11,7 @@ __pycache__/
 dist/
 build/
 .venv/
+debug/
 venv/
 imports/
 ENV/

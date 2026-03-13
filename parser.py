@@ -57,12 +57,9 @@ from django.utils.timezone import now
 from db import (
     COMPANIES_PATH,
     PATTERNS_PATH,
-    insert_email_text,
-    insert_or_update_application,
     is_valid_company,
 )
 from tracker_logger import log_console
-from db_helpers import build_company_job_index, get_application_by_sender
 from ml_entity_extraction import extract_entities
 from ml_subject_classifier import predict_subject_type
 from parser_helpers import (
@@ -100,6 +97,14 @@ logger = logging.getLogger("parser")
 from company_resolver import CompanyValidator, CompanyResolver  # noqa: E402
 from rule_classifier import RuleClassifier  # noqa: E402
 from email_parser import EmailBodyParser, MetadataExtractor  # noqa: E402
+
+def build_company_job_index(company, job_title, job_id):
+    import re
+    def normalize(text):
+        if not text:
+            return ""
+        return re.sub(r"\s+", " ", text.strip().lower())
+    return f"{normalize(company)}::{normalize(job_title)}::{normalize(job_id)}"
 
 
 class DomainMapper:
@@ -781,22 +786,6 @@ if _COMP_MODEL_PATH.exists() and _COMP_VEC_PATH.exists() and _COMP_LABELS_PATH.e
         COMPANY_LABEL_ENCODER = None
 
 
-def is_correlated_message(sender_email, sender_domain, msg_date):
-    """
-    True if sender matches an existing application and msg_date is within 1 year after first_sent.
-    """
-    app = get_application_by_sender(sender_email, sender_domain)
-    if not app:
-        return False
-
-    try:
-        app_date = datetime.strptime(app["first_sent"], "%Y-%m-%d %H:%M:%S")
-        msg_dt = datetime.strptime(msg_date, "%Y-%m-%d %H:%M:%S")
-    except ValueError:
-        return False
-
-    one_year_later = app_date + timedelta(days=365)
-    return app_date <= msg_dt <= one_year_later
 
 
 def predict_company(subject, body):
@@ -2322,7 +2311,6 @@ def _build_final_record(
     - Unresolved company logging (UnresolvedCompany model)
     - Early ignore for missing company/title/id
     - Pattern-based ignore check
-    - Final insert_or_update_application call
 
     Returns:
         "ignored" if message should be skipped, or a dict with insertion details.
@@ -2391,7 +2379,6 @@ def _build_final_record(
         _increment_stat(stats, "total_ignored")
         return "ignored"
 
-    insert_or_update_application(record)
     logger.debug(f"Logged: {metadata['subject']}")
 
     final_label = result.get("label") if result else "unknown"
@@ -2615,7 +2602,6 @@ def ingest_message(service, msg_id):
     )
 
     logger.debug(f"Inserting message: {metadata['subject']}")
-    insert_email_text(msg_id, metadata["subject"], body)
 
     subject = metadata["subject"]
     sender = metadata.get("sender", "")
@@ -3809,7 +3795,6 @@ def ingest_message_from_eml(eml_content: str, fake_msg_id: str = None):
         )
 
         # Store body text in separate search table
-        insert_email_text(fake_msg_id, metadata["subject"], body)
 
         # Create or update ThreadTracking for job applications, interview invites, rejections, and cancelled
         if ml_label in ("job_application", "interview_invite", "rejection", "cancelled") and company_obj:

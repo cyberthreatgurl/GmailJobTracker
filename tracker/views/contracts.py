@@ -94,6 +94,32 @@ def defense_contracts(request):
             | Q(raw_text__icontains=search_query)
         )
 
+    from tracker.models import ContractIgnoreRule
+    
+    # Apply active ignore rules
+    ignore_rules = ContractIgnoreRule.objects.filter(is_active=True).prefetch_related('naics_codes')
+    for rule in ignore_rules:
+        if rule.rule_type == 'term':
+            contracts_qs = contracts_qs.exclude(
+                Q(description__icontains=rule.value) |
+                Q(company_name_raw__icontains=rule.value) |
+                Q(awarding_agency__icontains=rule.value) |
+                Q(awarding_sub_agency__icontains=rule.value)
+            )
+        elif rule.rule_type == 'naics':
+            contracts_qs = contracts_qs.exclude(naics_code=rule.value)
+        elif rule.rule_type == 'psc':
+            contracts_qs = contracts_qs.exclude(product_or_service_code=rule.value)
+        elif rule.rule_type == 'domain':
+            if rule.naics_codes.exists():
+                naics_list = list(rule.naics_codes.values_list('code', flat=True))
+                contracts_qs = contracts_qs.exclude(naics_code__in=naics_list)
+            else:
+                contracts_qs = contracts_qs.exclude(
+                    Q(awarding_agency__icontains=rule.value) |
+                    Q(description__icontains=rule.value)
+                )
+
     contracts_qs = contracts_qs.order_by("-article_date", "branch", "company_name_raw")
 
     # Summary statistics
@@ -137,6 +163,27 @@ def defense_contracts(request):
         (0, "All time"),
     ]
 
+    from django.core.paginator import Paginator
+    
+    # Pagination logic
+    limit = request.GET.get('limit', '25')
+    try:
+        limit = int(limit)
+    except ValueError:
+        if limit == 'all':
+            limit = 0
+        else:
+            limit = 25
+            
+    if limit > 0:
+        paginator = Paginator(contracts_qs, limit)
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+        contracts_display = page_obj
+    else:
+        page_obj = None
+        contracts_display = contracts_qs
+
     # Format total value for display
     if total_value >= 1_000_000_000:
         total_value_display = f"${total_value / 1_000_000_000:,.2f}B"
@@ -150,7 +197,9 @@ def defense_contracts(request):
     last_scraped = ScrapedArticle.objects.order_by("-scraped_at").first()
 
     context = {
-        "contracts": contracts_qs,
+        "contracts": contracts_display,
+        "page_obj": page_obj,
+        "limit": limit,
         "search_query": search_query,
         "source_filter": source_filter,
         "source_choices": source_choices,
@@ -426,6 +475,7 @@ def upload_contract_json(request):
             
             action = "Created" if created else "Updated"
             messages.success(request, f"{action} contract {piid} from JSON upload.")
+            call_command("clean_ignored_contracts")
             logger.info("Manually uploaded contract %s (%s)", piid, action)
 
         except Exception as e:

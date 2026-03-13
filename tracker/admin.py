@@ -592,4 +592,66 @@ class SamGovOpportunityAdmin(admin.ModelAdmin):
     ordering = ("-posted_date",)
     readonly_fields = ("fetched_at",)
 
-admin.site.register(SamGovOpportunity, SamGovOpportunityAdmin)
+custom_admin_site.register(SamGovOpportunity, SamGovOpportunityAdmin)
+
+from tracker.models import ContractIgnoreRule
+
+from django import forms
+from tracker.models import DefenseContract, NAICSCode
+from django.db.models import Exists, OuterRef
+
+class ContractIgnoreRuleForm(forms.ModelForm):
+    class Meta:
+        model = ContractIgnoreRule
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if 'naics_codes' in self.fields:
+            instance = kwargs.get('instance')
+            if instance and instance.pk and instance.rule_type == 'domain':
+                # Only show the NAICS codes belonging to this specific domain
+                self.fields['naics_codes'].queryset = instance.naics_codes.all().order_by('code')
+            else:
+                self.fields['naics_codes'].queryset = NAICSCode.objects.all().order_by('code')
+
+class ContractIgnoreRuleAdmin(admin.ModelAdmin):
+    form = ContractIgnoreRuleForm
+    list_display = ('rule_type', 'value', 'should_delete', 'is_active', 'created_at')
+    list_filter = ('rule_type', 'should_delete', 'is_active')
+    search_fields = ('value',)
+    list_editable = ('should_delete', 'is_active')
+    filter_horizontal = ('naics_codes',)
+    actions = ['enable_rules', 'disable_rules', 'flag_for_deletion']
+
+    @admin.action(description='Activate selected rules (Set is_active=True)')
+    def enable_rules(self, request, queryset):
+        queryset.update(is_active=True)
+
+    @admin.action(description='Deactivate selected rules (Set is_active=False)')
+    def disable_rules(self, request, queryset):
+        queryset.update(is_active=False)
+
+    @admin.action(description='Flag selected rules for deletion (Set should_delete=True)')
+    def flag_for_deletion(self, request, queryset):
+        queryset.update(should_delete=True)
+
+
+from tracker.models import NAICSCode, PSCCode
+
+
+class NAICSCodeAdmin(admin.ModelAdmin):
+    list_display = ('code', 'description')
+    search_fields = ('code', 'description')
+
+
+class PSCCodeAdmin(admin.ModelAdmin):
+    list_display = ('code', 'description')
+    search_fields = ('code', 'description')
+
+
+custom_admin_site.register(ContractIgnoreRule, ContractIgnoreRuleAdmin)
+
+custom_admin_site.register(NAICSCode, NAICSCodeAdmin)
+
+custom_admin_site.register(PSCCode, PSCCodeAdmin)

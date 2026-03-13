@@ -2,6 +2,7 @@ import csv
 import logging
 from decimal import Decimal, InvalidOperation
 from datetime import datetime
+from django.core.management import call_command
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 from tracker.models import DefenseContract, Company

@@ -89,7 +89,9 @@
       "\\bbusiness\\s+needs\\s+have\\s+changed\\b"
     ],
     "prescreen": [
-      "\\bbrief\\s+phone\\s+call\\b",
+      "\\bbrief\\s+(?:phone\\s+)?call\\b",
+      "\\bschedule\\s+(?:a\\s+)?brief\\s+call\\b",
+      "\\blearn\\s+more\\s+about\\s+your\\s+background\\b",
       "\\bphone\\s*screen\\b",
       "\\bpre-?screen\\b",
       "\\bprescreening\\b",

@@ -1,0 +1,247 @@
+{
+  "id": 355914320,
+  "generated_unique_award_id": "CONT_AWD_HC108426FA521_9700_HC108424D0002_9700",
+  "piid": "HC108426FA521",
+  "category": "contract",
+  "type": "C",
+  "type_description": "DELIVERY ORDER",
+  "description": "DMOB001461EBM PROCURE DMCC DEVICES AND SERVICES IN SUPPORT OF THE DEPARTMENT OF TRANSPORTATION (DOT), HEADQUARTERS DOT.",
+  "total_obligation": 9146.76,
+  "subaward_count": 0,
+  "total_subaward_amount": null,
+  "date_signed": "2026-03-10",
+  "base_exercised_options": 9146.76,
+  "base_and_all_options": 9146.76,
+  "total_account_outlay": 0,
+  "total_account_obligation": 0,
+  "account_outlays_by_defc": [],
+  "account_obligations_by_defc": [],
+  "parent_award": {
+    "agency_id": 1173,
+    "agency_name": "Department of Defense",
+    "agency_slug": "department-of-defense",
+    "sub_agency_id": "9700",
+    "sub_agency_name": "Department of Defense",
+    "award_id": 351292250,
+    "generated_unique_award_id": "CONT_IDV_HC108424D0002_9700",
+    "idv_type_description": "IDC",
+    "multiple_or_single_aw_desc": "SINGLE AWARD",
+    "piid": "HC108424D0002",
+    "type_of_idc_description": "INDEFINITE DELIVERY / INDEFINITE QUANTITY"
+  },
+  "latest_transaction_contract_data": {
+    "idv_type_description": null,
+    "type_of_idc_description": null,
+    "referenced_idv_agency_iden": "9700",
+    "referenced_idv_agency_desc": "DEPT OF DEFENSE",
+    "solicitation_identifier": null,
+    "solicitation_procedures": "SB",
+    "number_of_offers_received": null,
+    "extent_competed": "A",
+    "type_set_aside": null,
+    "type_set_aside_description": null,
+    "evaluated_preference": "NONE",
+    "fed_biz_opps": "X",
+    "fed_biz_opps_description": "NOT APPLICABLE",
+    "small_business_competitive": false,
+    "product_or_service_code": "DG11",
+    "naics": "517112",
+    "naics_description": "WIRELESS TELECOMMUNICATIONS CARRIERS (EXCEPT SATELLITE)",
+    "sea_transportation": null,
+    "clinger_cohen_act_planning": "N",
+    "labor_standards": "X",
+    "cost_or_pricing_data": "N",
+    "domestic_or_foreign_entity": "A",
+    "foreign_funding": "X",
+    "major_program": null,
+    "program_acronym": null,
+    "subcontracting_plan": "G",
+    "multi_year_contract": "N",
+    "consolidated_contract": "D",
+    "type_of_contract_pricing": "J",
+    "national_interest_action": null,
+    "multiple_or_single_award_description": null,
+    "solicitation_procedures_description": "SEALED BID",
+    "extent_competed_description": "FULL AND OPEN COMPETITION",
+    "other_than_full_and_open": null,
+    "other_than_full_and_open_description": null,
+    "commercial_item_acquisition": "A",
+    "commercial_item_acquisition_description": "COMMERCIAL PRODUCTS/SERVICES",
+    "commercial_item_test_program": "N",
+    "commercial_item_test_program_description": "NO",
+    "evaluated_preference_description": "NO PREFERENCE USED",
+    "fair_opportunity_limited": null,
+    "fair_opportunity_limited_description": null,
+    "product_or_service_description": "IT AND TELECOM - NETWORK: SATELLITE COMMUNICATIONS AND TELECOM ACCESS SERVICES",
+    "dod_claimant_program": null,
+    "dod_claimant_program_description": null,
+    "dod_acquisition_program": "000",
+    "dod_acquisition_program_description": "NONE",
+    "information_technology_commercial_item_category": "E",
+    "information_technology_commercial_item_category_description": "COMMERCIAL SERVICE",
+    "sea_transportation_description": null,
+    "clinger_cohen_act_planning_description": "NO",
+    "construction_wage_rate": "X",
+    "construction_wage_rate_description": "NOT APPLICABLE",
+    "labor_standards_description": "NOT APPLICABLE",
+    "materials_supplies": "X",
+    "materials_supplies_description": "NOT APPLICABLE",
+    "cost_or_pricing_data_description": "NO",
+    "domestic_or_foreign_entity_description": "U.S. OWNED BUSINESS",
+    "foreign_funding_description": "NOT APPLICABLE",
+    "interagency_contracting_authority": "A",
+    "interagency_contracting_authority_description": "ECONOMY ACT",
+    "price_evaluation_adjustment": null,
+    "subcontracting_plan_description": "COMMERCIAL SUBCONTRACT PLAN",
+    "multi_year_contract_description": "NO",
+    "purchase_card_as_payment_method": "N",
+    "purchase_card_as_payment_method_description": "NO",
+    "consolidated_contract_description": "NOT CONSOLIDATED",
+    "type_of_contract_pricing_description": "FIRM FIXED PRICE",
+    "national_interest_action_description": null
+  },
+  "funding_agency": {
+    "id": 755,
+    "has_agency_page": true,
+    "toptier_agency": {
+      "name": "Department of Transportation",
+      "code": "069",
+      "abbreviation": "DOT",
+      "slug": "department-of-transportation"
+    },
+    "subtier_agency": {
+      "name": "Maritime Administration",
+      "code": "6938",
+      "abbreviation": "MARAD"
+    },
+    "office_agency_name": "DOT  MARITIME ADMINISTRATION"
+  },
+  "awarding_agency": {
+    "id": 1217,
+    "has_agency_page": true,
+    "toptier_agency": {
+      "name": "Department of Defense",
+      "code": "097",
+      "abbreviation": "DOD",
+      "slug": "department-of-defense"
+    },
+    "subtier_agency": {
+      "name": "Defense Information Systems Agency",
+      "code": "97AK",
+      "abbreviation": "DISA"
+    },
+    "office_agency_name": "IT CONTRACTING DIVISION - PL84"
+  },
+  "period_of_performance": {
+    "start_date": "2026-03-26",
+    "end_date": "2029-09-30",
+    "last_modified_date": "2026-03-10",
+    "potential_end_date": "2029-09-30 00:00:00"
+  },
+  "recipient": {
+    "recipient_hash": "c0aa4884-6621-8b31-0942-50047a976c83-C",
+    "recipient_name": "ATT MOBILITY LLC",
+    "recipient_uei": "P2S7GZFBCSJ1",
+    "recipient_unique_id": null,
+    "parent_recipient_hash": "96c6970b-0b1e-8793-0890-41257b58125b-P",
+    "parent_recipient_name": "TYTO ATHENE, LLC",
+    "parent_recipient_uei": "NT9TC1ZVV5N9",
+    "parent_recipient_unique_id": null,
+    "business_categories": [
+      "Category Business",
+      "Corporate Entity Not Tax Exempt",
+      "Limited Liability Corporation",
+      "Not Designated a Small Business",
+      "Special Designations",
+      "U.S.-Owned Business"
+    ],
+    "location": {
+      "location_country_code": "USA",
+      "country_name": "UNITED STATES",
+      "state_code": "GA",
+      "state_name": "GEORGIA",
+      "city_name": "ATLANTA",
+      "county_code": "089",
+      "county_name": "DEKALB",
+      "address_line1": "1025 LENOX PARK BLVD NE",
+      "address_line2": null,
+      "address_line3": null,
+      "congressional_code": "05",
+      "zip4": "5309",
+      "zip5": "30319",
+      "foreign_postal_code": null,
+      "foreign_province": null
+    }
+  },
+  "executive_details": {
+    "officers": [
+      {
+        "name": null,
+        "amount": null
+      },
+      {
+        "name": null,
+        "amount": null
+      },
+      {
+        "name": null,
+        "amount": null
+      },
+      {
+        "name": null,
+        "amount": null
+      },
+      {
+        "name": null,
+        "amount": null
+      }
+    ]
+  },
+  "place_of_performance": {
+    "location_country_code": "USA",
+    "country_name": "UNITED STATES",
+    "county_code": "003",
+    "county_name": "ANNE ARUNDEL",
+    "city_name": "FORT GEORGE G MEADE",
+    "state_code": "MD",
+    "state_name": "MARYLAND",
+    "congressional_code": "05",
+    "zip4": "2101",
+    "zip5": "20755",
+    "address_line1": null,
+    "address_line2": null,
+    "address_line3": null,
+    "foreign_province": null,
+    "foreign_postal_code": null
+  },
+  "psc_hierarchy": {
+    "toptier_code": {
+      "code": "D",
+      "description": "IT AND TELECOM - INFORMATION TECHNOLOGY AND TELECOMMUNICATIONS"
+    },
+    "midtier_code": {
+      "code": "DG",
+      "description": "IT AND TELECOM - NETWORK"
+    },
+    "subtier_code": {},
+    "base_code": {
+      "code": "DG11",
+      "description": "IT and Telecom - Network: Satellite Communications and Telecom Access Services"
+    }
+  },
+  "naics_hierarchy": {
+    "toptier_code": {
+      "code": "51",
+      "description": "Information"
+    },
+    "midtier_code": {
+      "code": "5171",
+      "description": "Wired and Wireless Telecommunications (except Satellite)"
+    },
+    "base_code": {
+      "code": "517112",
+      "description": "Wireless Telecommunications Carriers (except Satellite)"
+    }
+  },
+  "total_outlay": null
+}

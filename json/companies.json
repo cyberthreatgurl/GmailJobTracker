@@ -136,7 +136,9 @@
     "Galapagos": "Galapagos Federal",
     "akamai": "Akamai Technologies",
     "ZP Group": "Zachary Piper Solutions",
-    "Client Solution Architects": "CSA Associates"
+    "Client Solution Architects": "CSA Associates",
+    "ASTRION GROUP": "Astrion",
+    "BIT": "Big Impact Tech"
   },
   "ats_domains": [
     "Defense",
@@ -586,7 +588,8 @@
     "fortinet.com": "Fortinet",
     "bcianswers.com": "Business Communications, Inc.",
     "akamai.com": "Akamai Technologies",
-    "zacharypiper.com": "Zachary Piper Solutions"
+    "zacharypiper.com": "Zachary Piper Solutions",
+    "bigimpacttech.com": "Big Impact Tech"
   },
   "headhunter_domains": [
     "agreeya.com",
@@ -977,7 +980,8 @@
     "Fortinet": "https://www.fortinet.com/partners/technology-alliances/join-the-ecosystem",
     "Business Communications, Inc.": "https://www.bcianswers.com/careers/",
     "Akamai Technologies": "https://www.akamai.com/careers",
-    "Zachary Piper Solutions": "https://zacharypiper.com/working-at-zps/"
+    "Zachary Piper Solutions": "https://zacharypiper.com/working-at-zps/",
+    "Big Impact Tech": "https://www.linkedin.com/company/big-impact-tech/jobs/"
   },
   "known": [
     "Red River",
@@ -1344,7 +1348,8 @@
     "Akamai Technologies",
     "Zachary Piper Solutions",
     "Rippling",
-    "Client Solution Architects"
+    "Client Solution Architects",
+    "Big Impact Tech"
   ],
   "ats_heuristic_patterns": [
     "workday",

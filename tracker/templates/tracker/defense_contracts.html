@@ -223,6 +223,8 @@
             <div class="text-xs text-gray-500 mt-0.5">
               📍 {{ contract.company_location }}
               {% if contract.contract_number %} · 📝 {{ contract.contract_number }}{% endif %}
+              {% if contract.naics_code %} · <span title="{{ contract.naics_description|default:'' }}">🏭 {{ contract.naics_code }}</span>{% endif %}
+              {% if contract.product_service_code %} · <span title="{{ contract.product_service_code_description|default:'' }}">📦 {{ contract.product_service_code }}</span>{% endif %}
             </div>
             <div id="company-actions-{{ contract.id }}" class="flex items-center gap-1.5 flex-wrap mt-1.5">
               {% if not contract.company %}
@@ -299,6 +301,14 @@
             <p class="text-xs"><strong>📍 Work Location:</strong> {{ contract.work_location }}</p>
             {% endif %}
             {% if contract.data_source == 'usaspending' %}
+            <p class="text-xs">
+                <strong>🏭 NAICS Code:</strong> {{ contract.naics_code|default:"-" }}
+                {% if contract.naics_description %}<span class="text-gray-600">– {{ contract.naics_description }}</span>{% endif %}
+            </p>
+            <p class="text-xs">
+                <strong>📦 Product Service Code (PSC):</strong> {{ contract.product_service_code|default:"-" }}
+                {% if contract.product_service_code_description %}<span class="text-gray-600">– {{ contract.product_service_code_description }}</span>{% endif %}
+            </p>
             <p class="text-xs"><strong>📍 Performance State:</strong> {{ contract.place_of_performance_state|default:"-" }}</p>
             <p class="text-xs"><strong>📍 Performance County:</strong> {{ contract.primary_place_of_performance_county_name|default:"-" }}</p>
             <p class="text-xs"><strong>🌍 Performance Country:</strong> {{ contract.primary_place_of_performance_country_name|default:"-" }}</p>

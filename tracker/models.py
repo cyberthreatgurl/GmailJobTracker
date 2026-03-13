@@ -986,6 +986,34 @@ class DefenseContract(models.Model):
         blank=True,
         help_text="Description of the product or service category"
     )
+    
+    product_service_code = models.CharField(
+        max_length=20, 
+        blank=True, 
+        null=True,
+        help_text="Product Service Code (PSC) from USASpending"
+    )
+
+    product_service_code_description = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text="Description of the Product Service Code"
+    )
+    
+    naics_code = models.CharField(
+        max_length=20, 
+        blank=True, 
+        null=True,
+        help_text="NAICS Code from USASpending"
+    )
+
+    naics_description = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text="Description of the NAICS Code"
+    )
 
     is_modification = models.BooleanField(
         default=False,
@@ -1112,6 +1140,7 @@ class SamGovOpportunity(models.Model):
     sub_office = models.CharField(max_length=255, blank=True, null=True)
     
     naics_code = models.CharField(max_length=20, blank=True, null=True)
+    product_service_code = models.CharField(max_length=20, blank=True, null=True, help_text="Product Service Code (PSC)")
     naics_codes = models.JSONField(blank=True, null=True, help_text="List of NAICS codes")
     
     # Point of Contact (stored as JSON to capture full structure)
@@ -1134,6 +1163,7 @@ class SamGovOpportunity(models.Model):
         indexes = [
             models.Index(fields=["posted_date"]),
             models.Index(fields=["solicitation_number"]),
+            models.Index(fields=["product_service_code"]),
         ]
 
     def __str__(self):

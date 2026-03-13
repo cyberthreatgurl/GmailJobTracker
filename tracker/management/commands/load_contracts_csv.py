@@ -138,7 +138,11 @@ class Command(BaseCommand):
         description = row.get('transaction_description', '') or row.get('description', '')
         
         # New fields requested
+        product_service_code = row.get('product_or_service_code') or row.get('product_service_code') or ''
         product_service_desc = row.get('product_or_service_code_description', '')
+        naics_code = row.get('naics_code') or ''
+        naics_desc = row.get('naics_description') or ''
+        
         recipient_dba = row.get('recipient_doing_business_as_name', '')
         recipient_parent_duns = row.get('recipient_parent_duns', '')
         
@@ -172,6 +176,10 @@ class Command(BaseCommand):
                 'article_date': article_date,
                 'description': description,
                 'product_or_service_description': product_service_desc,
+                'product_service_code_description': product_service_desc,
+                'product_service_code': product_service_code,
+                'naics_code': naics_code,
+                'naics_description': naics_desc,
                 
                 # Agency info
                 'awarding_agency': row.get('awarding_agency_name', ''),

@@ -15,10 +15,14 @@
     </div>
     
     <!-- Action Toolbar -->
-    <div class="flex gap-2">
-      <form method="get" class="flex gap-2">
-          <input type="text" name="q" value="{{ query }}" placeholder="Search by keyword/title..." 
-                 class="px-3 py-2 border rounded-lg text-sm focus:ring-blue-500 focus:border-blue-500 w-64">
+    <div class="flex gap-2 items-center flex-wrap">
+      <form method="get" class="flex gap-2 items-center">
+          <input type="text" name="q" value="{{ query }}" placeholder="By keyword/title..." 
+                 class="px-3 py-2 border rounded-lg text-sm focus:ring-blue-500 focus:border-blue-500 w-48">
+          <input type="text" name="psc" value="{{ psc_query }}" placeholder="Filter PSC..." 
+                 class="px-3 py-2 border rounded-lg text-sm focus:ring-blue-500 focus:border-blue-500 w-32">
+          <input type="text" name="exclude_psc" value="{{ exclude_psc_query }}" placeholder="Exclude PSC..."
+                 class="px-3 py-2 border rounded-lg text-sm focus:ring-blue-500 focus:border-blue-500 w-32">
           <button type="submit" 
                   class="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg px-4 py-2 transition-colors text-sm">
             Search
@@ -66,6 +70,7 @@
             <th class="px-4 py-3 w-40">Type</th>
             <th class="px-4 py-3 w-48">Department / Office</th>
             <th class="px-4 py-3 w-24">NAICS</th>
+            <th class="px-4 py-3 w-24">PSC</th>
             <th class="px-4 py-3 w-20">Actions</th>
           </tr>
         </thead>
@@ -108,10 +113,10 @@
                   {% endif %}
                   
                   <!-- Metadata hidden for modal -->
-                  <div id="debug-{{ opp.id }}" class="hidden">{{ opp.raw_response|json_script:"json-data" }}</div>
+                  <div id="debug-{{ opp.id }}" class="hidden"></div>
                   <script>
                     window.oppData = window.oppData || {};
-                    window.oppData[{{ opp.id }}] = {{ opp.raw_response|default:"{}"|safe }};
+                    // Fetch on demand
                   </script>
               </div>
             </td>
@@ -129,7 +134,7 @@
                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
                    {{ opp.type }}
                </span>
-               {% if opp.base_type %}
+               {% if opp.base_type and opp.base_type != opp.type %}
                <div class="text-xs text-gray-500 mt-1">Base: {{ opp.base_type }}</div>
                {% endif %}
             </td>
@@ -140,6 +145,9 @@
             </td>
             <td class="px-4 py-3 align-top font-mono text-gray-600">
               {{ opp.naics_code|default:"-" }}
+            </td>
+            <td class="px-4 py-3 align-top font-mono text-gray-600">
+              {{ opp.product_service_code|default:"-" }}
             </td>
             <td class="px-4 py-3 align-top text-right">
               <div class="flex flex-col gap-2 items-end">
@@ -279,13 +287,23 @@
 
   <script>
     function openDebugModal(id) {
-       const data = window.oppData && window.oppData[id];
-       if (data) {
-           document.getElementById('debugContent').textContent = JSON.stringify(data, null, 2);
-           document.getElementById('debugModal').classList.remove('hidden');
-       } else {
-           alert("No debug data available for this record (fetched before fix).");
-       }
+       const modal = document.getElementById('debugModal');
+       const content = document.getElementById('debugContent');
+       
+       content.textContent = "Loading...";
+       modal.classList.remove('hidden');
+
+       fetch(`/opportunities/debug/${id}/`)
+         .then(response => {
+            if (!response.ok) throw new Error("Network response was not ok");
+            return response.json();
+         })
+         .then(data => {
+            content.textContent = JSON.stringify(data, null, 2);
+         })
+         .catch(err => {
+            content.textContent = "Error fetching debug data: " + err;
+         });
     }
 
     function closeDebugModal() {

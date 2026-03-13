@@ -64,6 +64,7 @@ urlpatterns = [
     path("defense_contracts/", views.defense_contracts, name="defense_contracts"),
     path("opportunities/", views.opportunities_dashboard, name="opportunities_dashboard"),
     path("opportunities/refresh/<int:opportunity_id>/", views.refresh_opportunity, name="refresh_opportunity"),
+    path("opportunities/debug/<int:opportunity_id>/", views.get_opportunity_debug, name="get_opportunity_debug"),
     path("defense_contracts/upload_csv/", views.upload_contracts_csv, name="upload_contracts_csv"),
     path("defense_contracts/upload_json/", views.upload_contract_json, name="upload_contract_json"),
     path("defense_contracts/create_company/", views.create_company_popup, name="create_company_popup"),

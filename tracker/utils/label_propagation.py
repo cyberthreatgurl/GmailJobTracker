@@ -279,7 +279,7 @@ def propagate_message_label_to_thread(message: Message) -> Optional[ThreadTracki
                         )
                         if is_cancelled:
                             tt.cancelled = True
-                        
+
                         # Body-based withdrawn detection
                         is_withdrawn = (
                             message.ml_label == "withdrew"
@@ -334,7 +334,7 @@ def propagate_message_label_to_thread(message: Message) -> Optional[ThreadTracki
                     existing_tt = ThreadTracking.objects.filter(
                         company=message.company
                     ).order_by("sent_date").first()
-                
+
                 if existing_tt:
                     # Update the existing record with the date
                     changed = False

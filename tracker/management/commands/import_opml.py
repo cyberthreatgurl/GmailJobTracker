@@ -23,7 +23,7 @@ class Command(BaseCommand):
             return
 
         self.stdout.write(f"Parsing {opml_path}...")
-        
+
         try:
             tree = ET.parse(opml_path)
             root = tree.getroot()
@@ -35,10 +35,10 @@ class Command(BaseCommand):
 
             # OPML structure can be flat or nested
             # We will process both.
-            
+
             count = 0
             updated = 0
-            
+
             def process_outlines(element, category="Uncategorized"):
                 nonlocal count, updated
                 for outline in element.findall("outline"):
@@ -65,7 +65,7 @@ class Command(BaseCommand):
                         else:
                             updated += 1
                             # self.stdout.write(f"Updated: {text}")
-                            
+
                     # If no xmlUrl, it might be a folder (category)
                     else:
                         sub_category = text if text else category

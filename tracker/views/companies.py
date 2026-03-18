@@ -3,41 +3,47 @@
 Extracted from monolithic views.py (Phase 5 refactoring).
 """
 
+# pyright: reportAttributeAccessIssue=false, reportPossiblyUnboundVariable=false
+# pyright: reportOptionalMemberAccess=false, reportArgumentType=false, reportCallIssue=false
+# pylint: disable=broad-exception-caught
+
 import json
+import importlib
 import logging
 import os
 import re
+import requests
 import subprocess
 import sys
 from difflib import SequenceMatcher
-from datetime import datetime, timedelta
+from datetime import timedelta
 from pathlib import Path
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
-from django.db.models import Q, Count, F, Case, When, Value
+from django.db.models import Q, Count, F
 from django.db.models.functions import Lower
 from django.utils.timezone import now
-from parser import parse_subject, normalize_company_name
 from tracker.views.applications import check_for_existing_rejection
 from tracker.models import (
     Company,
     CompanyOperatingCity,
     Message,
     ThreadTracking,
-    UnresolvedCompany,
     AuditEvent,
 )
-from tracker.services import CompanyService
 from tracker.services.news_service import NewsAggregator
 from tracker.services.usaspending_service import USASpendingService
 from tracker.forms import CompanyEditForm
 from tracker.location_normalization import canonicalize_city_key
 from tracker.views.helpers import build_sidebar_context
-from db import PATTERNS_PATH
-from scripts.import_gmail_filters import load_json
+
+
+def _get_parser_module():
+    """Load the local parser module without a direct deprecated-module import."""
+    return importlib.import_module("parser")
 
 # Module-level constants
 python_path = sys.executable
@@ -140,36 +146,36 @@ def _company_matches_city(company, search_city_normalized, threshold=0.82):
 def _scrape_and_analyze_company(homepage_url, timeout=10):
     """
     Shared helper function to scrape company info and perform sentiment analysis.
-    
+
     Args:
         homepage_url: The URL to scrape
         timeout: Request timeout in seconds
-        
+
     Returns:
         dict: Scraped data with keys: name, domain, career_url, page_content, focus_analysis
-        
+
     Raises:
         CompanyScraperError: If scraping fails
     """
     from tracker.services.company_scraper import scrape_company_info, analyze_company_focus
-    
+
     # Scrape company information
     scraped_data = scrape_company_info(homepage_url, timeout=timeout)
-    
+
     # Extract page content and perform sentiment analysis
     page_content = scraped_data.get("page_content", "")
     pages_scraped = scraped_data.get("pages_scraped", ["homepage"])
-    
+
     focus_analysis = analyze_company_focus(page_content) if page_content else ""
-    
+
     # Add scraping metadata to focus analysis
     if focus_analysis and pages_scraped:
         page_list = ", ".join(pages_scraped)
         focus_analysis = f"📄 Analyzed pages: {page_list}\n\n{focus_analysis}"
-    
+
     # Add focus analysis to scraped data
     scraped_data["focus_analysis"] = focus_analysis
-    
+
     return scraped_data
 
 
@@ -207,7 +213,9 @@ def delete_company(request, company_id):
         if noise_message_count > 0:
             messages.info(
                 request,
-                f"📊 Removed {non_noise_message_count} messages ({noise_message_count} noise) and {application_count} applications.",
+                f"📊 Removed {non_noise_message_count} messages "
+                f"({noise_message_count} noise) and {application_count} "
+                "applications.",
             )
         else:
             messages.info(
@@ -254,21 +262,20 @@ def delete_company(request, company_id):
 def label_companies(request):
     """List companies for labeling and provide quick actions (create/select/update)."""
     from urllib.parse import quote
-    
+
     # Quick Add Company action - redirect to new company form instead of creating immediately
     if request.method == "POST" and request.POST.get("action") == "quick_add_company":
-        from tracker.services.company_scraper import scrape_company_info, CompanyScraperError, analyze_company_focus
         from urllib.parse import urlparse
-        
+
         homepage_url = request.POST.get("homepage_url", "").strip()
         if not homepage_url:
             messages.error(request, "❌ Please enter a homepage URL.")
             return redirect("label_companies")
-        
+
         # Add https:// if missing
         if not homepage_url.startswith(("http://", "https://")):
             homepage_url = "https://" + homepage_url
-        
+
         # Validate URL syntax
         try:
             parsed = urlparse(homepage_url)
@@ -278,7 +285,7 @@ def label_companies(request):
         except Exception:
             messages.error(request, "❌ Invalid URL format. Please enter a valid URL.")
             return redirect("label_companies")
-        
+
         # Scrape company info
         try:
             scraped_data = _scrape_and_analyze_company(homepage_url, timeout=10)
@@ -286,41 +293,41 @@ def label_companies(request):
             domain = scraped_data.get("domain", "")
             career_url = scraped_data.get("career_url", "")
             focus_analysis = scraped_data.get("focus_analysis", "")
-            
+
             # Check if company already exists in database by name or domain
             existing = None
             if company_name:
                 existing = Company.objects.filter(name__iexact=company_name).first()
             if not existing and domain:
                 existing = Company.objects.filter(domain__iexact=domain).first()
-            
+
             if existing:
                 messages.info(
                     request, f"ℹ️ Company '{existing.name}' already exists in database."
                 )
                 return redirect(f"/label_companies/?company={existing.id}")
-            
+
             # Check if company exists in companies.json
             companies_json_path = Path("json/companies.json")
             if companies_json_path.exists():
                 try:
                     with open(companies_json_path, "r", encoding="utf-8") as f:
                         companies_json_data = json.load(f)
-                    
+
                     found_in_json = None
-                    
+
                     # Check if scraped name is in known companies list
                     if company_name and "known" in companies_json_data:
                         for known_name in companies_json_data["known"]:
                             if known_name.lower() == company_name.lower():
                                 found_in_json = known_name
                                 break
-                    
+
                     # Check if domain maps to a known company
                     if not found_in_json and domain and "domain_to_company" in companies_json_data:
                         if domain in companies_json_data["domain_to_company"]:
                             found_in_json = companies_json_data["domain_to_company"][domain]
-                    
+
                     if found_in_json:
                         # Company exists in companies.json - check if Company record exists
                         existing = Company.objects.filter(name__iexact=found_in_json).first()
@@ -345,11 +352,11 @@ def label_companies(request):
                                 request, f"✅ Created company '{new_company.name}' from known companies list."
                             )
                             return redirect(f"/label_companies/?company={new_company.id}")
-                
+
                 except Exception as e:
                     # If companies.json check fails, continue with normal flow
                     logger.exception(f"Failed to check companies.json: {e}")
-            
+
             # Redirect to new company form with scraped data
             params = []
             if company_name:
@@ -362,11 +369,11 @@ def label_companies(request):
                 params.append(f"career_url={quote(career_url)}")
             if focus_analysis:
                 params.append(f"notes={quote(focus_analysis)}")
-            
+
             redirect_url = f"/label_companies/?{'&'.join(params)}"
             messages.success(request, f"✅ Scraped company info from {domain}. Review and save below.")
             return redirect(redirect_url)
-            
+
         except Exception as e:
             logger.exception(f"Failed to scrape company info from {homepage_url}")
             messages.error(request, f"❌ Failed to scrape company info: {e}")
@@ -381,7 +388,7 @@ def label_companies(request):
     latest_label = None
     last_message_ts = None
     days_since_last_message = None
-    
+
     # Check for new company creation mode (Quick Add prefill or dropdown selection)
     new_company_name = request.GET.get("new_company_name", "").strip()
     prefill_homepage = request.GET.get("homepage", "").strip()
@@ -443,10 +450,10 @@ def label_companies(request):
                         # Load all aliases for this company (reverse lookup in aliases dict)
                         # Check both: canonical names that match AND if company name is itself an alias
                         aliases_dict = companies_json_data.get("aliases", {})
-                        
+
                         # Find canonical name for this company (if it's an alias)
                         canonical_name = aliases_dict.get(selected_company.name, selected_company.name)
-                        
+
                         # Collect all aliases that point to the canonical name
                         alias_list = [
                             alias_name
@@ -476,44 +483,6 @@ def label_companies(request):
                 .first()
             )
             latest_label = latest_msg.ml_label if latest_msg else None
-            
-            # Auto-calculate company status based on latest message and ghosted threshold
-            # Skip if status is "new" - preserve manual "new" status
-            try:
-                new_status = None
-                
-                # Don't auto-update if status is "new"
-                if selected_company.status != "new":
-                    if latest_label == "rejection":
-                        new_status = "rejected"
-                    elif latest_label == "head_hunter":
-                        new_status = "headhunter"
-                    elif latest_label == "interview_invite":
-                        new_status = "interview"
-                    elif latest_label == "job_application":
-                        # Check if it's past ghosted threshold
-                        if latest_msg and latest_msg.timestamp:
-                            days_since = (now() - latest_msg.timestamp).days
-                            if days_since >= ghosted_days_threshold:
-                                new_status = "ghosted"
-                            else:
-                                new_status = "application"
-                        else:
-                            new_status = "application"
-                    elif latest_label in ["other", "referral", "noise"]:
-                        # Don't change status for these labels
-                        pass
-                
-                    # Update status if it changed
-                    if new_status and selected_company.status != new_status:
-                        selected_company.status = new_status
-                        selected_company.save(update_fields=["status"])
-                        messages.info(
-                            request,
-                            f"ℹ️ Company status auto-updated to '{new_status}' based on latest message.",
-                        )
-            except Exception as e:
-                logger.exception(f"Failed to auto-update company status: {e}")
 
             # Get message count and (date, subject, label) list (exclude noise messages)
             messages_qs = (
@@ -538,8 +507,8 @@ def label_companies(request):
                 if request.POST.get("action") == "reingest_company":
                     try:
                         from gmail_auth import get_gmail_service
-                        from parser import ingest_message
 
+                        ingest_message = _get_parser_module().ingest_message
                         service = get_gmail_service()
                         if not service:
                             messages.error(
@@ -573,7 +542,7 @@ def label_companies(request):
                                 "aol.com", "protonmail.com", "me.com", "msn.com", "live.com",
                                 "googlemail.com", "yandex.com", "mail.com", "zoho.com"
                             }
-                            
+
                             safe_domains = []
                             for d in domains_to_check:
                                 is_broad_ats = d in ats_metadata
@@ -739,7 +708,9 @@ def label_companies(request):
                                                 )
                                             except Exception:
                                                 logger.exception(
-                                                    "Failed to write fallback AuditEvent DB record for ui_reingest_clear"
+                                                    "Failed to write fallback "
+                                                    "AuditEvent DB record for "
+                                                    "ui_reingest_clear"
                                                 )
                                         except Exception:
                                             logger.exception(
@@ -816,15 +787,20 @@ def label_companies(request):
                         _sync_company_operating_cities(
                             selected_company, operating_cities_text
                         )
-                    
+
+                    if not homepage_url and is_ajax:
+                        return JsonResponse(
+                            {
+                                'success': False,
+                                'message': 'Please enter a homepage URL first.',
+                            }
+                        )
                     if not homepage_url:
-                        if is_ajax:
-                            return JsonResponse({'success': False, 'message': 'Please enter a homepage URL first.'})
                         messages.error(request, "❌ Please enter a homepage URL first.")
                     elif save_before_populate_form.is_valid():
                         try:
                             scraped_data = _scrape_and_analyze_company(homepage_url)
-                            
+
                             # Append focus analysis to notes if available
                             focus_analysis = scraped_data.get("focus_analysis", "")
                             notes_to_return = focus_analysis
@@ -835,13 +811,13 @@ def label_companies(request):
                                 else:
                                     selected_company.notes = focus_analysis
                                 selected_company.save(update_fields=["notes"])
-                            
+
                             # Return JSON for AJAX requests
                             if is_ajax:
                                 success_msg = "Successfully scraped company info from homepage."
                                 if not scraped_data.get("career_url"):
                                     success_msg = "Company name extracted. Career page not found automatically."
-                                
+
                                 return JsonResponse({
                                     'success': True,
                                     'message': success_msg,
@@ -850,7 +826,7 @@ def label_companies(request):
                                     'career_url': scraped_data.get("career_url", ""),
                                     'notes': notes_to_return
                                 })
-                            
+
                             # Create a form with the scraped data, preserving user-entered fields
                             form_data = {
                                 "name": scraped_data.get("name", selected_company.name),
@@ -862,31 +838,50 @@ def label_companies(request):
                                     "on" if selected_company.talent_network else "",
                                 ),
                                 "ats": request.POST.get("ats", selected_company.ats or ""),
-                                "contact_name": request.POST.get("contact_name", selected_company.contact_name or ""),
-                                "contact_email": request.POST.get("contact_email", selected_company.contact_email or ""),
-                                "status": request.POST.get("status", selected_company.status or "application"),
-                                "focus_area": request.POST.get("focus_area", selected_company.focus_area or ""),
+                                "contact_name": request.POST.get(
+                                    "contact_name",
+                                    selected_company.contact_name or "",
+                                ),
+                                "contact_email": request.POST.get(
+                                    "contact_email",
+                                    selected_company.contact_email or "",
+                                ),
+                                "status": request.POST.get(
+                                    "status",
+                                    selected_company.status or "application",
+                                ),
+                                "focus_area": request.POST.get(
+                                    "focus_area",
+                                    selected_company.focus_area or "",
+                                ),
                                 "alias": alias,  # Preserve alias from companies.json
                             }
                             form = CompanyEditForm(form_data, instance=selected_company)
                             operating_cities_text = request.POST.get(
                                 "operating_cities_text", operating_cities_text
                             )
-                            
+
                             # Show success or partial success message
                             if scraped_data.get("career_url"):
                                 messages.success(
                                     request,
-                                    f"✅ Successfully scraped company info from homepage. Review and click Save Changes to apply.",
+                                    "✅ Successfully scraped company info from "
+                                    "homepage. Review and click Save Changes to "
+                                    "apply.",
                                 )
                             else:
                                 messages.success(
                                     request,
-                                    f"✅ Company name extracted. Career page not found automatically - please enter it manually if known.",
+                                    "✅ Company name extracted. Career page not "
+                                    "found automatically. Please enter it manually "
+                                    "if known.",
                                 )
                         except Exception as e:
-                            logger.exception(f"Failed to scrape homepage for existing company: {homepage_url}")
-                            
+                            logger.exception(
+                                "Failed to scrape homepage for existing company: %s",
+                                homepage_url,
+                            )
+
                             # Write error to notes field
                             error_msg = f"❌ Populate Error ({homepage_url}):\n{str(e)}"
                             current_notes = selected_company.notes or ""
@@ -896,18 +891,24 @@ def label_companies(request):
                                 updated_notes = error_msg
                             selected_company.notes = updated_notes
                             selected_company.save(update_fields=["notes"])
-                            
+
                             # Return JSON for AJAX requests
                             if is_ajax:
-                                return JsonResponse({'success': False, 'message': str(e), 'notes': error_msg})
-                            
+                                return JsonResponse(
+                                    {
+                                        'success': False,
+                                        'message': str(e),
+                                        'notes': error_msg,
+                                    }
+                                )
+
                             messages.error(request, f"❌ Failed to scrape homepage: {e}")
                             form = CompanyEditForm(instance=selected_company, initial={"career_url": career_url})
                             operating_cities_text = request.POST.get(
                                 "operating_cities_text", operating_cities_text
                             )
                     # Don't redirect - stay on page with populated form
-                    
+
                 # Quick action: mark as ghosted
                 elif request.POST.get("action") == "save_notes":
                     # Save notes for the selected company
@@ -922,23 +923,23 @@ def label_companies(request):
                     except Exception as e:
                         messages.error(request, f"❌ Failed to save notes: {e}")
                     return redirect(f"/label_companies/?company={selected_company.id}")
-                
+
                 # Save application details (prescreen/interview dates, URL, text)
                 elif request.POST.get("action") == "save_application_details":
                     try:
                         from tracker.forms_company import ApplicationDetailsForm
-                        
+
                         # Get thread_id from POST data (user selects which application to edit)
                         thread_id = request.POST.get("thread_id", "").strip()
                         is_new_manual_entry = False
-                        
+
                         if thread_id:
                             # Edit existing ThreadTracking
                             thread_tracking = ThreadTracking.objects.filter(
                                 thread_id=thread_id,
                                 company=selected_company
                             ).first()
-                            
+
                             if not thread_tracking:
                                 messages.error(request, f"❌ Application thread not found: {thread_id}")
                                 return redirect(f"/label_companies/?company={selected_company.id}")
@@ -952,16 +953,16 @@ def label_companies(request):
                                 sent_date=now().date(),
                             )
                             is_new_manual_entry = True
-                        
+
                         form_data = ApplicationDetailsForm(request.POST, instance=thread_tracking)
                         if form_data.is_valid():
                             form_data.save()
-                            
+
                             # For new manual entries, check for existing rejection/cancelled messages
                             rejection_merged = False
                             if is_new_manual_entry:
                                 rejection_merged = check_for_existing_rejection(thread_tracking, selected_company)
-                            
+
                             job_title = thread_tracking.job_title or "this application"
                             success_msg = f"✅ Application details saved for {selected_company.name} - {job_title}."
                             if rejection_merged:
@@ -976,7 +977,7 @@ def label_companies(request):
                         messages.error(request, f"❌ Failed to save application details: {e}")
                         logger.exception("Failed to save application details")
                     return redirect(f"/label_companies/?company={selected_company.id}")
-                
+
                 # Handle "mark_searched" checkbox
                 if request.POST.get("mark_searched"):
                     try:
@@ -984,15 +985,14 @@ def label_companies(request):
                         selected_company.save(update_fields=["last_job_search_date"])
                         messages.success(
                             request,
-                            f"✅ Marked {selected_company.name} as searched on {selected_company.last_job_search_date.strftime('%Y-%m-%d %H:%M')}",
+                            "✅ Marked "
+                            f"{selected_company.name} as searched on "
+                            f"{selected_company.last_job_search_date.strftime('%Y-%m-%d %H:%M')}",
                         )
                     except Exception as e:
                         messages.error(request, f"❌ Failed to mark as searched: {e}")
                     return redirect(f"/label_companies/?company={selected_company.id}")
-                
-                # NOTE: Removed manual "mark_ghosted" action - status is now auto-calculated
-                # based on latest message label and GHOSTED_DAYS_THRESHOLD
-                
+
                 # Handle regular form submission (Save Changes)
                 elif not request.POST.get("action"):  # No action means it's the main form
                     form = CompanyEditForm(request.POST, instance=selected_company)
@@ -1107,20 +1107,22 @@ def label_companies(request):
                                         # Find and remove all old aliases for this company
                                         old_aliases = [
                                             alias_name
-                                            for alias_name, canonical_name in list(companies_json_data["aliases"].items())
+                                            for alias_name, canonical_name in list(
+                                                companies_json_data["aliases"].items()
+                                            )
                                             if canonical_name == company_name
                                         ]
 
                                         if alias_input:
                                             # Split by comma and clean up each alias
                                             new_aliases = [a.strip() for a in alias_input.split(",") if a.strip()]
-                                            
+
                                             # Remove all old aliases
                                             for old_alias in old_aliases:
                                                 if old_alias not in new_aliases:
                                                     del companies_json_data["aliases"][old_alias]
                                                     changes_made = True
-                                            
+
                                             # Add all new aliases
                                             for new_alias in new_aliases:
                                                 if (
@@ -1154,12 +1156,12 @@ def label_companies(request):
                         _sync_company_operating_cities(
                             selected_company, operating_cities_text
                         )
-                        
+
                         # Return JSON for AJAX requests
                         is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
                         if is_ajax:
                             return JsonResponse({'success': True, 'message': 'Company details saved successfully.'})
-                        
+
                         messages.success(request, "✅ Company details saved.")
                         return redirect(f"/label_companies/?company={selected_company.id}")
                     else:
@@ -1221,9 +1223,7 @@ def label_companies(request):
                         if "domain_to_company" not in companies_json_data:
                             companies_json_data["domain_to_company"] = {}
                         if domain not in companies_json_data["domain_to_company"]:
-                            companies_json_data["domain_to_company"][domain] = (
-                                new_company.name
-                            )
+                            companies_json_data["domain_to_company"][domain] = new_company.name
                             changes_made = True
 
                     career_url = (bound_form.cleaned_data.get("career_url") or "").strip()
@@ -1253,9 +1253,7 @@ def label_companies(request):
                                 or companies_json_data["aliases"][alias_name]
                                 != new_company.name
                             ):
-                                companies_json_data["aliases"][alias_name] = (
-                                    new_company.name
-                                )
+                                companies_json_data["aliases"][alias_name] = new_company.name
                                 changes_made = True
 
                     if changes_made:
@@ -1268,8 +1266,12 @@ def label_companies(request):
 
         if request.method == "POST":
             # Debug: Log all POST data at the start
-            logger.info(f"NEW COMPANY POST received. Action={request.POST.get('action')}, POST keys={list(request.POST.keys())}")
-            
+            logger.info(
+                "NEW COMPANY POST received. Action=%s, POST keys=%s",
+                request.POST.get("action"),
+                list(request.POST.keys()),
+            )
+
             # Handle populate action for new company
             if request.POST.get("action") == "populate_from_homepage":
                 homepage_url = request.POST.get("homepage", "").strip()
@@ -1306,13 +1308,16 @@ def label_companies(request):
                 # User submitted the new company form
                 form = CompanyEditForm(request.POST)
                 operating_cities_text = request.POST.get("operating_cities_text", "")
-                
+
                 # Debug logging
-                logger.info(f"Create company form submitted. POST data: {dict(request.POST)}")
+                logger.info(
+                    "Create company form submitted. POST data: %s",
+                    dict(request.POST),
+                )
                 logger.info(f"Form is_valid: {form.is_valid()}")
                 if not form.is_valid():
                     logger.error(f"Form errors: {form.errors}")
-                
+
                 if form.is_valid():
                     new_company = _create_company_from_bound_form(
                         form, operating_cities_text
@@ -1343,7 +1348,7 @@ def label_companies(request):
             form = CompanyEditForm(initial=initial_data)
 
     ctx = build_sidebar_context()
-    
+
     # Get all application threads for selected company (for Application Details section)
     # Include threads where ANY message has job_application label, not just thread-level label
     # This ensures we capture threads that started as applications but later got interview/rejection msgs
@@ -1368,13 +1373,12 @@ def label_companies(request):
         application_threads = list(ThreadTracking.objects.filter(
             Q(company=selected_company) & Q(thread_id__in=all_tt_lookup_ids)
         ).order_by('-sent_date'))
-    
+
     # Get company documents
     company_documents = []
     if selected_company:
-        from tracker.models import CompanyDocument
         company_documents = list(selected_company.documents.all())
-    
+
     # Get defense contracts linked to this company
     company_contracts = []
     total_contract_amount = 0
@@ -1400,7 +1404,7 @@ def label_companies(request):
     # We only pass whether a company is selected so the template can render the placeholder
     company_news = None
     news_error = None
-    
+
     ctx.update(
         {
             "company_list": companies,
@@ -1619,14 +1623,11 @@ def manage_domains(request):
             try:
                 synced_domains = 0
                 synced_ats = 0
-                skipped = 0
 
                 # Get all companies with domains from database
-                companies_with_domains = (
-                    Company.objects.filter(domain__isnull=False)
-                    .exclude(domain="")
-                    .select_related()
-                )
+                companies_with_domains = Company.objects.filter(
+                    domain__isnull=False
+                ).exclude(domain="").select_related()
 
                 # Define domains to skip (personal, receipts, etc.)
                 skip_domains = {
@@ -1701,7 +1702,8 @@ def manage_domains(request):
 
                 messages.success(
                     request,
-                    f"✅ Synced {synced_domains} company domain(s) and {synced_ats} ATS domain(s) from database to companies.json",
+                    f"✅ Synced {synced_domains} company domain(s) and "
+                    f"{synced_ats} ATS domain(s) from database to companies.json",
                 )
                 return redirect("manage_domains")
 
@@ -1786,21 +1788,17 @@ def manage_domains(request):
 
                 domains_to_reingest = set(filtered_domains)
             elif reingest_filter == "all_labeled":
-                domains_to_reingest = (
-                    personal_domains
-                    | ats_domains
-                    | headhunter_domains
-                    | job_boards
-                    | set(domain_to_company.keys())
-                )
+                domains_to_reingest = personal_domains | ats_domains
+                domains_to_reingest |= headhunter_domains | job_boards
+                domains_to_reingest |= set(domain_to_company.keys())
 
             if not domains_to_reingest:
                 messages.warning(request, "⚠️ No domains selected for re-ingestion.")
             else:
                 try:
                     from gmail_auth import get_gmail_service
-                    from parser import ingest_message
 
+                    ingest_message = _get_parser_module().ingest_message
                     service = get_gmail_service()
                     if not service:
                         messages.error(
@@ -1965,8 +1963,10 @@ def manage_domains(request):
                                         ):
                                             messages.warning(
                                                 request,
-                                                f"⚠️ {domain} is used by multiple companies ({', '.join(company_counts.keys())}). "
-                                                f"This may be an ATS domain. Consider labeling it as 'ATS' instead.",
+                                                f"⚠️ {domain} is used by multiple "
+                                                f"companies ({', '.join(company_counts.keys())}). "
+                                                "This may be an ATS domain. Consider "
+                                                "labeling it as 'ATS' instead.",
                                             )
                                             continue
                                         company_name = company_counts.most_common(1)[0][
@@ -1985,7 +1985,11 @@ def manage_domains(request):
                                         if display_name:
                                             # Clean up common suffixes
                                             cleaned = re.sub(
-                                                r"\s*(Talent|Careers?|Jobs?|Recruiting|HR|Notifications?|Team|Hiring|Acquisition)\s*$",
+                                                (
+                                                    r"\s*(Talent|Careers?|Jobs?|"
+                                                    r"Recruiting|HR|Notifications?|"
+                                                    r"Team|Hiring|Acquisition)\s*$"
+                                                ),
                                                 "",
                                                 display_name,
                                                 flags=re.IGNORECASE,
@@ -2100,8 +2104,10 @@ def manage_domains(request):
                                 ):
                                     messages.warning(
                                         request,
-                                        f"⚠️ {domain} is used by multiple companies ({', '.join(company_counts.keys())}). "
-                                        f"This may be an ATS domain. Consider labeling it as 'ATS' instead.",
+                                        f"⚠️ {domain} is used by multiple companies "
+                                        f"({', '.join(company_counts.keys())}). "
+                                        "This may be an ATS domain. Consider labeling "
+                                        "it as 'ATS' instead.",
                                     )
                                     return redirect(
                                         f"{request.path}?filter={request.GET.get('filter', 'unlabeled')}"
@@ -2120,7 +2126,11 @@ def manage_domains(request):
                                 if display_name:
                                     # Clean up common suffixes
                                     cleaned = re.sub(
-                                        r"\s*(Talent|Careers?|Jobs?|Recruiting|HR|Notifications?|Team|Hiring|Acquisition)\s*$",
+                                        (
+                                            r"\s*(Talent|Careers?|Jobs?|Recruiting|"
+                                            r"HR|Notifications?|Team|Hiring|"
+                                            r"Acquisition)\s*$"
+                                        ),
                                         "",
                                         display_name,
                                         flags=re.IGNORECASE,
@@ -2289,14 +2299,14 @@ def manage_domains(request):
 
     # Apply sorting
     if sort_by == "count":
-        domains_info.sort(key=lambda d: d["count"], reverse=(sort_order == "desc"))
+        domains_info.sort(key=lambda d: d["count"], reverse=sort_order == "desc")
     elif sort_by == "label":
 
         def label_sort_key(d):
             label = d["label"] or "zzz_unlabeled"  # Push unlabeled to end
             return label
 
-        domains_info.sort(key=label_sort_key, reverse=(sort_order == "desc"))
+        domains_info.sort(key=label_sort_key, reverse=sort_order == "desc")
     else:  # sort_by == "domain" (default)
         # Sort alphabetically by full domain name
         domains_info.sort(
@@ -2341,7 +2351,7 @@ def manage_domains(request):
 def job_search_tracker(request):
     """
     Track manual job searches across all companies.
-    
+
     Shows all known companies with their last search date.
     Allows users to mark companies as searched today.
     """
@@ -2355,12 +2365,14 @@ def job_search_tracker(request):
                     company.save()
                     messages.success(
                         request,
-                        f"✅ Marked {company.name} as searched on {company.last_job_search_date.strftime('%Y-%m-%d %H:%M')}"
+                        "✅ Marked "
+                        f"{company.name} as searched on "
+                        f"{company.last_job_search_date.strftime('%Y-%m-%d %H:%M')}"
                     )
                 return redirect("job_search_tracker")
             except Company.DoesNotExist:
                 messages.error(request, "❌ Company not found")
-    
+
     # Check for filter parameters
     show_new_only = request.GET.get('new_only', 'false').lower() == 'true'
     focus_area_filter = request.GET.get('focus_area', '').strip()
@@ -2386,12 +2398,12 @@ def job_search_tracker(request):
             Q(location__icontains=location_filter) |
             Q(operating_cities__city__icontains=location_filter)
         ).distinct()
-    
+
     companies = companies.order_by(
         F('last_job_search_date').desc(nulls_last=True),
         'name'
     )
-    
+
     # Load career URLs from companies.json JobSites
     companies_json_path = Path("json/companies.json")
     job_sites = {}
@@ -2402,32 +2414,44 @@ def job_search_tracker(request):
                 job_sites = companies_json_data.get("JobSites", {})
     except Exception:
         pass
-    
+
     # Attach career URLs to companies
     companies_with_urls = []
     for company in companies:
         company.career_url = job_sites.get(company.name, "")
         companies_with_urls.append(company)
-    
+
     # Calculate stats
     total_companies = len(companies_with_urls)
     searched_companies = sum(1 for c in companies_with_urls if c.last_job_search_date)
     never_searched = total_companies - searched_companies
-    
+
     # Get companies added today
     new_today = Company.objects.filter(first_contact__gte=today_start).count()
-    
+
     # Get companies searched today
-    searched_today = sum(1 for c in companies_with_urls if c.last_job_search_date and c.last_job_search_date >= today_start)
-    
+    searched_today = sum(
+        1
+        for c in companies_with_urls
+        if c.last_job_search_date and c.last_job_search_date >= today_start
+    )
+
     # Get companies searched in last 7 days
     week_ago = now() - timedelta(days=7)
-    searched_this_week = sum(1 for c in companies_with_urls if c.last_job_search_date and c.last_job_search_date >= week_ago)
-    
+    searched_this_week = sum(
+        1
+        for c in companies_with_urls
+        if c.last_job_search_date and c.last_job_search_date >= week_ago
+    )
+
     # Get companies searched in last 30 days
     month_ago = now() - timedelta(days=30)
-    searched_this_month = sum(1 for c in companies_with_urls if c.last_job_search_date and c.last_job_search_date >= month_ago)
-    
+    searched_this_month = sum(
+        1
+        for c in companies_with_urls
+        if c.last_job_search_date and c.last_job_search_date >= month_ago
+    )
+
     ctx = {
         **build_sidebar_context(),
         "companies_list": companies_with_urls,
@@ -2455,31 +2479,34 @@ def scrape_job_posting(request):
     if request.method != "POST":
         logger.warning(f"scrape_job_posting: Invalid method {request.method}")
         return JsonResponse({"error": "POST method required"}, status=405)
-    
+
     url = request.POST.get("url", "").strip()
     logger.info(f"scrape_job_posting: Received URL: {url}")
-    
+
     if not url:
         logger.warning("scrape_job_posting: No URL provided")
         return JsonResponse({"error": "URL is required"}, status=400)
-    
+
     # Validate URL format
     if not url.startswith(("http://", "https://")):
         logger.warning(f"scrape_job_posting: Invalid URL format: {url}")
         return JsonResponse({"error": "URL must start with http:// or https://"}, status=400)
-    
+
     try:
         # Import scraping utilities
-        import requests
         from bs4 import BeautifulSoup
         import warnings
-        
+
         # Suppress BeautifulSoup encoding warnings
         warnings.filterwarnings("ignore", category=UserWarning, module='bs4')
-        
+
         # Fetch the page with a realistic User-Agent and headers
         headers = {
-            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "User-Agent": (
+                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 "
+                "Safari/537.36"
+            ),
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
             "Accept-Language": "en-US,en;q=0.9",
             "Accept-Encoding": "gzip, deflate, br",
@@ -2494,19 +2521,19 @@ def scrape_job_posting(request):
         logger.info(f"scrape_job_posting: Fetching URL: {url}")
         response = requests.get(url, headers=headers, timeout=15, allow_redirects=True)
         response.raise_for_status()
-        
+
         logger.info(f"scrape_job_posting: Received {len(response.content)} bytes, status {response.status_code}")
-        
+
         # Parse HTML with explicit encoding handling
         soup = BeautifulSoup(response.content, "html.parser", from_encoding=response.encoding)
-        
+
         # Log the page structure for debugging
         logger.debug(f"scrape_job_posting: Page title: {soup.title.string if soup.title else 'No title'}")
-        
+
         # Remove unwanted elements (scripts, styles, nav, footer, ads)
         for element in soup(["script", "style", "nav", "footer", "header", "aside", "iframe", "noscript"]):
             element.decompose()
-        
+
         # Try to find the main content area with expanded selectors
         main_content = None
         content_selectors = [
@@ -2534,13 +2561,13 @@ def scrape_job_posting(request):
             "[class*='job-posting']",
             "[class*='posting-content']",
         ]
-        
+
         for selector in content_selectors:
             main_content = soup.select_one(selector)
             if main_content:
                 logger.info(f"scrape_job_posting: Found content using selector: {selector}")
                 break
-        
+
         # If no main content found, try to find any divs with substantial text
         if not main_content:
             logger.warning("scrape_job_posting: No main content selector matched, trying fallback methods")
@@ -2549,22 +2576,22 @@ def scrape_job_posting(request):
             if divs:
                 main_content = max(divs, key=lambda d: len(d.get_text(strip=True)))
                 logger.info(f"scrape_job_posting: Using largest text container as fallback")
-        
+
         # Last resort: use body
         if not main_content:
             main_content = soup.body
             logger.warning("scrape_job_posting: Using body as last resort")
-        
+
         if not main_content:
             return JsonResponse({"error": "Could not extract content from page"}, status=400)
-        
+
         # Extract text and clean it up
         text = main_content.get_text(separator="\n", strip=True)
-        
+
         # Clean up excessive whitespace
         lines = [line.strip() for line in text.split("\n") if line.strip()]
         text = "\n".join(lines)
-        
+
         # If we got no content, save HTML for debugging
         if len(text) < 100:
             logger.warning(f"scrape_job_posting: Very little content extracted ({len(text)} chars)")
@@ -2576,28 +2603,42 @@ def scrape_job_posting(request):
                 logger.info(f"scrape_job_posting: Saved HTML to {debug_file} for debugging")
             except Exception as e:
                 logger.error(f"scrape_job_posting: Failed to save debug HTML: {e}")
-        
+
         # Limit to first 20,000 characters (same as form validation)
         if len(text) > 20000:
             text = text[:20000] + "\n\n[Content truncated to 20,000 characters]"
-        
+
         logger.info(f"scrape_job_posting: Extracted {len(text)} characters")
         logger.debug(f"scrape_job_posting: Content preview: {text[:200]}...")
-        
+
         # If we have no meaningful content, return an error
         if len(text) < 50:
-            return JsonResponse({
-                "error": "Could not extract meaningful content. The page may use JavaScript to load content. Try copying the text manually.",
-                "success": False
-            }, status=200)  # Return 200 so JavaScript can show the error message
-        
+            return JsonResponse(
+                {
+                    "error": (
+                        "Could not extract meaningful content. The page may use "
+                        "JavaScript to load content. Try copying the text manually."
+                    ),
+                    "success": False,
+                },
+                status=200,
+            )  # Return 200 so JavaScript can show the error message
+
         return JsonResponse({"success": True, "content": text})
-        
+
     except requests.Timeout:
         return JsonResponse({"error": "Request timed out. The page took too long to load."}, status=408)
     except requests.HTTPError as e:
         if e.response.status_code == 403:
-            return JsonResponse({"error": "Access denied (403). The website is blocking automated requests."}, status=403)
+            return JsonResponse(
+                {
+                    "error": (
+                        "Access denied (403). The website is blocking automated "
+                        "requests."
+                    )
+                },
+                status=403,
+            )
         elif e.response.status_code == 404:
             return JsonResponse({"error": "Page not found (404). Please check the URL."}, status=404)
         else:
@@ -2611,13 +2652,13 @@ def scrape_job_posting(request):
 def missing_applications(request):
     """
     Find companies with rejections but fewer (or no) application confirmations.
-    
+
     This helps identify cases where:
     - A rejection was received but no application confirmation email was tracked
     - More rejections exist than applications (multiple roles applied, only some confirmations received)
     """
     from django.db.models import Count, Q
-    
+
     # Get companies with their application and rejection counts
     companies_with_counts = Company.objects.annotate(
         application_count=Count(
@@ -2637,23 +2678,23 @@ def missing_applications(request):
     ).filter(
         rejection_count__gt=F('application_count')  # More rejections than applications
     ).order_by('-rejection_count', 'name')
-    
+
     # Build detailed data for template
     companies_data = []
     for company in companies_with_counts:
         # Get the actual messages for context
         rejections = Message.objects.filter(
-            company=company, 
+            company=company,
             ml_label='rejection'
         ).order_by('-timestamp')[:5]
-        
+
         applications = Message.objects.filter(
-            company=company, 
+            company=company,
             ml_label='job_application'
         ).order_by('-timestamp')[:5]
-        
+
         missing_count = company.rejection_count - company.application_count
-        
+
         companies_data.append({
             'company': company,
             'application_count': company.application_count,
@@ -2663,18 +2704,18 @@ def missing_applications(request):
             'rejections': rejections,
             'applications': applications,
         })
-    
+
     # Calculate summary stats
     total_missing = sum(c['missing_count'] for c in companies_data)
     total_companies_affected = len(companies_data)
-    
+
     ctx = {
         **build_sidebar_context(),
         'companies_data': companies_data,
         'total_missing': total_missing,
         'total_companies_affected': total_companies_affected,
     }
-    
+
     return render(request, 'tracker/missing_applications.html', ctx)
 
 
@@ -2682,20 +2723,20 @@ def missing_applications(request):
 def upload_company_document(request, company_id):
     """Upload a document to a company profile."""
     from tracker.models import Company, CompanyDocument
-    
+
     company = get_object_or_404(Company, id=company_id)
-    
+
     if request.method != "POST":
         messages.error(request, "Invalid request method.")
         return redirect(f"/label_companies/?company={company_id}")
-    
+
     if "document" not in request.FILES:
         messages.error(request, "No file was uploaded.")
         return redirect(f"/label_companies/?company={company_id}")
-    
+
     uploaded_file = request.FILES["document"]
     description = request.POST.get("description", "").strip()
-    
+
     # Create the document record
     try:
         doc = CompanyDocument(
@@ -2708,7 +2749,7 @@ def upload_company_document(request, company_id):
         messages.success(request, f"✅ Document '{doc.filename}' uploaded successfully.")
     except Exception as e:
         messages.error(request, f"❌ Failed to upload document: {str(e)}")
-    
+
     return redirect(f"/label_companies/?company={company_id}")
 
 
@@ -2716,29 +2757,29 @@ def upload_company_document(request, company_id):
 def delete_company_document(request, document_id):
     """Delete a document from a company profile."""
     from tracker.models import CompanyDocument
-    
+
     doc = get_object_or_404(CompanyDocument, id=document_id)
     company_id = doc.company.id
     filename = doc.filename
-    
+
     if request.method == "POST":
         # Delete the file from storage
         try:
             doc.file.delete(save=False)
         except Exception:
             pass  # File might not exist
-        
+
         # Delete the database record
         doc.delete()
         messages.success(request, f"✅ Document '{filename}' deleted.")
-    
+
     return redirect(f"/label_companies/?company={company_id}")
 
 
 @login_required
 def get_company_news(request, company_id):
     """GET endpoint to lazy-load company news after page render.
-    
+
     Returns cached articles if fresh, otherwise fetches new ones.
     Called via AJAX on DOMContentLoaded to avoid blocking page load.
     """
@@ -2821,7 +2862,6 @@ def refresh_company_news(request, company_id):
 @require_POST
 def add_company_news_url(request, company_id):
     """Fetch a user-supplied URL and add it to the company's news list."""
-    import requests as http_requests
     from bs4 import BeautifulSoup
     from django.utils.timezone import now as tz_now
     from tracker.models import Company, CompanyNews
@@ -2994,14 +3034,14 @@ def refresh_company_contracts(request, company_id):
     try:
         company = get_object_or_404(Company, pk=company_id)
         service = USASpendingService()
-        
+
         # We pass the company.name; the service normalizes it internally
         result = service.fetch_contracts_for_company(company.name)
-        
+
         msg = f"Fetched {result['created']} new, {result['updated']} updated contracts."
         if result['errors'] > 0:
             msg += f" ({result['errors']} errors)"
-            
+
         return JsonResponse({
             "status": "success",
             "message": msg,

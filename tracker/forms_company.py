@@ -33,7 +33,7 @@ class CompanyEditForm(forms.ModelForm):
 
 class ApplicationDetailsForm(forms.ModelForm):
     """Form for editing application-specific details (prescreen, interview dates, etc.)"""
-    
+
     job_title = forms.CharField(
         required=False,
         label="Job Title",
@@ -44,7 +44,7 @@ class ApplicationDetailsForm(forms.ModelForm):
         }),
         help_text="Title of the position you applied for"
     )
-    
+
     location = forms.CharField(
         required=False,
         label="Location",
@@ -55,7 +55,7 @@ class ApplicationDetailsForm(forms.ModelForm):
         }),
         help_text="Job location or work arrangement"
     )
-    
+
     sent_date = forms.DateField(
         required=False,
         label="Application Date",
@@ -65,7 +65,7 @@ class ApplicationDetailsForm(forms.ModelForm):
         }),
         help_text="Date you submitted the application"
     )
-    
+
     prescreen_date = forms.DateField(
         required=False,
         label="Prescreen Date",
@@ -75,7 +75,7 @@ class ApplicationDetailsForm(forms.ModelForm):
         }),
         help_text="Date of prescreen phone call"
     )
-    
+
     interview_date = forms.DateField(
         required=False,
         label="Interview Date",
@@ -85,7 +85,7 @@ class ApplicationDetailsForm(forms.ModelForm):
         }),
         help_text="Date of scheduled interview"
     )
-    
+
     rejection_date = forms.DateField(
         required=False,
         label="Rejection Date",
@@ -95,19 +95,19 @@ class ApplicationDetailsForm(forms.ModelForm):
         }),
         help_text="Date rejection was received"
     )
-    
+
     cancelled = forms.BooleanField(
         required=False,
         label="Cancelled",
         help_text="Job posting was cancelled by the company"
     )
-    
+
     withdrew = forms.BooleanField(
         required=False,
         label="Withdrew",
         help_text="I withdrew my application"
     )
-    
+
     offer_date = forms.DateField(
         required=False,
         label="Offer Date",
@@ -117,7 +117,7 @@ class ApplicationDetailsForm(forms.ModelForm):
         }),
         help_text="Date job offer was received"
     )
-    
+
     application_url = forms.URLField(
         required=False,
         label="Application URL",
@@ -128,7 +128,7 @@ class ApplicationDetailsForm(forms.ModelForm):
         }),
         help_text="Link to the job posting or application"
     )
-    
+
     application_text = forms.CharField(
         required=False,
         label="Application Text",
@@ -139,11 +139,11 @@ class ApplicationDetailsForm(forms.ModelForm):
         }),
         help_text="Cover letter or application notes"
     )
-    
+
     class Meta:
         model = ThreadTracking
         fields = ['job_title', 'location', 'sent_date', 'prescreen_date', 'interview_date', 'rejection_date', 'cancelled', 'withdrew', 'offer_date', 'application_url', 'application_text']
-    
+
     def clean_application_url(self):
         """Validate URL format and security"""
         url = self.cleaned_data.get('application_url')
@@ -156,7 +156,7 @@ class ApplicationDetailsForm(forms.ModelForm):
             if len(url) > 500:
                 raise forms.ValidationError("URL is too long (max 500 characters)")
         return url
-    
+
     def clean_application_text(self):
         """Validate and sanitize application text"""
         text = self.cleaned_data.get('application_text')

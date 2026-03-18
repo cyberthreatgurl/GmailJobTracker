@@ -437,6 +437,9 @@
   .mr-3 {
     margin-right: calc(var(--spacing) * 3);
   }
+  .mr-56 {
+    margin-right: calc(var(--spacing) * 56);
+  }
   .mr-64 {
     margin-right: calc(var(--spacing) * 64);
   }

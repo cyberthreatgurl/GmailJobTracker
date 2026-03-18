@@ -23,11 +23,11 @@ class Command(BaseCommand):
         feeds = RSSFeed.objects.filter(is_active=True)
         total_feeds = feeds.count()
         self.stdout.write(f"Fetching updates for {total_feeds} feeds...")
-        
+
         updated_count = 0
         new_articles = 0
         errors = 0
-        
+
         # Set socket timeout for feedparser
         socket.setdefaulttimeout(10)
 
@@ -35,11 +35,11 @@ class Command(BaseCommand):
             try:
                 self.stdout.write(f"  Fetching: {feed.title} ({feed.feed_url})")
                 d = feedparser.parse(feed.feed_url)
-                
+
                 if d.bozo:
                     logger.warning(f"Feed error for {feed.title}: {d.bozo_exception}")
                     # Continue anyway, sometimes bozo is just encoding issues
-                
+
                 # Check status
                 status = getattr(d, "status", 200)
                 if status >= 400:
@@ -53,11 +53,11 @@ class Command(BaseCommand):
                     guid = entry.get("id", entry.get("link", ""))
                     if not guid:
                         continue
-                        
+
                     # Check if exists
                     if RSSArticle.objects.filter(guid=guid).exists():
                         continue
-                        
+
                     # Parse date
                     pub_date = None
                     if "published_parsed" in entry:
@@ -72,7 +72,7 @@ class Command(BaseCommand):
                              pub_date = timezone.make_aware(pub_date, dt_timezone.utc)
                          except Exception:
                              pass
-                    
+
                     if not pub_date:
                         pub_date = timezone.now()
 
@@ -88,11 +88,11 @@ class Command(BaseCommand):
                     )
                     new_articles += 1
                     feed_articles_count += 1
-                
+
                 feed.last_fetched = timezone.now()
                 feed.save(update_fields=["last_fetched"])
                 updated_count += 1
-                
+
             except Exception as e:
                 logger.error(f"Error fetching {feed.title}: {e}")
                 errors += 1

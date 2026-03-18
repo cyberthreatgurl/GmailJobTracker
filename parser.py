@@ -32,25 +32,25 @@ Architecture:
     tracker.utils modules for cleaner dependencies.
 """
 
+# pylint: disable=broad-exception-caught
+
 import base64
 import hashlib
 import html
 import json
 import os
+from typing import Any, cast
 
 # from joblib import load  # not needed here
-import quopri
 import re
 from datetime import datetime, timedelta, date
 from email.utils import parseaddr, parsedate_to_datetime
-from email import message_from_string as eml_from_string
 from email.header import decode_header as eml_decode_header
 from pathlib import Path
 
 import django
 import joblib
 from bs4 import BeautifulSoup
-from django.db.models import F
 from django.utils import timezone
 from django.utils.timezone import now
 
@@ -99,7 +99,6 @@ from rule_classifier import RuleClassifier  # noqa: E402
 from email_parser import EmailBodyParser, MetadataExtractor  # noqa: E402
 
 def build_company_job_index(company, job_title, job_id):
-    import re
     def normalize(text):
         if not text:
             return ""
@@ -240,18 +239,18 @@ class DomainMapper:
         if not domain:
             return False
         d = domain.lower()
-        
+
         # Check static list first
         for ats in self.ats_domains:
             if d == ats or d.endswith("." + ats):
                 return True
-        
+
         # Heuristic fallback: detect ATS from configurable patterns
         for pattern in self.ats_heuristic_patterns:
             if pattern in d:
                 logger.debug(f"[ATS HEURISTIC] Domain {domain} matched pattern '{pattern}'")
                 return True
-        
+
         return False
 
     def map_company_by_domain(self, domain: str):
@@ -454,8 +453,8 @@ def rule_label(
         subject=subject,
         body=body,
         sender_domain=sender_domain,
-        headhunter_domains=HEADHUNTER_DOMAINS,
-        job_board_domains=JOB_BOARD_DOMAINS,
+        headhunter_domains=set(HEADHUNTER_DOMAINS),
+        job_board_domains=set(JOB_BOARD_DOMAINS),
         is_ats_domain_fn=_is_ats_domain,
         map_company_by_domain_fn=_map_company_by_domain,
     )
@@ -495,7 +494,11 @@ def predict_with_fallback(
     )
     logger.debug(f"[DEBUG predict_with_fallback] rule_label result={rl}")
     logger.debug(
-        f"[DEBUG predict_with_fallback] body length={len(body)}, contains 'newsletter'={('newsletter' in body.lower())}, contains 'digest'={('digest' in body.lower())}"
+        "[DEBUG predict_with_fallback] body length=%s, contains 'newsletter'=%s, "
+        "contains 'digest'=%s",
+        len(body),
+        "newsletter" in body.lower(),
+        "digest" in body.lower(),
     )
     if body:
         logger.debug(f"[DEBUG predict_with_fallback] body first 500 chars: {body[:500]}")
@@ -535,7 +538,7 @@ def get_stats():
 
 def is_application_related(subject, body):
     """Check if message is job-related (application, rejection, interview) using patterns from patterns.json.
-    
+
     This prevents ATS emails with List-Unsubscribe headers from being incorrectly marked as newsletters.
     ATS systems (Workday, Greenhouse, etc.) add List-Unsubscribe headers to ALL automated emails
     for legal compliance, including rejections, interview invites, and application confirmations.
@@ -603,16 +606,16 @@ def normalize_company_name(name: str) -> str:
 
 def normalize_company_name_for_matching(name: str) -> str:
     """Normalize company name for fuzzy matching.
-    
+
     Removes punctuation variations (commas, periods) and standardizes spacing
     to catch near-duplicates like "Network Designs, Inc." vs "Network Designs Inc".
-    
+
     Args:
         name: Company name to normalize
-        
+
     Returns:
         Normalized lowercase string for comparison
-        
+
     Examples:
         "Network Designs, Inc." -> "network designs inc"
         "Network Designs Inc"   -> "network designs inc"
@@ -627,41 +630,39 @@ def normalize_company_name_for_matching(name: str) -> str:
     return normalized.strip().lower()
 
 
-def get_or_create_company_iexact(name: str, defaults: dict = None) -> tuple:
+def get_or_create_company_iexact(name: str, defaults: dict | None = None) -> tuple:
     """Get or create a Company with case-insensitive and punctuation-insensitive name matching.
-    
+
     Prevents duplicate companies that differ only in case or punctuation:
     - Case differences: 'AMERICAN SYSTEMS' vs 'American Systems'
     - Punctuation differences: 'Network Designs, Inc.' vs 'Network Designs Inc'
-    
+
     Resolution order:
     1. Exact case-insensitive match on Company.name
     2. Normalized match (removes commas, periods, standardizes spacing)
-    
+
     Args:
         name: Company name to look up or create
         defaults: Default values for new company creation
-        
+
     Returns:
         Tuple of (company_obj, created) like get_or_create
     """
-    from tracker.models import Company
-    
     if not name:
         return None, False
-    
+
     # Try case-insensitive lookup first
     existing = Company.objects.filter(name__iexact=name).first()
     if existing:
         return existing, False
-    
+
     # Try normalized match (handles punctuation differences)
     normalized_input = normalize_company_name_for_matching(name)
     for company in Company.objects.all():
         if normalize_company_name_for_matching(company.name) == normalized_input:
             logger.debug(f"[DEBUG] Normalized match: '{name}' -> existing '{company.name}'")
             return company, False
-    
+
     # No match found, create new company
     if defaults is None:
         defaults = {}
@@ -672,25 +673,27 @@ def get_or_create_company_iexact(name: str, defaults: dict = None) -> tuple:
     return company_obj, created
 
 
-def update_company_domain_and_ats(company_obj, sender_domain: str, company_name: str = None) -> bool:
+def update_company_domain_and_ats(
+    company_obj, sender_domain: str, company_name: str | None = None
+) -> bool:
     """Update company's domain and ATS fields based on sender domain.
-    
+
     This is shared logic used by both Gmail API ingestion and EML file imports.
-    
+
     Args:
         company_obj: Company model instance to update
         sender_domain: Email sender domain (lowercase)
         company_name: Company name for logging (optional, uses company_obj.name if not provided)
-        
+
     Returns:
         True if company was modified and saved, False otherwise
     """
     if not company_obj or not sender_domain:
         return False
-    
+
     company_name = company_name or company_obj.name
     needs_save = False
-    
+
     # Set the primary domain if not already set
     if not company_obj.domain:
         # First try to look up the company's domain from companies.json
@@ -711,34 +714,34 @@ def update_company_domain_and_ats(company_obj, sender_domain: str, company_name:
         logger.debug(f"Set ATS domain for {company_name}: {sender_domain}")
     if needs_save:
         company_obj.save()
-    
+
     return needs_save
 
 
 def resolve_company_alias(company_name: str) -> str:
     """Resolve company alias to canonical company name.
-    
+
     Checks the CompanyAlias model to see if the provided company name
     is an alias for another company. If found, returns the canonical
     company name. Otherwise, returns the original name.
-    
+
     Args:
         company_name: Company name to check for alias
-        
+
     Returns:
         Canonical company name if alias found, otherwise original name
     """
     if not company_name:
         return company_name
-    
+
     from tracker.models import CompanyAlias
-    
+
     # Check if this name is an alias
     alias_obj = CompanyAlias.objects.filter(alias__iexact=company_name).first()
     if alias_obj:
         logger.debug(f"[ALIAS] Resolved '{company_name}' -> '{alias_obj.company}'")
         return alias_obj.company
-    
+
     return company_name
 
 
@@ -818,16 +821,20 @@ def should_ignore(subject, _body):
     return any(p.lower() in subj_lower for p in ignore_patterns)
 
 
-def extract_metadata(service, msg_id):
+def extract_metadata(service, msg_id, raw_message=None):
     """Extract subject, date, thread_id, labels, sender, sender_domain, and body text from a Gmail message."""
     body_html = ""
-    msg = (
-        service.users().messages().get(userId="me", id=msg_id, format="full").execute()
-    )
+    if raw_message is not None:
+        msg = raw_message
+    else:
+        msg = (
+            service.users().messages().get(userId="me", id=msg_id, format="full").execute()
+        )
     headers = msg["payload"]["headers"]
 
     subject = next((h["value"] for h in headers if h["name"] == "Subject"), "")
     date_raw = next((h["value"] for h in headers if h["name"] == "Date"), "")
+    date_obj = timezone.now()
     try:
         date_obj = parsedate_to_datetime(date_raw)
         if timezone.is_naive(date_obj):
@@ -1034,7 +1041,7 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
     # --- ML classification ---
     # Use ML with rule fallback
     result = predict_with_fallback(
-        predict_subject_type, subject, body, threshold=0.55, sender=sender
+        predict_subject_type, subject, body, threshold=0.55, sender=sender or ""
     )
     confidence = float(result.get("confidence", result.get("proba", 0.0))) if result else 0.0
     label = result["label"]
@@ -1061,7 +1068,7 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
 
     # --- Check for Teams/Zoom meeting invites with iCalendar data ---
     # Extract organizer email from iCalendar ORGANIZER field (more reliable than sender for calendar invites)
-    organizer_email, organizer_domain = extract_organizer_from_icalendar(body)
+    _organizer_email, organizer_domain = extract_organizer_from_icalendar(body)
     if organizer_domain and not domain_lower:
         # Use organizer domain if sender domain not available
         domain_lower = organizer_domain
@@ -1072,7 +1079,11 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
             r"meeting id|passcode|join\s+(?:\S+\s+){0,3}meeting|zoom\.us|teams\.microsoft", body, re.I
         ):
             domain_lower = organizer_domain
-            logger.debug(f"[DEBUG] Overriding sender domain with organizer domain for meeting invite: {organizer_domain}")
+            logger.debug(
+                "[DEBUG] Overriding sender domain with organizer domain for "
+                "meeting invite: %s",
+                organizer_domain,
+            )
     # --- Post-ML downgrade: certain subjects should not be interview_invite ---
     if label == "interview_invite":
         # Offer-related subjects (not interviews)
@@ -1195,7 +1206,7 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
     # Use this before generic subject patterns to avoid matching locations like "at Hampton, VA"
     if not company and ats_display_name_fallback:
         validated = _company_resolver.extract_from_ats_display_name(
-            sender, check_known=True
+            sender or "", check_known=True
         )
         if validated:
             company = validated
@@ -1357,7 +1368,12 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
 
             # Only override if it's a networking intro and NOT a job referral
             if is_networking_intro and not is_job_referral:
-                logger.debug(f"[DEBUG] Internal introduction detected: sender domain {sender_domain} matches company {company}, overriding to 'other'")
+                logger.debug(
+                    "[DEBUG] Internal introduction detected: sender domain %s "
+                    "matches company %s, overriding to 'other'",
+                    sender_domain,
+                    company,
+                )
                 label = "other"
             elif is_job_referral:
                 logger.debug(
@@ -1495,7 +1511,11 @@ def _apply_label_overrides(result, metadata, company, parse_result, *, log_prefi
     sender_domain = metadata.get("sender_domain", "").lower()
     if sender_domain and sender_domain in PERSONAL_DOMAINS:
         if label != "head_hunter":
-            logger.debug(f"{log_prefix}[PERSONAL DOMAIN] Detected personal domain: {sender_domain}, overriding to 'noise'")
+            logger.debug(
+                "%s[PERSONAL DOMAIN] Detected personal domain: %s, overriding to 'noise'",
+                log_prefix,
+                sender_domain,
+            )
             label = "noise"
             if isinstance(result, dict):
                 result = dict(result)
@@ -1521,6 +1541,7 @@ def _resolve_company_obj(company_name, metadata, confidence=0.0, *, log_prefix="
     Returns:
         (company_obj, canonical_name) — Company instance (or None) and canonical name.
     """
+    _ = log_prefix
     if not company_name or not company_name.strip():
         return None, company_name
 
@@ -1775,7 +1796,7 @@ def _create_thread_tracking_for_application(
                     **tt_defaults,
                 )
                 logger.debug(
-                    f"✓ Created separate ThreadTracking (id={new_tt.id}) for "
+                    f"✓ Created separate ThreadTracking (id={new_tt.pk}) for "
                     f"additional application on same Gmail thread "
                     f"(msg_id={msg_id}, original thread_id={metadata['thread_id']})"
                 )
@@ -1797,7 +1818,7 @@ def _create_thread_tracking_for_application(
 
 def _update_existing_thread_tracking(
     metadata, result, company_obj, company_source, parsed_subject,
-    stats, ml_label,
+    _stats, ml_label,
     rejection_date_final, interview_date_final, prescreen_date_final
 ):
     """Update existing ThreadTracking for non-application labels (rejection, offer, etc.)."""
@@ -1818,12 +1839,13 @@ def _update_existing_thread_tracking(
             )
         else:
             logger.debug(
-                "ℹ️ No existing ThreadTracking for this thread; not creating because this is not a job_application email"
+                "ℹ️ No existing ThreadTracking for this thread; not creating "
+                "because this is not a job_application email"
             )
 
 
 def _update_existing_application_dates(
-    application_obj, company_obj, company_source, result, metadata,
+    application_obj, company_obj, company_source, _result, metadata,
     ml_label, rejection_date_final, interview_date_final, prescreen_date_final
 ):
     """Update dates/company on an existing ThreadTracking record."""
@@ -1865,7 +1887,7 @@ def _find_and_update_rejection_by_company(
     job_title = parsed_subject.get("job_title", "") if isinstance(parsed_subject, dict) else ""
     if not job_title:
         job_title = extract_job_title_from_body(metadata.get("body", ""))
-    
+
     include_rejected = ml_label in ("withdrew", "cancelled")
     existing_tt = find_best_matching_application(
         company_obj, job_title, metadata.get("subject", ""), include_rejected=include_rejected
@@ -1881,10 +1903,19 @@ def _find_and_update_rejection_by_company(
             existing_tt.withdrew = True
             logger.debug("✓ Detected 'withdrew' in email text, setting withdrew=True")
         existing_tt.save()
-        logger.debug(f"✓ Updated existing ThreadTracking for {company_obj.name} (job: '{existing_tt.job_title}') with rejection_date={rejection_date_final}")
+        logger.debug(
+            "✓ Updated existing ThreadTracking for %s (job: '%s') with "
+            "rejection_date=%s",
+            company_obj.name,
+            existing_tt.job_title,
+            rejection_date_final,
+        )
         return existing_tt
     else:
-        logger.debug(f"ℹ️ No existing ThreadTracking found for {company_obj.name} to update with rejection")
+        logger.debug(
+            "ℹ️ No existing ThreadTracking found for %s to update with rejection",
+            company_obj.name,
+        )
         return None
 
 
@@ -1902,7 +1933,7 @@ def _fallback_thread_tracking_creation(
                 company_obj = fallback_msg.company
                 company_source = fallback_msg.company_source
                 logger.debug(f"✓ Retrieved company from Message: {company_obj.name}")
-                application_obj, created = ThreadTracking.objects.get_or_create(
+                _application_obj, created = ThreadTracking.objects.get_or_create(
                     thread_id=metadata["thread_id"],
                     defaults={
                         "company": company_obj,
@@ -1939,7 +1970,7 @@ def _fallback_thread_tracking_creation(
 
 def _handle_reingest(
     existing, msg_id, metadata, result, company_obj, company_source, company,
-    skip_company_assignment, parsed_subject, stats
+    skip_company_assignment, _parsed_subject, stats
 ):
     """Handle re-ingestion of an existing message.
 
@@ -2033,8 +2064,14 @@ def _handle_reingest(
         re.match(r"^(Fwd|FW|Fw):\s*", subject_for_check, re.IGNORECASE)
         and company_obj
     ):
-        logger.debug(f"[RE-INGEST FORWARD] Subject starts with Fwd/FW and company resolved: {company_obj.name}")
-        logger.debug(f"[RE-INGEST FORWARD] Original label: {result.get('label') if result else 'N/A'}, overriding to 'other'")
+        logger.debug(
+            "[RE-INGEST FORWARD] Subject starts with Fwd/FW and company resolved: %s",
+            company_obj.name,
+        )
+        logger.debug(
+            "[RE-INGEST FORWARD] Original label: %s, overriding to 'other'",
+            result.get("label") if result else "N/A",
+        )
         if result:
             result["label"] = "other"
             result["confidence"] = 0.95
@@ -2121,7 +2158,7 @@ def _handle_reingest(
     }
 
 
-def _reingest_user_initiated(existing, metadata, result, company_obj, recipient_domain):
+def _reingest_user_initiated(existing, metadata, result, _company_obj, recipient_domain):
     """Handle re-ingestion of user-initiated (non-reply) messages."""
     ml_predicted_label = result.get("label") if result else None
     ml_confidence = float(result.get("confidence", 0)) if result else 0
@@ -2146,11 +2183,14 @@ def _reingest_user_initiated(existing, metadata, result, company_obj, recipient_
                 existing.company_source = "user_sent_to_company"
         existing.ml_label = "other"
         existing.confidence = 1.0
-        logger.debug(f"[RE-INGEST] User-initiated message: label='other', company={existing.company.name if existing.company else 'None'}")
+        logger.debug(
+            "[RE-INGEST] User-initiated message: label='other', company=%s",
+            existing.company.name if existing.company else "None",
+        )
 
 
 def _reingest_user_reply(
-    existing, metadata, result, company_obj, company_source,
+    existing, _metadata, result, company_obj, company_source,
     skip_company_assignment, recipient_domain
 ):
     """Handle re-ingestion of user reply/forward messages."""
@@ -2171,10 +2211,15 @@ def _reingest_user_reply(
         elif company_obj:
             existing.company = company_obj
             existing.company_source = company_source
-        logger.debug(f"[RE-INGEST] User reply/forward to job domain updated: label={result['label'] if result else 'N/A'}, company={company_obj.name if company_obj else 'None'}")
+        logger.debug(
+            "[RE-INGEST] User reply/forward to job domain updated: label=%s, "
+            "company=%s",
+            result["label"] if result else "N/A",
+            company_obj.name if company_obj else "None",
+        )
 
 
-def _update_thread_tracking_on_reingest(metadata, result, company_obj, stats):
+def _update_thread_tracking_on_reingest(metadata, result, company_obj, _stats):
     """Update ThreadTracking dates during re-ingestion.
 
     Handles:
@@ -2190,16 +2235,26 @@ def _update_thread_tracking_on_reingest(metadata, result, company_obj, stats):
         app = ThreadTracking.objects.filter(
             thread_id=metadata["thread_id"]
         ).first()
-        logger.debug(f"[Re-ingest] Looking for Application with thread_id={metadata['thread_id']}, found: {app is not None}")
+        logger.debug(
+            "[Re-ingest] Looking for Application with thread_id=%s, found: %s",
+            metadata["thread_id"],
+            app is not None,
+        )
         if app:
-            logger.debug(f"[Re-ingest] App ml_label={app.ml_label}, rejection_date={app.rejection_date}, ml_label_param={ml_label}")
+            logger.debug(
+                "[Re-ingest] App ml_label=%s, rejection_date=%s, "
+                "ml_label_param=%s",
+                app.ml_label,
+                app.rejection_date,
+                ml_label,
+            )
             updated = False
-            
+
             # Update company if different (and valid)
             if company_obj and app.company != company_obj:
                 app.company = company_obj
                 # If we have a source, use it, otherwise keep existing
-                # (Can't easily plumb company_source here without changing signature, 
+                # (Can't easily plumb company_source here without changing signature,
                 # but company update is the priority)
                 updated = True
                 logger.debug(f"✓ Updated ThreadTracking company during re-ingest: {company_obj.name}")
@@ -2213,21 +2268,21 @@ def _update_thread_tracking_on_reingest(metadata, result, company_obj, stats):
             ):
                 rejection_date = timezone.localtime(metadata["timestamp"]).date()
                 logger.debug(
-                    f"[Re-ingest] TT id={app.id} has no job_title — "
+                    f"[Re-ingest] TT id={app.pk} has no job_title — "
                     f"attempting targeted cross-thread match for {company_obj.name}"
                 )
                 matched_target = _find_and_update_rejection_by_company(
                     metadata, company_obj, {}, rejection_date, ml_label
                 )
                 matched_other_application = bool(
-                    matched_target and matched_target.id != app.id
+                    matched_target and matched_target.pk != app.pk
                 )
 
             if ml_label in ("rejected", "rejection", "cancelled", "withdrew"):
                 if not app.rejection_date:
                     if matched_other_application:
                         logger.debug(
-                            f"[Re-ingest] Skipping rejection update on placeholder TT id={app.id}; "
+                            f"[Re-ingest] Skipping rejection update on placeholder TT id={app.pk}; "
                             "matched another application by role title"
                         )
                     else:
@@ -2235,7 +2290,7 @@ def _update_thread_tracking_on_reingest(metadata, result, company_obj, stats):
                         app.rejection_date = rejection_date
                         updated = True
                         logger.debug(f"✓ Set rejection_date during re-ingest: {app.rejection_date}")
-                
+
                 if not matched_other_application:
                     # Body-based cancellation detection
                     if is_cancelled_position(
@@ -2392,7 +2447,7 @@ def _build_final_record(
     }
 
 
-def ingest_message(service, msg_id):
+def ingest_message(service, msg_id, raw_message=None):
     """Ingest a single Gmail message by id into the local database.
 
     Pipeline: metadata extraction → ML+rules classification → company resolution →
@@ -2405,7 +2460,7 @@ def ingest_message(service, msg_id):
     stats = get_stats()
 
     try:
-        metadata = extract_metadata(service, msg_id)
+        metadata = extract_metadata(service, msg_id, raw_message=raw_message)
         body = metadata["body"]  # RFC 5322 compliant body (no headers)
         classification_text = metadata.get(
             "classification_text", body
@@ -2482,7 +2537,11 @@ def ingest_message(service, msg_id):
 
         # If ML classifies as noise with reasonable confidence, trust it
         if ml_predicted_label == "noise" and ml_confidence > 0.5:
-            logger.debug(f"[PATCH] User message classified as noise by ML (confidence={ml_confidence:.2f}), keeping noise label.")
+            logger.debug(
+                "[PATCH] User message classified as noise by ML "
+                "(confidence=%.2f), keeping noise label.",
+                ml_confidence,
+            )
             # Don't override - let it stay as noise
         elif not is_reply_or_forward:
             # User-INITIATED, non-noise message → likely job application outreach
@@ -2493,15 +2552,24 @@ def ingest_message(service, msg_id):
                     company = mapped_company
                     company_source = "user_sent_to_company"
             # Force label to 'other' for user-INITIATED job outreach
-            if result:
+            if isinstance(result, dict):
+                result = dict(result)
                 result["label"] = "other"
                 if mapped_company:
                     result["company"] = mapped_company
                     result["predicted_company"] = mapped_company
-            logger.debug(f"[PATCH] User-initiated message: label set to 'other', company set to {mapped_company if mapped_company else 'N/A'}.")
+            logger.debug(
+                "[PATCH] User-initiated message: label set to 'other', company "
+                "set to %s.",
+                mapped_company if mapped_company else "N/A",
+            )
         else:
             # User reply/forward to job-related domains → use ML classification
-            logger.debug(f"[PATCH] User reply/forward to job domain, using ML classification: {ml_predicted_label}")
+            logger.debug(
+                "[PATCH] User reply/forward to job domain, using ML "
+                "classification: %s",
+                ml_predicted_label,
+            )
     parsed_subject = (
         parse_subject(
             metadata["subject"],
@@ -2516,11 +2584,16 @@ def ingest_message(service, msg_id):
         parsed_subject["company"] = company
         parsed_subject["predicted_company"] = company
         # Patch: override result label and company before persistence
-        if result:
+        if isinstance(result, dict):
+            result = dict(result)
             result["label"] = "other"
             result["company"] = company
             result["predicted_company"] = company
-        logger.debug(f"[PATCH] Overriding label to 'other' and company to {company} for user-sent message.")
+        logger.debug(
+            "[PATCH] Overriding label to 'other' and company to %s for "
+            "user-sent message.",
+            company,
+        )
     # If parse_subject detected internal introduction and overrode label to 'other', apply to result
     if (
         parsed_subject.get("label") == "other"
@@ -2540,7 +2613,12 @@ def ingest_message(service, msg_id):
                 ):
                     result = dict(result)  # Create mutable copy
                     result["label"] = "other"
-                    logger.debug(f"[INTERNAL INTRODUCTION] Overriding result label to 'other' for internal introduction: {sender_domain} matches {from_company}")
+                    logger.debug(
+                        "[INTERNAL INTRODUCTION] Overriding result label to "
+                        "'other' for internal introduction: %s matches %s",
+                        sender_domain,
+                        from_company,
+                    )
     if parsed_subject.get("ignore"):
         logger.debug(f"Ignored by ML: {metadata['subject']}")
         logger.debug("Stats: ignored++ (ML ignore)")
@@ -2657,19 +2735,39 @@ def ingest_message(service, msg_id):
                             # No ATS markers - this is generic recruiter communication, not real application
                             result = dict(result)
                             result["label"] = "other"
-                            logger.debug(f"[INTERNAL RECRUITER] Overriding job_application to 'other' (no ATS markers) for internal recruiter: {sender_domain} → {mapped_company}")
+                            logger.debug(
+                                "[INTERNAL RECRUITER] Overriding job_application "
+                                "to 'other' (no ATS markers) for internal "
+                                "recruiter: %s -> %s",
+                                sender_domain,
+                                mapped_company,
+                            )
                         else:
                             logger.debug(
-                                f"[INTERNAL RECRUITER] Preserving job_application (has ATS markers) from internal recruiter: {sender_domain} → {mapped_company}"
+                                "[INTERNAL RECRUITER] Preserving job_application "
+                                "(has ATS markers) from internal recruiter: %s "
+                                "-> %s",
+                                sender_domain,
+                                mapped_company,
                             )
                     elif final_label not in ("interview_invite", "rejection", "offer"):
                         # Override generic labels to 'other'
                         result = dict(result)
                         result["label"] = "other"
-                        logger.debug(f"[INTERNAL RECRUITER] Overriding {final_label} to 'other' for internal recruiter from company domain: {sender_domain} → {mapped_company}")
+                        logger.debug(
+                            "[INTERNAL RECRUITER] Overriding %s to 'other' for "
+                            "internal recruiter from company domain: %s -> %s",
+                            final_label,
+                            sender_domain,
+                            mapped_company,
+                        )
                     else:
                         logger.debug(
-                            f"[INTERNAL RECRUITER] Preserving meaningful label '{final_label}' from internal recruiter: {sender_domain} → {mapped_company}"
+                            "[INTERNAL RECRUITER] Preserving meaningful label "
+                            "'%s' from internal recruiter: %s -> %s",
+                            final_label,
+                            sender_domain,
+                            mapped_company,
                         )
 
     # Check if sender domain is in personal domains list - override to noise
@@ -2678,7 +2776,11 @@ def ingest_message(service, msg_id):
     if sender_domain and sender_domain in PERSONAL_DOMAINS:
         final_label = result.get("label") if result else None
         if final_label != "head_hunter":
-            logger.debug(f"[PERSONAL DOMAIN] Detected personal domain: {sender_domain}, overriding to 'noise'")
+            logger.debug(
+                "[PERSONAL DOMAIN] Detected personal domain: %s, overriding "
+                "to 'noise'",
+                sender_domain,
+            )
             result = dict(result)
             result["label"] = "noise"
         else:
@@ -2702,7 +2804,11 @@ def ingest_message(service, msg_id):
             r"\bnegotiat",
         ]
         if any(re.search(pattern, subj_lower) for pattern in offer_patterns):
-            logger.debug(f"[RE-INGEST] Downgrading interview_invite -> other (offer-related: {subject})")
+            logger.debug(
+                "[RE-INGEST] Downgrading interview_invite -> other "
+                "(offer-related: %s)",
+                subject,
+            )
             result["label"] = "other"
 
         # Classification adjustments should be driven by patterns.json, not hard-coded here.
@@ -2717,7 +2823,11 @@ def ingest_message(service, msg_id):
     if result and result.get("label") in ("other", "response"):
         has_meeting_details = bool(
             re.search(
-                r"meeting id|passcode|join\s+(?:\S+\s+){0,3}meeting|zoom\.us|meet\.google|teams\.microsoft|ms teams|microsoft teams",
+                (
+                    r"meeting id|passcode|join\s+(?:\S+\s+){0,3}meeting|"
+                    r"zoom\.us|meet\.google|teams\.microsoft|ms teams|"
+                    r"microsoft teams"
+                ),
                 body,
                 re.I,
             )
@@ -2738,7 +2848,12 @@ def ingest_message(service, msg_id):
         is_company_domain = sender_domain and sender_domain not in PERSONAL_DOMAINS
 
         if has_meeting_details and has_interview_language and is_company_domain:
-            logger.debug(f"[RE-INGEST] Upgrading {result['label']} -> interview_invite (meeting invite with details: {subject})")
+            logger.debug(
+                "[RE-INGEST] Upgrading %s -> interview_invite (meeting invite "
+                "with details: %s)",
+                result["label"],
+                subject,
+            )
             result["label"] = "interview_invite"
             result["confidence"] = max(
                 0.85, result.get("confidence", 0.85)
@@ -2802,7 +2917,6 @@ def ingest_message(service, msg_id):
             logger.debug(f"[HEADER HINTS] Organization header available: {org}")
     if not skip_company_assignment:
         sender_domain = metadata.get("sender_domain", "").lower()
-        is_ats = any(d in sender_domain for d in ATS_DOMAINS)
         is_headhunter = sender_domain in HEADHUNTER_DOMAINS
         is_job_board = sender_domain in JOB_BOARD_DOMAINS
         is_personal = sender_domain in PERSONAL_DOMAINS
@@ -2913,7 +3027,12 @@ def ingest_message(service, msg_id):
                 # Look for "The following items were sent to COMPANY" pattern
                 if body_plain:
                     indeed_pattern = re.search(
-                        r"(?:the following items were sent to|about your application.*?with)\s+([A-Z][A-Za-z0-9\s&.,'-]+?)(?:\s+(?:and|About|Your application|Resume|Cover letter|\n|$))",
+                        (
+                            r"(?:the following items were sent to|about your "
+                            r"application.*?with)\s+([A-Z][A-Za-z0-9\s&.,'-]+?)"
+                            r"(?:\s+(?:and|About|Your application|Resume|Cover "
+                            r"letter|\n|$))"
+                        ),
                         body_plain,
                         re.IGNORECASE,
                     )
@@ -2997,7 +3116,10 @@ def ingest_message(service, msg_id):
                 logger.debug(f"'@' symbol match used: {company}")
         if not company:
             body_match = re.search(
-                r"(?:apply(?:ing)? to|application to|interest in|position at|role at|opportunity with)\s+([A-Z][\w\s&\-]+)",
+                (
+                    r"(?:apply(?:ing)? to|application to|interest in|position "
+                    r"at|role at|opportunity with)\s+([A-Z][\w\s&\-]+)"
+                ),
                 body,
                 re.IGNORECASE,
             )
@@ -3109,11 +3231,13 @@ def ingest_message(service, msg_id):
     # or whatever threshold you trust
     if not reviewed:
         logger.debug(
-            f"Not reviewed: confidence={result.get('confidence', 0.0):.2f}, label={result.get('label')}, company={company}"
+            "Not reviewed: confidence=%.2f, label=%s, company=%s",
+            result.get("confidence", 0.0),
+            result.get("label"),
+            company,
         )
 
     # ✅ Enhanced duplicate detection (extracted helper)
-    ts = metadata["timestamp"]
     body = metadata["body"]
     normalized_body = re.sub(r"\s+", " ", body or "").strip()
     body_hash = hashlib.sha256(normalized_body.encode("utf-8")).hexdigest()
@@ -3222,8 +3346,8 @@ def ingest_message(service, msg_id):
 # Note: Company data loading moved to DomainMapper class
 # Access via _domain_mapper attributes for backward compatibility
 ATS_DOMAINS = _domain_mapper.ats_domains
-HEADHUNTER_DOMAINS = _domain_mapper.headhunter_domains
-JOB_BOARD_DOMAINS = _domain_mapper.job_board_domains
+HEADHUNTER_DOMAINS = set(_domain_mapper.headhunter_domains)
+JOB_BOARD_DOMAINS = set(_domain_mapper.job_board_domains)
 KNOWN_COMPANIES = _domain_mapper.known_companies
 KNOWN_COMPANIES_CASED = _domain_mapper.known_companies_cased
 DOMAIN_TO_COMPANY = _domain_mapper.domain_to_company
@@ -3243,8 +3367,8 @@ def _reload_domain_map_if_needed():
     # Update global references for backward compatibility
     DOMAIN_TO_COMPANY = _domain_mapper.domain_to_company
     ATS_DOMAINS = _domain_mapper.ats_domains
-    HEADHUNTER_DOMAINS = _domain_mapper.headhunter_domains
-    JOB_BOARD_DOMAINS = _domain_mapper.job_board_domains
+    HEADHUNTER_DOMAINS = set(_domain_mapper.headhunter_domains)
+    JOB_BOARD_DOMAINS = set(_domain_mapper.job_board_domains)
     KNOWN_COMPANIES = _domain_mapper.known_companies
     KNOWN_COMPANIES_CASED = _domain_mapper.known_companies_cased
     company_data = _domain_mapper.company_data
@@ -3307,19 +3431,25 @@ def extract_job_title_from_body(body: str | None) -> str:
     return ""
 
 
-def find_best_matching_application(company_obj, rejection_job_title: str, rejection_subject: str, threshold: float = 0.3, include_rejected: bool = False):
+def find_best_matching_application(
+    company_obj,
+    rejection_job_title: str,
+    rejection_subject: str,
+    threshold: float = 0.3,
+    include_rejected: bool = False,
+):
     """Find the best matching ThreadTracking record for a rejection email using TF-IDF similarity.
-    
+
     When a rejection email comes in on a different thread, we need to match it to the correct
     application. This function uses TF-IDF cosine similarity to compare job titles.
-    
+
     Args:
         company_obj: Company model instance to filter applications by
         rejection_job_title: Job title extracted from the rejection email
         rejection_subject: Full subject line from the rejection email (fallback if no job_title)
         threshold: Minimum similarity score to consider a match (default 0.3)
         include_rejected: Whether to include already rejected applications in the search
-    
+
     Returns:
         ThreadTracking object if a match is found, None otherwise
     """
@@ -3338,7 +3468,7 @@ def find_best_matching_application(company_obj, rejection_job_title: str, reject
         ]
     if not open_applications:
         return None
-    
+
     if len(open_applications) == 1:
         only_app = open_applications[0]
         total_company_apps = ThreadTracking.objects.filter(company=company_obj).count()
@@ -3361,7 +3491,7 @@ def find_best_matching_application(company_obj, rejection_job_title: str, reject
                     lowercase=True,
                     min_df=1
                 )
-                matrix = vectorizer.fit_transform([rejection_text, app_text])
+                matrix = cast(Any, vectorizer.fit_transform([rejection_text, app_text]))
                 score = cosine_similarity(matrix[0:1], matrix[1:2]).flatten()[0]
                 if score < max(threshold, 0.55):
                     logger.debug(
@@ -3394,13 +3524,13 @@ def find_best_matching_application(company_obj, rejection_job_title: str, reject
                         lowercase=True,
                         min_df=1
                     )
-                    matrix = vectorizer.fit_transform(all_titles)
+                    matrix = cast(Any, vectorizer.fit_transform(all_titles))
                     all_scores = cosine_similarity(matrix[0:1], matrix[1:]).flatten()
                     best_any_idx = all_scores.argmax()
                     best_any = all_applications[best_any_idx]
                     best_any_score = all_scores[best_any_idx]
                     if (
-                        best_any.id != only_app.id
+                        best_any.pk != only_app.pk
                         and (best_any.rejection_date or best_any.status == "rejected")
                         and best_any_score >= max(threshold, 0.55)
                     ):
@@ -3419,7 +3549,7 @@ def find_best_matching_application(company_obj, rejection_job_title: str, reject
                     return None
 
         return only_app
-    
+
     # Multiple applications - use TF-IDF to find best match
     # Build corpus: rejection text + all application job titles
     rejection_text = rejection_job_title or rejection_subject or ""
@@ -3427,19 +3557,19 @@ def find_best_matching_application(company_obj, rejection_job_title: str, reject
         # No title evidence across multiple applications is ambiguous; do not guess.
         logger.debug("[EML JOB MATCH] No job title evidence with multiple applications; skipping match")
         return None
-    
+
     # Build corpus with application job titles (or subjects as fallback)
     corpus = [rejection_text]
     for app in all_applications:
         app_text = app.job_title or ""
         corpus.append(app_text)
-    
+
     # Filter out empty strings to avoid TF-IDF issues
     if not any(text.strip() for text in corpus[1:]):
         # All applications have empty titles, so matching is ambiguous.
         logger.debug("[EML JOB MATCH] Existing applications have empty job titles; skipping match")
         return None
-    
+
     try:
         # Use TF-IDF with character n-grams for fuzzy matching
         vectorizer = TfidfVectorizer(
@@ -3448,25 +3578,25 @@ def find_best_matching_application(company_obj, rejection_job_title: str, reject
             lowercase=True,
             min_df=1
         )
-        tfidf_matrix = vectorizer.fit_transform(corpus)
-        
+        tfidf_matrix = cast(Any, vectorizer.fit_transform(corpus))
+
         # Calculate cosine similarity between rejection and each application
         rejection_vector = tfidf_matrix[0:1]
         application_vectors = tfidf_matrix[1:]
         similarities = cosine_similarity(rejection_vector, application_vectors).flatten()
-        
+
         # Find best match
         best_idx = similarities.argmax()
         best_score = similarities[best_idx]
         second_score = 0.0
         if len(similarities) > 1:
             second_score = sorted(similarities, reverse=True)[1]
-        
+
         logger.debug(f"[EML JOB MATCH] Rejection job title: '{rejection_text}'")
         for i, (app, sim) in enumerate(zip(all_applications, similarities)):
             marker = " ← BEST MATCH" if i == best_idx else ""
             logger.debug(f"[EML JOB MATCH]   App #{i+1}: '{app.job_title}' (similarity: {sim:.3f}){marker}")
-        
+
         if best_score >= threshold and (best_score - second_score) >= 0.05:
             best_match = all_applications[best_idx]
             if best_match.rejection_date or best_match.status == "rejected":
@@ -3474,7 +3604,12 @@ def find_best_matching_application(company_obj, rejection_job_title: str, reject
                     "[EML JOB MATCH] Best title match already rejected; returning it to prevent spillover"
                 )
                 return best_match
-            logger.debug(f"[EML JOB MATCH] Selected application with similarity {best_score:.3f} >= threshold {threshold}")
+            logger.debug(
+                "[EML JOB MATCH] Selected application with similarity %.3f >= "
+                "threshold %s",
+                best_score,
+                threshold,
+            )
             return best_match
         else:
             logger.debug(
@@ -3482,13 +3617,13 @@ def find_best_matching_application(company_obj, rejection_job_title: str, reject
                 f"second={second_score:.3f}, threshold={threshold})"
             )
             return None
-            
+
     except Exception as e:
         logger.debug(f"[EML JOB MATCH] TF-IDF matching failed: {e}, skipping match")
         return None
 
 
-def ingest_message_from_eml(eml_content: str, fake_msg_id: str = None):
+def ingest_message_from_eml(eml_content: str, fake_msg_id: str | None = None):
     """Ingest a message directly from .eml file content.
 
     Args:
@@ -3559,7 +3694,7 @@ def ingest_message_from_eml(eml_content: str, fake_msg_id: str = None):
 
                 try:
                     payload = part.get_payload(decode=True)
-                    if payload is None:
+                    if not isinstance(payload, bytes):
                         continue
 
                     charset = part.get_content_charset() or "utf-8"
@@ -3579,7 +3714,7 @@ def ingest_message_from_eml(eml_content: str, fake_msg_id: str = None):
             # Not multipart
             try:
                 payload = msg.get_payload(decode=True)
-                if payload:
+                if isinstance(payload, bytes):
                     charset = msg.get_content_charset() or "utf-8"
                     body = payload.decode(charset, errors="ignore").strip()
             except Exception as e:
@@ -3709,7 +3844,7 @@ def ingest_message_from_eml(eml_content: str, fake_msg_id: str = None):
     logger.debug(f"[EML] ML label: {ml_label}, confidence: {ml_confidence}")
 
     # Get or create company object (shared helper)
-    company_obj, canonical_company = _resolve_company_obj(
+    company_obj, _canonical_company = _resolve_company_obj(
         company, metadata, ml_confidence, log_prefix="[EML] "
     )
 
@@ -3752,11 +3887,11 @@ def ingest_message_from_eml(eml_content: str, fake_msg_id: str = None):
                 # If no job title from subject, try extracting from body
                 if not job_title:
                     job_title = extract_job_title_from_body(body)
-                
+
                 # Use TF-IDF job title matching to find the correct application
                 existing_tt = find_best_matching_application(
-                    company_obj, 
-                    job_title, 
+                    company_obj,
+                    job_title,
                     metadata["subject"]
                 )
                 if existing_tt:
@@ -3766,9 +3901,20 @@ def ingest_message_from_eml(eml_content: str, fake_msg_id: str = None):
                     if is_cancelled:
                         existing_tt.cancelled = True
                     existing_tt.save()
-                    logger.debug(f"[EML] Updated existing ThreadTracking for {company_obj.name} (job: '{existing_tt.job_title}') with rejection_date={rejection_date}, cancelled={is_cancelled}")
+                    logger.debug(
+                        "[EML] Updated existing ThreadTracking for %s (job: '%s') "
+                        "with rejection_date=%s, cancelled=%s",
+                        company_obj.name,
+                        existing_tt.job_title,
+                        rejection_date,
+                        is_cancelled,
+                    )
                 else:
-                    logger.debug(f"[EML] No existing ThreadTracking found for {company_obj.name} to update with rejection")
+                    logger.debug(
+                        "[EML] No existing ThreadTracking found for %s to update "
+                        "with rejection",
+                        company_obj.name,
+                    )
             except Exception as e:
                 logger.debug(f"[EML] Failed to update ThreadTracking with rejection: {e}")
         return "skipped"
@@ -3833,8 +3979,8 @@ def ingest_message_from_eml(eml_content: str, fake_msg_id: str = None):
                 if ml_label in ("rejection", "cancelled"):
                     # Use TF-IDF job title matching to find the correct application
                     existing_tt = find_best_matching_application(
-                        company_obj, 
-                        job_title, 
+                        company_obj,
+                        job_title,
                         metadata["subject"]
                     )
                     if existing_tt:
@@ -3845,10 +3991,17 @@ def ingest_message_from_eml(eml_content: str, fake_msg_id: str = None):
                         if is_cancelled:
                             existing_tt.cancelled = True
                         existing_tt.save()
-                        logger.debug(f"[EML] Updated existing ThreadTracking for {company_obj.name} (job: '{existing_tt.job_title}') with rejection_date={rejection_date}, cancelled={is_cancelled}")
+                        logger.debug(
+                            "[EML] Updated existing ThreadTracking for %s (job: '%s') "
+                            "with rejection_date=%s, cancelled=%s",
+                            company_obj.name,
+                            existing_tt.job_title,
+                            rejection_date,
+                            is_cancelled,
+                        )
                     else:
                         # No existing application found - create one with rejection status
-                        thread_tracking, tt_created = ThreadTracking.objects.get_or_create(
+                        _thread_tracking, tt_created = ThreadTracking.objects.get_or_create(
                             thread_id=metadata["thread_id"],
                             defaults={
                                 "company": company_obj,
@@ -3865,10 +4018,14 @@ def ingest_message_from_eml(eml_content: str, fake_msg_id: str = None):
                             },
                         )
                         if tt_created:
-                            logger.debug(f"[EML] Created NEW ThreadTracking for {company_obj.name} with rejection status (no prior application found)")
+                            logger.debug(
+                                "[EML] Created NEW ThreadTracking for %s with "
+                                "rejection status (no prior application found)",
+                                company_obj.name,
+                            )
                 else:
                     # For job_application and interview_invite, use normal get_or_create by thread_id
-                    thread_tracking, tt_created = ThreadTracking.objects.get_or_create(
+                    _thread_tracking, tt_created = ThreadTracking.objects.get_or_create(
                         thread_id=metadata["thread_id"],
                         defaults={
                             "company": company_obj,
@@ -3895,7 +4052,7 @@ def ingest_message_from_eml(eml_content: str, fake_msg_id: str = None):
         # Update stats
         _increment_stat(stats, "total_inserted")
 
-        logger.debug(f"[EML] Successfully ingested message (ID={msg_obj.id})")
+        logger.debug(f"[EML] Successfully ingested message (ID={msg_obj.pk})")
         return "inserted"
 
     except Exception as e:

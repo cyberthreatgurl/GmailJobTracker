@@ -14,8 +14,8 @@ class ApplicationEditForm(forms.ModelForm):
 
 class ManualEntryForm(forms.Form):
     """Form for manually entering NEW job applications from external sources.
-    
-    Note: This form only creates new applications. To update milestones 
+
+    Note: This form only creates new applications. To update milestones
     (prescreen, interview, rejection, offer dates), use the Application Details
     section on the Label Companies page.
     """
@@ -26,7 +26,7 @@ class ManualEntryForm(forms.Form):
         help_text="Select an existing company or choose '- New Company -' to create a new one",
         required=True,
     )
-    
+
     new_company_name = forms.CharField(
         max_length=255,
         label="New Company Name",
@@ -40,7 +40,7 @@ class ManualEntryForm(forms.Form):
             )
         ],
     )
-    
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Populate company choices from database
@@ -49,42 +49,42 @@ class ManualEntryForm(forms.Form):
         choices = [('', '-- Select Company --'), ('__new__', '- New Company -')]
         choices.extend([(str(c.id), c.name) for c in companies])
         self.fields['company_select'].choices = choices
-    
+
     def clean(self):
         cleaned_data = super().clean()
         company_select = cleaned_data.get('company_select')
         new_company_name = cleaned_data.get('new_company_name', '').strip()
-        
+
         # Validate that a company is selected
         if not company_select:
             raise forms.ValidationError({
                 'company_select': 'Please select a company or create a new one.'
             })
-        
+
         # If new company selected, validate the name
         if company_select == '__new__':
             if not new_company_name:
                 raise forms.ValidationError({
                     'new_company_name': 'Please enter a company name or select an existing company.'
                 })
-            
+
             # Validate against existing companies and aliases
             from tracker.models import Company, CompanyAlias
-            
+
             # Check exact match (case-insensitive)
             existing = Company.objects.filter(name__iexact=new_company_name).first()
             if existing:
                 raise forms.ValidationError({
                     'new_company_name': f'A company named "{existing.name}" already exists. Please select it from the dropdown.'
                 })
-            
+
             # Check aliases
             alias = CompanyAlias.objects.filter(alias__iexact=new_company_name).first()
             if alias:
                 raise forms.ValidationError({
                     'new_company_name': f'"{new_company_name}" is an alias for "{alias.company.name}". Please select "{alias.company.name}" from the dropdown.'
                 })
-        
+
         return cleaned_data
 
     # Job details
@@ -212,7 +212,7 @@ class CompanyEditForm(forms.ModelForm):
         help_text="Company's job listings or career page",
         validators=[URLValidator(schemes=['http', 'https'])],
     )
-    
+
     # Add alias as a non-model field
     alias = forms.CharField(
         max_length=255,
@@ -227,7 +227,7 @@ class CompanyEditForm(forms.ModelForm):
             )
         ],
     )
-    
+
     # Add focus_area as a non-model field (actually it IS in the model but we list it explicitly)
     focus_area = forms.CharField(
         max_length=255,
@@ -276,22 +276,22 @@ class CompanyEditForm(forms.ModelForm):
         cleaned_data = super().clean()
         name = (cleaned_data.get("name") or "").strip()
         domain = (cleaned_data.get("domain") or "").strip().lower()
-        
+
         # Get the instance ID if editing an existing company
         instance_id = self.instance.id if self.instance and self.instance.id else None
-        
+
         # Check for duplicate company name (case-insensitive)
         if name:
             existing_name = Company.objects.filter(name__iexact=name)
             if instance_id:
                 existing_name = existing_name.exclude(id=instance_id)
             existing_name = existing_name.first()
-            
+
             if existing_name:
                 raise forms.ValidationError({
                     'name': f'A company named "{existing_name.name}" already exists (ID: {existing_name.id}). Please use the existing company instead.'
                 })
-            
+
             # Also check aliases
             from tracker.models import CompanyAlias
             alias = CompanyAlias.objects.filter(alias__iexact=name).first()
@@ -299,17 +299,17 @@ class CompanyEditForm(forms.ModelForm):
                 raise forms.ValidationError({
                     'name': f'"{name}" is an alias for "{alias.company.name}". Please use the existing company instead.'
                 })
-        
+
         # Check for duplicate domain
         if domain:
             existing_domain = Company.objects.filter(domain__iexact=domain)
             if instance_id:
                 existing_domain = existing_domain.exclude(id=instance_id)
             existing_domain = existing_domain.first()
-            
+
             if existing_domain:
                 raise forms.ValidationError({
                     'domain': f'Domain "{domain}" is already used by "{existing_domain.name}" (ID: {existing_domain.id}). Please use the existing company instead.'
                 })
-        
+
         return cleaned_data

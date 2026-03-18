@@ -10,14 +10,14 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         # Find ThreadTracking records with null ml_label
         broken_tt = ThreadTracking.objects.filter(ml_label__isnull=True)
-        
+
         count = broken_tt.count()
         self.stdout.write(f"Found {count} ThreadTracking records with null ml_label")
-        
+
         if count == 0:
             self.stdout.write(self.style.SUCCESS("✅ No records to fix"))
             return
-        
+
         fixed = 0
         for tt in broken_tt:
             # Find corresponding message
@@ -30,5 +30,5 @@ class Command(BaseCommand):
                 fixed += 1
             else:
                 self.stdout.write(f"  ⚠️  No message found for {tt.company.name if tt.company else 'Unknown'}")
-        
+
         self.stdout.write(self.style.SUCCESS(f"✅ Fixed {fixed} ThreadTracking records"))

@@ -78,6 +78,9 @@ class Command(RunserverCommand):
         # Display Gmail authentication status
         self._display_gmail_auth_status()
 
+        # Display database availability
+        self._display_database_status()
+
         # Display recent commit history
         self._display_recent_commits()
 
@@ -291,5 +294,67 @@ class Command(RunserverCommand):
                 f"  token.pickle................. " f"{self.style.ERROR('✗ Not found')}"
             )
             self.stderr.write(f"    {self.style.ERROR('→ Run: python gmail_auth.py')}")
+
+        self.stderr.write(self.style.SUCCESS("=" * 70 + "\n"))
+
+    def _display_database_status(self):
+        """Check and display database availability."""
+        from django.db import connection, OperationalError
+        from django.conf import settings
+
+        self.stderr.write(self.style.SUCCESS("=" * 70))
+        self.stderr.write(self.style.SUCCESS("Database Status"))
+        self.stderr.write(self.style.SUCCESS("=" * 70))
+
+        db_settings = settings.DATABASES.get("default", {})
+        engine = db_settings.get("ENGINE", "")
+
+        if "postgresql" in engine or "postgres" in engine:
+            db_type = "PostgreSQL"
+            host = db_settings.get("HOST", "localhost")
+            port = db_settings.get("PORT", 5432)
+            name = db_settings.get("NAME", "")
+            user = db_settings.get("USER", "")
+            self.stderr.write(f"  Engine............................... {db_type}")
+            self.stderr.write(f"  Host................................. {host}:{port}")
+            self.stderr.write(f"  Database............................. {name}")
+            self.stderr.write(f"  User................................. {user}")
+        elif "sqlite" in engine:
+            db_type = "SQLite"
+            db_path = db_settings.get("NAME", "")
+            self.stderr.write(f"  Engine............................... {db_type}")
+            self.stderr.write(f"  Path................................. {db_path}")
+        else:
+            db_type = engine.split(".")[-1] if engine else "Unknown"
+            self.stderr.write(f"  Engine............................... {db_type}")
+
+        # Attempt a live connection check
+        try:
+            connection.ensure_connection()
+            self.stderr.write(
+                f"  Connection........................... {self.style.SUCCESS('✓ Available')}"
+            )
+            # For PostgreSQL, show server version
+            if "postgresql" in engine or "postgres" in engine:
+                try:
+                    with connection.cursor() as cursor:
+                        cursor.execute("SELECT version();")
+                        row = cursor.fetchone()
+                        if row:
+                            version_str = row[0].split(",")[0]  # e.g. "PostgreSQL 16.2"
+                            self.stderr.write(
+                                f"  Server Version....................... {version_str}"
+                            )
+                except (OperationalError, AttributeError, IndexError, TypeError):
+                    pass
+        except OperationalError as exc:
+            self.stderr.write(
+                f"  Connection........................... "
+                f"{self.style.ERROR('✗ Unavailable: ' + str(exc)[:60])}"
+            )
+            if "postgresql" in engine or "postgres" in engine:
+                self.stderr.write(
+                    f"    {self.style.WARNING('→ Ensure PostgreSQL is running and credentials are correct')}"
+                )
 
         self.stderr.write(self.style.SUCCESS("=" * 70 + "\n"))

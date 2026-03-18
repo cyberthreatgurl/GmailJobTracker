@@ -22,7 +22,7 @@ class SamGovClient:
     def search_opportunities(self, params=None):
         """
         Search for opportunities.
-        
+
         Args:
             params (dict): Search parameters. Common params:
                 - postedFrom: MM/DD/YYYY
@@ -31,7 +31,7 @@ class SamGovClient:
                 - offset: int
                 - sort: str (e.g. "-postedDate")
                 - ptype: str (e.g. "o,k" for original, combined synopsis/solicitation)
-                
+
         Returns:
             dict: JSON response from API.
         """
@@ -44,25 +44,25 @@ class SamGovClient:
             "postedFrom": (datetime.now() - timedelta(days=30)).strftime("%m/%d/%Y"),
             "postedTo": datetime.now().strftime("%m/%d/%Y"),
         }
-        
+
         if params:
             default_params.update(params)
 
         try:
             response = requests.get(self.BASE_URL, params=default_params)
-            
+
             # Manual retry on 429 (Too Many Requests) with Retry-After support
             if response.status_code == 429:
                 wait_time = 2
                 retry_header = response.headers.get("Retry-After")
-                
+
                 if retry_header:
                     try:
                         wait_time = int(retry_header)
                     except ValueError:
                         # Could be HTTP-date format, just default to 5s if parsing fails for now
                         wait_time = 5
-                
+
                 logger.warning(f"SAM.gov returned 429 Rate Limit Exceeded. Backing off for {wait_time} seconds...")
                 time.sleep(wait_time)
                 response = requests.get(self.BASE_URL, params=default_params)

@@ -42,18 +42,56 @@ DEBUG=1 python manage.py ingest_gmail --days 7
 
 #### `mark_ghosted`
 
-Mark applications as "ghosted" when no response after 14+ days.
+**Manual operation.** Mark companies/applications as "ghosted" when no response after the configured threshold (default 30 days). This command must be run explicitly — it does **not** run automatically on page load.
 
 ```bash
+# Mark ghosted using default threshold (30 days)
 python manage.py mark_ghosted
+
+# Use a custom threshold
+python manage.py mark_ghosted --days 45
 ```
 
 **Logic**:
 
-- Finds `ThreadTracking` with label="application"
-- Checks `last_message_date` > 14 days ago
-- Updates label to "ghosted"
+- Excludes companies already rejected, headhunters, and noise
+- Checks `last_message_date` against `GHOSTED_DAYS_THRESHOLD` (AppSetting or env var, default 30)
+- Sets `ThreadTracking.status` / `Company.status` to `"ghosted"`
+- Sets pre-cutoff `Message.ml_label` to `"ghosted"` for chart visibility
 - Logs changes to console
+
+**Options**:
+
+- `--days N`: Override the ghosted threshold for this run (ignores AppSetting/env)
+
+---
+
+#### `update_company_statuses`
+
+**Manual operation.** Bulk-recalculate every company's status based on its latest message label and the configured `GHOSTED_DAYS_THRESHOLD`. Use this after relabeling messages or adjusting the threshold to sync all company statuses at once.
+
+```bash
+# Preview changes without writing
+python manage.py update_company_statuses --dry-run
+
+# Apply changes
+python manage.py update_company_statuses
+```
+
+**Logic**:
+
+- Iterates all companies (skips companies with `status="new"`)
+- Determines new status from the company's latest `Message.ml_label`:
+  - `rejection` → `rejected`
+  - `head_hunter` → `headhunter`
+  - `interview_invite` → `interview`
+  - `job_application` older than threshold → `ghosted`
+  - `job_application` within threshold → `application`
+- Saves only companies whose status actually changed
+
+**Options**:
+
+- `--dry-run`: Show what would change without making any writes
 
 ---
 
@@ -609,10 +647,13 @@ Searchable listing of defense contract awards scraped from war.gov.
 # 1. Ingest new emails
 python manage.py ingest_gmail --days 1
 
-# 2. Mark ghosted applications
+# 2. Mark ghosted applications (manual — run as needed)
 python manage.py mark_ghosted
 
-# 3. Check dashboard
+# 3. (Optional) Bulk-sync all company statuses after relabeling
+python manage.py update_company_statuses
+
+# 4. Check dashboard
 # Visit http://localhost:8000/
 ```
 

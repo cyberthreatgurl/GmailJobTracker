@@ -89,7 +89,7 @@ class Command(BaseCommand):
             self._fetch_war_gov(options)
         elif source == "usaspending":
             self._fetch_usaspending(options)
-            
+
         # Clean any ignored contracts upon completion
         if not options.get("dry_run"):
             call_command("clean_ignored_contracts")
@@ -97,7 +97,7 @@ class Command(BaseCommand):
             self._fetch_war_gov(options)
             self.stdout.write("")  # Blank line between sources
             self._fetch_usaspending(options)
-            
+
         # Clean any ignored contracts upon completion
         if not options.get("dry_run"):
             call_command("clean_ignored_contracts")
@@ -218,7 +218,7 @@ class Command(BaseCommand):
     def _search_contracts(self, query):
         """Search existing contracts by keyword (both sources)."""
         from tracker.models import DefenseContract
-        
+
         self.stdout.write(
             self.style.NOTICE(f'🔍 Searching stored contracts for "{query}"...')
         )
@@ -226,7 +226,7 @@ class Command(BaseCommand):
         contracts = DefenseContract.objects.filter(
             description__icontains=query
         ).order_by("-article_date")
-        
+
         count = contracts.count()
 
         if count == 0:
@@ -239,20 +239,20 @@ class Command(BaseCommand):
             amount = contract.amount_display
             source_icon = "🎖️" if contract.data_source == "war_gov" else "🏛️"
             source_label = contract.get_data_source_display() if hasattr(contract, 'get_data_source_display') else contract.data_source.upper()
-            
+
             self.stdout.write(f"  🏢 {contract.company_name_raw}")
             self.stdout.write(f"     💰 {amount} | {source_icon} {source_label}")
             self.stdout.write(f"     📅 {contract.article_date} | 📍 {contract.company_location or contract.work_location or 'N/A'}")
-            
+
             if contract.data_source == "war_gov" and contract.contract_number:
                 self.stdout.write(f"     📝 {contract.contract_number}")
             elif contract.data_source == "usaspending":
                 if contract.awarding_agency:
                     self.stdout.write(f"     🏢 {contract.awarding_agency}")
-            
+
             self.stdout.write("")
 
         if count > 25:
             self.stdout.write(f"  ... and {count - 25} more results.")
-        
+
         self.stdout.write("")

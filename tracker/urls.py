@@ -1,8 +1,7 @@
 from django.urls import path, re_path
 
 from tracker.admin import admin
-
-from . import views
+import tracker.views as views
 
 urlpatterns = [
     path("logs/", views.log_viewer, name="log_viewer"),
@@ -19,10 +18,26 @@ urlpatterns = [
     path("metrics/", views.metrics, name="metrics"),
     path("retrain_model/", views.retrain_model, name="retrain_model"),
     path("manual_entry/", views.manual_entry, name="manual_entry"),
-    path("manual_entry/<str:thread_id>/edit/", views.edit_manual_entry, name="edit_manual_entry"),
-    path("manual_entry/<str:thread_id>/delete/", views.delete_manual_entry, name="delete_manual_entry"),
-    path("manual_entry/bulk_delete/", views.bulk_delete_manual_entries, name="bulk_delete_manual_entries"),
-    path("api/company/<int:company_id>/job_titles/", views.get_company_job_titles, name="get_company_job_titles"),
+    path(
+        "manual_entry/<str:thread_id>/edit/",
+        views.edit_manual_entry,
+        name="edit_manual_entry",
+    ),
+    path(
+        "manual_entry/<str:thread_id>/delete/",
+        views.delete_manual_entry,
+        name="delete_manual_entry",
+    ),
+    path(
+        "manual_entry/bulk_delete/",
+        views.bulk_delete_manual_entries,
+        name="bulk_delete_manual_entries",
+    ),
+    path(
+        "api/company/<int:company_id>/job_titles/",
+        views.get_company_job_titles,
+        name="get_company_job_titles",
+    ),
     path("django_admin/", admin.site.urls, name="django_admin"),
     path("aliases/manage/", views.manage_aliases, name="manage_aliases"),
     path(
@@ -50,27 +65,63 @@ urlpatterns = [
     path("debug/label_rule/", views.label_rule_debugger, name="label_rule_debugger"),
     path("upload_eml/", views.upload_eml, name="upload_eml"),
     path("job_search_tracker/", views.job_search_tracker, name="job_search_tracker"),
-    path("missing_applications/", views.missing_applications, name="missing_applications"),
-    path("api/scrape_job_posting/", views.scrape_job_posting, name="scrape_job_posting"),
-    path("company/<int:company_id>/upload_document/", views.upload_company_document, name="upload_company_document"),
+    path(
+        "missing_applications/",
+        views.missing_applications,
+        name="missing_applications",
+    ),
+    path(
+        "api/scrape_job_posting/",
+        views.scrape_job_posting,
+        name="scrape_job_posting",
+    ),
+    path(
+        "company/<int:company_id>/upload_document/",
+        views.upload_company_document,
+        name="upload_company_document",
+    ),
     path("company/document/<int:document_id>/delete/", views.delete_company_document, name="delete_company_document"),
     path("company/<int:company_id>/news/", views.get_company_news, name="get_company_news"),
     path("company/<int:company_id>/refresh_news/", views.refresh_company_news, name="refresh_company_news"),
     path("company/<int:company_id>/news/add_url/", views.add_company_news_url, name="add_company_news_url"),
-    path("company/<int:company_id>/news/remove_article/", views.remove_company_news_article, name="remove_company_news_article"),
+    path(
+        "company/<int:company_id>/news/remove_article/",
+        views.remove_company_news_article,
+        name="remove_company_news_article",
+    ),
     path("company/<int:company_id>/interactions/add/", views.add_company_interaction, name="add_company_interaction"),
-    path("company/<int:company_id>/interactions/<int:interaction_id>/delete/", views.delete_company_interaction, name="delete_company_interaction"),
-    path("company/<int:company_id>/refresh_contracts/", views.refresh_company_contracts, name="refresh_company_contracts"),
+    path(
+        "company/<int:company_id>/interactions/<int:interaction_id>/delete/",
+        views.delete_company_interaction,
+        name="delete_company_interaction",
+    ),
+    path(
+        "company/<int:company_id>/refresh_contracts/",
+        views.refresh_company_contracts,
+        name="refresh_company_contracts",
+    ),
     path("defense_contracts/", views.defense_contracts, name="defense_contracts"),
     path("opportunities/", views.opportunities_dashboard, name="opportunities_dashboard"),
     path("opportunities/refresh/<int:opportunity_id>/", views.refresh_opportunity, name="refresh_opportunity"),
-    path("opportunities/refresh-json/<int:opportunity_id>/", views.refresh_opportunity_json, name="refresh_opportunity_json"),
+    path(
+        "opportunities/refresh-json/<int:opportunity_id>/",
+        views.refresh_opportunity_json,
+        name="refresh_opportunity_json",
+    ),
     path("opportunities/debug/<int:opportunity_id>/", views.get_opportunity_debug, name="get_opportunity_debug"),
     path("defense_contracts/upload_csv/", views.upload_contracts_csv, name="upload_contracts_csv"),
     path("defense_contracts/upload_json/", views.upload_contract_json, name="upload_contract_json"),
     path("defense_contracts/create_company/", views.create_company_popup, name="create_company_popup"),
-    path("defense_contracts/<int:contract_id>/link_company/", views.link_contract_company, name="link_contract_company"),
-    path("defense_contracts/<int:contract_id>/refresh/", views.refresh_usaspending_award, name="refresh_usaspending_award"),
+    path(
+        "defense_contracts/<int:contract_id>/link_company/",
+        views.link_contract_company,
+        name="link_contract_company",
+    ),
+    path(
+        "defense_contracts/<int:contract_id>/refresh/",
+        views.refresh_usaspending_award,
+        name="refresh_usaspending_award",
+    ),
     path("api/fetch_contracts/", views.fetch_contracts_ajax, name="fetch_contracts_ajax"),
     path("api/add_ignore_rule/", views.add_contract_ignore_rule, name="add_contract_ignore_rule"),
     path("api/update_naics_description/", views.update_naics_description, name="update_naics_description"),

@@ -1,7 +1,10 @@
+# pylint: disable=broad-exception-caught
+
 from django import forms
 from django.contrib import admin
+from django.db.models import Count
 from django.shortcuts import render, redirect
-from django.urls import path
+from django.urls import path, reverse
 from django.contrib import messages
 
 from .models import (
@@ -10,6 +13,7 @@ from .models import (
     Company,
     CompanyAlias,
     CompanyNews,
+    ContractIgnoreRule,
     DefenseContract,
     DomainToCompany,
     GmailFilterImportLog,
@@ -19,6 +23,8 @@ from .models import (
     MessageLabel,
     ModelTrainingLabelMetric,
     ModelTrainingRun,
+    NAICSCode,
+    PSCCode,
     SamGovOpportunity,
     ScrapedArticle,
     ThreadTracking,
@@ -75,7 +81,7 @@ class CustomAdminSite(admin.AdminSite):
 custom_admin_site = CustomAdminSite(name="custom_admin")
 
 
-def mark_as_reviewed(modeladmin, request, queryset):
+def mark_as_reviewed(_modeladmin, _request, queryset):
     queryset.update(reviewed=True)
 
 
@@ -107,8 +113,6 @@ class CompanyAdmin(admin.ModelAdmin):
 
     def merge_selected_companies(self, request, queryset):
         """Admin action to merge selected companies."""
-        from django.shortcuts import redirect
-        from django.urls import reverse
         selected = queryset.values_list("id", flat=True)
         if len(selected) < 2:
             self.message_user(
@@ -117,11 +121,11 @@ class CompanyAdmin(admin.ModelAdmin):
                 level="warning"
             )
             return
-        
+
         # Redirect to merge view with selected company IDs
         company_ids = "&".join([f"company_ids={cid}" for cid in selected])
         return redirect(f"{reverse('merge_companies')}?{company_ids}")
-    
+
     merge_selected_companies.short_description = "🔗 Merge selected companies"
 
 
@@ -176,7 +180,7 @@ class MessageAdmin(admin.ModelAdmin):
                     eml_content = eml_file.read().decode("utf-8", errors="ignore")
 
                     # Import the ingestion function
-                    from parser import ingest_message_from_eml
+                    from parser import ingest_message_from_eml  # pylint: disable=deprecated-module
 
                     # Ingest the message
                     result = ingest_message_from_eml(eml_content)
@@ -220,7 +224,8 @@ class MessageAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         """When a Message's ml_label is changed manually in admin, keep ThreadTracking in sync.
 
-        - If label becomes an application/interview and a ThreadTracking doesn't exist, create one (only when company present).
+        - If label becomes an application/interview and a ThreadTracking doesn't exist, create one
+          (only when company present).
         - If ThreadTracking exists, update its ml_label and ml_confidence to reflect the manual change.
         """
         old_label = None
@@ -437,10 +442,10 @@ class DefenseContractAdmin(admin.ModelAdmin):
         """Display detailed company link information with unlink button."""
         if not obj.company:
             return "No company linked"
-        
+
         from django.utils.html import format_html
         from django.urls import reverse
-        
+
         company_url = reverse("admin:tracker_company_change", args=[obj.company.id])
         return format_html(
             '<div style="padding: 10px; background: #e8f5e9; border-left: 4px solid #4caf50;">'
@@ -594,11 +599,6 @@ class SamGovOpportunityAdmin(admin.ModelAdmin):
 
 custom_admin_site.register(SamGovOpportunity, SamGovOpportunityAdmin)
 
-from tracker.models import ContractIgnoreRule
-
-from django import forms
-from tracker.models import DefenseContract, NAICSCode
-from django.db.models import Exists, OuterRef
 
 class ContractIgnoreRuleForm(forms.ModelForm):
     class Meta:
@@ -637,10 +637,6 @@ class ContractIgnoreRuleAdmin(admin.ModelAdmin):
 
     def naics_summary_view(self, request):
         """Show non-ignored NAICS codes ranked by contract count."""
-        from django.db.models import Count, Q
-        from tracker.models import DefenseContract, ContractIgnoreRule, NAICSCode
-        from django.shortcuts import render
-
         # Build the set of ignored NAICS codes from all active rules
         ignored_codes = set()
         for rule in ContractIgnoreRule.objects.filter(is_active=True).prefetch_related('naics_codes'):
@@ -690,19 +686,17 @@ class ContractIgnoreRuleAdmin(admin.ModelAdmin):
         return super().changelist_view(request, extra_context=extra_context)
 
     @admin.action(description='Activate selected rules (Set is_active=True)')
-    def enable_rules(self, request, queryset):
+    def enable_rules(self, _request, queryset):
         queryset.update(is_active=True)
 
     @admin.action(description='Deactivate selected rules (Set is_active=False)')
-    def disable_rules(self, request, queryset):
+    def disable_rules(self, _request, queryset):
         queryset.update(is_active=False)
 
     @admin.action(description='Flag selected rules for deletion (Set should_delete=True)')
-    def flag_for_deletion(self, request, queryset):
+    def flag_for_deletion(self, _request, queryset):
         queryset.update(should_delete=True)
 
-
-from tracker.models import NAICSCode, PSCCode
 
 
 class NAICSCodeAdmin(admin.ModelAdmin):

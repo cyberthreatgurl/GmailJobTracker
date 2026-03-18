@@ -12,21 +12,20 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.utils.timezone import now
 from tracker.forms import ApplicationEditForm, ManualEntryForm
 from tracker.models import Company, Message, ThreadTracking
-from tracker.services import MessageService
 from tracker.views.helpers import build_sidebar_context
 
 
 def check_for_existing_rejection(thread_tracking, company):
     """Check if there are existing rejection/cancelled messages for this company.
-    
+
     When a user manually creates an application, this function checks if there are
     any existing rejection messages for the same company that should be merged.
     If found, updates the ThreadTracking with rejection_date and cancelled flag.
-    
+
     Args:
         thread_tracking: The newly created ThreadTracking object
         company: The Company object
-    
+
     Returns:
         True if a rejection was found and merged, False otherwise
     """
@@ -35,31 +34,33 @@ def check_for_existing_rejection(thread_tracking, company):
         company=company,
         ml_label__in=["rejection", "rejected", "cancelled"]
     ).order_by("-timestamp")
-    
+
     if not rejection_messages.exists():
         return False
-    
+
     # Get the most recent rejection message
     rejection_msg = rejection_messages.first()
-    
+    if rejection_msg is None:
+        return False
+
     # Check if this rejection is already linked to another ThreadTracking
     existing_tt = ThreadTracking.objects.filter(
         thread_id=rejection_msg.thread_id
     ).exclude(id=thread_tracking.id).first()
-    
+
     if existing_tt:
         # Already linked to another ThreadTracking, don't merge
         return False
-    
+
     # Update the ThreadTracking with rejection info
     thread_tracking.rejection_date = rejection_msg.timestamp.date()
     thread_tracking.status = "rejected"
-    
+
     # Check for cancelled keywords in the rejection message
     combined_text = (rejection_msg.subject + " " + (rejection_msg.body or "")).lower()
     if re.search(r'\b(?:cancelled|canceled|closed/cancelled|cancelled/closed)\b', combined_text):
         thread_tracking.cancelled = True
-    
+
     thread_tracking.save()
     return True
 
@@ -90,8 +91,8 @@ def flagged_applications(request):
 @login_required
 def manual_entry(request):
     """Manual entry form for NEW job applications from external sources.
-    
-    Note: This form only creates new applications. To update milestones 
+
+    Note: This form only creates new applications. To update milestones
     (prescreen, interview, rejection, offer dates), use the Application Details
     section on the Label Companies page.
     """
@@ -148,7 +149,7 @@ def manual_entry(request):
                 ml_confidence=1.0,  # Manual entries are 100% confident
                 reviewed=True,
             )
-            
+
             # Check for existing rejection/cancelled messages for this company
             rejection_merged = check_for_existing_rejection(new_thread_tracking, company)
 
@@ -183,7 +184,7 @@ def manual_entry(request):
             if rejection_merged:
                 rejection_type = "cancelled" if new_thread_tracking.cancelled else "rejected"
                 success_msg += f" (📧 Found existing {rejection_type} message - status updated)"
-            
+
             messages.success(request, success_msg)
             return redirect("manual_entry")
     else:
@@ -193,10 +194,10 @@ def manual_entry(request):
         if company_id:
             try:
                 company = Company.objects.get(id=int(company_id))
-                initial_data['company_select'] = str(company.id)
+                initial_data['company_select'] = str(company.pk)
             except (ValueError, Company.DoesNotExist):
                 pass  # Invalid company ID, ignore
-        
+
         form = ManualEntryForm(initial=initial_data)
 
     # Show recent manual entries (includes new manual entries and updated existing entries)
@@ -219,13 +220,13 @@ def manual_entry(request):
 @login_required
 def edit_manual_entry(request, thread_id):
     """Edit a manual application entry.
-    
+
     Note: This only edits basic application info (company, job title, dates).
     Milestone dates (prescreen, interview, rejection, offer) should be updated
     via the Application Details section on the Label Companies page.
     """
     entry = get_object_or_404(ThreadTracking, thread_id=thread_id, company_source__in=["manual", "manual_update"])
-    
+
     if request.method == "POST":
         form = ManualEntryForm(request.POST)
         if form.is_valid():
@@ -285,9 +286,9 @@ def edit_manual_entry(request, thread_id):
                 notes_text = parts[1] if len(parts) > 1 else ""
         elif msg and msg.body and msg.body.startswith("Source: "):
             source_text = msg.body.split("\n")[0].replace("Source: ", "").strip()
-        
+
         initial_data = {
-            "company_select": str(entry.company.id),
+            "company_select": str(entry.company.pk),
             "job_title": entry.job_title,
             "job_id": entry.job_id,
             "application_date": entry.sent_date,
@@ -310,20 +311,20 @@ def edit_manual_entry(request, thread_id):
 def delete_manual_entry(request, thread_id):
     """Delete a manual entry."""
     entry = get_object_or_404(ThreadTracking, thread_id=thread_id, company_source__in=["manual", "manual_update"])
-    
+
     if request.method == "POST":
         company_name = entry.company.name
         job_title = entry.job_title
-        
+
         # Delete associated Message
         Message.objects.filter(thread_id=thread_id).delete()
-        
+
         # Delete ThreadTracking
         entry.delete()
-        
+
         messages.success(request, f"🗑️ Deleted manual entry: {job_title} at {company_name}")
         return redirect("manual_entry")
-    
+
     return redirect("manual_entry")
 
 
@@ -332,43 +333,43 @@ def bulk_delete_manual_entries(request):
     """Delete multiple manual entries at once."""
     if request.method == "POST":
         thread_ids = request.POST.getlist("thread_ids")
-        
+
         if not thread_ids:
             messages.warning(request, "No entries selected for deletion.")
             return redirect("manual_entry")
-        
+
         # Get entries to delete
         entries = ThreadTracking.objects.filter(
-            thread_id__in=thread_ids, 
+            thread_id__in=thread_ids,
             company_source="manual"
         )
-        
+
         deleted_count = entries.count()
-        
+
         if deleted_count == 0:
             messages.warning(request, "No valid entries found to delete.")
             return redirect("manual_entry")
-        
+
         # Delete associated Messages
         Message.objects.filter(thread_id__in=thread_ids).delete()
-        
+
         # Delete ThreadTracking entries
         entries.delete()
-        
+
         messages.success(
-            request, 
+            request,
             f"🗑️ Successfully deleted {deleted_count} manual {'entry' if deleted_count == 1 else 'entries'}"
         )
         return redirect("manual_entry")
-    
+
     return redirect("manual_entry")
 
 
 @login_required
-def get_company_job_titles(request, company_id):
+def get_company_job_titles(_request, company_id):
     """API endpoint to get job titles for a company's existing applications."""
     from django.http import JsonResponse
-    
+
     try:
         company = Company.objects.get(id=company_id)
         # Get distinct job titles from ThreadTracking for this company
@@ -376,7 +377,7 @@ def get_company_job_titles(request, company_id):
         job_titles = (
             ThreadTracking.objects.filter(company=company)
             .filter(
-                Q(status="application") | 
+                Q(status="application") |
                 Q(ml_label="job_application") |
                 Q(ml_label="application")
             )
@@ -398,4 +399,12 @@ def get_company_job_titles(request, company_id):
         })
 
 
-__all__ = ["edit_application", "flagged_applications", "manual_entry", "edit_manual_entry", "delete_manual_entry", "bulk_delete_manual_entries", "get_company_job_titles"]
+__all__ = [
+    "edit_application",
+    "flagged_applications",
+    "manual_entry",
+    "edit_manual_entry",
+    "delete_manual_entry",
+    "bulk_delete_manual_entries",
+    "get_company_job_titles",
+]

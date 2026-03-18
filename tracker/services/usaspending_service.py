@@ -138,11 +138,11 @@ class USASpendingService:
         """
         if not start_date:
             start_date = (date.today() - timedelta(days=365)).isoformat()
-        
+
         # Ensure we have a valid end date for the query (today)
         self.end_date = date.today().isoformat()
         self.start_date = start_date # Override service instance start date
-        
+
         # Normalize company name for API search
         norm_name = normalize_company_name(company_name)
         if not norm_name:
@@ -151,7 +151,7 @@ class USASpendingService:
 
         # Collect search keywords: Canonical name + Aliases
         search_terms = {norm_name} # Use set to dedup
-        
+
         # Get aliases for this company
         # CompanyAlias.company is a string, not a FK
         aliases = CompanyAlias.objects.filter(company__iexact=company_name).values_list('alias', flat=True)
@@ -159,19 +159,19 @@ class USASpendingService:
             norm_alias = normalize_company_name(alias)
             if norm_alias:
                 search_terms.add(norm_alias)
-        
+
         # Convert back to list for iteration
         keywords_list = list(search_terms)
 
         logger.info("Fetching contracts for company '%s' since %s", company_name, start_date)
 
         # Force a reasonable limit for company specific fetch
-        limit = 100 
-        
+        limit = 100
+
         created = 0
         updated = 0
         errors = 0
-        
+
         # Determine target company object
         target_company = Company.objects.filter(name__iexact=company_name).first()
 
@@ -197,7 +197,7 @@ class USASpendingService:
             term = search['term']
             try:
                 raw_contracts = self._fetch_contracts_from_api(limit, **search['kwargs'])
-                
+
                 if not raw_contracts:
                     logger.debug("No contracts found for term '%s'", term)
                     continue
@@ -205,11 +205,11 @@ class USASpendingService:
                 for raw in raw_contracts:
                     try:
                         parsed = self._parse_contract(raw)
-                        
+
                         # Force the link to the target company regardless of internal matching logic
                         if target_company:
                             parsed["company"] = target_company
-        
+
                         saved, is_new = self._save_contract(parsed, overwrite=True)
                         if saved:
                             if is_new:
@@ -222,7 +222,7 @@ class USASpendingService:
             except Exception as e:
                 logger.error("Error fetching contracts for term '%s': %s", term, e)
                 errors += 1
-                
+
         return {"created": created, "updated": updated, "errors": errors}
 
     def fetch_and_save_contracts(
@@ -279,7 +279,7 @@ class USASpendingService:
             try:
                 parsed = self._parse_contract(raw_contract)
                 saved, is_new = self._save_contract(parsed, overwrite=overwrite)
-                
+
                 if saved:
                     if is_new:
                         created += 1
@@ -309,13 +309,13 @@ class USASpendingService:
         per_page = 50  # Lower limit slightly for keyword searches
 
         # If keyword search, we likely won't get huge pages, but let's be safe
-        
+
         while len(contracts) < limit:
             # Build request payload
             payload = self._build_api_payload(
-                page, 
-                per_page, 
-                agency_codes, 
+                page,
+                per_page,
+                agency_codes,
                 keywords=keywords,
                 recipient_identifiers=recipient_identifiers
             )
@@ -324,7 +324,7 @@ class USASpendingService:
             for attempt in range(1, MAX_RETRIES + 1):
                 try:
                     response = self._make_api_request(payload)
-                    break 
+                    break
                 except: # ... (existing retry logic handled in original code block)
                     if attempt == MAX_RETRIES:
                         raise
@@ -334,7 +334,7 @@ class USASpendingService:
             results = response.get("results", [])
             if not results:
                 break
-            
+
             contracts.extend(results)
             if len(results) < per_page:
                 break
@@ -357,7 +357,7 @@ class USASpendingService:
         Args:
             keywords: List of search terms. USASpending supports recipient_search_text
                       or bare keywords.
-            recipient_identifiers: List of recipient identifiers (UEI, DUNS, Name) 
+            recipient_identifiers: List of recipient identifiers (UEI, DUNS, Name)
                                    for specific recipient search.
         """
         payload = {
@@ -389,8 +389,8 @@ class USASpendingService:
                 "Highly Compensated Officer 5 Name",
                 "Highly Compensated Officer 5 Amount",
                 # Include UEI/DUNS for downstream processing
-                "Recipient UEI", 
-                "Recipient DUNS", 
+                "Recipient UEI",
+                "Recipient DUNS",
                 # Classification Codes
                 "Product or Service Code",
                 "Product or Service Code Description",
@@ -484,7 +484,7 @@ class USASpendingService:
             raise ValueError("Missing required field: Award ID")
         if not recipient_name:
             raise ValueError("Missing required field: Recipient Name")
-        
+
         # Build source URL using generated_internal_id if available, else fallback to award_id
         if generated_internal_id:
             source_url = f"https://www.usaspending.gov/award/{generated_internal_id}"
@@ -654,7 +654,7 @@ class USASpendingService:
             # Resolve alias string to Company object
             canonical_company = Company.objects.filter(name__iexact=alias_match.company).first()
             if canonical_company:
-                logger.debug("Exact alias match: %s → %s (via alias %s)", 
+                logger.debug("Exact alias match: %s → %s (via alias %s)",
                              recipient_name, canonical_company.name, alias_match.alias)
                 return canonical_company
 
@@ -677,8 +677,8 @@ class USASpendingService:
             alias_candidates = CompanyAlias.objects.filter(alias__istartswith=first_char)
             for alias_obj in alias_candidates:
                 score = fuzz.ratio(recipient_name.lower(), alias_obj.alias.lower())
-                
-                # Give alias matches slightly lower priority if score is tied? 
+
+                # Give alias matches slightly lower priority if score is tied?
                 # Or just update if strictly better?
                 if score > best_score:
                     # Resolve to Company object
@@ -686,7 +686,7 @@ class USASpendingService:
                     if canonical_company:
                         best_score = score
                         best_match = canonical_company
-                    
+
         if best_score >= COMPANY_MATCH_THRESHOLD:
             logger.debug(
                 "Fuzzy company match (%d%%): %s → %s",
@@ -717,7 +717,7 @@ class USASpendingService:
             return False
 
         url = f"{USASPENDING_API_BASE}/api/v2/awards/{generated_internal_id}/"
-        
+
         try:
             response = requests.get(url, timeout=timeout)
             if response.status_code == 200:
@@ -741,7 +741,7 @@ class USASpendingService:
             Tuple[bool, bool]: (saved, is_new)
         """
         award_id = parsed_data["award_id"]
-        
+
         # Check existing
         existing = DefenseContract.objects.filter(
             data_source="usaspending",
@@ -752,7 +752,7 @@ class USASpendingService:
             if not overwrite:
                 logger.debug("Skipping duplicate award_id: %s", award_id)
                 return False, False
-            
+
             # Need to update existing record
             for key, value in parsed_data.items():
                 setattr(existing, key, value)

@@ -11,7 +11,7 @@ from .models import ATSDomain, Company, CompanyAlias, DomainToCompany, KnownComp
 @receiver([post_save, post_delete], sender=ATSDomain)
 @receiver([post_save, post_delete], sender=DomainToCompany)
 @receiver([post_save, post_delete], sender=CompanyAlias)
-def export_companies(sender, **kwargs):
+def export_companies(_sender, **_kwargs):
     known = list(KnownCompany.objects.values_list("name", flat=True))
     ats_domains = list(ATSDomain.objects.values_list("domain", flat=True))
     domain_to_company = {
@@ -37,7 +37,7 @@ def export_companies(sender, **kwargs):
 
 
 @receiver(post_save, sender=Company)
-def sync_domain_to_company_on_company_save(sender, instance: Company, **kwargs):
+def sync_domain_to_company_on_company_save(_sender, instance: Company, **_kwargs):
     """
     When a Company is saved, if it has a valid domain and name, ensure DomainToCompany is upserted.
     This keeps json/companies.json domain_to_company in sync via export_companies signal above.
@@ -56,18 +56,18 @@ def sync_domain_to_company_on_company_save(sender, instance: Company, **kwargs):
     if "." not in domain:
         return
     # Upsert mapping
-    obj, _ = DomainToCompany.objects.update_or_create(
+    _, _ = DomainToCompany.objects.update_or_create(
         domain=domain, defaults={"company": name}
     )
     # Trigger export
-    export_companies(sender=DomainToCompany)
+    export_companies(_sender=DomainToCompany)
 
 
 @receiver(pre_delete, sender=Message)
-def cleanup_thread_tracking_before_delete(sender, instance, **kwargs):
+def cleanup_thread_tracking_before_delete(_sender, instance, **_kwargs):
     """
     Before deleting a Message, check if we need to update or delete its ThreadTracking.
-    
+
     This handles:
     1. If this is the last message in the thread -> delete ThreadTracking
     2. If deleting a rejection message -> clear rejection_date and find next rejection
@@ -75,51 +75,59 @@ def cleanup_thread_tracking_before_delete(sender, instance, **kwargs):
     4. Recalculate ml_label based on remaining messages
     """
     thread_id = instance.thread_id
-    
+
     if not thread_id:
         return
-    
+
     try:
         thread_tracking = ThreadTracking.objects.get(thread_id=thread_id)
     except ThreadTracking.DoesNotExist:
         return
-    
+
     # Count remaining messages in this thread (excluding the one being deleted)
     remaining_messages = Message.objects.filter(thread_id=thread_id).exclude(
         msg_id=instance.msg_id
     )
     remaining_count = remaining_messages.count()
-    
+
     # If this is the last message, delete the ThreadTracking
     if remaining_count == 0:
         print(f"[SIGNAL] Deleting ThreadTracking {thread_id} - last message deleted")
         thread_tracking.delete()
         return
-    
+
     # Otherwise, update ThreadTracking based on remaining messages
-    print(f"[SIGNAL] Updating ThreadTracking {thread_id} - {remaining_count} messages remain")
-    
+    print(
+        f"[SIGNAL] Updating ThreadTracking {thread_id} - "
+        f"{remaining_count} messages remain"
+    )
+
     # Recalculate rejection_date
-    rejections = remaining_messages.filter(ml_label='rejection').order_by('-timestamp')
+    rejections = remaining_messages.filter(ml_label="rejection").order_by("-timestamp")
     if rejections.exists():
         latest_rejection = rejections.first()
         thread_tracking.rejection_date = latest_rejection.timestamp.date()
     else:
         thread_tracking.rejection_date = None
-    
+
     # Recalculate interview_date
-    interviews = remaining_messages.filter(ml_label='interview_invite').order_by('-timestamp')
+    interviews = remaining_messages.filter(ml_label="interview_invite").order_by("-timestamp")
     if interviews.exists():
         latest_interview = interviews.first()
         thread_tracking.interview_date = latest_interview.timestamp.date()
     else:
         thread_tracking.interview_date = None
-    
+
     # Recalculate ml_label - use the most recent message's label
     latest_message = remaining_messages.order_by('-timestamp').first()
     if latest_message:
         thread_tracking.ml_label = latest_message.ml_label
         thread_tracking.ml_confidence = latest_message.confidence
-    
+
     thread_tracking.save()
-    print(f"[SIGNAL] Updated ThreadTracking: rejection_date={thread_tracking.rejection_date}, interview_date={thread_tracking.interview_date}, ml_label={thread_tracking.ml_label}")
+    print(
+        "[SIGNAL] Updated ThreadTracking: "
+        f"rejection_date={thread_tracking.rejection_date}, "
+        f"interview_date={thread_tracking.interview_date}, "
+        f"ml_label={thread_tracking.ml_label}"
+    )

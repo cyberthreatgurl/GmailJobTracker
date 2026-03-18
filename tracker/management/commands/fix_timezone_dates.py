@@ -32,7 +32,7 @@ class Command(BaseCommand):
 
         # Get all ThreadTracking records
         threads_qs = ThreadTracking.objects.all().select_related('company')
-        
+
         if company_id:
             threads_qs = threads_qs.filter(company_id=company_id)
 
@@ -47,7 +47,7 @@ class Command(BaseCommand):
             try:
                 # Get the first message in this thread
                 msg = Message.objects.filter(thread_id=thread.thread_id).order_by('timestamp').first()
-                
+
                 if not msg:
                     continue
 
@@ -61,7 +61,7 @@ class Command(BaseCommand):
                         old_date = thread.sent_date
                         thread.sent_date = local_date
                         thread.save(update_fields=['sent_date'])
-                        
+
                         self.stdout.write(
                             self.style.SUCCESS(
                                 f'✓ {thread.company.name} - {thread.job_title[:40] or "(no title)"}'
@@ -77,7 +77,7 @@ class Command(BaseCommand):
                         self.stdout.write(
                             f'  Would change: {thread.sent_date} → {local_date} (UTC: {msg.timestamp})'
                         )
-                    
+
                     fixed_count += 1
 
             except Exception as e:
@@ -89,7 +89,7 @@ class Command(BaseCommand):
         self.stdout.write('\n' + '='*70)
         self.stdout.write(f'Total ThreadTracking records scanned: {total_threads}')
         self.stdout.write(f'Date corrections needed: {fixed_count}')
-        
+
         if errors:
             self.stdout.write(self.style.ERROR(f'Errors: {len(errors)}'))
             for error in errors[:10]:  # Show first 10 errors

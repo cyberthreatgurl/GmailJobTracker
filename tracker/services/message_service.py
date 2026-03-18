@@ -150,8 +150,8 @@ class MessageService:
         # Persist changes if any
         try:
             if added or updated:
-                with open(cfg_path, "w", encoding="utf-8") as f:
-                    json.dump(companies_cfg, f, ensure_ascii=False, indent=2)
+                from tracker.utils.companies_io import safe_write_companies_json
+                safe_write_companies_json(cfg_path, companies_cfg, "message_service.update_company_in_json")
         except Exception as e:
             return added, updated, f"Failed to write companies.json: {e}"
 
@@ -227,7 +227,7 @@ class MessageService:
 
             # Re-parse the message
             result = parse_subject(
-                subject=msg.subject, sender=msg.sender, body=msg.body, metadata={}
+                subject=msg.subject, sender=msg.sender, body=msg.body
             )
 
             # Update message with new classification

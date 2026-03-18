@@ -55,6 +55,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "dashboard.middleware.RequestTimingMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -96,6 +97,7 @@ DATABASES = {
         "PASSWORD": os.environ.get("DB_PASSWORD", "##fl1per!!"),
         "HOST": os.environ.get("DB_HOST", "localhost"),
         "PORT": os.environ.get("DB_PORT", "5432"),
+        "CONN_MAX_AGE": 60,  # reuse connections for 60 s instead of reconnecting per request
     }
 }
 
@@ -182,6 +184,15 @@ LOGGING = {
     "root": {
         "handlers": ["console", "daily_file"],
         "level": "INFO",
+    },
+    "loggers": {
+        # Dedicated logger for request/block timing — always logs to both outputs.
+        # Set level to WARNING in production to reduce noise.
+        "perf": {
+            "handlers": ["console", "daily_file"],
+            "level": "DEBUG",
+            "propagate": False,
+        },
     },
 }
 

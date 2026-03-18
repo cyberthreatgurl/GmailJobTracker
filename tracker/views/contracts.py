@@ -546,8 +546,8 @@ def _sync_company_to_json(company, domain):
                 changes = True
 
         if changes:
-            with open(companies_json_path, "w", encoding="utf-8") as f:
-                json.dump(data, f, indent=2, ensure_ascii=False)
+            from tracker.utils.companies_io import safe_write_companies_json
+            safe_write_companies_json(companies_json_path, data, "contracts._sync_company_to_json")
     except Exception as exc:
         logger.warning("Failed to sync company to companies.json: %s", exc)
 

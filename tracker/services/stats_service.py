@@ -124,13 +124,13 @@ class StatsService:
         # - interview_date today or in the future
         # - prescreen_date today or in the future
         # Exclude completed interviews and rejected applications
-        # 
+        #
         # Priority logic:
         # 1. Prefer ThreadTracking records WITH job titles (real applications)
         # 2. If multiple records per company, show the one with the earliest date
         # 3. Exclude empty thread-tracking records unless no real application exists
         today = now().date()
-        
+
         # Get all upcoming records, prioritizing those with job titles
         all_upcoming = (
             ThreadTracking.objects.filter(
@@ -149,7 +149,7 @@ class StatsService:
             .select_related("company")
             .order_by("earliest_date", "company__name")
         )
-        
+
         # Group by company and take the first (earliest) record per company
         seen_companies = set()
         upcoming_interviews = []
@@ -176,10 +176,10 @@ class StatsService:
         # Count companies added today (use localtime to handle timezone correctly)
         local_now = timezone.localtime(now())
         today_start = local_now.replace(hour=0, minute=0, second=0, microsecond=0)
-        
+
         # Get today's stats specifically (for the "Today" label in sidebar)
         today_stats = IngestionStats.objects.filter(date=local_now.date()).first()
-        
+
         companies_added_today = Company.objects.filter(
             first_contact__gte=today_start
         ).count()
@@ -209,9 +209,9 @@ class StatsService:
             Q(prescreen_date__isnull=False) |
             Q(interview_date__isnull=False)
         ).count()
-        
+
         response_rate = round((responded_apps / total_apps * 100), 1) if total_apps > 0 else 0
-        
+
         # Calculate average days to first response
         # First response = earliest of rejection_date, prescreen_date, interview_date
         # Only count applications with sent_date AND at least one response date AFTER sent_date
@@ -225,7 +225,7 @@ class StatsService:
             Q(prescreen_date__isnull=False) |
             Q(interview_date__isnull=False)
         )
-        
+
         total_days = 0
         count_with_response = 0
         for thread in responded_threads:
@@ -241,7 +241,7 @@ class StatsService:
                 days_to_response = (earliest_response - thread.sent_date).days
                 total_days += days_to_response
                 count_with_response += 1
-        
+
         avg_response_days = round(total_days / count_with_response, 1) if count_with_response > 0 else None
 
         return {

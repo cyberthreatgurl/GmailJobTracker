@@ -21,23 +21,23 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         csv_file_path = options['csv_file']
-        
+
         self.stdout.write(f"Importing contracts from {csv_file_path}...")
         print(f"DEBUG: Opening file {csv_file_path}")
-        
+
         try:
             with open(csv_file_path, 'r', encoding='utf-8-sig') as f:
                 # Read header line first to normalize
                 header_line = f.readline()
                 fieldnames = [h.strip().lower() for h in next(csv.reader([header_line]))]
-                
+
                 reader = csv.DictReader(f, fieldnames=fieldnames)
-                
+
                 # Debug headers
                 print(f"DEBUG: CSV Headers (normalized): {fieldnames[:5]} ...")
-                
+
                 if 'contract_award_unique_key' not in fieldnames:
-                    print("DEBUG: WARNING - 'contract_award_unique_key' not found in headers!")     
+                    print("DEBUG: WARNING - 'contract_award_unique_key' not found in headers!")
                     # Try to find a close match
                     candidates = [h for h in fieldnames if 'unique' in h and 'key' in h]
                     print(f"DEBUG: Candidate key columns: {candidates}")
@@ -46,13 +46,13 @@ class Command(BaseCommand):
                 created_count = 0
                 updated_count = 0
                 errors = 0
-                
+
                 for row in reader:
                     count += 1
                     if count == 1:
                         print(f"DEBUG: First row keys: {list(row.keys())}")
                         print(f"DEBUG: First row sample values: {list(row.values())[:5]}")
-                    
+
                     if count % 100 == 0:
                         print(f"DEBUG: Processing row {count}...")
 
@@ -66,11 +66,11 @@ class Command(BaseCommand):
                         errors += 1
                         logger.error(f"Error processing row {count}: {e}")
                         self.stdout.write(self.style.ERROR(f"Error on row {count}: {e}"))
-                
+
                 msg = f"Processed {count} rows. Created: {created_count}, Updated: {updated_count}, Errors: {errors}"
                 self.stdout.write(self.style.SUCCESS(msg))
                 print(f"DEBUG: {msg}")
-        
+
         except FileNotFoundError:
             self.stdout.write(self.style.ERROR(f"File not found: {csv_file_path}"))
             print(f"DEBUG: File not found: {csv_file_path}")
@@ -80,14 +80,14 @@ class Command(BaseCommand):
 
     def process_row(self, row):
         # 1. Extract basic fields. Use dictionary access carefully to avoid KeyErrors but log missing critical fields.
-        generated_unique_award_id = (row.get('contract_award_unique_key') or 
-                                     row.get('prime_award_unique_key') or 
+        generated_unique_award_id = (row.get('contract_award_unique_key') or
+                                     row.get('prime_award_unique_key') or
                                      row.get('generated_unique_award_id') or '').strip()
         piid = (row.get('award_id_piid') or row.get('piid') or '').strip()
-        
+
         # Determine award_id
         award_id = generated_unique_award_id or piid
-        
+
         if not award_id:
             logger.warning(f"Skipping row with no award_id or unique key.")
             if count <= 20: # Only print first few skips to avoid spam
@@ -98,31 +98,31 @@ class Command(BaseCommand):
 
         # 2. Parse amounts
         # USASpending CSVs use 'total_dollars_obligated' sometimes, check for aliases
-        amount_raw = (row.get('current_total_value_of_award') or 
-                     row.get('total_obligation') or 
+        amount_raw = (row.get('current_total_value_of_award') or
+                     row.get('total_obligation') or
                      row.get('total_dollars_obligated') or
                      row.get('federal_action_obligation'))
-        
+
         amount = self.parse_decimal(amount_raw)
-        
+
         # 3. Parse dates
         report_date_str = (row.get('initial_report_date') or '').strip()
         action_date_str = (row.get('action_date') or '').strip()
         action_date_str = row.get('action_date', '').strip()
-        
+
         article_date = None
         if report_date_str:
             article_date = self.parse_date(report_date_str)
         if not article_date and action_date_str:
             article_date = self.parse_date(action_date_str)
-        
+
         if not article_date:
             article_date = timezone.now().date()
 
         # 4. Company Matching
         recipient_name = row.get('recipient_name', '').strip()
         company = self.match_company(recipient_name)
-        
+
         # 5. Officer Parsing
         off1_name = row.get('highly_compensated_officer_1_name', '')
         off1_amt = self.parse_decimal(row.get('highly_compensated_officer_1_amount'))
@@ -137,16 +137,16 @@ class Command(BaseCommand):
 
         # 6. Description & Metadata
         description = row.get('transaction_description', '') or row.get('description', '')
-        
+
         # New fields requested
         product_service_code = row.get('product_or_service_code') or row.get('product_service_code') or ''
         product_service_desc = row.get('product_or_service_code_description', '')
         naics_code = row.get('naics_code') or ''
         naics_desc = row.get('naics_description') or ''
-        
+
         recipient_dba = row.get('recipient_doing_business_as_name', '')
         recipient_parent_duns = row.get('recipient_parent_duns', '')
-        
+
         # Map location fields
         # Note: CSV fields: primary_place_of_performance_city_name, ..._state_code, ..._country_code
         pop_city = row.get('primary_place_of_performance_city_name', '')
@@ -157,13 +157,13 @@ class Command(BaseCommand):
         work_location = self.format_location(pop_city, pop_state, pop_country)
 
         company_location = self.format_location(
-            row.get('recipient_city_name', ''), 
+            row.get('recipient_city_name', ''),
             row.get('recipient_state_code', ''),
             row.get('recipient_country_name', '')
         )
 
         source_url = row.get('usaspending_permalink', '')
-        
+
         # Update or Create
         contract, created = DefenseContract.objects.update_or_create(
             data_source='usaspending',
@@ -181,15 +181,15 @@ class Command(BaseCommand):
                 'product_service_code': product_service_code,
                 'naics_code': naics_code,
                 'naics_description': naics_desc,
-                
+
                 # Agency info
                 'awarding_agency': row.get('awarding_agency_name', ''),
                 'awarding_sub_agency': row.get('awarding_sub_agency_name', ''),
-                
+
                 # New Metadata
                 'recipient_doing_business_as_name': recipient_dba,
                 'recipient_parent_duns': recipient_parent_duns,
-                
+
                 # Officers
                 'highly_compensated_officer_1_name': off1_name,
                 'highly_compensated_officer_1_amount': off1_amt,
@@ -209,12 +209,12 @@ class Command(BaseCommand):
                 'place_of_performance_state': pop_state,
                 'work_location': work_location,
                 'company_location': company_location,
-                
+
                 'source_url': source_url,
                 'usaspending_published': True
             }
         )
-        
+
         return (1, 0) if created else (0, 1)
 
     def parse_decimal(self, value):
@@ -241,7 +241,7 @@ class Command(BaseCommand):
         parts = []
         if city: parts.append(city)
         if state: parts.append(state)
-        
+
         loc = ", ".join(parts)
         if country and country.upper() not in ['USA', 'UNITED STATES']:
             if loc:

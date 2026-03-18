@@ -14,7 +14,6 @@ def manage_domains(request):
     Extracts domains from ingested messages and allows bulk labeling.
     """
     from collections import Counter
-    from db import COMPANIES_PATH
 
     # Paths to JSON files
     companies_path = Path(__file__).parent.parent / "json" / "companies.json"
@@ -94,7 +93,7 @@ def manage_domains(request):
                         request, f"✅ Labeled {len(domains)} domain(s) as {label_type}."
                     )
                     return redirect("manage_domains")
-                except Exception as e:
+                except (OSError, json.JSONDecodeError, TypeError, ValueError) as e:
                     messages.error(request, f"⚠️ Error saving domain labels: {e}")
 
         elif action == "label_single":
@@ -138,7 +137,7 @@ def manage_domains(request):
                     return redirect(
                         f"{request.path}?filter={request.GET.get('filter', 'unlabeled')}"
                     )
-                except Exception as e:
+                except (OSError, json.JSONDecodeError, TypeError, ValueError) as e:
                     messages.error(request, f"⚠️ Error saving domain label: {e}")
 
     # Extract all sender domains from messages

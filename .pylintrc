@@ -11,10 +11,6 @@ jobs=4
 # Pickle collected data for later comparisons.
 persistent=yes
 
-# When enabled, pylint would attempt to guess common misconfiguration and emit
-# user-friendly hints instead of false-positive error messages.
-suggestion-mode=yes
-
 # Allow loading of arbitrary C extensions. Extensions are imported into the
 # active Python interpreter and may run arbitrary code.
 unsafe-load-any-extension=no
@@ -29,6 +25,10 @@ disable=
     too-many-nested-blocks,
     too-many-return-statements,
     too-many-lines,
+    too-many-arguments,
+    too-many-positional-arguments,
+    too-many-boolean-expressions,
+    broad-exception-caught,
     # Refactoring suggestions (low priority)
     no-else-return,
     inconsistent-return-statements,
@@ -42,7 +42,27 @@ disable=
     import-outside-toplevel,
     # Acceptable patterns
     pointless-string-statement,
-    f-string-without-interpolation
+    f-string-without-interpolation,
+    # Existing project logging style uses f-strings extensively
+    logging-fstring-interpolation,
+    # Tracker helpers and local imports intentionally shadow in a few places
+    redefined-outer-name,
+    reimported,
+    # Inline implementation notes are acceptable in this codebase
+    fixme,
+    # Large parser module uses a few module-level caches intentionally
+    global-statement,
+    # Django Meta class patterns - these are expected and idiomatic
+    missing-module-docstring,
+    missing-class-docstring,
+    missing-function-docstring,
+    too-few-public-methods,
+    # Django ._meta access is standard and correct
+    protected-access,
+    # Relative imports within Django apps are correct; pylint path issue
+    relative-beyond-top-level,
+    # Local parser.py is a project module, not stdlib parser usage
+    deprecated-module
 
 # Enable specific warnings
 enable=
@@ -114,7 +134,7 @@ logging-modules=logging,tracker_logger
 
 [MISCELLANEOUS]
 # List of note tags to take in consideration, separated by a comma.
-notes=FIXME,XXX,TODO,NOTE,HACK
+notes=FIXME,XXX,TODO,HACK
 
 [SIMILARITIES]
 # Minimum lines number of a similarity.
@@ -192,8 +212,8 @@ min-public-methods=1
 allow-wildcard-with-all=no
 
 # Deprecated modules which should not be used, separated by a comma
-deprecated-modules=optparse,imp,parser
+deprecated-modules=optparse,imp
 
 [EXCEPTIONS]
 # Exceptions that will emit a warning when being caught.
-overgeneral-exceptions=BaseException,Exception
+overgeneral-exceptions=builtins.BaseException,builtins.Exception

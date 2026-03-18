@@ -190,7 +190,7 @@ class NewsAggregator:
             error_msg = "; ".join(errors)
             logger.error(f"All attempted news providers failed with errors: {error_msg}")
             raise Exception(f"Failed to fetch news: {error_msg}")
-            
+
         # If we got no articles but at least one provider didn't throw an exception,
         # it just means no news exists for this company.
         if not articles:

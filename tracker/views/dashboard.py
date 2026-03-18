@@ -3,6 +3,8 @@
 Extracted from monolithic views.py (Phase 5 refactoring).
 """
 
+# pylint: disable=broad-exception-caught
+
 import json
 import os
 import re
@@ -11,18 +13,24 @@ from datetime import date, datetime, timedelta
 from pathlib import Path
 from django.contrib.auth.decorators import login_required
 from django.db import models
-from django.db.models import Q, Count, Min, Max
+from django.db.models import Q, Count
 from django.db.models.functions import Lower, TruncDate
 from django.shortcuts import render
 from django.utils.timezone import now
 from tracker.models import (
     Company,
+    IngestionStats,
     Message,
     ThreadTracking,
-    IngestionStats,
     UnresolvedCompany,
 )
 from tracker.views.helpers import extract_body_content, build_sidebar_context
+
+
+def _stat_total(stats_map, stat_date, field_name):
+    """Return a stats field value for a date or 0 when no row exists."""
+    stat_row = stats_map.get(stat_date)
+    return getattr(stat_row, field_name, 0) if stat_row else 0
 
 
 @login_required
@@ -67,7 +75,7 @@ def dashboard(request):
     recent_messages = Message.objects.select_related("company").order_by("-timestamp")[:100]
     for msg in recent_messages:
         raw_html = msg.body or ""
-        msg.cleaned_body_html = extract_body_content(raw_html)
+        setattr(msg, "cleaned_body_html", extract_body_content(raw_html))
 
     # ✅ Group messages by thread_id with company preloaded
     threads = defaultdict(list)
@@ -103,18 +111,9 @@ def dashboard(request):
         stats_qs = IngestionStats.objects.filter(date__gte=start_date).order_by("date")
         stats_map = {s.date: s for s in stats_qs}
         chart_labels = [d.strftime("%Y-%m-%d") for d in date_list]
-        chart_inserted = [
-            stats_map.get(d, None).total_inserted if stats_map.get(d, None) else 0
-            for d in date_list
-        ]
-        chart_skipped = [
-            stats_map.get(d, None).total_skipped if stats_map.get(d, None) else 0
-            for d in date_list
-        ]
-        chart_ignored = [
-            stats_map.get(d, None).total_ignored if stats_map.get(d, None) else 0
-            for d in date_list
-        ]
+        chart_inserted = [_stat_total(stats_map, d, "total_inserted") for d in date_list]
+        chart_skipped = [_stat_total(stats_map, d, "total_skipped") for d in date_list]
+        chart_ignored = [_stat_total(stats_map, d, "total_ignored") for d in date_list]
     else:
         chart_labels = []
         chart_inserted = []
@@ -509,7 +508,7 @@ def dashboard(request):
     msg_rejections_qs = msg_rejections_qs.exclude(
         thread_id__in=application_rejection_threads
     )
-    
+
     # Also exclude messages whose company already has a ThreadTracking with rejection_date
     # This handles manual entries where the rejection message has a different thread_id
     application_rejection_companies = set(
@@ -681,7 +680,10 @@ def dashboard(request):
     # Add message-based interviews, keeping only the most recent per company
     # Skip companies that already have ThreadTracking interview_date
     for msg in msg_interviews_qs:
-        company_id = msg.company_id
+        company_obj = msg.company
+        if not company_obj:
+            continue
+        company_id = company_obj.pk
         msg_date = msg.timestamp.date()
 
         # Skip if this company already has a ThreadTracking interview
@@ -695,7 +697,7 @@ def dashboard(request):
         ):
             interview_by_company[company_id] = {
                 "company_id": company_id,
-                "company__name": msg.company.name,
+                "company__name": company_obj.name,
                 "interview_date": msg_date,
             }
 
@@ -721,15 +723,6 @@ def dashboard(request):
         }
         for item in ghosted_companies_qs
     ]
-
-    # Debug logging for ghosted companies
-    if len(ghosted_companies) == 0:
-        print(f"[DEBUG] Ghosted companies query returned 0 results")
-        print(
-            f"[DEBUG] hh_company_list count: {len(hh_company_list) if hh_company_list else 0}"
-        )
-    else:
-        print(f"[DEBUG] Found {len(ghosted_companies)} ghosted companies")
 
     # Convert to JSON strings for template
     rejection_companies_json = json.dumps(rejection_companies)
@@ -761,7 +754,7 @@ def dashboard(request):
                         seen[cid]["cancelled"] = True
                     if "withdrew" in it and it["withdrew"]:
                         seen[cid]["withdrew"] = True
-        
+
         out = list(seen.values())
         # sort by name for a stable display
         out.sort(key=lambda x: (x["name"] or "").lower())
@@ -789,14 +782,14 @@ def dashboard(request):
     companies_with_focus = Company.objects.filter(focus_area__isnull=False).exclude(focus_area="")
     for company in companies_with_focus:
         # Normalize the focus area (strip whitespace, preserve case for display)
-        focus_phrase = company.focus_area.strip()
+        focus_phrase = (company.focus_area or "").strip()
         if focus_phrase:
             # Count entire phrases (case-insensitive for counting, but preserve original case)
             phrase_lower = focus_phrase.lower()
             if phrase_lower not in focus_area_phrases:
                 focus_area_phrases[phrase_lower] = {"display": focus_phrase, "count": 0}
             focus_area_phrases[phrase_lower]["count"] += 1
-    
+
     # Sort by frequency and get top 50 phrases
     sorted_phrases = sorted(
         [(data["display"], data["count"]) for data in focus_area_phrases.values()],
@@ -921,18 +914,9 @@ def metrics(request):
         stats_qs = IngestionStats.objects.filter(date__gte=start_date).order_by("date")
         stats_map = {s.date: s for s in stats_qs}
         chart_labels = [d.strftime("%Y-%m-%d") for d in date_list]
-        chart_inserted = [
-            stats_map.get(d, None).total_inserted if stats_map.get(d, None) else 0
-            for d in date_list
-        ]
-        chart_skipped = [
-            stats_map.get(d, None).total_skipped if stats_map.get(d, None) else 0
-            for d in date_list
-        ]
-        chart_ignored = [
-            stats_map.get(d, None).total_ignored if stats_map.get(d, None) else 0
-            for d in date_list
-        ]
+        chart_inserted = [_stat_total(stats_map, d, "total_inserted") for d in date_list]
+        chart_skipped = [_stat_total(stats_map, d, "total_skipped") for d in date_list]
+        chart_ignored = [_stat_total(stats_map, d, "total_ignored") for d in date_list]
     else:
         chart_labels = []
         chart_inserted = []

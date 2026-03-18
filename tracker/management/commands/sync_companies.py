@@ -31,7 +31,7 @@ class Command(BaseCommand):
         verbose = options["verbose"]
 
         companies_file = Path(__file__).resolve().parent.parent.parent.parent / "json" / "companies.json"
-        
+
         if not companies_file.exists():
             self.stdout.write(self.style.ERROR(f"❌ companies.json not found at {companies_file}"))
             return
@@ -65,10 +65,10 @@ class Command(BaseCommand):
         # Check all known companies
         for canonical_name in known_companies:
             domains = company_domains.get(canonical_name, [])
-            
+
             # Try to find Company by canonical name or alias
             company = Company.objects.filter(name=canonical_name).first()
-            
+
             # If not found by canonical name, try aliases
             if not company:
                 for alias, canon in alias_to_canonical.items():
@@ -76,28 +76,28 @@ class Command(BaseCommand):
                         company = Company.objects.filter(name=alias).first()
                         if company:
                             break
-            
+
             if not company:
                 if verbose or len(domains) > 0:
                     missing_in_db.append(f"{canonical_name} (domains: {', '.join(domains)})")
                 continue
 
             checked_count += 1
-            
+
             # Get primary domain (first one if multiple)
             primary_domain = domains[0] if domains else None
-            
+
             if primary_domain and company.domain != primary_domain:
                 if verbose or True:  # Always show updates
                     self.stdout.write(
                         f"{'[DRY RUN] ' if dry_run else ''}📝 {company.name}: "
                         f"domain '{company.domain or '(empty)'}' → '{primary_domain}'"
                     )
-                
+
                 if not dry_run:
                     company.domain = primary_domain
                     company.save(update_fields=["domain"])
-                
+
                 updated_count += 1
             elif verbose:
                 self.stdout.write(f"✅ {company.name}: domain='{company.domain}' (no change)")
@@ -107,13 +107,13 @@ class Command(BaseCommand):
         self.stdout.write(f"📊 Summary:")
         self.stdout.write(f"   Checked: {checked_count} companies")
         self.stdout.write(f"   Updated: {updated_count} companies")
-        
+
         if missing_in_db:
             self.stdout.write(f"   Missing in DB: {len(missing_in_db)}")
             if verbose:
                 for item in missing_in_db:
                     self.stdout.write(f"      - {item}")
-        
+
         if dry_run:
             self.stdout.write(self.style.WARNING("\n💡 Run without --dry-run to apply changes"))
         elif updated_count > 0:

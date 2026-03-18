@@ -27,10 +27,10 @@ def rss_dashboard(request):
     feed_id = request.GET.get("feed")
     category = request.GET.get("category")
     page_number = request.GET.get("page", 1)
-    
+
     # Base QuerySet
     qs = RSSArticle.objects.select_related("feed", "company").all()
-    
+
     # Filters
     if feed_id:
         qs = qs.filter(feed_id=feed_id)
@@ -38,15 +38,15 @@ def rss_dashboard(request):
         qs = qs.filter(feed__category=category)
     if query:
         qs = qs.filter(Q(title__icontains=query) | Q(description__icontains=query))
-    
+
     # Pagination
     paginator = Paginator(qs, 50)
     page_obj = paginator.get_page(page_number)
-    
+
     # Context data
     feeds = RSSFeed.objects.filter(is_active=True).order_by("category", "title")
     categories = RSSFeed.objects.filter(is_active=True).values_list("category", flat=True).distinct().order_by("category")
-    
+
     return render(request, "tracker/rss_dashboard.html", {
         "page_obj": page_obj,
         "feeds": feeds,
@@ -63,7 +63,7 @@ def fetch_feeds_ajax(request):
     """
     if request.method != "POST":
          return JsonResponse({"success": False, "error": "Invalid method"}, status=405)
-         
+
     try:
         from django.core.management import call_command
         # This runs synchronously; for production, offload to task queue
@@ -80,24 +80,24 @@ def link_article_to_company(request, article_id):
     """
     if request.method != "POST":
          return JsonResponse({"success": False, "error": "Invalid method"}, status=405)
-         
+
     article = get_object_or_404(RSSArticle, pk=article_id)
     company_id = request.POST.get("company_id")
-    
+
     try:
         if not company_id or company_id == "0":
             article.company = None
             article.save()
             return JsonResponse({
-                "success": True, 
-                "company_name": None, 
+                "success": True,
+                "company_name": None,
                 "company_id": None
             })
-            
+
         company = get_object_or_404(Company, pk=company_id)
         article.company = company
         article.save()
-        
+
         return JsonResponse({
             "success": True,
             "company_name": company.name,
@@ -114,20 +114,20 @@ def add_feed(request):
     if request.method == "POST":
         feed_url = request.POST.get("feed_url")
         category = request.POST.get("category", "Uncategorized")
-        
+
         if not feed_url:
             messages.error(request, "Feed URL is required.")
             return redirect("rss_dashboard")
-            
+
         # 1. Validate Feed
         try:
             d = feedparser.parse(feed_url)
             if d.bozo and not d.entries: # Strict check?
                  messages.warning(request, f"Warning: Feed might be invalid ({d.bozo_exception}), but adding anyway.")
-            
+
             title = d.feed.get("title", feed_url)
             link = d.feed.get("link", "")
-            
+
             # 2. Save to DB
             feed, created = RSSFeed.objects.get_or_create(
                 feed_url=feed_url,
@@ -138,18 +138,18 @@ def add_feed(request):
                     "is_active": True
                 }
             )
-            
+
             if not created:
                  messages.info(request, "Feed already exists.")
             else:
                  messages.success(request, "Feed added successfully.")
-                 
+
             # 3. Update OPML File
             _update_opml_add(feed)
 
         except Exception as e:
             messages.error(request, f"Error adding feed: {e}")
-            
+
     return redirect("rss_dashboard")
 
 @login_required
@@ -161,12 +161,12 @@ def delete_feed(request, feed_id):
         feed = get_object_or_404(RSSFeed, pk=feed_id)
         feed_url = feed.feed_url
         feed.delete()
-        
+
         # Update OPML
         _update_opml_remove(feed_url)
-        
+
         messages.success(request, "Feed deleted.")
-        
+
     return redirect("rss_dashboard")
 
 
@@ -185,30 +185,30 @@ def _update_opml_add(feed):
         tree = ET.parse(OPML_FILE)
         root = tree.getroot()
         body = root.find("body")
-        
+
         # Check if category folder exists
         category_outline = None
         for outline in body.findall("outline"):
             if not outline.get("xmlUrl") and outline.get("text") == feed.category:
                 category_outline = outline
                 break
-        
+
         if not category_outline:
             # Create category folder
             category_outline = ET.SubElement(body, "outline", text=feed.category, title=feed.category)
-            
+
         # Add feed outline
-        ET.SubElement(category_outline, "outline", 
-                      text=feed.title, 
-                      title=feed.title, 
-                      type="rss", 
-                      xmlUrl=feed.feed_url, 
+        ET.SubElement(category_outline, "outline",
+                      text=feed.title,
+                      title=feed.title,
+                      type="rss",
+                      xmlUrl=feed.feed_url,
                       htmlUrl=feed.site_url or "")
-        
+
         # Indent and save
         _indent(root)
         tree.write(OPML_FILE, encoding="UTF-8", xml_declaration=True)
-            
+
     except Exception as e:
         logger.error(f"Failed to update OPML: {e}")
 
@@ -223,7 +223,7 @@ def _update_opml_remove(feed_url):
         tree = ET.parse(OPML_FILE)
         root = tree.getroot()
         body = root.find("body")
-        
+
         # Recursive search to remove
         def remove_node(parent):
             for child in parent.findall("outline"):
@@ -236,7 +236,7 @@ def _update_opml_remove(feed_url):
 
         remove_node(body)
         tree.write(OPML_FILE, encoding="UTF-8", xml_declaration=True)
-        
+
     except Exception as e:
         logger.error(f"Failed to update OPML: {e}")
 

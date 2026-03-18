@@ -158,7 +158,7 @@ class ContractScraperService:
                 if canonical_name_lower in self._company_name_cache:
                     canonical_id = self._company_name_cache[canonical_name_lower]
                     self._company_name_cache[alias_obj.alias.lower()] = canonical_id
-                
+
         return self._company_name_cache
 
     def invalidate_company_cache(self):

@@ -209,7 +209,7 @@ def defense_contracts(request):
         )
 
     from tracker.models import ContractIgnoreRule
-    
+
     # Apply active ignore rules
     ignore_rules = ContractIgnoreRule.objects.filter(is_active=True).prefetch_related('naics_codes')
     for rule in ignore_rules:
@@ -282,7 +282,7 @@ def defense_contracts(request):
     ]
 
     from django.core.paginator import Paginator
-    
+
     # Pagination logic
     limit = request.GET.get('limit', '25')
     try:
@@ -292,7 +292,7 @@ def defense_contracts(request):
             limit = 0
         else:
             limit = 25
-            
+
     if limit > 0:
         paginator = Paginator(contracts_qs, limit)
         page_number = request.GET.get('page')
@@ -476,7 +476,7 @@ def link_contract_company(request, contract_id):
 
     contract.company = company
     contract.save(update_fields=["company", "updated_at"])
-    
+
     # Auto-link other contracts with the same raw company name
     updated_qs = DefenseContract.objects.filter(
         company_name_raw=contract.company_name_raw,
@@ -485,7 +485,7 @@ def link_contract_company(request, contract_id):
     updated_ids = list(updated_qs.values_list('id', flat=True))
     updated_count = updated_qs.update(company=company)
 
-    logger.info("Linked contract %s -> company '%s' (%s). Auto-linked %d others.", 
+    logger.info("Linked contract %s -> company '%s' (%s). Auto-linked %d others.",
         contract_id, company.name, company.id, updated_count)
     return JsonResponse({
         "success": True,
@@ -565,11 +565,11 @@ def upload_contract_json(request):
         try:
             json_file = request.FILES.get("contract_json")
             data = json.load(json_file)
-            
+
             # Simple validation: ensure it's a dict and has 'piid'
             if not isinstance(data, dict):
                 raise ValueError("JSON content must be a dictionary")
-            
+
             piid = data.get("piid")
             if not piid:
                 raise ValueError("Missing 'piid' (Contract Number) in JSON")
@@ -590,7 +590,7 @@ def upload_contract_json(request):
                 contract_number=piid,
                 defaults=award_data
             )
-            
+
             action = "Created" if created else "Updated"
             messages.success(request, f"{action} contract {piid} from JSON upload.")
             call_command("clean_ignored_contracts")
@@ -599,7 +599,7 @@ def upload_contract_json(request):
         except Exception as e:
             logger.error("Failed to upload contract JSON: %s", e)
             messages.error(request, f"Error uploading JSON: {str(e)}")
-    
+
     return redirect("defense_contracts")
 
 @login_required
@@ -624,7 +624,7 @@ def upload_contracts_csv(request):
                 # Call management command
                 call_command('load_contracts_csv', tmp_path)
                 messages.success(request, f"Successfully imported contracts from {csv_file.name}.")
-                
+
             except Exception as e:
                 logger.exception("Error uploading contracts CSV")
                 messages.error(request, f"Error processing file: {str(e)}")

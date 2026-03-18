@@ -192,21 +192,17 @@ class Command(BaseCommand):
                 for msg in all_msgs_by_id.values():
                     msg_id = msg["id"]
                     try:
-                        # Get basic metadata for logging
-                        msg_meta = (
+                        # Fetch full message once — reused for logging AND ingest_message
+                        # (avoids a redundant format=metadata call per message)
+                        raw_message = (
                             service.users()
                             .messages()
-                            .get(
-                                userId="me",
-                                id=msg_id,
-                                format="metadata",
-                                metadataHeaders=["Subject", "From", "Date"],
-                            )
+                            .get(userId="me", id=msg_id, format="full")
                             .execute()
                         )
                         headers = {
                             h["name"]: h["value"]
-                            for h in msg_meta.get("payload", {}).get("headers", [])
+                            for h in raw_message.get("payload", {}).get("headers", [])
                         }
                         subject = headers.get("Subject", "") or ""
                         date = headers.get("Date", "") or ""
@@ -214,8 +210,8 @@ class Command(BaseCommand):
                         # Log before processing
                         log_console(f"Processing [{msg_id}] {date}: {subject}")
 
-                        # Let ingest_message handle full classification with body
-                        ret = ingest_message(service, msg_id)
+                        # Pass pre-fetched message so ingest_message skips the API call
+                        ret = ingest_message(service, msg_id, raw_message=raw_message)
                         fetched += 1
 
                         # Mark as processed

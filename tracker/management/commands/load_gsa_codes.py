@@ -14,23 +14,23 @@ class Command(BaseCommand):
 
         wb = openpyxl.load_workbook(file_path, read_only=True, data_only=True)
         sheets = wb.sheetnames
-        
+
         naics_count = 0
         psc_count = 0
 
         for sheet_name in sheets:
             sheet = wb[sheet_name]
             self.stdout.write(f'Parsing sheet {sheet_name}...')
-            
+
             rows = sheet.iter_rows(values_only=True)
             try:
                 headers = next(rows)
             except StopIteration:
                 continue
-                
+
             code_idx = -1
             desc_idx = -1
-            
+
             if not headers: continue
 
             for idx, h in enumerate(headers):
@@ -49,9 +49,9 @@ class Command(BaseCommand):
                 if len(row) <= max(code_idx, desc_idx): continue
                 code_val = str(row[code_idx]).strip() if row[code_idx] else ''
                 desc_val = str(row[desc_idx]).strip() if row[desc_idx] else ''
-                
+
                 if not code_val: continue
-                
+
                 if code_val.isdigit() and len(code_val) in [5, 6]:
                     NAICSCode.objects.update_or_create(code=code_val, defaults={'description': desc_val})
                     naics_count += 1

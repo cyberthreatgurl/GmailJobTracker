@@ -33,7 +33,7 @@ def opportunities_dashboard(request):
     psc_query = request.GET.get("psc", "")
     exclude_psc_query = request.GET.get("exclude_psc", "")
     page_number = request.GET.get("page", 1)
-    
+
     # Handle CSV Upload
     if request.method == "POST" and request.FILES.get("csv_file"):
         try:
@@ -42,36 +42,36 @@ def opportunities_dashboard(request):
             decoded_file = csv_file.read().decode("utf-8-sig")
             io_string = io.StringIO(decoded_file)
             reader = csv.DictReader(io_string)
-            
+
             count = 0
             new_count = 0
-            
+
             for row in reader:
                 mapped_data = _map_csv_row_to_api_format(row)
                 if not mapped_data:
                     continue
-                    
+
                 saved, created = _save_opportunity(mapped_data, save_mode='create_or_update')
                 if saved:
                     count += 1
                 if created:
                     new_count += 1
-            
+
             if count > 0:
                 messages.success(request, f"Successfully ingested {count} opportunities from CSV ({new_count} new).")
             else:
                  messages.warning(request, "No valid opportunities found in CSV.")
-                 
+
         except Exception as e:
             logger.error(f"Error processing CSV upload: {e}")
             messages.error(request, f"Error processing CSV: {e}")
-            
+
         return redirect(request.path)
 
     # If user clicks "Fetch Latest"
     if "fetch" in request.GET:
         client = SamGovClient()
-        
+
         # Determine start date: Max of (90 days ago, Last Ingested Date)
         # This optimizes for speed (incremental update) while staying within API limits
         default_start_date = (datetime.now() - timedelta(days=90)).date()
@@ -85,19 +85,19 @@ def opportunities_dashboard(request):
                 start_date = latest_opp.posted_date
 
         params = {
-            "limit": 10, 
+            "limit": 10,
             "sort": "-postedDate",
             "postedFrom": start_date.strftime("%m/%d/%Y"),
             "postedTo": datetime.now().strftime("%m/%d/%Y")
         }
-        
+
         if query:
             # If query is present during fetch, search API by title/keyword
             params["title"] = query
-            
+
         try:
             api_response = client.search_opportunities(params=params)
-             
+
             if "opportunitiesData" in api_response:
                 count = 0
                 new_count = 0
@@ -108,7 +108,7 @@ def opportunities_dashboard(request):
                         count += 1
                     if created:
                         new_count += 1
-                
+
                 if new_count > 0:
                     messages.success(request, f"Fetched {count} opportunities ({new_count} new).")
                 elif count > 0:
@@ -120,11 +120,11 @@ def opportunities_dashboard(request):
                 messages.error(request, f"API Error: {api_response['error']}")
             else:
                  messages.info(request, "No opportunities found.")
-                 
+
         except Exception as e:
             logger.error(f"Error fetching opportunities: {e}")
             messages.error(request, f"Error interacting with SAM.gov: {e}")
-            
+
         # Redirect api clean URL after fetch prevents re-submission
         url = request.path
         params_list = []
@@ -134,10 +134,10 @@ def opportunities_dashboard(request):
             params_list.append(f"psc={psc_query}")
         if exclude_psc_query:
             params_list.append(f"exclude_psc={exclude_psc_query}")
-            
+
         if params_list:
             url += "?" + "&".join(params_list)
-            
+
         return redirect(url)
 
     # Display saved opportunities (Local Search)
@@ -179,7 +179,7 @@ def opportunities_dashboard(request):
                 Q(solicitation_number__icontains=term) |
                 Q(product_service_code__icontains=term)
             )
-            
+
     if psc_query:
         qs = qs.filter(product_service_code__icontains=psc_query)
 
@@ -248,7 +248,7 @@ def _save_opportunity(data, save_mode='create_or_update'):
         solicitation = data.get("solicitationNumber")
         if not solicitation:
             solicitation = data.get("noticeId")
-            
+
         if not solicitation:
             return None, False
 
@@ -300,10 +300,10 @@ def _map_csv_row_to_api_format(row):
     # Key fields
     solicitation = row.get("Notice ID") or row.get("NoticeID") or row.get("solicitationNumber")
     title = row.get("Opportunity Title") or row.get("Title")
-    
+
     if not solicitation or not title:
         return {} # Empty creates nothing
-    
+
     # Dates
     posted_date = _parse_csv_date(row.get("Last Published Date") or row.get("Posted Date"))
     response_date = _parse_csv_date(row.get("Current Response Date") or row.get("Response Deadline"))
@@ -312,7 +312,7 @@ def _map_csv_row_to_api_format(row):
     poc = []
     if row.get("POC Name"):
         poc = [{"fullName": row.get("POC Name"), "email": row.get("POC Email")}]
-    
+
     # Construct dict mimicking API structure for compatibility with _save_opportunity
     return {
         "solicitationNumber": solicitation,
@@ -339,18 +339,18 @@ def _parse_csv_date(date_str):
     """
     if not date_str or not isinstance(date_str, str) or date_str.lower() == 'nan':
         return None
-    
+
     try:
         # Try cleaning UTC suffix first
         clean = date_str.replace(" UTC", "").replace(" pm", " PM").replace(" am", " AM").strip()
-        
+
         # Format: "Feb 23, 2026 09:00 PM"
         try:
             dt = datetime.strptime(clean, "%b %d, %Y %I:%M %p")
             return dt.strftime("%Y-%m-%d")
         except ValueError:
             pass
-            
+
         return clean
     except Exception as e:
         logger.warning(f"Could not parse CSV date: {date_str}")
@@ -428,14 +428,14 @@ def refresh_opportunity(request, opportunity_id):
     try:
         opp = SamGovOpportunity.objects.get(pk=opportunity_id)
         client = SamGovClient()
-        
+
         # Strategy 1: Search recent (last 364 days)
         # This catches any active updates or recently posted items
         end_date = datetime.now().date()
         start_date = end_date - timedelta(days=364)
-        
+
         found_data = _fetch_with_date_window(client, opp.solicitation_number, start_date, end_date)
-        
+
         # Strategy 2: If nothing found, try the specific posted_date window from DB
         # Only needed if the local record is older than our search window
         if not found_data and opp.posted_date and opp.posted_date < start_date:
@@ -443,7 +443,7 @@ def refresh_opportunity(request, opportunity_id):
             old_start = opp.posted_date
             old_end = old_start + timedelta(days=364)
             found_data = _fetch_with_date_window(client, opp.solicitation_number, old_start, old_end)
-            
+
         # Strategy 3: Iterate back 3 years if still missing (useful when posted_date is unknown)
         if not found_data and not opp.posted_date:
             for i in range(1, 4):  # Try 3 previous years
@@ -454,9 +454,9 @@ def refresh_opportunity(request, opportunity_id):
                 found_data = _fetch_with_date_window(client, opp.solicitation_number, s, e)
                 if found_data:
                     break
-        
+
         if found_data:
-            # Force update 
+            # Force update
             result, _ = _save_opportunity(found_data, save_mode='create_or_update')
             if result:
                 # Resolve description URL if the API returned a link instead of text
@@ -482,7 +482,7 @@ def refresh_opportunity(request, opportunity_id):
     except Exception as e:
         logger.error(f"Error refreshing opp {opportunity_id}: {e}")
         messages.error(request, f"Refresh failed: {e}")
-        
+
     return redirect("opportunities_dashboard")
 
 def _resolve_description(client, desc, notice_id):
@@ -508,7 +508,7 @@ def _resolve_description(client, desc, notice_id):
 
 def _fetch_with_date_window(client, solicitation, start_date, end_date):
     """Helper to try fetching with a specific date window."""
-    
+
     # Try solicitationNumber first
     params = {
         "solicitationNumber": solicitation,
@@ -519,14 +519,14 @@ def _fetch_with_date_window(client, solicitation, start_date, end_date):
     data = client.search_opportunities(params)
     if data.get("opportunitiesData"):
         return data["opportunitiesData"][0]
-        
+
     # If not found, try noticeId (it might be a special notice where solicitationNumber is not set)
     params.pop("solicitationNumber")
     params["noticeId"] = solicitation
     data = client.search_opportunities(params)
     if data.get("opportunitiesData"):
         return data["opportunitiesData"][0]
-        
+
     # If not found, try keyword search (for cases like "FA251827RCNECTS" vs "FA2518-27-R-CNECTS")
     # This acts as a fuzzy fallback
     params.pop("noticeId")
@@ -534,5 +534,5 @@ def _fetch_with_date_window(client, solicitation, start_date, end_date):
     data = client.search_opportunities(params)
     if data.get("opportunitiesData"):
         return data["opportunitiesData"][0]
-        
+
     return None

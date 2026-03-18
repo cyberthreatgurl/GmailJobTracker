@@ -38,11 +38,11 @@ def log_viewer(request):
     logs_dir = Path(settings.BASE_DIR) / "logs"
     log_files = [f.name for f in logs_dir.glob("*.log") if f.is_file()]
     log_files.sort()
-    
+
     # Default to today's tracker log (where ingestion debug output goes)
     today = timezone.localtime(timezone.now()).strftime("%Y-%m-%d")
     default_log = f"tracker-{today}.log"
-    
+
     # Use today's tracker log if it exists, otherwise fall back to first log file
     if not request.GET.get("logfile"):
         if default_log in log_files:
@@ -453,7 +453,7 @@ def reingest_admin(request):
     """Run the ingest_gmail command with options and show output, or ingest a single uploaded message."""
     import tempfile
     from parser import ingest_message_from_eml
-    
+
     base_dir = Path(__file__).resolve().parents[2]
     day_choices = [
         ("ALL", "ALL"),
@@ -478,13 +478,13 @@ def reingest_admin(request):
         # Check for single message upload/paste first
         pasted = (request.POST.get("pasted_message") or "").strip()
         upload = request.FILES.get("message_file")
-        
+
         if pasted or upload:
             # Handle single message ingestion
             import io
             import sys
             from contextlib import redirect_stdout, redirect_stderr
-            
+
             try:
                 if pasted:
                     raw_content = pasted
@@ -492,33 +492,33 @@ def reingest_admin(request):
                 else:
                     raw_content = upload.read().decode("utf-8", errors="replace")
                     source_name = upload.name
-                
+
                 # Capture stdout/stderr during ingestion for logging
                 log_buffer = io.StringIO()
-                
+
                 # Enable DEBUG-level logging for parser during EML ingestion
                 import logging as _logging
                 _parser_logger = _logging.getLogger("parser")
                 _orig_level = _parser_logger.level
                 _parser_logger.setLevel(_logging.DEBUG)
-                
+
                 try:
                     with redirect_stdout(log_buffer), redirect_stderr(log_buffer):
                         result = ingest_message_from_eml(raw_content)
                 finally:
                     _parser_logger.setLevel(_orig_level)
-                
+
                 log_output = log_buffer.getvalue()
-                
+
                 # Build detailed output
                 output_lines = []
                 output_lines.append(f"📧 Processing: {source_name}")
                 output_lines.append("-" * 60)
-                
+
                 if log_output.strip():
                     output_lines.append(log_output.strip())
                     output_lines.append("-" * 60)
-                
+
                 if result == "inserted":
                     output_lines.append("✅ Message ingested successfully!")
                 elif result == "skipped":
@@ -537,9 +537,9 @@ def reingest_admin(request):
                         output_lines.append(f"Result: {result}")
                 else:
                     output_lines.append(f"Result: {result}")
-                
+
                 ctx["result"] = "\n".join(output_lines)
-                
+
             except Exception as e:
                 import traceback
                 ctx["error"] = f"Failed to ingest message: {e}\n\n{traceback.format_exc()}"

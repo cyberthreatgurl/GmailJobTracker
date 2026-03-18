@@ -8,8 +8,6 @@ from pathlib import Path
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render, redirect
-from django.http import JsonResponse
-from tracker.models import Company
 
 ALIAS_EXPORT_PATH = Path("json/alias_suggestions.json")
 ALIAS_LOG_PATH = Path("json/alias_log.json")
@@ -55,6 +53,8 @@ def approve_bulk_aliases(request):
 
         return redirect("manage_aliases")
 
+    return redirect("manage_aliases")
+
 
 @csrf_exempt
 def reject_alias(request):
@@ -79,6 +79,8 @@ def reject_alias(request):
             log.write(f"{alias},{request.POST.get('timestamp')}\n")
 
         return redirect("manage_aliases")
+
+    return redirect("manage_aliases")
 
 
 __all__ = ["manage_aliases", "approve_bulk_aliases", "reject_alias"]

@@ -1,6 +1,5 @@
 # (Moved ML training models below imports)
 
-
 # Create models here.
 from django.db import models
 from django.core.validators import RegexValidator, URLValidator
@@ -8,7 +7,6 @@ from django.utils.timezone import now
 from django.utils import timezone
 import re
 
-from django.utils import timezone
 from tracker.location_normalization import canonicalize_city_key
 
 class Company(models.Model):
@@ -46,9 +44,9 @@ class Company(models.Model):
         ]
     )  # New field for ATS domain
     duns_number = models.CharField(
-        max_length=20, 
-        blank=True, 
-        null=True, 
+        max_length=20,
+        blank=True,
+        null=True,
         help_text="Data Universal Numbering System (DUNS) number"
     )
     uei = models.CharField(
@@ -109,8 +107,8 @@ class Company(models.Model):
     last_contact = models.DateTimeField()
     confidence = models.FloatField(null=True, blank=True)
     last_job_search_date = models.DateTimeField(
-        null=True, 
-        blank=True, 
+        null=True,
+        blank=True,
         help_text="Last date when user manually searched this company's job postings"
     )
     talent_network = models.BooleanField(
@@ -502,15 +500,14 @@ class Message(models.Model):
     @property
     def sender_domain(self):
         """Extract the domain from the sender email address.
-        
+
         Handles formats like:
         - "Display Name" <email@domain.com>
         - email@domain.com
         - "Name @ Company" <email@domain.com>
         """
         from email.utils import parseaddr
-        import re
-        
+
         _, email_addr = parseaddr(self.sender)
         if email_addr and "@" in email_addr:
             return email_addr.split("@", 1)[1].strip(">").lower()
@@ -724,7 +721,7 @@ def validate_file_extension(value):
     """Validate file extension is one of the allowed types."""
     import os
     from django.core.exceptions import ValidationError
-    
+
     ext = os.path.splitext(value.name)[1].lower()
     allowed_extensions = ['.pdf', '.txt', '.xlsx', '.docx']
     if ext not in allowed_extensions:
@@ -740,7 +737,7 @@ def company_document_path(instance, filename):
 
 class CompanyDocument(models.Model):
     """Documents attached to a company (contracts, offers, etc.)."""
-    
+
     company = models.ForeignKey(
         Company,
         on_delete=models.CASCADE,
@@ -757,25 +754,25 @@ class CompanyDocument(models.Model):
         help_text="Brief description of the document (e.g., 'Offer Letter', 'Contract')"
     )
     uploaded_at = models.DateTimeField(auto_now_add=True)
-    
+
     class Meta:
         ordering = ["-uploaded_at"]
-    
+
     def __str__(self):
         return f"{self.company.name} - {self.filename}"
-    
+
     @property
     def filename(self):
         """Return just the filename without the path."""
         import os
         return os.path.basename(self.file.name)
-    
+
     @property
     def file_extension(self):
         """Return the file extension."""
         import os
         return os.path.splitext(self.file.name)[1].lower()
-    
+
     @property
     def file_size_display(self):
         """Return human-readable file size."""
@@ -787,7 +784,7 @@ class CompanyDocument(models.Model):
                 return f"{size / 1024:.1f} KB"
             else:
                 return f"{size / 1024 / 1024:.1f} MB"
-        except Exception:
+        except (AttributeError, OSError, TypeError, ValueError):
             return "Unknown"
 
 
@@ -815,7 +812,7 @@ class DefenseContract(models.Model):
         ("missile_defense", "Missile Defense Agency"),
         ("other", "Other"),
     ]
-    
+
     DATA_SOURCE_CHOICES = [
         ("war_gov", "War.gov (DoD)"),
         ("usaspending", "USASpending.gov"),
@@ -829,21 +826,25 @@ class DefenseContract(models.Model):
         help_text="Source of this contract record",
         db_index=True,
     )
-    
+
     award_id = models.CharField(
         max_length=100,
         blank=True,
         db_index=True,
         help_text="USASpending Award ID (e.g., W912GY22C0021). Empty for war.gov records.",
     )
-    
+
     generated_internal_id = models.CharField(
         max_length=255,
         blank=True,
         db_index=True,
-        help_text="USASpending generated internal ID for award detail pages (e.g., CONT_AWD_W912GY22C0021_9700_...). Used to construct award URLs. Empty for war.gov records.",
+        help_text=(
+            "USASpending generated internal ID for award detail pages "
+            "(e.g., CONT_AWD_W912GY22C0021_9700_...). Used to construct award URLs. "
+            "Empty for war.gov records."
+        ),
     )
-    
+
     usaspending_published = models.BooleanField(
         default=False,
         help_text="Whether this award's detail page is published on USASpending.gov. Always False for war.gov records.",
@@ -884,20 +885,20 @@ class DefenseContract(models.Model):
         default="other",
         help_text="Military branch or agency awarding the contract (DoD classification)"
     )
-    
+
     # Agency info (NEW for USASpending integration)
     awarding_agency = models.CharField(
         max_length=255,
         blank=True,
         help_text="Top-level agency (e.g., Department of Defense, Department of Homeland Security)",
     )
-    
+
     awarding_sub_agency = models.CharField(
         max_length=255,
         blank=True,
         help_text="Sub-agency or bureau (e.g., Army Corps of Engineers)",
     )
-    
+
     amount = models.DecimalField(
         max_digits=15,
         decimal_places=2,
@@ -924,13 +925,13 @@ class DefenseContract(models.Model):
         blank=True,
         help_text="Where the work will be performed (may include percentages)"
     )
-    
+
     place_of_performance_state = models.CharField(
         max_length=2,
         blank=True,
         help_text="Two-letter state code for work location (NEW for USASpending)",
     )
-    
+
     primary_place_of_performance_country_name = models.CharField(
         max_length=255,
         blank=True,
@@ -958,7 +959,7 @@ class DefenseContract(models.Model):
     highly_compensated_officer_4_amount = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
     highly_compensated_officer_5_name = models.CharField(max_length=255, blank=True)
     highly_compensated_officer_5_amount = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
-    
+
     completion_date = models.CharField(
         max_length=100,
         blank=True,
@@ -972,24 +973,24 @@ class DefenseContract(models.Model):
 
     # Metadata
     recipient_parent_duns = models.CharField(
-        max_length=20, 
-        blank=True, 
+        max_length=20,
+        blank=True,
         null=True,
         help_text="Parent company DUNS number"
     )
     recipient_doing_business_as_name = models.CharField(
-        max_length=255, 
-        blank=True, 
+        max_length=255,
+        blank=True,
         help_text="Doing Business As (DBA) name"
     )
     product_or_service_description = models.TextField(
         blank=True,
         help_text="Description of the product or service category"
     )
-    
+
     product_service_code = models.CharField(
-        max_length=20, 
-        blank=True, 
+        max_length=20,
+        blank=True,
         null=True,
         help_text="Product Service Code (PSC) from USASpending"
     )
@@ -1000,10 +1001,10 @@ class DefenseContract(models.Model):
         null=True,
         help_text="Description of the Product Service Code"
     )
-    
+
     naics_code = models.CharField(
-        max_length=20, 
-        blank=True, 
+        max_length=20,
+        blank=True,
         null=True,
         help_text="NAICS Code from USASpending"
     )
@@ -1120,9 +1121,9 @@ class SamGovOpportunity(models.Model):
     """
     title = models.CharField(max_length=500, help_text="Contract title")
     solicitation_number = models.CharField(
-        max_length=150, 
-        blank=True, 
-        null=True, 
+        max_length=150,
+        blank=True,
+        null=True,
         unique=True,
         help_text="Solicitation number (e.g., N0001924R0012)"
     )
@@ -1130,27 +1131,29 @@ class SamGovOpportunity(models.Model):
     response_date = models.DateField(blank=True, null=True, help_text="Deadline for response")
     type = models.CharField(max_length=100, help_text="Opportunity type (e.g., Presolicitation)")
     base_type = models.CharField(max_length=100, blank=True, null=True, help_text="Base type")
-    
+
     # Nested fields
     award = models.JSONField(blank=True, null=True, help_text="Award details as JSON")
-    
+
     full_parent_path_name = models.CharField(max_length=500, blank=True, null=True, help_text="Agency hierarchy path")
     department = models.CharField(max_length=255, blank=True, null=True)
     office = models.CharField(max_length=255, blank=True, null=True)
     sub_office = models.CharField(max_length=255, blank=True, null=True)
-    
+
     naics_code = models.CharField(max_length=255, blank=True, null=True)
-    product_service_code = models.CharField(max_length=255, blank=True, null=True, help_text="Product Service Code (PSC)")
+    product_service_code = models.CharField(
+        max_length=255, blank=True, null=True, help_text="Product Service Code (PSC)"
+    )
     naics_codes = models.JSONField(blank=True, null=True, help_text="List of NAICS codes")
-    
+
     # Point of Contact (stored as JSON to capture full structure)
     point_of_contact = models.JSONField(blank=True, null=True, help_text="Primary point of contact details")
-    
+
     description = models.TextField(blank=True, null=True)
     resource_links = models.JSONField(blank=True, null=True, help_text="Links to attachments/resources")
-    
+
     ui_link = models.URLField(max_length=500, blank=True, null=True, help_text="Link to SAM.gov UI")
-    
+
     # Debugging
     raw_response = models.JSONField(blank=True, null=True, help_text="Full JSON response from API")
 
@@ -1178,10 +1181,10 @@ class RSSFeed(models.Model):
     feed_url = models.URLField(max_length=1000, unique=True, help_text="RSS Feed URL")
     site_url = models.URLField(max_length=1000, blank=True, null=True, help_text="Main website URL")
     category = models.CharField(max_length=100, blank=True, default="Uncategorized", help_text="Folder/Category name")
-    
+
     last_fetched = models.DateTimeField(null=True, blank=True, help_text="Timestamp of last successful fetch")
     is_active = models.BooleanField(default=True, help_text="If False, will skip fetching")
-    
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -1204,13 +1207,15 @@ class RSSArticle(models.Model):
     link = models.URLField(max_length=2000, unique=True, help_text="Direct link to article")
     description = models.TextField(blank=True, null=True, help_text="Article summary or content snippet")
     author = models.CharField(max_length=255, blank=True, null=True, help_text="Author name")
-    
+
     pub_date = models.DateTimeField(null=True, blank=True, help_text="Publication date from feed")
     guid = models.CharField(max_length=1000, unique=True, help_text="Unique ID from feed")
-    
+
     # Capability to link to a Company (same logic as Contracts)
-    company = models.ForeignKey("Company", on_delete=models.SET_NULL, null=True, blank=True, related_name="news_mentions")
-    
+    company = models.ForeignKey(
+        "Company", on_delete=models.SET_NULL, null=True, blank=True, related_name="news_mentions"
+    )
+
     fetched_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -1236,14 +1241,21 @@ class ContractIgnoreRule(models.Model):
     rule_type = models.CharField(max_length=10, choices=RULE_TYPES, default='term')
     value = models.CharField(max_length=255, help_text='Exact code or substring to match')
     should_delete = models.BooleanField(
-        default=False, 
-        help_text='If checked, matching default contracts will be deleted permanently during import instead of just hidden.'
+        default=False,
+        help_text=(
+            'If checked, matching default contracts will be deleted permanently '
+            'during import instead of just hidden.'
+        )
     )
     is_active = models.BooleanField(default=True)
     naics_codes = models.ManyToManyField(
-        'NAICSCode', 
-        blank=True, 
-        help_text='(Optional) Select specific NAICS codes to ignore. If you leave this blank, the rule ignores EVERYTHING that matches the domain. If you select items here, the rule ONLY ignores items matching BOTH the Domain AND these NAICS codes.'
+        'NAICSCode',
+        blank=True,
+        help_text=(
+            '(Optional) Select specific NAICS codes to ignore. If you leave this blank, the rule ignores '
+            'EVERYTHING that matches the domain. If you select items here, the rule ONLY ignores items '
+            'matching BOTH the Domain AND these NAICS codes.'
+        )
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -1267,4 +1279,3 @@ class PSCCode(models.Model):
 
     def __str__(self):
         return f'{self.code} - {self.description}'
-

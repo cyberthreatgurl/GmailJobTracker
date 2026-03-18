@@ -23,27 +23,27 @@ class CompanyScraperError(Exception):
 def scrape_company_info(homepage_url: str, timeout: int = 10) -> Dict[str, str]:
     """
     Scrape company information from a homepage URL.
-    
+
     Args:
         homepage_url: The company's homepage URL
         timeout: Request timeout in seconds (default: 10)
-        
+
     Returns:
         Dictionary with keys:
         - name: Company name (extracted from page)
         - domain: Domain name (extracted from URL)
         - career_url: Career/Jobs page URL (if found, empty string if not found)
-        
+
     Raises:
         CompanyScraperError: If scraping fails or URL is invalid
     """
     # Validate and normalize URL
     if not homepage_url:
         raise CompanyScraperError("Homepage URL is required")
-    
+
     if not homepage_url.startswith(("http://", "https://")):
         homepage_url = "https://" + homepage_url
-    
+
     try:
         parsed = urlparse(homepage_url)
         if not parsed.netloc:
@@ -51,7 +51,7 @@ def scrape_company_info(homepage_url: str, timeout: int = 10) -> Dict[str, str]:
         domain = parsed.netloc.replace("www.", "")
     except Exception as e:
         raise CompanyScraperError(f"Invalid URL: {e}")
-    
+
     # Fetch the page
     try:
         # Use minimal headers - more complex headers can trigger anti-bot measures
@@ -73,26 +73,26 @@ def scrape_company_info(homepage_url: str, timeout: int = 10) -> Dict[str, str]:
             raise CompanyScraperError(f"HTTP error {e.response.status_code}: {e}")
     except requests.RequestException as e:
         raise CompanyScraperError(f"Failed to connect to '{domain}': {str(e)}")
-    
+
     # Parse HTML
     try:
         soup = BeautifulSoup(response.content, "html.parser")
     except Exception as e:
         raise CompanyScraperError(f"Failed to parse HTML: {e}")
-    
+
     # Extract company name
     company_name = _extract_company_name(soup, domain)
-    
+
     # Extract career/jobs URL
     career_url = _extract_career_url(soup, homepage_url)
-    
+
     # Extract page content for focus area analysis
     page_content = _extract_page_content(soup)
-    
+
     # Enhanced crawling: Extract internal links and crawl 1 level deep
     internal_links = _extract_internal_links(soup, homepage_url, domain)
     pages_scraped = ["homepage"]
-    
+
     # Crawl relevant internal pages
     additional_content = []
     for link_url, link_type in internal_links[:5]:  # Limit to top 5 pages
@@ -104,12 +104,12 @@ def scrape_company_info(homepage_url: str, timeout: int = 10) -> Dict[str, str]:
         except Exception:
             # Continue if a page fails
             pass
-    
+
     # Combine all scraped content
     combined_content = page_content
     if additional_content:
         combined_content = page_content + " " + " ".join(additional_content)
-    
+
     return {
         "name": company_name,
         "domain": domain,
@@ -122,7 +122,7 @@ def scrape_company_info(homepage_url: str, timeout: int = 10) -> Dict[str, str]:
 def _extract_company_name(soup: BeautifulSoup, domain: str) -> str:
     """
     Extract company name from page content.
-    
+
     Priority:
     1. <meta property="og:site_name">
     2. <title> tag (cleaned)
@@ -139,7 +139,7 @@ def _extract_company_name(soup: BeautifulSoup, domain: str) -> str:
             if name.islower() and len(name) <= 4 and name.isalpha():
                 return name.upper()
             return name
-    
+
     # Try title tag
     title_tag = soup.find("title")
     if title_tag:
@@ -152,7 +152,7 @@ def _extract_company_name(soup: BeautifulSoup, domain: str) -> str:
             if title.islower() and len(title) <= 4 and title.isalpha():
                 return title.upper()
             return title
-    
+
     # Try first h1 tag
     h1_tag = soup.find("h1")
     if h1_tag:
@@ -163,7 +163,7 @@ def _extract_company_name(soup: BeautifulSoup, domain: str) -> str:
             if h1_text.islower() and len(h1_text) <= 4 and h1_text.isalpha():
                 return h1_text.upper()
             return h1_text
-    
+
     # Fallback: capitalize domain name
     domain_name = domain.split(".")[0]
     # Keep acronyms uppercase (e.g., "aig" -> "AIG", not "Aig")
@@ -177,14 +177,14 @@ def _clean_company_name(name: str) -> str:
     # Remove common web suffixes
     name = re.sub(r"\s*[|-]\s*Official.*$", "", name, flags=re.IGNORECASE)
     name = re.sub(r"\s*[|-]\s*Home.*$", "", name, flags=re.IGNORECASE)
-    
+
     # Handle pipe separators (e.g., "PMAT Inc. | Enhancing Decision Dominance")
     if '|' in name:
         parts = name.split('|')
         # Keep first part (company name) if it's reasonable length
         if parts and len(parts[0].strip()) < 50:
             name = parts[0].strip()
-    
+
     # Remove long descriptive taglines (em dash often separates company from tagline)
     if ' – ' in name:
         parts = name.split(' – ')
@@ -199,10 +199,10 @@ def _clean_company_name(name: str) -> str:
 def _extract_career_url(soup: BeautifulSoup, base_url: str) -> Optional[str]:
     """
     Extract career/jobs page URL from links.
-    
+
     Looks for links containing keywords like:
     - careers, jobs, opportunities, join, work-with-us, etc.
-    
+
     Returns the first matching URL, preferring exact keyword matches.
     """
     # Keywords specifically for career/jobs pages (removed "employment" to avoid insurance pages)
@@ -220,7 +220,7 @@ def _extract_career_url(soup: BeautifulSoup, base_url: str) -> Optional[str]:
         "open-positions",
         "openings",
     ]
-    
+
     # Exclusion patterns to avoid matching insurance/legal/product pages
     exclusion_patterns = [
         'employment-practices',
@@ -241,17 +241,17 @@ def _extract_career_url(soup: BeautifulSoup, base_url: str) -> Optional[str]:
         'game-pass',
         'xbox',
     ]
-    
+
     # Priority 1: Look for links with exact matches in href
     all_links = soup.find_all("a", href=True)
-    
+
     for link in all_links:
         href = link["href"].lower()
-        
+
         # Skip excluded patterns
         if any(skip in href for skip in exclusion_patterns):
             continue
-        
+
         # Check if href contains career keywords
         for keyword in career_keywords:
             if f"/{keyword}" in href or f"-{keyword}" in href or f"{keyword}/" in href:
@@ -260,33 +260,33 @@ def _extract_career_url(soup: BeautifulSoup, base_url: str) -> Optional[str]:
                 # Validate it's a proper URL
                 if full_url.startswith(("http://", "https://")):
                     return full_url
-    
+
     # Priority 2: Look for links with keywords in text
     for link in soup.find_all("a", href=True):
         href = link["href"].lower()
         text = link.get_text().lower().strip()
-        
+
         # Skip excluded patterns
         if any(skip in href for skip in exclusion_patterns):
             continue
-        
+
         # Check if link text contains career keywords
         for keyword in career_keywords:
             if keyword in text:
                 full_url = urljoin(base_url, link["href"])
                 if full_url.startswith(("http://", "https://")):
                     return full_url
-    
+
     return None
 
 
 def _extract_about_url(soup: BeautifulSoup, base_url: str) -> Optional[str]:
     """
     Extract About Us / Company Info page URL.
-    
+
     Looks for links containing keywords like:
     - about, about-us, company, who-we-are, our-story, etc.
-    
+
     Returns the first matching URL.
     """
     about_keywords = [
@@ -299,7 +299,7 @@ def _extract_about_url(soup: BeautifulSoup, base_url: str) -> Optional[str]:
         "overview",
         "mission",
     ]
-    
+
     # Exclusion patterns to avoid blogs, news, press releases
     exclusion_patterns = [
         'blog',
@@ -315,50 +315,50 @@ def _extract_about_url(soup: BeautifulSoup, base_url: str) -> Optional[str]:
         'help',
         'faq',
     ]
-    
+
     all_links = soup.find_all("a", href=True)
-    
+
     # Priority 1: Look for exact keyword matches in href
     for link in all_links:
         href = link["href"].lower()
-        
+
         # Skip excluded patterns
         if any(skip in href for skip in exclusion_patterns):
             continue
-        
+
         # Check if href contains about keywords
         for keyword in about_keywords:
             if f"/{keyword}" in href or f"-{keyword}" in href or href.endswith(keyword):
                 full_url = urljoin(base_url, link["href"])
                 if full_url.startswith(("http://", "https://")) and full_url != base_url:
                     return full_url
-    
+
     # Priority 2: Look for keywords in link text
     for link in all_links:
         href = link["href"].lower()
         text = link.get_text().lower().strip()
-        
+
         # Skip excluded patterns
         if any(skip in href for skip in exclusion_patterns):
             continue
-        
+
         # Check common about page link text
         if text in ["about", "about us", "company", "who we are", "our story", "overview"]:
             full_url = urljoin(base_url, link["href"])
             if full_url.startswith(("http://", "https://")) and full_url != base_url:
                 return full_url
-    
+
     return None
 
 
 def _scrape_about_page(about_url: str, timeout: int = 10) -> str:
     """
     Scrape content from About Us page.
-    
+
     Args:
         about_url: URL of the About Us page
         timeout: Request timeout in seconds
-        
+
     Returns:
         Extracted text content from the About page
     """
@@ -368,7 +368,7 @@ def _scrape_about_page(about_url: str, timeout: int = 10) -> str:
         }
         response = requests.get(about_url, headers=headers, timeout=timeout, allow_redirects=True)
         response.raise_for_status()
-        
+
         soup = BeautifulSoup(response.content, "html.parser")
         return _extract_page_content(soup)
     except Exception:
@@ -379,19 +379,19 @@ def _scrape_about_page(about_url: str, timeout: int = 10) -> str:
 def _extract_page_content(soup: BeautifulSoup) -> str:
     """
     Extract main text content from page for focus area analysis.
-    
+
     Returns:
         Text content from meta description, h1-h3 headings, and main paragraph text.
     """
     content_parts = []
-    
+
     # Extract meta description
     meta_desc = soup.find("meta", attrs={"name": "description"})
     if not meta_desc:
         meta_desc = soup.find("meta", property="og:description")
     if meta_desc and meta_desc.get("content"):
         content_parts.append(meta_desc["content"].strip())
-    
+
     # Extract headings (h1-h3)
     for heading_tag in ["h1", "h2", "h3"]:
         headings = soup.find_all(heading_tag)
@@ -399,7 +399,7 @@ def _extract_page_content(soup: BeautifulSoup) -> str:
             text = heading.get_text().strip()
             if text and len(text) < 200:
                 content_parts.append(text)
-    
+
     # Extract main paragraph text
     # Look for main content areas first
     main_content = soup.find(["main", "article", "div"], class_=re.compile(r"(main|content|about)", re.I))
@@ -407,16 +407,16 @@ def _extract_page_content(soup: BeautifulSoup) -> str:
         paragraphs = main_content.find_all("p", limit=10)
     else:
         paragraphs = soup.find_all("p", limit=15)
-    
+
     for p in paragraphs:
         text = p.get_text().strip()
         # Filter out short paragraphs (likely navigation, footers, etc.)
         if text and len(text) > 50 and len(text) < 500:
             content_parts.append(text)
-    
+
     # Join all content with spaces
     full_content = " ".join(content_parts)
-    
+
     # Limit total length to ~3000 characters for analysis
     return full_content[:3000] if full_content else ""
 
@@ -424,12 +424,12 @@ def _extract_page_content(soup: BeautifulSoup) -> str:
 def _extract_internal_links(soup: BeautifulSoup, base_url: str, domain: str) -> list:
     """
     Extract relevant internal links for deeper content analysis.
-    
+
     Args:
         soup: Parsed homepage HTML
         base_url: Homepage URL
         domain: Company domain
-        
+
     Returns:
         List of tuples (url, page_type) prioritized for scraping
     """
@@ -440,39 +440,39 @@ def _extract_internal_links(soup: BeautifulSoup, base_url: str, domain: str) -> 
         (r'/(technology|platform|innovation)', 'technology'),
         (r'/(industries?|sectors?|customers?)', 'industries'),
     ]
-    
+
     relevant_links = []
     seen_urls = set()
-    
+
     all_links = soup.find_all("a", href=True)
-    
+
     for link in all_links:
         href = link["href"]
         full_url = urljoin(base_url, href)
-        
+
         # Only internal links
         try:
             parsed = urlparse(full_url)
             link_domain = parsed.netloc.replace("www.", "")
-            
+
             # Skip if not same domain
             if link_domain != domain:
                 continue
-            
+
             # Skip anchors, already seen, or same as base
             if parsed.fragment or full_url in seen_urls or full_url == base_url:
                 continue
-            
+
             # Check against priority patterns
             for pattern, page_type in priority_patterns:
                 if re.search(pattern, full_url.lower()):
                     relevant_links.append((full_url, page_type))
                     seen_urls.add(full_url)
                     break
-                    
+
         except Exception:
             continue
-    
+
     # Return prioritized list (about first, then solutions, tech, industries)
     return relevant_links
 
@@ -480,11 +480,11 @@ def _extract_internal_links(soup: BeautifulSoup, base_url: str, domain: str) -> 
 def _scrape_internal_page(page_url: str, timeout: int = 8) -> str:
     """
     Scrape content from an internal page.
-    
+
     Args:
         page_url: URL of the internal page
         timeout: Request timeout in seconds
-        
+
     Returns:
         Extracted text content (max 2000 chars per page)
     """
@@ -494,10 +494,10 @@ def _scrape_internal_page(page_url: str, timeout: int = 8) -> str:
         }
         response = requests.get(page_url, headers=headers, timeout=timeout, allow_redirects=True)
         response.raise_for_status()
-        
+
         soup = BeautifulSoup(response.content, "html.parser")
         content = _extract_page_content(soup)
-        
+
         # Limit to 2000 chars per page to avoid excessive content
         return content[:2000] if content else ""
     except Exception:
@@ -509,21 +509,21 @@ def _scrape_internal_page(page_url: str, timeout: int = 8) -> str:
 def analyze_company_focus(page_content: str) -> str:
     """
     Analyze company homepage content to estimate focus area.
-    
+
     Uses keyword extraction and frequency analysis to identify main business areas.
-    
+
     Args:
         page_content: Text content from company homepage
-        
+
     Returns:
         String describing estimated focus area, or empty string if cannot determine.
     """
     if not page_content or len(page_content) < 50:
         return "⚠️ No content extracted from homepage for analysis (page may be JavaScript-heavy or protected)"
-    
+
     # Convert to lowercase for analysis
     content_lower = page_content.lower()
-    
+
     # Industry/domain keywords with their associated focus areas
     focus_keywords = {
         "AI/Machine Learning": ["artificial intelligence", "machine learning", "deep learning", "neural network", "computer vision", "natural language", "nlp", "generative ai", "llm", " ai ", "ai research", "ai safety", "ai systems"],
@@ -541,7 +541,7 @@ def analyze_company_focus(page_content: str) -> str:
         "Telecommunications": ["telecommunications", "telecom", "5g", "network", "connectivity", "wireless", "broadband"],
         "Consulting": ["consulting", "advisory", "professional services", "strategy", "transformation", "management consulting"],
     }
-    
+
     # Count keyword matches for each focus area
     focus_scores = {}
     for focus_area, keywords in focus_keywords.items():
@@ -554,14 +554,14 @@ def analyze_company_focus(page_content: str) -> str:
                 matched_keywords.append(keyword)
         if score > 0:
             focus_scores[focus_area] = {"score": score, "keywords": matched_keywords}
-    
+
     # Get top 3 focus areas
     sorted_areas = sorted(focus_scores.items(), key=lambda x: x[1]["score"], reverse=True)[:3]
-    
+
     if not sorted_areas:
         # No keywords matched - provide fallback message with content length
         return f"ℹ️ Could not determine focus area from homepage (analyzed {len(page_content)} characters, but no keyword matches found). Content may be too generic or use non-standard terminology."
-    
+
     # Build result string
     result_parts = []
     for focus_area, data in sorted_areas:
@@ -569,8 +569,8 @@ def analyze_company_focus(page_content: str) -> str:
         if data["score"] >= 1:
             keywords_str = ", ".join(data["keywords"][:3])  # Show max 3 keywords
             result_parts.append(f"{focus_area} (mentions: {keywords_str})")
-    
+
     if result_parts:
         return "🤖 AI-suggested focus areas:\n" + "\n".join([f"• {part}" for part in result_parts])
-    
+
     return f"ℹ️ Weak keyword matches found. Analyzed {len(page_content)} characters but confidence is low."

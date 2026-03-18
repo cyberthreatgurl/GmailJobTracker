@@ -1,3 +1,6 @@
+import os
+import sys
+
 from django.db.models.signals import post_delete, post_save, pre_delete
 from django.dispatch import receiver
 
@@ -5,11 +8,21 @@ from .models import ATSDomain, Company, CompanyAlias, DomainToCompany, KnownComp
 from .utils.companies_io import companies_store
 
 
+def _should_sync_companies_json() -> bool:
+    """Return False for test runs so pytest does not mutate the repo config."""
+    if os.environ.get("PYTEST_CURRENT_TEST"):
+        return False
+    return not any(arg == "test" or arg.endswith("pytest") for arg in sys.argv)
+
+
 @receiver([post_save, post_delete], sender=KnownCompany)
 @receiver([post_save, post_delete], sender=ATSDomain)
 @receiver([post_save, post_delete], sender=DomainToCompany)
 @receiver([post_save, post_delete], sender=CompanyAlias)
 def export_companies(**_kwargs):
+    if not _should_sync_companies_json():
+        return
+
     known = list(KnownCompany.objects.values_list("name", flat=True))
     ats_domains = list(ATSDomain.objects.values_list("domain", flat=True))
     domain_to_company = {

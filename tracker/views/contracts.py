@@ -8,7 +8,6 @@ scraped from war.gov, plus an AJAX endpoint to trigger scraping.
 import json
 import logging
 from datetime import timedelta
-from pathlib import Path
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -44,10 +43,17 @@ def refresh_usaspending_award(request, contract_id):
     if request.method != "POST":
         return redirect("defense_contracts")
 
-    contract = get_object_or_404(DefenseContract, pk=contract_id, data_source="usaspending")
+    contract = get_object_or_404(
+        DefenseContract,
+        pk=contract_id,
+        data_source="usaspending",
+    )
 
     if not contract.award_id:
-        messages.error(request, "❌ Cannot refresh: this record has no Award ID to look up.")
+        messages.error(
+            request,
+            "❌ Cannot refresh: this record has no Award ID to look up.",
+        )
         return redirect("defense_contracts")
 
     try:
@@ -56,7 +62,7 @@ def refresh_usaspending_award(request, contract_id):
 
         # Search the API using the award_id (PIID) as a keyword — this returns the one
         # matching record and _save_contract(..., overwrite=True) updates all fields.
-        raw_contracts = service._fetch_contracts_from_api(  # pylint: disable=protected-access
+        raw_contracts = service._fetch_contracts_from_api(
             limit=5,
             keywords=[contract.award_id],
         )
@@ -64,11 +70,11 @@ def refresh_usaspending_award(request, contract_id):
         updated = 0
         for raw in raw_contracts:
             try:
-                parsed = service._parse_contract(raw)  # pylint: disable=protected-access
+                parsed = service._parse_contract(raw)
                 # Preserve the company link if already set
                 if contract.company and not parsed.get("company"):
                     parsed["company"] = contract.company
-                saved, is_new = service._save_contract(parsed, overwrite=True)  # pylint: disable=protected-access
+                saved = service._save_contract(parsed, overwrite=True)[0]
                 if saved:
                     updated += 1
             except Exception as exc:  # pylint: disable=broad-except
@@ -82,7 +88,8 @@ def refresh_usaspending_award(request, contract_id):
         else:
             messages.warning(
                 request,
-                f"⚠️ No matching records returned from USASpending for award {contract.award_id}.",
+                "⚠️ No matching records returned from USASpending for award "
+                f"{contract.award_id}.",
             )
     except Exception as exc:  # pylint: disable=broad-except
         logger.error("Failed to refresh award %s: %s", contract.award_id, exc)
@@ -118,7 +125,15 @@ def update_naics_description(request):
     if not code:
         return JsonResponse({'error': 'Missing code'}, status=400)
     if not re.fullmatch(r'[A-Za-z0-9 ,\-()\/.&]+', description):
-        return JsonResponse({'error': 'Invalid characters: only letters, numbers, spaces, commas, dashes, and parentheses are allowed.'}, status=400)
+        return JsonResponse(
+            {
+                'error': (
+                    'Invalid characters: only letters, numbers, spaces, commas, '
+                    'dashes, and parentheses are allowed.'
+                )
+            },
+            status=400,
+        )
     obj = NAICSCode.objects.filter(code=code).first()
     if obj:
         obj.description = description
@@ -522,32 +537,12 @@ def search_companies_for_linking(request):
 def _sync_company_to_json(company, domain):
     """Add a newly created company to companies.json."""
     try:
-        companies_json_path = Path("json/companies.json")
-        if not companies_json_path.exists():
-            return
-        with open(companies_json_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-
-        changes = False
-
-        # Add to known array
-        if "known" not in data:
-            data["known"] = []
-        if company.name not in data["known"]:
-            data["known"].append(company.name)
-            changes = True
-
-        # Add domain mapping
-        if domain:
-            if "domain_to_company" not in data:
-                data["domain_to_company"] = {}
-            if domain not in data["domain_to_company"]:
-                data["domain_to_company"][domain] = company.name
-                changes = True
-
-        if changes:
-            from tracker.utils.companies_io import safe_write_companies_json
-            safe_write_companies_json(companies_json_path, data, "contracts._sync_company_to_json")
+        from tracker.utils.companies_io import companies_store
+        companies_store.register_company(
+            company.name,
+            domain=domain or None,
+            source="contracts._sync_company_to_json",
+        )
     except Exception as exc:
         logger.warning("Failed to sync company to companies.json: %s", exc)
 
@@ -586,10 +581,10 @@ def upload_contract_json(request):
             }
 
             # Create or update contract
-            contract, created = DefenseContract.objects.update_or_create(
+            created = DefenseContract.objects.update_or_create(
                 contract_number=piid,
                 defaults=award_data
-            )
+            )[1]
 
             action = "Created" if created else "Updated"
             messages.success(request, f"{action} contract {piid} from JSON upload.")
@@ -601,7 +596,6 @@ def upload_contract_json(request):
             messages.error(request, f"Error uploading JSON: {str(e)}")
 
     return redirect("defense_contracts")
-
 @login_required
 def upload_contracts_csv(request):
     """
@@ -634,4 +628,3 @@ def upload_contracts_csv(request):
                     os.remove(tmp_path)
 
     return redirect("defense_contracts")
-

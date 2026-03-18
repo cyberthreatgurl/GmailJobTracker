@@ -150,8 +150,16 @@ class MessageService:
         # Persist changes if any
         try:
             if added or updated:
-                from tracker.utils.companies_io import safe_write_companies_json
-                safe_write_companies_json(cfg_path, companies_cfg, "message_service.update_company_in_json")
+                from tracker.utils.companies_io import companies_store
+                companies_store.register_company(
+                    name=company_name,
+                    domain=company_domain.lower() if company_domain else None,
+                    ats_domain=ats_domain.lower() if ats_domain else None,
+                    career_url=careers_url if (careers_url and company_name) else None,
+                    overwrite_domain=bool(company_name),
+                    overwrite_career_url=bool(careers_url),
+                    source="message_service.update_company_registry",
+                )
         except Exception as e:
             return added, updated, f"Failed to write companies.json: {e}"
 

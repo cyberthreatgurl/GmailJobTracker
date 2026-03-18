@@ -23,7 +23,6 @@ from typing import Dict, List, Optional, Tuple
 
 import requests
 from django.db import IntegrityError
-from django.utils.timezone import now
 from thefuzz import fuzz
 
 from tracker.models import Company, CompanyAlias, DefenseContract
@@ -325,7 +324,7 @@ class USASpendingService:
                 try:
                     response = self._make_api_request(payload)
                     break
-                except: # ... (existing retry logic handled in original code block)
+                except Exception:
                     if attempt == MAX_RETRIES:
                         raise
                     time.sleep(1)
@@ -503,7 +502,11 @@ class USASpendingService:
 
         # Parse award date
         article_date = None
-        date_raw = raw_data.get("Base Obligation Date", "").strip()
+        date_raw = (
+            raw_data.get("Base Obligation Date")
+            or raw_data.get("Start Date")
+            or ""
+        ).strip()
         if date_raw:
             try:
                 article_date = datetime.strptime(date_raw, "%Y-%m-%d").date()
@@ -518,17 +521,46 @@ class USASpendingService:
         awarding_sub_agency = (raw_data.get("Awarding Sub Agency") or "").strip()
         description = (raw_data.get("Description") or "").strip()
 
-        # Extract Place of Performance (nested object)
+        # Extract Place of Performance from nested API objects first, then
+        # fall back to legacy flat keys still used in fixtures and some payloads.
         pop_data = raw_data.get("Primary Place of Performance") or {}
-        work_country = (pop_data.get("country_name") or "").strip()
-        work_city = (pop_data.get("city_name") or "").strip()
-        work_county = (pop_data.get("county_name") or "").strip()
-        work_state = (pop_data.get("state_code") or "").strip()
+        work_country = (
+            pop_data.get("country_name")
+            or raw_data.get("Place of Performance Country Name")
+            or ""
+        ).strip()
+        work_city = (
+            pop_data.get("city_name")
+            or raw_data.get("Place of Performance City Name")
+            or ""
+        ).strip()
+        work_county = (
+            pop_data.get("county_name")
+            or raw_data.get("Place of Performance County Name")
+            or ""
+        ).strip()
+        work_state = (
+            pop_data.get("state_code")
+            or raw_data.get("Place of Performance State Code")
+            or raw_data.get("Place of Performance State")
+            or ""
+        ).strip()
 
-        # Extract Recipient Location (nested object)
+        # Extract Recipient Location from nested API objects first, then fall
+        # back to flat keys used by some responses and tests.
         recipient_data = raw_data.get("Recipient Location") or {}
-        recipient_city = (recipient_data.get("city_name") or "").strip()
-        recipient_state = (recipient_data.get("state_code") or "").strip()
+        recipient_city = (
+            recipient_data.get("city_name")
+            or raw_data.get("Recipient Location City Name")
+            or raw_data.get("recipient_location_city_name")
+            or ""
+        ).strip()
+        recipient_state = (
+            recipient_data.get("state_code")
+            or raw_data.get("Recipient Location State Code")
+            or raw_data.get("recipient_location_state_code")
+            or ""
+        ).strip()
 
         # Extract officer names
         officer_1_name = (raw_data.get("Highly Compensated Officer 1 Name") or "").strip()
@@ -571,9 +603,9 @@ class USASpendingService:
         # Append country if not US
         if work_country and work_country.upper() not in ["USA", "UNITED STATES"]:
             if work_location:
-                 work_location += f", {work_country}"
+                work_location += f", {work_country}"
             else:
-                 work_location = work_country
+                work_location = work_country
 
         # Build company location string (recipient's address)
         company_location = ""

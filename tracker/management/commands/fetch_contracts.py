@@ -89,13 +89,9 @@ class Command(BaseCommand):
             self._fetch_war_gov(options)
         elif source == "usaspending":
             self._fetch_usaspending(options)
-
-        # Clean any ignored contracts upon completion
-        if not options.get("dry_run"):
-            call_command("clean_ignored_contracts")
         elif source == "all":
             self._fetch_war_gov(options)
-            self.stdout.write("")  # Blank line between sources
+            self.stdout.write("")
             self._fetch_usaspending(options)
 
         # Clean any ignored contracts upon completion

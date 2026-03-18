@@ -107,7 +107,7 @@ class ThreadTrackingAdmin(admin.ModelAdmin):
 
 class CompanyAdmin(admin.ModelAdmin):
     list_display = ("name", "domain", "status", "first_contact", "last_contact")
-    search_fields = ("name", "domain", "alias")
+    search_fields = ("name", "domain")
     list_filter = ("status",)
     actions = ["merge_selected_companies"]
 

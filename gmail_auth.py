@@ -92,7 +92,7 @@ def get_gmail_service():
         return None
 
     try:
-        service = build("gmail", "v1", credentials=creds)
+        service = build("gmail", "v1", credentials=creds, cache_discovery=False)
         return service
     except Exception as e:
         print(f"Error building Gmail service: {e}")

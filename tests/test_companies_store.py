@@ -9,7 +9,9 @@ import json
 import os
 import tempfile
 from pathlib import Path
+from unittest.mock import Mock
 
+import tracker.signals as tracker_signals
 from tracker.utils.companies_io import CompaniesStore
 
 
@@ -479,3 +481,13 @@ def test_safe_write_allows_full_replace(tmp_path):
     result = safe_write_companies_json(path, updated, source="test")
     assert result is True
     assert "B" in json.loads(path.read_text())["known"]
+
+
+def test_export_companies_skips_repo_write_during_pytest(monkeypatch):
+    monkeypatch.setenv("PYTEST_CURRENT_TEST", "tests/test_companies_store.py::test")
+    sync_mock = Mock()
+    monkeypatch.setattr(tracker_signals.companies_store, "sync_registry_snapshot", sync_mock)
+
+    tracker_signals.export_companies()
+
+    sync_mock.assert_not_called()

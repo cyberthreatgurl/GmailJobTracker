@@ -347,6 +347,48 @@ class CompaniesStore:
         return changed
 
     # ------------------------------------------------------------------
+    # Registry snapshot sync  (signals export)
+    # ------------------------------------------------------------------
+
+    def sync_registry_snapshot(
+        self,
+        *,
+        known: list[str],
+        ats_domains: list[str],
+        domain_to_company: dict[str, str],
+        aliases: dict[str, str],
+        source: str = "",
+    ) -> bool:
+        """Refresh DB-backed sections while preserving unrelated JSON keys."""
+        with _lock:
+            data = self._load()
+
+            next_known = sorted(set(known))
+            next_ats_domains = sorted(set(ats_domains))
+            next_domain_to_company = dict(sorted(domain_to_company.items()))
+            next_aliases = dict(sorted(aliases.items()))
+
+            changed = any(
+                (
+                    data.get("known", []) != next_known,
+                    data.get("ats_domains", []) != next_ats_domains,
+                    data.get("domain_to_company", {}) != next_domain_to_company,
+                    data.get("aliases", {}) != next_aliases,
+                )
+            )
+
+            if not changed:
+                return False
+
+            data["known"] = next_known
+            data["ats_domains"] = next_ats_domains
+            data["domain_to_company"] = next_domain_to_company
+            data["aliases"] = next_aliases
+            self._write(data, source or "sync_registry_snapshot")
+
+        return True
+
+    # ------------------------------------------------------------------
     # Company update  (save_company)
     # ------------------------------------------------------------------
 

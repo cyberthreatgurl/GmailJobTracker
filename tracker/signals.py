@@ -1,10 +1,8 @@
-import json
-from pathlib import Path
-
 from django.db.models.signals import post_delete, post_save, pre_delete
 from django.dispatch import receiver
 
 from .models import ATSDomain, Company, CompanyAlias, DomainToCompany, KnownCompany, Message, ThreadTracking
+from .utils.companies_io import companies_store
 
 
 @receiver([post_save, post_delete], sender=KnownCompany)
@@ -22,18 +20,13 @@ def export_companies(**_kwargs):
         a["alias"]: a["company"]
         for a in CompanyAlias.objects.values("alias", "company")
     }
-
-    data = {
-        "ats_domains": ats_domains,
-        "known": known,
-        "domain_to_company": domain_to_company,
-        "aliases": aliases,
-    }
-
-    out_path = Path("json") / "companies.json"
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    with open(out_path, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
+    companies_store.sync_registry_snapshot(
+        known=known,
+        ats_domains=ats_domains,
+        domain_to_company=domain_to_company,
+        aliases=aliases,
+        source="signals/export_companies",
+    )
 
 
 @receiver(post_save, sender=Company)

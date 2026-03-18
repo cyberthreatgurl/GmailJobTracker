@@ -280,6 +280,65 @@ class TestRegisterCompany:
 
 
 # ---------------------------------------------------------------------------
+# sync_registry_snapshot
+# ---------------------------------------------------------------------------
+
+class TestSyncRegistrySnapshot:
+
+    def test_updates_db_backed_sections_only(self):
+        initial = {
+            "known": ["OldCo"],
+            "ats_domains": ["old-ats.com"],
+            "domain_to_company": {"oldco.com": "OldCo"},
+            "aliases": {"Old": "OldCo"},
+            "JobSites": {"KeepCo": "https://keep.example/jobs"},
+            "job_boards": ["indeed.com"],
+            "headhunter_domains": ["recruiter.example"],
+        }
+        store, p = _make_store(initial)
+
+        changed = store.sync_registry_snapshot(
+            known=["NewCo"],
+            ats_domains=["new-ats.com"],
+            domain_to_company={"newco.com": "NewCo"},
+            aliases={"New": "NewCo"},
+            source="test",
+        )
+
+        assert changed is True
+        data = _load(p)
+        assert data["known"] == ["NewCo"]
+        assert data["ats_domains"] == ["new-ats.com"]
+        assert data["domain_to_company"] == {"newco.com": "NewCo"}
+        assert data["aliases"] == {"New": "NewCo"}
+        assert data["JobSites"] == {"KeepCo": "https://keep.example/jobs"}
+        assert data["job_boards"] == ["indeed.com"]
+        assert data["headhunter_domains"] == ["recruiter.example"]
+
+    def test_no_write_when_snapshot_is_unchanged(self):
+        initial = {
+            "known": ["Acme"],
+            "ats_domains": ["workday.com"],
+            "domain_to_company": {"acme.com": "Acme"},
+            "aliases": {"ACME": "Acme"},
+            "JobSites": {"Acme": "https://acme.example/jobs"},
+        }
+        store, p = _make_store(initial)
+        mtime_before = p.stat().st_mtime
+
+        changed = store.sync_registry_snapshot(
+            known=["Acme"],
+            ats_domains=["workday.com"],
+            domain_to_company={"acme.com": "Acme"},
+            aliases={"ACME": "Acme"},
+            source="test",
+        )
+
+        assert changed is False
+        assert p.stat().st_mtime == mtime_before
+
+
+# ---------------------------------------------------------------------------
 # update_company
 # ---------------------------------------------------------------------------
 

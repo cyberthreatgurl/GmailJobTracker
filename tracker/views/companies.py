@@ -39,6 +39,7 @@ from tracker.services.usaspending_service import USASpendingService
 from tracker.forms import CompanyEditForm
 from tracker.location_normalization import canonicalize_city_key
 from tracker.views.helpers import build_sidebar_context
+from tracker.utils.companies_io import safe_write_companies_json
 
 
 def _get_parser_module():
@@ -1139,19 +1140,36 @@ def label_companies(request):
 
                                         # Only write to file if changes were made
                                         if changes_made:
-                                            with open(
-                                                companies_json_path, "w", encoding="utf-8"
-                                            ) as f:
-                                                json.dump(
-                                                    companies_json_data,
-                                                    f,
-                                                    indent=2,
-                                                    ensure_ascii=False,
-                                                )
+                                            safe_write_companies_json(
+                                                companies_json_path,
+                                                companies_json_data,
+                                                "companies.save_company",
+                                            )
                             except Exception as e:
                                 messages.warning(
                                     request, f"⚠️ Failed to save to companies.json: {e}"
                                 )
+
+                        # Sync aliases to CompanyAlias DB table so they survive
+                        # companies.json restores and are checked at ingest time.
+                        try:
+                            from tracker.models import CompanyAlias as DBCompanyAlias
+                            alias_input_db = (form.cleaned_data.get("alias") or "").strip()
+                            if alias_input_db:
+                                new_db_aliases = [a.strip() for a in alias_input_db.split(",") if a.strip()]
+                                DBCompanyAlias.objects.filter(company=company_name).exclude(
+                                    alias__in=new_db_aliases
+                                ).delete()
+                                for db_alias in new_db_aliases:
+                                    DBCompanyAlias.objects.update_or_create(
+                                        alias=db_alias,
+                                        defaults={"company": company_name},
+                                    )
+                            else:
+                                DBCompanyAlias.objects.filter(company=company_name).delete()
+                        except Exception as e:
+                            logger.warning("Failed to sync CompanyAlias DB: %s", e)
+
                         form.save()
                         _sync_company_operating_cities(
                             selected_company, operating_cities_text
@@ -1257,10 +1275,37 @@ def label_companies(request):
                                 changes_made = True
 
                     if changes_made:
-                        with open(companies_json_path, "w", encoding="utf-8") as f:
-                            json.dump(companies_json_data, f, indent=2, ensure_ascii=False)
+                        import traceback as _tb
+                        logger.info(
+                            "companies.json WRITE via companies.create_company"
+                            " domains=%d aliases=%d\n%s",
+                            len(companies_json_data.get("domain_to_company", {})),
+                            len(companies_json_data.get("aliases", {})),
+                            _tb.format_stack()[-3],
+                        )
+                        safe_write_companies_json(
+                            companies_json_path,
+                            companies_json_data,
+                            "companies.create_company",
+                        )
             except Exception as e:
                 messages.warning(request, f"⚠️ Failed to save to companies.json: {e}")
+
+            # Sync aliases to CompanyAlias DB table so they survive companies.json restores.
+            try:
+                from tracker.models import CompanyAlias as DBCompanyAlias
+                if alias_input:
+                    db_new_aliases = [a.strip() for a in alias_input.split(",") if a.strip()]
+                    DBCompanyAlias.objects.filter(company=new_company.name).exclude(
+                        alias__in=db_new_aliases
+                    ).delete()
+                    for db_alias in db_new_aliases:
+                        DBCompanyAlias.objects.update_or_create(
+                            alias=db_alias,
+                            defaults={"company": new_company.name},
+                        )
+            except Exception as e:
+                logger.warning("Failed to sync CompanyAlias DB for new company: %s", e)
 
             return new_company
 
@@ -1697,8 +1742,17 @@ def manage_domains(request):
                 companies_data["ats_domains"] = sorted(ats_domains)
                 companies_data["headhunter_domains"] = sorted(headhunter_domains)
 
-                with open(companies_path, "w", encoding="utf-8") as f:
-                    json.dump(companies_data, f, indent=2, ensure_ascii=False)
+                import traceback as _tb
+                logger.info(
+                    "companies.json WRITE via companies.sync_domains"
+                    " domains=%d aliases=%d\n%s",
+                    len(companies_data.get("domain_to_company", {})),
+                    len(companies_data.get("aliases", {})),
+                    _tb.format_stack()[-3],
+                )
+                safe_write_companies_json(
+                    companies_path, companies_data, "companies.sync_domains"
+                )
 
                 messages.success(
                     request,
@@ -2021,8 +2075,9 @@ def manage_domains(request):
                     )
                     companies_data["ats_domains"] = sorted(ats_domains)
                     companies_data["headhunter_domains"] = sorted(headhunter_domains)
-                    with open(companies_path, "w", encoding="utf-8") as f:
-                        json.dump(companies_data, f, indent=2, ensure_ascii=False)
+                    safe_write_companies_json(
+                        companies_path, companies_data, "companies.bulk_label"
+                    )
 
                     messages.success(
                         request, f"✅ Labeled {len(domains)} domain(s) as {label_type}."
@@ -2163,8 +2218,9 @@ def manage_domains(request):
                     companies_data["ats_domains"] = sorted(ats_domains)
                     companies_data["headhunter_domains"] = sorted(headhunter_domains)
                     companies_data["job_boards"] = sorted(job_boards)
-                    with open(companies_path, "w", encoding="utf-8") as f:
-                        json.dump(companies_data, f, indent=2, ensure_ascii=False)
+                    safe_write_companies_json(
+                        companies_path, companies_data, "companies.label_single"
+                    )
 
                     messages.success(request, f"✅ Labeled {domain} as {label_type}.")
                     return redirect(

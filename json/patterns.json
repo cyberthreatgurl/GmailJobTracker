@@ -484,6 +484,9 @@
     ]
   },
   "invalid_company_prefixes": [
+    "your\\s+",
+    "thank\\s+you",
+    "we\\s+(are\\s+)?(pleased|regret|wanted|excited)",
     "the\\sposition\\sof\\s",
     "the\\srole\\sof\\s",
     "Cyber\\sProgram,",

@@ -18,6 +18,12 @@ from . import validation, email_parsing, helpers, label_propagation
 
 # Import commonly used functions for convenience
 from .label_propagation import propagate_message_label_to_thread
+from .timing import timed_block
+
+__all__ = [
+    "propagate_message_label_to_thread",
+    "timed_block",
+]
 
 __all__ = [
     "validation",

@@ -412,8 +412,8 @@ def json_file_viewer(request):
                         shutil.copy2(companies_path, backup_path)
 
                     # Write to file
-                    with open(companies_path, "w", encoding="utf-8") as f:
-                        json.dump(companies_data, f, indent=2)
+                    from tracker.utils.companies_io import safe_write_companies_json
+                    safe_write_companies_json(companies_path, companies_data, "admin.edit_config")
 
                     success_message = "✅ Companies configuration saved successfully! (Backup created)"
 

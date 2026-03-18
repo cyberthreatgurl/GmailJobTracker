@@ -13,6 +13,7 @@ from django.utils import timezone
 from gmail_auth import get_gmail_service  # adjust if needed
 from parser import ingest_message
 from tracker.models import IngestionStats, ProcessedMessage
+from tracker.utils.timing import timed_block
 from tracker_logger import log_console
 
 
@@ -153,9 +154,10 @@ class Command(BaseCommand):
                     log_console(f"Using custom query: {custom_query}")
 
                 # Fetch all messages from entire Gmail account (no label filtering)
-                all_msgs = fetch_all_messages(
-                    service, after_date=after_date, custom_query=custom_query
-                )
+                with timed_block(f"fetch_gmail_message_list (last {days_back}d)", self.stdout):
+                    all_msgs = fetch_all_messages(
+                        service, after_date=after_date, custom_query=custom_query
+                    )
 
                 all_msgs_by_id = {m["id"]: m for m in all_msgs}
                 log_console(f"Total messages fetched: {len(all_msgs_by_id)}")
@@ -191,76 +193,77 @@ class Command(BaseCommand):
 
                 for msg in all_msgs_by_id.values():
                     msg_id = msg["id"]
-                    try:
-                        # Fetch full message once — reused for logging AND ingest_message
-                        # (avoids a redundant format=metadata call per message)
-                        raw_message = (
-                            service.users()
-                            .messages()
-                            .get(userId="me", id=msg_id, format="full")
-                            .execute()
-                        )
-                        headers = {
-                            h["name"]: h["value"]
-                            for h in raw_message.get("payload", {}).get("headers", [])
-                        }
-                        subject = headers.get("Subject", "") or ""
-                        date = headers.get("Date", "") or ""
+                    with timed_block(f"ingest_message {msg_id}", threshold_ms=200):
+                        try:
+                            # Fetch full message once — reused for logging AND ingest_message
+                            # (avoids a redundant format=metadata call per message)
+                            raw_message = (
+                                service.users()
+                                .messages()
+                                .get(userId="me", id=msg_id, format="full")
+                                .execute()
+                            )
+                            headers = {
+                                h["name"]: h["value"]
+                                for h in raw_message.get("payload", {}).get("headers", [])
+                            }
+                            subject = headers.get("Subject", "") or ""
+                            date = headers.get("Date", "") or ""
 
-                        # Log before processing
-                        log_console(f"Processing [{msg_id}] {date}: {subject}")
+                            # Log before processing
+                            log_console(f"Processing [{msg_id}] {date}: {subject}")
 
-                        # Pass pre-fetched message so ingest_message skips the API call
-                        ret = ingest_message(service, msg_id, raw_message=raw_message)
-                        fetched += 1
+                            # Pass pre-fetched message so ingest_message skips the API call
+                            ret = ingest_message(service, msg_id, raw_message=raw_message)
+                            fetched += 1
 
-                        # Mark as processed
-                        ProcessedMessage.objects.get_or_create(gmail_id=msg_id)
+                            # Mark as processed
+                            ProcessedMessage.objects.get_or_create(gmail_id=msg_id)
 
-                        # Enhanced logging: Show what happened with this message
-                        if isinstance(ret, dict):
-                            status = ret.get("status", "unknown")
-                            if status == "ignored":
-                                reason = ret.get("reason", "unknown")
-                                log_console(f"  → Ignored [{msg_id}]: {reason}")
+                            # Enhanced logging: Show what happened with this message
+                            if isinstance(ret, dict):
+                                status = ret.get("status", "unknown")
+                                if status == "ignored":
+                                    reason = ret.get("reason", "unknown")
+                                    log_console(f"  → Ignored [{msg_id}]: {reason}")
+                                    ignored += 1
+                                elif status == "inserted":
+                                    label = ret.get("label", "unknown")
+                                    confidence = ret.get("confidence", 0)
+                                    company = ret.get("company", "N/A")
+                                    source = ret.get("source", "unknown")
+                                    log_console(
+                                        f"  → Inserted [{msg_id}]: label={label}, confidence={confidence:.2f}, company={company}, source={source}"
+                                    )
+                                    inserted += 1
+                                elif status == "re-ingested":
+                                    # Re-ingest already logged by parser via log_console;
+                                    # just count it here (not inserted or ignored).
+                                    pass
+                                else:
+                                    log_console(f"  → {status}")
+                            elif ret == "ignored":
+                                # Legacy string return
+                                log_console(f"  → Ignored [{msg_id}]")
                                 ignored += 1
-                            elif status == "inserted":
-                                label = ret.get("label", "unknown")
-                                confidence = ret.get("confidence", 0)
-                                company = ret.get("company", "N/A")
-                                source = ret.get("source", "unknown")
-                                log_console(
-                                    f"  → Inserted [{msg_id}]: label={label}, confidence={confidence:.2f}, company={company}, source={source}"
-                                )
-                                inserted += 1
-                            elif status == "re-ingested":
-                                # Re-ingest already logged by parser via log_console;
-                                # just count it here (not inserted or ignored).
-                                pass
                             else:
-                                log_console(f"  → {status}")
-                        elif ret == "ignored":
-                            # Legacy string return
-                            log_console(f"  → Ignored [{msg_id}]")
-                            ignored += 1
-                        else:
-                            # Legacy return values
-                            inserted_flag = False
-                            if isinstance(ret, bool):
-                                inserted_flag = ret
-                            elif isinstance(ret, int):
-                                inserted_flag = ret > 0
-                            else:
-                                inserted_flag = True if ret else False
+                                # Legacy return values
+                                inserted_flag = False
+                                if isinstance(ret, bool):
+                                    inserted_flag = ret
+                                elif isinstance(ret, int):
+                                    inserted_flag = ret > 0
+                                else:
+                                    inserted_flag = True if ret else False
 
-                            if inserted_flag:
-                                log_console(f"  → Inserted [{msg_id}]")
-                                inserted += 1
-                            else:
-                                log_console(f"  → Skipped [{msg_id}]")
+                                if inserted_flag:
+                                    log_console(f"  → Inserted [{msg_id}]")
+                                    inserted += 1
+                                else:
+                                    log_console(f"  → Skipped [{msg_id}]")
 
-                    except Exception as e:
-                        log_console(f"Failed to ingest {msg_id}: {e}")
+                        except Exception as e:
+                            log_console(f"Failed to ingest {msg_id}: {e}")
 
                 # Persist aggregated stats
                 stats.total_fetched += fetched

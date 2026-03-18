@@ -25,6 +25,7 @@ from tracker.models import (
     UnresolvedCompany,
 )
 from tracker.views.helpers import extract_body_content, build_sidebar_context
+from tracker.utils.timing import timed_block
 
 
 def _stat_total(stats_map, stat_date, field_name):
@@ -72,28 +73,30 @@ def dashboard(request):
     # First-time flag will be added to ctx near render
 
     # ✅ Recent messages with company preloaded
-    recent_messages = Message.objects.select_related("company").order_by("-timestamp")[:100]
-    for msg in recent_messages:
-        raw_html = msg.body or ""
-        setattr(msg, "cleaned_body_html", extract_body_content(raw_html))
+    with timed_block("recent_messages + body_parse"):
+        recent_messages = Message.objects.select_related("company").order_by("-timestamp")[:100]
+        for msg in recent_messages:
+            raw_html = msg.body or ""
+            setattr(msg, "cleaned_body_html", extract_body_content(raw_html))
 
     # ✅ Group messages by thread_id with company preloaded
-    threads = defaultdict(list)
-    seen = set()
+    with timed_block("thread_grouping_loop"):
+        threads = defaultdict(list)
+        seen = set()
 
-    for msg in Message.objects.select_related("company").order_by(
-        "thread_id", "timestamp"
-    ):
-        if msg.msg_id not in seen:
-            threads[msg.thread_id].append(msg)
-            seen.add(msg.msg_id)
+        for msg in Message.objects.select_related("company").order_by(
+            "thread_id", "timestamp"
+        ):
+            if msg.msg_id not in seen:
+                threads[msg.thread_id].append(msg)
+                seen.add(msg.msg_id)
 
-    # ✅ Filter to threads with >1 message, then sort and slice
-    thread_list = sorted(
-        [(tid, msgs) for tid, msgs in threads.items() if len(msgs) > 1],
-        key=lambda t: t[1][-1].timestamp,
-        reverse=True,
-    )[:50]
+        # ✅ Filter to threads with >1 message, then sort and slice
+        thread_list = sorted(
+            [(tid, msgs) for tid, msgs in threads.items() if len(msgs) > 1],
+            key=lambda t: t[1][-1].timestamp,
+            reverse=True,
+        )[:50]
 
     #  Ingestion stats
     latest_stats = IngestionStats.objects.order_by("-date").first()

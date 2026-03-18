@@ -10,6 +10,7 @@ import re
 import warnings
 from bs4 import BeautifulSoup, MarkupResemblesLocatorWarning
 from tracker.services import StatsService
+from tracker.utils.timing import timed_block
 
 
 def build_sidebar_context():
@@ -17,7 +18,8 @@ def build_sidebar_context():
 
     Phase 2: Delegates to StatsService for business logic.
     """
-    return StatsService.get_sidebar_metrics()
+    with timed_block("build_sidebar_context"):
+        return StatsService.get_sidebar_metrics()
 
 
 def extract_body_content(raw_html):

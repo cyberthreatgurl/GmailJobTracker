@@ -39,7 +39,7 @@ from tracker.services.usaspending_service import USASpendingService
 from tracker.forms import CompanyEditForm
 from tracker.location_normalization import canonicalize_city_key
 from tracker.views.helpers import build_sidebar_context
-from tracker.utils.companies_io import safe_write_companies_json
+from tracker.utils.companies_io import companies_store
 
 
 def _get_parser_module():
@@ -459,7 +459,7 @@ def label_companies(request):
                         alias_list = [
                             alias_name
                             for alias_name, canonical in aliases_dict.items()
-                            if canonical == canonical_name or canonical == selected_company.name
+                            if canonical in (canonical_name, selected_company.name)
                         ]
                         alias = ", ".join(alias_list) if alias_list else ""
             except Exception:
@@ -1007,147 +1007,26 @@ def label_companies(request):
                         ats_input = (form.cleaned_data.get("ats") or "").strip()
                         company_name = selected_company.name
 
-                        # Save to companies.json
+                        # Save company-side fields to companies.json surgically
                         if company_name:
                             try:
-                                companies_json_path = Path("json/companies.json")
-                                if companies_json_path.exists():
-                                    with open(
-                                        companies_json_path, "r", encoding="utf-8"
-                                    ) as f:
-                                        companies_json_data = json.load(f)
-
-                                        # Track if any changes were made
-                                        changes_made = False
-
-                                        # Update career URL in JobSites
-                                        if "JobSites" not in companies_json_data:
-                                            companies_json_data["JobSites"] = {}
-
-                                        current_value = companies_json_data["JobSites"].get(
-                                            company_name
-                                        )
-                                        if career_url_input:
-                                            # Set or update the career URL
-                                            if current_value != career_url_input:
-                                                companies_json_data["JobSites"][
-                                                    company_name
-                                                ] = career_url_input
-                                                changes_made = True
-                                        else:
-                                            # Remove career URL if field is cleared
-                                            if company_name in companies_json_data["JobSites"]:
-                                                del companies_json_data["JobSites"][
-                                                    company_name
-                                                ]
-                                                changes_made = True
-
-                                        # Update domain in domain_to_company
-                                        if "domain_to_company" not in companies_json_data:
-                                            companies_json_data["domain_to_company"] = {}
-
-                                        # Find and remove old domain mapping for this company
-                                        old_domain = None
-                                        for dom, comp in list(
-                                            companies_json_data["domain_to_company"].items()
-                                        ):
-                                            if comp == company_name:
-                                                old_domain = dom
-                                                break
-
-                                        if domain_input:
-                                            # Set or update the domain mapping
-                                            if old_domain and old_domain != domain_input:
-                                                # Remove old mapping
-                                                del companies_json_data["domain_to_company"][
-                                                    old_domain
-                                                ]
-                                                changes_made = True
-                                            if (
-                                                domain_input
-                                                not in companies_json_data["domain_to_company"]
-                                                or companies_json_data["domain_to_company"][
-                                                    domain_input
-                                                ]
-                                                != company_name
-                                            ):
-                                                companies_json_data["domain_to_company"][
-                                                    domain_input
-                                                ] = company_name
-                                                changes_made = True
-                                        else:
-                                            # Remove domain mapping if field is cleared
-                                            if old_domain:
-                                                del companies_json_data["domain_to_company"][
-                                                    old_domain
-                                                ]
-                                                changes_made = True
-
-                                        # Update ATS domain in ats_domains
-                                        if "ats_domains" not in companies_json_data:
-                                            companies_json_data["ats_domains"] = []
-
-                                        if ats_input:
-                                            # Add ATS domain if not already present
-                                            if (
-                                                ats_input
-                                                not in companies_json_data["ats_domains"]
-                                            ):
-                                                companies_json_data["ats_domains"].append(
-                                                    ats_input
-                                                )
-                                                changes_made = True
-                                        # Note: We don't remove ATS domains when cleared because they might be shared
-                                        # by multiple companies. Manual removal from companies.json is needed.
-
-                                        # Update aliases (support multiple comma-separated values)
-                                        alias_input = (form.cleaned_data.get("alias") or "").strip()
-                                        if "aliases" not in companies_json_data:
-                                            companies_json_data["aliases"] = {}
-
-                                        # Find and remove all old aliases for this company
-                                        old_aliases = [
-                                            alias_name
-                                            for alias_name, canonical_name in list(
-                                                companies_json_data["aliases"].items()
-                                            )
-                                            if canonical_name == company_name
-                                        ]
-
-                                        if alias_input:
-                                            # Split by comma and clean up each alias
-                                            new_aliases = [a.strip() for a in alias_input.split(",") if a.strip()]
-
-                                            # Remove all old aliases
-                                            for old_alias in old_aliases:
-                                                if old_alias not in new_aliases:
-                                                    del companies_json_data["aliases"][old_alias]
-                                                    changes_made = True
-
-                                            # Add all new aliases
-                                            for new_alias in new_aliases:
-                                                if (
-                                                    new_alias not in companies_json_data["aliases"]
-                                                    or companies_json_data["aliases"][new_alias] != company_name
-                                                ):
-                                                    companies_json_data["aliases"][new_alias] = company_name
-                                                    changes_made = True
-                                        else:
-                                            # Remove all aliases if field is cleared
-                                            for old_alias in old_aliases:
-                                                del companies_json_data["aliases"][old_alias]
-                                                changes_made = True
-
-                                        # Only write to file if changes were made
-                                        if changes_made:
-                                            safe_write_companies_json(
-                                                companies_json_path,
-                                                companies_json_data,
-                                                "companies.save_company",
-                                            )
+                                alias_input = (form.cleaned_data.get("alias") or "").strip()
+                                new_aliases = (
+                                    [a.strip() for a in alias_input.split(",") if a.strip()]
+                                    if alias_input
+                                    else []
+                                )
+                                companies_store.update_company(
+                                    company_name,
+                                    new_domain=domain_input,
+                                    career_url=career_url_input,
+                                    ats_domain=ats_input or None,
+                                    new_aliases=new_aliases,
+                                    source="companies.save_company",
+                                )
                             except Exception as e:
                                 messages.warning(
-                                    request, f"⚠️ Failed to save to companies.json: {e}"
+                                    request, f"⚠️ Failed to update companies.json: {e}"
                                 )
 
                         # Sync aliases to CompanyAlias DB table so they survive
@@ -1223,73 +1102,21 @@ def label_companies(request):
             _sync_company_operating_cities(new_company, operating_text)
             messages.success(request, f"✅ New Company: {new_company.name} added")
 
+            career_url = (bound_form.cleaned_data.get("career_url") or "").strip()
+            alias_input = (bound_form.cleaned_data.get("alias") or "").strip()
+
+            # Register the new company in companies.json surgically
             try:
-                companies_json_path = Path("json/companies.json")
-                if companies_json_path.exists():
-                    with open(companies_json_path, "r", encoding="utf-8") as f:
-                        companies_json_data = json.load(f)
-
-                    changes_made = False
-
-                    if "known" not in companies_json_data:
-                        companies_json_data["known"] = []
-                    if new_company.name not in companies_json_data["known"]:
-                        companies_json_data["known"].append(new_company.name)
-                        changes_made = True
-
-                    if domain:
-                        if "domain_to_company" not in companies_json_data:
-                            companies_json_data["domain_to_company"] = {}
-                        if domain not in companies_json_data["domain_to_company"]:
-                            companies_json_data["domain_to_company"][domain] = new_company.name
-                            changes_made = True
-
-                    career_url = (bound_form.cleaned_data.get("career_url") or "").strip()
-                    if career_url:
-                        if "JobSites" not in companies_json_data:
-                            companies_json_data["JobSites"] = {}
-                        if (
-                            new_company.name not in companies_json_data["JobSites"]
-                            or companies_json_data["JobSites"][new_company.name]
-                            != career_url
-                        ):
-                            companies_json_data["JobSites"][new_company.name] = career_url
-                            changes_made = True
-
-                    alias_input = (bound_form.cleaned_data.get("alias") or "").strip()
-                    if alias_input:
-                        if "aliases" not in companies_json_data:
-                            companies_json_data["aliases"] = {}
-                        new_aliases = [
-                            alias_name.strip()
-                            for alias_name in alias_input.split(",")
-                            if alias_name.strip()
-                        ]
-                        for alias_name in new_aliases:
-                            if (
-                                alias_name not in companies_json_data["aliases"]
-                                or companies_json_data["aliases"][alias_name]
-                                != new_company.name
-                            ):
-                                companies_json_data["aliases"][alias_name] = new_company.name
-                                changes_made = True
-
-                    if changes_made:
-                        import traceback as _tb
-                        logger.info(
-                            "companies.json WRITE via companies.create_company"
-                            " domains=%d aliases=%d\n%s",
-                            len(companies_json_data.get("domain_to_company", {})),
-                            len(companies_json_data.get("aliases", {})),
-                            _tb.format_stack()[-3],
-                        )
-                        safe_write_companies_json(
-                            companies_json_path,
-                            companies_json_data,
-                            "companies.create_company",
-                        )
+                reg_aliases = [a.strip() for a in alias_input.split(",") if a.strip()] if alias_input else None
+                companies_store.register_company(
+                    new_company.name,
+                    domain=domain or None,
+                    career_url=career_url or None,
+                    aliases=reg_aliases,
+                    source="companies.create_company",
+                )
             except Exception as e:
-                messages.warning(request, f"⚠️ Failed to save to companies.json: {e}")
+                messages.warning(request, f"⚠️ Failed to register in companies.json: {e}")
 
             # Sync aliases to CompanyAlias DB table so they survive companies.json restores.
             try:
@@ -1707,6 +1534,10 @@ def manage_domains(request):
                     "docusign.net",
                 }
 
+                _original_dtc = set(domain_to_company.keys())
+                _original_ats = set(ats_domains)
+                _original_headhunter = set(headhunter_domains)
+
                 for company in companies_with_domains:
                     domain = company.domain.strip().lower()
 
@@ -1736,22 +1567,11 @@ def manage_domains(request):
                             synced_ats += 1
 
                 # Save updated companies.json
-                companies_data["domain_to_company"] = dict(
-                    sorted(domain_to_company.items())
-                )
-                companies_data["ats_domains"] = sorted(ats_domains)
-                companies_data["headhunter_domains"] = sorted(headhunter_domains)
-
-                import traceback as _tb
-                logger.info(
-                    "companies.json WRITE via companies.sync_domains"
-                    " domains=%d aliases=%d\n%s",
-                    len(companies_data.get("domain_to_company", {})),
-                    len(companies_data.get("aliases", {})),
-                    _tb.format_stack()[-3],
-                )
-                safe_write_companies_json(
-                    companies_path, companies_data, "companies.sync_domains"
+                companies_store.merge_domain_mappings(
+                    {d: n for d, n in domain_to_company.items() if d not in _original_dtc},
+                    ats_domains - _original_ats,
+                    headhunter_domains - _original_headhunter,
+                    source="companies.sync_domains",
                 )
 
                 messages.success(
@@ -2070,13 +1890,27 @@ def manage_domains(request):
                             personal_domains_data, f, indent=2, ensure_ascii=False
                         )
 
-                    companies_data["domain_to_company"] = dict(
-                        sorted(domain_to_company.items())
-                    )
-                    companies_data["ats_domains"] = sorted(ats_domains)
-                    companies_data["headhunter_domains"] = sorted(headhunter_domains)
-                    safe_write_companies_json(
-                        companies_path, companies_data, "companies.bulk_label"
+                    _domain_labels = []
+                    for _d in domains:
+                        if _d in domain_to_company:
+                            _domain_labels.append(
+                                {
+                                    "domain": _d,
+                                    "label_type": "company",
+                                    "company_name": domain_to_company[_d],
+                                }
+                            )
+                        elif _d in ats_domains:
+                            _domain_labels.append({"domain": _d, "label_type": "ats"})
+                        elif _d in headhunter_domains:
+                            _domain_labels.append({"domain": _d, "label_type": "headhunter"})
+                        elif _d in job_boards:
+                            _domain_labels.append({"domain": _d, "label_type": "job_board"})
+                        else:
+                            # Removed from all categories (skipped or personal)
+                            _domain_labels.append({"domain": _d, "label_type": "personal"})
+                    companies_store.apply_domain_classifications(
+                        _domain_labels, source="companies.bulk_label"
                     )
 
                     messages.success(
@@ -2212,14 +2046,11 @@ def manage_domains(request):
                             personal_domains_data, f, indent=2, ensure_ascii=False
                         )
 
-                    companies_data["domain_to_company"] = dict(
-                        sorted(domain_to_company.items())
-                    )
-                    companies_data["ats_domains"] = sorted(ats_domains)
-                    companies_data["headhunter_domains"] = sorted(headhunter_domains)
-                    companies_data["job_boards"] = sorted(job_boards)
-                    safe_write_companies_json(
-                        companies_path, companies_data, "companies.label_single"
+                    companies_store.classify_domain(
+                        domain,
+                        label_type,
+                        domain_to_company.get(domain),
+                        source="companies.label_single",
                     )
 
                     messages.success(request, f"✅ Labeled {domain} as {label_type}.")

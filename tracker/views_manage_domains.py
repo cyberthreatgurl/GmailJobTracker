@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from tracker.models import Message
-from tracker.utils.companies_io import safe_write_companies_json
+from tracker.utils.companies_io import companies_store
 
 
 @login_required
@@ -87,7 +87,13 @@ def manage_domains(request):
                     )
                     companies_data["ats_domains"] = sorted(ats_domains)
                     companies_data["headhunter_domains"] = sorted(headhunter_domains)
-                    safe_write_companies_json(companies_path, companies_data, "manage_domains.bulk_label")
+                    company_names_map = {
+                        d: domain_to_company[d] for d in domains if d in domain_to_company
+                    }
+                    companies_store.classify_domains(
+                        domains, label_type, company_names_map,
+                        source="manage_domains.bulk_label",
+                    )
 
                     messages.success(
                         request, f"✅ Labeled {len(domains)} domain(s) as {label_type}."
@@ -130,7 +136,11 @@ def manage_domains(request):
                     )
                     companies_data["ats_domains"] = sorted(ats_domains)
                     companies_data["headhunter_domains"] = sorted(headhunter_domains)
-                    safe_write_companies_json(companies_path, companies_data, "manage_domains.label_single")
+                    companies_store.classify_domain(
+                        domain, label_type,
+                        domain_to_company.get(domain),
+                        source="manage_domains.label_single",
+                    )
 
                     messages.success(request, f"✅ Labeled {domain} as {label_type}.")
                     return redirect(

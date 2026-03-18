@@ -1,14 +1,12 @@
 import json
 from pathlib import Path
 import shutil
-import pytest
-from django.urls import reverse
+
+from tracker.services.message_service import MessageService
 
 
-@pytest.mark.django_db
-def test_quick_add_company_updates_json(client, admin_user):
-    """Posting to label_messages with update_company_registry should modify companies.json (append entries)."""
-    client.force_login(admin_user)
+def test_quick_add_company_updates_json():
+    """MessageService.update_company_registry should append expected companies.json entries."""
     # Work on a temporary copy of companies.json to avoid polluting repo during tests
     original_path = Path("json/companies.json")
     temp_path = Path("json/companies.test.json")
@@ -19,16 +17,17 @@ def test_quick_add_company_updates_json(client, admin_user):
     original_path.rename(original_backup)
     temp_path.rename(original_path)
     try:
-        url = reverse("label_messages")
-        payload = {
-            "action": "update_company_registry",
-            "company_name": "TestCorp",
-            "company_domain": "testcorp.com",
-            "ats_domain": "lever.co",
-            "careers_url": "https://careers.testcorp.com/jobs",
-        }
-        resp = client.post(url, payload, follow=True)
-        assert resp.status_code == 200
+        added, updated, error = MessageService.update_company_registry(
+            company_name="TestCorp",
+            company_domain="testcorp.com",
+            ats_domain="lever.co",
+            careers_url="https://careers.testcorp.com/jobs",
+        )
+
+        assert error is None
+        assert added
+        assert not updated
+
         data = json.loads(original_path.read_text(encoding="utf-8"))
         assert "TestCorp" in data["known"], "Company name should be added to known list"
         assert data["domain_to_company"].get("testcorp.com") == "TestCorp"

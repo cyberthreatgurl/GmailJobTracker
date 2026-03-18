@@ -6,17 +6,13 @@ particularly around company extraction, metadata processing,
 and the full ingestion pipeline.
 """
 
-import pytest
-from unittest.mock import Mock, patch, MagicMock
-from datetime import datetime, timedelta
-import hashlib
+from datetime import datetime
 
 # Import functions to test
 from parser import (
     is_valid_company_name,
     normalize_company_name,
     looks_like_person,
-    is_correlated_message,
     predict_company,
     should_ignore,
     extract_status_dates,
@@ -108,48 +104,6 @@ class TestCompanyPrediction:
         """
         result = predict_company(subject="Application Received", body=body)
         assert result is None or isinstance(result, str)
-
-
-class TestMessageCorrelation:
-    """Test message correlation and duplicate detection."""
-
-    @patch("parser.Message")
-    def test_is_correlated_message_finds_recent_sender(self, mock_message):
-        """Messages from same sender within 30 days should correlate."""
-        now = datetime.now()
-        recent_date = now - timedelta(days=15)
-
-        # Mock a recent message from same sender
-        mock_msg = Mock()
-        mock_msg.timestamp = recent_date
-        mock_message.objects.filter.return_value.first.return_value = mock_msg
-
-        result = is_correlated_message(
-            sender_email="recruiter@company.com",
-            sender_domain="company.com",
-            msg_date=now,
-        )
-        # Should find the correlation
-        assert result is True or result is False  # Function returns bool
-
-    @patch("parser.Message")
-    def test_is_correlated_message_ignores_old_messages(self, mock_message):
-        """Messages older than 30 days should not correlate."""
-        now = datetime.now()
-        old_date = now - timedelta(days=60)
-
-        # Mock an old message
-        mock_msg = Mock()
-        mock_msg.timestamp = old_date
-        mock_message.objects.filter.return_value.first.return_value = mock_msg
-
-        result = is_correlated_message(
-            sender_email="recruiter@company.com",
-            sender_domain="company.com",
-            msg_date=now,
-        )
-        # Should not correlate with very old messages
-        assert result is True or result is False
 
 
 class TestStatusDateExtraction:

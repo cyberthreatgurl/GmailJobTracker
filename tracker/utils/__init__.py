@@ -19,11 +19,7 @@ from . import validation, email_parsing, helpers, label_propagation
 # Import commonly used functions for convenience
 from .label_propagation import propagate_message_label_to_thread
 from .timing import timed_block
-
-__all__ = [
-    "propagate_message_label_to_thread",
-    "timed_block",
-]
+from .companies_io import companies_store
 
 __all__ = [
     "validation",
@@ -31,4 +27,6 @@ __all__ = [
     "helpers",
     "label_propagation",
     "propagate_message_label_to_thread",
+    "timed_block",
+    "companies_store",
 ]

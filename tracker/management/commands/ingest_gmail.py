@@ -68,7 +68,7 @@ def fetch_all_messages(service, max_results=500, after_date=None, custom_query=N
         query_parts.append(custom_query)
 
     while True:
-        kwargs = dict(userId="me", maxResults=max_results)
+        kwargs = {"userId": "me", "maxResults": max_results}
         if query_parts:
             kwargs["q"] = " ".join(query_parts)
         if next_token:
@@ -124,7 +124,10 @@ class Command(BaseCommand):
                 # Print metrics before if requested
                 if options.get("metrics_before"):
                     log_console("\n--- Parsing/ML Metrics BEFORE Ingestion ---\n")
-                    subprocess.run([sys.executable, "manage.py", "report_parsing_metrics"])
+                    subprocess.run(
+                        [sys.executable, "manage.py", "report_parsing_metrics"],
+                        check=False,
+                    )
                     log_console("\n--- End BEFORE Metrics ---\n")
 
                 service = get_gmail_service()
@@ -198,7 +201,7 @@ class Command(BaseCommand):
                             # Fetch full message once — reused for logging AND ingest_message
                             # (avoids a redundant format=metadata call per message)
                             raw_message = (
-                                service.users()
+                                service.users()  # pylint: disable=no-member
                                 .messages()
                                 .get(userId="me", id=msg_id, format="full")
                                 .execute()
@@ -233,7 +236,9 @@ class Command(BaseCommand):
                                     company = ret.get("company", "N/A")
                                     source = ret.get("source", "unknown")
                                     log_console(
-                                        f"  → Inserted [{msg_id}]: label={label}, confidence={confidence:.2f}, company={company}, source={source}"
+                                        f"  → Inserted [{msg_id}]: label={label}, "
+                                        f"confidence={confidence:.2f}, company={company}, "
+                                        f"source={source}"
                                     )
                                     inserted += 1
                                 elif status == "re-ingested":
@@ -254,7 +259,7 @@ class Command(BaseCommand):
                                 elif isinstance(ret, int):
                                     inserted_flag = ret > 0
                                 else:
-                                    inserted_flag = True if ret else False
+                                    inserted_flag = bool(ret)
 
                                 if inserted_flag:
                                     log_console(f"  → Inserted [{msg_id}]")
@@ -272,13 +277,17 @@ class Command(BaseCommand):
                 stats.save()
 
                 log_console(
-                    f"Stats for {stats.date}: Fetched={stats.total_fetched}, Inserted={stats.total_inserted}, Ignored={stats.total_ignored}"
+                    f"Stats for {stats.date}: Fetched={stats.total_fetched}, "
+                    f"Inserted={stats.total_inserted}, Ignored={stats.total_ignored}"
                 )
 
                 # Print metrics after if requested
                 if options.get("metrics_after"):
                     log_console("\n--- Parsing/ML Metrics AFTER Ingestion ---\n")
-                    subprocess.run([sys.executable, "manage.py", "report_parsing_metrics"])
+                    subprocess.run(
+                        [sys.executable, "manage.py", "report_parsing_metrics"],
+                        check=False,
+                    )
                     log_console("\n--- End AFTER Metrics ---\n")
         except RuntimeError as e:
             message = str(e)

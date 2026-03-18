@@ -8,21 +8,21 @@ import os
 import re
 import subprocess
 import sys
-from datetime import datetime
 from pathlib import Path
+from typing import Any, Mapping, cast
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.http import StreamingHttpResponse
+from django.shortcuts import redirect, render
 from django.views.decorators.csrf import csrf_exempt
-from django.shortcuts import render, redirect
-from django.http import JsonResponse, StreamingHttpResponse
+
 from tracker.models import IngestionStats, Message
-from tracker.services import StatsService, CompanyService
 from tracker.views.helpers import sanitize_string, validate_domain
-from parser import ingest_message
 from scripts.import_gmail_filters import (
+    make_or_pattern,
     load_json,
     sanitize_to_regex_terms,
-    make_or_pattern,
 )
 from gmail_auth import get_gmail_service
 
@@ -190,7 +190,10 @@ def json_file_viewer(request):
 
                 # Only write if no validation errors
                 if validation_errors:
-                    error_message = f"⚠️ Validation errors: {len(validation_errors)} patterns rejected for security reasons"
+                    error_message = (
+                        "⚠️ Validation errors: "
+                        f"{len(validation_errors)} patterns rejected for security reasons"
+                    )
                 else:
                     # Backup original file before overwriting
                     if patterns_path.exists():
@@ -400,9 +403,15 @@ def json_file_viewer(request):
                 )
 
                 if total_entries > 10000:
-                    error_message = "❌ Too many entries (max 10,000 total). Possible DoS attempt blocked."
+                    error_message = (
+                        "❌ Too many entries (max 10,000 total). "
+                        "Possible DoS attempt blocked."
+                    )
                 elif validation_errors:
-                    error_message = f"⚠️ Validation errors: {len(validation_errors)} entries rejected for security reasons"
+                    error_message = (
+                        "⚠️ Validation errors: "
+                        f"{len(validation_errors)} entries rejected for security reasons"
+                    )
                 else:
                     # Backup original file before overwriting
                     if companies_path.exists():
@@ -413,7 +422,12 @@ def json_file_viewer(request):
 
                     # Write to file
                     from tracker.utils.companies_io import safe_write_companies_json
-                    safe_write_companies_json(companies_path, companies_data, "admin.edit_config")
+
+                    safe_write_companies_json(
+                        companies_path,
+                        companies_data,
+                        "admin.edit_config",
+                    )
 
                     success_message = "✅ Companies configuration saved successfully! (Backup created)"
 
@@ -451,7 +465,6 @@ def json_file_viewer(request):
 @login_required
 def reingest_admin(request):
     """Run the ingest_gmail command with options and show output, or ingest a single uploaded message."""
-    import tempfile
     from parser import ingest_message_from_eml
 
     base_dir = Path(__file__).resolve().parents[2]
@@ -527,8 +540,9 @@ def reingest_admin(request):
                     output_lines.append("🚫 Message was ignored (newsletter/bulk/blank).")
                 elif isinstance(result, dict):
                     # Handle dict results like {"status": "ignored", "reason": "..."}
-                    status = result.get("status", "unknown")
-                    reason = result.get("reason", "")
+                    result_dict = cast(Mapping[str, Any], result)
+                    status = result_dict.get("status", "unknown")  # pylint: disable=no-member
+                    reason = result_dict.get("reason", "")  # pylint: disable=no-member
                     if status == "ignored":
                         output_lines.append(f"🚫 Message was ignored: {reason}")
                     elif status == "inserted":
@@ -617,8 +631,7 @@ def reingest_stream(request):
                 bufsize=1,
                 universal_newlines=True,
             ) as proc:
-                for line in proc.stdout:
-                    yield line
+                yield from proc.stdout
                 ret = proc.wait()
                 yield f"\n[exit code] {ret}\n"
         except Exception as e:
@@ -700,7 +713,12 @@ def configure_settings(request):
                     or "#job-hunt"
                 ).strip()
                 # Build label maps
-                labels_resp = service.users().labels().list(userId="me").execute()
+                labels_resp = (
+                    service.users()  # pylint: disable=no-member
+                    .labels()
+                    .list(userId="me")
+                    .execute()
+                )
                 id_to_name = {
                     lab.get("id"): lab.get("name")
                     for lab in labels_resp.get("labels", [])
@@ -708,7 +726,11 @@ def configure_settings(request):
                 # name_to_id unused; kept for potential future Gmail API logic
                 # Fetch all filters
                 filt_resp = (
-                    service.users().settings().filters().list(userId="me").execute()
+                    service.users()  # pylint: disable=no-member
+                    .settings()
+                    .filters()
+                    .list(userId="me")
+                    .execute()
                 )
                 filters = filt_resp.get("filter", []) or []
 

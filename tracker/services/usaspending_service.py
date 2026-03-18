@@ -25,10 +25,21 @@ import requests
 from django.db import IntegrityError
 from thefuzz import fuzz
 
+from tracker.location_normalization import _extract_state_abbr
 from tracker.models import Company, CompanyAlias, DefenseContract
 from tracker.utils.company_normalization import normalize_company_name
 
 logger = logging.getLogger(__name__)
+
+
+def _normalize_state_code(value: str) -> str:
+    """Return a two-letter USPS code when possible, else empty string."""
+    cleaned = (value or "").strip()
+    if not cleaned:
+        return ""
+    if len(cleaned) == 2 and cleaned.isalpha():
+        return cleaned.upper()
+    return _extract_state_abbr(cleaned).upper()
 
 # USASpending API configuration
 USASPENDING_API_BASE = "https://api.usaspending.gov"
@@ -539,12 +550,12 @@ class USASpendingService:
             or raw_data.get("Place of Performance County Name")
             or ""
         ).strip()
-        work_state = (
+        work_state = _normalize_state_code(
             pop_data.get("state_code")
             or raw_data.get("Place of Performance State Code")
             or raw_data.get("Place of Performance State")
             or ""
-        ).strip()
+        )
 
         # Extract Recipient Location from nested API objects first, then fall
         # back to flat keys used by some responses and tests.
@@ -555,12 +566,12 @@ class USASpendingService:
             or raw_data.get("recipient_location_city_name")
             or ""
         ).strip()
-        recipient_state = (
+        recipient_state = _normalize_state_code(
             recipient_data.get("state_code")
             or raw_data.get("Recipient Location State Code")
             or raw_data.get("recipient_location_state_code")
             or ""
-        ).strip()
+        )
 
         # Extract officer names
         officer_1_name = (raw_data.get("Highly Compensated Officer 1 Name") or "").strip()

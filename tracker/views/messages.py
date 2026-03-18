@@ -24,11 +24,9 @@ from django.db.models import (
     CharField,
 )
 from django.db.models.functions import Coalesce, StrIndex, Substr, Lower
-from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.utils.timezone import now
 from tracker.models import Company, Message, ThreadTracking, AuditEvent, IngestionStats
-from tracker.services import MessageService
 from gmail_auth import get_gmail_service
 
 python_path = sys.executable
@@ -246,7 +244,7 @@ def label_messages(request):
                                     "msg_id": gmail_msg_id,
                                     "thread_id": msg.thread_id if msg else None,
                                     "company_id": (
-                                        msg.company.id
+                                        msg.company.pk
                                         if getattr(msg, "company", None)
                                         else None
                                     ),
@@ -310,10 +308,39 @@ def label_messages(request):
                             # Suppress auto-mark-reviewed during this UI-initiated re-ingest
                             try:
                                 os.environ["SUPPRESS_AUTO_REVIEW"] = "1"
-                                # Check if this is an uploaded .eml file (ID starts with eml_)
-                                if gmail_msg_id.startswith("eml_"):
-                                    # Re-classify from stored body text
-                                    # Re-run classification
+                                logger.info(
+                                    "reingest_selected: starting db_id=%s msg_id=%s subject=%r sender=%r",
+                                    db_id, gmail_msg_id, msg.subject, msg.sender,
+                                )
+                                # Use local reclassification for any message that can't be fetched
+                                # from Gmail: eml_ prefix (uploaded EML), non-hex IDs (test/synthetic),
+                                # or real Gmail IDs where the API returns None.
+                                import re as _re
+                                _is_gmail_id = bool(_re.match(r'^[0-9a-fA-F]{16}$', gmail_msg_id))
+                                _use_local = not _is_gmail_id
+
+                                if _is_gmail_id:
+                                    # Real Gmail message — fetch from API
+                                    logger.info(
+                                        "reingest_selected: fetching from Gmail API db_id=%s msg_id=%s",
+                                        db_id, gmail_msg_id,
+                                    )
+                                    result = ingest_message(service, gmail_msg_id)
+                                    logger.info(
+                                        "reingest_selected: ingest_message result db_id=%s result=%r",
+                                        db_id, result,
+                                    )
+                                    if result is None:
+                                        logger.warning(
+                                            "reingest_selected: Gmail API returned None for"
+                                            " db_id=%s msg_id=%s — falling back to local reclassification",
+                                            db_id, gmail_msg_id,
+                                        )
+                                        _use_local = True
+
+                                if _use_local:
+                                    # Local reclassification from stored body text
+                                    # (used for eml_ uploads, synthetic IDs, and Gmail API failures)
                                     result_dict = predict_with_fallback(
                                         predict_subject_type,
                                         msg.subject,
@@ -322,6 +349,10 @@ def label_messages(request):
                                     )
                                     ml_label = result_dict.get("label", "noise")
                                     ml_confidence = result_dict.get("confidence", 0.0)
+                                    logger.info(
+                                        "reingest_selected: classification db_id=%s label=%r confidence=%.3f",
+                                        db_id, ml_label, ml_confidence,
+                                    )
 
                                     # Re-parse company
                                     sender_domain = (
@@ -344,6 +375,10 @@ def label_messages(request):
                                         ) or parse_result.get("predicted_company")
                                     elif isinstance(parse_result, str):
                                         company = parse_result
+                                    logger.info(
+                                        "reingest_selected: parse_subject db_id=%s raw_company=%r",
+                                        db_id, company,
+                                    )
 
                                     # Apply internal referral override
                                     if (
@@ -403,6 +438,15 @@ def label_messages(request):
                                     msg.ml_label = ml_label
                                     msg.confidence = ml_confidence
                                     if company:
+                                        # Resolve alias before DB lookup (e.g. "Parsons" -> "Parsons Corporation")
+                                        from parser import resolve_company_alias
+                                        resolved_company = resolve_company_alias(company) or company
+                                        if resolved_company != company:
+                                            logger.info(
+                                                "reingest_selected: alias resolved db_id=%s %r -> %r",
+                                                db_id, company, resolved_company,
+                                            )
+                                        company = resolved_company
                                         # Case-insensitive lookup to prevent duplicates
                                         company_obj = Company.objects.filter(name__iexact=company).first()
                                         if not company_obj:
@@ -414,12 +458,23 @@ def label_messages(request):
                                                     "confidence": ml_confidence,
                                                 },
                                             )
+                                            logger.info(
+                                                "reingest_selected: created new company db_id=%s company=%r",
+                                                db_id, company,
+                                            )
+                                        else:
+                                            logger.info(
+                                                "reingest_selected: matched existing company db_id=%s company=%r",
+                                                db_id, company_obj.name,
+                                            )
                                         msg.company = company_obj
                                     msg.save()
-                                    result = "skipped"  # Mark as processed
-                                else:
-                                    # Regular Gmail message - fetch from API
-                                    result = ingest_message(service, gmail_msg_id)
+                                    logger.info(
+                                        "reingest_selected: saved db_id=%s final_label=%r company=%r",
+                                        db_id, ml_label,
+                                        msg.company.name if msg.company else None,
+                                    )
+                                    result = "local_reingested"
                             finally:
                                 try:
                                     del os.environ["SUPPRESS_AUTO_REVIEW"]
@@ -631,7 +686,7 @@ def label_messages(request):
     )
     # Annotate sender_domain_sort for sorting (rough extraction for ordering purposes)
     # The actual sender_domain property on the model handles display correctly
-    at_pos = StrIndex(F("sender"), Value("@"))
+    at_pos = StrIndex(F("sender"), Value("@"))  # type: ignore[arg-type]
     start_pos = ExpressionWrapper(at_pos + Value(1), output_field=IntegerField())
     sender_domain_sort_expr = Case(
         When(sender__contains="@", then=Substr(F("sender"), start_pos)),
@@ -693,12 +748,12 @@ def label_messages(request):
                         # Count items that would appear before the target
                         before_count = qs.filter(
                             Q(timestamp__gt=target.timestamp)
-                            | (Q(timestamp=target.timestamp) & Q(id__gt=target.id))
+                            | (Q(timestamp=target.timestamp) & Q(id__gt=target.pk))
                         ).count()
                     else:
                         before_count = qs.filter(
                             Q(timestamp__lt=target.timestamp)
-                            | (Q(timestamp=target.timestamp) & Q(id__lt=target.id))
+                            | (Q(timestamp=target.timestamp) & Q(id__lt=target.pk))
                         ).count()
                     page = before_count // per_page + 1
         except Exception:
@@ -722,18 +777,18 @@ def label_messages(request):
             lines = [" ".join(line.split()) for line in plain_text.split("\n") if line.strip()]
             # Short snippet for preview (collapsed view)
             collapsed_text = " ".join(lines)[:200]
-            msg.body_snippet = collapsed_text
+            msg.body_snippet = collapsed_text  # type: ignore[attr-defined]
             # Full snippet for expanded view (up to 30 lines)
             full_lines = lines[:30]
-            msg.body_snippet_full = "\n".join(full_lines)
+            msg.body_snippet_full = "\n".join(full_lines)  # type: ignore[attr-defined]
         else:
-            msg.body_snippet = "[empty body]"
-            msg.body_snippet_full = "[empty body]"
+            msg.body_snippet = "[empty body]"  # type: ignore[attr-defined]
+            msg.body_snippet_full = "[empty body]"  # type: ignore[attr-defined]
 
         if msg.subject and msg.subject.strip():
-            msg.display_subject = msg.subject
+            msg.display_subject = msg.subject  # type: ignore[attr-defined]
         else:
-            msg.display_subject = "[blank subject]"
+            msg.display_subject = "[blank subject]"  # type: ignore[attr-defined]
 
         # Note: msg.sender_domain is now a property on the Message model
 
@@ -743,13 +798,13 @@ def label_messages(request):
                 thread = ThreadTracking.objects.filter(thread_id=msg.thread_id).first()
                 if thread and thread.sent_date:
                     from datetime import datetime, time
-                    msg.display_date = datetime.combine(thread.sent_date, time.min)
+                    msg.display_date = datetime.combine(thread.sent_date, time.min)  # type: ignore[attr-defined]
                 else:
-                    msg.display_date = msg.timestamp
+                    msg.display_date = msg.timestamp  # type: ignore[attr-defined]
             except Exception:
-                msg.display_date = msg.timestamp
+                msg.display_date = msg.timestamp  # type: ignore[attr-defined]
         else:
-            msg.display_date = msg.timestamp
+            msg.display_date = msg.timestamp  # type: ignore[attr-defined]
 
     # Calculate pagination info
     total_pages = (total_count + per_page - 1) // per_page
@@ -829,7 +884,6 @@ def label_messages(request):
         "has_previous": has_previous,
         "has_next": has_next,
         "training_output": training_output,
-        "filter_reviewed": filter_reviewed,
         "all_companies": all_companies,
         "focus_msg_id": (
             int(focus_msg_id) if str(focus_msg_id or "").isdigit() else None

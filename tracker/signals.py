@@ -11,7 +11,7 @@ from .models import ATSDomain, Company, CompanyAlias, DomainToCompany, KnownComp
 @receiver([post_save, post_delete], sender=ATSDomain)
 @receiver([post_save, post_delete], sender=DomainToCompany)
 @receiver([post_save, post_delete], sender=CompanyAlias)
-def export_companies(_sender, **_kwargs):
+def export_companies(**_kwargs):
     known = list(KnownCompany.objects.values_list("name", flat=True))
     ats_domains = list(ATSDomain.objects.values_list("domain", flat=True))
     domain_to_company = {
@@ -37,7 +37,7 @@ def export_companies(_sender, **_kwargs):
 
 
 @receiver(post_save, sender=Company)
-def sync_domain_to_company_on_company_save(_sender, instance: Company, **_kwargs):
+def sync_domain_to_company_on_company_save(instance: Company, **_kwargs):
     """
     When a Company is saved, if it has a valid domain and name, ensure DomainToCompany is upserted.
     This keeps json/companies.json domain_to_company in sync via export_companies signal above.
@@ -60,11 +60,11 @@ def sync_domain_to_company_on_company_save(_sender, instance: Company, **_kwargs
         domain=domain, defaults={"company": name}
     )
     # Trigger export
-    export_companies(_sender=DomainToCompany)
+    export_companies(sender=DomainToCompany)
 
 
 @receiver(pre_delete, sender=Message)
-def cleanup_thread_tracking_before_delete(_sender, instance, **_kwargs):
+def cleanup_thread_tracking_before_delete(instance, **_kwargs):
     """
     Before deleting a Message, check if we need to update or delete its ThreadTracking.
 

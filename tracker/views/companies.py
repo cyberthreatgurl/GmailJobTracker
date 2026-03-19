@@ -17,6 +17,7 @@ import subprocess
 import sys
 from difflib import SequenceMatcher
 from datetime import timedelta
+from functools import lru_cache
 from pathlib import Path
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -41,6 +42,12 @@ from tracker.location_normalization import canonicalize_city_key
 from tracker.views.helpers import build_sidebar_context
 from tracker.utils.companies_io import companies_store
 
+try:
+    from country_state_city import Country, State
+except Exception:  # pragma: no cover - optional dependency fallback
+    Country = None
+    State = None
+
 
 def _get_parser_module():
     """Load the local parser module without a direct deprecated-module import."""
@@ -50,6 +57,322 @@ def _get_parser_module():
 python_path = sys.executable
 logger = logging.getLogger(__name__)
 
+US_STATES = {
+    'alabama': 'AL', 'alaska': 'AK', 'arizona': 'AZ', 'arkansas': 'AR', 'california': 'CA',
+    'colorado': 'CO', 'connecticut': 'CT', 'delaware': 'DE', 'florida': 'FL', 'georgia': 'GA',
+    'hawaii': 'HI', 'idaho': 'ID', 'illinois': 'IL', 'indiana': 'IN', 'iowa': 'IA',
+    'kansas': 'KS', 'kentucky': 'KY', 'louisiana': 'LA', 'maine': 'ME', 'maryland': 'MD',
+    'massachusetts': 'MA', 'michigan': 'MI', 'minnesota': 'MN', 'mississippi': 'MS',
+    'missouri': 'MO', 'montana': 'MT', 'nebraska': 'NE', 'nevada': 'NV', 'new hampshire': 'NH',
+    'new jersey': 'NJ', 'new mexico': 'NM', 'new york': 'NY', 'north carolina': 'NC',
+    'north dakota': 'ND', 'ohio': 'OH', 'oklahoma': 'OK', 'oregon': 'OR', 'pennsylvania': 'PA',
+    'rhode island': 'RI', 'south carolina': 'SC', 'south dakota': 'SD', 'tennessee': 'TN',
+    'texas': 'TX', 'utah': 'UT', 'vermont': 'VT', 'virginia': 'VA', 'washington': 'WA',
+    'west virginia': 'WV', 'wisconsin': 'WI', 'wyoming': 'WY', 'district of columbia': 'DC',
+    'puerto rico': 'PR'
+}
+
+CANADA_PROVINCES = {
+    'alberta': 'AB',
+    'british columbia': 'BC',
+    'manitoba': 'MB',
+    'new brunswick': 'NB',
+    'newfoundland and labrador': 'NL',
+    'northwest territories': 'NT',
+    'nova scotia': 'NS',
+    'nunavut': 'NU',
+    'ontario': 'ON',
+    'prince edward island': 'PE',
+    'quebec': 'QC',
+    'saskatchewan': 'SK',
+    'yukon': 'YT',
+}
+
+COUNTRY_ALIASES = {
+    'united states': 'United States',
+    'united states of america': 'United States',
+    'usa': 'United States',
+    'u.s.a.': 'United States',
+    'us': 'United States',
+    'u.s.': 'United States',
+    'canada': 'Canada',
+    'australia': 'Australia',
+    'united kingdom': 'United Kingdom',
+}
+
+
+def _library_region_tokens():
+    """Return region names/codes from country_state_city when available."""
+    tokens = set()
+    if State is None:
+        return tokens
+
+    try:
+        for state in State.get_states():
+            if state.name:
+                tokens.add(state.name.lower())
+            if state.iso_code:
+                tokens.add(state.iso_code.upper())
+    except Exception:
+        logger.exception("Failed loading library region tokens")
+    return tokens
+
+
+def _library_country_tokens():
+    """Return country names/codes from country_state_city when available."""
+    tokens = set()
+    if Country is None:
+        return tokens
+
+    try:
+        for country in Country.get_countries():
+            if country.name:
+                tokens.add(country.name.lower())
+            if country.iso2:
+                tokens.add(country.iso2.upper())
+    except Exception:
+        logger.exception("Failed loading library country tokens")
+    return tokens
+
+REGION_TOKENS = sorted(
+    set(US_STATES)
+    | set(US_STATES.values())
+    | set(CANADA_PROVINCES)
+    | set(CANADA_PROVINCES.values())
+    | _library_region_tokens(),
+    key=len,
+    reverse=True,
+)
+COUNTRY_TOKENS = sorted(
+    set(COUNTRY_ALIASES) | set(COUNTRY_ALIASES.values()) | _library_country_tokens(),
+    key=len,
+    reverse=True,
+)
+REGION_PATTERN = "(?:" + "|".join(re.escape(token) for token in REGION_TOKENS) + ")"
+COUNTRY_PATTERN = "(?:" + "|".join(re.escape(token) for token in COUNTRY_TOKENS) + ")"
+CITY_PATTERN = r"(?-i:[A-Z][A-Za-z0-9.&\-/']*(?:\s+[A-Z][A-Za-z0-9.&\-/']*){0,4})"
+
+INVALID_LOCATION_PARTS = {
+    'apply', 'category', 'city', 'company', 'corp', 'country', 'dear', 'field',
+    'hello', 'job', 'jobs', 'ltd', 'llc', 'location', 'locations', 'posted date',
+    'province', 'save', 'search', 'state'
+}
+
+LOCATION_PATTERNS = [
+    re.compile(
+        rf'\bLocation\s*({CITY_PATTERN}),\s*({REGION_PATTERN})(?:,\s*({COUNTRY_PATTERN}))?'
+        r'(?=\s*(?:\||Category|Job\s*Id|Posted\s*Date|Save|$))'
+    , re.I),
+    re.compile(
+        rf'\b({CITY_PATTERN}),\s*({REGION_PATTERN})(?:,\s*({COUNTRY_PATTERN}))?'
+        r'(?=\s*(?:\||\.|!|;|<|$|Category|Job\s*Id|Posted\s*Date|Save|as\s+well\s+as|and\b))'
+    , re.I),
+]
+
+
+def _clean_location_part(value):
+    """Normalize a candidate location token from scraped HTML/text."""
+    cleaned = re.sub(r'\s+', ' ', (value or '').replace('\xa0', ' ')).strip(' ,|:-')
+    cleaned = re.sub(r'^(?:location|locations?)\s*', '', cleaned, flags=re.I)
+    return cleaned.strip()
+
+
+def _normalize_lookup_key(value):
+    """Create a forgiving lookup key for location names."""
+    cleaned = _clean_location_part(value).lower()
+    cleaned = cleaned.replace('&', ' and ')
+    cleaned = re.sub(r'[^a-z0-9]+', ' ', cleaned)
+    return re.sub(r'\s+', ' ', cleaned).strip()
+
+
+@lru_cache(maxsize=1)
+def _country_lookup_maps():
+    """Build cached country lookups from country_state_city when available."""
+    by_key = {}
+    iso_to_name = {}
+    if Country is None:
+        return by_key, iso_to_name
+
+    try:
+        for country in Country.get_countries():
+            iso_code = country.iso2.upper()
+            iso_to_name[iso_code] = country.name
+            by_key[_normalize_lookup_key(country.name)] = iso_code
+            by_key[_normalize_lookup_key(country.iso2)] = iso_code
+    except Exception:
+        logger.exception("Failed to build country lookup maps")
+    return by_key, iso_to_name
+
+
+@lru_cache(maxsize=1)
+def _state_lookup_maps():
+    """Build cached state/province lookups from country_state_city when available."""
+    by_country = {}
+    global_unique = {}
+    if State is None:
+        return by_country, global_unique
+
+    try:
+        for state in State.get_states():
+            country_code = state.country_code.upper()
+            state_code = state.iso_code.upper()
+            state_map = by_country.setdefault(country_code, {})
+            state_map[_normalize_lookup_key(state.name)] = state_code
+            state_map[_normalize_lookup_key(state.iso_code)] = state_code
+
+            key = _normalize_lookup_key(state.name)
+            if key not in global_unique:
+                global_unique[key] = state_code
+            elif global_unique[key] != state_code:
+                global_unique[key] = None
+    except Exception:
+        logger.exception("Failed to build state lookup maps")
+    return by_country, global_unique
+
+
+def _resolve_country_name_and_code(country):
+    """Resolve a normalized country name and ISO2 code when possible."""
+    cleaned = _clean_location_part(country)
+    if not cleaned:
+        return None, None
+
+    alias_name = COUNTRY_ALIASES.get(cleaned.lower())
+    if alias_name:
+        cleaned = alias_name
+
+    lookup, iso_to_name = _country_lookup_maps()
+    country_code = lookup.get(_normalize_lookup_key(cleaned))
+    if country_code:
+        return iso_to_name.get(country_code, cleaned.title()), country_code
+
+    upper = cleaned.upper()
+    if len(cleaned) == 2 and upper in iso_to_name:
+        return iso_to_name[upper], upper
+    return cleaned.title(), None
+
+
+def _normalize_region(region, country=None):
+    """Normalize state/province names to common abbreviations when known."""
+    cleaned = _clean_location_part(region)
+    lowered = cleaned.lower()
+    if lowered in US_STATES:
+        return US_STATES[lowered]
+    if lowered in CANADA_PROVINCES:
+        return CANADA_PROVINCES[lowered]
+    upper = cleaned.upper()
+    if upper in set(US_STATES.values()) | set(CANADA_PROVINCES.values()):
+        return upper
+
+    _, country_code = _resolve_country_name_and_code(country)
+    by_country, global_unique = _state_lookup_maps()
+    if country_code:
+        state_code = by_country.get(country_code, {}).get(_normalize_lookup_key(cleaned))
+        if state_code:
+            return state_code
+
+    unique_state_code = global_unique.get(_normalize_lookup_key(cleaned))
+    if unique_state_code:
+        return unique_state_code
+
+    if len(cleaned) <= 4 and cleaned.isupper():
+        return cleaned
+    return cleaned.title() if cleaned else cleaned
+
+
+def _normalize_country(country):
+    """Normalize country names while preserving unknown values."""
+    normalized_name, _ = _resolve_country_name_and_code(country)
+    return normalized_name
+
+
+def _build_location(city, region, country=None):
+    """Build a normalized location string from candidate parts."""
+    city_clean = _clean_location_part(city)
+    country_clean = _normalize_country(country)
+    region_clean = _normalize_region(region, country_clean)
+
+    if not city_clean or not region_clean:
+        return None
+    if city_clean.lower() in INVALID_LOCATION_PARTS:
+        return None
+    if region_clean.lower() in INVALID_LOCATION_PARTS:
+        return None
+    if any(char.isdigit() for char in city_clean) and ',' not in city_clean:
+        return None
+    if city_clean.lower().startswith('available in '):
+        return None
+
+    if country_clean in (None, '', 'United States'):
+        return f"{city_clean}, {region_clean}"
+    return f"{city_clean}, {region_clean}, {country_clean}"
+
+
+def _add_locations_from_candidate_string(candidate, add_location):
+    """Parse a comma-separated location string and add it if valid."""
+    cleaned = _clean_location_part(candidate)
+    if not cleaned or ',' not in cleaned:
+        return
+
+    primary = cleaned.split('|', 1)[0].strip()
+    parts = [part.strip() for part in primary.split(',') if part.strip()]
+    while parts and re.fullmatch(r'[A-Z0-9\- ]{3,12}', parts[-1]):
+        parts.pop()
+
+    if len(parts) >= 3:
+        add_location(parts[0], parts[1], parts[2])
+    elif len(parts) >= 2:
+        add_location(parts[0], parts[1])
+
+def _extract_locations_from_html(html_content):
+    """Extracts locations from HTML and formats them to 'City, State' or 'City, Country'."""
+    from bs4 import BeautifulSoup
+    soup = BeautifulSoup(html_content, 'html.parser')
+    locations = set()
+
+    def add_location(city, region, country=None):
+        location = _build_location(city, region, country)
+        if location:
+            locations.add(location)
+
+    # 1. Target the specific provided HTML structure
+    location_blocks = soup.find_all(class_=re.compile(r'location-block', re.I))
+    for block in location_blocks:
+        parts = block.find_all(class_=re.compile(r'results-location', re.I))
+        # Filter out empty div tags
+        valid_parts = [p.get_text(strip=True) for p in parts if p.get_text(strip=True)]
+
+        if len(valid_parts) >= 2:
+            city = valid_parts[0]
+            region = valid_parts[1]
+
+            # Capture City, Province, Country if available
+            if len(valid_parts) >= 3:
+                add_location(city, region, valid_parts[2])
+                continue
+
+            add_location(city, region)
+
+    # 2. Parse JSON/script-backed location strings commonly used by job sites.
+    for match in re.finditer(
+        r'"(?:multi_location|location|address)"\s*:\s*(?:\[\s*)?"([^"]+)"',
+        html_content,
+        re.I,
+    ):
+        _add_locations_from_candidate_string(match.group(1), add_location)
+
+    # 3. General text fallback for search results and plain text snippets.
+    text = soup.get_text(separator=' | ', strip=True)
+    normalized_text = re.sub(r'\bLocation(?=[A-Z])', 'Location ', text)
+    normalized_text = re.sub(r'\s+', ' ', normalized_text)
+
+    for pattern in LOCATION_PATTERNS:
+        for match in pattern.finditer(normalized_text):
+            city = match.group(1)
+            region = match.group(2)
+            country = match.group(3) if match.lastindex and match.lastindex >= 3 else None
+            add_location(city, region, country)
+
+    return sorted([loc for loc in locations if loc and len(loc) > 4])
 
 def _parse_operating_cities(raw_text):
     """Parse multiline city input into unique cleaned city names.
@@ -2938,6 +3261,53 @@ def refresh_company_contracts(request, company_id):
         logger.error("Error refreshing contracts for company %s: %s", company_id, e)
         return JsonResponse({"status": "error", "message": str(e)}, status=500)
 
+@login_required
+@require_POST
+def extract_company_locations(request):
+    """
+    AJAX endpoint to extract locations from a provided URL or raw HTML.
+    Returns a list of location strings in City, State format.
+    """
+    url = request.POST.get("url", "").strip()
+    raw_html = request.POST.get("raw_html", "").strip()
+
+    content = raw_html
+
+    if not content and url:
+        try:
+            headers = {
+                "User-Agent": (
+                    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+                    "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 "
+                    "Safari/537.36"
+                )
+            }
+            response = requests.get(url, headers=headers, timeout=15, allow_redirects=True)
+            response.raise_for_status()
+            content = response.text
+        except requests.Timeout:
+            return JsonResponse({"success": False, "message": "The request timed out. The website took too long to respond. Try copying and pasting the raw HTML instead."})
+        except requests.HTTPError as e:
+            if e.response.status_code in [401, 403]:
+                return JsonResponse({"success": False, "message": "Access denied by the website (Bot protection/WAF). Please copy and paste the raw HTML instead."})
+            return JsonResponse({"success": False, "message": f"HTTP Error {e.response.status_code}. Try pasting the raw HTML instead."})
+        except Exception as e:
+            return JsonResponse({"success": False, "message": f"Failed to fetch the URL: {str(e)}. Try pasting the raw HTML instead."})
+
+    if not content:
+        return JsonResponse({"success": False, "message": "No URL or HTML content was provided."})
+
+    try:
+        locations = _extract_locations_from_html(content)
+        if not locations:
+            return JsonResponse({
+                "success": False,
+                "message": "No locations were found in the provided HTML/CSS/Javascript. The page might load its content dynamically or the format was not recognized."
+            })
+        return JsonResponse({"success": True, "locations": locations})
+    except Exception as e:
+        logger.exception("Error extracting locations")
+        return JsonResponse({"success": False, "message": f"An error occurred while parsing the HTML: {str(e)}"})
 
 __all__ = [
     "delete_company",
@@ -2957,4 +3327,5 @@ __all__ = [
     "add_company_interaction",
     "delete_company_interaction",
     "refresh_company_contracts",
+    "extract_company_locations",
 ]

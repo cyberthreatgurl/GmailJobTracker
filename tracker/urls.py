@@ -132,4 +132,5 @@ urlpatterns = [
     path("news/add/", views.add_feed, name="rss_add_feed"),
     path("news/delete/", views.delete_feed, name="rss_delete_feed"),
     path("news/link/<int:article_id>/", views.link_article_to_company, name="rss_link_article"),
+    path("api/extract_locations/", views.extract_company_locations, name="extract_company_locations"),
 ]

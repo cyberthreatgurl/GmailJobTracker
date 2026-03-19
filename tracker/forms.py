@@ -82,7 +82,7 @@ class ManualEntryForm(forms.Form):
             alias = CompanyAlias.objects.filter(alias__iexact=new_company_name).first()
             if alias:
                 raise forms.ValidationError({
-                    'new_company_name': f'"{new_company_name}" is an alias for "{alias.company.name}". Please select "{alias.company.name}" from the dropdown.'
+                    'new_company_name': f'"{new_company_name}" is an alias for "{alias.company}". Please select "{alias.company}" from the dropdown.'
                 })
 
         return cleaned_data
@@ -295,10 +295,15 @@ class CompanyEditForm(forms.ModelForm):
             # Also check aliases
             from tracker.models import CompanyAlias
             alias = CompanyAlias.objects.filter(alias__iexact=name).first()
-            if alias and (not instance_id or alias.company.id != instance_id):
-                raise forms.ValidationError({
-                    'name': f'"{name}" is an alias for "{alias.company.name}". Please use the existing company instead.'
-                })
+            if alias:
+                if instance_id and alias.company == self.instance.name:
+                    raise forms.ValidationError({
+                        'name': f'"{name}" is already an alias for this company. Please keep the original name "{self.instance.name}".'
+                    })
+                else:
+                    raise forms.ValidationError({
+                        'name': f'"{name}" is an alias for "{alias.company}". Please use the existing company instead.'
+                    })
 
         # Check for duplicate domain
         if domain:

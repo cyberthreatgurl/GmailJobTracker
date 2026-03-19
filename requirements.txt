@@ -37,6 +37,8 @@ confection==0.1.5
     #   weasel
 contourpy==1.3.3
     # via matplotlib
+country-state-city==0.1.0
+    # via -r requirements-prod.in
 cycler==0.12.1
     # via matplotlib
 cymem==2.0.11

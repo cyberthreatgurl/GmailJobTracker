@@ -8,6 +8,7 @@ from contextlib import contextmanager
 import fcntl
 
 from django.core.management.base import BaseCommand
+from django.core.management.base import CommandError
 from django.utils import timezone
 
 from gmail_auth import get_gmail_service  # adjust if needed
@@ -131,6 +132,11 @@ class Command(BaseCommand):
                     log_console("\n--- End BEFORE Metrics ---\n")
 
                 service = get_gmail_service()
+                if service is None:
+                    raise CommandError(
+                        "Failed to initialize Gmail service. "
+                        "Complete OAuth authentication and retry."
+                    )
                 stats, _ = IngestionStats.objects.get_or_create(
                     date=timezone.localtime(timezone.now()).date()
                 )
@@ -293,5 +299,9 @@ class Command(BaseCommand):
             message = str(e)
             log_console(message)
             self.stdout.write(self.style.WARNING(message))
+        except CommandError as e:
+            message = str(e)
+            log_console(message)
+            raise
         except Exception as e:
             log_console(f"Ingestion failed: {e}")

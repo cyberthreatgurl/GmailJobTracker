@@ -6,10 +6,10 @@ echo "🚀 Starting GmailJobTracker..."
 # Check for Gmail credentials
 if [ ! -f "/app/json/credentials.json" ]; then
     echo "⚠️  WARNING: Gmail credentials.json not found. Gmail ingestion will not work."
-    echo "   Mount it via: -v /path/to/credentials.json:/app/json/credentials.json"
+    echo "   Mount it via: -v /path/to/credentials.json:/app/credentials.json"
 fi
-if [ ! -f "/app/model/token.pickle" ]; then
-    echo "⚠️  WARNING: model/token.pickle not found. Gmail ingestion will not work until you authenticate."
+if [ ! -f "/app/token.pickle" ]; then
+    echo "⚠️  WARNING: token.pickle not found. Gmail ingestio will not work until you authenticate."
 fi
 
 # Wait for PostgreSQL to be ready (DB_HOST defaults to 'db' in docker-compose)

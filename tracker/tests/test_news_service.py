@@ -12,7 +12,7 @@ Tests cover:
 """
 
 import pytest
-from datetime import datetime, timedelta
+from datetime import timedelta
 from unittest.mock import patch, MagicMock
 from django.test import TestCase, Client
 from django.contrib.auth.models import User
@@ -82,11 +82,11 @@ class NewsAggregatorTestCase(TestCase):
         mock_feed = MagicMock()
         mock_entry = MagicMock()
         mock_entry.get = MagicMock(side_effect=lambda key, default='': {
-            'title': 'Test Article',
+            'title': 'Test Company wins major contract',
             'link': 'https://example.com/article',
-            'summary': 'Test summary'
+            'summary': 'Test Company announced a major contract award.'
         }.get(key, default))
-        mock_entry.published_parsed = (2024, 12, 1, 10, 0, 0, 0, 0, 0)
+        mock_entry.published_parsed = timezone.now().timetuple()[:9]
         mock_feed.entries = [mock_entry]
         mock_parse.return_value = mock_feed
 
@@ -94,7 +94,7 @@ class NewsAggregatorTestCase(TestCase):
         articles = aggregator._fetch_google_news_rss("Test Company", 30)
 
         assert len(articles) > 0
-        assert articles[0].title == "Test Article"
+        assert articles[0].title == "Test Company wins major contract"
         assert articles[0].source == "google_news"
 
     @patch('tracker.services.news_service.requests.get')
@@ -142,7 +142,9 @@ class CompanyNewsModelTestCase(TestCase):
         """Set up test fixtures."""
         self.company = Company.objects.create(
             name="Test Company",
-            domain="test.com"
+            domain="test.com",
+            first_contact=timezone.now(),
+            last_contact=timezone.now(),
         )
 
     def test_company_news_creation(self):
@@ -241,7 +243,9 @@ class LabelCompaniesViewNewsIntegrationTestCase(TestCase):
         )
         self.company = Company.objects.create(
             name="Test Company",
-            domain="test.com"
+            domain="test.com",
+            first_contact=timezone.now(),
+            last_contact=timezone.now(),
         )
         self.client.login(username="testuser", password="testpass")
 
@@ -257,17 +261,19 @@ class LabelCompaniesViewNewsIntegrationTestCase(TestCase):
         assert 'company_news' in response.context
 
     def test_label_companies_creates_news_record(self):
-        """Test that label_companies creates CompanyNews if missing."""
+        """Test that label_companies renders without eagerly creating CompanyNews."""
         assert not CompanyNews.objects.filter(company=self.company).exists()
 
-        self.client.get(f'/label_companies/?company={self.company.id}')
+        response = self.client.get(f'/label_companies/?company={self.company.id}')
 
-        # CompanyNews should be created
-        assert CompanyNews.objects.filter(company=self.company).exists()
+        assert response.status_code == 200
+        assert 'company_news' in response.context
+        assert response.context['company_news'] is None
+        assert not CompanyNews.objects.filter(company=self.company).exists()
 
     def test_refresh_company_news_endpoint_success(self):
         """Test the refresh_company_news AJAX endpoint."""
-        news = CompanyNews.objects.create(company=self.company)
+        CompanyNews.objects.create(company=self.company)
 
         with patch('tracker.services.news_service.NewsAggregator.get_news_for_company') as mock_fetch:
             mock_fetch.return_value = [
@@ -292,13 +298,23 @@ class PyTestCompanyNewsTestCase:
 
     def test_company_news_str(self):
         """Test CompanyNews string representation."""
-        company = Company.objects.create(name="Test Corp", domain="test.com")
+        company = Company.objects.create(
+            name="Test Corp",
+            domain="test.com",
+            first_contact=timezone.now(),
+            last_contact=timezone.now(),
+        )
         news = CompanyNews.objects.create(company=company)
         assert str(news) == f"News for {company.name}"
 
     def test_company_news_one_to_one_relationship(self):
         """Test one-to-one relationship between Company and CompanyNews."""
-        company = Company.objects.create(name="Test Corp", domain="test.com")
+        company = Company.objects.create(
+            name="Test Corp",
+            domain="test.com",
+            first_contact=timezone.now(),
+            last_contact=timezone.now(),
+        )
         news1 = CompanyNews.objects.create(company=company)
         # Accessing news through company
         assert company.news == news1
@@ -311,7 +327,12 @@ class NewsIntegrationTestCase:
 
     def test_full_news_workflow(self):
         """Test complete workflow: create company → fetch news → update cache."""
-        company = Company.objects.create(name="TechCorp", domain="techcorp.com")
+        company = Company.objects.create(
+            name="TechCorp",
+            domain="techcorp.com",
+            first_contact=timezone.now(),
+            last_contact=timezone.now(),
+        )
 
         # Create CompanyNews
         news, created = CompanyNews.objects.get_or_create(company=company)

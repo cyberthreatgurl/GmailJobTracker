@@ -1045,7 +1045,6 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
     )
     confidence = float(result.get("confidence", result.get("proba", 0.0))) if result else 0.0
     label = result["label"]
-    bool(result.get("ignore", False))
 
     logger.debug(f"[DEBUG parse_subject] subject='{subject[:80]}'")
     logger.debug(f"[DEBUG parse_subject] sender='{sender}'")
@@ -1576,7 +1575,7 @@ def _check_duplicates(msg_id, subject, metadata, company_source, stats, body_has
     """
     ts = metadata["timestamp"]
     sender_domain = (
-        metadata["sender"].split("@")[-1] if "@" in metadata["sender"] else ""
+        metadata["sender"].split("@", 1)[-1] if "@" in metadata["sender"] else ""
     )
     ignored_defaults = {
         "subject": subject,
@@ -1886,7 +1885,9 @@ def _find_and_update_rejection_by_company(
     """Find ThreadTracking by company (TF-IDF matching) and update with rejection."""
     job_title = parsed_subject.get("job_title", "") if isinstance(parsed_subject, dict) else ""
     if not job_title:
-        job_title = extract_job_title_from_body(metadata.get("body", ""))
+        job_title = extract_rejection_job_title(
+            metadata.get("subject", ""), metadata.get("body", "")
+        )
 
     include_rejected = ml_label in ("withdrew", "cancelled")
     existing_tt = find_best_matching_application(
@@ -2025,7 +2026,7 @@ def _handle_reingest(
         if m:
             recipient_email = m.group(1).strip().lower()
     recipient_domain = (
-        recipient_email.split("@")[-1] if "@" in recipient_email else ""
+        recipient_email.split("@", 1)[-1] if "@" in recipient_email else ""
     )
 
     # CRITICAL: Only override label for user-initiated messages, NOT replies/forwards
@@ -3431,6 +3432,24 @@ def extract_job_title_from_body(body: str | None) -> str:
     return ""
 
 
+def extract_rejection_job_title(subject: str | None, body: str | None) -> str:
+    """Extract a rejection-related job title, preferring subject evidence first."""
+    normalized_subject = re.sub(r"\s+", " ", (subject or "").replace("\xa0", " ")).strip()
+    subject_patterns = [
+        r'application\s+status\s+for\s+(.+)$',
+        r'rejection\s+for\s+(.+)$',
+        r'confirmation\s+of\s+withdraw(?:al)?\s+from\s+(.+)$',
+        r'withdraw(?:al)?\s+from\s+(.+)$',
+    ]
+
+    for pattern in subject_patterns:
+        match = re.search(pattern, normalized_subject, re.IGNORECASE)
+        if match:
+            return re.sub(r'[\s.,:;]+$', '', match.group(1).strip())
+
+    return extract_job_title_from_body(body)
+
+
 def find_best_matching_application(
     company_obj,
     rejection_job_title: str,
@@ -3886,7 +3905,7 @@ def ingest_message_from_eml(eml_content: str, fake_msg_id: str | None = None):
                     job_title = parse_result.get("job_title", "")
                 # If no job title from subject, try extracting from body
                 if not job_title:
-                    job_title = extract_job_title_from_body(body)
+                    job_title = extract_rejection_job_title(metadata["subject"], body)
 
                 # Use TF-IDF job title matching to find the correct application
                 existing_tt = find_best_matching_application(
@@ -3952,7 +3971,7 @@ def ingest_message_from_eml(eml_content: str, fake_msg_id: str | None = None):
                 job_id = parse_result.get("job_id", "")
             # If no job title from subject and this is a rejection, try extracting from body
             if not job_title and ml_label in ("rejection", "cancelled"):
-                job_title = extract_job_title_from_body(body)
+                job_title = extract_rejection_job_title(metadata["subject"], body)
 
             # Determine status and dates based on label
             rejection_date = None

@@ -202,16 +202,18 @@ class LabelCompaniesViewNewsIntegrationTestCase(TestCase):
         )
         self.client.login(username="testuser", password="testpass")
 
-    def test_label_companies_creates_news_record(self):
-        """Test that label_companies creates CompanyNews if missing."""
+    def test_label_companies_renders_without_creating_news_record(self):
+        """Test that label_companies renders news context without eager CompanyNews creation."""
         self.assertFalse(
             CompanyNews.objects.filter(company=self.company).exists()
         )
 
-        self.client.get(f'/label_companies/?company={self.company.id}')
+        response = self.client.get(f'/label_companies/?company={self.company.id}')
 
-        # CompanyNews should be created
-        self.assertTrue(
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('company_news', response.context)
+        self.assertIsNone(response.context['company_news'])
+        self.assertFalse(
             CompanyNews.objects.filter(company=self.company).exists()
         )
 

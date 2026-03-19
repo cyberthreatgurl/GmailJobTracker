@@ -7,7 +7,11 @@ the actual job title (e.g., "the position of Cybersecurity SME has been filled")
 
 import pytest
 
-from parser import extract_job_title_from_body, find_best_matching_application
+from parser import (
+    extract_job_title_from_body,
+    extract_rejection_job_title,
+    find_best_matching_application,
+)
 
 pytestmark = pytest.mark.django_db
 
@@ -94,6 +98,18 @@ class TestExtractJobTitleFromBody:
         body = "We appreciate your interest for the CISO opening at our company."
         assert extract_job_title_from_body(body) == "CISO"
 
+    def test_application_status_subject(self):
+        """Application-status subjects should supply the job title for matching."""
+        subject = "BAE Systems - Application Status for Technology Innovation Specialist, 119729BR"
+        body = (
+            "While we regret to inform you that you were not selected for the position below, "
+            "we will retain your resume in our database. Technology Innovation Specialist, "
+            "119729BR We encourage you to browse our open positions."
+        )
+        assert extract_rejection_job_title(subject, body) == (
+            "Technology Innovation Specialist, 119729BR"
+        )
+
 
 # ---------------------------------------------------------------------------
 # Integration tests: body extraction → TF-IDF matching → ThreadTracking update
@@ -103,7 +119,7 @@ class TestExtractJobTitleFromBody:
 class TestRejectionBodyToThreadTracking:
     """Test that rejection body job title extraction feeds into TF-IDF matching."""
 
-    def test_body_title_matches_application(self, db):
+    def test_body_title_matches_application(self):
         """Rejection with body-only job title should match existing application via TF-IDF."""
         from tracker.models import Company, ThreadTracking
 
@@ -131,7 +147,7 @@ class TestRejectionBodyToThreadTracking:
         assert matched_tt is not None
         assert matched_tt.job_title == "Lead Cybersecurity SME"
 
-    def test_body_title_with_multiple_applications(self, db):
+    def test_body_title_with_multiple_applications(self):
         """When multiple applications exist, body title matches the correct one."""
         from tracker.models import Company, ThreadTracking
 
@@ -159,7 +175,7 @@ class TestRejectionBodyToThreadTracking:
         assert matched is not None
         assert matched.job_title == "Senior Security Engineer"
 
-    def test_fallback_to_subject_when_body_empty(self, db):
+    def test_fallback_to_subject_when_body_empty(self):
         """When body has no extractable title, subject is used as fallback."""
         from tracker.models import Company, ThreadTracking
 
@@ -183,7 +199,7 @@ class TestRejectionBodyToThreadTracking:
         assert matched is not None
         assert matched.job_title == "Python Developer"
 
-    def test_single_remaining_open_app_does_not_auto_match_wrong_role(self, db):
+    def test_single_remaining_open_app_does_not_auto_match_wrong_role(self):
         """If one role was already rejected, a repeated rejection for another role must not
         auto-match the last open application at the same company."""
         from tracker.models import Company, ThreadTracking
@@ -216,3 +232,39 @@ class TestRejectionBodyToThreadTracking:
 
         open_other.refresh_from_db()
         assert open_other.rejection_date is None
+
+    def test_application_status_subject_matches_existing_application(self):
+        """Application-status subjects should match the correct company application."""
+        from tracker.models import Company, ThreadTracking
+
+        company = Company.objects.create(
+            name="BAE Systems", first_contact="2026-01-01", last_contact="2026-01-01"
+        )
+        target = ThreadTracking.objects.create(
+            thread_id="bae_target",
+            company=company,
+            status="application",
+            job_title="Technology Innovation Specialist",
+            sent_date="2026-01-12",
+        )
+        ThreadTracking.objects.create(
+            thread_id="bae_other",
+            company=company,
+            status="rejected",
+            job_title="Deputy Cybersecurity Manager",
+            sent_date="2025-12-13",
+            rejection_date="2026-01-31",
+        )
+
+        subject = "BAE Systems - Application Status for Technology Innovation Specialist, 119729BR"
+        body = (
+            "While we regret to inform you that you were not selected for the position below, "
+            "we will retain your resume in our database. Technology Innovation Specialist, "
+            "119729BR We encourage you to browse our open positions."
+        )
+
+        rejection_title = extract_rejection_job_title(subject, body)
+        matched = find_best_matching_application(company, rejection_title, subject)
+
+        assert matched is not None
+        assert matched.id == target.id

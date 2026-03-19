@@ -8,12 +8,82 @@ All credentials remain local to this machine.
 
 import os
 import pickle
+import json
+from urllib.parse import urlparse
 
+from dotenv import load_dotenv
 from google.auth.transport.requests import Request
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 
+load_dotenv()
+
 SCOPES = ["https://www.googleapis.com/auth/gmail.readonly"]
+
+
+def _get_oauth_port() -> int:
+    """Return the localhost port for the OAuth callback server.
+
+    Defaults to ``8080`` to match the common Google OAuth loopback setup.
+    Set ``GMAIL_OAUTH_PORT`` to force a different port if needed.
+    """
+    raw_port = os.environ.get("GMAIL_OAUTH_PORT", "8080").strip()
+    try:
+        port = int(raw_port)
+    except ValueError:
+        print(f"Invalid GMAIL_OAUTH_PORT '{raw_port}', falling back to 8080.")
+        return 8080
+    return port if port > 0 else 8080
+
+
+def _load_client_config(credentials_path: str) -> tuple[str, dict] | tuple[None, None]:
+    """Return the OAuth client type and config from a client secrets file."""
+    try:
+        with open(credentials_path, "r", encoding="utf-8") as handle:
+            config = json.load(handle)
+    except (OSError, json.JSONDecodeError) as exc:
+        print(f"Error reading OAuth client config: {exc}")
+        return None, None
+
+    if "installed" in config:
+        return "installed", config["installed"]
+    if "web" in config:
+        return "web", config["web"]
+    print("Error: credentials.json must contain either an 'installed' or 'web' client config.")
+    return None, None
+
+
+def _resolve_oauth_port(client_type: str, client_config: dict) -> int | None:
+    """Choose a callback port that matches the OAuth client configuration."""
+    requested_port = _get_oauth_port()
+    redirect_uris = client_config.get("redirect_uris", []) or []
+
+    if client_type == "installed":
+        return requested_port
+
+    localhost_redirects = []
+    for uri in redirect_uris:
+        parsed = urlparse(uri)
+        if parsed.scheme == "http" and parsed.hostname in {"localhost", "127.0.0.1"}:
+            localhost_redirects.append(parsed)
+
+    if localhost_redirects:
+        for parsed in localhost_redirects:
+            if (parsed.port or 80) == requested_port:
+                return requested_port
+
+    print("OAuth client misconfiguration detected.")
+    print("Your credentials.json contains a 'web' client without an authorized localhost redirect URI.")
+    print("Fix one of these and retry:")
+    print("  1. Create a Desktop app OAuth client in Google Cloud and replace credentials.json")
+    print(
+        f"  2. Or add an Authorized redirect URI like http://localhost:{requested_port}/ "
+        "to the existing Web client"
+    )
+    print(
+        f"     and then run the command with GMAIL_OAUTH_PORT={requested_port}."
+    )
+    return None
 
 
 def get_gmail_service():
@@ -25,17 +95,8 @@ def get_gmail_service():
     """
     creds = None
 
-    # Support both old (json/) and new (root) paths for backward compatibility
-    token_path = (
-        "token.pickle"
-        if os.path.exists("token.pickle")
-        else os.path.join("model", "token.pickle")
-    )
-    credentials_path = (
-        "credentials.json"
-        if os.path.exists("credentials.json")
-        else os.path.join("json", "credentials.json")
-    )
+    token_path = "token.pickle"
+    credentials_path = "credentials.json"
 
     try:
         if os.path.exists(token_path):
@@ -64,6 +125,9 @@ def get_gmail_service():
                     f"Error: {credentials_path} not found. Please provide OAuth credentials."
                 )
                 return None
+            client_type, client_config = _load_client_config(credentials_path)
+            if not client_type or client_config is None:
+                return None
             print("\n" + "=" * 70)
             print("GMAIL AUTHENTICATION REQUIRED")
             print("=" * 70)
@@ -74,8 +138,15 @@ def get_gmail_service():
             flow = InstalledAppFlow.from_client_secrets_file(credentials_path, SCOPES)
             # Request offline access to get a refresh token that never expires
             # open_browser=False to avoid issues in VS Code/SSH terminals
+            oauth_port = _resolve_oauth_port(client_type, client_config)
+            if oauth_port is None:
+                return None
+            if oauth_port == 0:
+                print("Using an automatically selected localhost callback port.")
+            else:
+                print(f"Using localhost callback port {oauth_port}.")
             creds = flow.run_local_server(
-                port=8080,  # Fixed port for consistent OAuth redirect URI
+                port=oauth_port,
                 access_type="offline",
                 prompt="consent",  # Force consent screen to ensure refresh token is issued
                 open_browser=False,  # Print URL instead of trying to open browser

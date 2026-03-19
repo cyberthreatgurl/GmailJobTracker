@@ -30,16 +30,13 @@ media/
 .env.local
 
 # OAuth credentials (sensitive!)
-json/credentials.json
-json/token.json
+credentials.json
 token.pickle
 
 # Data directories
 db/
 logs/
 model/*.pkl
-model/*.json
-model/*.csv
 
 # IDE
 .vscode/
@@ -88,6 +85,8 @@ backups/
 remind/
 update_copilot/
 
+# Synthetic Training Data
+synthetic_data.csv
 
 # pip-tools compiled requirements (DO commit these for reproducibility)
 # requirements.txt and requirements-dev.txt are auto-generated from .in files

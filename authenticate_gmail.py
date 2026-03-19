@@ -13,9 +13,7 @@ from gmail_auth import get_gmail.._service
 
 def get_token_path():
     """Return the path to the token file."""
-    if os.path.exists("token.pickle"):
-        return "token.pickle"
-    return os.path.join("model", "token.pickle")
+    return "token.pickle"
 
 
 def main():
@@ -49,13 +47,13 @@ def main():
         print("\nYou can now:")
         print("  1. Run: python manage.py ingest_gmail --days-back 7")
         print(
-            "  2. Copy token to server: scp model/token.pickle user@server:~/apps/GmailJobTracker/model/"
+            "  2. Copy token to server: scp token.pickle user@server:~/apps/GmailJobTracker/"
         )
         return 0
     else:
         print("\n❌ FAILED! Could not authenticate with Gmail.")
         print("\nTroubleshooting:")
-        print("  1. Ensure json/credentials.json exists")
+        print("  1. Ensure credentials.json exists")
         print("  2. Check your internet connection")
         print("  3. Make sure you authorized the app in the browser")
         return 1

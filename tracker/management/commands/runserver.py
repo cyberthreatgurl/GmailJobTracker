@@ -192,7 +192,7 @@ class Command(RunserverCommand):
         # So parents[3] gets us to the project root
         project_root = Path(__file__).resolve().parents[3]
         credentials_path = project_root / "json" / "credentials.json"
-        token_path = project_root / "model" / "token.pickle"
+        token_path = project_root / "token.pickle"
 
         # Check credentials.json
         if credentials_path.exists():

@@ -112,8 +112,8 @@ _PATTERNS = _load_patterns()
 # Compile message label patterns from patterns.json to avoid hardcoding
 _COMPILED_PATTERNS = {}
 if _PATTERNS and "message_labels" in _PATTERNS:
-    for label, pattern_list in _PATTERNS["message_labels"].items():
-        _COMPILED_PATTERNS[label] = [
+    for lbl_key, pattern_list in _PATTERNS["message_labels"].items():
+        _COMPILED_PATTERNS[lbl_key] = [
             re.compile(p, re.IGNORECASE) for p in pattern_list if p and p != "None"
         ]
 
@@ -176,7 +176,7 @@ def _get_rule_label_func():
     """
     try:
         # Local import to avoid circular import at module load time
-        from parser import rule_label as parser_rule_label  # type: ignore
+        from parser import rule_label as parser_rule_label  # type: ignore # pylint: disable=deprecated-module
 
         if callable(parser_rule_label):
             return parser_rule_label

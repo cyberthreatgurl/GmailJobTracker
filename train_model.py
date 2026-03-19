@@ -20,11 +20,11 @@ import json
 import re
 from datetime import datetime
 from pathlib import Path
+from typing import Any, Dict, cast
 
 import joblib
 import pandas as pd
 from scipy.sparse import hstack
-from sklearn.calibration import CalibratedClassifierCV
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import classification_report
@@ -75,7 +75,7 @@ _MSG_LABEL_PATTERNS = {
 }
 
 
-def weak_label(row: pd.Series) -> str | None:
+def weak_label(row: Any) -> Any:
     """Assign a heuristic label using regex rules when human labels are absent."""
     s = f"{row.get('subject','')} {row.get('body','')}".lower()
     for label in ("interview", "application", "rejection", "offer", "noise"):
@@ -89,6 +89,17 @@ def weak_label(row: pd.Series) -> str | None:
 
 
 df = load_training_data()
+
+# --- Inject Synthetic Data ---
+synth_path = "synthetic_data.csv"
+if os.path.exists(synth_path):
+    try:
+        synth_df = pd.read_csv(synth_path)
+        df = pd.concat([df, synth_df], ignore_index=True)
+        print(f"[Info] Injected {len(synth_df)} synthetic samples from {synth_path}.")
+    except Exception as e:
+        print(f"[Warn] Could not load synthetic data: {e}")
+
 # Filter out blank/whitespace-only bodies
 if "body" in df.columns:
     before = len(df)
@@ -125,8 +136,10 @@ if df.empty:
     raise SystemExit("[Error] No training data available")
 
 # Combine subject + body
+subject_s = df["subject"] if "subject" in df.columns else pd.Series("", index=df.index)
+body_s = df["body"] if "body" in df.columns else pd.Series("", index=df.index)
 df["text"] = (
-    df.get("subject", "").fillna("") + " " + df.get("body", "").fillna("")
+    subject_s.fillna("").astype(str) + " " + body_s.fillna("").astype(str)
 ).str.strip()
 
 # Filter out classes with < 2 samples (can't stratify)
@@ -145,7 +158,7 @@ X_subject = df_filtered["subject"].fillna("")
 X_body = df_filtered["body"].fillna("")
 
 subject_vec = TfidfVectorizer(
-    lowercase=True, ngram_range=(1, 2), max_df=0.9, min_df=2, max_features=10000
+    lowercase=True, ngram_range=(1, 2), max_df=0.9, min_df=1, max_features=10000
 )
 body_vec = TfidfVectorizer(
     lowercase=True, ngram_range=(1, 2), max_df=0.9, min_df=2, max_features=40000
@@ -166,13 +179,13 @@ Xtr, Xte, ytr, yte = train_test_split(
 
 sample_weights = compute_sample_weight("balanced", ytr)
 
-base = LogisticRegression(
+clf = LogisticRegression(
     solver="lbfgs",
     max_iter=2000,
-    C=0.5,
+    C=10.0,
+    class_weight="balanced",
 )
-clf = CalibratedClassifierCV(base, method="isotonic", cv=3)
-clf.fit(Xtr, ytr, sample_weight=sample_weights)  # pass weights here
+clf.fit(Xtr, ytr)
 
 # Evaluate on held-out validation split
 y_pred = clf.predict(Xte)
@@ -182,17 +195,15 @@ print(classification_report(yte, y_pred, zero_division=0))
 if args.verbose:
     # Predicted label distribution on validation set (this is the true "after training" view)
     try:
-        import pandas as _pd  # lazy import for convenience  # pylint: disable=reimported
-
-        val_pred_counts = _pd.Series(y_pred).value_counts().sort_values(ascending=False)
+        val_pred_counts = pd.Series(y_pred).value_counts().sort_values(ascending=False)
         print(f"[Info] Validation predicted label distribution:\n{val_pred_counts}")
     except Exception:
         pass
 
     # Show effective training weights per class (illustrates balancing effect of class weights)
     try:
-        sw_df = _pd.DataFrame(
-            {"label": _pd.Series(ytr).reset_index(drop=True), "weight": sample_weights}
+        sw_df = pd.DataFrame(
+            {"label": pd.Series(ytr).reset_index(drop=True), "weight": sample_weights}
         )
         eff_weights = (
             sw_df.groupby("label")["weight"].sum().sort_values(ascending=False)
@@ -205,7 +216,7 @@ if args.verbose:
 
 # Capture metrics for persistence
 report_text = classification_report(yte, y_pred, zero_division=0)
-report_dict = classification_report(yte, y_pred, zero_division=0, output_dict=True)
+report_dict = cast(Dict[str, Any], classification_report(yte, y_pred, zero_division=0, output_dict=True))
 os.makedirs("model", exist_ok=True)
 joblib.dump(clf, "model/message_classifier.pkl")
 joblib.dump(sorted(y_filtered.unique().tolist()), "model/message_label_encoder.pkl")
@@ -267,8 +278,8 @@ model_info = {
     "total_features": len(all_features),
     "meaningful_features_sample": sorted(meaningful_features),
 }
-with open("model/model_info.json", "w", encoding="utf-8") as f:
-    json.dump(model_info, f, indent=2)
+with open("model/model_info.json", "w", encoding="utf-8") as info_file:
+    json.dump(model_info, info_file, indent=2)
 
 print("Message-level model artifacts saved to /model/")
 print(f"Model trained on {len(y_filtered)} samples with {y_filtered.nunique()} labels")

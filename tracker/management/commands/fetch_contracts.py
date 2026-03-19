@@ -27,6 +27,11 @@ from django.core.management.base import BaseCommand
 from tracker.services.contract_scraper import ContractScraperService
 from tracker.services.usaspending_service import USASpendingService
 
+DATA_SOURCE_LABELS = {
+    "war_gov": "War.gov (DoD)",
+    "usaspending": "USASpending.gov",
+}
+
 
 class Command(BaseCommand):
     help = "Fetch government contract awards from war.gov and/or USASpending.gov."
@@ -37,7 +42,10 @@ class Command(BaseCommand):
             type=str,
             choices=["war_gov", "usaspending", "all"],
             default="war_gov",
-            help="Data source: war_gov (DoD only), usaspending (all agencies), or all (default: war_gov)",
+            help=(
+                "Data source: war_gov (DoD only), usaspending "
+                "(all agencies), or all (default: war_gov)"
+            ),
         )
         parser.add_argument(
             "--limit",
@@ -56,7 +64,10 @@ class Command(BaseCommand):
             "--max-articles",
             type=int,
             default=20,
-            help="Maximum number of daily contract articles to process from war.gov (default: 5)",
+            help=(
+                "Maximum number of daily contract articles to process "
+                "from war.gov (default: 5)"
+            ),
         )
         parser.add_argument(
             "--dry-run",
@@ -170,7 +181,9 @@ class Command(BaseCommand):
 
             self.stdout.write("")
             self.stdout.write(self.style.SUCCESS("═" * 50))
-            self.stdout.write(self.style.SUCCESS("📊 USASpending.gov Results (All Agencies)"))
+            self.stdout.write(
+                self.style.SUCCESS("📊 USASpending.gov Results (All Agencies)")
+            )
             self.stdout.write(self.style.SUCCESS("═" * 50))
             self.stdout.write(
                 self.style.SUCCESS(f"  ✨ Contracts created:  {result['created']}")
@@ -234,11 +247,15 @@ class Command(BaseCommand):
         for contract in contracts[:25]:
             amount = contract.amount_display
             source_icon = "🎖️" if contract.data_source == "war_gov" else "🏛️"
-            source_label = contract.get_data_source_display() if hasattr(contract, 'get_data_source_display') else contract.data_source.upper()
+            source_label = DATA_SOURCE_LABELS.get(
+                contract.data_source,
+                contract.data_source.upper(),
+            )
 
             self.stdout.write(f"  🏢 {contract.company_name_raw}")
             self.stdout.write(f"     💰 {amount} | {source_icon} {source_label}")
-            self.stdout.write(f"     📅 {contract.article_date} | 📍 {contract.company_location or contract.work_location or 'N/A'}")
+            location = contract.company_location or contract.work_location or "N/A"
+            self.stdout.write(f"     📅 {contract.article_date} | 📍 {location}")
 
             if contract.data_source == "war_gov" and contract.contract_number:
                 self.stdout.write(f"     📝 {contract.contract_number}")

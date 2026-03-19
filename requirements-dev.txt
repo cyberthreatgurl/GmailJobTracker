@@ -39,6 +39,8 @@ click==8.3.1
     #   typer-slim
 cloudpathlib==0.23.0
     # via weasel
+country-state-city==0.1.0
+    # via -r requirements-prod.in
 confection==0.1.5
     # via
     #   thinc

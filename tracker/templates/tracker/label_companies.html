@@ -2,96 +2,217 @@
 {% load humanize %}
 {% block title %}Label Companies - GmailJobTracker{% endblock %}
 {% block extra_head %}
-  <style>
-    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; margin: 0; background: #f9fafb; color: #333; }
-    .dashboard-layout { display: flex; gap: 0.5rem; margin: 0; }
-    .sidebar { flex: 0 0 220px; max-width: 240px; }
-    .main-content { flex: 1; padding: 2rem 2rem 2rem 0.5rem; }
-    h1 { color: #1f2937; margin-bottom: 1.5rem; font-size: 1.5rem; }
-    .company-select { margin-bottom: 2rem; display: flex; align-items: center; gap: 1rem; }
-    select { padding: 0.4rem 0.6rem; border-radius: 4px; border: 1px solid #d1d5db; font-size: 1rem; min-width: 220px; }
-    .edit-form { background: #fff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.07); padding: 1.5rem 2rem; max-width: 500px; }
-    .edit-form label { font-weight: 500; display: block; margin-top: 1rem; }
-    .edit-form input, .edit-form select { width: 100%; padding: 0.5rem; border-radius: 4px; border: 1px solid #d1d5db; font-size: 1rem; margin-top: 0.3rem; }
-    .edit-form button { background: #2563eb; color: white; font-weight: 600; padding: 0.6rem 1.2rem; border: none; border-radius: 6px; cursor: pointer; margin-top: 1.5rem; font-size: 1rem; }
-    .edit-form button:hover { background: #1e40af; }
-    .label-info { margin-top: 1.5rem; font-size: 0.95rem; color: #2563eb; }
-    .messages { margin-bottom: 1.5rem; }
-    .message { padding: 0.75rem 1rem; border-radius: 6px; margin-bottom: 0.5rem; font-size: 0.9rem; }
-    .message.success { background: #d1fae5; color: #065f46; border-left: 4px solid #10b981; }
-    .message.error { background: #fee2e2; color: #991b1b; border-left: 4px solid #ef4444; }
-    .message.info { background: #dbeafe; color: #1e40af; border-left: 4px solid #3b82f6; }
-    .post-selector-content * { font-size: 0.9rem !important; }
-    .post-selector-content h2 { font-size: 1rem !important; }
-    .post-selector-content h3 { font-size: 0.95rem !important; }
-    .post-selector-content small { font-size: 0.78rem !important; }
-  </style>
+<style>
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    margin: 0;
+    background: #f9fafb;
+    color: #333;
+  }
+
+  .dashboard-layout {
+    display: flex;
+    gap: 0.5rem;
+    margin: 0;
+  }
+
+  .sidebar {
+    flex: 0 0 220px;
+    max-width: 240px;
+  }
+
+  .main-content {
+    flex: 1;
+    padding: 2rem 2rem 2rem 0.5rem;
+  }
+
+  h1 {
+    color: #1f2937;
+    margin-bottom: 1.5rem;
+    font-size: 1.5rem;
+  }
+
+  .company-select {
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  select {
+    padding: 0.4rem 0.6rem;
+    border-radius: 4px;
+    border: 1px solid #d1d5db;
+    font-size: 1rem;
+    min-width: 220px;
+  }
+
+  .edit-form {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.07);
+    padding: 1.5rem 2rem;
+    max-width: 500px;
+  }
+
+  .edit-form label {
+    font-weight: 500;
+    display: block;
+    margin-top: 1rem;
+  }
+
+  .edit-form input,
+  .edit-form select {
+    width: 100%;
+    padding: 0.5rem;
+    border-radius: 4px;
+    border: 1px solid #d1d5db;
+    font-size: 1rem;
+    margin-top: 0.3rem;
+  }
+
+  .edit-form button {
+    background: #2563eb;
+    color: white;
+    font-weight: 600;
+    padding: 0.6rem 1.2rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-top: 1.5rem;
+    font-size: 1rem;
+  }
+
+  .edit-form button:hover {
+    background: #1e40af;
+  }
+
+  .label-info {
+    margin-top: 1.5rem;
+    font-size: 0.95rem;
+    color: #2563eb;
+  }
+
+  .messages {
+    margin-bottom: 1.5rem;
+  }
+
+  .message {
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+  }
+
+  .message.success {
+    background: #d1fae5;
+    color: #065f46;
+    border-left: 4px solid #10b981;
+  }
+
+  .message.error {
+    background: #fee2e2;
+    color: #991b1b;
+    border-left: 4px solid #ef4444;
+  }
+
+  .message.info {
+    background: #dbeafe;
+    color: #1e40af;
+    border-left: 4px solid #3b82f6;
+  }
+
+  .post-selector-content * {
+    font-size: 0.9rem !important;
+  }
+
+  .post-selector-content h2 {
+    font-size: 1rem !important;
+  }
+
+  .post-selector-content h3 {
+    font-size: 0.95rem !important;
+  }
+
+  .post-selector-content small {
+    font-size: 0.78rem !important;
+  }
+</style>
 {% endblock %}
 {% block content %}
-  <div style="display: flex; flex-direction: column; height: calc(100vh - 4rem); overflow: hidden;">
-    <!-- Header Section -->
-    <div style="flex-shrink: 0; margin-bottom: 1rem;">
-      <h1>Label Companies</h1>
-      
-      <form method="get" class="company-select" id="company-form">
-        <label for="company-search">Select Company:</label>
-        <!-- Value cleared to allow easy searching of next company -->
-        <input type="text" id="company-search" autocomplete="off" placeholder="Search companies..." value="" style="padding:0.4rem 0.6rem; border-radius:4px; border:1px solid #d1d5db; font-size:1rem; min-width:260px;">
-        <input type="hidden" name="company" id="company-id" value="">
-      </form>
-      {% load static %}
-      <script src="{% static 'tracker/js/company_autocomplete.js' %}"></script>
-      <script>
-        document.addEventListener('DOMContentLoaded', function() {
-          // FORCE CLEAR the input value to prevent browser autofill/restoration
-          var inputEl = document.getElementById('company-search');
-          if (inputEl) inputEl.value = '';
+<div style="display: flex; flex-direction: column; height: calc(100vh - 4rem); overflow: hidden;">
+  <!-- Header Section -->
+  <div style="flex-shrink: 0; margin-bottom: 1rem;">
+    <h1>Label Companies</h1>
 
-          initCompanyAutocomplete({
-            inputId: 'company-search',
-            hiddenInputId: 'company-id',
-            showCreateNew: true,
-            createNewUrl: function(typed) {
-              window.location.href = '/label_companies/?company=new' + (typed ? '&new_company_name=' + encodeURIComponent(typed) : '');
-            },
-            placeholder: 'Search for company to label...',
-            // Initial value removed to keep search box clear as requested
-            onSelect: function(company) {
-              if (company && company.id) {
-                document.getElementById('company-id').value = company.id;
-                document.getElementById('company-form').submit();
-              }
+    <form method="get" class="company-select" id="company-form">
+      <label for="company-search">Select Company:</label>
+      <!-- Value cleared to allow easy searching of next company -->
+      <input type="text" id="company-search" autocomplete="off" placeholder="Search companies..." value=""
+        style="padding:0.4rem 0.6rem; border-radius:4px; border:1px solid #d1d5db; font-size:1rem; min-width:260px;">
+      <input type="hidden" name="company" id="company-id" value="">
+    </form>
+    {% load static %}
+    <script src="{% static 'tracker/js/company_autocomplete.js' %}"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        // FORCE CLEAR the input value to prevent browser autofill/restoration
+        var inputEl = document.getElementById('company-search');
+        if (inputEl) inputEl.value = '';
+
+        initCompanyAutocomplete({
+          inputId: 'company-search',
+          hiddenInputId: 'company-id',
+          showCreateNew: true,
+          createNewUrl: function (typed) {
+            window.location.href = '/label_companies/?company=new' + (typed ? '&new_company_name=' + encodeURIComponent(typed) : '');
+          },
+          placeholder: 'Search for company to label...',
+          // Initial value removed to keep search box clear as requested
+          onSelect: function (company) {
+            if (company && company.id) {
+              document.getElementById('company-id').value = company.id;
+              document.getElementById('company-form').submit();
             }
-          });
+          }
         });
-      </script>
-    </div>
+      });
+    </script>
+  </div>
 
-    <!-- Scrollable Company Edit Form Content -->
-    <div class="post-selector-content" style="flex: 1; overflow-y: auto; padding-right: 0.5rem;">
-      {% if selected_company or creating_new_company %}
-      {% if creating_new_company %}
-      <!-- Creating New Company Form -->
-      <div style="background:#f0fdf4; border:1px solid #86efac; border-radius:8px; padding:1rem 1.5rem; margin-bottom:1.5rem;">
-        <h2 style="margin:0 0 0.75rem 0; color:#166534; font-size:1.1rem;">✨ Create New Company: {{ new_company_name }}</h2>
-        <p style="color:#4b5563; margin:0; font-size:0.95rem;">Fill in the details below and click <strong>Create Company</strong> to save. At least a domain or homepage is required.</p>
-      </div>
-      <div style="display: flex; gap: 2rem; align-items: flex-start;">
-        <div style="flex: 1;">
-          <form method="post" action="{% url 'label_companies' %}?company=new&new_company_name={{ new_company_name|urlencode }}" class="edit-form">
+  <!-- Scrollable Company Edit Form Content -->
+  <div class="post-selector-content" style="flex: 1; overflow-y: auto; padding-right: 0.5rem;">
+    {% if selected_company or creating_new_company %}
+    {% if creating_new_company %}
+    <!-- Creating New Company Form -->
+    <div
+      style="background:#f0fdf4; border:1px solid #86efac; border-radius:8px; padding:1rem 1.5rem; margin-bottom:1.5rem;">
+      <h2 style="margin:0 0 0.75rem 0; color:#166534; font-size:1.1rem;">✨ Create New Company: {{ new_company_name }}
+      </h2>
+      <p style="color:#4b5563; margin:0; font-size:0.95rem;">Fill in the details below and click <strong>Create
+          Company</strong> to save. At least a domain or homepage is required.</p>
+    </div>
+    <div style="display: flex; gap: 2rem; align-items: flex-start;">
+      <div style="flex: 1;">
+        <form method="post"
+          action="{% url 'label_companies' %}?company=new&new_company_name={{ new_company_name|urlencode }}"
+          class="edit-form">
           {% csrf_token %}
           <input type="hidden" name="action" value="create_new_company" />
           <label for="id_name">Company Name</label>
           {{ form.name }}
           <label for="id_location">Location</label>
           {{ form.location }}
-          <small style="color:#6b7280; display:block; margin-top:0.25rem; margin-bottom:0.5rem;">Headquarters or office location (e.g., Reston, VA)</small>
+          <small style="color:#6b7280; display:block; margin-top:0.25rem; margin-bottom:0.5rem;">Headquarters or office
+            location (e.g., Reston, VA)</small>
           <label for="id_focus_area">Focus Area</label>
           {{ form.focus_area }}
-          <small style="color:#6b7280; display:block; margin-top:0.25rem; margin-bottom:0.5rem;">Business focus (e.g., Software as a Service, Mining, Network Security)</small>
+          <small style="color:#6b7280; display:block; margin-top:0.25rem; margin-bottom:0.5rem;">Business focus (e.g.,
+            Software as a Service, Mining, Network Security)</small>
           <label for="id_domain">Domain Name <span style="color:#b91c1c;">*</span></label>
           {{ form.domain }}
-          <small style="color:#6b7280; display:block; margin-bottom:0.5rem;">Enter the company's email domain (e.g., microsoft.com)</small>
+          <small style="color:#6b7280; display:block; margin-bottom:0.5rem;">Enter the company's email domain (e.g.,
+            microsoft.com)</small>
           <label for="id_ats">ATS Domain (if any)</label>
           {{ form.ats }}
           <div style="display:flex; gap:1rem;">
@@ -104,27 +225,40 @@
               {{ form.uei }}
             </div>
           </div>
-          <small style="color:#6b7280; display:block; margin-top:0.25rem; margin-bottom:0.5rem;">DUNS (9 digits) and UEI (12 chars) for government contracting</small>
+          <small style="color:#6b7280; display:block; margin-top:0.25rem; margin-bottom:0.5rem;">DUNS (9 digits) and UEI
+            (12 chars) for government contracting</small>
           <label for="id_homepage">Homepage <span style="color:#b91c1c;">*</span></label>
           <div style="display: flex; gap: 0.5rem; align-items: center;">
             {{ form.homepage }}
-            <button type="submit" name="action" value="populate_from_homepage" style="background:#059669; color:white; font-weight:600; border-radius:6px; padding:0.6rem 1rem; border:none; cursor:pointer; white-space:nowrap;" title="Scrape company info from homepage">🔍 Populate</button>
+            <button type="submit" name="action" value="populate_from_homepage"
+              style="background:#059669; color:white; font-weight:600; border-radius:6px; padding:0.6rem 1rem; border:none; cursor:pointer; white-space:nowrap;"
+              title="Scrape company info from homepage">🔍 Populate</button>
           </div>
-          <small style="color:#6b7280; display:block; margin-top:0.25rem; margin-bottom:0.5rem;">Enter URL and click Populate to auto-fill, or fill manually</small>
+          <small style="color:#6b7280; display:block; margin-top:0.25rem; margin-bottom:0.5rem;">Enter URL and click
+            Populate to auto-fill, or fill manually</small>
           <label for="id_career_url">Career/Jobs URL</label>
           {{ form.career_url }}
           <div style="margin-top:0.35rem; margin-bottom:0.5rem;">
-            <label style="display:inline-flex; align-items:center; gap:0.35rem; cursor:pointer; font-size:0.78rem; color:#6b7280; font-weight:500; white-space:nowrap;">
+            <label
+              style="display:inline-flex; align-items:center; gap:0.35rem; cursor:pointer; font-size:0.78rem; color:#6b7280; font-weight:500; white-space:nowrap;">
               <span>Joined Talent Network?</span>
               {{ form.talent_network }}
             </label>
           </div>
           <label for="id_operating_cities_text">Additional Operating Cities</label>
-          <textarea id="id_operating_cities_text" name="operating_cities_text" rows="3" style="width:100%; padding:0.65rem; border-radius:6px; border:1px solid #d1d5db; font-size:0.95rem;">{{ operating_cities_text|default:'' }}</textarea>
-          <small style="color:#6b7280; display:block; margin-top:0.25rem; margin-bottom:0.5rem;">One city per line (e.g., Dahlgren, Virginia). City-only values are allowed.</small>
+          <textarea id="id_operating_cities_text" name="operating_cities_text" rows="3"
+            style="width:100%; padding:0.65rem; border-radius:6px; border:1px solid #d1d5db; font-size:0.95rem;">{{ operating_cities_text|default:'' }}</textarea>
+          <small style="color:#6b7280; display:block; margin-top:0.25rem; margin-bottom:0.5rem;">One city per line
+            (e.g., Dahlgren, Virginia). City-only values are allowed.</small>
+          <div style="margin-bottom:0.75rem;">
+            <button type="button" onclick="openLocationExtractor()"
+              style="background:#eff6ff; color:#1d4ed8; font-weight:600; border-radius:6px; padding:0.55rem 0.9rem; border:1px solid #bfdbfe; cursor:pointer;">Open Location Extractor</button>
+            <small style="color:#6b7280; display:block; margin-top:0.35rem;">Use a pop-out box to extract cities from a URL or pasted HTML.</small>
+          </div>
           <label for="id_alias">Alias (Optional)</label>
           {{ form.alias }}
-          <small style="color:#6b7280; display:block; margin-top:0.25rem; margin-bottom:0.5rem;">Alternative name(s) or abbreviation(s). Separate multiple aliases with commas (e.g., 'AFS, Accenture Fed')</small>
+          <small style="color:#6b7280; display:block; margin-top:0.25rem; margin-bottom:0.5rem;">Alternative name(s) or
+            abbreviation(s). Separate multiple aliases with commas (e.g., 'AFS, Accenture Fed')</small>
           <label for="id_contact_name">Contact Name</label>
           {{ form.contact_name }}
           <label for="id_contact_email">Contact Email</label>
@@ -132,144 +266,151 @@
           <label for="id_status">Status</label>
           {{ form.status }}
           <div style="display:flex; gap:0.75rem; margin-top:1rem;">
-            <button type="submit" name="action" value="create_new_company" style="background:#16a34a; color:white; font-weight:600; border-radius:6px; padding:0.6rem 1.2rem; border:none; cursor:pointer;">✅ Create Company</button>
-            <a href="{% url 'label_companies' %}" style="background:#6b7280; color:white; font-weight:600; border-radius:6px; padding:0.6rem 1.2rem; text-decoration:none; display:inline-block;">Cancel</a>
+            <button type="submit" name="action" value="create_new_company"
+              style="background:#16a34a; color:white; font-weight:600; border-radius:6px; padding:0.6rem 1.2rem; border:none; cursor:pointer;">✅
+              Create Company</button>
+            <a href="{% url 'label_companies' %}"
+              style="background:#6b7280; color:white; font-weight:600; border-radius:6px; padding:0.6rem 1.2rem; text-decoration:none; display:inline-block;">Cancel</a>
           </div>
         </form>
-        </div>
-        <div style="flex: 1; display: flex; flex-direction: column; gap: 1rem;">
-          <!-- Notes Section (expandable) -->
-          <details open style="background: #fefce8; border-radius: 8px; padding: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
-            <summary style="cursor: pointer; padding: 1rem 1.5rem; font-weight: 600; color: #854d0e; font-size: 1rem; list-style: none; display: flex; align-items: center; gap: 0.5rem;">
-              <span style="transition: transform 0.2s;">▶</span> Notes
-            </summary>
-            <div style="padding: 0 1.5rem 1.5rem 1.5rem;">
-              <label for="id_notes" style="display: block; font-weight: 600; color: #854d0e; margin-bottom: 0.5rem;">Company Notes</label>
-              {{ form.notes }}
-              <small style="color:#6b7280; display:block; margin-top:0.5rem;">Company focus area analysis will appear here after clicking Populate. You can also add your own notes.</small>
-            </div>
-          </details>
-          
-          <div style="background: #f3f4f6; border-radius: 8px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
-            <h2 style="margin-top:0; color:#1e40af; font-size:1.1rem;">Tips</h2>
-            <ul style="margin:0.5rem 0 0 0; padding-left:1.2rem; font-size:0.95rem; color:#4b5563;">
-              <li>At least one of Domain or Homepage is required</li>
-              <li>Domain should be the email domain (e.g., google.com)</li>
-              <li>ATS Domain is for Applicant Tracking Systems like greenhouse.io</li>
-              <li>Status will default to "application" if not set</li>
-            </ul>
+      </div>
+      <div style="flex: 1; display: flex; flex-direction: column; gap: 1rem;">
+        <!-- Notes Section (expandable) -->
+        <details open
+          style="background: #fefce8; border-radius: 8px; padding: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+          <summary
+            style="cursor: pointer; padding: 1rem 1.5rem; font-weight: 600; color: #854d0e; font-size: 1rem; list-style: none; display: flex; align-items: center; gap: 0.5rem;">
+            <span style="transition: transform 0.2s;">▶</span> Notes
+          </summary>
+          <div style="padding: 0 1.5rem 1.5rem 1.5rem;">
+            <label for="id_notes"
+              style="display: block; font-weight: 600; color: #854d0e; margin-bottom: 0.5rem;">Company Notes</label>
+            {{ form.notes }}
+            <small style="color:#6b7280; display:block; margin-top:0.5rem;">Company focus area analysis will appear here
+              after clicking Populate. You can also add your own notes.</small>
           </div>
+        </details>
+
+        <div style="background: #f3f4f6; border-radius: 8px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+          <h2 style="margin-top:0; color:#1e40af; font-size:1.1rem;">Tips</h2>
+          <ul style="margin:0.5rem 0 0 0; padding-left:1.2rem; font-size:0.95rem; color:#4b5563;">
+            <li>At least one of Domain or Homepage is required</li>
+            <li>Domain should be the email domain (e.g., google.com)</li>
+            <li>ATS Domain is for Applicant Tracking Systems like greenhouse.io</li>
+            <li>Status will default to "application" if not set</li>
+          </ul>
         </div>
       </div>
-      {% else %}
-      <!-- Existing Company Edit Form -->
-      <!-- DEBUG: Company ID={{ selected_company.id }}, Name={{ selected_company.name }}, creating_new_company={{ creating_new_company }} -->
-      <div id="companyContent" style="background:#d1fae5; border:2px solid #10b981; border-radius:8px; padding:0.75rem 1.5rem; margin-bottom:1rem;">
-        <div style="font-weight:600; font-size:1rem; color:#065f46;">
-          📋 Company Profile: {{ selected_company.name }}
+    </div>
+    {% else %}
+    <!-- Existing Company Edit Form -->
+    <!-- DEBUG: Company ID={{ selected_company.id }}, Name={{ selected_company.name }}, creating_new_company={{ creating_new_company }} -->
+    <div id="companyContent"
+      style="background:#d1fae5; border:2px solid #10b981; border-radius:8px; padding:0.75rem 1.5rem; margin-bottom:1rem;">
+      <div style="font-weight:600; font-size:1rem; color:#065f46;">
+        📋 Company Profile: {{ selected_company.name }}
+      </div>
+    </div>
+    <!-- Company Metrics and Quick Actions at the top -->
+    <div
+      style="background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px; padding:1rem 1.5rem; margin-bottom:1.5rem;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+        <h2 style="margin:0; color:#1e40af; font-size:1.1rem;">Company Metrics</h2>
+        <div style="display:flex; gap:0.5rem;">
+          <form method="post" style="margin:0;">
+            {% csrf_token %}
+            <input type="hidden" name="company" value="{{ selected_company.id }}" />
+            <button type="submit" name="action" value="reingest_company" style="background:#ca8a04; color:white; font-weight:600; border-radius:6px; padding:0.45rem 1rem; border:none; cursor:pointer;" title="Re-ingest all messages from this company">🔄 Re-ingest</button>
+          </form>
+          <button type="button" onclick="refreshContracts({{ selected_company.id }})" style="background:#0891b2; color:white; font-weight:600; border-radius:6px; padding:0.45rem 1rem; border:none; cursor:pointer;" title="Fetch latest USASpending contracts">🏛️ Refresh Contracts</button>
+          {# Status is now auto-calculated based on latest message and GHOSTED_DAYS_THRESHOLD #}
+          <a href="{% url 'manual_entry' %}?company={{ selected_company.id }}" style="background:#2563eb; color:white; font-weight:600; border-radius:6px; padding:0.45rem 1rem; border:none; cursor:pointer; text-decoration:none; display:inline-block;" title="Create a new application for this company">➕ Create Application</a>
+          <button type="button" onclick="document.getElementById('merge-panel').style.display = document.getElementById('merge-panel').style.display === 'none' ? 'block' : 'none';" style="background:#7c3aed; color:white; font-weight:600; border-radius:6px; padding:0.45rem 1rem; border:none; cursor:pointer;" title="Merge this company with a duplicate">🔗 Merge...</button>
+          <form method="get" action="{% url 'delete_company' selected_company.id %}" style="margin:0;">
+            <button type="submit" style="background:#b91c1c; color:white; font-weight:600; border-radius:6px; padding:0.45rem 1rem; border:none; cursor:pointer;">Delete Company</button>
+          </form>
         </div>
       </div>
-      <!-- Company Metrics and Quick Actions at the top -->
-      <div style="background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px; padding:1rem 1.5rem; margin-bottom:1.5rem;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
-          <h2 style="margin:0; color:#1e40af; font-size:1.1rem;">Company Metrics</h2>
-          <div style="display:flex; gap:0.5rem;">
-            <form method="post" style="margin:0;">
-              {% csrf_token %}
-              <input type="hidden" name="company" value="{{ selected_company.id }}" />
-              <button type="submit" name="action" value="reingest_company" style="background:#ca8a04; color:white; font-weight:600; border-radius:6px; padding:0.45rem 1rem; border:none; cursor:pointer;" title="Re-ingest all messages from this company">🔄 Re-ingest</button>
-            </form>
-            <button type="button" onclick="refreshContracts({{ selected_company.id }})" style="background:#0891b2; color:white; font-weight:600; border-radius:6px; padding:0.45rem 1rem; border:none; cursor:pointer;" title="Fetch latest USASpending contracts">🏛️ Refresh Contracts</button>
-            {# Status is now auto-calculated based on latest message and GHOSTED_DAYS_THRESHOLD #}
-            <a href="{% url 'manual_entry' %}?company={{ selected_company.id }}" style="background:#2563eb; color:white; font-weight:600; border-radius:6px; padding:0.45rem 1rem; border:none; cursor:pointer; text-decoration:none; display:inline-block;" title="Create a new application for this company">➕ Create Application</a>
-            <button type="button" onclick="document.getElementById('merge-panel').style.display = document.getElementById('merge-panel').style.display === 'none' ? 'block' : 'none';" style="background:#7c3aed; color:white; font-weight:600; border-radius:6px; padding:0.45rem 1rem; border:none; cursor:pointer;" title="Merge this company with a duplicate">🔗 Merge...</button>
-            <form method="get" action="{% url 'delete_company' selected_company.id %}" style="margin:0;">
-              <button type="submit" style="background:#b91c1c; color:white; font-weight:600; border-radius:6px; padding:0.45rem 1rem; border:none; cursor:pointer;">Delete Company</button>
-            </form>
-          </div>
+      <div style="display:flex; flex-wrap:wrap; gap:1.5rem;">
+        <div>
+          <strong style="display:block; font-size:0.85rem; color:#6b7280; margin-bottom:0.2rem;">Company Status:</strong>
+          <span style="background:#f3f4f6; color:#111827; border-radius:4px; padding:0.25rem 0.6rem; font-size:0.95rem; border:1px solid #e5e7eb; display:inline-block;">{{ selected_company.status|default:"application" }}</span>
         </div>
-        <div style="display:flex; flex-wrap:wrap; gap:1.5rem;">
-          <div>
-            <strong style="display:block; font-size:0.85rem; color:#6b7280; margin-bottom:0.2rem;">Company Status:</strong>
-            <span style="background:#f3f4f6; color:#111827; border-radius:4px; padding:0.25rem 0.6rem; font-size:0.95rem; border:1px solid #e5e7eb; display:inline-block;">{{ selected_company.status|default:"application" }}</span>
-          </div>
-          <div>
-            <strong style="display:block; font-size:0.85rem; color:#6b7280; margin-bottom:0.2rem;">Latest Label from Messages:</strong>
-            <span style="background:#e0e7ff; color:#3730a3; border-radius:4px; padding:0.25rem 0.6rem; font-size:0.95rem; display:inline-block;">{{ latest_label|default:"N/A" }}</span>
-          </div>
-          <div>
-            <strong style="display:block; font-size:0.85rem; color:#6b7280; margin-bottom:0.2rem;">Last Job Search:</strong>
-            {% if selected_company.last_job_search_date %}
-              <span style="background:#d1fae5; color:#065f46; border-radius:4px; padding:0.25rem 0.6rem; font-size:0.95rem; display:inline-block;">{{ selected_company.last_job_search_date|date:"Y-m-d H:i" }}</span>
-              <span style="font-size:0.8rem; color:#6b7280; margin-left:0.3rem;">({{ selected_company.last_job_search_date|timesince }} ago)</span>
-            {% else %}
-              <span style="background:#f3f4f6; color:#6b7280; border-radius:4px; padding:0.25rem 0.6rem; font-size:0.95rem; font-style:italic; display:inline-block;">Never searched</span>
-            {% endif %}
-          </div>
-          {% if days_since_last_message is not None %}
-          <div>
-            <strong style="display:block; font-size:0.85rem; color:#6b7280; margin-bottom:0.2rem;">Days since last message:</strong>
-            <span style="background:#fef3c7; color:#92400e; border-radius:4px; padding:0.25rem 0.6rem; font-size:0.95rem; display:inline-block;">{{ days_since_last_message }}</span>
-            {% if ghosted_days_threshold and days_since_last_message >= ghosted_days_threshold and latest_label != 'rejection' and latest_label != 'rejected' %}
-              <span title="Consider marking as ghosted if appropriate" style="margin-left:0.4rem; color:#b45309; font-size:0.9rem;">(Consider ghosted)</span>
-            {% endif %}
-          </div>
+        <div>
+          <strong style="display:block; font-size:0.85rem; color:#6b7280; margin-bottom:0.2rem;">Latest Label from Messages:</strong>
+          <span style="background:#e0e7ff; color:#3730a3; border-radius:4px; padding:0.25rem 0.6rem; font-size:0.95rem; display:inline-block;">{{ latest_label|default:"N/A" }}</span>
+        </div>
+        <div>
+          <strong style="display:block; font-size:0.85rem; color:#6b7280; margin-bottom:0.2rem;">Last Job Search:</strong>
+          {% if selected_company.last_job_search_date %}
+            <span style="background:#d1fae5; color:#065f46; border-radius:4px; padding:0.25rem 0.6rem; font-size:0.95rem; display:inline-block;">{{ selected_company.last_job_search_date|date:"Y-m-d H:i" }}</span>
+            <span style="font-size:0.8rem; color:#6b7280; margin-left:0.3rem;">({{ selected_company.last_job_search_date|timesince }} ago)</span>
+          {% else %}
+            <span style="background:#f3f4f6; color:#6b7280; border-radius:4px; padding:0.25rem 0.6rem; font-size:0.95rem; font-style:italic; display:inline-block;">Never searched</span>
           {% endif %}
         </div>
-        <!-- Mark as Searched Checkbox -->
-        <form method="post" style="margin-top:1rem; padding:0.75rem; background:#f0fdf4; border:1px solid #86efac; border-radius:6px;">
-          {% csrf_token %}
-          <input type="hidden" name="company" value="{{ selected_company.id }}" />
-          <label style="display:flex; align-items:center; cursor:pointer; font-size:0.95rem; color:#166534;">
-            <input type="checkbox" name="mark_searched" value="1" style="width:auto; margin-right:0.5rem; cursor:pointer;" onchange="this.form.submit()">
-            <strong>🔍 I manually searched this company's website for jobs today</strong>
-          </label>
-        </form>
-      </div>
-      <!-- Merge Company Panel (hidden until toggled) -->
-      <div id="merge-panel" style="display:none; background:#faf5ff; border:1px solid #c4b5fd; border-radius:8px; padding:1rem 1.5rem; margin-bottom:1.5rem;">
-        <h3 style="margin:0 0 0.75rem 0; color:#5b21b6; font-size:1rem;">🔗 Merge with Another Company</h3>
-        <p style="color:#6b7280; font-size:0.9rem; margin:0 0 0.75rem 0;">
-          Search for the duplicate company below. All messages, applications, and data will be merged.
-          You will be asked to choose the canonical name on the next page.
-        </p>
-        <div style="display:flex; gap:0.75rem; align-items:center; flex-wrap:wrap;">
-          <input type="text" id="merge-company-search" autocomplete="off" placeholder="Search for duplicate company..." style="padding:0.4rem 0.6rem; border-radius:4px; border:1px solid #c4b5fd; font-size:1rem; min-width:260px;">
-          <input type="hidden" id="merge-company-id" value="">
-          <button type="button" id="merge-go-btn" disabled onclick="goToMergePage()" style="background:#7c3aed; color:white; font-weight:600; border-radius:6px; padding:0.45rem 1rem; border:none; cursor:pointer; opacity:0.5;">Go to Merge Page &rarr;</button>
-          <button type="button" onclick="document.getElementById('merge-panel').style.display='none';" style="background:#6b7280; color:white; font-weight:600; border-radius:6px; padding:0.45rem 0.75rem; border:none; cursor:pointer;">Cancel</button>
+        {% if days_since_last_message is not None %}
+        <div>
+          <strong style="display:block; font-size:0.85rem; color:#6b7280; margin-bottom:0.2rem;">Days since last message:</strong>
+          <span style="background:#fef3c7; color:#92400e; border-radius:4px; padding:0.25rem 0.6rem; font-size:0.95rem; display:inline-block;">{{ days_since_last_message }}</span>
+          {% if ghosted_days_threshold and days_since_last_message >= ghosted_days_threshold and latest_label != 'rejection' and latest_label != 'rejected' %}
+            <span title="Consider marking as ghosted if appropriate" style="margin-left:0.4rem; color:#b45309; font-size:0.9rem;">(Consider ghosted)</span>
+          {% endif %}
         </div>
+        {% endif %}
       </div>
-      <script>
-        function goToMergePage() {
-          var otherId = document.getElementById('merge-company-id').value;
-          if (!otherId) return;
-          window.location.href = "{% url 'merge_companies' %}?company_ids={{ selected_company.id }}&company_ids=" + otherId;
-        }
-        document.addEventListener('DOMContentLoaded', function() {
-          initCompanyAutocomplete({
-            inputId: 'merge-company-search',
-            hiddenInputId: 'merge-company-id',
-            showCreateNew: false,
-            placeholder: 'Search for duplicate company...',
-            onSelect: function(company) {
-              var btn = document.getElementById('merge-go-btn');
-              if (company && company.id && String(company.id) !== '{{ selected_company.id }}') {
-                document.getElementById('merge-company-id').value = company.id;
-                btn.disabled = false;
-                btn.style.opacity = '1';
-              } else {
-                document.getElementById('merge-company-id').value = '';
-                btn.disabled = true;
-                btn.style.opacity = '0.5';
-              }
+      <form method="post" style="margin-top:1rem; padding:0.75rem; background:#f0fdf4; border:1px solid #86efac; border-radius:6px;">
+        {% csrf_token %}
+        <input type="hidden" name="company" value="{{ selected_company.id }}" />
+        <label style="display:flex; align-items:center; cursor:pointer; font-size:0.95rem; color:#166534;">
+          <input type="checkbox" name="mark_searched" value="1" style="width:auto; margin-right:0.5rem; cursor:pointer;" onchange="this.form.submit()">
+          <strong>🔍 I manually searched this company's website for jobs today</strong>
+        </label>
+      </form>
+    </div>
+    <div id="merge-panel" style="display:none; background:#faf5ff; border:1px solid #c4b5fd; border-radius:8px; padding:1rem 1.5rem; margin-bottom:1.5rem;">
+      <h3 style="margin:0 0 0.75rem 0; color:#5b21b6; font-size:1rem;">🔗 Merge with Another Company</h3>
+      <p style="color:#6b7280; font-size:0.9rem; margin:0 0 0.75rem 0;">
+        Search for the duplicate company below. All messages, applications, and data will be merged.
+        You will be asked to choose the canonical name on the next page.
+      </p>
+      <div style="display:flex; gap:0.75rem; align-items:center; flex-wrap:wrap;">
+        <input type="text" id="merge-company-search" autocomplete="off" placeholder="Search for duplicate company..." style="padding:0.4rem 0.6rem; border-radius:4px; border:1px solid #c4b5fd; font-size:1rem; min-width:260px;">
+        <input type="hidden" id="merge-company-id" value="">
+        <button type="button" id="merge-go-btn" disabled onclick="goToMergePage()" style="background:#7c3aed; color:white; font-weight:600; border-radius:6px; padding:0.45rem 1rem; border:none; cursor:pointer; opacity:0.5;">Go to Merge Page &rarr;</button>
+        <button type="button" onclick="document.getElementById('merge-panel').style.display='none';" style="background:#6b7280; color:white; font-weight:600; border-radius:6px; padding:0.45rem 0.75rem; border:none; cursor:pointer;">Cancel</button>
+      </div>
+    </div>
+    <script>
+      function goToMergePage() {
+        var otherId = document.getElementById('merge-company-id').value;
+        if (!otherId) return;
+        window.location.href = "{% url 'merge_companies' %}?company_ids={{ selected_company.id }}&company_ids=" + otherId;
+      }
+      document.addEventListener('DOMContentLoaded', function() {
+        initCompanyAutocomplete({
+          inputId: 'merge-company-search',
+          hiddenInputId: 'merge-company-id',
+          showCreateNew: false,
+          placeholder: 'Search for duplicate company...',
+          onSelect: function(company) {
+            var btn = document.getElementById('merge-go-btn');
+            if (company && company.id && String(company.id) !== '{{ selected_company.id }}') {
+              document.getElementById('merge-company-id').value = company.id;
+              btn.disabled = false;
+              btn.style.opacity = '1';
+            } else {
+              document.getElementById('merge-company-id').value = '';
+              btn.disabled = true;
+              btn.style.opacity = '0.5';
             }
-          });
+          }
         });
-      </script>
-      <div style="display: flex; gap: 2rem; align-items: flex-start;">
-        <div style="flex: 1;">
-          <form method="post" class="edit-form">
+      });
+    </script>
+    <div style="display: flex; gap: 2rem; align-items: flex-start;">
+      <div style="flex: 1;">
+        <form method="post" class="edit-form">
           {% csrf_token %}
           <input type="hidden" name="company" value="{{ selected_company.id }}" />
           <label for="id_name">Company Name</label>
@@ -310,12 +451,21 @@
               {{ form.talent_network }}
             </label>
           </div>
+
           <label for="id_operating_cities_text">Additional Operating Cities</label>
-          <textarea id="id_operating_cities_text" name="operating_cities_text" rows="3" style="width:100%; padding:0.65rem; border-radius:6px; border:1px solid #d1d5db; font-size:0.95rem;">{{ operating_cities_text|default:'' }}</textarea>
-          <small style="color:#6b7280; display:block; margin-top:0.25rem; margin-bottom:0.5rem;">One city per line (e.g., Dahlgren, Virginia). City-only values are allowed.</small>
+          <textarea id="id_operating_cities_text" name="operating_cities_text" rows="3"
+            style="width:100%; padding:0.65rem; border-radius:6px; border:1px solid #d1d5db; font-size:0.95rem;">{{ operating_cities_text|default:'' }}</textarea>
+          <small style="color:#6b7280; display:block; margin-top:0.25rem; margin-bottom:0.5rem;">One city per line
+            (e.g., Dahlgren, Virginia). City-only values are allowed.</small>
+          <div style="margin-bottom:0.75rem;">
+            <button type="button" onclick="openLocationExtractor()"
+              style="background:#eff6ff; color:#1d4ed8; font-weight:600; border-radius:6px; padding:0.55rem 0.9rem; border:1px solid #bfdbfe; cursor:pointer;">Open Location Extractor</button>
+            <small style="color:#6b7280; display:block; margin-top:0.35rem;">Use a pop-out box to extract cities from a URL or pasted HTML.</small>
+          </div>
           <label for="id_alias">Alias (Optional)</label>
           {{ form.alias }}
-          <small style="color:#6b7280; display:block; margin-top:0.25rem; margin-bottom:0.5rem;">Alternative name(s) or abbreviation(s). Separate multiple aliases with commas (e.g., 'AFS, Accenture Fed')</small>
+          <small style="color:#6b7280; display:block; margin-top:0.25rem; margin-bottom:0.5rem;">Alternative name(s) or
+            abbreviation(s). Separate multiple aliases with commas (e.g., 'AFS, Accenture Fed')</small>
           <label for="id_contact_name">Contact Name</label>
           {{ form.contact_name }}
           <label for="id_contact_email">Contact Email</label>
@@ -324,651 +474,757 @@
           {{ form.status }}
           <label for="id_notes" style="margin-top:0.75rem;">Notes</label>
           {{ form.notes }}
-          <small style="color:#6b7280; display:block; margin-top:0.25rem; margin-bottom:0.5rem;">Company focus area analysis will appear here after clicking Populate. You can also add your own notes.</small>
-          <button type="button" onclick="saveCompanyChanges()" style="background:#2563eb; color:white; font-weight:600; border-radius:6px; padding:0.6rem 1.2rem; border:none; cursor:pointer; margin-top:1rem;">Save Changes</button>
+          <small style="color:#6b7280; display:block; margin-top:0.25rem; margin-bottom:0.5rem;">Company focus area
+            analysis will appear here after clicking Populate. You can also add your own notes.</small>
+          <button type="button" onclick="saveCompanyChanges()"
+            style="background:#2563eb; color:white; font-weight:600; border-radius:6px; padding:0.6rem 1.2rem; border:none; cursor:pointer; margin-top:1rem;">Save
+            Changes</button>
           <div id="save_status" style="margin-top:0.5rem; display:none;"></div>
         </form>
+      </div>
+      <div style="flex: 1; display: flex; flex-direction: column; gap: 1rem;">
+        <!-- DEBUG: About to render Company Data Preview for company={{ selected_company.name }}, message_count={{ message_count }}, application_threads count={{ application_threads|length }} -->
+        <div style="background: #f3f4f6; border-radius: 8px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+          <h2 style="margin-top:0; color:#1e40af; font-size:1.1rem;">Company Data Preview</h2>
+          <div style="margin-bottom:1rem;"><strong>Company:</strong> {{ selected_company.name }}</div>
+          {% if selected_company.duns_number %}
+          <div style="margin-bottom:1rem;"><strong>DUNS:</strong> {{ selected_company.duns_number }}</div>
+          {% endif %}
+          {% if selected_company.uei %}
+          <div style="margin-bottom:1rem;"><strong>UEI:</strong> {{ selected_company.uei }}</div>
+          {% endif %}
+          <div style="margin-bottom:1rem;"><strong>Messages in database:</strong> {{ message_count }} {% if message_count == 0 %}<span style="color:#9ca3af;">(No non-noise messages found)</span>{% endif %}</div>
+          <div style="margin-bottom:1rem;"><strong>Joined Talent Network:</strong> {% if selected_company.talent_network %}Yes{% else %}No{% endif %}</div>
+          <div style="margin-bottom:1rem;">
+            <strong>Additional Operating Cities:</strong>
+            {% if operating_cities_list %}
+            {{ operating_cities_list|join:", " }}
+            {% else %}
+            <span style="color:#9ca3af;">None</span>
+            {% endif %}
+          </div>
+          <div style="margin-bottom:1rem;">
+            <strong>🏛️ USASpending Contracts:</strong>
+            {% if total_contract_amount and total_contract_amount > 0 %}
+            <div style="font-size:1.1rem; font-weight:700; color:#059669; margin-top:0.25rem; word-break: break-word;">
+              ${{ total_contract_amount|floatformat:0|intcomma }}
+            </div>
+            <div style="margin-top:0.25rem; font-size:0.8rem; color:#6b7280; margin-bottom:0.5rem;">
+              Total awarded value (last 12 months)
+            </div>
+            {% else %}
+            <span style="color:#9ca3af; display:block; margin-top:0.25rem;">No contracts linked.</span>
+            {% endif %}
+          </div>
+          <div style="margin-bottom:1rem;">
+            <strong>📋 Applications:</strong>
+            <ul style="margin:0.5rem 0 0 0; padding-left:1.2rem; font-size:0.97rem; list-style:none;">
+              {% for thread in application_threads %}
+              <li style="margin-bottom:0.5rem;">
+                <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+                  <span style="color:#6b7280; white-space:nowrap;">{{ thread.sent_date|date:"Y-m-d" }}</span>
+                  {# All entries in application_threads are job applications (have a job_application message) #}
+                  {# Show offer badge if offer received, cancelled/withdrew if applicable, otherwise show APPLICATION #}
+                  {% if thread.ml_label == "offer" or thread.status == "offer" or thread.offer_date %}
+                  <span
+                    style="background:#d1fae5; color:#065f46; border-radius:3px; padding:0.15rem 0.4rem; font-size:0.8rem; font-weight:600; white-space:nowrap;">🎉
+                    OFFER</span>
+                  {% elif thread.cancelled %}
+                  <span
+                    style="background:#fef3c7; color:#92400e; border-radius:3px; padding:0.15rem 0.4rem; font-size:0.8rem; font-weight:600; white-space:nowrap;">🚫
+                    CANCELLED</span>
+                  {% elif thread.withdrew %}
+                  <span
+                    style="background:#e0e7ff; color:#3730a3; border-radius:3px; padding:0.15rem 0.4rem; font-size:0.8rem; font-weight:600; white-space:nowrap;">🚶
+                    WITHDREW</span>
+                  {% elif thread.status == "rejected" or thread.rejection_date %}
+                  <span
+                    style="background:#fee2e2; color:#991b1b; border-radius:3px; padding:0.15rem 0.4rem; font-size:0.8rem; font-weight:600; white-space:nowrap;">REJECTED</span>
+                  {% else %}
+                  <span
+                    style="background:#dcfce7; color:#166534; border-radius:3px; padding:0.15rem 0.4rem; font-size:0.8rem; font-weight:600; white-space:nowrap;">APPLICATION</span>
+                  {% endif %}
+                  <span style="color:#374151; flex:1;">{{ thread.job_title|default:"(No job title)" }}</span>
+                  {% if thread.prescreen_date %}
+                  <span style="color:#92400e; font-size:0.85rem; white-space:nowrap;">📞 {{
+                    thread.prescreen_date|date:"M d" }}</span>
+                  {% endif %}
+                  {% if thread.interview_date %}
+                  <span style="color:#1e40af; font-size:0.85rem; white-space:nowrap;">🗓️ {{
+                    thread.interview_date|date:"M d" }}</span>
+                  {% endif %}
+                  {% if thread.rejection_date %}
+                  <span style="color:#991b1b; font-size:0.85rem; white-space:nowrap;">{% if thread.cancelled %}🚫{% elif
+                    thread.withdrew %}🚶{% else %}❌{% endif %} {{ thread.rejection_date|date:"M d" }}</span>
+                  {% endif %}
+                  {% if thread.offer_date %}
+                  <span style="color:#065f46; font-size:0.85rem; white-space:nowrap;">🎉 {{ thread.offer_date|date:"M d"
+                    }}</span>
+                  {% endif %}
+                </div>
+              </li>
+              {% empty %}
+              <li style="color:#9ca3af;">No applications found for this company.</li>
+              {% endfor %}
+            </ul>
+          </div>
+          {% if company_interactions %}
+          <div style="margin-bottom: 0.75rem;">
+            <strong>🤝 Interactions:</strong>
+            <ul style="margin:0.4rem 0 0 0; padding-left:0; font-size:0.9rem; list-style:none;">
+              {% for interaction in company_interactions %}
+              <li style="margin-bottom:0.25rem; color:#374151;">
+                <span style="color:#6b7280;">{{ interaction.interaction_date|date:"M d, Y" }}</span>
+                &mdash; <span
+                  style="font-size:0.82rem; background:#d1fae5; border-radius:3px; padding:0.1rem 0.35rem;">{{
+                  interaction.type_icons }}</span>
+                &mdash; {{ interaction.contact_person }}
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+          {% endif %}
+
+          <div style="max-height: 240px; overflow-y: auto;">
+            <strong>All Email Dates, Labels &amp; Subjects:</strong>
+            <ul style="margin:0.5rem 0 0 0; padding-left:1.2rem; font-size:0.97rem; list-style:none;">
+              {% for mid, ts, subj, label in message_info_list %}
+              <li style="margin-bottom:0.5rem;">
+                <div style="display:flex; align-items:center; gap:0.5rem;">
+                  <span style="color:#6b7280; white-space:nowrap;">{{ ts|date:"Y-m-d H:i" }}</span>
+                  <span style="background:#e0e7ff; color:#3730a3; border-radius:3px; padding:0.15rem 0.4rem; font-size:0.8rem; font-weight:600; white-space:nowrap;">{{ label|default:"N/A" }}</span>
+                  <a href="{% url 'label_messages' %}?reviewed=all&label=all&sort=date&order=desc&focus={{ mid }}"
+                    style="color:#2563eb; text-decoration:none; flex:1;">
+                    {{ subj|truncatechars:70 }}
+                  </a>
+                </div>
+              </li>
+              {% empty %}
+              <li style="color:#9ca3af;">No messages found for this company.</li>
+              {% endfor %}
+            </ul>
+          </div>
         </div>
-        <div style="flex: 1; display: flex; flex-direction: column; gap: 1rem;">
-          <!-- DEBUG: About to render Company Data Preview for company={{ selected_company.name }}, message_count={{ message_count }}, application_threads count={{ application_threads|length }} -->
-          <div style="background: #f3f4f6; border-radius: 8px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
-            <h2 style="margin-top:0; color:#1e40af; font-size:1.1rem;">Company Data Preview</h2>
-            <div style="margin-bottom:1rem;"><strong>Company:</strong> {{ selected_company.name }}</div>
-            {% if selected_company.duns_number %}
-            <div style="margin-bottom:1rem;"><strong>DUNS:</strong> {{ selected_company.duns_number }}</div>
-            {% endif %}
-            {% if selected_company.uei %}
-            <div style="margin-bottom:1rem;"><strong>UEI:</strong> {{ selected_company.uei }}</div>
-            {% endif %}
-            <div style="margin-bottom:1rem;"><strong>Messages in database:</strong> {{ message_count }} {% if message_count == 0 %}<span style="color:#9ca3af;">(No non-noise messages found)</span>{% endif %}</div>
-            <div style="margin-bottom:1rem;"><strong>Joined Talent Network:</strong> {% if selected_company.talent_network %}Yes{% else %}No{% endif %}</div>
-            <div style="margin-bottom:1rem;">
-              <strong>Additional Operating Cities:</strong>
-              {% if operating_cities_list %}
-                {{ operating_cities_list|join:", " }}
-              {% else %}
-                <span style="color:#9ca3af;">None</span>
-              {% endif %}
-            </div>
-            <div style="margin-bottom:1rem;">
-              <strong>🏛️ USASpending Contracts:</strong>
-              {% if total_contract_amount and total_contract_amount > 0 %}
-                 <div style="font-size:1.1rem; font-weight:700; color:#059669; margin-top:0.25rem; word-break: break-word;">
-                   ${{ total_contract_amount|floatformat:0|intcomma }}
-                 </div>
-                 <div style="margin-top:0.25rem; font-size:0.8rem; color:#6b7280; margin-bottom:0.5rem;">
-                   Total awarded value (last 12 months)
-                 </div>
-              {% else %}
-                <span style="color:#9ca3af; display:block; margin-top:0.25rem;">No contracts linked.</span>
-              {% endif %}
-            </div>
-            <div style="margin-bottom:1rem;">
-              <strong>📋 Applications:</strong>
-              <ul style="margin:0.5rem 0 0 0; padding-left:1.2rem; font-size:0.97rem; list-style:none;">
-                {% for thread in application_threads %}
-                  <li style="margin-bottom:0.5rem;">
-                    <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
-                      <span style="color:#6b7280; white-space:nowrap;">{{ thread.sent_date|date:"Y-m-d" }}</span>
-                      {# All entries in application_threads are job applications (have a job_application message) #}
-                      {# Show offer badge if offer received, cancelled/withdrew if applicable, otherwise show APPLICATION #}
-                      {% if thread.ml_label == "offer" or thread.status == "offer" or thread.offer_date %}
-                        <span style="background:#d1fae5; color:#065f46; border-radius:3px; padding:0.15rem 0.4rem; font-size:0.8rem; font-weight:600; white-space:nowrap;">🎉 OFFER</span>
-                      {% elif thread.cancelled %}
-                        <span style="background:#fef3c7; color:#92400e; border-radius:3px; padding:0.15rem 0.4rem; font-size:0.8rem; font-weight:600; white-space:nowrap;">🚫 CANCELLED</span>
-                      {% elif thread.withdrew %}
-                        <span style="background:#e0e7ff; color:#3730a3; border-radius:3px; padding:0.15rem 0.4rem; font-size:0.8rem; font-weight:600; white-space:nowrap;">🚶 WITHDREW</span>
-                      {% elif thread.status == "rejected" or thread.rejection_date %}
-                        <span style="background:#fee2e2; color:#991b1b; border-radius:3px; padding:0.15rem 0.4rem; font-size:0.8rem; font-weight:600; white-space:nowrap;">REJECTED</span>
-                      {% else %}
-                        <span style="background:#dcfce7; color:#166534; border-radius:3px; padding:0.15rem 0.4rem; font-size:0.8rem; font-weight:600; white-space:nowrap;">APPLICATION</span>
-                      {% endif %}
-                      <span style="color:#374151; flex:1;">{{ thread.job_title|default:"(No job title)" }}</span>
-                      {% if thread.prescreen_date %}
-                        <span style="color:#92400e; font-size:0.85rem; white-space:nowrap;">📞 {{ thread.prescreen_date|date:"M d" }}</span>
-                      {% endif %}
-                      {% if thread.interview_date %}
-                        <span style="color:#1e40af; font-size:0.85rem; white-space:nowrap;">🗓️ {{ thread.interview_date|date:"M d" }}</span>
-                      {% endif %}
-                      {% if thread.rejection_date %}
-                        <span style="color:#991b1b; font-size:0.85rem; white-space:nowrap;">{% if thread.cancelled %}🚫{% elif thread.withdrew %}🚶{% else %}❌{% endif %} {{ thread.rejection_date|date:"M d" }}</span>
-                      {% endif %}
-                      {% if thread.offer_date %}
-                        <span style="color:#065f46; font-size:0.85rem; white-space:nowrap;">🎉 {{ thread.offer_date|date:"M d" }}</span>
-                      {% endif %}
-                    </div>
-                  </li>
-                {% empty %}
-                  <li style="color:#9ca3af;">No applications found for this company.</li>
-                {% endfor %}
-              </ul>
-            </div>
-            {% if company_interactions %}
-            <div style="margin-bottom: 0.75rem;">
-              <strong>🤝 Interactions:</strong>
-              <ul style="margin:0.4rem 0 0 0; padding-left:0; font-size:0.9rem; list-style:none;">
-                {% for interaction in company_interactions %}
-                <li style="margin-bottom:0.25rem; color:#374151;">
-                  <span style="color:#6b7280;">{{ interaction.interaction_date|date:"M d, Y" }}</span>
-                  &mdash; <span style="font-size:0.82rem; background:#d1fae5; border-radius:3px; padding:0.1rem 0.35rem;">{{ interaction.type_icons }}</span>
-                  &mdash; {{ interaction.contact_person }}
+        <style>
+          details[open] summary span:first-child {
+            transform: rotate(90deg);
+          }
+        </style>
+
+        <!-- Documents Section (expandable) -->
+        <details style="background: #e0e7ff; border-radius: 8px; padding: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+          <summary
+            style="cursor: pointer; padding: 1rem 1.5rem; font-weight: 600; color: #3730a3; font-size: 1rem; list-style: none; display: flex; align-items: center; gap: 0.5rem;">
+            <span style="transition: transform 0.2s;">▶</span> 📎 Documents{% if company_documents %} ({{
+            company_documents|length }}){% endif %}
+          </summary>
+          <div style="padding: 0 1.5rem 1.5rem 1.5rem;">
+            <!-- Existing Documents -->
+            {% if company_documents %}
+            <div style="margin-bottom: 1rem;">
+              <ul style="list-style: none; padding: 0; margin: 0;">
+                {% for doc in company_documents %}
+                <li
+                  style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0.75rem; background: white; border-radius: 6px; margin-bottom: 0.5rem; border: 1px solid #c7d2fe;">
+                  <span style="font-size: 1.25rem;">
+                    {% if doc.file_extension == '.pdf' %}📄{% elif doc.file_extension == '.xlsx' %}📊{% elif
+                    doc.file_extension == '.docx' %}📝{% else %}📃{% endif %}
+                  </span>
+                  <div style="flex: 1;">
+                    <a href="{{ doc.file.url }}" target="_blank"
+                      style="color: #3730a3; text-decoration: none; font-weight: 500;">{{ doc.filename }}</a>
+                    {% if doc.description %}
+                    <div style="font-size: 0.85rem; color: #6b7280;">{{ doc.description }}</div>
+                    {% endif %}
+                    <div style="font-size: 0.8rem; color: #9ca3af;">{{ doc.file_size_display }} • {{
+                      doc.uploaded_at|date:"M d, Y" }}</div>
+                  </div>
+                  <form method="post" action="{% url 'delete_company_document' doc.id %}" style="margin: 0;"
+                    onsubmit="return confirm('Delete this document?');">
+                    {% csrf_token %}
+                    <button type="submit"
+                      style="background: #fee2e2; color: #991b1b; border: none; border-radius: 4px; padding: 0.35rem 0.6rem; cursor: pointer; font-size: 0.85rem;"
+                      title="Delete document">🗑️</button>
+                  </form>
                 </li>
                 {% endfor %}
               </ul>
             </div>
+            {% else %}
+            <p style="color: #6b7280; font-size: 0.95rem; margin-bottom: 1rem;">No documents uploaded yet.</p>
             {% endif %}
 
-            <div style="max-height: 240px; overflow-y: auto;">
-              <strong>All Email Dates, Labels &amp; Subjects:</strong>
-              <ul style="margin:0.5rem 0 0 0; padding-left:1.2rem; font-size:0.97rem; list-style:none;">
-                {% for mid, ts, subj, label in message_info_list %}
-                  <li style="margin-bottom:0.5rem;">
-                    <div style="display:flex; align-items:center; gap:0.5rem;">
-                      <span style="color:#6b7280; white-space:nowrap;">{{ ts|date:"Y-m-d H:i" }}</span>
-                      <span style="background:#e0e7ff; color:#3730a3; border-radius:3px; padding:0.15rem 0.4rem; font-size:0.8rem; font-weight:600; white-space:nowrap;">{{ label|default:"N/A" }}</span>
-                      <a href="{% url 'label_messages' %}?reviewed=all&label=all&sort=date&order=desc&focus={{ mid }}" style="color:#2563eb; text-decoration:none; flex:1;">
-                        {{ subj|truncatechars:70 }}
-                      </a>
+            <!-- Upload Form -->
+            <form method="post" action="{% url 'upload_company_document' selected_company.id %}"
+              enctype="multipart/form-data"
+              style="background: white; padding: 1rem; border-radius: 6px; border: 1px solid #c7d2fe;">
+              {% csrf_token %}
+              <div style="margin-bottom: 0.75rem;">
+                <label for="document"
+                  style="display: block; font-weight: 500; color: #374151; margin-bottom: 0.25rem;">Upload
+                  Document:</label>
+                <input type="file" name="document" id="document" accept=".pdf,.txt,.xlsx,.docx" required
+                  style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem;" />
+                <small style="color: #6b7280; display: block; margin-top: 0.25rem;">PDF, TXT, XLSX, DOCX only. Max
+                  5MB.</small>
+              </div>
+              <div style="margin-bottom: 0.75rem;">
+                <label for="description"
+                  style="display: block; font-weight: 500; color: #374151; margin-bottom: 0.25rem;">Description
+                  (optional):</label>
+                <input type="text" name="description" id="description" placeholder="e.g., Offer Letter, Contract, NDA"
+                  style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem; box-sizing: border-box;" />
+              </div>
+              <button type="submit"
+                style="background: #4f46e5; color: white; font-weight: 600; border-radius: 6px; padding: 0.5rem 1rem; border: none; cursor: pointer;">📤
+                Upload</button>
+            </form>
+          </div>
+        </details>
+
+        <!-- Government Contracts Section (expandable) -->
+        {% if company_contracts %}
+        <details style="background: #ecfdf5; border-radius: 8px; padding: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+          <summary
+            style="cursor: pointer; padding: 0.75rem 1rem; font-weight: 600; color: #065f46; font-size: 0.95rem; list-style: none; display: flex; align-items: center; gap: 0.5rem;">
+            <span style="transition: transform 0.2s;">▶</span> 🏛️ Government Contracts ({{ company_contracts|length }})
+          </summary>
+          <div style="padding: 0 0.75rem 0.75rem 0.75rem; max-height:600px; overflow-y:auto;">
+            {% for contract in company_contracts %}
+            <div id="co-contract-{{ contract.id }}"
+              style="background:white; border-radius:6px; margin-bottom:0.5rem; border:1px solid #d1fae5; overflow:hidden;">
+              <div style="padding:0.75rem;">
+                <div style="display:flex; justify-content:space-between; gap:0.75rem; flex-wrap:wrap; align-items:flex-start;">
+                  <div style="flex:1; min-width:220px;">
+                    <div style="font-size:0.95rem; font-weight:700; color:#14532d; margin-bottom:0.25rem;">
+                      {{ contract.amount_display }}
                     </div>
-                  </li>
-                {% empty %}
-                  <li style="color:#9ca3af;">No messages found for this company.</li>
-                {% endfor %}
-              </ul>
+                    <div style="font-size:0.78rem; color:#6b7280; margin-bottom:0.35rem;">
+                      {{ contract.article_date|date:"M d, Y" }}
+                    </div>
+                    {% if contract.description %}
+                    <div style="font-size:0.82rem; color:#374151; margin-bottom:0.35rem;">
+                      {{ contract.description|truncatewords:25 }}
+                    </div>
+                    {% else %}
+                    <div style="font-size:0.82rem; color:#9ca3af; font-style:italic; margin-bottom:0.35rem;">
+                      No description available.
+                    </div>
+                    {% endif %}
+                    <div style="font-size:0.75rem; color:#6b7280; line-height:1.5;">
+                      {% if contract.company_location %}<div>📍 {{ contract.company_location }}</div>{% endif %}
+                      {% if contract.work_location %}<div>🛠️ {{ contract.work_location }}</div>{% endif %}
+                      {% if contract.contract_number %}<div>📝 {{ contract.contract_number }}</div>{% endif %}
+                      {% if contract.awarding_agency %}<div>🏛️ {{ contract.awarding_agency }}</div>{% endif %}
+                      {% if contract.awarding_sub_agency %}<div>🏢 {{ contract.awarding_sub_agency }}</div>{% endif %}
+                      {% if contract.award_id %}<div>🆔 {{ contract.award_id }}</div>{% endif %}
+                      {% if contract.contracting_activity %}<div>📌 {{ contract.contracting_activity }}</div>{% endif %}
+                      {% if contract.completion_date %}<div>📅 {{ contract.completion_date }}</div>{% endif %}
+                    </div>
+                  </div>
+                  <div style="display:flex; flex-wrap:wrap; gap:0.3rem; align-items:center;">
+                    {% if contract.data_source == 'war_gov' %}
+                    <span style="background:#dcfce7; color:#166534; font-size:0.65rem; font-weight:600; padding:0.15rem 0.5rem; border-radius:999px;">DoD</span>
+                    {% elif contract.data_source == 'usaspending' %}
+                    <span style="background:#dbeafe; color:#1e40af; font-size:0.65rem; font-weight:600; padding:0.15rem 0.5rem; border-radius:999px;">Federal</span>
+                    {% endif %}
+                    {% if contract.branch %}
+                    <span style="background:#f3f4f6; color:#374151; font-size:0.65rem; font-weight:600; padding:0.15rem 0.5rem; border-radius:999px;">{{ contract.get_branch_display }}</span>
+                    {% endif %}
+                    {% if contract.is_small_business %}
+                    <span style="background:#fef3c7; color:#92400e; font-size:0.65rem; font-weight:600; padding:0.15rem 0.5rem; border-radius:999px;">SB</span>
+                    {% endif %}
+                    {% if contract.is_modification %}
+                    <span style="background:#f1f5f9; color:#475569; font-size:0.65rem; font-weight:600; padding:0.15rem 0.5rem; border-radius:999px;">MOD</span>
+                    {% endif %}
+                  </div>
+                </div>
+                <div style="margin-top:0.5rem;">
+                  {% if contract.source_url %}
+                  <a href="{{ contract.source_url }}" target="_blank" style="color:#2563eb; text-decoration:none; font-size:0.8rem;">Open source record →</a>
+                  {% elif contract.data_source == 'usaspending' and not contract.usaspending_published %}
+                  <span style="color:#d97706; font-size:0.8rem;">⏳ Not yet available on usaspending.gov</span>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </details>
+        {% endif %}
+
+        <!-- Recent News Section (lazy-loaded via AJAX after page render) -->
+        <style>
+          .recent-news-summary,
+          .recent-news-summary * {
+            writing-mode: horizontal-tb !important;
+            transform: none !important;
+          }
+
+          .recent-news-summary {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+          }
+        </style>
+        {% if selected_company %}
+        <details id="news-details" class="recent-news-details"
+          style="background: #fef3c7; border-radius: 8px; padding: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+          <summary class="recent-news-summary"
+            style="cursor: pointer; padding: 1rem 1.5rem; font-weight: 600; color: #92400e; font-size: 1rem; list-style: none; gap: 0.5rem; writing-mode: horizontal-tb; transform: none;">
+            <span style="display: flex; align-items: center; gap: 0.5rem;">
+              <span style="transition: transform 0.2s;">▶</span> 📰 <span id="news-title">Recent News</span>
+            </span>
+            <button id="news-refresh-btn" type="button" onclick="refreshCompanyNews({{ selected_company.id }})"
+              style="background: #f59e0b; color: white; font-weight: 600; border-radius: 4px; padding: 0.25rem 0.75rem; border: none; cursor: pointer; font-size: 0.85rem; margin-right: 0.5rem;">🔄
+              Refresh</button>
+          </summary>
+          <div id="news-add-bar"
+            style="padding: 0.5rem 1.5rem; display: flex; gap: 0.5rem; align-items: center; border-top: 1px solid #fde68a;">
+            <input id="news-add-url-input" type="url" placeholder="Paste a URL to add it as a news article..."
+              style="flex:1;font-size:0.8rem;border:1px solid #fcd34d;border-radius:4px;padding:0.3rem 0.6rem;" />
+            <button type="button" onclick="addNewsUrl({{ selected_company.id }})"
+              style="background:#10b981;color:white;font-weight:600;border-radius:4px;padding:0.3rem 0.75rem;border:none;cursor:pointer;font-size:0.8rem;white-space:nowrap;">➕
+              Add URL</button>
+          </div>
+          <div id="news-add-feedback" style="font-size:0.75rem;padding:0 1.5rem 0.35rem;display:none;"></div>
+          <div id="news-content" style="padding: 0 1.5rem 1.5rem 1.5rem;">
+            <div style="text-align: center; padding: 2rem; color: #92400e;">
+              <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">⏳</div>
+              <div>Loading news...</div>
             </div>
           </div>
-          <style>
-            details[open] summary span:first-child { transform: rotate(90deg); }
-          </style>
-          
-          <!-- Documents Section (expandable) -->
-          <details style="background: #e0e7ff; border-radius: 8px; padding: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
-            <summary style="cursor: pointer; padding: 1rem 1.5rem; font-weight: 600; color: #3730a3; font-size: 1rem; list-style: none; display: flex; align-items: center; gap: 0.5rem;">
-              <span style="transition: transform 0.2s;">▶</span> 📎 Documents{% if company_documents %} ({{ company_documents|length }}){% endif %}
-            </summary>
-            <div style="padding: 0 1.5rem 1.5rem 1.5rem;">
-              <!-- Existing Documents -->
-              {% if company_documents %}
+        </details>
+        {% endif %}
+
+        <!-- Interactions Section -->
+        {% if selected_company %}
+        <details style="background: #d1fae5; border-radius: 8px; padding: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+          <summary
+            style="cursor: pointer; padding: 1rem 1.5rem; font-weight: 600; color: #065f46; font-size: 1rem; list-style: none; display: flex; align-items: center; gap: 0.5rem;">
+            <span style="transition: transform 0.2s;">▶</span> 🤝 Interactions ({{ company_interactions|length }}
+            record{{ company_interactions|length|pluralize }})
+          </summary>
+          <div style="padding: 0 1.5rem 1.5rem 1.5rem;">
+
+            <!-- Add New Interaction Form -->
+            <form method="post" action="{% url 'add_company_interaction' selected_company.id %}"
+              style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 1.5rem;"
+              onsubmit="return validateInteractionForm(this);">
+              {% csrf_token %}
+
               <div style="margin-bottom: 1rem;">
-                <ul style="list-style: none; padding: 0; margin: 0;">
-                  {% for doc in company_documents %}
-                  <li style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0.75rem; background: white; border-radius: 6px; margin-bottom: 0.5rem; border: 1px solid #c7d2fe;">
-                    <span style="font-size: 1.25rem;">
-                      {% if doc.file_extension == '.pdf' %}📄{% elif doc.file_extension == '.xlsx' %}📊{% elif doc.file_extension == '.docx' %}📝{% else %}📃{% endif %}
-                    </span>
-                    <div style="flex: 1;">
-                      <a href="{{ doc.file.url }}" target="_blank" style="color: #3730a3; text-decoration: none; font-weight: 500;">{{ doc.filename }}</a>
-                      {% if doc.description %}
-                      <div style="font-size: 0.85rem; color: #6b7280;">{{ doc.description }}</div>
-                      {% endif %}
-                      <div style="font-size: 0.8rem; color: #9ca3af;">{{ doc.file_size_display }} • {{ doc.uploaded_at|date:"M d, Y" }}</div>
-                    </div>
-                    <form method="post" action="{% url 'delete_company_document' doc.id %}" style="margin: 0;" onsubmit="return confirm('Delete this document?');">
-                      {% csrf_token %}
-                      <button type="submit" style="background: #fee2e2; color: #991b1b; border: none; border-radius: 4px; padding: 0.35rem 0.6rem; cursor: pointer; font-size: 0.85rem;" title="Delete document">🗑️</button>
-                    </form>
-                  </li>
-                  {% endfor %}
-                </ul>
+                <label for="id_interaction_date"
+                  style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.25rem;">📅 Date &amp;
+                  Time:</label>
+                <input type="datetime-local" name="interaction_date" id="id_interaction_date"
+                  value="{% now 'Y-m-d' %}T{% now 'H:i' %}"
+                  style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem;" />
               </div>
-              {% else %}
-              <p style="color: #6b7280; font-size: 0.95rem; margin-bottom: 1rem;">No documents uploaded yet.</p>
-              {% endif %}
-              
-              <!-- Upload Form -->
-              <form method="post" action="{% url 'upload_company_document' selected_company.id %}" enctype="multipart/form-data" style="background: white; padding: 1rem; border-radius: 6px; border: 1px solid #c7d2fe;">
-                {% csrf_token %}
-                <div style="margin-bottom: 0.75rem;">
-                  <label for="document" style="display: block; font-weight: 500; color: #374151; margin-bottom: 0.25rem;">Upload Document:</label>
-                  <input type="file" name="document" id="document" accept=".pdf,.txt,.xlsx,.docx" required style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem;" />
-                  <small style="color: #6b7280; display: block; margin-top: 0.25rem;">PDF, TXT, XLSX, DOCX only. Max 5MB.</small>
+
+              <div style="margin-bottom: 1rem;">
+                <label style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.5rem;">📞 Interaction
+                  Type <span style="color:#ef4444;">*</span> <small style="font-weight:400; color:#6b7280;">(select at
+                    least one)</small></label>
+                <div
+                  style="display: flex; gap: 1.5rem; flex-wrap: wrap; padding: 0.75rem; background: #f0fdf4; border-radius: 6px;">
+                  <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer;">
+                    <input type="checkbox" name="is_phone" class="interaction-type-cb" style="width:1rem;height:1rem;">
+                    ☎️ Phone Call
+                  </label>
+                  <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer;">
+                    <input type="checkbox" name="is_video" class="interaction-type-cb" style="width:1rem;height:1rem;">
+                    🎥 Video Call
+                  </label>
+                  <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer;">
+                    <input type="checkbox" name="is_text" class="interaction-type-cb" style="width:1rem;height:1rem;">
+                    💬 Text
+                  </label>
+                  <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer;">
+                    <input type="checkbox" name="is_chat" class="interaction-type-cb" style="width:1rem;height:1rem;">
+                    🖥️ Chat
+                  </label>
                 </div>
-                <div style="margin-bottom: 0.75rem;">
-                  <label for="description" style="display: block; font-weight: 500; color: #374151; margin-bottom: 0.25rem;">Description (optional):</label>
-                  <input type="text" name="description" id="description" placeholder="e.g., Offer Letter, Contract, NDA" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem; box-sizing: border-box;" />
+                <small id="interaction-type-error" style="color:#ef4444;display:none;">Please select at least one
+                  interaction type.</small>
+              </div>
+
+              <div style="margin-bottom: 1rem;">
+                <label for="id_contact_person"
+                  style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.25rem;">👤 Contact Person
+                  <span style="color:#ef4444;">*</span></label>
+                <input type="text" name="contact_person" id="id_contact_person" required placeholder="e.g., Jane Smith"
+                  style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem; box-sizing: border-box;" />
+              </div>
+
+              <div style="display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 200px;">
+                  <label for="id_contact_phone"
+                    style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.25rem;">📱 Contact Phone
+                    <small style="font-weight:400; color:#6b7280;">(optional)</small></label>
+                  <input type="text" name="contact_phone" id="id_contact_phone" placeholder="e.g., 555-867-5309"
+                    style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem; box-sizing: border-box;" />
                 </div>
-                <button type="submit" style="background: #4f46e5; color: white; font-weight: 600; border-radius: 6px; padding: 0.5rem 1rem; border: none; cursor: pointer;">📤 Upload</button>
-              </form>
-            </div>
-          </details>
-          
-          <!-- Government Contracts Section (expandable) -->
-          {% if company_contracts %}
-          <details style="background: #ecfdf5; border-radius: 8px; padding: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
-            <summary style="cursor: pointer; padding: 0.75rem 1rem; font-weight: 600; color: #065f46; font-size: 0.95rem; list-style: none; display: flex; align-items: center; gap: 0.5rem;">
-              <span style="transition: transform 0.2s;">▶</span> 🏛️ Government Contracts ({{ company_contracts|length }})
-            </summary>
-            <div style="padding: 0 0.75rem 0.75rem 0.75rem; max-height:600px; overflow-y:auto;">
-              {% for contract in company_contracts %}
-              <div id="co-contract-{{ contract.id }}" style="background: white; border-radius: 6px; margin-bottom: 0.5rem; border: 1px solid #d1fae5; overflow: hidden;">
-                <div style="padding: 0.6rem 0.75rem;">
+                <div style="flex: 1; min-width: 200px;">
+                  <label for="id_contact_email"
+                    style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.25rem;">✉️ Contact Email
+                    <small style="font-weight:400; color:#6b7280;">(optional)</small></label>
+                  <input type="email" name="contact_email" id="id_contact_email" placeholder="e.g., jane@company.com"
+                    style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem; box-sizing: border-box;" />
+                </div>
+              </div>
 
-                  <!-- Header row: source badges + amount + date -->
-                  <div style="display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.35rem;">
-                    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem;">
-                      {% if contract.data_source == 'war_gov' %}
-                      <span style="background:#dcfce7; color:#166534; font-size:0.6rem; font-weight:600; padding:0.1rem 0.35rem; border-radius:4px;">DoD</span>
-                      {% if contract.source_url %}<a href="{{ contract.source_url }}" target="_blank" style="background:#f3f4f6; color:#374151; font-size:0.6rem; font-weight:500; padding:0.1rem 0.35rem; border-radius:4px; text-decoration:none;">war.gov ⧉</a>{% endif %}
-                      {% elif contract.data_source == 'usaspending' %}
-                      <span style="background:#dbeafe; color:#1e40af; font-size:0.6rem; font-weight:600; padding:0.1rem 0.35rem; border-radius:4px;">Federal</span>
-                      {% if contract.source_url %}<a href="{{ contract.source_url }}" target="_blank" style="background:#f3f4f6; color:#374151; font-size:0.6rem; font-weight:500; padding:0.1rem 0.35rem; border-radius:4px; text-decoration:none;">SAM.gov DataSource ⧉</a>{% endif %}
-                      {% endif %}
-                      {% if contract.is_small_business %}<span style="background:#fef3c7; color:#92400e; font-size:0.6rem; font-weight:600; padding:0.1rem 0.35rem; border-radius:4px;">SB</span>{% endif %}
-                      {% if contract.is_modification %}<span style="background:#f1f5f9; color:#475569; font-size:0.6rem; font-weight:600; padding:0.1rem 0.35rem; border-radius:4px;">MOD</span>{% endif %}
-                    </div>
-                    <div style="text-align:right; flex-shrink:0;">
-                      <div style="font-size:0.95rem; font-weight:700; color:#15803d;">{{ contract.amount_display }}</div>
-                      <div style="font-size:0.7rem; color:#6b7280;">{{ contract.article_date|date:"M d, Y" }}</div>
-                    </div>
-                  </div>
+              <div style="margin-bottom: 1.25rem;">
+                <label for="id_interaction_notes"
+                  style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.25rem;">📝 Notes <small
+                    style="font-weight:400; color:#6b7280;">(optional)</small></label>
+                <textarea name="notes" id="id_interaction_notes" rows="4"
+                  placeholder="What was discussed? Any action items?"
+                  style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem; resize: vertical; font-family: inherit; box-sizing: border-box; min-height: 80px; max-height: 400px; overflow-y: auto;"></textarea>
+              </div>
 
-                  <!-- Location / NAICS / PSC row -->
-                  <div style="font-size:0.7rem; color:#6b7280; margin-bottom:0.3rem;">
-                    {% if contract.company_location %}📍 {{ contract.company_location }}{% endif %}
-                    {% if contract.contract_number %} · 📝 {{ contract.contract_number }}{% endif %}
-                    {% if contract.naics_code %} · 🏭 {{ contract.naics_code }}{% if contract.naics_description %} – {{ contract.naics_description }}{% endif %}{% endif %}
-                    {% if contract.product_service_code %} · 📦 {{ contract.product_service_code }}{% if contract.product_service_code_description %} – {{ contract.product_service_code_description }}{% endif %}{% endif %}
-                  </div>
+              <div style="display: flex; gap: 0.75rem;">
+                <button type="submit"
+                  style="background: #059669; color: white; font-weight: 600; border-radius: 6px; padding: 0.5rem 1.25rem; border: none; cursor: pointer;">💾
+                  Save Interaction</button>
+                <button type="reset"
+                  style="background: #f3f4f6; color: #374151; font-weight: 600; border-radius: 6px; padding: 0.5rem 1.25rem; border: 1px solid #d1d5db; cursor: pointer;">✖
+                  Cancel</button>
+              </div>
+            </form>
 
-                  <!-- Branch / Agency badges -->
-                  {% if contract.data_source == 'war_gov' and contract.branch %}
-                  <div style="margin-bottom:0.35rem;">
-                    <span style="display:inline-block; font-size:0.65rem; font-weight:600; padding:0.15rem 0.5rem; border-radius:999px;
-                      {% if contract.branch == 'army' %}background:#dcfce7; color:#166534;
-                      {% elif contract.branch == 'navy' %}background:#dbeafe; color:#1e40af;
-                      {% elif contract.branch == 'air_force' %}background:#e0f2fe; color:#0c4a6e;
-                      {% elif contract.branch == 'defense_logistics_agency' %}background:#ffedd5; color:#9a3412;
-                      {% elif contract.branch == 'special_operations' %}background:#fee2e2; color:#991b1b;
-                      {% elif contract.branch == 'missile_defense' %}background:#ede9fe; color:#5b21b6;
-                      {% else %}background:#f3f4f6; color:#374151;
-                      {% endif %}">{{ contract.get_branch_display }}</span>
+            <!-- Existing Interactions List -->
+            {% if company_interactions %}
+            <div>
+              <h4 style="color: #065f46; margin: 0 0 0.75rem 0; font-size: 0.95rem;">Past Interactions:</h4>
+              {% for interaction in company_interactions %}
+              <div
+                style="background: white; border-radius: 6px; padding: 0.85rem 1rem; margin-bottom: 0.6rem; border: 1px solid #a7f3d0; display: flex; gap: 1rem; align-items: flex-start;">
+                <div style="flex: 1;">
+                  <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-bottom: 0.3rem;">
+                    <span style="color: #6b7280; font-size: 0.85rem; white-space: nowrap;">{{
+                      interaction.interaction_date|date:"M d, Y H:i" }}</span>
+                    <span
+                      style="background: #d1fae5; color: #065f46; border-radius: 3px; padding: 0.1rem 0.4rem; font-size: 0.8rem; font-weight: 600;">{{
+                      interaction.type_icons }}</span>
+                    <span style="font-weight: 600; color: #374151;">{{ interaction.contact_person }}</span>
                   </div>
-                  {% elif contract.data_source == 'usaspending' %}
-                  <div style="margin-bottom:0.35rem; display:flex; flex-wrap:wrap; gap:0.3rem;">
-                    {% if contract.awarding_agency %}<span style="background:#e0e7ff; color:#3730a3; font-size:0.65rem; font-weight:600; padding:0.15rem 0.5rem; border-radius:999px;">🏛️ {{ contract.awarding_agency }}</span>{% endif %}
-                    {% if contract.awarding_sub_agency %}<span style="background:#ede9fe; color:#5b21b6; font-size:0.65rem; padding:0.15rem 0.5rem; border-radius:999px;">{{ contract.awarding_sub_agency }}</span>{% endif %}
+                  {% if interaction.contact_phone or interaction.contact_email %}
+                  <div style="font-size: 0.82rem; color: #6b7280; margin-bottom: 0.25rem;">
+                    {% if interaction.contact_phone %}📱 {{ interaction.contact_phone }}{% endif %}
+                    {% if interaction.contact_phone and interaction.contact_email %} &nbsp;|&nbsp; {% endif %}
+                    {% if interaction.contact_email %}✉️ {{ interaction.contact_email }}{% endif %}
                   </div>
                   {% endif %}
-
-                  <!-- Description + expandable details -->
-                  <details>
-                    <summary style="cursor:pointer; font-size:0.8rem; color:#374151; list-style:none; display:flex; align-items:flex-start; gap:0.3rem;">
-                      <span style="flex-shrink:0; color:#9ca3af; margin-top:0.1rem;">▶</span>
-                      <span>{% if contract.description %}{{ contract.description|truncatewords:25 }}{% else %}<em style="color:#9ca3af;">No description available.</em>{% endif %}</span>
-                    </summary>
-                    <div style="margin-top:0.4rem; padding-top:0.4rem; border-top:1px solid #f3f4f6; font-size:0.75rem; color:#4b5563; display:flex; flex-direction:column; gap:0.2rem;">
-                      {% if contract.work_location %}
-                      <div><strong>📍 Work Location:</strong> {{ contract.work_location }}</div>
-                      {% endif %}
-                      {% if contract.data_source == 'usaspending' %}
-                      <div><strong>📍 Performance State:</strong> {{ contract.place_of_performance_state|default:"–" }}</div>
-                      <div><strong>📍 Performance County:</strong> {{ contract.primary_place_of_performance_county_name|default:"–" }}</div>
-                      <div><strong>🌍 Performance Country:</strong> {{ contract.primary_place_of_performance_country_name|default:"–" }}</div>
-                      <div style="margin-top:0.3rem; padding-top:0.3rem; border-top:1px solid #f3f4f6;">
-                        <strong>👔 Highly Compensated Officers:</strong>
-                        {% if contract.highly_compensated_officer_1_name %}
-                        <ul style="list-style:disc; padding-left:1rem; margin-top:0.2rem; color:#6b7280;">
-                          <li>{{ contract.highly_compensated_officer_1_name }}{% if contract.highly_compensated_officer_1_amount %} – ${{ contract.highly_compensated_officer_1_amount|floatformat:0|intcomma }}{% endif %}</li>
-                          {% if contract.highly_compensated_officer_2_name %}<li>{{ contract.highly_compensated_officer_2_name }}{% if contract.highly_compensated_officer_2_amount %} – ${{ contract.highly_compensated_officer_2_amount|floatformat:0|intcomma }}{% endif %}</li>{% endif %}
-                          {% if contract.highly_compensated_officer_3_name %}<li>{{ contract.highly_compensated_officer_3_name }}{% if contract.highly_compensated_officer_3_amount %} – ${{ contract.highly_compensated_officer_3_amount|floatformat:0|intcomma }}{% endif %}</li>{% endif %}
-                          {% if contract.highly_compensated_officer_4_name %}<li>{{ contract.highly_compensated_officer_4_name }}{% if contract.highly_compensated_officer_4_amount %} – ${{ contract.highly_compensated_officer_4_amount|floatformat:0|intcomma }}{% endif %}</li>{% endif %}
-                          {% if contract.highly_compensated_officer_5_name %}<li>{{ contract.highly_compensated_officer_5_name }}{% if contract.highly_compensated_officer_5_amount %} – ${{ contract.highly_compensated_officer_5_amount|floatformat:0|intcomma }}{% endif %}</li>{% endif %}
-                        </ul>
-                        {% else %}
-                        <span style="color:#9ca3af; font-style:italic; margin-left:0.25rem;">No officer compensation data available.</span>
-                        {% endif %}
-                      </div>
-                      {% endif %}
-                      {% if contract.completion_date %}<div><strong>📅 Completion:</strong> {{ contract.completion_date }}</div>{% endif %}
-                      {% if contract.contracting_activity %}<div><strong>🏢 Contracting Activity:</strong> {{ contract.contracting_activity }}</div>{% endif %}
-                      {% if contract.award_id %}<div><strong>🆔 Award ID:</strong> {{ contract.award_id }}</div>{% endif %}
-                      <div style="margin-top:0.25rem;">
-                        {% if contract.data_source == 'war_gov' and contract.source_url %}
-                        <a href="{{ contract.source_url }}" target="_blank" style="color:#2563eb; text-decoration:none;">View on war.gov →</a>
-                        {% elif contract.data_source == 'usaspending' %}
-                          {% if contract.usaspending_published and contract.source_url %}
-                          <a href="{{ contract.source_url }}" target="_blank" style="color:#2563eb; text-decoration:none;">View on USASpending.gov →</a>
-                          {% else %}
-                          <span style="color:#d97706;">⏳ Not yet available on usaspending.gov</span>
-                          {% endif %}
-                        {% endif %}
-                      </div>
-                    </div>
-                  </details>
-
+                  {% if interaction.notes %}
+                  <div style="font-size: 0.88rem; color: #374151; margin-top: 0.25rem; white-space: pre-wrap;">{{
+                    interaction.notes }}</div>
+                  {% endif %}
                 </div>
+                <form method="post" action="{% url 'delete_company_interaction' selected_company.id interaction.id %}"
+                  style="margin: 0; flex-shrink: 0;" onsubmit="return confirm('Delete this interaction record?');">
+                  {% csrf_token %}
+                  <button type="submit"
+                    style="background: #fee2e2; color: #991b1b; border: none; border-radius: 4px; padding: 0.35rem 0.6rem; cursor: pointer; font-size: 0.85rem;"
+                    title="Delete">🗑️</button>
+                </form>
               </div>
               {% endfor %}
             </div>
-          </details>
-          {% endif %}
-
-          <!-- Recent News Section (lazy-loaded via AJAX after page render) -->
-          <style>
-            .recent-news-summary,
-            .recent-news-summary * {
-              writing-mode: horizontal-tb !important;
-              transform: none !important;
-            }
-            .recent-news-summary {
-              display: flex;
-              align-items: center;
-              justify-content: space-between;
-            }
-          </style>
-          {% if selected_company %}
-          <details id="news-details" class="recent-news-details" style="background: #fef3c7; border-radius: 8px; padding: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
-            <summary class="recent-news-summary" style="cursor: pointer; padding: 1rem 1.5rem; font-weight: 600; color: #92400e; font-size: 1rem; list-style: none; gap: 0.5rem; writing-mode: horizontal-tb; transform: none;">
-              <span style="display: flex; align-items: center; gap: 0.5rem;">
-                <span style="transition: transform 0.2s;">▶</span> 📰 <span id="news-title">Recent News</span>
-              </span>
-              <button id="news-refresh-btn" type="button" onclick="refreshCompanyNews({{ selected_company.id }})" style="background: #f59e0b; color: white; font-weight: 600; border-radius: 4px; padding: 0.25rem 0.75rem; border: none; cursor: pointer; font-size: 0.85rem; margin-right: 0.5rem;">🔄 Refresh</button>
-            </summary>
-            <div id="news-add-bar" style="padding: 0.5rem 1.5rem; display: flex; gap: 0.5rem; align-items: center; border-top: 1px solid #fde68a;">
-              <input id="news-add-url-input" type="url" placeholder="Paste a URL to add it as a news article..."
-                style="flex:1;font-size:0.8rem;border:1px solid #fcd34d;border-radius:4px;padding:0.3rem 0.6rem;" />
-              <button type="button" onclick="addNewsUrl({{ selected_company.id }})"
-                style="background:#10b981;color:white;font-weight:600;border-radius:4px;padding:0.3rem 0.75rem;border:none;cursor:pointer;font-size:0.8rem;white-space:nowrap;">➕ Add URL</button>
-            </div>
-            <div id="news-add-feedback" style="font-size:0.75rem;padding:0 1.5rem 0.35rem;display:none;"></div>
-            <div id="news-content" style="padding: 0 1.5rem 1.5rem 1.5rem;">
-              <div style="text-align: center; padding: 2rem; color: #92400e;">
-                <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">⏳</div>
-                <div>Loading news...</div>
-              </div>
-            </div>
-          </details>
-          {% endif %}
-
-          <!-- Interactions Section -->
-          {% if selected_company %}
-          <details style="background: #d1fae5; border-radius: 8px; padding: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
-            <summary style="cursor: pointer; padding: 1rem 1.5rem; font-weight: 600; color: #065f46; font-size: 1rem; list-style: none; display: flex; align-items: center; gap: 0.5rem;">
-              <span style="transition: transform 0.2s;">▶</span> 🤝 Interactions ({{ company_interactions|length }} record{{ company_interactions|length|pluralize }})
-            </summary>
-            <div style="padding: 0 1.5rem 1.5rem 1.5rem;">
-
-              <!-- Add New Interaction Form -->
-              <form method="post" action="{% url 'add_company_interaction' selected_company.id %}"
-                    style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 1.5rem;"
-                    onsubmit="return validateInteractionForm(this);">
-                {% csrf_token %}
-
-                <div style="margin-bottom: 1rem;">
-                  <label for="id_interaction_date" style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.25rem;">📅 Date &amp; Time:</label>
-                  <input type="datetime-local" name="interaction_date" id="id_interaction_date"
-                         value="{% now 'Y-m-d' %}T{% now 'H:i' %}"
-                         style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem;" />
-                </div>
-
-                <div style="margin-bottom: 1rem;">
-                  <label style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.5rem;">📞 Interaction Type <span style="color:#ef4444;">*</span> <small style="font-weight:400; color:#6b7280;">(select at least one)</small></label>
-                  <div style="display: flex; gap: 1.5rem; flex-wrap: wrap; padding: 0.75rem; background: #f0fdf4; border-radius: 6px;">
-                    <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer;">
-                      <input type="checkbox" name="is_phone" class="interaction-type-cb" style="width:1rem;height:1rem;"> ☎️ Phone Call
-                    </label>
-                    <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer;">
-                      <input type="checkbox" name="is_video" class="interaction-type-cb" style="width:1rem;height:1rem;"> 🎥 Video Call
-                    </label>
-                    <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer;">
-                      <input type="checkbox" name="is_text" class="interaction-type-cb" style="width:1rem;height:1rem;"> 💬 Text
-                    </label>
-                    <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer;">
-                      <input type="checkbox" name="is_chat" class="interaction-type-cb" style="width:1rem;height:1rem;"> 🖥️ Chat
-                    </label>
-                  </div>
-                  <small id="interaction-type-error" style="color:#ef4444;display:none;">Please select at least one interaction type.</small>
-                </div>
-
-                <div style="margin-bottom: 1rem;">
-                  <label for="id_contact_person" style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.25rem;">👤 Contact Person <span style="color:#ef4444;">*</span></label>
-                  <input type="text" name="contact_person" id="id_contact_person" required
-                         placeholder="e.g., Jane Smith"
-                         style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem; box-sizing: border-box;" />
-                </div>
-
-                <div style="display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap;">
-                  <div style="flex: 1; min-width: 200px;">
-                    <label for="id_contact_phone" style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.25rem;">📱 Contact Phone <small style="font-weight:400; color:#6b7280;">(optional)</small></label>
-                    <input type="text" name="contact_phone" id="id_contact_phone"
-                           placeholder="e.g., 555-867-5309"
-                           style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem; box-sizing: border-box;" />
-                  </div>
-                  <div style="flex: 1; min-width: 200px;">
-                    <label for="id_contact_email" style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.25rem;">✉️ Contact Email <small style="font-weight:400; color:#6b7280;">(optional)</small></label>
-                    <input type="email" name="contact_email" id="id_contact_email"
-                           placeholder="e.g., jane@company.com"
-                           style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem; box-sizing: border-box;" />
-                  </div>
-                </div>
-
-                <div style="margin-bottom: 1.25rem;">
-                  <label for="id_interaction_notes" style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.25rem;">📝 Notes <small style="font-weight:400; color:#6b7280;">(optional)</small></label>
-                  <textarea name="notes" id="id_interaction_notes" rows="4"
-                            placeholder="What was discussed? Any action items?"
-                            style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem; resize: vertical; font-family: inherit; box-sizing: border-box; min-height: 80px; max-height: 400px; overflow-y: auto;"></textarea>
-                </div>
-
-                <div style="display: flex; gap: 0.75rem;">
-                  <button type="submit" style="background: #059669; color: white; font-weight: 600; border-radius: 6px; padding: 0.5rem 1.25rem; border: none; cursor: pointer;">💾 Save Interaction</button>
-                  <button type="reset" style="background: #f3f4f6; color: #374151; font-weight: 600; border-radius: 6px; padding: 0.5rem 1.25rem; border: 1px solid #d1d5db; cursor: pointer;">✖ Cancel</button>
-                </div>
-              </form>
-
-              <!-- Existing Interactions List -->
-              {% if company_interactions %}
-              <div>
-                <h4 style="color: #065f46; margin: 0 0 0.75rem 0; font-size: 0.95rem;">Past Interactions:</h4>
-                {% for interaction in company_interactions %}
-                <div style="background: white; border-radius: 6px; padding: 0.85rem 1rem; margin-bottom: 0.6rem; border: 1px solid #a7f3d0; display: flex; gap: 1rem; align-items: flex-start;">
-                  <div style="flex: 1;">
-                    <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-bottom: 0.3rem;">
-                      <span style="color: #6b7280; font-size: 0.85rem; white-space: nowrap;">{{ interaction.interaction_date|date:"M d, Y H:i" }}</span>
-                      <span style="background: #d1fae5; color: #065f46; border-radius: 3px; padding: 0.1rem 0.4rem; font-size: 0.8rem; font-weight: 600;">{{ interaction.type_icons }}</span>
-                      <span style="font-weight: 600; color: #374151;">{{ interaction.contact_person }}</span>
-                    </div>
-                    {% if interaction.contact_phone or interaction.contact_email %}
-                    <div style="font-size: 0.82rem; color: #6b7280; margin-bottom: 0.25rem;">
-                      {% if interaction.contact_phone %}📱 {{ interaction.contact_phone }}{% endif %}
-                      {% if interaction.contact_phone and interaction.contact_email %} &nbsp;|&nbsp; {% endif %}
-                      {% if interaction.contact_email %}✉️ {{ interaction.contact_email }}{% endif %}
-                    </div>
-                    {% endif %}
-                    {% if interaction.notes %}
-                    <div style="font-size: 0.88rem; color: #374151; margin-top: 0.25rem; white-space: pre-wrap;">{{ interaction.notes }}</div>
-                    {% endif %}
-                  </div>
-                  <form method="post" action="{% url 'delete_company_interaction' selected_company.id interaction.id %}"
-                        style="margin: 0; flex-shrink: 0;"
-                        onsubmit="return confirm('Delete this interaction record?');">
-                    {% csrf_token %}
-                    <button type="submit" style="background: #fee2e2; color: #991b1b; border: none; border-radius: 4px; padding: 0.35rem 0.6rem; cursor: pointer; font-size: 0.85rem;" title="Delete">🗑️</button>
-                  </form>
-                </div>
-                {% endfor %}
-              </div>
-              {% else %}
-              <p style="color: #6b7280; font-size: 0.95rem; margin: 0;">No interactions recorded yet.</p>
-              {% endif %}
-            </div>
-          </details>
-          {% endif %}
-
-          <!-- Application Details Section -->
-          {% if application_threads %}
-          <details style="background: #dbeafe; border-radius: 8px; padding: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
-            <summary style="cursor: pointer; padding: 1rem 1.5rem; font-weight: 600; color: #1e40af; font-size: 1rem; list-style: none; display: flex; align-items: center; gap: 0.5rem;">
-              <span style="transition: transform 0.2s;">▶</span> Application Details ({{ application_threads|length }} record{{ application_threads|length|pluralize }})
-            </summary>
-            <div style="padding: 0 1.5rem 1.5rem 1.5rem;">
-              <form method="post" style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                {% csrf_token %}
-                <input type="hidden" name="company" value="{{ selected_company.id }}" />
-                <input type="hidden" name="action" value="save_application_details" />
-                <input type="hidden" name="thread_id" id="selected_thread_id" value="{% if application_threads %}{{ application_threads.0.thread_id }}{% endif %}" />
-                
-                {% if application_threads|length > 1 %}
-                <div style="margin-bottom: 1.5rem; padding: 1rem; background: #f3f4f6; border-radius: 6px;">
-                  <label for="application_selector" style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.5rem;">📋 Select Application to Edit:</label>
-                  <select id="application_selector" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem; background: white;">
-                    {% for thread in application_threads %}
-                    <option value="{{ thread.thread_id }}" 
-                            data-jobtitle="{{ thread.job_title|default:'' }}"
-                            data-location="{{ thread.location|default:'' }}"
-                            data-sentdate="{{ thread.sent_date|date:'Y-m-d'|default:'' }}"
-                            data-prescreen="{{ thread.prescreen_date|date:'Y-m-d'|default:'' }}"
-                            data-interview="{{ thread.interview_date|date:'Y-m-d'|default:'' }}"
-                            data-rejection="{{ thread.rejection_date|date:'Y-m-d'|default:'' }}"
-                            data-offer="{{ thread.offer_date|date:'Y-m-d'|default:'' }}"
-                            data-cancelled="{{ thread.cancelled|yesno:'true,false' }}"
-                            data-withdrew="{{ thread.withdrew|yesno:'true,false' }}"
-                            data-url="{{ thread.application_url|default:'' }}"
-                            data-text="{{ thread.application_text|default:'' }}">
-                      {% if thread.job_title %}{{ thread.job_title }}{% else %}Application #{{ forloop.counter }}{% endif %} - {{ thread.sent_date|date:'M d, Y' }} ({% if thread.ml_label == 'job_application' %}application{% elif thread.ml_label == 'prescreen' %}prescreen{% elif thread.ml_label == 'interview_invite' %}interview{% else %}{{ thread.ml_label|default:'application' }}{% endif %})
-                    </option>
-                    {% endfor %}
-                  </select>
-                  <small style="color: #6b7280; display: block; margin-top: 0.25rem;">This company has {{ application_threads|length }} application records</small>
-                </div>
-                {% endif %}
-                
-                <div style="margin-bottom: 1rem;">                  <label for="id_job_title" style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.5rem;">💼 Job Title:</label>
-                  <input type="text" name="job_title" id="id_job_title" value="{% if application_threads %}{{ application_threads.0.job_title|default:'' }}{% endif %}" placeholder="e.g., Senior Software Engineer, Product Manager" style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem; box-sizing: border-box;" />
-                  <small style="color: #6b7280; display: block; margin-top: 0.25rem;">Title of the position you applied for</small>
-                </div>
-                
-                <div style="margin-bottom: 1rem;">
-                  <label for="id_location" style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.5rem;">📍 Location:</label>
-                  <input type="text" name="location" id="id_location" value="{% if application_threads %}{{ application_threads.0.location|default:'' }}{% endif %}" placeholder="e.g., Remote, New York, NY, Hybrid - San Francisco" style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem; box-sizing: border-box;" />
-                  <small style="color: #6b7280; display: block; margin-top: 0.25rem;">Job location or work arrangement</small>
-                </div>
-                
-                <div style="margin-bottom: 1.5rem;">
-                  <label for="id_sent_date" style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.25rem;">📅 Application Date</label>
-                  <input type="date" name="sent_date" id="id_sent_date" value="{% if application_threads %}{{ application_threads.0.sent_date|date:'Y-m-d'|default:'' }}{% endif %}" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem;" />
-                  <small style="color: #6b7280; display: block; margin-top: 0.25rem;">Date you submitted the application</small>
-                </div>
-                
-                <div style="margin-bottom: 1.5rem;">                  <label for="id_prescreen_date" style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.25rem;">📞 Prescreen Date</label>
-                  <input type="date" name="prescreen_date" id="id_prescreen_date" value="{% if application_threads %}{{ application_threads.0.prescreen_date|date:'Y-m-d'|default:'' }}{% endif %}" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem;" />
-                  <small style="color: #6b7280; display: block; margin-top: 0.25rem;">Date of prescreen phone call</small>
-                </div>
-                
-                <div style="margin-bottom: 1rem;">
-                  <label for="id_interview_date" style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.25rem;">🗓️ Interview Date</label>
-                  <input type="date" name="interview_date" id="id_interview_date" value="{% if application_threads %}{{ application_threads.0.interview_date|date:'Y-m-d'|default:'' }}{% endif %}" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem;" />
-                  <small style="color: #6b7280; display: block; margin-top: 0.25rem;">Date of scheduled interview</small>
-                </div>
-                
-                <div style="margin-bottom: 1.5rem;">
-                  <label for="id_rejection_date" style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.25rem;">❌ Rejection Date</label>
-                  <input type="date" name="rejection_date" id="id_rejection_date" value="{% if application_threads %}{{ application_threads.0.rejection_date|date:'Y-m-d'|default:'' }}{% endif %}" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem;" />
-                  <small style="color: #6b7280; display: block; margin-top: 0.25rem;">Date rejection was received (or date of cancellation/withdrawal)</small>
-                  
-                  <!-- Cancelled and Withdrew checkboxes -->
-                  <div style="display: flex; gap: 1.5rem; margin-top: 0.75rem; padding: 0.75rem; background: #fef3c7; border-radius: 6px;">
-                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.9rem;">
-                      <input type="checkbox" name="cancelled" id="id_cancelled" {% if application_threads and application_threads.0.cancelled %}checked{% endif %} style="width: 1rem; height: 1rem; cursor: pointer;" />
-                      <span style="color: #92400e;">🚫 Cancelled</span>
-                      <small style="color: #78716c;">(job was cancelled)</small>
-                    </label>
-                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.9rem;">
-                      <input type="checkbox" name="withdrew" id="id_withdrew" {% if application_threads and application_threads.0.withdrew %}checked{% endif %} style="width: 1rem; height: 1rem; cursor: pointer;" />
-                      <span style="color: #92400e;">🚶 Withdrew</span>
-                      <small style="color: #78716c;">(I withdrew)</small>
-                    </label>
-                  </div>
-                </div>
-                
-                <div style="margin-bottom: 1.5rem;">
-                  <label for="id_offer_date" style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.25rem;">🎉 Offer Date</label>
-                  <input type="date" name="offer_date" id="id_offer_date" value="{% if application_threads %}{{ application_threads.0.offer_date|date:'Y-m-d'|default:'' }}{% endif %}" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem;" />
-                  <small style="color: #6b7280; display: block; margin-top: 0.25rem;">Date offer was received</small>
-                </div>
-                
-                <div style="margin-bottom: 1rem;">
-                  <label for="id_application_url" style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.25rem;">🔗 Application URL</label>
-                  <div style="display: flex; gap: 0.5rem; align-items: start;">
-                    <input type="url" name="application_url" id="id_application_url" value="{% if application_threads %}{{ application_threads.0.application_url|default:'' }}{% endif %}" placeholder="https://company.com/job/12345" style="flex: 1; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem;" />
-                    <button type="button" id="scrape_button" onclick="manualScrapeJobPosting()" style="background: #10b981; color: white; font-weight: 600; border-radius: 6px; padding: 0.5rem 1rem; border: none; cursor: pointer; white-space: nowrap; font-size: 0.9rem; transition: background 0.2s;">
-                      🔄 Scrape Text
-                    </button>
-                  </div>
-                  <small style="color: #6b7280; display: block; margin-top: 0.25rem;">Enter URL and click "Scrape Text" to extract job posting content</small>
-                </div>
-                
-                <div style="margin-bottom: 1rem;">
-                  <label for="id_application_text" style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.25rem;">📝 Application Text</label>
-                  <textarea name="application_text" id="id_application_text" rows="4" placeholder="Cover letter or notes about your application" style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem; resize: vertical; font-family: inherit; box-sizing: border-box;">{% if application_threads %}{{ application_threads.0.application_text|default:'' }}{% endif %}</textarea>
-                  <small style="color: #6b7280; display: block; margin-top: 0.25rem;">Cover letter or application notes (max 10,000 characters)</small>
-                </div>
-                
-                <button type="submit" style="background: #2563eb; color: white; font-weight: 600; border-radius: 6px; padding: 0.5rem 1rem; border: none; cursor: pointer;">Save Application Details</button>
-              </form>
-            </div>
-          </details>
-          {% else %}
-          <div style="background: #f3f4f6; border-radius: 8px; padding: 1.5rem; color: #6b7280; font-style: italic;">
-            📭 No application records found. Create one by sending a job application message.
+            {% else %}
+            <p style="color: #6b7280; font-size: 0.95rem; margin: 0;">No interactions recorded yet.</p>
+            {% endif %}
           </div>
-          {% endif %}{# end application_threads check #}
+        </details>
+        {% endif %}
+
+        <!-- Application Details Section -->
+        {% if application_threads %}
+        <details style="background: #dbeafe; border-radius: 8px; padding: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+          <summary
+            style="cursor: pointer; padding: 1rem 1.5rem; font-weight: 600; color: #1e40af; font-size: 1rem; list-style: none; display: flex; align-items: center; gap: 0.5rem;">
+            <span style="transition: transform 0.2s;">▶</span> Application Details ({{ application_threads|length }}
+            record{{ application_threads|length|pluralize }})
+          </summary>
+          <div style="padding: 0 1.5rem 1.5rem 1.5rem;">
+            <form method="post"
+              style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+              {% csrf_token %}
+              <input type="hidden" name="company" value="{{ selected_company.id }}" />
+              <input type="hidden" name="action" value="save_application_details" />
+              <input type="hidden" name="thread_id" id="selected_thread_id"
+                value="{% if application_threads %}{{ application_threads.0.thread_id }}{% endif %}" />
+
+              {% if application_threads|length > 1 %}
+              <div style="margin-bottom: 1.5rem; padding: 1rem; background: #f3f4f6; border-radius: 6px;">
+                <label for="application_selector"
+                  style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.5rem;">📋 Select Application
+                  to Edit:</label>
+                <select id="application_selector"
+                  style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem; background: white;">
+                  {% for thread in application_threads %}
+                  <option value="{{ thread.thread_id }}" data-jobtitle="{{ thread.job_title|default:'' }}"
+                    data-location="{{ thread.location|default:'' }}"
+                    data-sentdate="{{ thread.sent_date|date:'Y-m-d'|default:'' }}"
+                    data-prescreen="{{ thread.prescreen_date|date:'Y-m-d'|default:'' }}"
+                    data-interview="{{ thread.interview_date|date:'Y-m-d'|default:'' }}"
+                    data-rejection="{{ thread.rejection_date|date:'Y-m-d'|default:'' }}"
+                    data-offer="{{ thread.offer_date|date:'Y-m-d'|default:'' }}"
+                    data-cancelled="{{ thread.cancelled|yesno:'true,false' }}"
+                    data-withdrew="{{ thread.withdrew|yesno:'true,false' }}"
+                    data-url="{{ thread.application_url|default:'' }}"
+                    data-text="{{ thread.application_text|default:'' }}">
+                    {% if thread.job_title %}
+                    {{ thread.job_title }}
+                    {% else %}
+                    Application #{{ forloop.counter }}
+                    {% endif %}
+                    - {{ thread.sent_date|date:'M d, Y' }}
+                    (
+                    {% if thread.ml_label == 'job_application' %}
+                    application
+                    {% elif thread.ml_label == 'prescreen' %}
+                    prescreen
+                    {% elif thread.ml_label == 'interview_invite' %}
+                    interview
+                    {% else %}
+                    {{ thread.ml_label|default:'application' }}
+                    {% endif %}
+                    )
+                  </option>
+                  {% endfor %}
+                </select>
+                <small style="color: #6b7280; display: block; margin-top: 0.25rem;">This company has {{
+                  application_threads|length }} application records</small>
+              </div>
+              {% endif %}
+
+              <div style="margin-bottom: 1rem;"> <label for="id_job_title"
+                  style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.5rem;">💼 Job Title:</label>
+                <input type="text" name="job_title" id="id_job_title"
+                  value="{% if application_threads %}{{ application_threads.0.job_title|default:'' }}{% endif %}"
+                  placeholder="e.g., Senior Software Engineer, Product Manager"
+                  style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem; box-sizing: border-box;" />
+                <small style="color: #6b7280; display: block; margin-top: 0.25rem;">Title of the position you applied
+                  for</small>
+              </div>
+
+              <div style="margin-bottom: 1rem;">
+                <label for="id_location"
+                  style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.5rem;">📍 Location:</label>
+                <input type="text" name="location" id="id_location"
+                  value="{% if application_threads %}{{ application_threads.0.location|default:'' }}{% endif %}"
+                  placeholder="e.g., Remote, New York, NY, Hybrid - San Francisco"
+                  style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem; box-sizing: border-box;" />
+                <small style="color: #6b7280; display: block; margin-top: 0.25rem;">Job location or work
+                  arrangement</small>
+              </div>
+
+              <div style="margin-bottom: 1.5rem;">
+                <label for="id_sent_date"
+                  style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.25rem;">📅 Application
+                  Date</label>
+                <input type="date" name="sent_date" id="id_sent_date"
+                  value="{% if application_threads %}{{ application_threads.0.sent_date|date:'Y-m-d'|default:'' }}{% endif %}"
+                  style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem;" />
+                <small style="color: #6b7280; display: block; margin-top: 0.25rem;">Date you submitted the
+                  application</small>
+              </div>
+
+              <div style="margin-bottom: 1.5rem;"> <label for="id_prescreen_date"
+                  style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.25rem;">📞 Prescreen
+                  Date</label>
+                <input type="date" name="prescreen_date" id="id_prescreen_date"
+                  value="{% if application_threads %}{{ application_threads.0.prescreen_date|date:'Y-m-d'|default:'' }}{% endif %}"
+                  style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem;" />
+                <small style="color: #6b7280; display: block; margin-top: 0.25rem;">Date of prescreen phone call</small>
+              </div>
+
+              <div style="margin-bottom: 1rem;">
+                <label for="id_interview_date"
+                  style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.25rem;">🗓️ Interview
+                  Date</label>
+                <input type="date" name="interview_date" id="id_interview_date"
+                  value="{% if application_threads %}{{ application_threads.0.interview_date|date:'Y-m-d'|default:'' }}{% endif %}"
+                  style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem;" />
+                <small style="color: #6b7280; display: block; margin-top: 0.25rem;">Date of scheduled interview</small>
+              </div>
+
+              <div style="margin-bottom: 1.5rem;">
+                <label for="id_rejection_date"
+                  style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.25rem;">❌ Rejection
+                  Date</label>
+                <input type="date" name="rejection_date" id="id_rejection_date"
+                  value="{% if application_threads %}{{ application_threads.0.rejection_date|date:'Y-m-d'|default:'' }}{% endif %}"
+                  style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem;" />
+                <small style="color: #6b7280; display: block; margin-top: 0.25rem;">Date rejection was received (or date
+                  of cancellation/withdrawal)</small>
+
+                <!-- Cancelled and Withdrew checkboxes -->
+                <div
+                  style="display: flex; gap: 1.5rem; margin-top: 0.75rem; padding: 0.75rem; background: #fef3c7; border-radius: 6px;">
+                  <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.9rem;">
+                    <input type="checkbox" name="cancelled" id="id_cancelled" {% if application_threads and application_threads.0.cancelled %}checked{% endif %}
+                      style="width: 1rem; height: 1rem; cursor: pointer;" />
+                    <span style="color: #92400e;">🚫 Cancelled</span>
+                    <small style="color: #78716c;">(job was cancelled)</small>
+                  </label>
+                  <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.9rem;">
+                    <input type="checkbox" name="withdrew" id="id_withdrew" {% if application_threads and application_threads.0.withdrew %}checked{% endif %}
+                      style="width: 1rem; height: 1rem; cursor: pointer;" />
+                    <span style="color: #92400e;">🚶 Withdrew</span>
+                    <small style="color: #78716c;">(I withdrew)</small>
+                  </label>
+                </div>
+              </div>
+
+              <div style="margin-bottom: 1.5rem;">
+                <label for="id_offer_date"
+                  style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.25rem;">🎉 Offer
+                  Date</label>
+                <input type="date" name="offer_date" id="id_offer_date"
+                  value="{% if application_threads %}{{ application_threads.0.offer_date|date:'Y-m-d'|default:'' }}{% endif %}"
+                  style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem;" />
+                <small style="color: #6b7280; display: block; margin-top: 0.25rem;">Date offer was received</small>
+              </div>
+
+              <div style="margin-bottom: 1rem;">
+                <label for="id_application_url"
+                  style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.25rem;">🔗 Application
+                  URL</label>
+                <div style="display: flex; gap: 0.5rem; align-items: start;">
+                  <input type="url" name="application_url" id="id_application_url"
+                    value="{% if application_threads %}{{ application_threads.0.application_url|default:'' }}{% endif %}"
+                    placeholder="https://company.com/job/12345"
+                    style="flex: 1; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem;" />
+                  <button type="button" id="scrape_button" onclick="manualScrapeJobPosting()"
+                    style="background: #10b981; color: white; font-weight: 600; border-radius: 6px; padding: 0.5rem 1rem; border: none; cursor: pointer; white-space: nowrap; font-size: 0.9rem; transition: background 0.2s;">
+                    🔄 Scrape Text
+                  </button>
+                </div>
+                <small style="color: #6b7280; display: block; margin-top: 0.25rem;">Enter URL and click "Scrape Text" to
+                  extract job posting content</small>
+              </div>
+
+              <div style="margin-bottom: 1rem;">
+                <label for="id_application_text"
+                  style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.25rem;">📝 Application
+                  Text</label>
+                <textarea name="application_text" id="id_application_text" rows="4"
+                  placeholder="Cover letter or notes about your application"
+                  style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem; resize: vertical; font-family: inherit; box-sizing: border-box;">{% if application_threads %}{{ application_threads.0.application_text|default:'' }}{% endif %}</textarea>
+                <small style="color: #6b7280; display: block; margin-top: 0.25rem;">Cover letter or application notes
+                  (max 10,000 characters)</small>
+              </div>
+
+              <button type="submit"
+                style="background: #2563eb; color: white; font-weight: 600; border-radius: 6px; padding: 0.5rem 1rem; border: none; cursor: pointer;">Save
+                Application Details</button>
+            </form>
+          </div>
+        </details>
+        {% else %}
+        <div style="background: #f3f4f6; border-radius: 8px; padding: 1.5rem; color: #6b7280; font-style: italic;">
+          📭 No application records found. Create one by sending a job application message.
         </div>
+        {% endif %}
       </div>
-      {% endif %}{# end creating_new_company else #}
-      {% else %}
-        <div style="color:#9ca3af; margin-top:2rem;">Select a company to edit its details.</div>
-      {% endif %}
     </div>
-    <!-- End company edit form content -->
+    {% endif %}
+    {% else %}
+    <div style="color:#9ca3af; margin-top:2rem;">Select a company to edit its details.</div>
+    {% endif %}
+  </div>
+  <!-- End company edit form content -->
 
-    <script>
-      // Application selector handler - load selected application data
-      (function() {
-        const selector = document.getElementById('application_selector');
-        if (!selector) return;
-        
-        selector.addEventListener('change', function() {
-          const selected = this.options[this.selectedIndex];
-          
-          // Update hidden thread_id input
-          document.getElementById('selected_thread_id').value = selected.value;
-          
-          // Update form fields with selected application data
-          document.getElementById('id_job_title').value = selected.dataset.jobtitle || '';
-          document.getElementById('id_location').value = selected.dataset.location || '';
-          document.getElementById('id_sent_date').value = selected.dataset.sentdate || '';
-          document.getElementById('id_prescreen_date').value = selected.dataset.prescreen || '';
-          document.getElementById('id_interview_date').value = selected.dataset.interview || '';
-          document.getElementById('id_rejection_date').value = selected.dataset.rejection || '';
-          document.getElementById('id_offer_date').value = selected.dataset.offer || '';
-          document.getElementById('id_cancelled').checked = selected.dataset.cancelled === 'true';
-          document.getElementById('id_withdrew').checked = selected.dataset.withdrew === 'true';
-          document.getElementById('id_application_url').value = selected.dataset.url || '';
-          document.getElementById('id_application_text').value = selected.dataset.text || '';
-        });
-      })();
-    </script>
+  <script>
+    // Application selector handler - load selected application data
+    (function () {
+      const selector = document.getElementById('application_selector');
+      if (!selector) return;
 
-    <script>
-      function validateInteractionForm(form) {
-        const typeBoxes = form.querySelectorAll('.interaction-type-cb');
-        const anyChecked = Array.from(typeBoxes).some(cb => cb.checked);
-        const errEl = document.getElementById('interaction-type-error');
-        if (!anyChecked) {
-          if (errEl) errEl.style.display = 'inline';
-          return false;
-        }
-        if (errEl) errEl.style.display = 'none';
-        return true;
+      selector.addEventListener('change', function () {
+        const selected = this.options[this.selectedIndex];
+
+        // Update hidden thread_id input
+        document.getElementById('selected_thread_id').value = selected.value;
+
+        // Update form fields with selected application data
+        document.getElementById('id_job_title').value = selected.dataset.jobtitle || '';
+        document.getElementById('id_location').value = selected.dataset.location || '';
+        document.getElementById('id_sent_date').value = selected.dataset.sentdate || '';
+        document.getElementById('id_prescreen_date').value = selected.dataset.prescreen || '';
+        document.getElementById('id_interview_date').value = selected.dataset.interview || '';
+        document.getElementById('id_rejection_date').value = selected.dataset.rejection || '';
+        document.getElementById('id_offer_date').value = selected.dataset.offer || '';
+        document.getElementById('id_cancelled').checked = selected.dataset.cancelled === 'true';
+        document.getElementById('id_withdrew').checked = selected.dataset.withdrew === 'true';
+        document.getElementById('id_application_url').value = selected.dataset.url || '';
+        document.getElementById('id_application_text').value = selected.dataset.text || '';
+      });
+    })();
+  </script>
+
+  <script>
+    function validateInteractionForm(form) {
+      const typeBoxes = form.querySelectorAll('.interaction-type-cb');
+      const anyChecked = Array.from(typeBoxes).some(cb => cb.checked);
+      const errEl = document.getElementById('interaction-type-error');
+      if (!anyChecked) {
+        if (errEl) errEl.style.display = 'inline';
+        return false;
       }
-    </script>
+      if (errEl) errEl.style.display = 'none';
+      return true;
+    }
+  </script>
 
-    <script>
-      // Manual scrape job posting URL button handler
-      function manualScrapeJobPosting() {
-        const urlInput = document.getElementById('id_application_url');
-        const textArea = document.getElementById('id_application_text');
-        const scrapeButton = document.getElementById('scrape_button');
-        
-        if (!urlInput || !textArea || !scrapeButton) return;
-        
-        const url = urlInput.value.trim();
-        
-        // Validate URL
-        if (!url) {
-          showNotification('⚠️ Please enter a URL first', '#ef4444');
-          return;
-        }
-        
-        if (!url.startsWith('http://') && !url.startsWith('https://')) {
-          showNotification('⚠️ URL must start with http:// or https://', '#ef4444');
-          return;
-        }
-        
-        // Show loading state
-        const originalButtonText = scrapeButton.innerHTML;
-        scrapeButton.innerHTML = '⏳ Scraping...';
-        scrapeButton.disabled = true;
-        scrapeButton.style.background = '#6b7280';
-        
-        const originalPlaceholder = textArea.placeholder;
-        textArea.placeholder = '🔄 Scraping job posting...';
-        textArea.disabled = true;
-        
-        // Get CSRF token
-        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-        
-        // Make AJAX request to scrape endpoint
-        fetch('/api/scrape_job_posting/', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'X-CSRFToken': csrfToken,
-          },
-          body: new URLSearchParams({
-            'url': url
-          })
+  <script>
+    // Manual scrape job posting URL button handler
+    function manualScrapeJobPosting() {
+      const urlInput = document.getElementById('id_application_url');
+      const textArea = document.getElementById('id_application_text');
+      const scrapeButton = document.getElementById('scrape_button');
+
+      if (!urlInput || !textArea || !scrapeButton) return;
+
+      const url = urlInput.value.trim();
+
+      // Validate URL
+      if (!url) {
+        showNotification('⚠️ Please enter a URL first', '#ef4444');
+        return;
+      }
+
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        showNotification('⚠️ URL must start with http:// or https://', '#ef4444');
+        return;
+      }
+
+      // Show loading state
+      const originalButtonText = scrapeButton.innerHTML;
+      scrapeButton.innerHTML = '⏳ Scraping...';
+      scrapeButton.disabled = true;
+      scrapeButton.style.background = '#6b7280';
+
+      const originalPlaceholder = textArea.placeholder;
+      textArea.placeholder = '🔄 Scraping job posting...';
+      textArea.disabled = true;
+
+      // Get CSRF token
+      const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+      // Make AJAX request to scrape endpoint
+      fetch('/api/scrape_job_posting/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'X-CSRFToken': csrfToken,
+        },
+        body: new URLSearchParams({
+          'url': url
         })
+      })
         .then(response => response.json())
         .then(data => {
           console.log('Scrape response:', data);
@@ -996,49 +1252,143 @@
           textArea.placeholder = originalPlaceholder;
           textArea.disabled = false;
         });
+    }
+
+    function showNotification(message, bgColor) {
+      const notification = document.createElement('div');
+      notification.textContent = message;
+      notification.style.cssText = `position: fixed; top: 20px; right: 20px; background: ${bgColor}; color: white; padding: 12px 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; font-size: 0.9rem;`;
+      document.body.appendChild(notification);
+      setTimeout(() => notification.remove(), 4000);
+    }
+
+    function openLocationExtractor() {
+      const modal = document.getElementById('locationExtractorModal');
+      const messageBox = document.getElementById('extractionMessage');
+      if (messageBox) {
+        messageBox.textContent = '';
       }
-      
-      function showNotification(message, bgColor) {
-        const notification = document.createElement('div');
-        notification.textContent = message;
-        notification.style.cssText = `position: fixed; top: 20px; right: 20px; background: ${bgColor}; color: white; padding: 12px 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; font-size: 0.9rem;`;
-        document.body.appendChild(notification);
-        setTimeout(() => notification.remove(), 4000);
+      if (modal) {
+        modal.style.display = 'flex';
       }
-      
-      // AJAX function to populate company info without page refresh
-      function populateCompanyInfo() {
-        const homepageInput = document.getElementById('id_homepage');
-        const homepageUrl = homepageInput.value.trim();
-        const statusDiv = document.getElementById('populate_status');
-        const form = document.querySelector('.edit-form');
-        
-        if (!homepageUrl) {
-          statusDiv.style.display = 'block';
-          statusDiv.innerHTML = '<span style="color:#b91c1c; font-weight:600;">❌ Please enter a homepage URL first.</span>';
-          return;
+    }
+
+    function closeLocationExtractor() {
+      const modal = document.getElementById('locationExtractorModal');
+      if (modal) {
+        modal.style.display = 'none';
+      }
+    }
+
+    function handleLocationExtractorBackdrop(event) {
+      if (event.target && event.target.id === 'locationExtractorModal') {
+        closeLocationExtractor();
+      }
+    }
+
+    function processExtraction() {
+      const urlInput = document.getElementById('extract_url_modal');
+      const htmlInput = document.getElementById('extract_html_modal');
+      const messageBox = document.getElementById('extractionMessage');
+      const citiesBox = document.getElementById('id_operating_cities_text');
+
+      const url = urlInput ? urlInput.value.trim() : '';
+      const rawHtml = htmlInput ? htmlInput.value.trim() : '';
+
+      if (!url && !rawHtml) {
+        if (messageBox) {
+          messageBox.textContent = 'Enter a URL or paste HTML first.';
+          messageBox.style.color = '#b91c1c';
         }
-        
-        // Show loading state
-        statusDiv.style.display = 'block';
-        statusDiv.innerHTML = '<span style="color:#2563eb; font-weight:600;">🔄 Populating company info...</span>';
-        
-        // Get CSRF token
-        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-        const companyId = {{ selected_company.id|default:"null" }};
-        const formData = new FormData(form);
-        formData.set('action', 'populate_from_homepage');
-        formData.set('company', companyId || '');
-        formData.set('homepage', homepageUrl);
-        
-        // Make AJAX request
-        fetch(window.location.pathname, {
-          method: 'POST',
-          headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-          },
-          body: formData
+        return;
+      }
+
+      if (!citiesBox) {
+        if (messageBox) {
+          messageBox.textContent = 'Could not find the operating cities box.';
+          messageBox.style.color = '#b91c1c';
+        }
+        return;
+      }
+
+      if (messageBox) {
+        messageBox.textContent = 'Extracting locations...';
+        messageBox.style.color = '#1d4ed8';
+      }
+
+      const formData = new FormData();
+      formData.append('url', url);
+      formData.append('raw_html', rawHtml);
+
+      const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+
+      fetch("{% url 'extract_company_locations' %}", {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': csrfToken,
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: formData
+      })
+        .then(response => response.json())
+        .then(data => {
+          if (!messageBox) return;
+
+          if (data.success) {
+            const existingLines = citiesBox.value
+              .split('\n')
+              .map(line => line.trim())
+              .filter(Boolean);
+            const merged = [...new Set(existingLines.concat(data.locations || []))];
+            citiesBox.value = merged.join('\n');
+            messageBox.textContent = `Added ${data.locations.length} location(s) to Additional Operating Cities.`;
+            messageBox.style.color = '#059669';
+            setTimeout(closeLocationExtractor, 800);
+          } else {
+            messageBox.textContent = data.message || 'No locations were found.';
+            messageBox.style.color = '#b91c1c';
+          }
         })
+        .catch(error => {
+          if (!messageBox) return;
+          messageBox.textContent = 'Extraction failed: ' + error.message;
+          messageBox.style.color = '#b91c1c';
+        });
+    }
+
+    // AJAX function to populate company info without page refresh
+    function populateCompanyInfo() {
+      const homepageInput = document.getElementById('id_homepage');
+      const homepageUrl = homepageInput.value.trim();
+      const statusDiv = document.getElementById('populate_status');
+      const form = document.querySelector('.edit-form');
+
+      if (!homepageUrl) {
+        statusDiv.style.display = 'block';
+        statusDiv.innerHTML = '<span style="color:#b91c1c; font-weight:600;">❌ Please enter a homepage URL first.</span>';
+        return;
+      }
+
+      // Show loading state
+      statusDiv.style.display = 'block';
+      statusDiv.innerHTML = '<span style="color:#2563eb; font-weight:600;">🔄 Populating company info...</span>';
+
+      // Get CSRF token
+      const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+      const companyId = {% if selected_company %}{{ selected_company.id }}{% else %}null{% endif %};
+      const formData = new FormData(form);
+      formData.set('action', 'populate_from_homepage');
+      formData.set('company', companyId || '');
+      formData.set('homepage', homepageUrl);
+
+      // Make AJAX request
+      fetch(window.location.pathname, {
+        method: 'POST',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+        body: formData
+      })
         .then(response => response.json())
         .then(data => {
           if (data.success) {
@@ -1053,7 +1403,7 @@
                 notesTextarea.value = currentNotes ? currentNotes + '\\n\\n' + data.notes : data.notes;
               }
             }
-            
+
             statusDiv.innerHTML = '<span style="color:#059669; font-weight:600;">✅ ' + data.message + '</span>';
             setTimeout(() => { statusDiv.style.display = 'none'; }, 5000);
           } else {
@@ -1071,222 +1421,222 @@
         .catch(error => {
           statusDiv.innerHTML = '<span style="color:#b91c1c; font-weight:600;">❌ Network error: ' + error.message + '</span>';
         });
+    }
+
+    // Render news articles into the news section
+    function renderNewsContent(data, companyId) {
+      const container = document.getElementById('news-content');
+      const titleSpan = document.getElementById('news-title');
+      if (!container) return;
+
+      const articles = data.articles || [];
+      const allArticles = data.all_articles || [];
+      titleSpan.textContent = `Recent News (${articles.length})`;
+
+      let html = '';
+
+      // Error banner
+      if (data.error) {
+        html += `<div style="background:#fee;border:1px solid #fcc;border-radius:6px;padding:1rem;margin-bottom:1rem;color:#c33;">⚠️ ${data.error}</div>`;
       }
-      
-      // Render news articles into the news section
-      function renderNewsContent(data, companyId) {
-        const container = document.getElementById('news-content');
-        const titleSpan = document.getElementById('news-title');
-        if (!container) return;
 
-        const articles = data.articles || [];
-        const allArticles = data.all_articles || [];
-        titleSpan.textContent = `Recent News (${articles.length})`;
+      if (articles.length > 0) {
+        html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:1rem;margin-bottom:1.5rem;">';
+        articles.forEach(a => {
+          const snippet = a.snippet ? `<div style="font-size:0.85rem;color:#666;margin-bottom:0.75rem;line-height:1.4;max-height:4em;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;">${escapeHtml(a.snippet)}</div>` : '';
+          const dateDisplay = a.date_display || a.date || '';
+          const source = a.source || 'news';
+          html += `<div style="background:white;border-radius:6px;padding:1rem;border:1px solid #fce8ac;overflow:hidden;">`
+            + `<div style="font-weight:600;color:#92400e;font-size:0.95rem;line-height:1.3;margin-bottom:0.35rem;max-height:3em;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;"><a href="${a.url}" target="_blank" style="color:#0066cc;text-decoration:none;">${escapeHtml(a.title)}</a></div>`
+            + `<div style="font-size:0.75rem;color:#6b7280;margin-bottom:0.5rem;">📅 ${escapeHtml(dateDisplay)}</div>`
+            + snippet
+            + `<div style="display:flex;justify-content:space-between;align-items:center;font-size:0.75rem;color:#999;"><span>${escapeHtml(dateDisplay)}</span><span style="background:#f0f0f0;padding:0.15rem 0.4rem;border-radius:3px;color:#666;">${escapeHtml(source)}</span></div>`
+            + `<div style="margin-top:0.5rem;display:flex;justify-content:space-between;align-items:center;">`
+            + `<a href="${a.url}" target="_blank" style="font-size:0.8rem;color:#0066cc;text-decoration:none;">Read more →</a>`
+            + (companyId ? `<button onclick="removeNewsArticle(${companyId}, '${encodeURIComponent(a.url)}')" title="Hide this article" style="background:none;border:none;cursor:pointer;color:#d1d5db;font-size:0.9rem;padding:0;line-height:1;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#d1d5db'">✕</button>` : '')
+            + `</div>`
+            + `</div>`;
+        });
+        html += '</div>';
 
-        let html = '';
-
-        // Error banner
-        if (data.error) {
-          html += `<div style="background:#fee;border:1px solid #fcc;border-radius:6px;padding:1rem;margin-bottom:1rem;color:#c33;">⚠️ ${data.error}</div>`;
-        }
-
-        if (articles.length > 0) {
-          html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:1rem;margin-bottom:1.5rem;">';
-          articles.forEach(a => {
-            const snippet = a.snippet ? `<div style="font-size:0.85rem;color:#666;margin-bottom:0.75rem;line-height:1.4;max-height:4em;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;">${escapeHtml(a.snippet)}</div>` : '';
-            const dateDisplay = a.date_display || a.date || '';
-            const source = a.source || 'news';
-            html += `<div style="background:white;border-radius:6px;padding:1rem;border:1px solid #fce8ac;overflow:hidden;">`
-              + `<div style="font-weight:600;color:#92400e;font-size:0.95rem;line-height:1.3;margin-bottom:0.35rem;max-height:3em;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;"><a href="${a.url}" target="_blank" style="color:#0066cc;text-decoration:none;">${escapeHtml(a.title)}</a></div>`
-              + `<div style="font-size:0.75rem;color:#6b7280;margin-bottom:0.5rem;">📅 ${escapeHtml(dateDisplay)}</div>`
-              + snippet
-              + `<div style="display:flex;justify-content:space-between;align-items:center;font-size:0.75rem;color:#999;"><span>${escapeHtml(dateDisplay)}</span><span style="background:#f0f0f0;padding:0.15rem 0.4rem;border-radius:3px;color:#666;">${escapeHtml(source)}</span></div>`
-              + `<div style="margin-top:0.5rem;display:flex;justify-content:space-between;align-items:center;">`
-              + `<a href="${a.url}" target="_blank" style="font-size:0.8rem;color:#0066cc;text-decoration:none;">Read more →</a>`
-              + (companyId ? `<button onclick="removeNewsArticle(${companyId}, '${encodeURIComponent(a.url)}')" title="Hide this article" style="background:none;border:none;cursor:pointer;color:#d1d5db;font-size:0.9rem;padding:0;line-height:1;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#d1d5db'">✕</button>` : '')
-              + `</div>`
-              + `</div>`;
+        // Full history
+        if (allArticles.length > 0) {
+          let historyItems = '';
+          allArticles.forEach(a => {
+            const words = (a.title || '').split(' ').slice(0, 20).join(' ');
+            const dateStr = a.date || '';
+            historyItems += `<div style="padding:0.75rem;border-bottom:1px solid #eee;font-size:0.85rem;"><div style="margin-bottom:0.25rem;"><a href="${a.url}" target="_blank" style="color:#0066cc;text-decoration:none;font-weight:500;">${escapeHtml(words)}</a></div><div style="color:#999;">${escapeHtml(dateStr)} • ${escapeHtml(a.source || '')}</div></div>`;
           });
-          html += '</div>';
-
-          // Full history
-          if (allArticles.length > 0) {
-            let historyItems = '';
-            allArticles.forEach(a => {
-              const words = (a.title || '').split(' ').slice(0, 20).join(' ');
-              const dateStr = a.date || '';
-              historyItems += `<div style="padding:0.75rem;border-bottom:1px solid #eee;font-size:0.85rem;"><div style="margin-bottom:0.25rem;"><a href="${a.url}" target="_blank" style="color:#0066cc;text-decoration:none;font-weight:500;">${escapeHtml(words)}</a></div><div style="color:#999;">${escapeHtml(dateStr)} • ${escapeHtml(a.source || '')}</div></div>`;
-            });
-            html += `<details style="margin-top:1rem;padding:1rem;background:#f9f9f9;border-radius:6px;"><summary style="cursor:pointer;font-weight:600;color:#92400e;font-size:0.9rem;">📚 Full History (${allArticles.length} total articles)</summary><div style="margin-top:1rem;max-height:400px;overflow-y:auto;">${historyItems}</div></details>`;
-          }
-        } else if (!data.error) {
-          html += '<div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:6px;padding:1rem;color:#9a3412;">📰 No recent articles found. Try refreshing or check back later.</div>';
+          html += `<details style="margin-top:1rem;padding:1rem;background:#f9f9f9;border-radius:6px;"><summary style="cursor:pointer;font-weight:600;color:#92400e;font-size:0.9rem;">📚 Full History (${allArticles.length} total articles)</summary><div style="margin-top:1rem;max-height:400px;overflow-y:auto;">${historyItems}</div></details>`;
         }
-
-        // Last updated footer
-        if (data.last_fetched) {
-          const d = new Date(data.last_fetched);
-          html += `<div style="margin-top:1rem;padding:0.75rem;background:#f9f9f9;border-radius:6px;font-size:0.8rem;color:#666;">✅ Last updated: ${d.toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric'})} ${d.toLocaleTimeString('en-US', {hour:'numeric',minute:'2-digit'})}</div>`;
-        } else {
-          html += '<div style="margin-top:1rem;padding:0.75rem;background:#f9f9f9;border-radius:6px;font-size:0.8rem;color:#666;">⏳ Click "Refresh" to fetch news</div>';
-        }
-
-        container.innerHTML = html;
+      } else if (!data.error) {
+        html += '<div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:6px;padding:1rem;color:#9a3412;">📰 No recent articles found. Try refreshing or check back later.</div>';
       }
 
-      function getCsrfToken() {
-        const val = `; ${document.cookie}`;
-        const parts = val.split(`; csrftoken=`);
-        if (parts.length === 2) return parts.pop().split(';').shift();
-        return '';
+      // Last updated footer
+      if (data.last_fetched) {
+        const d = new Date(data.last_fetched);
+        html += `<div style="margin-top:1rem;padding:0.75rem;background:#f9f9f9;border-radius:6px;font-size:0.8rem;color:#666;">✅ Last updated: ${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} ${d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</div>`;
+      } else {
+        html += '<div style="margin-top:1rem;padding:0.75rem;background:#f9f9f9;border-radius:6px;font-size:0.8rem;color:#666;">⏳ Click "Refresh" to fetch news</div>';
       }
 
-      async function addNewsUrl(companyId) {
-        const input = document.getElementById('news-add-url-input');
-        const feedback = document.getElementById('news-add-feedback');
-        const url = input.value.trim();
-        if (!url) { feedback.style.display = 'block'; feedback.style.color = '#c33'; feedback.textContent = 'Please enter a URL.'; return; }
-        feedback.style.display = 'block';
-        feedback.style.color = '#666';
-        feedback.textContent = '⏳ Fetching article…';
-        try {
-          const resp = await fetch(`/company/${companyId}/news/add_url/`, {
-            method: 'POST',
-            headers: { 'X-CSRFToken': getCsrfToken(), 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: `url=${encodeURIComponent(url)}`
-          });
-          const data = await resp.json();
-          if (!resp.ok) { feedback.style.color = '#c33'; feedback.textContent = '❌ ' + (data.error || 'Failed to add article.'); return; }
-          feedback.style.color = '#10b981';
-          feedback.textContent = `✅ Added: ${data.title || url}`;
-          input.value = '';
+      container.innerHTML = html;
+    }
+
+    function getCsrfToken() {
+      const val = `; ${document.cookie}`;
+      const parts = val.split(`; csrftoken=`);
+      if (parts.length === 2) return parts.pop().split(';').shift();
+      return '';
+    }
+
+    async function addNewsUrl(companyId) {
+      const input = document.getElementById('news-add-url-input');
+      const feedback = document.getElementById('news-add-feedback');
+      const url = input.value.trim();
+      if (!url) { feedback.style.display = 'block'; feedback.style.color = '#c33'; feedback.textContent = 'Please enter a URL.'; return; }
+      feedback.style.display = 'block';
+      feedback.style.color = '#666';
+      feedback.textContent = '⏳ Fetching article…';
+      try {
+        const resp = await fetch(`/company/${companyId}/news/add_url/`, {
+          method: 'POST',
+          headers: { 'X-CSRFToken': getCsrfToken(), 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: `url=${encodeURIComponent(url)}`
+        });
+        const data = await resp.json();
+        if (!resp.ok) { feedback.style.color = '#c33'; feedback.textContent = '❌ ' + (data.error || 'Failed to add article.'); return; }
+        feedback.style.color = '#10b981';
+        feedback.textContent = `✅ Added: ${data.title || url}`;
+        input.value = '';
+        loadCompanyNews(companyId);
+      } catch (e) {
+        feedback.style.color = '#c33';
+        feedback.textContent = '❌ Network error: ' + e.message;
+      }
+    }
+
+    async function removeNewsArticle(companyId, encodedUrl) {
+      if (!confirm('Hide this article from Recent News?')) return;
+      const url = decodeURIComponent(encodedUrl);
+      try {
+        const resp = await fetch(`/company/${companyId}/news/remove_article/`, {
+          method: 'POST',
+          headers: { 'X-CSRFToken': getCsrfToken(), 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: `url=${encodeURIComponent(url)}`
+        });
+        if (resp.ok) {
           loadCompanyNews(companyId);
-        } catch (e) {
-          feedback.style.color = '#c33';
-          feedback.textContent = '❌ Network error: ' + e.message;
+        } else {
+          alert('Failed to hide article.');
         }
+      } catch (e) {
+        alert('Network error: ' + e.message);
+      }
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    async function refreshContracts(companyId) {
+      if (!confirm('Fetch latest contracts from USASpending for this company?')) return;
+
+      const btn = document.querySelector('button[onclick^="refreshContracts"]');
+      let originalText = '🏛️ Refresh Contracts';
+      if (btn) {
+        originalText = btn.innerHTML;
+        btn.innerHTML = '⏳ Fetching...';
+        btn.disabled = true;
       }
 
-      async function removeNewsArticle(companyId, encodedUrl) {
-        if (!confirm('Hide this article from Recent News?')) return;
-        const url = decodeURIComponent(encodedUrl);
-        try {
-          const resp = await fetch(`/company/${companyId}/news/remove_article/`, {
-            method: 'POST',
-            headers: { 'X-CSRFToken': getCsrfToken(), 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: `url=${encodeURIComponent(url)}`
-          });
-          if (resp.ok) {
-            loadCompanyNews(companyId);
-          } else {
-            alert('Failed to hide article.');
-          }
-        } catch (e) {
-          alert('Network error: ' + e.message);
-        }
-      }
+      try {
+        // Get CSRF token from the page
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
-      function escapeHtml(str) {
-        if (!str) return '';
-        const div = document.createElement('div');
-        div.textContent = str;
-        return div.innerHTML;
-      }
-
-      async function refreshContracts(companyId) {
-        if (!confirm('Fetch latest contracts from USASpending for this company?')) return;
-        
-        const btn = document.querySelector('button[onclick^="refreshContracts"]');
-        let originalText = '🏛️ Refresh Contracts'; 
-        if (btn) {
-             originalText = btn.innerHTML;
-             btn.innerHTML = '⏳ Fetching...';
-             btn.disabled = true;
-        }
-
-        try {
-            // Get CSRF token from the page
-            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-            
-            const resp = await fetch(`/company/${companyId}/refresh_contracts/`, {
-                method: 'POST',
-                headers: { 
-                    'X-CSRFToken': csrfToken,
-                    'Content-Type': 'application/json'
-                }
-            });
-            
-            const data = await resp.json();
-            
-            if (data.status === 'success') {
-                alert('✅ ' + data.message);
-            } else {
-                alert('❌ Error: ' + (data.message || 'Unknown error'));
-            }
-        } catch (e) {
-            alert('❌ Network error: ' + e.message);
-        } finally {
-            if (btn) {
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            }
-        }
-      }
-
-      // Load news asynchronously after page render
-      function loadCompanyNews(companyId) {
-        fetch(`/company/${companyId}/news/`)
-          .then(r => r.json())
-          .then(data => renderNewsContent(data, companyId))
-          .catch(err => {
-            const container = document.getElementById('news-content');
-            if (container) container.innerHTML = `<div style="background:#fee;border:1px solid #fcc;border-radius:6px;padding:1rem;color:#c33;">❌ Failed to load news: ${err.message}</div>`;
-          });
-      }
-
-      // AJAX function to force-refresh company news (Refresh button)
-      function refreshCompanyNews(companyId) {
-        const button = document.getElementById('news-refresh-btn');
-        const originalText = button.innerHTML;
-        button.innerHTML = '⏳ Fetching...';
-        button.disabled = true;
-        button.style.background = '#d97706';
-
-        fetch(`/company/${companyId}/news/?force=1`)
-          .then(r => r.json())
-          .then(data => {
-            renderNewsContent(data, companyId);
-            showNotification('✅ News refreshed', '#10b981');
-            button.innerHTML = originalText;
-            button.disabled = false;
-            button.style.background = '#f59e0b';
-          })
-          .catch(err => {
-            showNotification(`❌ Error: ${err.message}`, '#ef4444');
-            button.innerHTML = originalText;
-            button.disabled = false;
-            button.style.background = '#f59e0b';
-          });
-      }
-      
-      // AJAX function to save company changes without page refresh
-      function saveCompanyChanges() {
-        const form = document.querySelector('.edit-form');
-        const statusDiv = document.getElementById('save_status');
-        const formData = new FormData(form);
-        
-        // Show loading state
-        statusDiv.style.display = 'block';
-        statusDiv.innerHTML = '<span style="color:#2563eb; font-weight:600;">💾 Saving changes...</span>';
-        
-        // Make AJAX request
-        fetch(window.location.pathname, {
+        const resp = await fetch(`/company/${companyId}/refresh_contracts/`, {
           method: 'POST',
           headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-          },
-          body: formData
+            'X-CSRFToken': csrfToken,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        const data = await resp.json();
+
+        if (data.status === 'success') {
+          alert('✅ ' + data.message);
+        } else {
+          alert('❌ Error: ' + (data.message || 'Unknown error'));
+        }
+      } catch (e) {
+        alert('❌ Network error: ' + e.message);
+      } finally {
+        if (btn) {
+          btn.innerHTML = originalText;
+          btn.disabled = false;
+        }
+      }
+    }
+
+    // Load news asynchronously after page render
+    function loadCompanyNews(companyId) {
+      fetch(`/company/${companyId}/news/`)
+        .then(r => r.json())
+        .then(data => renderNewsContent(data, companyId))
+        .catch(err => {
+          const container = document.getElementById('news-content');
+          if (container) container.innerHTML = `<div style="background:#fee;border:1px solid #fcc;border-radius:6px;padding:1rem;color:#c33;">❌ Failed to load news: ${err.message}</div>`;
+        });
+    }
+
+    // AJAX function to force-refresh company news (Refresh button)
+    function refreshCompanyNews(companyId) {
+      const button = document.getElementById('news-refresh-btn');
+      const originalText = button.innerHTML;
+      button.innerHTML = '⏳ Fetching...';
+      button.disabled = true;
+      button.style.background = '#d97706';
+
+      fetch(`/company/${companyId}/news/?force=1`)
+        .then(r => r.json())
+        .then(data => {
+          renderNewsContent(data, companyId);
+          showNotification('✅ News refreshed', '#10b981');
+          button.innerHTML = originalText;
+          button.disabled = false;
+          button.style.background = '#f59e0b';
         })
+        .catch(err => {
+          showNotification(`❌ Error: ${err.message}`, '#ef4444');
+          button.innerHTML = originalText;
+          button.disabled = false;
+          button.style.background = '#f59e0b';
+        });
+    }
+
+    // AJAX function to save company changes without page refresh
+    function saveCompanyChanges() {
+      const form = document.querySelector('.edit-form');
+      const statusDiv = document.getElementById('save_status');
+      const formData = new FormData(form);
+
+      // Show loading state
+      statusDiv.style.display = 'block';
+      statusDiv.innerHTML = '<span style="color:#2563eb; font-weight:600;">💾 Saving changes...</span>';
+
+      // Make AJAX request
+      fetch(window.location.pathname, {
+        method: 'POST',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+        body: formData
+      })
         .then(response => response.json())
         .then(data => {
           if (data.success) {
@@ -1299,26 +1649,64 @@
         .catch(error => {
           statusDiv.innerHTML = '<span style="color:#b91c1c; font-weight:600;">❌ Network error: ' + error.message + '</span>';
         });
-      }
+    }
 
-      // Lazy-load company news after page render
-      {% if selected_company %}
-      document.addEventListener('DOMContentLoaded', function() {
-        loadCompanyNews({{ selected_company.id }});
+    // Lazy-load company news after page render
+    {% if selected_company %}
+    document.addEventListener('DOMContentLoaded', function () {
+      loadCompanyNews({{ selected_company.id }});
 
-        const params = new URLSearchParams(window.location.search);
-        if (params.get('auto_populate') === '1') {
-          populateCompanyInfo();
-          params.delete('auto_populate');
-          const cleaned = params.toString();
-          const nextUrl = cleaned ? `${window.location.pathname}?${cleaned}` : window.location.pathname;
-          window.history.replaceState({}, '', nextUrl);
-        }
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('auto_populate') === '1') {
+      populateCompanyInfo();
+      params.delete('auto_populate');
+      const cleaned = params.toString();
+      const nextUrl = cleaned ? `${window.location.pathname}?${cleaned}` : window.location.pathname;
+      window.history.replaceState({}, '', nextUrl);
+    }
       });
-      {% endif %}
-    </script>
+    {% endif %}
+
+    document.addEventListener('keydown', function (event) {
+      if (event.key !== 'Escape') {
+        return;
+      }
+      const modal = document.getElementById('locationExtractorModal');
+      if (modal && modal.style.display !== 'none') {
+        closeLocationExtractor();
+      }
+    });
+  </script>
+  <div id="locationExtractorModal" onclick="handleLocationExtractorBackdrop(event)" style="display:none; position:fixed; inset:0; background:rgba(17,24,39,0.55); z-index:1100; align-items:center; justify-content:center; padding:1rem;">
+    <div onclick="event.stopPropagation()" style="background:white; width:min(720px, 100%); max-height:85vh; overflow-y:auto; border-radius:12px; box-shadow:0 20px 50px rgba(0,0,0,0.25); border:1px solid #dbeafe;">
+      <div style="display:flex; justify-content:space-between; align-items:center; padding:1rem 1.25rem; border-bottom:1px solid #e5e7eb;">
+        <div>
+          <div style="font-size:1rem; font-weight:700; color:#1d4ed8;">Extract Locations</div>
+          <div style="font-size:0.85rem; color:#6b7280; margin-top:0.2rem;">Provide a careers URL or paste HTML, then append detected cities to Additional Operating Cities.</div>
+        </div>
+        <button type="button" onclick="closeLocationExtractor()" style="background:none; border:none; color:#6b7280; font-size:1.5rem; cursor:pointer; line-height:1;">&times;</button>
+      </div>
+      <div style="padding:1rem 1.25rem 1.25rem;">
+        <label for="extract_url_modal" style="margin-top:0;">Website URL</label>
+        <input type="url" id="extract_url_modal" placeholder="https://www.careers.example.com/jobs"
+          style="width:100%; padding:0.6rem; border-radius:6px; border:1px solid #d1d5db; font-size:0.95rem; margin-top:0.3rem; box-sizing:border-box;">
+        <small style="color:#6b7280; display:block; margin-top:0.25rem; margin-bottom:0.75rem;">Use this when the page is publicly fetchable.</small>
+        <label for="extract_html_modal">Raw HTML/CSS</label>
+        <textarea id="extract_html_modal" rows="10" placeholder="Paste HTML from the careers page here"
+          style="width:100%; padding:0.75rem; border-radius:6px; border:1px solid #d1d5db; font-size:0.95rem; margin-top:0.3rem; box-sizing:border-box;"></textarea>
+        <small style="color:#6b7280; display:block; margin-top:0.25rem; margin-bottom:1rem;">Paste the page source when the site blocks direct scraping.</small>
+        <div style="display:flex; gap:0.75rem; align-items:center; flex-wrap:wrap;">
+          <button type="button" onclick="processExtraction()"
+            style="background:#2563eb; color:white; font-weight:600; border-radius:6px; padding:0.6rem 1rem; border:none; cursor:pointer;">Extract Locations</button>
+          <button type="button" onclick="closeLocationExtractor()"
+            style="background:#f3f4f6; color:#374151; font-weight:600; border-radius:6px; padding:0.6rem 1rem; border:1px solid #d1d5db; cursor:pointer;">Cancel</button>
+          <span id="extractionMessage" style="font-size:0.9rem; color:#374151;"></span>
+        </div>
+      </div>
     </div>
-    <!-- End scrollable content -->
   </div>
-  <!-- End flex container -->
+</div>
+<!-- End scrollable content -->
+</div>
+<!-- End flex container -->
 {% endblock %}

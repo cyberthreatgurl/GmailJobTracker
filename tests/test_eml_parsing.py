@@ -3,7 +3,7 @@ from pathlib import Path
 # Faster sanity tests: import parser functions directly to avoid subprocess overhead.
 # parser sets up Django itself (DJANGO_SETTINGS_MODULE), so import is sufficient.
 
-from parser import parse_raw_message, parse_subject  # noqa: E402
+from parser import parse_raw_message, parse_subject, rule_label  # noqa: E402
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 EMAIL_DIR = REPO_ROOT / "tests" / "emails"
@@ -128,6 +128,38 @@ def test_psipax_jobvite_application_extracts_configured_company():
     )
     assert result.get("company") == "PSI Pax", result
     assert result.get("label") == "job_application", result
+
+
+def test_psipax_compliance_form_is_other_not_head_hunter():
+    """Candidate compliance-form requests should not be labeled as head_hunter.
+
+    This Jobvite email comes from an ATS sender using "Recruiting Team" language,
+    but it is a post-application compliance step for PSI Pax rather than recruiter
+    outreach. The rule engine should classify it as an application-process follow-up.
+    """
+    path = (
+        "Equal Opportunity Compliance Form Request with PSI Pax - "
+        "Senior Systems Security Engineer (_2937) Opportunity.eml"
+    )
+    result = _classify_fixture(path)
+    assert result.get("company") == "PSI Pax", result
+    assert result.get("label") == "other", result
+
+
+def test_psipax_compliance_form_rule_label_is_other():
+    """Rule precedence should catch compliance-form requests before ML head_hunter."""
+    path = EMAIL_DIR / (
+        "Equal Opportunity Compliance Form Request with PSI Pax - "
+        "Senior Systems Security Engineer (_2937) Opportunity.eml"
+    )
+    raw = path.read_text(encoding="utf-8", errors="replace")
+    meta = parse_raw_message(raw)
+    label = rule_label(
+        meta.get("subject", ""),
+        meta.get("body", ""),
+        meta.get("sender_domain"),
+    )
+    assert label == "other"
 
 
 def test_rand_scheduling_followup_is_other():

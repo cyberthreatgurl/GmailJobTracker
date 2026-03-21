@@ -12,16 +12,9 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.shortcuts import render, redirect
-from bs4 import BeautifulSoup
+import parser as parser_module
 
-from parser import (
-    extract_metadata,
-    parse_raw_message,
-    predict_with_fallback,
-    predict_subject_type,
-    parse_subject,
-    normalize_company_name,
-)
+from parser import parse_raw_message, parse_subject, normalize_company_name
 from scripts.import_gmail_filters import (
     load_json,
     make_or_pattern,
@@ -47,6 +40,11 @@ def label_rule_debugger(request):
     matched_label = None
     matched_patterns = []  # list of strings like "<label>: <pattern>"
     matched_labels = []  # unique labels that matched
+    skipped_patterns = []
+    decision_trace = []
+    final_classification_source = ""
+    rule_based_label = None
+    ml_label = None
     message_text = ""
     no_matches = False
     extracted_company = ""
@@ -100,68 +98,50 @@ def label_rule_debugger(request):
                 message_text = body or subject
 
                 # Use the same classification pipeline as ingest_message
-                from parser import predict_with_fallback, predict_subject_type
-
                 # Run the full classification pipeline (ML + rules)
-                result = predict_with_fallback(
-                    predict_subject_type, subject, body, sender=sender
+                result = parser_module.predict_with_fallback(
+                    parser_module.predict_subject_type, subject, body, sender=sender
                 )
 
                 matched_label = result.get("label", "noise")
                 ml_label = result.get("ml_label") or result.get("label")
-                matched_confidence = result.get("confidence", 0.0)
-                fallback_type = result.get("fallback", "unknown")
+                final_classification_source = (
+                    "rules"
+                    if result.get("fallback") in ("rule", "rules")
+                    else "ml"
+                )
 
-                # Now find which patterns matched for highlighting
-                patterns_path = Path("json/patterns.json")
-                patterns = load_json(patterns_path, default={"message_labels": {}})
-                msg_labels = patterns.get("message_labels", {})
+                debug_trace = parser_module._rule_classifier.debug_classify(
+                    subject=subject,
+                    body=body,
+                    sender_domain=sender_domain,
+                    headhunter_domains=set(parser_module.HEADHUNTER_DOMAINS),
+                    job_board_domains=set(parser_module.JOB_BOARD_DOMAINS),
+                    is_ats_domain_fn=parser_module._is_ats_domain,
+                    map_company_by_domain_fn=parser_module._map_company_by_domain,
+                )
+                rule_based_label = debug_trace.get("final_rule_label")
+                decision_trace = debug_trace.get("decision_trace", [])
 
                 highlights_set = set()
                 matched_labels_set = set()
 
-                if matched_label:
-                    matched_labels_set.add(matched_label)
-                    # Map internal labels back to pattern.json keys
-                    label_map_reverse = {
-                        "interview_invite": "interview",
-                        "job_application": "application",
-                    }
-                    pattern_key = label_map_reverse.get(matched_label, matched_label)
+                for raw_match in debug_trace.get("raw_matches", []):
+                    matched_patterns.append(raw_match)
+                    matched_labels_set.add(raw_match["label"])
+                    if raw_match.get("matched_text"):
+                        highlights_set.add(raw_match["matched_text"])
 
-                    # Find which patterns matched for this label
-                    rules = msg_labels.get(pattern_key, [])
-                    for rule in rules:
-                        if rule == "None":
-                            continue
-                        try:
-                            pattern = re.compile(rule, re.IGNORECASE)
-                            match = pattern.search(message_text)
-                            if match:
-                                matched_patterns.append(f"{matched_label}: {rule}")
-                                matched_text = match.group(0)
-                                highlights_set.add(matched_text)
-
-                                # Extract OR alternatives for highlighting
-                                simple_split = rule.split("|")
-                                for alt in simple_split:
-                                    clean_alt = alt.strip("()").strip()
-                                    if clean_alt:
-                                        try:
-                                            alt_pattern = re.compile(
-                                                clean_alt, re.IGNORECASE
-                                            )
-                                            alt_match = alt_pattern.search(message_text)
-                                            if alt_match:
-                                                highlights_set.add(alt_match.group(0))
-                                        except:
-                                            pass
-                        except re.error:
-                            continue
+                for skipped in debug_trace.get("skipped_matches", []):
+                    skipped_patterns.append(skipped)
+                    if skipped.get("matched_text"):
+                        highlights_set.add(skipped["matched_text"])
+                    if skipped.get("exclude_text"):
+                        highlights_set.add(skipped["exclude_text"])
 
                 highlights = sorted(highlights_set, key=lambda s: s.lower())
                 matched_labels = sorted(matched_labels_set)
-                no_matches = not matched_label
+                no_matches = not matched_patterns
 
                 # Extract company name using parse_subject with sender info
                 try:
@@ -182,10 +162,8 @@ def label_rule_debugger(request):
 
                 # 1. Check if ML originally predicted head_hunter (internal recruiter override)
                 if ml_label == "head_hunter" and sender_domain:
-                    from parser import _map_company_by_domain, HEADHUNTER_DOMAINS
-
-                    if sender_domain not in HEADHUNTER_DOMAINS:
-                        mapped_company = _map_company_by_domain(sender_domain)
+                    if sender_domain not in parser_module.HEADHUNTER_DOMAINS:
+                        mapped_company = parser_module._map_company_by_domain(sender_domain)
                         if mapped_company:
                             # Check if we should preserve meaningful labels or override to 'other'
                             if matched_label == "job_application":
@@ -220,9 +198,7 @@ def label_rule_debugger(request):
 
                 # 2. Check if sender domain is in personal domains list
                 if sender_domain:
-                    from parser import PERSONAL_DOMAINS
-
-                    if sender_domain.lower() in PERSONAL_DOMAINS:
+                    if sender_domain.lower() in parser_module.PERSONAL_DOMAINS:
                         override_note = f"Override: Personal domain ({sender_domain}) - changed to 'noise'"
                         matched_label = "noise"
                         matched_labels = ["noise"]
@@ -247,11 +223,16 @@ def label_rule_debugger(request):
                     "matched_label": matched_label,
                     "matched_labels": matched_labels,
                     "matched_patterns": matched_patterns,
+                    "skipped_patterns": skipped_patterns,
                     "highlights": highlights,
                     "no_matches": no_matches,
                     "extracted_company": extracted_company,
                     "company_confidence": company_confidence,
                     "override_note": override_note,
+                    "final_classification_source": final_classification_source,
+                    "rule_based_label": rule_based_label,
+                    "ml_label": ml_label,
+                    "decision_trace": decision_trace,
                 }
             except Exception as e:
                 error = f"Failed to parse message: {e}"
@@ -264,10 +245,15 @@ def label_rule_debugger(request):
         "matched_label": matched_label,
         "matched_labels": matched_labels,
         "matched_patterns": matched_patterns,
+        "skipped_patterns": skipped_patterns,
         "no_matches": no_matches,
         "extracted_company": extracted_company,
         "company_confidence": company_confidence,
         "override_note": override_note,
+        "final_classification_source": final_classification_source,
+        "rule_based_label": rule_based_label,
+        "ml_label": ml_label,
+        "decision_trace": decision_trace,
     }
     return render(request, "tracker/label_rule_debugger.html", ctx)
 

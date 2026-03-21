@@ -21,13 +21,25 @@
   {% endif %}
   {% if result %}
     <h2>Result</h2>
-    <div><b>Matched Label(s):</b>
+    <div><b>Final Label:</b>
+      <span style="color:#2563eb; font-weight:600;">{{ matched_label }}</span>
+    </div>
+    <div style="margin-top:0.5rem;"><b>Final Classification Source:</b>
+      <span style="color:#7c3aed; font-weight:600; text-transform:uppercase;">{{ final_classification_source }}</span>
+      {% if rule_based_label %}
+        <span style="color:#6b7280; font-size:0.9em;">(rule result: {{ rule_based_label }})</span>
+      {% endif %}
+      {% if ml_label %}
+        <span style="color:#6b7280; font-size:0.9em;">(ml label: {{ ml_label }})</span>
+      {% endif %}
+    </div>
+    <div style="margin-top:0.5rem;"><b>Raw Matched Label(s):</b>
       {% if result.no_matches %}
         <span style="color:#b91c1c; font-weight:600;">No Matches</span>
       {% elif matched_labels and matched_labels|length > 0 %}
         <span style="color:#2563eb; font-weight:600;">{{ matched_labels|join:", " }}</span>
       {% else %}
-        <span style="color:#2563eb; font-weight:600;">{{ matched_label }}</span>
+        <span style="color:#9ca3af; font-style:italic;">None</span>
       {% endif %}
     </div>
     {% if override_note %}
@@ -45,13 +57,52 @@
       {% endif %}
     </div>
     <details style="margin-top:0.5rem;">
-      <summary style="cursor:pointer;">Show matched patterns</summary>
-      <div><b>Matched Patterns:</b>
+      <summary style="cursor:pointer;">Show raw matched patterns</summary>
+      <div><b>Raw Matched Patterns:</b>
         <ul>
           {% for pat in matched_patterns %}
-            <li><code>{{ pat }}</code></li>
+            <li><code>{{ pat.label }}: {{ pat.pattern }}</code>{% if pat.matched_text %} <span style="color:#6b7280;">matched:</span> <span style="color:#059669; font-weight:600;">{{ pat.matched_text }}</span>{% endif %}</li>
           {% endfor %}
         </ul>
+      </div>
+    </details>
+    <details style="margin-top:0.5rem;">
+      <summary style="cursor:pointer;">Show excluded or skipped pattern matches</summary>
+      <div><b>Excluded/Skipped Matches:</b>
+        {% if skipped_patterns %}
+        <ul>
+          {% for pat in skipped_patterns %}
+            <li>
+              <code>{{ pat.label }}: {{ pat.pattern }}</code>
+              {% if pat.matched_text %}<span style="color:#6b7280;"> matched:</span> <span style="color:#059669; font-weight:600;">{{ pat.matched_text }}</span>{% endif %}
+              <div style="color:#b45309; margin-top:0.2rem;">{{ pat.reason }}</div>
+              {% if pat.exclude_pattern %}
+              <div style="color:#6b7280; font-size:0.9em;">Exclude pattern: <code>{{ pat.exclude_pattern }}</code>{% if pat.exclude_text %} matched <span style="color:#dc2626; font-weight:600;">{{ pat.exclude_text }}</span>{% endif %}</div>
+              {% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <div style="color:#9ca3af; font-style:italic;">No excluded or skipped matches.</div>
+        {% endif %}
+      </div>
+    </details>
+    <details style="margin-top:0.5rem;">
+      <summary style="cursor:pointer;">Show chronological decision trace</summary>
+      <div><b>Chronological Decision Trace:</b>
+        {% if decision_trace %}
+        <ol style="padding-left:1.25rem;">
+          {% for entry in decision_trace %}
+            <li style="margin-bottom:0.5rem;">
+              <span style="font-weight:600; color:#1f2937;">{{ entry.step }}</span>
+              <span style="margin-left:0.35rem; color:#7c3aed; text-transform:uppercase; font-size:0.85em; font-weight:600;">{{ entry.outcome }}</span>
+              <div style="color:#4b5563; margin-top:0.15rem;">{{ entry.detail }}</div>
+            </li>
+          {% endfor %}
+        </ol>
+        {% else %}
+        <div style="color:#9ca3af; font-style:italic;">No decision trace available.</div>
+        {% endif %}
       </div>
     </details>
     <div><b>Highlighted Words:</b>

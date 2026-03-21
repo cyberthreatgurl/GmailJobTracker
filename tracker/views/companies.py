@@ -15,6 +15,7 @@ import re
 import requests
 import subprocess
 import sys
+from urllib.parse import urlparse
 from difflib import SequenceMatcher
 from datetime import timedelta
 from functools import lru_cache
@@ -52,6 +53,26 @@ except Exception:  # pragma: no cover - optional dependency fallback
 def _get_parser_module():
     """Load the local parser module without a direct deprecated-module import."""
     return importlib.import_module("parser")
+
+
+def _extract_homepage_domain(homepage_url):
+    """Return the normalized domain portion of a homepage URL."""
+    if not homepage_url:
+        return ""
+
+    parsed = urlparse(homepage_url)
+    hostname = (parsed.hostname or "").lower()
+    if hostname.startswith("www."):
+        hostname = hostname[4:]
+    return hostname
+
+
+def _synchronized_domain(domain_value, homepage_url):
+    """Prefer the domain derived from homepage when a homepage is present."""
+    homepage_domain = _extract_homepage_domain(homepage_url)
+    if homepage_domain:
+        return homepage_domain
+    return (domain_value or "").strip().lower()
 
 # Module-level constants
 python_path = sys.executable
@@ -1326,9 +1347,14 @@ def label_companies(request):
                         career_url_input = (
                             form.cleaned_data.get("career_url") or ""
                         ).strip()
-                        domain_input = (form.cleaned_data.get("domain") or "").strip()
+                        homepage_input = (form.cleaned_data.get("homepage") or "").strip()
+                        domain_input = _synchronized_domain(
+                            form.cleaned_data.get("domain"),
+                            homepage_input,
+                        )
                         ats_input = (form.cleaned_data.get("ats") or "").strip()
                         company_name = selected_company.name
+                        form.instance.domain = domain_input
 
                         # Save company-side fields to companies.json surgically
                         if company_name:
@@ -1415,7 +1441,10 @@ def label_companies(request):
                 )
                 return None
 
+            domain = _synchronized_domain(domain, homepage)
+
             new_company = bound_form.save(commit=False)
+            new_company.domain = domain
             new_company.confidence = 1.0
             new_company.first_contact = now()
             new_company.last_contact = now()
@@ -1595,6 +1624,10 @@ def label_companies(request):
             CompanyInteraction.objects.filter(company=selected_company).order_by("-interaction_date")
         )
 
+    homepage_domain = _extract_homepage_domain(
+        getattr(selected_company, "homepage", "") if selected_company else ""
+    )
+
     # News is loaded asynchronously via AJAX after page render (see get_company_news endpoint)
     # We only pass whether a company is selected so the template can render the placeholder
     company_news = None
@@ -1623,6 +1656,7 @@ def label_companies(request):
             "company_news": company_news,
             "news_error": news_error,
             "company_interactions": company_interactions,
+            "homepage_domain": homepage_domain,
         }
     )
     return render(request, "tracker/label_companies.html", ctx)

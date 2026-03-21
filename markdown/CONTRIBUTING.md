@@ -153,6 +153,23 @@ git checkout -b bugfix/42-company-resolution
 - [ ] Commit messages are descriptive
 - [ ] No sensitive data (credentials, tokens) committed
 
+## Updating companies.json
+
+When you add a new company, use this order so parser behavior stays predictable:
+
+1. Pick the canonical company name and keep the exact casing consistent everywhere.
+2. Add the real company domain to `domain_to_company`.
+3. Add the careers URL to `JobSites`.
+4. Add abbreviations, recruiter display-name variants, and common short forms to `aliases`.
+5. Add the canonical company name to `known`.
+6. Only add `ats_domains` when the sender domain is a shared ATS platform that is not already handled by `ats_heuristic_patterns`.
+
+Guidelines:
+
+- Do not map shared ATS domains such as Jobvite or Workday directly in `domain_to_company` unless the domain is company-specific.
+- Keep `domain_to_company`, `JobSites`, `aliases`, and `known` aligned to the same canonical company name.
+- If you change company resolution behavior, update `README.md`, `markdown/EXTRACTION_LOGIC.md`, and the changelog in the same PR.
+
 ## Code Style Guidelines
 
 - **Indentation:** 4 spaces (no tabs)

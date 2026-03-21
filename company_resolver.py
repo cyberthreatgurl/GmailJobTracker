@@ -187,6 +187,28 @@ class CompanyResolver:
         self.job_board_domains = job_board_domains
         self.ats_domains = ats_domains
 
+    def _configured_company_names(self):
+        """Return canonical company names gathered from companies.json sources."""
+        names = []
+
+        for company in self.company_data.get("known", []):
+            if company and company not in names:
+                names.append(company)
+
+        for company in self.company_data.get("domain_to_company", {}).values():
+            if company and company not in names:
+                names.append(company)
+
+        for company in self.company_data.get("JobSites", {}).keys():
+            if company and company not in names:
+                names.append(company)
+
+        for company in self.company_data.get("aliases", {}).values():
+            if company and company not in names:
+                names.append(company)
+
+        return names
+
     def extract_from_ats_sender(self, sender: str, sender_domain):
         """Extract company from ATS sender display name or email prefix.
 
@@ -210,11 +232,9 @@ class CompanyResolver:
         # Check if this is an ATS domain (with subdomain support)
         is_ats = False
         domain_lower = sender_domain.lower()
-        for ats_root in self.ats_domains:
-            if domain_lower == ats_root or domain_lower.endswith(f".{ats_root}"):
-                is_ats = True
-                logger.debug(f"[DEBUG] ATS domain detected: {domain_lower} matches {ats_root}")
-                break
+        is_ats = self.domain_mapper.is_ats_domain(domain_lower)
+        if is_ats:
+            logger.debug(f"[DEBUG] ATS domain detected: {domain_lower}")
 
         if not is_ats:
             return None
@@ -739,10 +759,14 @@ class CompanyResolver:
                 return canonical
 
         # Check known companies list for substrings
-        for known in self.company_data.get("known", []):
-            if known.lower() in cand_lower or known.lower() in subj_lower:
-                logger.debug(f"[DEBUG] Known company matched: {known}")
-                return known
+        configured_companies = sorted(
+            self._configured_company_names(), key=len, reverse=True
+        )
+        for configured in configured_companies:
+            configured_lower = configured.lower()
+            if configured_lower in cand_lower or configured_lower in subj_lower:
+                logger.debug(f"[DEBUG] Configured company matched: {configured}")
+                return configured
 
         # Fallback: extract text after "at" / "@" if candidate looks over-captured
         # e.g. "the Senior Systems Security Engineer position at CSA" -> "CSA"

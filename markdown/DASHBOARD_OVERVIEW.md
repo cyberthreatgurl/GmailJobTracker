@@ -13,7 +13,7 @@ This dashboard provides a secure, local-only interface for tracking job applicat
 - **Weekly/monthly statistics** for rejections and interviews
 - **Upcoming interview calendar**
 - **Interactive labeling interface** with auto-retraining
-- **Label debugger** with priority-order testing at `/label-companies/`
+- **Label Companies workspace** at `/label_companies/` with homepage-driven populate, derived domain preview, and in-place contract refresh
 - **Defense contract awards** scraped from war.gov with search/filter at `/defense_contracts/`
 - **RSS Feed Reader** for industry news at `/news/`
 - **Environment diagnostics** via `/admin/environment_status/`
@@ -29,6 +29,7 @@ This dashboard provides a secure, local-only interface for tracking job applicat
 - **9-stage extraction pipeline**: Domain mapping → ATS detection → body parsing → Organization header
 - **Subdomain support**: Matches both apex and subdomains
 - **ATS integration**: Greenhouse, Lever, Workday, etc.
+- **Configured-company canonicalization**: Canonical names are gathered from `known`, `domain_to_company`, `JobSites`, and `aliases`
 - **Indeed special handling**: Extracts actual employer from body text
 - **Organization header fallback**: Uses email headers when other methods fail
 
@@ -38,6 +39,7 @@ This dashboard provides a secure, local-only interface for tracking job applicat
 
 - **Framework**: Django 5.2.7
 - **Database**: SQLite (`job_tracker.db`)
+- **Startup guard**: `runserver`, WSGI, ASGI, and Docker startup now fail fast when the configured default database is unreachable
 - **Models**: `Message`, `ThreadTracking`, `Company`, `IgnoredMessage`, `IngestionStats`, `DefenseContract`, `ScrapedArticle`
 - **ML Pipeline**: 
   - Subject classifier: `model/subject_classifier.pkl`
@@ -126,7 +128,7 @@ Messages are automatically ignored if:
 
 - `/` - Dashboard overview
 - `/admin/` - Django admin
-- `/label-companies/` - Interactive label debugger
+- `/label_companies/` - Company review and editing workspace
 - `/company/<id>/` - Company detail with all messages
 - `/defense_contracts/` - Defense contract awards listing with search/filter
 - `/admin/environment_status/` - System diagnostics
@@ -198,6 +200,12 @@ Messages are automatically ignored if:
 ---
 
 ## Recent Enhancements
+
+### Company Workflow And Startup Reliability (Mar 2026)
+- Label Companies now refreshes the contracts summary and contracts section immediately after a company contract refresh finishes.
+- Existing-company editing now shows the saved homepage URL as read-only, derives the homepage domain into Company Data Preview, and synchronizes the stored company domain from the homepage URL on save.
+- Company canonicalization now recognizes configured company names from multiple `companies.json` sections, which fixes ATS cases like Jobvite emails that mention phrases such as "joining PSI Pax".
+- `runserver`, WSGI/ASGI imports, and Docker startup now stop cleanly when the configured default database cannot be reached.
 
 ### Defense Contract Awards (Feb 2026)
 - Playwright-based scraper for war.gov contract announcements

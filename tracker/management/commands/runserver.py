@@ -7,7 +7,13 @@ import pickle
 import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
+from django.core.management.base import CommandError
 from django.core.management.commands.runserver import Command as RunserverCommand
+
+from tracker.startup_checks import (
+    DatabaseStartupError,
+    ensure_default_database_reachable,
+)
 
 
 class Command(RunserverCommand):
@@ -16,6 +22,11 @@ class Command(RunserverCommand):
     help = (
         "Starts a lightweight web server for development (displays .env configuration)"
     )
+
+    def run(self, **options):
+        """Fail fast before starting Django's autoreloader thread."""
+        self._ensure_database_startup_ready()
+        return super().run(**options)
 
     def inner_run(self, *args, **options):
         """Display .env values before starting the server."""
@@ -297,6 +308,13 @@ class Command(RunserverCommand):
 
         self.stderr.write(self.style.SUCCESS("=" * 70 + "\n"))
 
+    def _ensure_database_startup_ready(self):
+        """Stop startup cleanly when the default database is unreachable."""
+        try:
+            ensure_default_database_reachable()
+        except DatabaseStartupError as exc:
+            raise CommandError(str(exc)) from exc
+
     def _display_database_status(self):
         """Check and display database availability."""
         from django.db import connection, OperationalError
@@ -330,7 +348,7 @@ class Command(RunserverCommand):
 
         # Attempt a live connection check
         try:
-            connection.ensure_connection()
+            ensure_default_database_reachable()
             self.stderr.write(
                 f"  Connection........................... {self.style.SUCCESS('✓ Available')}"
             )
@@ -347,10 +365,10 @@ class Command(RunserverCommand):
                             )
                 except (OperationalError, AttributeError, IndexError, TypeError):
                     pass
-        except OperationalError as exc:
+        except DatabaseStartupError as exc:
             self.stderr.write(
                 f"  Connection........................... "
-                f"{self.style.ERROR('✗ Unavailable: ' + str(exc)[:60])}"
+                f"{self.style.ERROR('✗ Unavailable: ' + str(exc)[:120])}"
             )
             if "postgresql" in engine or "postgres" in engine:
                 self.stderr.write(

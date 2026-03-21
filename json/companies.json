@@ -11,14 +11,12 @@
   "domain_to_company": {
     "archsystemsinc.com": "Arch Systems LLC",
     "baesystems.com": "BAE Systems",
-    "cisco.com": "Cisco",
     "google.com": "Firebase",
     "mfcyber.com": "MorganFranklin Cyber",
     "netdes.com": "Network Designs, Inc.",
     "parsons.com": "Parsons Corporation",
     "peraton.com": "Peraton",
     "psipax.com": "PSI Pax",
-    "pure.net": "Pure",
     "redriver.com": "Red River",
     "substack.com": "Substack",
     "thomsonreuters.com": "Thomson Reuters",
@@ -428,9 +426,7 @@
     "VectorCSP": "https://www.vectorcsp.com/careers",
     "PSI Pax": "https://www.psipax.com/careers"
   },
-  "known": [
-    "Pure"
-  ],
+  "known": [],
   "ats_heuristic_patterns": [
     "workday",
     "greenhouse",

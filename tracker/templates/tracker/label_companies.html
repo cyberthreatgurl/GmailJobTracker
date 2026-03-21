@@ -201,6 +201,10 @@
           <input type="hidden" name="action" value="create_new_company" />
           <label for="id_name">Company Name</label>
           {{ form.name }}
+          <label for="id_alias">Alias (Optional)</label>
+          {{ form.alias }}
+          <small style="color:#6b7280; display:block; margin-top:0.25rem; margin-bottom:0.5rem;">Alternative name(s) or
+            abbreviation(s). Separate multiple aliases with commas (e.g., 'AFS, Accenture Fed')</small>
           <label for="id_location">Location</label>
           {{ form.location }}
           <small style="color:#6b7280; display:block; margin-top:0.25rem; margin-bottom:0.5rem;">Headquarters or office
@@ -255,10 +259,6 @@
               style="background:#eff6ff; color:#1d4ed8; font-weight:600; border-radius:6px; padding:0.55rem 0.9rem; border:1px solid #bfdbfe; cursor:pointer;">Open Location Extractor</button>
             <small style="color:#6b7280; display:block; margin-top:0.35rem;">Use a pop-out box to extract cities from a URL or pasted HTML.</small>
           </div>
-          <label for="id_alias">Alias (Optional)</label>
-          {{ form.alias }}
-          <small style="color:#6b7280; display:block; margin-top:0.25rem; margin-bottom:0.5rem;">Alternative name(s) or
-            abbreviation(s). Separate multiple aliases with commas (e.g., 'AFS, Accenture Fed')</small>
           <label for="id_contact_name">Contact Name</label>
           {{ form.contact_name }}
           <label for="id_contact_email">Contact Email</label>
@@ -415,6 +415,10 @@
           <input type="hidden" name="company" value="{{ selected_company.id }}" />
           <label for="id_name">Company Name</label>
           {{ form.name }}
+          <label for="id_alias">Alias (Optional)</label>
+          {{ form.alias }}
+          <small style="color:#6b7280; display:block; margin-top:0.25rem; margin-bottom:0.5rem;">Alternative name(s) or
+            abbreviation(s). Separate multiple aliases with commas (e.g., 'AFS, Accenture Fed')</small>
           <label for="id_location">Location</label>
           {{ form.location }}
           <small style="color:#6b7280; display:block; margin-top:0.25rem; margin-bottom:0.5rem;">Headquarters or office location (e.g., Reston, VA)</small>
@@ -470,10 +474,6 @@
               style="background:#eff6ff; color:#1d4ed8; font-weight:600; border-radius:6px; padding:0.55rem 0.9rem; border:1px solid #bfdbfe; cursor:pointer;">Open Location Extractor</button>
             <small style="color:#6b7280; display:block; margin-top:0.35rem;">Use a pop-out box to extract cities from a URL or pasted HTML.</small>
           </div>
-          <label for="id_alias">Alias (Optional)</label>
-          {{ form.alias }}
-          <small style="color:#6b7280; display:block; margin-top:0.25rem; margin-bottom:0.5rem;">Alternative name(s) or
-            abbreviation(s). Separate multiple aliases with commas (e.g., 'AFS, Accenture Fed')</small>
           <label for="id_contact_name">Contact Name</label>
           {{ form.contact_name }}
           <label for="id_contact_email">Contact Email</label>

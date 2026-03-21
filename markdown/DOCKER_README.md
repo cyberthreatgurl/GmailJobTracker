@@ -1,5 +1,13 @@
 # Docker Notes
 
+This quick note supplements the full deployment guide in `markdown/DOCKER_DEPLOYMENT.md`.
+
+Startup behavior:
+
+- The container waits for PostgreSQL before running migrations.
+- If PostgreSQL stays unreachable for 30 attempts, the entrypoint exits non-zero with an explicit host/port error.
+- Django WSGI and ASGI startup also fail fast if the configured default database cannot be reached.
+
 ## Commands to Run the Application within Container
 
 ### Docker Compose Commands

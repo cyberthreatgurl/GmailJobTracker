@@ -147,6 +147,25 @@ Some labels are "upgraded" to more specific classifications:
 - **ATS_DOMAINS**: Applicant tracking systems (e.g., `myworkdayjobs.com`, `icims.com`)
 - **JOB_BOARD_DOMAINS**: Job boards (e.g., `indeed.com`, `greenhouse.io`)
 
+### Contributor Note: Adding A New Company To companies.json
+
+Use this order to maximize correct parsing:
+
+1. Add the canonical company name.
+2. Add the real company domain to `domain_to_company`.
+3. Add the careers URL to `JobSites`.
+4. Add aliases for abbreviations, recruiter display names, and common variants.
+5. Add the canonical name to `known`.
+6. Only add `ats_domains` if the sender domain is a shared ATS platform not already covered by heuristics.
+
+Practical guidance:
+
+- Fill `domain_to_company` first when you know the real company domain.
+- Fill `aliases` when the company is likely to appear in shortened or alternate forms.
+- Fill `known` even if the company already appears in `domain_to_company` or `JobSites`; it improves subject and display-name matching.
+- Do not use `domain_to_company` for shared ATS platforms like Jobvite or Workday unless that domain is company-specific.
+- Keep the same canonical name across `domain_to_company`, `JobSites`, `aliases`, and `known`.
+
 ### Notes
 
 - Domain inputs are sanitized before lookup

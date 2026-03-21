@@ -261,6 +261,8 @@ Starting development server at http://127.0.0.1:8000/
 Quit the server with CTRL-BREAK.
 ```
 
+If the configured default database is unreachable, startup now fails immediately with a clean error message so you do not end up with a half-started server.
+
 ### 6.2 Access the Dashboard
 
 Open your browser and navigate to: <http://127.0.0.1:8000/>
@@ -279,7 +281,7 @@ Open your browser and navigate to: <http://127.0.0.1:8000/>
 |------|-----|---------|
 | **Dashboard** | `/` | Main overview with stats and charts |
 | **Label Messages** | `/label_messages/` | Review and correct ML classifications |
-| **Label Companies** | `/label_companies/` | Review and merge company names |
+| **Label Companies** | `/label_companies/` | Review company matching, populate from saved homepage data, and refresh linked contracts |
 | **Company Threads** | `/company_threads/` | View conversation threads per company |
 | **Metrics** | `/metrics/` | ML model accuracy and training stats |
 | **Admin Panel** | `/admin/` | Advanced database management |
@@ -398,6 +400,17 @@ python manage.py migrate
 python manage.py ingest_gmail --days-back 7
 ```
 
+#### 🔴 "PostgrSQL <database-name> <host>:<port> is unreachable."
+
+**Problem:** The app is configured to use PostgreSQL, but the database server is not accepting connections.
+
+**Solution:**
+
+- Confirm the database host, port, name, username, and password in your environment.
+- Start PostgreSQL first, then retry `python manage.py runserver`.
+- If you are using Docker Compose, check `docker-compose logs db` and `docker-compose logs web` to confirm the database became healthy.
+- The app now exits immediately in this situation on `runserver`, WSGI/ASGI startup, and Docker entrypoint startup.
+
 ### Getting Help
 
 - **Documentation:** See [README.md](README.md) for architecture details
@@ -424,7 +437,7 @@ Once you have the dashboard running:
 
 3. **Customize Patterns:**
    - Edit `json/patterns.json` for custom regex patterns
-   - Add company domain mappings to `json/companies.json`
+   - Add company mappings to `json/companies.json` in this order: canonical name, `domain_to_company`, `JobSites`, `aliases`, `known`
    - Configure email filters in Gmail
 
 4. **Set Up Automation:**

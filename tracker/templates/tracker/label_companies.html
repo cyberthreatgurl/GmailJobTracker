@@ -322,7 +322,7 @@
             <input type="hidden" name="company" value="{{ selected_company.id }}" />
             <button type="submit" name="action" value="reingest_company" style="background:#ca8a04; color:white; font-weight:600; border-radius:6px; padding:0.45rem 1rem; border:none; cursor:pointer;" title="Re-ingest all messages from this company">🔄 Re-ingest</button>
           </form>
-          <button type="button" onclick="refreshContracts({{ selected_company.id }})" style="background:#0891b2; color:white; font-weight:600; border-radius:6px; padding:0.45rem 1rem; border:none; cursor:pointer;" title="Fetch latest USASpending contracts">🏛️ Refresh Contracts</button>
+          <button type="button" id="refresh-contracts-btn" onclick="refreshContracts({{ selected_company.id }})" style="background:#0891b2; color:white; font-weight:600; border-radius:6px; padding:0.45rem 1rem; border:none; cursor:pointer;" title="Fetch latest USASpending contracts">🏛️ Refresh Contracts</button>
           {# Status is now auto-calculated based on latest message and GHOSTED_DAYS_THRESHOLD #}
           <a href="{% url 'manual_entry' %}?company={{ selected_company.id }}" style="background:#2563eb; color:white; font-weight:600; border-radius:6px; padding:0.45rem 1rem; border:none; cursor:pointer; text-decoration:none; display:inline-block;" title="Create a new application for this company">➕ Create Application</a>
           <button type="button" onclick="document.getElementById('merge-panel').style.display = document.getElementById('merge-panel').style.display === 'none' ? 'block' : 'none';" style="background:#7c3aed; color:white; font-weight:600; border-radius:6px; padding:0.45rem 1rem; border:none; cursor:pointer;" title="Merge this company with a duplicate">🔗 Merge...</button>
@@ -421,8 +421,9 @@
           <label for="id_focus_area">Focus Area</label>
           {{ form.focus_area }}
           <small style="color:#6b7280; display:block; margin-top:0.25rem; margin-bottom:0.5rem;">Business focus (e.g., Software as a Service, Mining, Network Security)</small>
-          <label for="id_domain">Domain Name</label>
-          {{ form.domain }}
+          <div style="display:none;">
+            {{ form.domain }}
+          </div>
           <label for="id_ats">ATS Domain (if any)</label>
           {{ form.ats }}
           <div style="display:flex; gap:1rem;">
@@ -436,12 +437,19 @@
             </div>
           </div>
           <small style="color:#6b7280; display:block; margin-top:0.25rem; margin-bottom:0.5rem;">DUNS (9 digits) and UEI (12 chars) for government contracting</small>
-          <label for="id_homepage">Homepage</label>
-          <div style="display: flex; gap: 0.5rem; align-items: center;">
+          <div style="display:none;">
             {{ form.homepage }}
+          </div>
+          <label>Homepage</label>
+          <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap; margin-top:0.3rem;">
+            {% if selected_company.homepage %}
+            <a href="{{ selected_company.homepage }}" target="_blank" rel="noopener noreferrer" style="color:#2563eb; text-decoration:none; word-break:break-all;">{{ selected_company.homepage }}</a>
+            {% else %}
+            <span style="color:#9ca3af; font-style:italic;">No homepage URL saved.</span>
+            {% endif %}
             <button type="button" onclick="populateCompanyInfo()" style="background:#059669; color:white; font-weight:600; border-radius:6px; padding:0.6rem 1rem; border:none; cursor:pointer; white-space:nowrap;" title="Scrape company info from homepage">🔍 Populate</button>
           </div>
-          <small style="color:#6b7280; display:block; margin-top:0.25rem; margin-bottom:0.5rem;">Enter homepage URL and click Populate to auto-fill company details</small>
+          <small style="color:#6b7280; display:block; margin-top:0.25rem; margin-bottom:0.5rem;">Populate uses the saved homepage URL to auto-fill company details.</small>
           <div id="populate_status" style="margin-top:0.5rem; display:none;"></div>
           <label for="id_career_url">Career/Jobs URL</label>
           {{ form.career_url }}
@@ -487,6 +495,14 @@
         <div style="background: #f3f4f6; border-radius: 8px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
           <h2 style="margin-top:0; color:#1e40af; font-size:1.1rem;">Company Data Preview</h2>
           <div style="margin-bottom:1rem;"><strong>Company:</strong> {{ selected_company.name }}</div>
+          <div style="margin-bottom:1rem;">
+            <strong>Domain:</strong>
+            {% if homepage_domain %}
+            {{ homepage_domain }}
+            {% else %}
+            <span style="color:#9ca3af;">None</span>
+            {% endif %}
+          </div>
           {% if selected_company.duns_number %}
           <div style="margin-bottom:1rem;"><strong>DUNS:</strong> {{ selected_company.duns_number }}</div>
           {% endif %}
@@ -503,7 +519,7 @@
             <span style="color:#9ca3af;">None</span>
             {% endif %}
           </div>
-          <div style="margin-bottom:1rem;">
+          <div id="company-contracts-summary" style="margin-bottom:1rem;">
             <strong>🏛️ USASpending Contracts:</strong>
             {% if total_contract_amount and total_contract_amount > 0 %}
             <div style="font-size:1.1rem; font-weight:700; color:#059669; margin-top:0.25rem; word-break: break-word;">
@@ -683,75 +699,81 @@
         </details>
 
         <!-- Government Contracts Section (expandable) -->
-        {% if company_contracts %}
-        <details style="background: #ecfdf5; border-radius: 8px; padding: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
-          <summary
-            style="cursor: pointer; padding: 0.75rem 1rem; font-weight: 600; color: #065f46; font-size: 0.95rem; list-style: none; display: flex; align-items: center; gap: 0.5rem;">
-            <span style="transition: transform 0.2s;">▶</span> 🏛️ Government Contracts ({{ company_contracts|length }})
-          </summary>
-          <div style="padding: 0 0.75rem 0.75rem 0.75rem; max-height:600px; overflow-y:auto;">
-            {% for contract in company_contracts %}
-            <div id="co-contract-{{ contract.id }}"
-              style="background:white; border-radius:6px; margin-bottom:0.5rem; border:1px solid #d1fae5; overflow:hidden;">
-              <div style="padding:0.75rem;">
-                <div style="display:flex; justify-content:space-between; gap:0.75rem; flex-wrap:wrap; align-items:flex-start;">
-                  <div style="flex:1; min-width:220px;">
-                    <div style="font-size:0.95rem; font-weight:700; color:#14532d; margin-bottom:0.25rem;">
-                      {{ contract.amount_display }}
+        <div id="company-contracts-section">
+          {% if company_contracts %}
+          <details style="background: #ecfdf5; border-radius: 8px; padding: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+            <summary
+              style="cursor: pointer; padding: 0.75rem 1rem; font-weight: 600; color: #065f46; font-size: 0.95rem; list-style: none; display: flex; align-items: center; gap: 0.5rem;">
+              <span style="transition: transform 0.2s;">▶</span> 🏛️ Government Contracts ({{ company_contracts|length }})
+            </summary>
+            <div style="padding: 0 0.75rem 0.75rem 0.75rem; max-height:600px; overflow-y:auto;">
+              {% for contract in company_contracts %}
+              <div id="co-contract-{{ contract.id }}"
+                style="background:white; border-radius:6px; margin-bottom:0.5rem; border:1px solid #d1fae5; overflow:hidden;">
+                <div style="padding:0.75rem;">
+                  <div style="display:flex; justify-content:space-between; gap:0.75rem; flex-wrap:wrap; align-items:flex-start;">
+                    <div style="flex:1; min-width:220px;">
+                      <div style="font-size:0.95rem; font-weight:700; color:#14532d; margin-bottom:0.25rem;">
+                        {{ contract.amount_display }}
+                      </div>
+                      <div style="font-size:0.78rem; color:#6b7280; margin-bottom:0.35rem;">
+                        {{ contract.article_date|date:"M d, Y" }}
+                      </div>
+                      {% if contract.description %}
+                      <div style="font-size:0.82rem; color:#374151; margin-bottom:0.35rem;">
+                        {{ contract.description|truncatewords:25 }}
+                      </div>
+                      {% else %}
+                      <div style="font-size:0.82rem; color:#9ca3af; font-style:italic; margin-bottom:0.35rem;">
+                        No description available.
+                      </div>
+                      {% endif %}
+                      <div style="font-size:0.75rem; color:#6b7280; line-height:1.5;">
+                        {% if contract.company_location %}<div>📍 {{ contract.company_location }}</div>{% endif %}
+                        {% if contract.work_location %}<div>🛠️ {{ contract.work_location }}</div>{% endif %}
+                        {% if contract.contract_number %}<div>📝 {{ contract.contract_number }}</div>{% endif %}
+                        {% if contract.awarding_agency %}<div>🏛️ {{ contract.awarding_agency }}</div>{% endif %}
+                        {% if contract.awarding_sub_agency %}<div>🏢 {{ contract.awarding_sub_agency }}</div>{% endif %}
+                        {% if contract.award_id %}<div>🆔 {{ contract.award_id }}</div>{% endif %}
+                        {% if contract.contracting_activity %}<div>📌 {{ contract.contracting_activity }}</div>{% endif %}
+                        {% if contract.completion_date %}<div>📅 {{ contract.completion_date }}</div>{% endif %}
+                      </div>
                     </div>
-                    <div style="font-size:0.78rem; color:#6b7280; margin-bottom:0.35rem;">
-                      {{ contract.article_date|date:"M d, Y" }}
-                    </div>
-                    {% if contract.description %}
-                    <div style="font-size:0.82rem; color:#374151; margin-bottom:0.35rem;">
-                      {{ contract.description|truncatewords:25 }}
-                    </div>
-                    {% else %}
-                    <div style="font-size:0.82rem; color:#9ca3af; font-style:italic; margin-bottom:0.35rem;">
-                      No description available.
-                    </div>
-                    {% endif %}
-                    <div style="font-size:0.75rem; color:#6b7280; line-height:1.5;">
-                      {% if contract.company_location %}<div>📍 {{ contract.company_location }}</div>{% endif %}
-                      {% if contract.work_location %}<div>🛠️ {{ contract.work_location }}</div>{% endif %}
-                      {% if contract.contract_number %}<div>📝 {{ contract.contract_number }}</div>{% endif %}
-                      {% if contract.awarding_agency %}<div>🏛️ {{ contract.awarding_agency }}</div>{% endif %}
-                      {% if contract.awarding_sub_agency %}<div>🏢 {{ contract.awarding_sub_agency }}</div>{% endif %}
-                      {% if contract.award_id %}<div>🆔 {{ contract.award_id }}</div>{% endif %}
-                      {% if contract.contracting_activity %}<div>📌 {{ contract.contracting_activity }}</div>{% endif %}
-                      {% if contract.completion_date %}<div>📅 {{ contract.completion_date }}</div>{% endif %}
+                    <div style="display:flex; flex-wrap:wrap; gap:0.3rem; align-items:center;">
+                      {% if contract.data_source == 'war_gov' %}
+                      <span style="background:#dcfce7; color:#166534; font-size:0.65rem; font-weight:600; padding:0.15rem 0.5rem; border-radius:999px;">DoD</span>
+                      {% elif contract.data_source == 'usaspending' %}
+                      <span style="background:#dbeafe; color:#1e40af; font-size:0.65rem; font-weight:600; padding:0.15rem 0.5rem; border-radius:999px;">Federal</span>
+                      {% endif %}
+                      {% if contract.branch %}
+                      <span style="background:#f3f4f6; color:#374151; font-size:0.65rem; font-weight:600; padding:0.15rem 0.5rem; border-radius:999px;">{{ contract.get_branch_display }}</span>
+                      {% endif %}
+                      {% if contract.is_small_business %}
+                      <span style="background:#fef3c7; color:#92400e; font-size:0.65rem; font-weight:600; padding:0.15rem 0.5rem; border-radius:999px;">SB</span>
+                      {% endif %}
+                      {% if contract.is_modification %}
+                      <span style="background:#f1f5f9; color:#475569; font-size:0.65rem; font-weight:600; padding:0.15rem 0.5rem; border-radius:999px;">MOD</span>
+                      {% endif %}
                     </div>
                   </div>
-                  <div style="display:flex; flex-wrap:wrap; gap:0.3rem; align-items:center;">
-                    {% if contract.data_source == 'war_gov' %}
-                    <span style="background:#dcfce7; color:#166534; font-size:0.65rem; font-weight:600; padding:0.15rem 0.5rem; border-radius:999px;">DoD</span>
-                    {% elif contract.data_source == 'usaspending' %}
-                    <span style="background:#dbeafe; color:#1e40af; font-size:0.65rem; font-weight:600; padding:0.15rem 0.5rem; border-radius:999px;">Federal</span>
-                    {% endif %}
-                    {% if contract.branch %}
-                    <span style="background:#f3f4f6; color:#374151; font-size:0.65rem; font-weight:600; padding:0.15rem 0.5rem; border-radius:999px;">{{ contract.get_branch_display }}</span>
-                    {% endif %}
-                    {% if contract.is_small_business %}
-                    <span style="background:#fef3c7; color:#92400e; font-size:0.65rem; font-weight:600; padding:0.15rem 0.5rem; border-radius:999px;">SB</span>
-                    {% endif %}
-                    {% if contract.is_modification %}
-                    <span style="background:#f1f5f9; color:#475569; font-size:0.65rem; font-weight:600; padding:0.15rem 0.5rem; border-radius:999px;">MOD</span>
+                  <div style="margin-top:0.5rem;">
+                    {% if contract.source_url %}
+                    <a href="{{ contract.source_url }}" target="_blank" style="color:#2563eb; text-decoration:none; font-size:0.8rem;">Open source record →</a>
+                    {% elif contract.data_source == 'usaspending' and not contract.usaspending_published %}
+                    <span style="color:#d97706; font-size:0.8rem;">⏳ Not yet available on usaspending.gov</span>
                     {% endif %}
                   </div>
-                </div>
-                <div style="margin-top:0.5rem;">
-                  {% if contract.source_url %}
-                  <a href="{{ contract.source_url }}" target="_blank" style="color:#2563eb; text-decoration:none; font-size:0.8rem;">Open source record →</a>
-                  {% elif contract.data_source == 'usaspending' and not contract.usaspending_published %}
-                  <span style="color:#d97706; font-size:0.8rem;">⏳ Not yet available on usaspending.gov</span>
-                  {% endif %}
                 </div>
               </div>
+              {% endfor %}
             </div>
-            {% endfor %}
+          </details>
+          {% else %}
+          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:1rem; color:#64748b; font-size:0.9rem;">
+            No government contracts linked yet.
           </div>
-        </details>
-        {% endif %}
+          {% endif %}
+        </div>
 
         <!-- Recent News Section (lazy-loaded via AJAX after page render) -->
         <style>
@@ -1546,7 +1568,7 @@
     async function refreshContracts(companyId) {
       if (!confirm('Fetch latest contracts from USASpending for this company?')) return;
 
-      const btn = document.querySelector('button[onclick^="refreshContracts"]');
+      const btn = document.getElementById('refresh-contracts-btn');
       let originalText = '🏛️ Refresh Contracts';
       if (btn) {
         originalText = btn.innerHTML;
@@ -1569,17 +1591,60 @@
         const data = await resp.json();
 
         if (data.status === 'success') {
-          alert('✅ ' + data.message);
+          await reloadContractsSections();
+          showNotification('✅ ' + data.message, '#10b981');
         } else {
-          alert('❌ Error: ' + (data.message || 'Unknown error'));
+          showNotification('❌ Error: ' + (data.message || 'Unknown error'), '#ef4444');
         }
       } catch (e) {
-        alert('❌ Network error: ' + e.message);
+        showNotification('❌ Network error: ' + e.message, '#ef4444');
       } finally {
         if (btn) {
           btn.innerHTML = originalText;
           btn.disabled = false;
         }
+      }
+    }
+
+    async function reloadContractsSections() {
+      const summary = document.getElementById('company-contracts-summary');
+      const section = document.getElementById('company-contracts-section');
+
+      if (!summary || !section) {
+        window.location.reload();
+        return;
+      }
+
+      const details = section.querySelector('details');
+      const wasOpen = details ? details.open : false;
+
+      const resp = await fetch(window.location.href, {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        credentials: 'same-origin'
+      });
+
+      if (!resp.ok) {
+        window.location.reload();
+        return;
+      }
+
+      const html = await resp.text();
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      const nextSummary = doc.getElementById('company-contracts-summary');
+      const nextSection = doc.getElementById('company-contracts-section');
+
+      if (!nextSummary || !nextSection) {
+        window.location.reload();
+        return;
+      }
+
+      summary.replaceWith(nextSummary);
+      section.replaceWith(nextSection);
+
+      const nextDetails = document.querySelector('#company-contracts-section details');
+      if (nextDetails && wasOpen) {
+        nextDetails.open = true;
       }
     }
 

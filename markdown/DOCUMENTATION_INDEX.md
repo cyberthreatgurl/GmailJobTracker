@@ -6,13 +6,13 @@ Central index of all documentation files in GmailJobTracker.
 
 ## 📘 Getting Started
 
-### [QUICK_START.md](QUICK_START.md)
-**Get up and running in minutes**
+### [GETTING_STARTED.md](GETTING_STARTED.md)
+**Full first-time setup guide**
 - Installation steps
 - Gmail API setup
 - First email ingestion
-- Daily usage workflow
-- Common tasks
+- Dashboard overview
+- Common startup and authentication troubleshooting
 - Troubleshooting
 
 **Start here if you're new to the project!**
@@ -31,6 +31,20 @@ Central index of all documentation files in GmailJobTracker.
 - Classification system overview
 - Header hints system
 - Company extraction order
+
+### [DOCKER_DEPLOYMENT.md](DOCKER_DEPLOYMENT.md)
+**Docker and container deployment guide**
+- Docker Compose setup
+- Environment variables and volumes
+- Startup behavior when PostgreSQL is unavailable
+- Troubleshooting and operations
+
+### [CONTRIBUTING.md](CONTRIBUTING.md)
+**Contributor workflow and standards**
+- Pull request process
+- Testing expectations
+- `companies.json` update order
+- Documentation maintenance expectations
 
 ---
 
@@ -75,7 +89,7 @@ Central index of all documentation files in GmailJobTracker.
 
 ---
 
-### [SCHEMA_CHANGELOG.md](tests/SCHEMA_CHANGELOG.md)
+### [SCHEMA_CHANGELOG.md](SCHEMA_CHANGELOG.md)
 **Database schema changes**
 - Migration history
 - Schema modifications
@@ -151,7 +165,7 @@ Central index of all documentation files in GmailJobTracker.
 ### I want to...
 
 #### Get Started
-→ [QUICK_START.md](QUICK_START.md)
+→ [GETTING_STARTED.md](GETTING_STARTED.md)
 
 #### Learn about a specific command
 → [COMMAND_REFERENCE.md](COMMAND_REFERENCE.md)
@@ -172,11 +186,15 @@ Central index of all documentation files in GmailJobTracker.
 → [SECURITY.md](SECURITY.md)
 
 #### Troubleshoot an issue
-→ [QUICK_START.md](QUICK_START.md) → Troubleshooting section
+→ [GETTING_STARTED.md](GETTING_STARTED.md) → Troubleshooting section
 → [COMMAND_REFERENCE.md](COMMAND_REFERENCE.md) → Common Issues section
 
 #### Set up the project for the first time
-→ [QUICK_START.md](QUICK_START.md) → Installation section
+→ [GETTING_STARTED.md](GETTING_STARTED.md) → Installation section
+
+#### Understand Label Companies workflow
+→ [DASHBOARD_OVERVIEW.md](DASHBOARD_OVERVIEW.md)
+→ [EXTRACTION_LOGIC.md](EXTRACTION_LOGIC.md)
 
 #### Run daily ingestion
 → [COMMAND_REFERENCE.md](COMMAND_REFERENCE.md) → Daily Workflow section
@@ -198,9 +216,11 @@ Central index of all documentation files in GmailJobTracker.
 ```
 markdown/
 ├── README.md                    # Project overview
-├── QUICK_START.md              # Getting started guide
+├── GETTING_STARTED.md          # First-time setup guide
 ├── COMMAND_REFERENCE.md        # Complete command docs
 ├── DASHBOARD_OVERVIEW.md       # Dashboard architecture
+├── DOCKER_DEPLOYMENT.md        # Docker deployment guide
+├── CONTRIBUTING.md             # Contributor workflow
 ├── EXTRACTION_LOGIC.md         # Classification logic
 ├── CHANGELOG.md                # Version history
 ├── todo.md                     # Planned features
@@ -216,7 +236,12 @@ tests/
 
 ---
 
-## 🆕 Recent Documentation Updates (November 2025)
+## 🆕 Recent Documentation Updates (March 2026)
+
+### Major Updates
+- Added startup fail-fast notes for `runserver`, WSGI/ASGI, and Docker PostgreSQL startup.
+- Documented the current `label_companies` workflow, including homepage-derived domains and in-place contract refresh.
+- Added contributor guidance for the preferred `companies.json` update order.
 
 ### New Files Created
 - **COMMAND_REFERENCE.md**: Comprehensive command documentation

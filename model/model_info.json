@@ -1,5 +1,5 @@
 {
-  "trained_on": "2026-03-18T21:30:57.335698",
+  "trained_on": "2026-03-21T17:50:08.934334",
   "labels": [
     "head_hunter",
     "interview_invite",
@@ -9,7 +9,7 @@
     "prescreen",
     "rejection"
   ],
-  "num_samples": 1870,
+  "num_samples": 1948,
   "total_features": 50000,
   "meaningful_features_sample": [
     "00 for",
@@ -17,11 +17,15 @@
     "00 usd",
     "000 product",
     "000 user",
+    "000 web",
     "00am and",
     "0517 will",
     "08 usd",
     "10 python",
+    "10 underrated",
     "10 zero",
+    "100 for",
+    "100 free",
     "100 remote",
     "100 venmo",
     "1074 cyber",
@@ -36,6 +40,7 @@
     "1217898 new",
     "1217899 required",
     "1268591336 was",
+    "13 month",
     "13 patch",
     "14 days",
     "14th not",
@@ -69,6 +74,7 @@
     "2025 between",
     "2025 cmn",
     "2025 highlights",
+    "2025 ira",
     "2025 statement",
     "2025 tax",
     "2025 transaction",
@@ -95,22 +101,16 @@
     "2027 ieee",
     "2030 deadline",
     "20657 cyber",
+    "21 secure",
     "22 saratoga",
     "23 february",
     "23 senior",
+    "23andme",
     "25 soldiers",
     "25 travel",
     "25 turbotax",
     "26 jlm",
     "26 num",
-    "26 san",
-    "27 probationary",
-    "28 num",
-    "28 years",
-    "2nd round",
-    "2x donor",
-    "30 days",
-    "30 gal",
-    "30 julian"
+    "26 san"
   ]
 }

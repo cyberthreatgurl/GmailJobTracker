@@ -26,6 +26,7 @@ A local-only Django application that transforms your Gmail into an intelligent j
 
 - **4-tier fallback**: Known whitelist → domain mapping → ML prediction → body regex
 - **ATS-aware**: Handles Greenhouse, Workday, Lever, and 10+ ATS platforms
+- **Config-backed canonicalization**: Matches against `known`, `domain_to_company`, `JobSites`, and `aliases`
 - **Alias management**: Merge duplicate company names
 - **Domain intelligence**: Maps recruiter domains to companies
 
@@ -36,6 +37,7 @@ A local-only Django application that transforms your Gmail into an intelligent j
 - **Bulk labeling**: Label 10/50/100 messages at once with checkboxes
 - **Confidence filtering**: Focus on low-confidence predictions
 - **Calendar view**: Upcoming interviews timeline
+- **Label Companies workspace**: Refresh contracts in place, preview homepage-derived domains, and keep stored domains synchronized from saved homepages
 - **🔍 Job Search Tracker**: Proactively track which companies you've manually searched for opportunities
 
 ### 🏛️ Defense Contract Awards
@@ -100,6 +102,8 @@ python manage.py ingest_gmail --days-back 7
 python manage.py runserver
 ```
 
+If the configured default database is unreachable at startup, the server now stops immediately with a clean error instead of continuing in a broken state.
+
 **Visit:** <http://127.0.0.1:8000/>
 
 ### Documentation
@@ -155,10 +159,10 @@ graph TD
     C3[Rule-based fallback patterns.json] -.-> C
     C4[Confidence scoring 0.0-1.0] -.-> C
     
-    D1[1. Known whitelist companies.json] -.-> D
-    D2[2. Domain mapping ATS-aware] -.-> D
-    D3[3. ML prediction spaCy NER] -.-> D
-    D4[4. Body regex fallback] -.-> D
+   D1[1. Known whitelist companies.json] -.-> D
+   D2[2. Domain mapping] -.-> D
+   D3[3. ATS detection and display-name cleanup] -.-> D
+   D4[4. Subject/body fallback patterns] -.-> D
     
     E1[Company table] -.-> E
     E2[Message table] -.-> E
@@ -247,11 +251,15 @@ schtasks /create /tn "GmailJobTracker" /tr "C:\path\to\.venv\Scripts\python.exe 
 // json/companies.json
 {
   "domain_to_company": {
-    "greenhouse.io": "Greenhouse",
-    "myworkdayjobs.com": "Workday"
+      "acme.com": "Acme Corporation",
+      "jobs.exampledefense.com": "Example Defense"
   }
 }
 ```
+
+Use `domain_to_company` for real company domains. Shared ATS platforms such as Jobvite, Greenhouse, and Workday should stay in ATS heuristics or `ats_domains` unless the domain is company-specific.
+
+For existing companies on `/label_companies/`, the saved homepage URL is shown read-only, the preview panel derives the homepage domain automatically, and saving the company keeps the stored `domain` field synchronized with that derived value.
 
 **Re-ingest with new mappings:**
 
@@ -317,6 +325,23 @@ Notes:
 - Please avoid adding personal or private domains. Only add public employer or ATS/recruiter domains.
 - Typos and casing matter for matching – use exact, properly cased company names.
 - If you aren't sure whether a value belongs in `aliases` vs `domain_to_company`, open a PR and we can review.
+
+Recommended order when adding a new company:
+
+1. Pick the canonical company name and use that exact casing everywhere.
+2. Add the real company domain to `domain_to_company`.
+3. Add the careers URL to `JobSites`.
+4. Add common abbreviations and display-name variants to `aliases`.
+5. Add the canonical company name to `known`.
+6. Only add `ats_domains` if the sender domain is a shared ATS platform not already covered by `ats_heuristic_patterns`.
+
+Parsing reliability notes:
+
+- `domain_to_company` is the highest-value manual entry for direct company resolution.
+- `aliases` help when recruiter display names, ATS sender prefixes, or subject lines use a shortened or variant name.
+- `known` improves subject matching and display-name validation.
+- Do not put shared ATS platform domains in `domain_to_company` unless they truly belong to a single company.
+- If a homepage/careers URL exists, prefer keeping `JobSites`, `domain_to_company`, `aliases`, and `known` aligned to the same canonical name.
 
 ---
 

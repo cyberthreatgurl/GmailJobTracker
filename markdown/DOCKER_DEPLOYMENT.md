@@ -55,6 +55,8 @@ docker-compose logs -f web
 docker-compose ps
 ```
 
+The container now waits up to 30 connection attempts for PostgreSQL during startup. If the database is still unreachable, the entrypoint exits with a clear error instead of continuing into migrations or app startup.
+
 ### 4. First-Time Setup
 
 ```bash
@@ -324,6 +326,8 @@ docker-compose config
 docker-compose down -v
 docker-compose up -d --build
 ```
+
+If you see `PostgreSQL is unreachable at <host>:<port> after 30 attempts.`, verify the `db` service is running, confirm the `DB_HOST` and `DB_PORT` values, and inspect `docker-compose logs db` before restarting the `web` service.
 
 ### Database Locked Errors
 

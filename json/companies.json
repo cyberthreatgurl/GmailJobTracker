@@ -2,6 +2,7 @@
   "aliases": {
     "Arch Systems": "Arch Systems LLC",
     "CGI": "CGI Inc.",
+    "NDi": "Network Designs, Inc.",
     "Parsons": "Parsons Corporation",
     "Red River": "Red River",
     "redriver": "Red River"
@@ -10,12 +11,18 @@
   "domain_to_company": {
     "archsystemsinc.com": "Arch Systems LLC",
     "baesystems.com": "BAE Systems",
+    "cisco.com": "Cisco",
+    "google.com": "Firebase",
     "mfcyber.com": "MorganFranklin Cyber",
+    "netdes.com": "Network Designs, Inc.",
     "parsons.com": "Parsons Corporation",
     "peraton.com": "Peraton",
+    "psipax.com": "PSI Pax",
+    "pure.net": "Pure",
     "redriver.com": "Red River",
     "substack.com": "Substack",
-    "thomsonreuters.com": "Thomson Reuters"
+    "thomsonreuters.com": "Thomson Reuters",
+    "vectorcsp.com": "VectorCSP"
   },
   "headhunter_domains": [
     "agreeya.com",
@@ -206,7 +213,6 @@
     "Eightfold": "https://eightfold.ai/learn/transforming-careers-and-hiring-efficiency-at-fortive/",
     "MITRE": "https://mitre.org/careers",
     "Prudential": "https://jobs.prudential.com/",
-    "Cisco": "https://careers.cisco.com/global/en/home",
     "Apple": "https://apple.com/careers/us/",
     "Peraton": "https://careers.peraton.com/",
     "SentinelOne": "https://sentinelone.com/careers/",
@@ -418,9 +424,13 @@
     "Arch Systems": "https://archsystemsinc.com/career/",
     "Arch Systems LLC": "https://archsystemsinc.com/career/",
     "BAE Systems": "https://jobs.baesystems.com/global/en",
-    "MorganFranklin Cyber": "https://mfcyber.com/careers/"
+    "MorganFranklin Cyber": "https://mfcyber.com/careers/",
+    "VectorCSP": "https://www.vectorcsp.com/careers",
+    "PSI Pax": "https://www.psipax.com/careers"
   },
-  "known": [],
+  "known": [
+    "Pure"
+  ],
   "ats_heuristic_patterns": [
     "workday",
     "greenhouse",

@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 
 # Faster sanity tests: import parser functions directly to avoid subprocess overhead.
@@ -113,6 +112,21 @@ def test_armis_ats_body_extraction():
     assert (
         result.get("company") == "Armis"
     ), f"Expected 'Armis' but got '{result.get('company')}'"
+    assert result.get("label") == "job_application", result
+
+
+def test_psipax_jobvite_application_extracts_configured_company():
+    """Jobvite application should resolve PSI Pax from configured companies.json data.
+
+    The sender is jobvite.com, which is detected heuristically as ATS, and the
+    body text includes "interest in joining PSI Pax". The resolver must reduce
+    that to the canonical configured company name rather than returning the
+    over-captured phrase "joining PSI Pax".
+    """
+    result = _classify_fixture(
+        "Your application for Senior Systems Security Engineer (_2937) at PSI Pax.eml"
+    )
+    assert result.get("company") == "PSI Pax", result
     assert result.get("label") == "job_application", result
 
 

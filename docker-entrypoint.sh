@@ -16,6 +16,7 @@ fi
 DB_HOST_CHECK="${DB_HOST:-db}"
 DB_PORT_CHECK="${DB_PORT:-5432}"
 echo "⏳ Waiting for PostgreSQL at ${DB_HOST_CHECK}:${DB_PORT_CHECK}..."
+db_ready=0
 for i in $(seq 1 30); do
     if python -c "
 import socket, sys
@@ -27,11 +28,17 @@ except Exception:
     sys.exit(1)
 " 2>/dev/null; then
         echo "✅ PostgreSQL is ready."
+        db_ready=1
         break
     fi
     echo "   Still waiting... ($i/30)"
     sleep 2
 done
+
+if [ "$db_ready" -ne 1 ]; then
+    echo "❌ PostgreSQL is unreachable at ${DB_HOST_CHECK}:${DB_PORT_CHECK} after 30 attempts."
+    exit 1
+fi
 
 # Run migrations
 echo "📊 Running database migrations..."

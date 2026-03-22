@@ -1,22 +1,37 @@
 
-import json
 import logging
-from datetime import datetime
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.http import JsonResponse
-from django.utils import timezone
-from django.conf import settings
 from tracker.models import RSSFeed, RSSArticle, Company
 import feedparser
-from tracker.management.commands.import_opml import Command as ImportOpmlCommand
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
+
+_EMPTY_QUERY_VALUES = {None, "", "None", "none", "null", "NULL"}
+
+
+def _normalize_optional_query_value(value):
+    """Treat empty and serialized null-like query values as missing."""
+    if value in _EMPTY_QUERY_VALUES:
+        return None
+    return value
+
+
+def _parse_optional_int_query_value(value):
+    """Return an int for valid ids and None for empty or invalid values."""
+    normalized_value = _normalize_optional_query_value(value)
+    if normalized_value is None:
+        return None
+    try:
+        return int(normalized_value)
+    except (TypeError, ValueError):
+        return None
 
 @login_required
 def rss_dashboard(request):
@@ -24,8 +39,8 @@ def rss_dashboard(request):
     Main RSS Feed Dashboard.
     """
     query = request.GET.get("q", "")
-    feed_id = request.GET.get("feed")
-    category = request.GET.get("category")
+    feed_id = _parse_optional_int_query_value(request.GET.get("feed"))
+    category = _normalize_optional_query_value(request.GET.get("category"))
     page_number = request.GET.get("page", 1)
 
     # Base QuerySet
@@ -52,7 +67,7 @@ def rss_dashboard(request):
         "feeds": feeds,
         "categories": categories,
         "query": query,
-        "selected_feed": int(feed_id) if feed_id else None,
+        "selected_feed": feed_id,
         "selected_category": category,
     })
 
@@ -62,7 +77,7 @@ def fetch_feeds_ajax(request):
     Trigger fetching of RSS feeds via AJAX.
     """
     if request.method != "POST":
-         return JsonResponse({"success": False, "error": "Invalid method"}, status=405)
+        return JsonResponse({"success": False, "error": "Invalid method"}, status=405)
 
     try:
         from django.core.management import call_command
@@ -79,7 +94,7 @@ def link_article_to_company(request, article_id):
     Link a news article to a Company.
     """
     if request.method != "POST":
-         return JsonResponse({"success": False, "error": "Invalid method"}, status=405)
+        return JsonResponse({"success": False, "error": "Invalid method"}, status=405)
 
     article = get_object_or_404(RSSArticle, pk=article_id)
     company_id = request.POST.get("company_id")
@@ -122,8 +137,8 @@ def add_feed(request):
         # 1. Validate Feed
         try:
             d = feedparser.parse(feed_url)
-            if d.bozo and not d.entries: # Strict check?
-                 messages.warning(request, f"Warning: Feed might be invalid ({d.bozo_exception}), but adding anyway.")
+            if d.bozo and not d.entries:  # Strict check?
+                messages.warning(request, f"Warning: Feed might be invalid ({d.bozo_exception}), but adding anyway.")
 
             title = d.feed.get("title", feed_url)
             link = d.feed.get("link", "")
@@ -140,9 +155,9 @@ def add_feed(request):
             )
 
             if not created:
-                 messages.info(request, "Feed already exists.")
+                messages.info(request, "Feed already exists.")
             else:
-                 messages.success(request, "Feed added successfully.")
+                messages.success(request, "Feed added successfully.")
 
             # 3. Update OPML File
             _update_opml_add(feed)
@@ -241,16 +256,18 @@ def _update_opml_remove(feed_url):
         logger.error(f"Failed to update OPML: {e}")
 
 def _indent(elem, level=0):
-    i = "\n" + level*"  "
+    i = "\n" + level * "  "
     if len(elem):
         if not elem.text or not elem.text.strip():
             elem.text = i + "  "
         if not elem.tail or not elem.tail.strip():
             elem.tail = i
+        last_child = None
         for child in elem:
-            _indent(child, level+1)
-        if not child.tail or not child.tail.strip():
-            child.tail = i
+            _indent(child, level + 1)
+            last_child = child
+        if last_child is not None and (not last_child.tail or not last_child.tail.strip()):
+            last_child.tail = i
     else:
         if level and (not elem.tail or not elem.tail.strip()):
             elem.tail = i

@@ -18,7 +18,7 @@ from django.test import TestCase, Client
 from django.contrib.auth.models import User
 from django.utils import timezone
 
-from tracker.models import Company, CompanyNews
+from tracker.models import Company, CompanyNews, RSSArticle, RSSFeed
 from tracker.services.news_service import NewsArticle, NewsAggregator
 
 
@@ -290,6 +290,62 @@ class LabelCompaniesViewNewsIntegrationTestCase(TestCase):
         """Test refresh endpoint with invalid company."""
         response = self.client.post('/company/99999/refresh_news/')
         assert response.status_code == 404
+
+
+class RSSDashboardViewTestCase(TestCase):
+    """Regression tests for RSS dashboard filtering and pagination."""
+
+    def setUp(self):
+        """Set up test fixtures."""
+        self.client = Client()
+        self.user = User.objects.create_user(
+            username="rssuser",
+            password="testpass"
+        )
+        self.feed = RSSFeed.objects.create(
+            title="Example Feed",
+            feed_url="https://example.com/feed.xml",
+            site_url="https://example.com",
+            category="Tech",
+        )
+        self.client.login(username="rssuser", password="testpass")
+
+    def test_rss_dashboard_ignores_none_filter_values(self):
+        """Serialized None values in query params should be treated as unset filters."""
+        RSSArticle.objects.create(
+            feed=self.feed,
+            title="Example article",
+            link="https://example.com/articles/1",
+            description="Article body",
+            guid="rss-guid-1",
+        )
+
+        response = self.client.get('/news/?page=2&q=&feed=None&category=None')
+
+        assert response.status_code == 200
+        assert response.context['selected_feed'] is None
+        assert response.context['selected_category'] is None
+
+    def test_rss_dashboard_pagination_links_do_not_emit_none_filters(self):
+        """Pagination should keep empty filters empty instead of serializing None."""
+        articles = [
+            RSSArticle(
+                feed=self.feed,
+                title=f"Example article {index}",
+                link=f"https://example.com/articles/{index}",
+                description="Article body",
+                guid=f"rss-guid-{index}",
+            )
+            for index in range(51)
+        ]
+        RSSArticle.objects.bulk_create(articles)
+
+        response = self.client.get('/news/')
+
+        assert response.status_code == 200
+        content = response.content.decode()
+        assert 'feed=None' not in content
+        assert 'category=None' not in content
 
 
 @pytest.mark.django_db

@@ -15,14 +15,18 @@
   "domain_to_company": {
     "4points.com": "Four Points Technology",
     "amazonaws.com": "Amazon",
+    "arcfield.com": "Arcfield",
     "archsystemsinc.com": "Arch Systems LLC",
     "baesystems.com": "BAE Systems",
+    "cyberbatinc.com": "Cyber Bat",
+    "email.monarch.com": "Monarch",
     "endyna.com": "Endyna",
     "google.com": "Firebase",
     "hii.com": "HII",
-    "mail.amazon.jobs": "Amazon",
-    "maximus.com": "Maximus",
+    "mail.amazon.jobs": "Keep track of your",
+    "maximus.com": "TmpMaximus",
     "mfcyber.com": "MorganFranklin Cyber",
+    "mtsi-va.com": "MTSI",
     "netdes.com": "Network Designs, Inc.",
     "parsons.com": "Parsons Corporation",
     "peraton.com": "Peraton",
@@ -437,7 +441,8 @@
     "VectorCSP": "https://www.vectorcsp.com/careers",
     "PSI Pax": "https://www.psipax.com/careers",
     "Four Points Technology": "http://www.4points.com/about-us/careers-at-four-points/",
-    "HII": "https://hii.com/careers/life-at-hii/"
+    "HII": "https://hii.com/careers/life-at-hii/",
+    "Cyber Bat": "https://www.cyberbatinc.com/career"
   },
   "known": [],
   "ats_heuristic_patterns": [

@@ -140,7 +140,7 @@
     <div class="mt-6 flex justify-center">
         <nav class="flex items-center gap-1">
             {% if page_obj.has_previous %}
-                <a href="?page={{ page_obj.previous_page_number }}&q={{ query }}&feed={{ selected_feed }}&category={{ selected_category }}" 
+                <a href="?page={{ page_obj.previous_page_number }}&q={{ query }}&feed={{ selected_feed|default_if_none:'' }}&category={{ selected_category|default_if_none:'' }}" 
                    class="px-3 py-1 text-sm border rounded hover:bg-gray-50">Previous</a>
             {% endif %}
             
@@ -149,7 +149,7 @@
             </span>
 
             {% if page_obj.has_next %}
-                <a href="?page={{ page_obj.next_page_number }}&q={{ query }}&feed={{ selected_feed }}&category={{ selected_category }}" 
+                <a href="?page={{ page_obj.next_page_number }}&q={{ query }}&feed={{ selected_feed|default_if_none:'' }}&category={{ selected_category|default_if_none:'' }}" 
                    class="px-3 py-1 text-sm border rounded hover:bg-gray-50">Next</a>
             {% endif %}
         </nav>

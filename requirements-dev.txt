@@ -230,6 +230,8 @@ python-dateutil==2.9.0.post0
     #   pandas
 python-dotenv==1.2.1
     # via -r requirements-prod.in
+psycopg2-binary==2.9.10
+    # via -r requirements-prod.in
 pytokens==0.3.0
     # via black
 pytz==2025.2

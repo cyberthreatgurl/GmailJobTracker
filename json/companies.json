@@ -9,6 +9,7 @@
     "Newport News Shipbuilding": "HII",
     "Parsons": "Parsons Corporation",
     "Red River": "Red River",
+    "Systems Planning and Analysis": "SPA",
     "redriver": "Red River"
   },
   "ats_domains": [],
@@ -33,6 +34,7 @@
     "psipax.com": "PSI Pax",
     "redriver.com": "Red River",
     "simventions.com": "SimVentions",
+    "spa.com": "SPA",
     "substack.com": "Substack",
     "thomsonreuters.com": "Thomson Reuters",
     "vectorcsp.com": "VectorCSP"
@@ -442,7 +444,8 @@
     "PSI Pax": "https://www.psipax.com/careers",
     "Four Points Technology": "http://www.4points.com/about-us/careers-at-four-points/",
     "HII": "https://hii.com/careers/life-at-hii/",
-    "Cyber Bat": "https://www.cyberbatinc.com/career"
+    "Cyber Bat": "https://www.cyberbatinc.com/career",
+    "SPA": "https://www.spa.com/joint-ventures/"
   },
   "known": [],
   "ats_heuristic_patterns": [

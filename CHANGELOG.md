@@ -16,13 +16,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The `label_companies` company editor now shows the saved homepage URL read-only for existing companies, derives the homepage domain into Company Data Preview, and synchronizes the stored `domain` field from the homepage URL on save.
 - Refreshing contracts from the company page now updates the contracts summary and linked contracts section in place instead of leaving the page stale.
 - Documentation now reflects the preferred `companies.json` update order and the new startup behavior.
-- Local development and CI now default to SQLite unless `DB_ENGINE=postgresql` is explicitly set, while Docker keeps PostgreSQL as the default backend.
+- Local development, CI, and Docker now all use PostgreSQL as the application database to keep one consistent stack.
 - Dashboard application counts and recent-activity series now use deduplicated `ThreadTracking` application records instead of raw message counts.
 
 ### Fixed
 - Company canonicalization now recognizes configured names from multiple `companies.json` sections and uses ATS heuristics consistently, fixing over-captured ATS phrases such as `joining PSI Pax`.
 - Parser and label propagation now avoid creating duplicate application records for repeat acknowledgements, anchor prescreen/interview/offer milestones to the correct existing application, and preserve forwarded-message dates and job metadata during `.eml` imports.
 - ATS-aware company extraction now better handles Amazon, Armis, Trellix, Leidos, HII, Maximus, Endyna, and other configured aliases/domain mappings when the sender or subject uses shortened company forms.
+- PostgreSQL is again selected consistently for existing `.env` files, and the runtime now refuses alternate file-based backends so the app cannot silently point at a second database.
 
 ## [3.4.0] - 2026-03-18
 
@@ -746,7 +747,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Django web dashboard with threaded message view
 - Bulk labeling interface with auto-retraining (every 20 labels)
 - ML model training and automatic retraining
-- SQLite local storage (privacy-first, no cloud sync)
+- Local database storage (privacy-first, no cloud sync)
 - Docker deployment support with docker-compose
 - CI/CD pipeline with GitHub Actions (lint, test, build, security scanning)
 - Secret scanning with detect-secrets baseline enforcement

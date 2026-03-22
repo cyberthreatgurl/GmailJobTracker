@@ -83,7 +83,7 @@ python check_env.py
 
 ## Privacy Statement
 
-This tool stores all data locally in db.sqlite3. It does not communicate with any external server.
+This tool stores all data in your locally controlled PostgreSQL database. It does not communicate with any external server.
 
 
 The application logs to `logs/tracker.log` for custom ingestion/debug messages and standard Django logging outputs to console (or a file in production). Review this file to analyze ingestion steps and classification decisions.

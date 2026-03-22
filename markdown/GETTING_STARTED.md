@@ -159,8 +159,12 @@ DEBUG=True
 ALLOWED_HOSTS=localhost,127.0.0.1
 
 # Database backend for local development
-DB_ENGINE=sqlite
-SQLITE_DB_PATH=db/job_tracker.db
+DB_ENGINE=postgresql
+DB_NAME=tracker
+DB_USERNAME=gmailtracker
+DB_PASSWORD=changeme
+DB_HOST=localhost
+DB_PORT=5432
 ```
 
 **📝 Notes:**
@@ -168,9 +172,8 @@ SQLITE_DB_PATH=db/job_tracker.db
 - `GMAIL_ROOT_FILTER_LABEL`: If you organize job hunting emails with Gmail labels, set this to your parent label name
 - `USER_EMAIL_ADDRESS`: Excludes your sent emails from statistics (optional but recommended)
 - `DJANGO_SECRET_KEY`: Auto-generated if not provided (fine for local use)
-- `DB_ENGINE=sqlite`: Recommended default for local development and matches CI
-- `SQLITE_DB_PATH`: Optional custom path for the local SQLite database file
-- Use `DB_ENGINE=postgresql` only if you are intentionally pointing the app at PostgreSQL
+- PostgreSQL is required for local development, CI, and Docker
+- The values above should point at the same `tracker` database you use outside Docker
 
 ### 4.3 Initialize Database
 
@@ -222,7 +225,7 @@ python manage.py ingest_gmail --days-back 7
 - Fetches last 7 days of emails from Gmail
 - Classifies each message (ML + regex patterns)
 - Extracts company names
-- Stores in your configured local database, using SQLite by default
+- Stores in your configured PostgreSQL database
 
 **Expected Output:**
 
@@ -395,18 +398,22 @@ python gmail_auth.py
 python -c "from gmail_api import authenticate_gmail; client = authenticate_gmail(); print('✓ Connected')"
 ```
 
-#### 🔴 "Database is locked"
+#### 🔴 PostgreSQL connection or schema errors
 
-**Problem:** SQLite database locked (rare on single-user systems)
+**Problem:** PostgreSQL is configured, but the app cannot connect cleanly or the schema is inconsistent.
 
 **Solution:**
 
 ```bash
-# Stop server
-# Delete database and re-create
-rm db/job_tracker.db
+# Check the configured database target
+echo "$DB_HOST:$DB_PORT/$DB_NAME"
+
+# Verify PostgreSQL is responding
+PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -U "$DB_USERNAME" -d "$DB_NAME" -c "SELECT 1;"
+
+# If needed, reset the schema and re-run migrations
+PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -U "$DB_USERNAME" -d "$DB_NAME" -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
 python manage.py migrate
-python manage.py ingest_gmail --days-back 7
 ```
 
 #### 🔴 "PostgrSQL <database-name> <host>:<port> is unreachable."
@@ -484,7 +491,7 @@ Once you have the dashboard running:
 
 - All data stays on your machine
 - No cloud sync or external APIs
-- Backup `db/job_tracker.db` regularly
+- Back up your PostgreSQL database regularly with `pg_dump`
 
 ✅ **Privacy-first:**
 

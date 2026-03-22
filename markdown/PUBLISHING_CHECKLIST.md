@@ -16,7 +16,7 @@ before creating a public GitHub repo.
 --------------------------------------
 - `json/credentials.json` (Google OAuth client secrets)
 - `json/token.json`, `json/token.pickle` (tokens)
-- `db/` (SQLite database files like `job_tracker.db`)
+- PostgreSQL backups, dumps, or mounted data directories
 - `logs/` (runtime logs; may contain message ids)
 - `model/` (trained model artifacts)
 - `review_reports/`, `backups/` (generated reports/backups)

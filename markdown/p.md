@@ -325,7 +325,7 @@ DEBUG=1 python manage.py ingest_gmail --message-id <msg_id>
 
 ```bash
 # Backup database
-cp job_tracker.db job_tracker.db.backup
+PGPASSWORD="$DB_PASSWORD" pg_dump -h "$DB_HOST" -U "$DB_USERNAME" "$DB_NAME" > tracker.backup.sql
 
 # Backup companies
 python manage.py export_companies
@@ -335,7 +335,7 @@ python manage.py export_companies
 
 ```bash
 # Restore database
-cp job_tracker.db.backup job_tracker.db
+PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -U "$DB_USERNAME" -d "$DB_NAME" < tracker.backup.sql
 
 # Or re-import
 python manage.py import_companies json/companies.json.backup
@@ -455,7 +455,7 @@ python manage.py ingest_gmail --days 90
 ### Database Maintenance
 
 ```bash
-# SQLite vacuum (shrink database)
+# PostgreSQL vacuum
 python manage.py dbshell
 > VACUUM;
 > .quit

@@ -63,7 +63,7 @@
 
 ### Data Privacy
 
-- ✅ **Local-Only**: All data stored in local SQLite database
+- ✅ **Local-Only**: All data stored in a user-controlled local PostgreSQL database
 - ✅ **No External APIs**: No telemetry, analytics, or external calls (except Gmail API)
 - ✅ **No Cloud Sync**: Data never leaves user's machine
 - ✅ **User Control**: Easy OAuth revocation instructions in documentation
@@ -269,7 +269,7 @@
 
 1. **Gmail API Only**: Requires Google account (no Outlook/Yahoo support)
 2. **Local-Only**: No cloud sync or mobile app (by design for privacy)
-3. **SQLite**: Not suitable for multi-user enterprise (by design for simplicity)
+3. **Single Postgres deployment target**: Local, CI, and deployment all assume the same PostgreSQL-backed stack
 4. **ML Accuracy**: 80-85% overall (requires initial training with user's emails)
 5. **English Only**: ML model trained on English emails (i18n possible)
 

@@ -123,7 +123,7 @@ docker run -d \
 
 The following directories are mounted as volumes for data persistence:
 
-- `./db` - SQLite database
+- PostgreSQL service volume - application database storage
 - `./logs` - Application logs
 - `./model` - ML model artifacts
 - `./json/credentials.json` - Gmail OAuth credentials (read-only)
@@ -447,11 +447,10 @@ See `cron/ghosted-marker.cron` for a ready-to-use cron configuration with detail
 mkdir -p backups/$(date +%Y%m%d)
 
 # Backup database
-docker-compose exec web sqlite3 /app/db/job_tracker.db ".backup '/app/db/backup.db'"
-cp db/backup.db backups/$(date +%Y%m%d)/job_tracker.db
+docker-compose exec db pg_dump -U ${DB_USERNAME:-gmailtracker} ${DB_NAME:-tracker} > backups/$(date +%Y%m%d)/tracker.sql
 
 # Backup model and configs
-tar -czf backups/$(date +%Y%m%d)/gmailtracker-backup.tar.gz db/ model/ json/
+tar -czf backups/$(date +%Y%m%d)/gmailtracker-backup.tar.gz model/ json/
 ```
 
 ### Restore
@@ -461,7 +460,7 @@ tar -czf backups/$(date +%Y%m%d)/gmailtracker-backup.tar.gz db/ model/ json/
 docker-compose down
 
 # Restore database
-cp backups/20251106/job_tracker.db db/
+cat backups/20251106/tracker.sql | docker-compose exec -T db psql -U ${DB_USERNAME:-gmailtracker} -d ${DB_NAME:-tracker}
 
 # Restore configs
 tar -xzf backups/20251106/gmailtracker-backup.tar.gz

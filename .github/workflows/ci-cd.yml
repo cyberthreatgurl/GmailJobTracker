@@ -58,6 +58,27 @@ jobs:
     name: Run Tests
     runs-on: ubuntu-latest
     needs: lint
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: tracker
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres -d tracker"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    env:
+      DB_ENGINE: postgresql
+      DB_NAME: tracker
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      DB_HOST: localhost
+      DB_PORT: 5432
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -79,9 +100,15 @@ jobs:
 
       - name: Create test environment
         run: |
-          mkdir -p db logs model json
+          mkdir -p logs model json
           cp .env.example .env
           echo "DJANGO_SECRET_KEY=test-secret-key-for-ci" >> .env
+          echo "DB_ENGINE=postgresql" >> .env
+          echo "DB_NAME=tracker" >> .env
+          echo "DB_USERNAME=postgres" >> .env
+          echo "DB_PASSWORD=postgres" >> .env
+          echo "DB_HOST=localhost" >> .env
+          echo "DB_PORT=5432" >> .env
           touch json/patterns.json
           touch json/companies.json
           echo '{"known": [], "domain_to_company": {}}' > json/companies.json

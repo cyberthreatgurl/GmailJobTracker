@@ -54,7 +54,9 @@ class Command(RunserverCommand):
             ("USER_EMAIL_ADDRESS", "User Email Address"),
             ("DEBUG", "Debug Mode"),
             ("ALLOWED_HOSTS", "Allowed Hosts"),
-            ("DATABASE_PATH", "Database Path"),
+            ("DB_HOST", "Database Host"),
+            ("DB_PORT", "Database Port"),
+            ("DB_NAME", "Database Name"),
             ("LOG_LEVEL", "Log Level"),
             ("REPORTING_DEFAULT_START_DATE", "Reporting Default Start Date"),
             ("AUTO_REVIEW_CONFIDENCE", "Auto-Review Confidence"),
@@ -216,7 +218,7 @@ class Command(RunserverCommand):
         # Get project root: runserver.py is at tracker/management/commands/
         # So parents[3] gets us to the project root
         project_root = Path(__file__).resolve().parents[3]
-        credentials_path = project_root / "json" / "credentials.json"
+        credentials_path = project_root / "credentials.json"
         token_path = project_root / "token.pickle"
 
         # Check credentials.json
@@ -341,24 +343,15 @@ class Command(RunserverCommand):
         db_settings = settings.DATABASES.get("default", {})
         engine = db_settings.get("ENGINE", "")
 
-        if "postgresql" in engine or "postgres" in engine:
-            db_type = "PostgreSQL"
-            host = db_settings.get("HOST", "localhost")
-            port = db_settings.get("PORT", 5432)
-            name = db_settings.get("NAME", "")
-            user = db_settings.get("USER", "")
-            self.stderr.write(f"  Engine............................... {db_type}")
-            self.stderr.write(f"  Host................................. {host}:{port}")
-            self.stderr.write(f"  Database............................. {name}")
-            self.stderr.write(f"  User................................. {user}")
-        elif "sqlite" in engine:
-            db_type = "SQLite"
-            db_path = db_settings.get("NAME", "")
-            self.stderr.write(f"  Engine............................... {db_type}")
-            self.stderr.write(f"  Path................................. {db_path}")
-        else:
-            db_type = engine.split(".")[-1] if engine else "Unknown"
-            self.stderr.write(f"  Engine............................... {db_type}")
+        db_type = "PostgreSQL" if "postgresql" in engine or "postgres" in engine else engine.split(".")[-1] if engine else "Unknown"
+        host = db_settings.get("HOST", "localhost")
+        port = db_settings.get("PORT", 5432)
+        name = db_settings.get("NAME", "")
+        user = db_settings.get("USER", "")
+        self.stderr.write(f"  Engine............................... {db_type}")
+        self.stderr.write(f"  Host................................. {host}:{port}")
+        self.stderr.write(f"  Database............................. {name}")
+        self.stderr.write(f"  User................................. {user}")
 
         # Attempt a live connection check
         try:

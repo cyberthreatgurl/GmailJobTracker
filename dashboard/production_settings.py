@@ -14,7 +14,7 @@ SECRET_KEY = os.getenv(
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 
 # Database
-DB_PATH = os.getenv("DATABASE_PATH", "/app/db/job_tracker.db")
+# The base settings module owns the PostgreSQL DATABASES configuration.
 
 # Static files
 STATIC_ROOT = os.getenv("STATIC_ROOT", "/app/staticfiles")

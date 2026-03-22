@@ -52,7 +52,7 @@ A local-only Django application that transforms your Gmail into an intelligent j
 
 ### 🔒 Privacy & Security
 
-- **100% local**: Local development stores data in SQLite by default, with optional PostgreSQL for Docker/deployment
+- **100% local**: Data stays in your own PostgreSQL instance for local development and deployment
 - **OAuth-only**: Read-only Gmail access, revocable anytime
 - **Secret scanning**: detect-secrets baseline enforced in CI
 - **No tracking**: Zero telemetry, analytics, or external API calls
@@ -82,7 +82,7 @@ python -m spacy download en_core_web_sm
 
 # 4. Configure environment
 cp .env.example .env
-# Edit .env: Set GMAIL_ROOT_FILTER_LABEL, USER_EMAIL_ADDRESS, and DB_ENGINE if needed
+# Edit .env: Set GMAIL_ROOT_FILTER_LABEL, USER_EMAIL_ADDRESS, and PostgreSQL connection values
 
 # 5. Setup Gmail API (see GETTING_STARTED.md section 2)
 # Place credentials.json in json/ directory
@@ -105,7 +105,7 @@ python manage.py runserver
 
 If the configured default database is unreachable at startup, the server now stops immediately with a clean error instead of continuing in a broken state.
 
-For local development and CI, the default backend is SQLite. Set `DB_ENGINE=postgresql` only when you actually want to use PostgreSQL, such as in Docker or another external database setup.
+The application now uses PostgreSQL across local development, CI, and Docker so the same database stack is exercised everywhere.
 
 **Visit:** <http://127.0.0.1:8000/>
 
@@ -150,7 +150,7 @@ graph TD
     A[Gmail API OAuth2] -->|Read-only message access| B[Ingestion Pipeline]
     B -->|parser.py| C[Hybrid ML + Regex Classifier]
     C -->|Classification| D[Company Resolution]
-    D -->|Extract company| E[SQLite Database]
+   D -->|Extract company| E[PostgreSQL Database]
     E -->|Store & retrieve| F[Django Dashboard]
     
     B1[Extract metadata<br/>subject, body, sender, thread_id] -.-> B
@@ -196,7 +196,7 @@ graph TD
 
 - **Backend:** Django 5.2, scikit-learn 1.7, spaCy 3.8
 - **ML:** TF-IDF + Logistic Regression (calibrated probabilities)
-- **Database:** SQLite by default for local/CI, optional PostgreSQL for Docker/deployment
+- **Database:** PostgreSQL for local development, CI, and deployment
 - **OAuth:** google-auth-oauthlib (read-only scope)
 - **Scraping:** Playwright (headed Chromium for war.gov WAF bypass)
 
@@ -374,26 +374,22 @@ python check_env.py
 
 ## 🧹 Start With a Fresh Database (keep models)
 
-If you want to wipe all data and start clean while keeping your Django models, migrations, and ML artifacts, reset the SQLite database file.
+If you want to wipe all data and start clean while keeping your Django models, migrations, and ML artifacts, reset the PostgreSQL database.
 
 Notes:
 
-- With `DB_ENGINE=sqlite`, the database path is controlled by `SQLITE_DB_PATH`; if not set, it defaults to `db/job_tracker.db`.
-- With `DB_ENGINE=postgresql`, reset the PostgreSQL database instead of deleting a local SQLite file.
-- Close any running server or ingestion before deleting (to avoid “database is locked”).
+- The application now uses PostgreSQL only. Reset the PostgreSQL database instead of deleting or restoring a separate file-based database.
+- Close any running server or ingestion before resetting the schema.
 - Model artifacts under `model/` are not affected.
 
-### Option A — Delete the SQLite file (recommended)
+### Option A — Reset the PostgreSQL database (recommended)
 
 Windows PowerShell:
 
 ```powershell
 # Stop the server/ingestion if running
-# Remove the DB file (default path)
-Remove-Item -LiteralPath "db/job_tracker.db" -Force -ErrorAction SilentlyContinue
-
-# If you customized the location via env var
-if ($env:SQLITE_DB_PATH) { Remove-Item -LiteralPath $env:SQLITE_DB_PATH -Force -ErrorAction SilentlyContinue }
+# Drop and recreate the public schema
+psql -h localhost -U "$env:DB_USERNAME" -d "$env:DB_NAME" -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
 
 # Recreate the schema
 python manage.py migrate
@@ -409,11 +405,8 @@ Linux/macOS bash:
 
 ```bash
 # Stop the server/ingestion if running
-# Remove the DB file (default path)
-rm -f db/job_tracker.db
-
-# If you customized the location via env var
-[ -n "$SQLITE_DB_PATH" ] && rm -f "$SQLITE_DB_PATH"
+# Drop and recreate the public schema
+PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -U "$DB_USERNAME" -d "$DB_NAME" -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
 
 # Recreate the schema
 python manage.py migrate
@@ -427,7 +420,7 @@ python manage.py ingest_gmail --days-back 7
 
 ### Option B — Flush data in-place (keeps the file)
 
-If you prefer to keep the same SQLite file but empty all tables:
+If you prefer to keep the same PostgreSQL database but empty all tables:
 
 ```bash
 python manage.py flush --noinput
@@ -527,7 +520,7 @@ See [markdown/BACKLOG.md](markdown/BACKLOG.md) for detailed roadmap.
 
 **All data stays local.** This application:
 
-- ✅ Stores data locally in SQLite by default, or in your own PostgreSQL instance if you explicitly configure one
+- ✅ Stores data in your own PostgreSQL instance only
 - ✅ Uses OAuth with read-only Gmail scope
 - ✅ Never sends data to external servers
 - ✅ Never tracks usage or analytics

@@ -142,11 +142,15 @@ Comma-separated list of hosts that can access your app:
 ALLOWED_HOSTS=localhost,127.0.0.1,yourdomain.com
 ```
 
-### DATABASE_PATH
+### DB_NAME / DB_HOST / DB_PORT / DB_USERNAME / DB_PASSWORD
 
-Location of SQLite database:
+PostgreSQL connection settings:
 ```bash
-DATABASE_PATH=db/job_tracker.db  # Default
+DB_NAME=tracker
+DB_HOST=localhost
+DB_PORT=5432
+DB_USERNAME=gmailtracker
+DB_PASSWORD=changeme
 ```
 
 ### LOG_LEVEL
@@ -217,7 +221,12 @@ GMAIL_ROOT_FILTER_LABEL=#job-hunt
 # Optional (with recommended values)
 DEBUG=False
 ALLOWED_HOSTS=localhost,127.0.0.1
-DATABASE_PATH=db/job_tracker.db
+DB_ENGINE=postgresql
+DB_NAME=tracker
+DB_HOST=localhost
+DB_PORT=5432
+DB_USERNAME=gmailtracker
+DB_PASSWORD=changeme
 LOG_LEVEL=INFO
 AUTO_REVIEW_CONFIDENCE=0.85
 ML_CONFIDENCE_THRESHOLD=0.55

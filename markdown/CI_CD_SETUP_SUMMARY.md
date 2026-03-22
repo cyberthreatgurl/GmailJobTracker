@@ -288,7 +288,7 @@ act -j test
 
 #### Volume Mounts (Persistent Data)
 
-- `/app/db` - SQLite database
+- PostgreSQL service volume - application database storage
 - `/app/logs` - Application logs
 - `/app/model` - ML model artifacts
 - `/app/json` - Configuration files

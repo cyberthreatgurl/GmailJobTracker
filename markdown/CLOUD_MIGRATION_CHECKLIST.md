@@ -11,7 +11,7 @@ personal data, or trained model artifacts that must be copied by hand.
 
 ## 1. PostgreSQL Database
 
-The app uses PostgreSQL (not SQLite). You must export your local database and
+The app uses PostgreSQL. You must export your local database and
 import it into the cloud-managed database service.
 
 ```bash

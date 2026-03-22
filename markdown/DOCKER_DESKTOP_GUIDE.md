@@ -307,8 +307,7 @@ docker-compose exec web python train_model.py --verbose
 # Or manually:
 $date = Get-Date -Format "yyyyMMdd"
 New-Item -ItemType Directory -Force -Path "backups\$date"
-docker-compose exec web sqlite3 /app/db/job_tracker.db ".backup '/app/db/backup.db'"
-Copy-Item "db\backup.db" "backups\$date\job_tracker.db"
+docker-compose exec db pg_dump -U gmailtracker tracker > "backups\$date\tracker.sql"
 ```
 
 ---
@@ -319,7 +318,7 @@ Your data is stored in these directories (mapped from container to host):
 
 ```
 GmailJobTracker/
-├── db/                    # SQLite database (persistent)
+├── postgres-data/         # PostgreSQL data volume (persistent)
 ├── logs/                  # Application logs (persistent)
 ├── model/                 # ML model files (persistent)
 └── json/

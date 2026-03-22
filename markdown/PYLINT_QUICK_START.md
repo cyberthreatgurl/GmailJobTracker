@@ -124,14 +124,14 @@ bash scripts/fix_pylint.sh phase1 --dry-run
 ```python
 # BEFORE
 try:
-    conn = sqlite3.connect(DB_PATH)
+   conn = psycopg.connect(dsn)
 except Exception as e:  # Too broad!
     logging.error(f"Error: {e}")
 
 # AFTER
 try:
-    conn = sqlite3.connect(DB_PATH)
-except (sqlite3.Error, OSError) as e:
+   conn = psycopg.connect(dsn)
+except (psycopg.Error, OSError) as e:
     logging.error(f"Database error: {e}")
 ```
 

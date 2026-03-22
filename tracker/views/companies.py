@@ -12,7 +12,6 @@ import importlib
 import logging
 import os
 import re
-import requests
 import subprocess
 import sys
 from urllib.parse import urlparse
@@ -37,6 +36,12 @@ from tracker.models import (
     AuditEvent,
 )
 from tracker.services.news_service import NewsAggregator
+from tracker.services.browser_scraper import (
+    fetch_best_effort_page,
+    fetch_rendered_page,
+    should_fallback_to_browser,
+    should_use_browser_first,
+)
 from tracker.services.usaspending_service import USASpendingService
 from tracker.forms import CompanyEditForm
 from tracker.location_normalization import canonicalize_city_key
@@ -182,11 +187,15 @@ INVALID_LOCATION_PARTS = {
 LOCATION_PATTERNS = [
     re.compile(
         rf'\bLocation\s*({CITY_PATTERN}),\s*({REGION_PATTERN})(?:,\s*({COUNTRY_PATTERN}))?'
-        r'(?=\s*(?:\||Category|Job\s*Id|Posted\s*Date|Save|$))'
+        r'(?=\s*(?:\||Category|Categories|Job\s*Id|Posted\s*Date|Save|$))'
+    , re.I),
+    re.compile(
+        rf'\bLocation\s*({CITY_PATTERN}),\s*({REGION_PATTERN})(?:\s+({COUNTRY_PATTERN}))?'
+        r'(?=\s*(?:\||Category|Categories|Job\s*Id|Posted\s*Date|Save|$))'
     , re.I),
     re.compile(
         rf'\b({CITY_PATTERN}),\s*({REGION_PATTERN})(?:,\s*({COUNTRY_PATTERN}))?'
-        r'(?=\s*(?:\||\.|!|;|<|$|Category|Job\s*Id|Posted\s*Date|Save|as\s+well\s+as|and\b))'
+        r'(?=\s*(?:\||\.|!|;|<|$|Category|Categories|Job\s*Id|Posted\s*Date|Save|as\s+well\s+as|and\b))'
     , re.I),
 ]
 
@@ -331,6 +340,16 @@ def _build_location(city, region, country=None):
 def _add_locations_from_candidate_string(candidate, add_location):
     """Parse a comma-separated location string and add it if valid."""
     cleaned = _clean_location_part(candidate)
+    if not cleaned:
+        return
+
+    for segment in re.split(r'\s*;\s*', cleaned):
+        _add_single_location_candidate(segment, add_location)
+
+
+def _add_single_location_candidate(candidate, add_location):
+    """Parse a single location candidate and add it if valid."""
+    cleaned = _clean_location_part(candidate)
     if not cleaned or ',' not in cleaned:
         return
 
@@ -394,6 +413,52 @@ def _extract_locations_from_html(html_content):
             add_location(city, region, country)
 
     return sorted([loc for loc in locations if loc and len(loc) > 4])
+
+
+def _extract_locations_from_captured_json(captured_json):
+    """Extract normalized locations from captured ATS JSON payloads."""
+    locations = set()
+
+    def add_location(city, region, country=None):
+        location = _build_location(city, region, country)
+        if location:
+            locations.add(location)
+
+    for item in captured_json or []:
+        payload = item.get("data") if isinstance(item, dict) else None
+        if not isinstance(payload, dict):
+            continue
+
+        search_locations = payload.get("locations") or []
+        for search_location in search_locations:
+            _add_locations_from_candidate_string(search_location, add_location)
+
+        for job in payload.get("jobs") or []:
+            job_data = job.get("data", job) if isinstance(job, dict) else None
+            if not isinstance(job_data, dict):
+                continue
+
+            city = job_data.get("city")
+            region = job_data.get("state") or job_data.get("region")
+            country = job_data.get("country") or job_data.get("country_code")
+            if city and region:
+                add_location(city, region, country)
+
+            for key in ("location", "location_name", "full_location", "short_location"):
+                value = job_data.get(key)
+                if value:
+                    _add_locations_from_candidate_string(value, add_location)
+
+            multi_locations = job_data.get("multipleLocations") or job_data.get("multi_location") or []
+            if isinstance(multi_locations, bool):
+                multi_locations = []
+            elif isinstance(multi_locations, str):
+                multi_locations = [multi_locations]
+            for entry in multi_locations:
+                if entry:
+                    _add_locations_from_candidate_string(entry, add_location)
+
+    return sorted(locations)
 
 def _parse_operating_cities(raw_text):
     """Parse multiline city input into unique cleaned city names.
@@ -2713,6 +2778,142 @@ def job_search_tracker(request):
 
     return render(request, "tracker/job_search_tracker.html", ctx)
 
+def _extract_job_posting_text_from_html(html_content):
+    """Extract the most relevant job posting text from raw HTML."""
+    from bs4 import BeautifulSoup
+    import warnings
+
+    warnings.filterwarnings("ignore", category=UserWarning, module="bs4")
+
+    soup = BeautifulSoup(html_content or "", "html.parser")
+    for element in soup(["script", "style", "nav", "footer", "header", "aside", "iframe", "noscript"]):
+        element.decompose()
+
+    main_content = None
+    content_selectors = [
+        ".BambooHR-ATS-board",
+        ".BambooHR-ATS-Description",
+        "[data-qa='job-description']",
+        ".job-board__description",
+        "#jobDescription",
+        ".careers-description",
+        "main",
+        "article",
+        "[role='main']",
+        ".job-description",
+        ".job-details",
+        ".job-content",
+        ".posting-description",
+        "#job-description",
+        "#job-details",
+        ".description",
+        ".content",
+        ".main-content",
+        "[class*='description']",
+        "[class*='job-posting']",
+        "[class*='posting-content']",
+    ]
+
+    for selector in content_selectors:
+        main_content = soup.select_one(selector)
+        if main_content:
+            logger.info("scrape_job_posting: Found content using selector: %s", selector)
+            break
+
+    if not main_content:
+        logger.warning("scrape_job_posting: No main content selector matched, trying fallback methods")
+        divs = soup.find_all(["div", "section", "article"])
+        if divs:
+            main_content = max(divs, key=lambda d: len(d.get_text(strip=True)))
+            logger.info("scrape_job_posting: Using largest text container as fallback")
+
+    if not main_content:
+        main_content = soup.body
+        logger.warning("scrape_job_posting: Using body as last resort")
+
+    if not main_content:
+        return ""
+
+    text = main_content.get_text(separator="\n", strip=True)
+    lines = [line.strip() for line in text.split("\n") if line.strip()]
+    return "\n".join(lines)
+
+
+def _scrape_job_posting_content(url: str, timeout: int = 15, allow_browser_fallback: bool = True):
+    """Scrape a job posting with static-first fetching and rendered fallback."""
+    timeout_ms = max(int(timeout * 1000), 1000)
+    page_result = fetch_best_effort_page(
+        url,
+        timeout=timeout_ms,
+        browser_first=should_use_browser_first(url),
+        capture_json=True,
+    )
+
+    if not page_result["success"]:
+        return {
+            "success": False,
+            "content": "",
+            "error": page_result["error"] or "Failed to scrape page.",
+            "status_code": page_result.get("status_code") or 500,
+            "source_method": page_result.get("source_method"),
+            "resolved_url": page_result.get("final_url") or url,
+            "extracted_location": None,
+        }
+
+    text = _extract_job_posting_text_from_html(page_result["html"])
+    if (
+        allow_browser_fallback
+        and page_result.get("source_method") == "static"
+        and should_fallback_to_browser(url, text, page_result.get("status_code"))
+    ):
+        rendered_result = fetch_rendered_page(
+            url,
+            timeout=timeout_ms,
+            capture_json=True,
+        )
+        if rendered_result["success"]:
+            page_result = rendered_result
+            text = _extract_job_posting_text_from_html(page_result["html"])
+
+    if len(text) < 100:
+        logger.warning("scrape_job_posting: Very little content extracted (%s chars)", len(text))
+        debug_file = "/tmp/scrape_debug.html"
+        try:
+            with open(debug_file, "w", encoding="utf-8") as file_handle:
+                file_handle.write(page_result["html"])
+            logger.info("scrape_job_posting: Saved HTML to %s for debugging", debug_file)
+        except Exception as exc:
+            logger.error("scrape_job_posting: Failed to save debug HTML: %s", exc)
+
+    if len(text) > 20000:
+        text = text[:20000] + "\n\n[Content truncated to 20,000 characters]"
+
+    locations = _extract_locations_from_html(page_result["html"])
+
+    if len(text) < 50:
+        return {
+            "success": False,
+            "content": "",
+            "error": (
+                "Could not extract meaningful content. The page may use "
+                "JavaScript to load content. Try copying the text manually."
+            ),
+            "status_code": 200,
+            "source_method": page_result.get("source_method"),
+            "resolved_url": page_result.get("final_url") or url,
+            "extracted_location": locations[0] if locations else None,
+        }
+
+    return {
+        "success": True,
+        "content": text,
+        "error": None,
+        "status_code": 200,
+        "source_method": page_result.get("source_method"),
+        "resolved_url": page_result.get("final_url") or url,
+        "extracted_location": locations[0] if locations else None,
+    }
+
 
 @login_required
 def scrape_job_posting(request):
@@ -2737,156 +2938,10 @@ def scrape_job_posting(request):
         return JsonResponse({"error": "URL must start with http:// or https://"}, status=400)
 
     try:
-        # Import scraping utilities
-        from bs4 import BeautifulSoup
-        import warnings
-
-        # Suppress BeautifulSoup encoding warnings
-        warnings.filterwarnings("ignore", category=UserWarning, module='bs4')
-
-        # Fetch the page with a realistic User-Agent and headers
-        headers = {
-            "User-Agent": (
-                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
-                "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 "
-                "Safari/537.36"
-            ),
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-            "Accept-Language": "en-US,en;q=0.9",
-            "Accept-Encoding": "gzip, deflate, br",
-            "DNT": "1",
-            "Connection": "keep-alive",
-            "Upgrade-Insecure-Requests": "1",
-            "Sec-Fetch-Dest": "document",
-            "Sec-Fetch-Mode": "navigate",
-            "Sec-Fetch-Site": "none",
-            "Cache-Control": "max-age=0",
-        }
-        logger.info(f"scrape_job_posting: Fetching URL: {url}")
-        response = requests.get(url, headers=headers, timeout=15, allow_redirects=True)
-        response.raise_for_status()
-
-        logger.info(f"scrape_job_posting: Received {len(response.content)} bytes, status {response.status_code}")
-
-        # Parse HTML with explicit encoding handling
-        soup = BeautifulSoup(response.content, "html.parser", from_encoding=response.encoding)
-
-        # Log the page structure for debugging
-        logger.debug(f"scrape_job_posting: Page title: {soup.title.string if soup.title else 'No title'}")
-
-        # Remove unwanted elements (scripts, styles, nav, footer, ads)
-        for element in soup(["script", "style", "nav", "footer", "header", "aside", "iframe", "noscript"]):
-            element.decompose()
-
-        # Try to find the main content area with expanded selectors
-        main_content = None
-        content_selectors = [
-            # BambooHR specific
-            ".BambooHR-ATS-board",
-            ".BambooHR-ATS-Description",
-            "[data-qa='job-description']",
-            ".job-board__description",
-            "#jobDescription",
-            ".careers-description",
-            # Generic job posting containers
-            "main",
-            "article",
-            "[role='main']",
-            ".job-description",
-            ".job-details",
-            ".job-content",
-            ".posting-description",
-            "#job-description",
-            "#job-details",
-            ".description",
-            ".content",
-            ".main-content",
-            "[class*='description']",
-            "[class*='job-posting']",
-            "[class*='posting-content']",
-        ]
-
-        for selector in content_selectors:
-            main_content = soup.select_one(selector)
-            if main_content:
-                logger.info(f"scrape_job_posting: Found content using selector: {selector}")
-                break
-
-        # If no main content found, try to find any divs with substantial text
-        if not main_content:
-            logger.warning("scrape_job_posting: No main content selector matched, trying fallback methods")
-            # Look for the largest text-containing div
-            divs = soup.find_all(['div', 'section', 'article'])
-            if divs:
-                main_content = max(divs, key=lambda d: len(d.get_text(strip=True)))
-                logger.info(f"scrape_job_posting: Using largest text container as fallback")
-
-        # Last resort: use body
-        if not main_content:
-            main_content = soup.body
-            logger.warning("scrape_job_posting: Using body as last resort")
-
-        if not main_content:
-            return JsonResponse({"error": "Could not extract content from page"}, status=400)
-
-        # Extract text and clean it up
-        text = main_content.get_text(separator="\n", strip=True)
-
-        # Clean up excessive whitespace
-        lines = [line.strip() for line in text.split("\n") if line.strip()]
-        text = "\n".join(lines)
-
-        # If we got no content, save HTML for debugging
-        if len(text) < 100:
-            logger.warning(f"scrape_job_posting: Very little content extracted ({len(text)} chars)")
-            # Save HTML to debug file
-            debug_file = "/tmp/scrape_debug.html"
-            try:
-                with open(debug_file, "w", encoding="utf-8") as f:
-                    f.write(str(soup.prettify()))
-                logger.info(f"scrape_job_posting: Saved HTML to {debug_file} for debugging")
-            except Exception as e:
-                logger.error(f"scrape_job_posting: Failed to save debug HTML: {e}")
-
-        # Limit to first 20,000 characters (same as form validation)
-        if len(text) > 20000:
-            text = text[:20000] + "\n\n[Content truncated to 20,000 characters]"
-
-        logger.info(f"scrape_job_posting: Extracted {len(text)} characters")
-        logger.debug(f"scrape_job_posting: Content preview: {text[:200]}...")
-
-        # If we have no meaningful content, return an error
-        if len(text) < 50:
-            return JsonResponse(
-                {
-                    "error": (
-                        "Could not extract meaningful content. The page may use "
-                        "JavaScript to load content. Try copying the text manually."
-                    ),
-                    "success": False,
-                },
-                status=200,
-            )  # Return 200 so JavaScript can show the error message
-
-        return JsonResponse({"success": True, "content": text})
-
-    except requests.Timeout:
-        return JsonResponse({"error": "Request timed out. The page took too long to load."}, status=408)
-    except requests.HTTPError as e:
-        if e.response.status_code == 403:
-            return JsonResponse(
-                {
-                    "error": (
-                        "Access denied (403). The website is blocking automated "
-                        "requests."
-                    )
-                },
-                status=403,
-            )
-        elif e.response.status_code == 404:
-            return JsonResponse({"error": "Page not found (404). Please check the URL."}, status=404)
-        else:
-            return JsonResponse({"error": f"HTTP error {e.response.status_code}"}, status=e.response.status_code)
+        logger.info("scrape_job_posting: Fetching URL: %s", url)
+        result = _scrape_job_posting_content(url)
+        status_code = result.pop("status_code", 200)
+        return JsonResponse(result, status=status_code)
     except Exception as e:
         logger.exception("Failed to scrape job posting")
         return JsonResponse({"error": f"Failed to scrape page: {str(e)}"}, status=500)
@@ -3306,25 +3361,23 @@ def extract_company_locations(request):
     raw_html = request.POST.get("raw_html", "").strip()
 
     content = raw_html
+    captured_json = []
 
     if not content and url:
         try:
-            headers = {
-                "User-Agent": (
-                    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
-                    "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 "
-                    "Safari/537.36"
-                )
-            }
-            response = requests.get(url, headers=headers, timeout=15, allow_redirects=True)
-            response.raise_for_status()
-            content = response.text
-        except requests.Timeout:
-            return JsonResponse({"success": False, "message": "The request timed out. The website took too long to respond. Try copying and pasting the raw HTML instead."})
-        except requests.HTTPError as e:
-            if e.response.status_code in [401, 403]:
-                return JsonResponse({"success": False, "message": "Access denied by the website (Bot protection/WAF). Please copy and paste the raw HTML instead."})
-            return JsonResponse({"success": False, "message": f"HTTP Error {e.response.status_code}. Try pasting the raw HTML instead."})
+            page_result = fetch_best_effort_page(
+                url,
+                timeout=15000,
+                browser_first=should_use_browser_first(url),
+                capture_json=True,
+            )
+            if not page_result["success"]:
+                return JsonResponse({
+                    "success": False,
+                    "message": page_result.get("error") or "Failed to fetch the URL.",
+                })
+            content = page_result.get("html", "")
+            captured_json = page_result.get("captured_json", [])
         except Exception as e:
             return JsonResponse({"success": False, "message": f"Failed to fetch the URL: {str(e)}. Try pasting the raw HTML instead."})
 
@@ -3333,6 +3386,8 @@ def extract_company_locations(request):
 
     try:
         locations = _extract_locations_from_html(content)
+        if not locations and captured_json:
+            locations = _extract_locations_from_captured_json(captured_json)
         if not locations:
             return JsonResponse({
                 "success": False,

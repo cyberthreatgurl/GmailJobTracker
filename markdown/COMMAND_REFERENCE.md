@@ -2,6 +2,12 @@
 
 Complete reference for all management commands, scripts, and utilities in GmailJobTracker.
 
+For JavaScript-heavy careers pages and job postings, install the Playwright Chromium browser once per environment:
+
+```bash
+python -m playwright install chromium
+```
+
 ---
 
 ## Django Management Commands

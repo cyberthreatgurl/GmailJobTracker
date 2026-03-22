@@ -34,6 +34,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
 
+      - name: Install Playwright browser
+        run: python -m playwright install --with-deps chromium
+
       - name: Run Black (code formatter check)
         run: black --check . --exclude '/(\.git|\.venv|venv|ENV|env|node_modules|migrations|staticfiles)/'
         continue-on-error: true
@@ -94,6 +97,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
           pip install pytest pytest-django pytest-cov
+
+      - name: Install Playwright browser
+        run: python -m playwright install --with-deps chromium
 
       - name: Download spaCy model
         run: python -m spacy download en_core_web_sm

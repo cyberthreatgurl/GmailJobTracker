@@ -163,6 +163,8 @@ pillow==12.0.0
     # via matplotlib
 pip-tools==7.5.2
     # via -r requirements-dev.in
+playwright==1.58.0
+    # via -r requirements-prod.in
 platformdirs==4.5.1
     # via black
 pluggy==1.6.0

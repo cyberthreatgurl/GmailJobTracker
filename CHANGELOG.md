@@ -7,16 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.5.0] - 2026-03-22
+
 ### Added
 - Database startup guards now stop `runserver`, WSGI/ASGI startup, and Docker entrypoint startup when the configured default database is unreachable.
-- Added focused regression coverage for startup checks, contract refresh behavior on `label_companies`, and the PSI Pax Jobvite parsing case.
-- Added focused regression coverage for duplicate application acknowledgements, forwarded `.eml` imports, milestone anchoring, and deduplicated application metrics.
+- Added focused regression coverage for startup checks, contract refresh behavior on `label_companies`, the PSI Pax Jobvite parsing case, duplicate application acknowledgements, forwarded `.eml` imports, and deduplicated application metrics.
+- Added a shared Playwright-backed scraping path for JavaScript-heavy job and company pages, plus focused browser fallback tests for ATS-hosted pages.
 
 ### Changed
 - The `label_companies` company editor now shows the saved homepage URL read-only for existing companies, derives the homepage domain into Company Data Preview, and synchronizes the stored `domain` field from the homepage URL on save.
 - Refreshing contracts from the company page now updates the contracts summary and linked contracts section in place instead of leaving the page stale.
-- Documentation now reflects the preferred `companies.json` update order and the new startup behavior.
-- Local development, CI, and Docker now all use PostgreSQL as the application database to keep one consistent stack.
+- Local development, CI, and Docker now all use PostgreSQL as the application database to keep one consistent stack, and CI installs the required PostgreSQL driver from the dev lockfile.
+- Documentation now reflects the preferred `companies.json` update order, startup behavior, Playwright Chromium setup, and rendered scraping fallback expectations.
+- Job, company, and location scraping now use a static-first flow with browser-first heuristics for ATS hosts and fall back to captured JSON payloads when rendered DOM content is still low-signal.
 - Dashboard application counts and recent-activity series now use deduplicated `ThreadTracking` application records instead of raw message counts.
 
 ### Fixed
@@ -24,6 +27,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Parser and label propagation now avoid creating duplicate application records for repeat acknowledgements, anchor prescreen/interview/offer milestones to the correct existing application, and preserve forwarded-message dates and job metadata during `.eml` imports.
 - ATS-aware company extraction now better handles Amazon, Armis, Trellix, Leidos, HII, Maximus, Endyna, and other configured aliases/domain mappings when the sender or subject uses shortened company forms.
 - PostgreSQL is again selected consistently for existing `.env` files, and the runtime now refuses alternate file-based backends so the app cannot silently point at a second database.
+- The RSS dashboard no longer crashes on pagination links that serialize empty `feed` or `category` filters as `None`.
+- SPA and ATS-backed location extraction now resolves locations from captured JSON payloads, including semicolon-delimited multi-location strings that were previously emitted as one messy value.
 
 ## [3.4.0] - 2026-03-18
 

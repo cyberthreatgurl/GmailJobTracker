@@ -31,6 +31,7 @@ services:
       - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY:-django-insecure-docker-default-key-change-me}
       - DEBUG=${DEBUG:-False}
       - ALLOWED_HOSTS=${ALLOWED_HOSTS:-localhost,127.0.0.1}
+      - DB_ENGINE=${DB_ENGINE:-postgresql}
       # PostgreSQL connection
       - DB_NAME=${DB_NAME:-tracker}
       - DB_USERNAME=${DB_USERNAME:-gmailtracker}

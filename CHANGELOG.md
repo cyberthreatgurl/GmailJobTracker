@@ -10,14 +10,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Database startup guards now stop `runserver`, WSGI/ASGI startup, and Docker entrypoint startup when the configured default database is unreachable.
 - Added focused regression coverage for startup checks, contract refresh behavior on `label_companies`, and the PSI Pax Jobvite parsing case.
+- Added focused regression coverage for duplicate application acknowledgements, forwarded `.eml` imports, milestone anchoring, and deduplicated application metrics.
 
 ### Changed
 - The `label_companies` company editor now shows the saved homepage URL read-only for existing companies, derives the homepage domain into Company Data Preview, and synchronizes the stored `domain` field from the homepage URL on save.
 - Refreshing contracts from the company page now updates the contracts summary and linked contracts section in place instead of leaving the page stale.
 - Documentation now reflects the preferred `companies.json` update order and the new startup behavior.
+- Local development and CI now default to SQLite unless `DB_ENGINE=postgresql` is explicitly set, while Docker keeps PostgreSQL as the default backend.
+- Dashboard application counts and recent-activity series now use deduplicated `ThreadTracking` application records instead of raw message counts.
 
 ### Fixed
 - Company canonicalization now recognizes configured names from multiple `companies.json` sections and uses ATS heuristics consistently, fixing over-captured ATS phrases such as `joining PSI Pax`.
+- Parser and label propagation now avoid creating duplicate application records for repeat acknowledgements, anchor prescreen/interview/offer milestones to the correct existing application, and preserve forwarded-message dates and job metadata during `.eml` imports.
+- ATS-aware company extraction now better handles Amazon, Armis, Trellix, Leidos, HII, Maximus, Endyna, and other configured aliases/domain mappings when the sender or subject uses shortened company forms.
 
 ## [3.4.0] - 2026-03-18
 

@@ -9,9 +9,218 @@ from difflib import SequenceMatcher
 from typing import Optional
 from django.db import transaction
 
+from email_parser import MetadataExtractor
 from tracker.models import Message, ThreadTracking
 
 logger = logging.getLogger("parser")
+
+
+def _extract_application_identity(message: Message) -> tuple[str, str]:
+    """Extract job title and job ID for exact application matching."""
+    from parser import (
+        extract_application_job_id_from_body,
+        extract_job_title_from_body,
+        parse_subject,
+    )
+
+    body = message.body or ""
+    parsed = parse_subject(
+        subject=message.subject or "",
+        body=body,
+        sender=message.sender or "",
+        sender_domain=message.sender_domain,
+    )
+    job_title = parsed.get("job_title", "") if isinstance(parsed, dict) else ""
+    if not job_title:
+        job_title = extract_job_title_from_body(body)
+    job_id = ""
+    if isinstance(parsed, dict):
+        job_id = parsed.get("job_id", "") or ""
+    if not job_id:
+        job_id = MetadataExtractor.extract_job_id(message.subject or "")
+    if not job_id:
+        job_id = extract_application_job_id_from_body(body)
+    return job_title, job_id
+
+
+def _normalize_application_identity(text: str) -> str:
+    """Normalize job-title and job-id text for exact comparisons."""
+    if not text:
+        return ""
+    normalized = re.sub(r"[^a-z0-9]+", " ", text.lower()).strip()
+    return re.sub(r"\s+", " ", normalized)
+
+
+def _should_reuse_existing_application(tt: ThreadTracking, message: Message) -> tuple[bool, str, str]:
+    """Decide whether a same-thread application message should enrich the existing TT."""
+    job_title, job_id = _extract_application_identity(message)
+    normalized_title = _normalize_application_identity(job_title)
+    normalized_id = _normalize_application_identity(job_id)
+    existing_title = _normalize_application_identity(tt.job_title or "")
+    existing_id = _normalize_application_identity(tt.job_id or "")
+
+    if normalized_id and existing_id:
+        return normalized_id == existing_id, job_title, job_id
+    if normalized_title and existing_title:
+        return normalized_title == existing_title, job_title, job_id
+    if (normalized_title or normalized_id) and not existing_title and not existing_id:
+        return True, job_title, job_id
+    return False, job_title, job_id
+
+
+def _find_company_application_target(
+    message: Message,
+    exclude_thread_id: str,
+) -> Optional[ThreadTracking]:
+    """Find an existing application only when exact job identity is available."""
+    if not message.company:
+        return None
+
+    job_title, job_id = _extract_application_identity(message)
+    normalized_title = _normalize_application_identity(job_title)
+    normalized_id = _normalize_application_identity(job_id)
+    if not normalized_title and not normalized_id:
+        if _is_compliance_prescreen_message(message):
+            return _find_unique_active_prior_application(message, exclude_thread_id)
+        logger.debug(
+            "ℹ️ Skipping cross-thread milestone propagation for %s: no job identity",
+            message.company.name,
+        )
+        return None
+
+    queryset = ThreadTracking.objects.filter(company=message.company)
+    excluded_thread_ids = {exclude_thread_id}
+    if getattr(message, "msg_id", None):
+        excluded_thread_ids.add(message.msg_id)
+    excluded_thread_ids.discard("")
+    if excluded_thread_ids:
+        queryset = queryset.exclude(thread_id__in=excluded_thread_ids)
+
+    candidates = list(queryset.order_by("-sent_date", "-id"))
+    milestone_date = message.timestamp.date() if message.timestamp else None
+    if milestone_date:
+        candidates = [
+            candidate for candidate in candidates
+            if not candidate.sent_date or candidate.sent_date <= milestone_date
+        ]
+
+    for candidate in candidates:
+        candidate_id = _normalize_application_identity(candidate.job_id or "")
+        if normalized_id and candidate_id == normalized_id:
+            return candidate
+
+    for candidate in candidates:
+        candidate_title = _normalize_application_identity(candidate.job_title or "")
+        if normalized_title and candidate_title == normalized_title:
+            return candidate
+
+    logger.debug(
+        "ℹ️ Skipping cross-thread milestone propagation for %s: no exact application match",
+        message.company.name,
+    )
+
+    if _is_compliance_prescreen_message(message):
+        return _find_unique_active_prior_application(message, exclude_thread_id)
+
+    return None
+
+
+def _is_compliance_prescreen_message(message: Message) -> bool:
+    """Return True for compliance/prescreen workflow messages without job identity."""
+    text = f"{message.subject or ''} {message.body or ''}".lower()
+    return any(
+        marker in text
+        for marker in (
+            "compliance",
+            "pre-screen",
+            "pre screen",
+            "complete the form",
+            "asked to complete a form",
+            "threatswitch",
+        )
+    )
+
+
+def _find_unique_active_prior_application(
+    message: Message,
+    exclude_thread_id: str,
+) -> Optional[ThreadTracking]:
+    """Return a unique active application candidate for compliance prescreens."""
+    if not message.company:
+        return None
+
+    queryset = ThreadTracking.objects.filter(company=message.company)
+    excluded_thread_ids = {exclude_thread_id}
+    if getattr(message, "msg_id", None):
+        excluded_thread_ids.add(message.msg_id)
+    excluded_thread_ids.discard("")
+    if excluded_thread_ids:
+        queryset = queryset.exclude(thread_id__in=excluded_thread_ids)
+
+    milestone_date = message.timestamp.date() if message.timestamp else None
+    candidates = [
+        candidate for candidate in queryset.order_by("-sent_date", "-id")
+        if _is_application_like_threadtracking(candidate)
+        and not candidate.rejection_date
+        and not candidate.cancelled
+        and not candidate.withdrew
+        and (not milestone_date or not candidate.sent_date or candidate.sent_date <= milestone_date)
+    ]
+
+    if len(candidates) == 1:
+        return candidates[0]
+    return None
+
+
+def _is_application_like_threadtracking(tt: ThreadTracking) -> bool:
+    """Return True when a ThreadTracking row represents the canonical application."""
+    if not tt:
+        return False
+
+    return bool(
+        tt.ml_label == "job_application"
+        or _normalize_application_identity(tt.job_title or "")
+        or _normalize_application_identity(tt.job_id or "")
+    )
+
+
+def _find_company_offer_target(
+    message: Message,
+    exclude_thread_id: str,
+    current_tt: Optional[ThreadTracking] = None,
+) -> Optional[ThreadTracking]:
+    """Find the canonical application that should receive an offer milestone."""
+    milestone_date = message.timestamp.date() if message.timestamp else None
+
+    if current_tt and _is_application_like_threadtracking(current_tt):
+        if not milestone_date or not current_tt.sent_date or current_tt.sent_date <= milestone_date:
+            return current_tt
+
+    target = _find_company_application_target(message, exclude_thread_id=exclude_thread_id)
+    if target is not None:
+        return target
+
+    if not message.company:
+        return None
+
+    queryset = ThreadTracking.objects.filter(company=message.company)
+    excluded_thread_ids = {exclude_thread_id}
+    if getattr(message, "msg_id", None):
+        excluded_thread_ids.add(message.msg_id)
+    excluded_thread_ids.discard("")
+    if excluded_thread_ids:
+        queryset = queryset.exclude(thread_id__in=excluded_thread_ids)
+
+    candidates = [candidate for candidate in queryset.order_by("-sent_date", "-id") if _is_application_like_threadtracking(candidate)]
+    if milestone_date:
+        candidates = [
+            candidate for candidate in candidates
+            if not candidate.sent_date or candidate.sent_date <= milestone_date
+        ]
+
+    if len(candidates) == 1:
+        return candidates[0]
+    return None
 
 
 def _normalize_title(text: str) -> str:
@@ -221,6 +430,24 @@ def propagate_message_label_to_thread(message: Message) -> Optional[ThreadTracki
                     and message.msg_id
                     and message.msg_id != thread_id
                 ):
+                    reuse_existing, job_title, job_id = _should_reuse_existing_application(tt, message)
+                    if reuse_existing:
+                        changed = False
+                        if job_title and not tt.job_title:
+                            tt.job_title = job_title
+                            changed = True
+                        if job_id and not tt.job_id:
+                            tt.job_id = job_id
+                            changed = True
+                        if message.confidence is not None and (
+                            tt.ml_confidence is None or tt.ml_confidence != message.confidence
+                        ):
+                            tt.ml_confidence = message.confidence
+                            changed = True
+                        if changed:
+                            tt.save()
+                        return tt
+
                     msg_tt = ThreadTracking.objects.filter(
                         thread_id=message.msg_id
                     ).first()
@@ -238,8 +465,8 @@ def propagate_message_label_to_thread(message: Message) -> Optional[ThreadTracki
                         thread_id=message.msg_id,
                         company=message.company,
                         company_source=message.company_source or "manual",
-                        job_title="",
-                        job_id="",
+                        job_title=job_title,
+                        job_id=job_id,
                         status="application",
                         sent_date=msg_date,
                         ml_label=message.ml_label,
@@ -252,33 +479,46 @@ def propagate_message_label_to_thread(message: Message) -> Optional[ThreadTracki
                     )
                     return new_tt
 
+                target_tt = tt
+                if message.ml_label == "offer":
+                    offer_target = _find_company_offer_target(
+                        message,
+                        exclude_thread_id=thread_id,
+                        current_tt=tt,
+                    )
+                    if offer_target is not None:
+                        target_tt = offer_target
+
                 changed = False
                 is_cancelled = False
-                old_label = tt.ml_label
-                if message.ml_label and tt.ml_label != message.ml_label:
-                    tt.ml_label = message.ml_label
+                old_label = target_tt.ml_label
+                if message.ml_label and target_tt.ml_label != message.ml_label:
+                    target_tt.ml_label = message.ml_label
                     changed = True
 
                     # Update date fields based on new label
-                    if message.ml_label == "prescreen" and not tt.prescreen_date:
-                        tt.prescreen_date = msg_date
+                    if message.ml_label == "prescreen" and not target_tt.prescreen_date:
+                        target_tt.prescreen_date = msg_date
                         # Clear interview_date if it was set from old label
-                        if old_label == "interview_invite" and tt.interview_date == msg_date:
-                            tt.interview_date = None
-                    elif message.ml_label == "interview_invite" and not tt.interview_date:
-                        tt.interview_date = msg_date
+                        if old_label == "interview_invite" and target_tt.interview_date == msg_date:
+                            target_tt.interview_date = None
+                    elif message.ml_label == "interview_invite" and not target_tt.interview_date:
+                        target_tt.interview_date = msg_date
                         # Clear prescreen_date if it was set from old label
-                        if old_label == "prescreen" and tt.prescreen_date == msg_date:
-                            tt.prescreen_date = None
-                    elif message.ml_label in ("rejection", "cancelled", "withdrew") and not tt.rejection_date:
-                        tt.rejection_date = msg_date
+                        if old_label == "prescreen" and target_tt.prescreen_date == msg_date:
+                            target_tt.prescreen_date = None
+                    elif message.ml_label == "offer" and not target_tt.offer_date:
+                        target_tt.offer_date = msg_date
+                        target_tt.status = "offer"
+                    elif message.ml_label in ("rejection", "cancelled", "withdrew") and not target_tt.rejection_date:
+                        target_tt.rejection_date = msg_date
                         # Body-based cancellation detection
                         is_cancelled = (
                             message.ml_label == "cancelled"
                             or _check_cancelled_from_body(message)
                         )
                         if is_cancelled:
-                            tt.cancelled = True
+                            target_tt.cancelled = True
 
                         # Body-based withdrawn detection
                         is_withdrawn = (
@@ -286,15 +526,15 @@ def propagate_message_label_to_thread(message: Message) -> Optional[ThreadTracki
                             or _check_withdrawn_from_body(message)
                         )
                         if is_withdrawn:
-                            tt.withdrew = True
+                            target_tt.withdrew = True
 
                 if message.confidence is not None and (
-                    tt.ml_confidence is None or tt.ml_confidence != message.confidence
+                    target_tt.ml_confidence is None or target_tt.ml_confidence != message.confidence
                 ):
-                    tt.ml_confidence = message.confidence
+                    target_tt.ml_confidence = message.confidence
                     changed = True
                 if changed:
-                    tt.save()
+                    target_tt.save()
 
                 # Cross-thread rejection propagation: also update other TTs
                 # from the same company that don't have rejection_date set.
@@ -311,29 +551,31 @@ def propagate_message_label_to_thread(message: Message) -> Optional[ThreadTracki
                         message.ml_label == "withdrew"
                         or _check_withdrawn_from_body(message)
                     )
-                    if _should_propagate_cross_thread(message, tt):
+                    if _should_propagate_cross_thread(message, target_tt):
                         _propagate_rejection_to_company(
                             message, msg_date, thread_id, is_cancelled, is_withdrawn
                         )
 
-                return tt
+                return target_tt
 
             # No ThreadTracking for this thread_id exists
             # For prescreen/interview/rejection messages, check if company already has a ThreadTracking
             # and update that one instead of creating a duplicate
             if (
-                message.ml_label in ("prescreen", "interview_invite", "rejection", "cancelled", "withdrew")
+                message.ml_label in ("prescreen", "interview_invite", "offer", "rejection", "cancelled", "withdrew")
                 and message.company
             ):
                 existing_tt = None
                 if message.ml_label in ("rejection", "cancelled", "withdrew"):
                     # For rejection labels, only update when there is a confident title match.
                     existing_tt = _find_company_rejection_target(message, exclude_thread_id="")
+                elif message.ml_label == "offer":
+                    existing_tt = _find_company_offer_target(message, exclude_thread_id="")
                 else:
-                    # For prescreen/interview labels, keep existing earliest-company fallback.
-                    existing_tt = ThreadTracking.objects.filter(
-                        company=message.company
-                    ).order_by("sent_date").first()
+                    existing_tt = _find_company_application_target(
+                        message,
+                        exclude_thread_id="",
+                    )
 
                 if existing_tt:
                     # Update the existing record with the date
@@ -343,6 +585,10 @@ def propagate_message_label_to_thread(message: Message) -> Optional[ThreadTracki
                         changed = True
                     elif message.ml_label == "interview_invite" and not existing_tt.interview_date:
                         existing_tt.interview_date = msg_date
+                        changed = True
+                    elif message.ml_label == "offer" and not existing_tt.offer_date:
+                        existing_tt.offer_date = msg_date
+                        existing_tt.status = "offer"
                         changed = True
                     elif message.ml_label in ("rejection", "cancelled", "withdrew") and not existing_tt.rejection_date:
                         existing_tt.rejection_date = msg_date
@@ -363,15 +609,8 @@ def propagate_message_label_to_thread(message: Message) -> Optional[ThreadTracki
                         existing_tt.save()
                     return existing_tt
 
-            # Create new ThreadTracking for job_application, or prescreen/interview without existing company record
-            if (
-                message.ml_label in ("job_application", "interview_invite", "prescreen")
-                and message.company
-            ):
-                # Determine date fields based on label
-                prescreen_date = msg_date if message.ml_label == "prescreen" else None
-                interview_date = msg_date if message.ml_label == "interview_invite" else None
-
+            # Only application messages create a new ThreadTracking without an existing anchor.
+            if message.ml_label == "job_application" and message.company:
                 tt = ThreadTracking.objects.create(
                     thread_id=thread_id,
                     company=message.company,
@@ -380,8 +619,8 @@ def propagate_message_label_to_thread(message: Message) -> Optional[ThreadTracki
                     job_id="",
                     status="application",
                     sent_date=(message.timestamp.date() if message.timestamp else None),
-                    prescreen_date=prescreen_date,
-                    interview_date=interview_date,
+                    prescreen_date=None,
+                    interview_date=None,
                     ml_label=message.ml_label,
                     ml_confidence=(message.confidence or 0.0),
                 )

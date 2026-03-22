@@ -89,17 +89,38 @@ WSGI_APPLICATION = "dashboard.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.environ.get("DB_NAME", "tracker"),
-        "USER": os.environ.get("DB_USERNAME", "sslipper"),
-        "PASSWORD": os.environ.get("DB_PASSWORD", "##fl1per!!"),
-        "HOST": os.environ.get("DB_HOST", "localhost"),
-        "PORT": os.environ.get("DB_PORT", "5432"),
-        "CONN_MAX_AGE": 60,  # reuse connections for 60 s instead of reconnecting per request
+db_engine = (os.getenv("DB_ENGINE") or "sqlite").strip().lower()
+
+if db_engine in {"sqlite", "sqlite3", "django.db.backends.sqlite3"}:
+    sqlite_db_path = Path(
+        os.getenv("SQLITE_DB_PATH", BASE_DIR / "db" / "job_tracker.db")
+    )
+    sqlite_db_path.parent.mkdir(parents=True, exist_ok=True)
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": str(sqlite_db_path),
+        }
     }
-}
+elif db_engine in {"postgres", "postgresql", "django.db.backends.postgresql"}:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": os.environ.get("DB_NAME", "tracker"),
+            "USER": os.environ.get("DB_USERNAME", "sslipper"),
+            "PASSWORD": os.environ.get("DB_PASSWORD", "##fl1per!!"),
+            "HOST": os.environ.get("DB_HOST", "localhost"),
+            "PORT": os.environ.get("DB_PORT", "5432"),
+            "CONN_MAX_AGE": 60,  # reuse connections for 60 s instead of reconnecting per request
+        }
+    }
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": db_engine,
+            "NAME": os.environ.get("DB_NAME", "tracker"),
+        }
+    }
 
 
 # Password validation

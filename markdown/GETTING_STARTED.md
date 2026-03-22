@@ -157,6 +157,10 @@ DEBUG=True
 
 # Allowed hosts (localhost for local development)
 ALLOWED_HOSTS=localhost,127.0.0.1
+
+# Database backend for local development
+DB_ENGINE=sqlite
+SQLITE_DB_PATH=db/job_tracker.db
 ```
 
 **📝 Notes:**
@@ -164,6 +168,9 @@ ALLOWED_HOSTS=localhost,127.0.0.1
 - `GMAIL_ROOT_FILTER_LABEL`: If you organize job hunting emails with Gmail labels, set this to your parent label name
 - `USER_EMAIL_ADDRESS`: Excludes your sent emails from statistics (optional but recommended)
 - `DJANGO_SECRET_KEY`: Auto-generated if not provided (fine for local use)
+- `DB_ENGINE=sqlite`: Recommended default for local development and matches CI
+- `SQLITE_DB_PATH`: Optional custom path for the local SQLite database file
+- Use `DB_ENGINE=postgresql` only if you are intentionally pointing the app at PostgreSQL
 
 ### 4.3 Initialize Database
 
@@ -175,6 +182,8 @@ python manage.py migrate
 python manage.py createsuperuser
 # Follow prompts to set username/email/password
 ```
+
+If the configured database cannot be reached, startup now fails fast with a clear error instead of leaving Django partially running.
 
 ### 4.4 Gmail Authentication
 
@@ -213,7 +222,7 @@ python manage.py ingest_gmail --days-back 7
 - Fetches last 7 days of emails from Gmail
 - Classifies each message (ML + regex patterns)
 - Extracts company names
-- Stores in local SQLite database
+- Stores in your configured local database, using SQLite by default
 
 **Expected Output:**
 

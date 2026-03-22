@@ -17,7 +17,7 @@ from datetime import timedelta
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
-from django.db.models import Q, QuerySet, Case, When, F, Min
+from django.db.models import Q, QuerySet
 from django.db.models.functions import Coalesce, Least
 from django.utils import timezone
 from django.utils.timezone import now
@@ -74,24 +74,16 @@ class StatsService:
             company__status="headhunter"
         ).count()
 
-        # Weekly application count (total applications)
+        # Weekly application count (deduped application records)
         week_cutoff = now() - timedelta(days=7)
-        applications_week_qs = Message.objects.filter(
+        applications_week_qs = ThreadTracking.objects.filter(
             ml_label__in=["job_application", "application"],
-            timestamp__gte=week_cutoff,
+            sent_date__gte=week_cutoff.date(),
             company__isnull=False,
         )
-        # Exclude user's own messages
-        if user_email:
-            applications_week_qs = applications_week_qs.exclude(
-                sender__icontains=user_email
-            )
-        # Exclude headhunter companies and domains
         applications_week_qs = applications_week_qs.exclude(
             company__status="headhunter"
         )
-        if headhunter_domains:
-            applications_week_qs = applications_week_qs.exclude(msg_hh_sender_q)
         applications_week = applications_week_qs.count()
 
         # Weekly rejection count

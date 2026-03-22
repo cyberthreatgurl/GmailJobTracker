@@ -7,6 +7,7 @@ Startup behavior:
 - The container waits for PostgreSQL before running migrations.
 - If PostgreSQL stays unreachable for 30 attempts, the entrypoint exits non-zero with an explicit host/port error.
 - Django WSGI and ASGI startup also fail fast if the configured default database cannot be reached.
+- Docker Compose sets `DB_ENGINE=postgresql` explicitly so containerized runs continue to use PostgreSQL even though local development now defaults to SQLite.
 
 ## Commands to Run the Application within Container
 

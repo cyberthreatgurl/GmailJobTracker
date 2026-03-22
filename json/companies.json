@@ -1,23 +1,34 @@
 {
   "aliases": {
+    "Amazon Web Services": "Amazon",
     "Arch Systems": "Arch Systems LLC",
     "CGI": "CGI Inc.",
+    "Ingalls Shipbuilding": "HII",
+    "Mission Technologies": "HII",
     "NDi": "Network Designs, Inc.",
+    "Newport News Shipbuilding": "HII",
     "Parsons": "Parsons Corporation",
     "Red River": "Red River",
     "redriver": "Red River"
   },
   "ats_domains": [],
   "domain_to_company": {
+    "4points.com": "Four Points Technology",
+    "amazonaws.com": "Amazon",
     "archsystemsinc.com": "Arch Systems LLC",
     "baesystems.com": "BAE Systems",
+    "endyna.com": "Endyna",
     "google.com": "Firebase",
+    "hii.com": "HII",
+    "mail.amazon.jobs": "Amazon",
+    "maximus.com": "Maximus",
     "mfcyber.com": "MorganFranklin Cyber",
     "netdes.com": "Network Designs, Inc.",
     "parsons.com": "Parsons Corporation",
     "peraton.com": "Peraton",
     "psipax.com": "PSI Pax",
     "redriver.com": "Red River",
+    "simventions.com": "SimVentions",
     "substack.com": "Substack",
     "thomsonreuters.com": "Thomson Reuters",
     "vectorcsp.com": "VectorCSP"
@@ -424,7 +435,9 @@
     "BAE Systems": "https://jobs.baesystems.com/global/en",
     "MorganFranklin Cyber": "https://mfcyber.com/careers/",
     "VectorCSP": "https://www.vectorcsp.com/careers",
-    "PSI Pax": "https://www.psipax.com/careers"
+    "PSI Pax": "https://www.psipax.com/careers",
+    "Four Points Technology": "http://www.4points.com/about-us/careers-at-four-points/",
+    "HII": "https://hii.com/careers/life-at-hii/"
   },
   "known": [],
   "ats_heuristic_patterns": [

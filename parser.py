@@ -106,6 +106,322 @@ def build_company_job_index(company, job_title, job_id):
     return f"{normalize(company)}::{normalize(job_title)}::{normalize(job_id)}"
 
 
+def _normalize_job_match_text(text: str | None) -> str:
+    """Normalize job identifiers/titles for exact duplicate checks."""
+    if not text:
+        return ""
+    return re.sub(r"\s+", " ", str(text).strip().lower())
+
+
+def _application_identity_matches(application_obj, company_obj, job_title: str, job_id: str) -> bool:
+    """Return True when parsed application metadata matches an existing ThreadTracking."""
+    if not application_obj or not company_obj or application_obj.company_id != company_obj.id:
+        return False
+
+    parsed_job_id = _normalize_job_match_text(job_id)
+    existing_job_id = _normalize_job_match_text(application_obj.job_id)
+    if parsed_job_id and existing_job_id:
+        return parsed_job_id == existing_job_id
+
+    parsed_job_title = _normalize_job_match_text(job_title)
+    existing_job_title = _normalize_job_match_text(application_obj.job_title)
+    if parsed_job_title and existing_job_title:
+        return parsed_job_title == existing_job_title
+
+    return False
+
+
+def _should_enrich_existing_application(application_obj, company_obj, job_title: str, job_id: str) -> bool:
+    """Return True when a same-thread application should enrich the existing record."""
+    if _application_identity_matches(application_obj, company_obj, job_title, job_id):
+        return True
+
+    if not application_obj or not company_obj or application_obj.company_id != company_obj.id:
+        return False
+
+    parsed_job_title = _normalize_job_match_text(job_title)
+    parsed_job_id = _normalize_job_match_text(job_id)
+    if not parsed_job_title and not parsed_job_id:
+        return False
+
+    existing_job_title = _normalize_job_match_text(application_obj.job_title)
+    existing_job_id = _normalize_job_match_text(application_obj.job_id)
+    return not existing_job_title and not existing_job_id
+
+
+def _find_existing_application_by_identity(
+    company_obj,
+    job_title: str,
+    job_id: str,
+    *,
+    exclude_thread_ids=None,
+    sent_date=None,
+):
+    """Find an existing application for the same company/job across threads."""
+    if not company_obj:
+        return None
+
+    normalized_job_id = _normalize_job_match_text(job_id)
+    normalized_job_title = _normalize_job_match_text(job_title)
+    if not normalized_job_id and not normalized_job_title:
+        return None
+
+    queryset = ThreadTracking.objects.filter(company=company_obj).order_by("-sent_date", "-id")
+    if exclude_thread_ids:
+        queryset = queryset.exclude(thread_id__in=set(exclude_thread_ids))
+
+    candidates = list(queryset)
+    if sent_date:
+        candidates = [
+            candidate for candidate in candidates
+            if not candidate.sent_date or candidate.sent_date <= sent_date
+        ]
+        recent_cutoff = sent_date - timedelta(days=3)
+        recent_candidates = [
+            candidate for candidate in candidates
+            if candidate.sent_date and candidate.sent_date >= recent_cutoff
+        ]
+        if recent_candidates:
+            candidates = recent_candidates
+
+    for candidate in candidates:
+        candidate_job_id = _normalize_job_match_text(candidate.job_id)
+        if normalized_job_id and candidate_job_id == normalized_job_id:
+            return candidate
+
+    for candidate in candidates:
+        candidate_job_title = _normalize_job_match_text(candidate.job_title)
+        if normalized_job_title and candidate_job_title == normalized_job_title:
+            return candidate
+
+    return None
+
+
+def _find_existing_milestone_application(
+    company_obj,
+    metadata,
+    parsed_subject,
+):
+    """Find an existing application record for prescreen/interview milestones."""
+    if not company_obj:
+        return None
+
+    thread_id = metadata.get("thread_id")
+    if thread_id:
+        application_obj = ThreadTracking.objects.filter(thread_id=thread_id).first()
+        if application_obj:
+            return application_obj
+
+    exact_match = _find_existing_application_by_identity(
+        company_obj,
+        parsed_subject.get("job_title", "") if isinstance(parsed_subject, dict) else "",
+        parsed_subject.get("job_id", "") if isinstance(parsed_subject, dict) else "",
+        exclude_thread_ids={thread_id} if thread_id else None,
+        sent_date=timezone.localtime(metadata["timestamp"]).date() if metadata.get("timestamp") else None,
+    )
+    if exact_match is not None:
+        return exact_match
+
+    if _is_compliance_prescreen_message(
+        metadata.get("subject", ""),
+        metadata.get("body", ""),
+    ):
+        return _find_unique_active_prior_application(
+            company_obj,
+            exclude_thread_ids={thread_id} if thread_id else None,
+            sent_date=timezone.localtime(metadata["timestamp"]).date() if metadata.get("timestamp") else None,
+        )
+
+    return None
+
+
+def _is_compliance_prescreen_message(subject: str | None, body: str | None) -> bool:
+    """Return True for compliance/pre-screen workflow messages that lack job identity."""
+    text = " ".join(part for part in (subject or "", body or "") if part).lower()
+    if not text:
+        return False
+
+    return any(
+        marker in text
+        for marker in (
+            "compliance",
+            "pre-screen",
+            "pre screen",
+            "complete the form",
+            "asked to complete a form",
+            "threatswitch",
+        )
+    )
+
+
+def _is_application_like_threadtracking(application_obj) -> bool:
+    """Return True when a ThreadTracking row represents a canonical application target."""
+    if not application_obj:
+        return False
+
+    return bool(
+        application_obj.ml_label == "job_application"
+        or _normalize_job_match_text(application_obj.job_title)
+        or _normalize_job_match_text(application_obj.job_id)
+    )
+
+
+def _find_unique_prior_application(company_obj, *, exclude_thread_ids=None, sent_date=None):
+    """Return a unique prior application candidate when identity matching is unavailable."""
+    if not company_obj:
+        return None
+
+    queryset = ThreadTracking.objects.filter(company=company_obj).order_by("-sent_date", "-id")
+    if exclude_thread_ids:
+        queryset = queryset.exclude(thread_id__in=set(exclude_thread_ids))
+
+    candidates = [candidate for candidate in queryset if _is_application_like_threadtracking(candidate)]
+    if sent_date:
+        candidates = [
+            candidate for candidate in candidates
+            if not candidate.sent_date or candidate.sent_date <= sent_date
+        ]
+
+    if len(candidates) == 1:
+        return candidates[0]
+    return None
+
+
+def _find_unique_active_prior_application(company_obj, *, exclude_thread_ids=None, sent_date=None):
+    """Return a unique prior application candidate that is still active."""
+    if not company_obj:
+        return None
+
+    queryset = ThreadTracking.objects.filter(company=company_obj).order_by("-sent_date", "-id")
+    if exclude_thread_ids:
+        queryset = queryset.exclude(thread_id__in=set(exclude_thread_ids))
+
+    candidates = [
+        candidate for candidate in queryset
+        if _is_application_like_threadtracking(candidate)
+        and not candidate.rejection_date
+        and not candidate.cancelled
+        and not candidate.withdrew
+        and (not sent_date or not candidate.sent_date or candidate.sent_date <= sent_date)
+    ]
+
+    if len(candidates) == 1:
+        return candidates[0]
+    return None
+
+
+def _find_existing_offer_application(
+    company_obj,
+    metadata,
+    parsed_subject,
+):
+    """Find the canonical application that should receive an offer milestone."""
+    if not company_obj:
+        return None
+
+    milestone_date = (
+        timezone.localtime(metadata["timestamp"]).date()
+        if metadata.get("timestamp") else None
+    )
+    thread_id = metadata.get("thread_id")
+
+    if thread_id:
+        current_tt = ThreadTracking.objects.filter(thread_id=thread_id).first()
+        if current_tt and _is_application_like_threadtracking(current_tt):
+            if not milestone_date or not current_tt.sent_date or current_tt.sent_date <= milestone_date:
+                return current_tt
+
+    exact_match = _find_existing_application_by_identity(
+        company_obj,
+        parsed_subject.get("job_title", "") if isinstance(parsed_subject, dict) else "",
+        parsed_subject.get("job_id", "") if isinstance(parsed_subject, dict) else "",
+        exclude_thread_ids={thread_id} if thread_id else None,
+        sent_date=milestone_date,
+    )
+    if exact_match is not None:
+        return exact_match
+
+    return _find_unique_prior_application(
+        company_obj,
+        exclude_thread_ids={thread_id} if thread_id else None,
+        sent_date=milestone_date,
+    )
+
+
+def _is_generic_application_reminder(subject: str | None) -> bool:
+    """Return True when the subject is a dashboard/reminder acknowledgement."""
+    normalized_subject = _normalize_job_match_text(subject)
+    if not normalized_subject:
+        return False
+
+    reminder_markers = (
+        "keep track of your application",
+        "your application dashboard",
+        "application status update",
+    )
+    return any(marker in normalized_subject for marker in reminder_markers)
+
+
+def _is_duplicate_application_acknowledgement(msg_id, metadata, company_obj, parsed_subject) -> bool:
+    """Return True when a job_application message is only a duplicate acknowledgement."""
+    if not company_obj:
+        return False
+
+    thread_id = metadata.get("thread_id")
+    if not thread_id:
+        return False
+
+    parsed_job_title = parsed_subject.get("job_title", "") if isinstance(parsed_subject, dict) else ""
+    parsed_job_id = parsed_subject.get("job_id", "") if isinstance(parsed_subject, dict) else ""
+    if msg_id != thread_id:
+        existing_application = ThreadTracking.objects.filter(
+            thread_id=thread_id,
+            company=company_obj,
+        ).first()
+        if existing_application and _should_enrich_existing_application(
+            existing_application,
+            company_obj,
+            parsed_job_title,
+            parsed_job_id,
+        ):
+            return True
+
+    cross_thread_match = _find_existing_application_by_identity(
+        company_obj,
+        parsed_job_title,
+        parsed_job_id,
+        exclude_thread_ids={thread_id, msg_id},
+        sent_date=timezone.localtime(metadata["timestamp"]).date() if metadata.get("timestamp") else None,
+    )
+    if cross_thread_match is None:
+        return False
+
+    if msg_id == thread_id:
+        return _is_generic_application_reminder(metadata.get("subject", ""))
+
+    return True
+
+
+def extract_application_job_id_from_body(body: str | None) -> str:
+    """Extract job ID from application email body text or embedded job URLs."""
+    if not body:
+        return ""
+
+    text = re.sub(r'&nbsp;', ' ', body)
+    text = re.sub(r'<[^>]+>', ' ', text)
+    text = re.sub(r'\s+', ' ', text).strip()
+
+    patterns = [
+        r'\b(?:ID|Job ID|Position ID|Req(?:uisition)? ID)\s*[:#]?\s*([A-Z0-9\-]{4,})\b',
+        r'\b/jobs/([0-9]{4,})\b',
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, text, re.IGNORECASE)
+        if match:
+            return match.group(1).strip()
+    return ""
+
+
 class DomainMapper:
     """Maps email domains to companies and detects ATS/job board domains.
 
@@ -1240,6 +1556,10 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
     if company:
         company = _company_resolver.canonicalize_company_name(company, subject_clean)
 
+    if company and not is_valid_company_name(company):
+        logger.debug(f"[DEBUG] Clearing invalid company candidate after canonicalization: {company}")
+        company = ""
+
     # 🧼 Sanity checks
     if company and re.search(
         r"\b(CTO|Engineer|Manager|Director|Intern|Analyst)\b", company, re.I
@@ -1261,6 +1581,14 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
     ):
         subject_with_match = True
         logger.debug(f"[DEBUG] Company matches 'with [Company]' pattern in subject: {company}")
+    company_in_ats_context = bool(
+        company
+        and is_ats_domain
+        and any(
+            company.lower() in (text or "").lower()
+            for text in (subject, body, sender or "")
+        )
+    )
     if (
         company
         and looks_like_person(company)
@@ -1269,6 +1597,7 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
         and not company_from_domain  # Trust domain-mapped companies
         and not ats_sender_match  # Trust ATS sender display name
         and not subject_with_match  # Trust "with [Company]" subject pattern
+        and not company_in_ats_context  # Trust ATS-derived companies echoed in message context
     ):
         logger.debug(f"[DEBUG] Clearing company captured as person name (post-pass): {company}")
         company = ""
@@ -1278,6 +1607,15 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
         fallback = _company_resolver.display_name_last_resort(sender)
         if fallback:
             company = fallback
+
+    # Sender-domain safety net for recurring ATS domains whose config mappings have drifted.
+    if not company and domain_lower and (
+        domain_lower == "mail.amazon.jobs"
+        or domain_lower.endswith(".amazon.jobs")
+        or domain_lower == "amazonaws.com"
+        or domain_lower.endswith(".amazonaws.com")
+    ):
+        company = "Amazon"
 
     # Job title fallback
     if not job_title:
@@ -1300,16 +1638,36 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
     # Job ID (delegate to MetadataExtractor)
     job_id = MetadataExtractor.extract_job_id(subject_clean)
 
+    if label in ("job_application", "application"):
+        if not job_title:
+            job_title = extract_job_title_from_body(body)
+        if not job_id:
+            job_id = extract_application_job_id_from_body(body)
+
     # --- Hard-ignore check AFTER company extraction ---
-    # If we found a valid company from known list or domain, override noise classification
-    if company and (
-        (domain_lower and domain_lower in DOMAIN_TO_COMPANY)
-        or (subj_lower and any(known in subj_lower for known in KNOWN_COMPANIES))
-    ):
-        # Valid company detected, not noise - reclassify if needed
-        if label == "noise":
-            label = "job_application"  # assume application if company found
-            confidence = 0.7  # moderate confidence for overridden classification
+    # If a valid company was found but the classifier still says noise, salvage the likely job label.
+    if company and label == "noise":
+        text_lower = f"{subject or ''} {body or ''}".lower()
+        body_status = classify_message(body or "")
+
+        if body_status in ("rejected", "rejection") or re.search(
+            r"\banother candidate has been selected\b|\bnot to move forward\b",
+            text_lower,
+        ):
+            label = "rejection"
+            confidence = max(confidence, 0.8)
+        elif body_status == "interview_invite" or re.search(
+            r"\bresponse requested\b|\bprovide me with your availability\b|\bpress forward with a call\b",
+            text_lower,
+        ):
+            label = "other"
+            confidence = max(confidence, 0.75)
+        elif body_status == "response":
+            label = "other"
+            confidence = max(confidence, 0.7)
+        elif body_status == "job_application" or is_application_related(subject, body):
+            label = "job_application"
+            confidence = max(confidence, 0.7)
 
     # Hard-ignore for resume or known noise patterns (only if no valid company)
     # BUT skip ignore if body contains explicit application confirmation language
@@ -1333,6 +1691,13 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
             logger.debug(
                 f"[DEBUG] Hard-ignore skipped: body contains application-related language"
             )
+
+    if label == "cancelled" and not re.search(
+        r"\b(cancelled|canceled|closed)\b",
+        f"{subject or ''} {body or ''}",
+        re.IGNORECASE,
+    ):
+        label = "rejection"
 
     # Override internal introductions: If label is "referral" or "interview_invite" but sender domain
     # matches company domain AND it's a networking introduction (not a job referral), label as "other"
@@ -1721,7 +2086,7 @@ def _update_thread_tracking_for_company(
         logger.debug("↩️ Skipping ThreadTracking creation for headhunter source/company")
         return
 
-    if ml_label in ("job_application", "interview_invite", "prescreen", "cancelled"):
+    if ml_label in ("job_application", "cancelled"):
         _create_thread_tracking_for_application(
             msg_id, metadata, result, company_obj, company_source, parsed_subject,
             status, reviewed, stats, ml_label,
@@ -1766,12 +2131,47 @@ def _create_thread_tracking_for_application(
         "withdrew": ml_label == "withdrew",
     }
 
+    cross_thread_match = None
+    if ml_label == "job_application":
+        cross_thread_match = _find_existing_application_by_identity(
+            company_obj,
+            parsed_subject.get("job_title", ""),
+            parsed_subject.get("job_id", ""),
+            exclude_thread_ids={metadata["thread_id"], msg_id},
+            sent_date=timezone.localtime(metadata["timestamp"]).date(),
+        )
+    if cross_thread_match is not None:
+        _update_existing_application_dates(
+            cross_thread_match,
+            company_obj,
+            company_source,
+            result,
+            metadata,
+            ml_label,
+            rejection_date_final,
+            interview_date_final,
+            prescreen_date_final,
+            parsed_subject,
+        )
+        logger.debug(
+            "✓ Reused existing ThreadTracking (id=%s) for duplicate application acknowledgement "
+            "across threads (msg_id=%s, thread_id=%s)",
+            cross_thread_match.pk,
+            msg_id,
+            metadata["thread_id"],
+        )
+        logger.debug("Stats: ignored++ (duplicate application acknowledgement)")
+        _increment_stat(stats, "total_ignored")
+        return
+
     application_obj, created = ThreadTracking.objects.get_or_create(
         thread_id=metadata["thread_id"],
         defaults=tt_defaults,
     )
 
     if not created:
+        parsed_job_title = parsed_subject.get("job_title", "")
+        parsed_job_id = parsed_subject.get("job_id", "")
         # Check if this is a DIFFERENT application message on the same Gmail thread.
         # Gmail groups messages with identical subjects into one thread, but each
         # may be a separate job application (e.g., two roles at the same company
@@ -1786,7 +2186,13 @@ def _create_thread_tracking_for_application(
             existing_for_msg = ThreadTracking.objects.filter(
                 thread_id=msg_id
             ).exists()
-            if not existing_for_msg:
+            same_application = _should_enrich_existing_application(
+                application_obj,
+                company_obj,
+                parsed_job_title,
+                parsed_job_id,
+            )
+            if not existing_for_msg and not same_application:
                 tt_defaults["sent_date"] = timezone.localtime(
                     metadata["timestamp"]
                 ).date()
@@ -1804,7 +2210,8 @@ def _create_thread_tracking_for_application(
 
         _update_existing_application_dates(
             application_obj, company_obj, company_source, result, metadata,
-            ml_label, rejection_date_final, interview_date_final, prescreen_date_final
+            ml_label, rejection_date_final, interview_date_final, prescreen_date_final,
+            parsed_subject,
         )
 
     if created:
@@ -1825,9 +2232,18 @@ def _update_existing_thread_tracking(
         application_obj = ThreadTracking.objects.get(
             thread_id=metadata["thread_id"]
         )
+        if ml_label == "offer" and company_obj:
+            offer_target = _find_existing_offer_application(
+                company_obj,
+                metadata,
+                parsed_subject,
+            )
+            if offer_target is not None:
+                application_obj = offer_target
         _update_existing_application_dates(
             application_obj, company_obj, company_source, result, metadata,
-            ml_label, rejection_date_final, interview_date_final, prescreen_date_final
+            ml_label, rejection_date_final, interview_date_final, prescreen_date_final,
+            parsed_subject,
         )
     except ThreadTracking.DoesNotExist:
         # No ThreadTracking with this thread_id - for rejections, try to find by company
@@ -1836,6 +2252,37 @@ def _update_existing_thread_tracking(
                 metadata, company_obj, parsed_subject,
                 rejection_date_final, ml_label
             )
+        elif ml_label in ("interview_invite", "prescreen", "offer") and company_obj:
+            if ml_label == "offer":
+                application_obj = _find_existing_offer_application(
+                    company_obj,
+                    metadata,
+                    parsed_subject,
+                )
+            else:
+                application_obj = _find_existing_milestone_application(
+                    company_obj,
+                    metadata,
+                    parsed_subject,
+                )
+            if application_obj is not None:
+                _update_existing_application_dates(
+                    application_obj,
+                    company_obj,
+                    company_source,
+                    result,
+                    metadata,
+                    ml_label,
+                    rejection_date_final,
+                    interview_date_final,
+                    prescreen_date_final,
+                    parsed_subject,
+                )
+            else:
+                logger.debug(
+                    "ℹ️ No application anchor found for %s milestone; manual creation required",
+                    ml_label,
+                )
         else:
             logger.debug(
                 "ℹ️ No existing ThreadTracking for this thread; not creating "
@@ -1845,15 +2292,25 @@ def _update_existing_thread_tracking(
 
 def _update_existing_application_dates(
     application_obj, company_obj, company_source, _result, metadata,
-    ml_label, rejection_date_final, interview_date_final, prescreen_date_final
+    ml_label, rejection_date_final, interview_date_final, prescreen_date_final,
+    parsed_subject=None
 ):
     """Update dates/company on an existing ThreadTracking record."""
     updated = False
+    parsed_subject = parsed_subject or {}
     if application_obj.company != company_obj and company_obj is not None:
         application_obj.company = company_obj
         application_obj.company_source = company_source
         updated = True
         logger.debug(f"✓ Updated application company: {company_obj.name}")
+    parsed_job_title = parsed_subject.get("job_title", "")
+    parsed_job_id = parsed_subject.get("job_id", "")
+    if parsed_job_title and not application_obj.job_title:
+        application_obj.job_title = parsed_job_title
+        updated = True
+    if parsed_job_id and not application_obj.job_id:
+        application_obj.job_id = parsed_job_id
+        updated = True
     if ml_label in ("rejected", "rejection", "cancelled", "withdrew"):
         if not application_obj.rejection_date:
             application_obj.rejection_date = rejection_date_final
@@ -1873,6 +2330,10 @@ def _update_existing_application_dates(
         updated = True
     if not application_obj.prescreen_date and ml_label == "prescreen":
         application_obj.prescreen_date = prescreen_date_final
+        updated = True
+    if not application_obj.offer_date and ml_label == "offer":
+        application_obj.offer_date = timezone.localtime(metadata["timestamp"]).date()
+        application_obj.status = "offer"
         updated = True
     if updated:
         application_obj.save()
@@ -1971,7 +2432,7 @@ def _fallback_thread_tracking_creation(
 
 def _handle_reingest(
     existing, msg_id, metadata, result, company_obj, company_source, company,
-    skip_company_assignment, _parsed_subject, stats
+    skip_company_assignment, parsed_subject, stats
 ):
     """Handle re-ingestion of an existing message.
 
@@ -2077,6 +2538,21 @@ def _handle_reingest(
             result["label"] = "other"
             result["confidence"] = 0.95
 
+    duplicate_application_ack = bool(
+        result
+        and result.get("label") in ("job_application", "application")
+        and _is_duplicate_application_acknowledgement(
+            msg_id,
+            metadata,
+            company_obj,
+            parsed_subject,
+        )
+    )
+    if duplicate_application_ack and result:
+        result = dict(result)
+        result["label"] = "other"
+        result["confidence"] = max(float(result.get("confidence", 0.0)), 0.95)
+
     # Update label/confidence for non-user messages
     if result and not (user_email and sender_email.startswith(user_email)):
         existing.ml_label = result["label"]
@@ -2132,7 +2608,13 @@ def _handle_reingest(
         pass
 
     # Update ThreadTracking dates during re-ingestion
-    _update_thread_tracking_on_reingest(metadata, result, company_obj, stats)
+    _update_thread_tracking_on_reingest(
+        metadata,
+        result,
+        company_obj,
+        stats,
+        parsed_subject,
+    )
 
     _increment_stat(stats, "total_skipped")
 
@@ -2220,7 +2702,7 @@ def _reingest_user_reply(
         )
 
 
-def _update_thread_tracking_on_reingest(metadata, result, company_obj, _stats):
+def _update_thread_tracking_on_reingest(metadata, result, company_obj, _stats, parsed_subject=None):
     """Update ThreadTracking dates during re-ingestion.
 
     Handles:
@@ -2250,6 +2732,7 @@ def _update_thread_tracking_on_reingest(metadata, result, company_obj, _stats):
                 ml_label,
             )
             updated = False
+            parsed_subject = parsed_subject or {}
 
             # Update company if different (and valid)
             if company_obj and app.company != company_obj:
@@ -2259,6 +2742,15 @@ def _update_thread_tracking_on_reingest(metadata, result, company_obj, _stats):
                 # but company update is the priority)
                 updated = True
                 logger.debug(f"✓ Updated ThreadTracking company during re-ingest: {company_obj.name}")
+
+            parsed_job_title = parsed_subject.get("job_title", "")
+            parsed_job_id = parsed_subject.get("job_id", "")
+            if parsed_job_title and not app.job_title:
+                app.job_title = parsed_job_title
+                updated = True
+            if parsed_job_id and not app.job_id:
+                app.job_id = parsed_job_id
+                updated = True
 
             matched_other_application = False
 
@@ -3248,6 +3740,8 @@ def ingest_message(service, msg_id, raw_message=None):
         return dup_result
 
     # Headhunter enforcement: ALL messages from headhunter domains/companies should be labeled head_hunter
+    duplicate_application_ack = False
+    thread_tracking_result = dict(result) if result else None
     if result:
         sender_domain = (metadata.get("sender_domain") or "").lower()
         if _is_headhunter_source(sender_domain, company_obj, HEADHUNTER_DOMAINS):
@@ -3265,6 +3759,20 @@ def ingest_message(service, msg_id, raw_message=None):
             logger.debug(f"[FORWARD DETECTION] Original label: {result.get('label')}, overriding to 'other'")
             result["label"] = "other"
             result["confidence"] = 0.95  # High confidence for forward detection
+
+        duplicate_application_ack = bool(
+            result.get("label") in ("job_application", "application")
+            and _is_duplicate_application_acknowledgement(
+                msg_id,
+                metadata,
+                company_obj,
+                parsed_subject,
+            )
+        )
+        if duplicate_application_ack:
+            result = dict(result)
+            result["label"] = "other"
+            result["confidence"] = max(float(result.get("confidence", 0.0)), 0.95)
 
         # ✅ Now safe to insert Message with enriched company
         # Use safe fallback for body_html because unit tests' mocked metadata may omit it
@@ -3325,7 +3833,9 @@ def ingest_message(service, msg_id, raw_message=None):
             )
     # ✅ Create or update ThreadTracking record using extracted helper
     _create_or_update_thread_tracking(
-        msg_id, metadata, result, company_obj, company_source,
+        msg_id, metadata,
+        thread_tracking_result if result and duplicate_application_ack else result,
+        company_obj, company_source,
         parsed_subject, status_dates, status, reviewed, stats
     )
 
@@ -3412,6 +3922,10 @@ def extract_job_title_from_body(body: str | None) -> str:
         r'regarding\s+(?:the\s+)?(.+?)\s+(?:position|role|opening)',
         # "for the X position/role"
         r'for\s+the\s+(.+?)\s+(?:position|role|opening)',
+        # "interest in X (ID: 12345)"
+        r'interest\s+in\s+(.+?)\s+\(\s*ID\s*:\s*[A-Z0-9\-]+\s*\)',
+        # "interest in X (ID: 12345)"
+        r'interest\s+in\s+(?:the\s+)?(.+?)(?:\s*\(\s*ID\s*:\s*[A-Z0-9\-]+\s*\)|\s+(?:position|role)\b|\s*[.,])',
         # "your application for X"
         r'application\s+for\s+(?:the\s+)?(.+?)(?:\s+has|\s+was|\s*[.,])',
         # "applied for X"
@@ -3687,20 +4201,11 @@ def ingest_message_from_eml(eml_content: str, fake_msg_id: str | None = None):
         except Exception:
             date_obj = timezone.now()
 
-        # Extract sender domain
-        parsed = parseaddr(sender)
-        email_addr = parsed[1] if len(parsed) == 2 else ""
-        match = re.search(r"@([A-Za-z0-9.-]+)$", email_addr)
-        sender_domain = match.group(1).lower() if match else ""
-
         # Generate message ID if not provided
-        if not fake_msg_id:
-            hash_input = f"{subject}{date_obj.isoformat()}{sender}".encode("utf-8")
-            fake_msg_id = f"eml_{hashlib.md5(hash_input).hexdigest()}"
-
         # Extract body
         body = ""
         body_html = ""
+        body_text = ""
 
         if msg.is_multipart():
             for part in msg.walk():
@@ -3719,8 +4224,10 @@ def ingest_message_from_eml(eml_content: str, fake_msg_id: str | None = None):
                     charset = part.get_content_charset() or "utf-8"
                     decoded = payload.decode(charset, errors="ignore")
 
-                    if content_type == "text/plain" and not body:
-                        body = decoded.strip()
+                    if content_type == "text/plain" and not body_text:
+                        body_text = decoded.strip()
+                        if not body:
+                            body = body_text
                     elif content_type == "text/html":
                         body_html = html.unescape(decoded)
                         # Extract text from HTML
@@ -3738,6 +4245,30 @@ def ingest_message_from_eml(eml_content: str, fake_msg_id: str | None = None):
                     body = payload.decode(charset, errors="ignore").strip()
             except Exception as e:
                 logger.debug(f"[EML] Error decoding body: {e}")
+        forwarded_headers = EmailBodyParser.extract_forwarded_message_headers(
+            body_text or body,
+            body_html,
+        )
+        if forwarded_headers.get("subject"):
+            subject = forwarded_headers["subject"]
+        if forwarded_headers.get("from"):
+            sender = forwarded_headers["from"]
+        if forwarded_headers.get("to"):
+            to_header = forwarded_headers["to"]
+        if forwarded_headers.get("date") is not None:
+            date_obj = forwarded_headers["date"]
+
+        # Extract sender domain
+        parsed = parseaddr(sender)
+        email_addr = parsed[1] if len(parsed) == 2 else ""
+        match = re.search(r"@([A-Za-z0-9.-]+)$", email_addr)
+        sender_domain = match.group(1).lower() if match else ""
+
+        # Generate message ID if not provided
+        if not fake_msg_id:
+            hash_input = f"{subject}{date_obj.isoformat()}{sender}".encode("utf-8")
+            fake_msg_id = f"eml_{hashlib.md5(hash_input).hexdigest()}"
+
         # Prepare metadata dictionary matching extract_metadata format
         # RFC 5322 compliance: body should not contain headers
         rfc_body = body or "Empty Body"
@@ -3883,6 +4414,30 @@ def ingest_message_from_eml(eml_content: str, fake_msg_id: str | None = None):
         # Propagate label to ThreadTracking
         if ml_label in ("job_application", "interview_invite") and company_obj:
             try:
+                if isinstance(parse_result, dict):
+                    existing_tt = ThreadTracking.objects.filter(
+                        thread_id=existing.thread_id
+                    ).first()
+                    if existing_tt:
+                        parsed_job_title = parse_result.get("job_title", "")
+                        parsed_job_id = parse_result.get("job_id", "")
+                        tt_updated = False
+                        if existing_tt.company_id != company_obj.id:
+                            existing_tt.company = company_obj
+                            existing_tt.company_source = "eml_import"
+                            tt_updated = True
+                        if parsed_job_title and existing_tt.job_title != parsed_job_title:
+                            existing_tt.job_title = parsed_job_title
+                            tt_updated = True
+                        if parsed_job_id and existing_tt.job_id != parsed_job_id:
+                            existing_tt.job_id = parsed_job_id
+                            tt_updated = True
+                        sent_date = metadata["date"].date()
+                        if existing_tt.sent_date != sent_date:
+                            existing_tt.sent_date = sent_date
+                            tt_updated = True
+                        if tt_updated:
+                            existing_tt.save()
                 from tracker.utils import propagate_message_label_to_thread
                 propagate_message_label_to_thread(existing)
                 logger.debug(f"[EML] Updated ThreadTracking for existing message")
@@ -4043,26 +4598,66 @@ def ingest_message_from_eml(eml_content: str, fake_msg_id: str | None = None):
                                 company_obj.name,
                             )
                 else:
-                    # For job_application and interview_invite, use normal get_or_create by thread_id
-                    _thread_tracking, tt_created = ThreadTracking.objects.get_or_create(
-                        thread_id=metadata["thread_id"],
-                        defaults={
-                            "company": company_obj,
-                            "company_source": "eml_import",
-                            "job_title": job_title,
-                            "job_id": job_id,
-                            "status": status,
-                            "sent_date": metadata["date"].date(),
-                            "ml_label": ml_label,
-                            "ml_confidence": ml_confidence,
-                            "reviewed": False,
-                        },
-                    )
+                    existing_tt = ThreadTracking.objects.filter(
+                        thread_id=metadata["thread_id"]
+                    ).first()
+                    if existing_tt is None and ml_label == "interview_invite":
+                        existing_tt = _find_existing_application_by_identity(
+                            company_obj,
+                            job_title,
+                            job_id,
+                            exclude_thread_ids={metadata["thread_id"]},
+                            sent_date=metadata["date"].date(),
+                        )
 
-                    if tt_created:
-                        logger.debug(f"[EML] Created ThreadTracking for {company_obj.name} - {ml_label}")
+                    if existing_tt is not None:
+                        parsed_subject = {"job_title": job_title, "job_id": job_id}
+                        _update_existing_application_dates(
+                            existing_tt,
+                            company_obj,
+                            "eml_import",
+                            None,
+                            {
+                                "subject": metadata.get("subject", ""),
+                                "body": body,
+                            },
+                            ml_label,
+                            rejection_date,
+                            metadata["date"].date() if ml_label == "interview_invite" else None,
+                            None,
+                            parsed_subject,
+                        )
+                        logger.debug(
+                            "[EML] Reused existing ThreadTracking for %s - %s",
+                            company_obj.name,
+                            ml_label,
+                        )
+                    elif ml_label == "job_application":
+                        _thread_tracking, tt_created = ThreadTracking.objects.get_or_create(
+                            thread_id=metadata["thread_id"],
+                            defaults={
+                                "company": company_obj,
+                                "company_source": "eml_import",
+                                "job_title": job_title,
+                                "job_id": job_id,
+                                "status": status,
+                                "sent_date": metadata["date"].date(),
+                                "ml_label": ml_label,
+                                "ml_confidence": ml_confidence,
+                                "reviewed": False,
+                            },
+                        )
+
+                        if tt_created:
+                            logger.debug(f"[EML] Created ThreadTracking for {company_obj.name} - {ml_label}")
+                        else:
+                            logger.debug(f"[EML] ThreadTracking already exists for thread {metadata['thread_id']}")
                     else:
-                        logger.debug(f"[EML] ThreadTracking already exists for thread {metadata['thread_id']}")
+                        logger.debug(
+                            "[EML] No application anchor found for %s milestone at %s; manual creation required",
+                            ml_label,
+                            company_obj.name,
+                        )
 
             except Exception as e:
                 logger.debug(f"[EML] Failed to create/update ThreadTracking: {e}")
@@ -4091,7 +4686,15 @@ def _map_company_by_domain(domain: str) -> str | None:
     Example: if mapping contains 'nsa.gov' -> 'National Security Agency', then
     'uwe.nsa.gov' will also map to that company.
     """
-    return _domain_mapper.map_company_by_domain(domain)
+    mapped = _domain_mapper.map_company_by_domain(domain)
+    if mapped and not is_valid_company_name(mapped):
+        logger.warning(
+            "Ignoring invalid domain_to_company mapping for %s -> %s",
+            domain,
+            mapped,
+        )
+        return None
+    return mapped
 
 
 def _get_domain_for_company(company_name: str) -> str | None:

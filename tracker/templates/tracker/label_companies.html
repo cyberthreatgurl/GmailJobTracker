@@ -562,20 +562,17 @@
                   {% endif %}
                   <span style="color:#374151; flex:1;">{{ thread.job_title|default:"(No job title)" }}</span>
                   {% if thread.prescreen_date %}
-                  <span style="color:#92400e; font-size:0.85rem; white-space:nowrap;">📞 {{
-                    thread.prescreen_date|date:"M d" }}</span>
+                  <span style="color:#92400e; font-size:0.85rem; white-space:nowrap;">📞 {{ thread.prescreen_date|date:"M d" }}</span>
                   {% endif %}
                   {% if thread.interview_date %}
-                  <span style="color:#1e40af; font-size:0.85rem; white-space:nowrap;">🗓️ {{
-                    thread.interview_date|date:"M d" }}</span>
+                  <span style="color:#1e40af; font-size:0.85rem; white-space:nowrap;">🗓️ {{ thread.interview_date|date:"M d" }}</span>
                   {% endif %}
                   {% if thread.rejection_date %}
                   <span style="color:#991b1b; font-size:0.85rem; white-space:nowrap;">{% if thread.cancelled %}🚫{% elif
                     thread.withdrew %}🚶{% else %}❌{% endif %} {{ thread.rejection_date|date:"M d" }}</span>
                   {% endif %}
                   {% if thread.offer_date %}
-                  <span style="color:#065f46; font-size:0.85rem; white-space:nowrap;">🎉 {{ thread.offer_date|date:"M d"
-                    }}</span>
+                  <span style="color:#065f46; font-size:0.85rem; white-space:nowrap;">🎉 {{ thread.offer_date|date:"M d" }}</span>
                   {% endif %}
                 </div>
               </li>

@@ -28,6 +28,6 @@ This project is designed for local-only operation. No data is transmitted extern
 
 ## Deployment Notes
 
-- All data is stored locally in `job_tracker.db`
+- All data is stored in your locally controlled PostgreSQL database
 - OAuth credentials (`token.json`, `credentials.json`) are never uploaded or shared
 - Admin-only diagnostics available at `/admin/environment_status/`

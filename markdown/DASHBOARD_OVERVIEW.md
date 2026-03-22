@@ -38,7 +38,7 @@ This dashboard provides a secure, local-only interface for tracking job applicat
 ## Architecture
 
 - **Framework**: Django 5.2.7
-- **Database**: SQLite (`job_tracker.db`)
+- **Database**: PostgreSQL (`tracker` by default)
 - **Startup guard**: `runserver`, WSGI, ASGI, and Docker startup now fail fast when the configured default database is unreachable
 - **Models**: `Message`, `ThreadTracking`, `Company`, `IgnoredMessage`, `IngestionStats`, `DefenseContract`, `ScrapedArticle`
 - **ML Pipeline**: 

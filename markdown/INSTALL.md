@@ -211,7 +211,7 @@ Expected output:
 
 - Missing `credentials.json` → Complete Gmail OAuth setup (step 4)
 - Invalid JSON syntax → Check JSON files for trailing commas, quotes
-- Migration errors → Delete `db.sqlite3` and re-run `python manage.py migrate`
+- Migration errors → Reset the PostgreSQL schema and re-run `python manage.py migrate`
 
 ### 7. Initial Gmail Ingestion
 

@@ -247,7 +247,7 @@ python init_db.py
 - ✅ Virtual environment support (`.venv/` gitignored)
 - ✅ Cross-platform shell commands documented (Windows/Linux/macOS)
 - ✅ No OS-specific dependencies in requirements.txt
-- ✅ SQLite database (no PostgreSQL/MySQL setup required)
+- ✅ PostgreSQL setup is documented consistently across local, CI, and Docker workflows
 
 **Potential issues to test:**
 - Windows file path separators (backslashes) vs Linux (forward slashes)

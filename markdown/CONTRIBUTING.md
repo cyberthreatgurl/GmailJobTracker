@@ -326,7 +326,7 @@ result = classify_message(message)
 
 ### Local Testing
 
-**Use test database:**
+**Use PostgreSQL test database:**
 ```python
 # settings.py
   
@@ -334,8 +334,12 @@ result = classify_message(message)
 if os.environ.get("TESTING"):
     DATABASES = {
         "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "db" / "test_db.sqlite3",
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": os.environ.get("TEST_DB_NAME", "tracker_test"),
+            "USER": os.environ.get("TEST_DB_USERNAME", os.environ.get("DB_USERNAME", "gmailtracker")),
+            "PASSWORD": os.environ.get("TEST_DB_PASSWORD", os.environ.get("DB_PASSWORD", "changeme")),
+            "HOST": os.environ.get("TEST_DB_HOST", os.environ.get("DB_HOST", "localhost")),
+            "PORT": os.environ.get("TEST_DB_PORT", os.environ.get("DB_PORT", "5432")),
         }
     }
 ```

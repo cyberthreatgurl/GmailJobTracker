@@ -9,6 +9,27 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: tracker
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres -d tracker"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    env:
+      DB_ENGINE: postgresql
+      DB_NAME: tracker
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      DB_HOST: localhost
+      DB_PORT: 5432
     
     steps:
     - uses: actions/checkout@v4
@@ -29,7 +50,7 @@ jobs:
     
     - name: Setup test environment
       run: |
-        mkdir -p db logs model json
+        mkdir -p logs model json
         touch json/patterns.json
         touch json/companies.json
         echo '{"known": [], "domain_to_company": {}}' > json/companies.json
@@ -40,6 +61,12 @@ jobs:
         DJANGO_SECRET_KEY=test-secret-key-for-ci-do-not-use-in-production
         DEBUG=False
         ALLOWED_HOSTS=localhost,127.0.0.1
+        DB_ENGINE=postgresql
+        DB_NAME=tracker
+        DB_USERNAME=postgres
+        DB_PASSWORD=postgres
+        DB_HOST=localhost
+        DB_PORT=5432
         EOF
     
     - name: Run Django migrations

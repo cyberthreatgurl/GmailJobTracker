@@ -810,8 +810,8 @@ messages = Message.objects.all().iterator(chunk_size=100)
 ### Backup Database
 
 ```bash
-# SQLite
-cp job_tracker.db job_tracker.db.backup
+# PostgreSQL
+PGPASSWORD="$DB_PASSWORD" pg_dump -h "$DB_HOST" -U "$DB_USERNAME" "$DB_NAME" > tracker.backup.sql
 
 # Or use Django dumpdata
 python manage.py dumpdata > backup.json
@@ -820,8 +820,8 @@ python manage.py dumpdata > backup.json
 ### Restore Database
 
 ```bash
-# SQLite
-cp job_tracker.db.backup job_tracker.db
+# PostgreSQL
+PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -U "$DB_USERNAME" -d "$DB_NAME" < tracker.backup.sql
 
 # Or use Django loaddata
 python manage.py loaddata backup.json

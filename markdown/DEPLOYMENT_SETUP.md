@@ -101,8 +101,13 @@ ALLOWED_HOSTS=docker-server.shaw.local,localhost
 # Gmail API
 GMAIL_JOBHUNT_LABEL_ID=your-label-id
 
-# Database (optional, uses SQLite by default)
-# DATABASE_URL=postgresql://user:pass@host:5432/dbname
+# Database
+DB_ENGINE=postgresql
+DB_NAME=tracker
+DB_USERNAME=gmailtracker
+DB_PASSWORD=changeme
+DB_HOST=localhost
+DB_PORT=5432
 ```
 
 ---

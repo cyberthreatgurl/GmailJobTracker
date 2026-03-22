@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 import os
 from pathlib import Path
 
+from django.core.exceptions import ImproperlyConfigured
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -89,38 +91,31 @@ WSGI_APPLICATION = "dashboard.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-db_engine = (os.getenv("DB_ENGINE") or "sqlite").strip().lower()
-
+db_engine = (os.getenv("DB_ENGINE") or "postgresql").strip().lower()
 if db_engine in {"sqlite", "sqlite3", "django.db.backends.sqlite3"}:
-    sqlite_db_path = Path(
-        os.getenv("SQLITE_DB_PATH", BASE_DIR / "db" / "job_tracker.db")
+    sqlite_path = Path(os.getenv("SQLITE_DB_PATH", BASE_DIR / "db" / "job_tracker.db"))
+    raise ImproperlyConfigured(
+        "SQLite is no longer supported as the application database. "
+        f"Migrate any rows from {sqlite_path} into PostgreSQL and configure "
+        "DB_NAME/DB_USERNAME/DB_PASSWORD/DB_HOST/DB_PORT."
     )
-    sqlite_db_path.parent.mkdir(parents=True, exist_ok=True)
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": str(sqlite_db_path),
-        }
+
+if db_engine not in {"postgres", "postgresql", "django.db.backends.postgresql"}:
+    raise ImproperlyConfigured(
+        f"Unsupported DB_ENGINE '{db_engine}'. Only PostgreSQL is supported."
+    )
+
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.environ.get("DB_NAME", "tracker"),
+        "USER": os.environ.get("DB_USERNAME", "sslipper"),
+        "PASSWORD": os.environ.get("DB_PASSWORD", "##fl1per!!"),
+        "HOST": os.environ.get("DB_HOST", "localhost"),
+        "PORT": os.environ.get("DB_PORT", "5432"),
+        "CONN_MAX_AGE": 60,  # reuse connections for 60 s instead of reconnecting per request
     }
-elif db_engine in {"postgres", "postgresql", "django.db.backends.postgresql"}:
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.postgresql",
-            "NAME": os.environ.get("DB_NAME", "tracker"),
-            "USER": os.environ.get("DB_USERNAME", "sslipper"),
-            "PASSWORD": os.environ.get("DB_PASSWORD", "##fl1per!!"),
-            "HOST": os.environ.get("DB_HOST", "localhost"),
-            "PORT": os.environ.get("DB_PORT", "5432"),
-            "CONN_MAX_AGE": 60,  # reuse connections for 60 s instead of reconnecting per request
-        }
-    }
-else:
-    DATABASES = {
-        "default": {
-            "ENGINE": db_engine,
-            "NAME": os.environ.get("DB_NAME", "tracker"),
-        }
-    }
+}
 
 
 # Password validation

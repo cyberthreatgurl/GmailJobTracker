@@ -136,7 +136,7 @@ Add an entry like:
 - Ensured `status` and `status_dates` are always assigned before ignore logic to prevent `UnboundLocalError`.
 
 ### Fixed
-- Corrected DB filename mismatch (`applications.db` → `job_tracker.db`) in `db_helpers.py`.
+- Corrected legacy DB filename mismatch in `db_helpers.py`.
 - Resolved ingestion crash when correlation logic ran before DB schema initialization.
 
 ### Security
@@ -169,7 +169,7 @@ Add an entry like:
 ## [2.1.0] - 2025-09-08
 ### Added
 - Fallback parsing for HTML‑only email bodies using BeautifulSoup
-- Centralized SQLite connection logic with retry‑safe `get_db_connection()` function
+- Centralized legacy local database connection logic with retry‑safe `get_db_connection()` function
 - New `email_text` table for ML training (subject + body)
 - `insert_email_text()` and `load_training_data()` functions in `db.py`
 
@@ -204,7 +204,7 @@ Add an entry like:
 
 ## [1.1.0] - 2025-09-07
 ### Added
-- SQLite ingestion logic via `db.py`, including `applications` and `follow_ups` tables
+- Legacy local ingestion logic via `db.py`, including `applications` and `follow_ups` tables
 - `last_updated` timestamp field for audit clarity and sync tracking
 - Indexing on `status` and `company` fields for performance optimization
 - `meta` table for schema versioning and future migration support
@@ -230,6 +230,6 @@ Add an entry like:
 - Initial project structure and Git setup
 
 ### Upcoming
-- Build SQLite ingestion logic (`db.py`)
+- Build legacy local ingestion logic (`db.py`)
 - Populate tracker with parsed messages
 - Add CLI reporting for job metrics

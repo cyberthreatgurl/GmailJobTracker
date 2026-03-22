@@ -126,20 +126,20 @@ Most common errors:
 ```python
 # BEFORE (line 57 in db.py)
 try:
-    conn = sqlite3.connect(DB_PATH)
+  conn = psycopg.connect(dsn)
 except Exception as e:
     logging.error(f"Database error: {e}")
 
 # AFTER
 try:
-    conn = sqlite3.connect(DB_PATH)
-except (sqlite3.Error, OSError) as e:
+  conn = psycopg.connect(dsn)
+except (psycopg.Error, OSError) as e:
     logging.error(f"Database error: {e}")
 ```
 
 **Common patterns:**
 - File operations → `OSError`, `FileNotFoundError`, `PermissionError`
-- Database → `sqlite3.Error`, `DatabaseError`
+- Database → `psycopg.Error`, `DatabaseError`
 - Gmail API → `HttpError`, `RefreshError`
 - JSON parsing → `json.JSONDecodeError`
 - Pickle loading → `pickle.UnpicklingError`

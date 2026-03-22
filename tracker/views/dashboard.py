@@ -294,35 +294,23 @@ def dashboard(request):
         ml_label = series["ml_label"]
         # Check if this is an application-based series or message-based series
         if ml_label == "job_application":
-            # Applications per day - use Message table for accuracy (same as sidebar)
-            # Count distinct companies with job_application messages per day
-            apps_msg_q = Message.objects.filter(
+            # Applications per day - use ThreadTracking to avoid duplicate confirmations.
+            apps_q = ThreadTracking.objects.filter(
                 ml_label__in=["job_application", "application"],
                 company__isnull=False,
             )
             if app_start_date:
-                apps_msg_q = apps_msg_q.filter(timestamp__date__gte=app_start_date)
-            # Exclude user's own messages
-            user_email = (os.environ.get("USER_EMAIL_ADDRESS") or "").strip()
-            if user_email:
-                apps_msg_q = apps_msg_q.exclude(sender__icontains=user_email)
+                apps_q = apps_q.filter(sent_date__gte=app_start_date)
             if hh_companies:
-                apps_msg_q = apps_msg_q.exclude(company_id__in=hh_companies)
-            # Exclude headhunter domain senders
-            if headhunter_domains:
-                msg_hh_q = Q()
-                for d in headhunter_domains:
-                    msg_hh_q |= Q(sender__icontains=f"@{d}")
-                apps_msg_q = apps_msg_q.exclude(msg_hh_q)
+                apps_q = apps_q.exclude(company_id__in=hh_companies)
 
-            # Group by day and count total application messages
+            # Group by day and count deduped applications
             apps_by_day = (
-                apps_msg_q.annotate(day=TruncDate("timestamp"))
-                .values("day")
+                apps_q.values("sent_date")
                 .annotate(count=Count("id"))
             )
             # Map application count per day
-            apps_map = {r["day"]: r["count"] for r in apps_by_day}
+            apps_map = {r["sent_date"]: r["count"] for r in apps_by_day}
 
             data = [apps_map.get(d, 0) for d in app_date_list]
         elif ml_label == "rejected":
@@ -528,35 +516,21 @@ def dashboard(request):
         "company_id", "company__name", "timestamp"
     )
 
-    # Use Message table directly for application companies (same as chart and sidebar)
-    # This ensures consistency across all dashboard metrics
-    # Group by company and count applications per company, track earliest date
-    application_companies_base = Message.objects.filter(
+    # Use ThreadTracking directly so duplicate confirmations do not appear as separate applications.
+    application_companies_base = ThreadTracking.objects.filter(
         ml_label__in=["job_application", "application"],
         company__isnull=False,
     )
-    # Exclude user's own messages
-    user_email = (os.environ.get("USER_EMAIL_ADDRESS") or "").strip()
-    if user_email:
-        application_companies_base = application_companies_base.exclude(
-            sender__icontains=user_email
-        )
     # Exclude headhunter companies
     if hh_company_list:
         application_companies_base = application_companies_base.exclude(
             company_id__in=hh_company_list
         )
-    # Exclude headhunter domain senders
-    if headhunter_domains:
-        msg_hh_q = Q()
-        for d in headhunter_domains:
-            msg_hh_q |= Q(sender__icontains=f"@{d}")
-        application_companies_base = application_companies_base.exclude(msg_hh_q)
 
-    # Get individual application messages (not aggregated) so JavaScript can filter and count by date
+    # Get individual applications (not aggregated) so JavaScript can filter and count by date
     application_companies_qs = application_companies_base.values(
-        "id", "company_id", "company__name", "timestamp"
-    ).order_by("-timestamp")
+        "id", "company_id", "company__name", "sent_date"
+    ).order_by("-sent_date")
 
     ghosted_companies_qs = (
         ThreadTracking.objects.filter(
@@ -620,7 +594,7 @@ def dashboard(request):
             "id": item["id"],
             "company_id": item["company_id"],
             "company__name": item["company__name"],
-            "sent_date": item["timestamp"].strftime("%Y-%m-%d"),
+            "sent_date": item["sent_date"].strftime("%Y-%m-%d"),
         }
         for item in application_companies_qs
     ]

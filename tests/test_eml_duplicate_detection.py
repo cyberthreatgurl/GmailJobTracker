@@ -8,6 +8,7 @@ ThreadTracking records.
 
 import pytest
 from datetime import date
+from pathlib import Path
 from django.utils import timezone
 
 from tracker.models import Message, Company, ThreadTracking
@@ -41,7 +42,7 @@ class TestEmlDuplicateDetection:
         company = Company.objects.create(name="Acme Corp", first_contact=now, last_contact=now)
 
         # Simulate a message already ingested from Gmail
-        gmail_msg = Message.objects.create(
+        Message.objects.create(
             msg_id="18abc123def456",
             thread_id="19xyz789thread",
             subject="Your application to Acme Corp",
@@ -63,7 +64,7 @@ class TestEmlDuplicateDetection:
             date_str="Wed, 18 Feb 2026 10:00:00 +0000",
             body="Thank you for applying to Acme Corp.",
         )
-        result = ingest_message_from_eml(eml)
+        ingest_message_from_eml(eml)
 
         # Should NOT have created a new message with eml_* msg_id
         eml_messages = Message.objects.filter(msg_id__startswith="eml_")
@@ -147,6 +148,76 @@ class TestEmlDuplicateDetection:
             msg = Message.objects.first()
             assert msg.msg_id.startswith("eml_")
             assert msg.thread_id == msg.msg_id  # thread_id = fake_msg_id
+
+    def test_eml_import_forwarded_message_uses_inner_forwarded_date(self):
+        """Forwarded .eml imports should use the original message date."""
+        from parser import ingest_message_from_eml
+
+        eml = Path("tests/emails/Thank you for Applying to Amazon-2025.eml").read_text(
+            encoding="utf-8",
+            errors="replace",
+        )
+
+        result = ingest_message_from_eml(
+            eml,
+            fake_msg_id="eml_forwarded_amazon_2025_test",
+        )
+
+        assert result == "inserted"
+        msg = Message.objects.get(msg_id="eml_forwarded_amazon_2025_test")
+        local_timestamp = timezone.localtime(msg.timestamp)
+        assert local_timestamp.date() == date(2025, 3, 6)
+        assert local_timestamp.hour == 20
+        assert local_timestamp.minute == 41
+        assert msg.sender == "<noreply@mail.amazon.jobs>"
+        assert msg.subject == "Thank you for Applying to Amazon!"
+        assert msg.ml_label == "job_application"
+        assert msg.company is not None
+        assert msg.company.name == "Amazon"
+
+    def test_eml_reingest_updates_existing_threadtracking_metadata(self):
+        """Re-importing an existing forwarded EML should refresh the TT metadata."""
+        from parser import ingest_message_from_eml
+
+        now = timezone.now()
+        company = Company.objects.create(name="Amazon", first_contact=now, last_contact=now)
+        Message.objects.create(
+            msg_id="eml_forwarded_existing_amazon",
+            thread_id="eml_forwarded_existing_amazon",
+            subject="Fwd: Thank you for Applying to Amazon!",
+            sender="Kelly Shaw <cyberintelgurl@gmail.com>",
+            timestamp=timezone.make_aware(timezone.datetime(2025, 3, 10, 9, 57, 54)),
+            body="forwarded body",
+            company=company,
+            ml_label="job_application",
+            confidence=1.0,
+        )
+        tt = ThreadTracking.objects.create(
+            thread_id="eml_forwarded_existing_amazon",
+            company=company,
+            company_source="eml_import",
+            job_title="Wrong Title",
+            job_id="",
+            status="application",
+            sent_date=date(2025, 3, 10),
+            ml_label="job_application",
+        )
+
+        eml = Path("tests/emails/Thank you for Applying to Amazon-2025.eml").read_text(
+            encoding="utf-8",
+            errors="replace",
+        )
+
+        result = ingest_message_from_eml(
+            eml,
+            fake_msg_id="eml_forwarded_existing_amazon",
+        )
+
+        assert result == "skipped"
+        tt.refresh_from_db()
+        assert tt.job_title == "Technical Program Manager , Red Team & Threat Intelligence (ID: 2909847)"
+        assert tt.job_id == "2909847"
+        assert tt.sent_date == date(2025, 3, 6)
 
     def test_eml_different_sender_domain_not_matched(self):
         """EML with same subject/date but different sender domain should NOT

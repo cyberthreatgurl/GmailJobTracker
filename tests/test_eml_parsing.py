@@ -1,4 +1,5 @@
 from pathlib import Path
+from datetime import date
 
 # Faster sanity tests: import parser functions directly to avoid subprocess overhead.
 # parser sets up Django itself (DJANGO_SETTINGS_MODULE), so import is sufficient.
@@ -52,6 +53,20 @@ def test_application_confirmation_is_job_application():
     """Thank you for applying messages should be labeled 'job_application'."""
     result = _classify_fixture("Thank you for applying.eml")
     assert result.get("label") == "job_application", result
+
+
+def test_forwarded_amazon_application_uses_forwarded_inner_date():
+    """Forwarded EMLs should use the original message date, not the forward date."""
+    path = EMAIL_DIR / "Thank you for Applying to Amazon-2025.eml"
+    raw = path.read_text(encoding="utf-8", errors="replace")
+
+    meta = parse_raw_message(raw)
+
+    assert meta.get("subject") == "Thank you for Applying to Amazon!", meta
+    assert meta.get("sender_domain") == "mail.amazon.jobs", meta
+    assert meta.get("timestamp").date() == date(2025, 3, 6), meta
+    assert meta.get("timestamp").hour == 20, meta
+    assert meta.get("timestamp").minute == 41, meta
 
 
 def test_response_requested_is_interview():
@@ -160,6 +175,47 @@ def test_psipax_compliance_form_rule_label_is_other():
         meta.get("sender_domain"),
     )
     assert label == "other"
+
+
+def test_amazon_application_confirmation_extracts_company_and_job_metadata():
+    """Amazon confirmation should resolve the canonical company and body metadata."""
+    result = _classify_fixture("Thank you for Applying to Amazon!.eml")
+    assert result.get("company") == "Amazon", result
+    assert result.get("label") == "job_application", result
+    assert result.get("job_id") == "3205410", result
+    assert result.get("job_title", "").startswith("Sr. Security Intelligence Engineer"), result
+
+
+def test_amazon_application_dashboard_message_reuses_same_company_and_job_metadata():
+    """Generic Amazon dashboard reminders should still resolve to the same application."""
+    result = _classify_fixture("Keep track of your application.eml")
+    assert result.get("company") == "Amazon", result
+    assert result.get("label") == "job_application", result
+    assert result.get("job_id") == "3205410", result
+    assert result.get("job_title", "").startswith("Sr. Security Intelligence Engineer"), result
+
+
+def test_invalid_domain_mapping_does_not_override_real_amazon_company(monkeypatch):
+    """Bogus domain mappings should be ignored so later extraction can resolve Amazon."""
+    from parser import parse_subject
+
+    monkeypatch.setattr(
+        "parser._domain_mapper.map_company_by_domain",
+        lambda domain: "Keep track of your",
+    )
+
+    body = (
+        "Thanks for applying to Amazon! We've received your application for the "
+        "Sr. Security Intelligence Engineer (ID: 3205410) position."
+    )
+    result = parse_subject(
+        "Keep track of your application",
+        body,
+        sender="<noreply@mail.amazon.jobs>",
+        sender_domain="mail.amazon.jobs",
+    )
+
+    assert result.get("company") == "Amazon", result
 
 
 def test_rand_scheduling_followup_is_other():

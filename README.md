@@ -34,6 +34,7 @@ A local-only Django application that transforms your Gmail into an intelligent j
 
 - **Threaded view**: See entire conversation threads per company
 - **Weekly/monthly stats**: Track rejection rates, interview funnel
+- **Deduplicated application metrics**: Dashboard and sidebar counts now track canonical application records instead of counting every acknowledgement email
 - **Bulk labeling**: Label 10/50/100 messages at once with checkboxes
 - **Confidence filtering**: Focus on low-confidence predictions
 - **Calendar view**: Upcoming interviews timeline
@@ -51,7 +52,7 @@ A local-only Django application that transforms your Gmail into an intelligent j
 
 ### 🔒 Privacy & Security
 
-- **100% local**: All data stored in SQLite, no cloud sync
+- **100% local**: Local development stores data in SQLite by default, with optional PostgreSQL for Docker/deployment
 - **OAuth-only**: Read-only Gmail access, revocable anytime
 - **Secret scanning**: detect-secrets baseline enforced in CI
 - **No tracking**: Zero telemetry, analytics, or external API calls
@@ -81,7 +82,7 @@ python -m spacy download en_core_web_sm
 
 # 4. Configure environment
 cp .env.example .env
-# Edit .env: Set GMAIL_ROOT_FILTER_LABEL and USER_EMAIL_ADDRESS
+# Edit .env: Set GMAIL_ROOT_FILTER_LABEL, USER_EMAIL_ADDRESS, and DB_ENGINE if needed
 
 # 5. Setup Gmail API (see GETTING_STARTED.md section 2)
 # Place credentials.json in json/ directory
@@ -103,6 +104,8 @@ python manage.py runserver
 ```
 
 If the configured default database is unreachable at startup, the server now stops immediately with a clean error instead of continuing in a broken state.
+
+For local development and CI, the default backend is SQLite. Set `DB_ENGINE=postgresql` only when you actually want to use PostgreSQL, such as in Docker or another external database setup.
 
 **Visit:** <http://127.0.0.1:8000/>
 
@@ -186,14 +189,14 @@ graph TD
 1. Gmail API → Extract metadata
 2. Parse subject/body → ML classification
 3. Company resolution (4-tier)
-4. Store in SQLite → Update stats
+4. Store in local database → Update stats
 5. Display in Django dashboard
 
 **Key Technologies:**
 
 - **Backend:** Django 5.2, scikit-learn 1.7, spaCy 3.8
 - **ML:** TF-IDF + Logistic Regression (calibrated probabilities)
-- **Database:** SQLite (single file, no server)
+- **Database:** SQLite by default for local/CI, optional PostgreSQL for Docker/deployment
 - **OAuth:** google-auth-oauthlib (read-only scope)
 - **Scraping:** Playwright (headed Chromium for war.gov WAF bypass)
 
@@ -343,6 +346,12 @@ Parsing reliability notes:
 - Do not put shared ATS platform domains in `domain_to_company` unless they truly belong to a single company.
 - If a homepage/careers URL exists, prefer keeping `JobSites`, `domain_to_company`, `aliases`, and `known` aligned to the same canonical name.
 
+Recent parser improvements:
+
+- Forwarded `.eml` imports now prefer the inner forwarded message headers for the original sender, recipient, subject, and sent date.
+- Duplicate acknowledgement emails for the same job now enrich the existing application record instead of inflating application counts.
+- Prescreen, interview, and offer milestones now try to attach to the correct existing application rather than creating an orphan record when the Gmail thread changes.
+
 ---
 
 ## 🧪 Testing
@@ -369,7 +378,8 @@ If you want to wipe all data and start clean while keeping your Django models, m
 
 Notes:
 
-- The database path is controlled by the environment variable `JOB_TRACKER_DB`; if not set, it defaults to `db/job_tracker.db` (see `db.py` and `dashboard/settings.py`).
+- With `DB_ENGINE=sqlite`, the database path is controlled by `SQLITE_DB_PATH`; if not set, it defaults to `db/job_tracker.db`.
+- With `DB_ENGINE=postgresql`, reset the PostgreSQL database instead of deleting a local SQLite file.
 - Close any running server or ingestion before deleting (to avoid “database is locked”).
 - Model artifacts under `model/` are not affected.
 
@@ -383,7 +393,7 @@ Windows PowerShell:
 Remove-Item -LiteralPath "db/job_tracker.db" -Force -ErrorAction SilentlyContinue
 
 # If you customized the location via env var
-if ($env:JOB_TRACKER_DB) { Remove-Item -LiteralPath $env:JOB_TRACKER_DB -Force -ErrorAction SilentlyContinue }
+if ($env:SQLITE_DB_PATH) { Remove-Item -LiteralPath $env:SQLITE_DB_PATH -Force -ErrorAction SilentlyContinue }
 
 # Recreate the schema
 python manage.py migrate
@@ -403,7 +413,7 @@ Linux/macOS bash:
 rm -f db/job_tracker.db
 
 # If you customized the location via env var
-[ -n "$JOB_TRACKER_DB" ] && rm -f "$JOB_TRACKER_DB"
+[ -n "$SQLITE_DB_PATH" ] && rm -f "$SQLITE_DB_PATH"
 
 # Recreate the schema
 python manage.py migrate
@@ -517,7 +527,7 @@ See [markdown/BACKLOG.md](markdown/BACKLOG.md) for detailed roadmap.
 
 **All data stays local.** This application:
 
-- ✅ Stores everything in SQLite (single file)
+- ✅ Stores data locally in SQLite by default, or in your own PostgreSQL instance if you explicitly configure one
 - ✅ Uses OAuth with read-only Gmail scope
 - ✅ Never sends data to external servers
 - ✅ Never tracks usage or analytics

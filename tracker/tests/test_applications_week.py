@@ -1,6 +1,5 @@
 import pytest
 from django.utils.timezone import now
-from django.db.models import Exists, OuterRef
 from datetime import timedelta
 from tracker.models import Company, ThreadTracking, Message
 from tracker.views import build_sidebar_context
@@ -42,7 +41,6 @@ def test_applications_week_distinct_company_count():
     )
 
     # Application messages for the 6 companies within last 7 days
-    # (ThreadTracking is optional; count is Message-based for reliability)
     for idx, company in enumerate(companies):
         Message.objects.create(
             company=company,
@@ -58,7 +56,6 @@ def test_applications_week_distinct_company_count():
             confidence=0.99,
             reviewed=True,
         )
-        # Optional: Create ThreadTracking (not required for count)
         ThreadTracking.objects.create(
             thread_id=f"t{idx}",
             company_source="test",
@@ -79,7 +76,6 @@ def test_applications_week_distinct_company_count():
         last_contact=now(),
         confidence=0.7,
     )
-    # Message timestamp is what matters for the count (not ThreadTracking.sent_date)
     Message.objects.create(
         company=old_company,
         company_source="test",
@@ -160,3 +156,61 @@ def test_applications_week_distinct_company_count():
     assert (
         ctx["applications_week"] == 6
     ), f"Expected 6 distinct companies with applications in last 7 days, got {ctx['applications_week']}"
+
+
+@pytest.mark.django_db
+def test_applications_week_uses_deduped_threadtracking_records():
+    """Duplicate confirmation messages for one application should count once."""
+    current_time = now()
+    company = Company.objects.create(
+        name="Amazon",
+        domain="amazon.com",
+        status="application",
+        first_contact=current_time,
+        last_contact=current_time,
+        confidence=0.9,
+    )
+
+    ThreadTracking.objects.create(
+        thread_id="amazon-thread-1",
+        company_source="domain_mapping",
+        company=company,
+        job_title="Sr. Security Intelligence Engineer",
+        job_id="3205410",
+        status="application",
+        sent_date=current_time.date(),
+        ml_label="job_application",
+    )
+
+    Message.objects.create(
+        company=company,
+        company_source="domain_mapping",
+        sender="noreply@mail.amazon.jobs",
+        subject="Thank you for Applying to Amazon!",
+        body="first confirmation",
+        body_html="<p>first confirmation</p>",
+        timestamp=current_time,
+        msg_id="amazon-msg-1",
+        thread_id="amazon-thread-1",
+        ml_label="job_application",
+        confidence=0.99,
+        reviewed=True,
+    )
+    Message.objects.create(
+        company=company,
+        company_source="domain_mapping",
+        sender="noreply@mail.amazon.jobs",
+        subject="Keep track of your application",
+        body="second confirmation",
+        body_html="<p>second confirmation</p>",
+        timestamp=current_time,
+        msg_id="amazon-msg-2",
+        thread_id="amazon-thread-1",
+        ml_label="job_application",
+        confidence=0.97,
+        reviewed=True,
+    )
+
+    ctx = build_sidebar_context()
+
+    assert ctx["applications_week"] == 1

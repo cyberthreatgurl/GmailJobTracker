@@ -487,6 +487,7 @@
     ]
   },
   "invalid_company_prefixes": [
+    "keep\\s+track\\s+of\\s+your",
     "your\\s+",
     "thank\\s+you",
     "we\\s+(are\\s+)?(pleased|regret|wanted|excited)",

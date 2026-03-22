@@ -143,6 +143,104 @@ class EmailBodyParser:
             return html
 
     @staticmethod
+    def extract_forwarded_message_date(body_text: str, body_html: str = ""):
+        """Extract the original sent date from a forwarded-message header block."""
+        headers = EmailBodyParser.extract_forwarded_message_headers(body_text, body_html)
+        return headers.get("date")
+
+    @staticmethod
+    def extract_forwarded_message_headers(body_text: str, body_html: str = "") -> dict:
+        """Extract original From/Date/Subject/To from a forwarded-message block."""
+        candidates = []
+        if body_text:
+            candidates.append(body_text)
+        if body_html:
+            candidates.append(EmailBodyParser.html_to_text(body_html))
+
+        for candidate in candidates:
+            headers = EmailBodyParser._parse_forwarded_headers_from_text(candidate)
+            if headers:
+                return headers
+        return {}
+
+    @staticmethod
+    def _parse_forwarded_headers_from_text(text: str) -> dict:
+        """Parse a forwarded Gmail-style header block from plain text."""
+        if not text:
+            return {}
+
+        normalized = text.replace("\u202f", " ").replace("\xa0", " ")
+        marker = re.search(r"forwarded message", normalized, flags=re.IGNORECASE)
+        if not marker:
+            return {}
+
+        header_block = normalized[marker.start(): marker.start() + 1500]
+
+        extracted = {}
+        for field in ("from", "date", "subject", "to"):
+            field_match = re.search(
+                rf"\b{field}:\s*(.+?)(?=\bfrom:|\bdate:|\bsubject:|\bto:|$)",
+                header_block,
+                flags=re.IGNORECASE | re.DOTALL,
+            )
+            if field_match:
+                extracted[field] = re.sub(r"\s+", " ", field_match.group(1)).strip(" :-")
+
+        date_text = extracted.get("date", "")
+        if not date_text:
+            return extracted
+        normalized_date_text = date_text.replace(" at ", " ")
+
+        # Gmail forwarded headers often use "Thu, Mar 6, 2025 at 8:41 PM".
+        # parsedate_to_datetime can drop the meridiem on that shape, so prefer
+        # explicit strptime formats when AM/PM is present.
+        if re.search(r"\b(?:AM|PM)\b", normalized_date_text, re.IGNORECASE):
+            for fmt in (
+                "%a, %b %d, %Y %I:%M %p",
+                "%a, %b %d, %Y, %I:%M %p",
+                "%b %d, %Y %I:%M %p",
+                "%b %d, %Y, %I:%M %p",
+            ):
+                try:
+                    date_obj = datetime.strptime(normalized_date_text, fmt)
+                    if timezone.is_naive(date_obj):
+                        date_obj = timezone.make_aware(date_obj)
+                    extracted["date"] = date_obj
+                    return extracted
+                except Exception:
+                    continue
+
+        for candidate in (
+            date_text,
+            normalized_date_text,
+        ):
+            try:
+                date_obj = parsedate_to_datetime(candidate)
+                if timezone.is_naive(date_obj):
+                    date_obj = timezone.make_aware(date_obj)
+                extracted["date"] = date_obj
+                return extracted
+            except Exception:
+                pass
+
+        for fmt in (
+            "%a, %b %d, %Y %H:%M",
+            "%a, %b %d, %Y, %H:%M",
+            "%b %d, %Y %H:%M",
+            "%b %d, %Y, %H:%M",
+        ):
+            try:
+                date_obj = datetime.strptime(normalized_date_text, fmt)
+                if timezone.is_naive(date_obj):
+                    date_obj = timezone.make_aware(date_obj)
+                extracted["date"] = date_obj
+                return extracted
+            except Exception:
+                continue
+
+        return extracted
+
+    @staticmethod
     def parse_raw_eml(raw_text: str, now_fn=None):
         """Parse a raw EML (RFC 822) message string and return metadata.
 
@@ -195,6 +293,7 @@ class EmailBodyParser:
 
         subject = EmailBodyParser.decode_header_value(eml.get("Subject", ""))
         sender = EmailBodyParser.decode_header_value(eml.get("From", ""))
+        to_header = EmailBodyParser.decode_header_value(eml.get("To", ""))
         date_raw = eml.get("Date", "")
 
         try:
@@ -203,14 +302,6 @@ class EmailBodyParser:
                 date_obj = timezone.make_aware(date_obj)
         except Exception:
             date_obj = now_fn()
-
-        date_str = date_obj.strftime("%Y-%m-%d %H:%M:%S")
-
-        # Extract sender domain
-        parsed = parseaddr(sender)
-        email_addr = parsed[1] if len(parsed) == 2 else ""
-        match = re.search(r"@([A-Za-z0-9.-]+)$", email_addr)
-        sender_domain = match.group(1).lower() if match else ""
 
         # Walk parts for body (prefer HTML) else text/plain
         body_html = ""
@@ -251,6 +342,27 @@ class EmailBodyParser:
         if body_html and not body_text:
             # Provide plain text fallback from HTML
             body_text = EmailBodyParser.html_to_text(body_html)
+
+        forwarded_headers = EmailBodyParser.extract_forwarded_message_headers(
+            body_text,
+            body_html,
+        )
+        if forwarded_headers.get("subject"):
+            subject = forwarded_headers["subject"]
+        if forwarded_headers.get("from"):
+            sender = forwarded_headers["from"]
+        if forwarded_headers.get("to"):
+            to_header = forwarded_headers["to"]
+        if forwarded_headers.get("date") is not None:
+            date_obj = forwarded_headers["date"]
+
+        # Extract sender domain
+        parsed = parseaddr(sender)
+        email_addr = parsed[1] if len(parsed) == 2 else ""
+        match = re.search(r"@([A-Za-z0-9.-]+)$", email_addr)
+        sender_domain = match.group(1).lower() if match else ""
+
+        date_str = date_obj.strftime("%Y-%m-%d %H:%M:%S")
 
         # Header hints similar to Gmail path (limited set for EML)
         header_hints = {
@@ -299,6 +411,7 @@ class EmailBodyParser:
             "last_updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "sender": sender,
             "sender_domain": sender_domain,
+            "to": to_header,
             "header_hints": header_hints,
         }
 

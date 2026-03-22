@@ -209,6 +209,11 @@ class CompanyResolver:
 
         return names
 
+    @staticmethod
+    def _compact_company_key(value: str) -> str:
+        """Normalize company-like text for compact equality checks."""
+        return re.sub(r"[^a-z0-9]+", "", (value or "").lower())
+
     def extract_from_ats_sender(self, sender: str, sender_domain):
         """Extract company from ATS sender display name or email prefix.
 
@@ -313,6 +318,34 @@ class CompanyResolver:
                     if orig.lower() == sender_prefix:
                         logger.debug(f"[DEBUG] ATS prefix is known company: {orig}")
                         return orig
+
+            configured_by_key = {
+                self._compact_company_key(company): company
+                for company in self._configured_company_names()
+            }
+            sender_prefix_key = self._compact_company_key(sender_prefix)
+            if sender_prefix_key in configured_by_key:
+                company = configured_by_key[sender_prefix_key]
+                logger.debug(f"[DEBUG] ATS prefix matched configured company: {company}")
+                return company
+
+            if (
+                sender_prefix_key
+                and sender_prefix.isalpha()
+                and 3 <= len(sender_prefix) <= 20
+                and sender_prefix not in {
+                    "noreply",
+                    "donotreply",
+                    "recruiting",
+                    "recruiter",
+                    "careers",
+                    "jobs",
+                    "workday",
+                }
+            ):
+                company = sender_prefix.upper() if sender_prefix.isupper() else sender_prefix.title()
+                logger.debug(f"[DEBUG] ATS prefix fallback company: {company}")
+                return company
 
         return None
 
@@ -535,10 +568,7 @@ class CompanyResolver:
             or "applying" in subject.lower()
             or "applied" in subject.lower()
         )
-        is_ats = any(
-            domain_lower == ats_root or domain_lower.endswith(f".{ats_root}")
-            for ats_root in self.ats_domains
-        ) if domain_lower else False
+        is_ats = self.domain_mapper.is_ats_domain(domain_lower) if domain_lower else False
 
         if not (subject_has_app_keywords or is_ats):
             return None
@@ -563,6 +593,7 @@ class CompanyResolver:
         )
 
         ats_body_patterns = [
+            r"thanks?\s+for\s+applying\s+to\s+([A-Z][A-Za-z0-9\s&.,'-]+?)(?:!|\.|,|[\r\n])",
             r"position\s+(?:here\s+)?at\s+([A-Z][A-Za-z0-9\s&.,'-]+?)"
             r"(?:\.|,|[\r\n]|\s+Thank|\s+you\b)",
             r"position\s+(?:here\s+)?(?:at|with)\s+"
@@ -657,6 +688,35 @@ class CompanyResolver:
         company = None
         job_title = None
 
+        trailing_company_match = re.search(
+            r"-\s*([A-Z][A-Za-z0-9&.\-]+(?:\s+[A-Z][A-Za-z0-9&.\-]+){0,3})\s*$",
+            subject,
+        )
+        if trailing_company_match:
+            trailing_candidate = self.company_validator.normalize_company_name(
+                trailing_company_match.group(1).strip()
+            )
+            if (
+                self.company_validator.is_valid_company_name(trailing_candidate)
+                and not self.company_validator.looks_like_person(trailing_candidate)
+            ):
+                return trailing_candidate, job_title
+
+        update_company_match = re.match(
+            r"^([A-Z][A-Za-z0-9&.\-]+(?:\s+[A-Z][A-Za-z0-9&.\-]+){0,3})\s+career opportunity update\b",
+            subject,
+            re.IGNORECASE,
+        )
+        if update_company_match:
+            update_candidate = self.company_validator.normalize_company_name(
+                update_company_match.group(1).strip()
+            )
+            if (
+                self.company_validator.is_valid_company_name(update_candidate)
+                and not self.company_validator.looks_like_person(update_candidate)
+            ):
+                return update_candidate, job_title
+
         # Special case: "applying for Field CTO position @ Claroty"
         special_match = re.search(
             r"applying for ([\w\s\-]+) position @ ([A-Z][\w\s&\-]+)", subject
@@ -713,6 +773,12 @@ class CompanyResolver:
                 candidate = self.company_validator.normalize_company_name(
                     match.group(1).strip()
                 )
+
+                if not self.company_validator.is_valid_company_name(candidate):
+                    logger.debug(
+                        f"[DEBUG] Rejected invalid candidate company from subject: {candidate}"
+                    )
+                    continue
 
                 # Person-name safeguard
                 if self.company_validator.looks_like_person(candidate):

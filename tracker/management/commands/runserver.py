@@ -5,10 +5,12 @@ Custom runserver command that displays .env configuration on startup.
 import os
 import pickle
 import subprocess
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from django.core.management.base import CommandError
 from django.core.management.commands.runserver import Command as RunserverCommand
+from django.core.servers.basehttp import WSGIServer
 
 from tracker.startup_checks import (
     DatabaseStartupError,
@@ -16,8 +18,20 @@ from tracker.startup_checks import (
 )
 
 
+class QuietTimeoutWSGIServer(WSGIServer):
+    """Suppress noisy traceback logging for harmless client socket timeouts."""
+
+    def handle_error(self, request, client_address):
+        _, exc, _ = sys.exc_info()
+        if isinstance(exc, TimeoutError):
+            return
+        super().handle_error(request, client_address)
+
+
 class Command(RunserverCommand):
     """Extended runserver command that displays environment configuration."""
+
+    server_cls = QuietTimeoutWSGIServer
 
     help = (
         "Starts a lightweight web server for development (displays .env configuration)"

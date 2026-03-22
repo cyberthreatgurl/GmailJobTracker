@@ -1,12 +1,13 @@
 import importlib
 import sys
+from unittest.mock import Mock
 
 import pytest
 from django.core.management.base import CommandError
 from django.core.management.commands.runserver import Command as DjangoRunserverCommand
 from django.db.utils import OperationalError
 
-from tracker.management.commands.runserver import Command
+from tracker.management.commands.runserver import Command, QuietTimeoutWSGIServer
 from tracker.startup_checks import (
     DatabaseStartupError,
     describe_default_database,
@@ -75,6 +76,42 @@ def test_runserver_stops_when_database_is_unreachable(monkeypatch):
 
     with pytest.raises(CommandError, match="PostgrSQL tracker localhost:5432 is unreachable"):
         command.run(use_reloader=False)
+
+
+def test_quiet_timeout_wsgi_server_suppresses_timeout_errors(monkeypatch):
+    server = object.__new__(QuietTimeoutWSGIServer)
+    parent_handle_error = Mock()
+
+    monkeypatch.setattr(
+        "django.core.servers.basehttp.WSGIServer.handle_error",
+        parent_handle_error,
+    )
+    monkeypatch.setattr(
+        "tracker.management.commands.runserver.sys.exc_info",
+        lambda: (TimeoutError, TimeoutError("timed out"), None),
+    )
+
+    server.handle_error(None, ("127.0.0.1", 12345))
+
+    parent_handle_error.assert_not_called()
+
+
+def test_quiet_timeout_wsgi_server_delegates_other_errors(monkeypatch):
+    server = object.__new__(QuietTimeoutWSGIServer)
+    parent_handle_error = Mock()
+
+    monkeypatch.setattr(
+        "django.core.servers.basehttp.WSGIServer.handle_error",
+        parent_handle_error,
+    )
+    monkeypatch.setattr(
+        "tracker.management.commands.runserver.sys.exc_info",
+        lambda: (ValueError, ValueError("boom"), None),
+    )
+
+    server.handle_error("request", ("127.0.0.1", 12345))
+
+    parent_handle_error.assert_called_once_with("request", ("127.0.0.1", 12345))
 
 
 @pytest.mark.parametrize(

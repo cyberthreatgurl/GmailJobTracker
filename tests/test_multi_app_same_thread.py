@@ -197,6 +197,107 @@ class TestParserMultiAppPerThread:
 
         assert ThreadTracking.objects.filter(company=company).count() == 1
 
+    def test_same_job_metadata_on_shared_thread_does_not_create_duplicate(self, company, first_tt, stats):
+        """A second message for the same job on a shared Gmail thread should reuse the existing TT."""
+        from parser import _create_thread_tracking_for_application
+        metadata = self._make_metadata()
+        result = self._make_result()
+
+        _create_thread_tracking_for_application(
+            msg_id=SECOND_MSG_ID,
+            metadata=metadata,
+            result=result,
+            company_obj=company,
+            company_source="domain_mapping",
+            parsed_subject={"job_title": "Senior Engineer", "job_id": "J-12345"},
+            status="application",
+            reviewed=False,
+            stats=stats,
+            ml_label="job_application",
+            rejection_date_final=None,
+            interview_date_final=None,
+            prescreen_date_final=None,
+        )
+
+        assert ThreadTracking.objects.filter(company=company).count() == 1
+        first_tt.refresh_from_db()
+        assert first_tt.job_title == "Senior Engineer"
+        assert first_tt.job_id == "J-12345"
+
+    def test_same_job_metadata_across_different_threads_does_not_create_duplicate(self, company, stats):
+        """A second acknowledgement on a different Gmail thread should reuse the existing application."""
+        from parser import _create_thread_tracking_for_application
+
+        ThreadTracking.objects.create(
+            thread_id="primary-thread",
+            company=company,
+            company_source="domain_mapping",
+            job_title="Senior Engineer",
+            job_id="J-12345",
+            status="application",
+            sent_date=datetime.date(2026, 2, 20),
+            ml_label="job_application",
+            ml_confidence=0.95,
+        )
+
+        metadata = {
+            "thread_id": "secondary-thread",
+            "timestamp": timezone.now(),
+            "subject": "Keep track of your application",
+            "body": "Thank you for your interest in Senior Engineer (ID: J-12345).",
+            "sender_domain": "maximus.com",
+        }
+        result = self._make_result()
+
+        _create_thread_tracking_for_application(
+            msg_id="secondary-msg",
+            metadata=metadata,
+            result=result,
+            company_obj=company,
+            company_source="domain_mapping",
+            parsed_subject={"job_title": "Senior Engineer", "job_id": "J-12345"},
+            status="application",
+            reviewed=False,
+            stats=stats,
+            ml_label="job_application",
+            rejection_date_final=None,
+            interview_date_final=None,
+            prescreen_date_final=None,
+        )
+
+    def test_generic_reminder_thread_is_treated_as_duplicate_acknowledgement(self, company):
+        """Standalone reminder threads should still resolve as duplicate acknowledgements."""
+        from parser import _is_duplicate_application_acknowledgement
+
+        ThreadTracking.objects.create(
+            thread_id="primary-thread",
+            company=company,
+            company_source="domain_mapping",
+            job_title="Senior Engineer",
+            job_id="J-12345",
+            status="application",
+            sent_date=datetime.date(2026, 2, 20),
+            ml_label="job_application",
+            ml_confidence=0.95,
+        )
+
+        metadata = {
+            "thread_id": "reminder-thread",
+            "timestamp": timezone.now(),
+            "subject": "Keep track of your application",
+            "body": "Thank you for your interest in Senior Engineer (ID: J-12345).",
+            "sender_domain": "maximus.com",
+        }
+
+        assert _is_duplicate_application_acknowledgement(
+            "reminder-thread",
+            metadata,
+            company,
+            {"job_title": "Senior Engineer", "job_id": "J-12345"},
+        )
+
+        assert ThreadTracking.objects.filter(company=company).count() == 1
+
     def test_rejection_does_not_trigger_multi_app(self, company, first_tt, stats):
         """A rejection on the same thread should update, not create a new TT."""
         from parser import _create_thread_tracking_for_application
@@ -311,6 +412,27 @@ class TestPropagateMultiAppPerThread:
         assert result is not None
         assert result.thread_id == SHARED_THREAD_ID
         assert ThreadTracking.objects.filter(company=company).count() == 1
+
+    def test_propagation_reuses_blank_tt_when_second_message_has_job_metadata(
+        self, company, first_tt, second_message
+    ):
+        """A same-thread acknowledgement with title/ID should enrich the existing TT."""
+        from tracker.utils.label_propagation import propagate_message_label_to_thread
+
+        second_message.body = (
+            "Thank you for your interest in Senior Engineer (ID: J-12345). "
+            "You can complete your application here."
+        )
+        second_message.save(update_fields=["body"])
+
+        result = propagate_message_label_to_thread(second_message)
+
+        assert result is not None
+        assert result.thread_id == SHARED_THREAD_ID
+        assert ThreadTracking.objects.filter(company=company).count() == 1
+        first_tt.refresh_from_db()
+        assert first_tt.job_title == "Senior Engineer"
+        assert first_tt.job_id == "J-12345"
 
 
 # ==============================================================================

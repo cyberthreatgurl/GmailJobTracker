@@ -140,6 +140,8 @@ pandas==2.3.3
     # via -r requirements-prod.in
 pillow==11.3.0
     # via matplotlib
+playwright==1.58.0
+    # via -r requirements-prod.in
 preshed==3.0.10
     # via
     #   spacy

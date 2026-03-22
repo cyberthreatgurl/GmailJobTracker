@@ -22,6 +22,7 @@ FROM python:3.13-slim
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
+    PLAYWRIGHT_BROWSERS_PATH=/ms-playwright \
     DJANGO_SETTINGS_MODULE=dashboard.settings
 
 WORKDIR /app
@@ -63,12 +64,15 @@ RUN mkdir -p /app/db /app/logs /app/model /app/staticfiles /app/json && \
 RUN --mount=type=cache,target=/root/.cache/pip \
     python -m spacy download en_core_web_sm
 
+# Install Chromium for rendered-page scraping fallbacks
+RUN python -m playwright install --with-deps chromium
+
 # Collect static files
 RUN python manage.py collectstatic --noinput
 
 # Create a non-root user for security
 RUN useradd -m -u 1000 gmailtracker && \
-    chown -R gmailtracker:gmailtracker /app
+    chown -R gmailtracker:gmailtracker /app /ms-playwright
 
 USER gmailtracker
 

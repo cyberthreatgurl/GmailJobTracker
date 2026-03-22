@@ -1,4 +1,7 @@
-from tracker.views.companies import _extract_locations_from_html
+from tracker.views.companies import (
+    _extract_locations_from_captured_json,
+    _extract_locations_from_html,
+)
 
 def test_extract_locations_from_structured_html():
     """Test extraction from specific nested div structures, including skipping empty divs."""
@@ -87,3 +90,27 @@ def test_extract_locations_uses_library_for_non_hardcoded_region_normalization()
     locations = _extract_locations_from_html(html_content)
 
     assert "Sydney, NSW, Australia" in locations
+
+
+def test_extract_locations_from_captured_json_splits_semicolon_joined_values():
+    """ATS JSON payloads sometimes pack multiple locations into one semicolon-delimited field."""
+    captured_json = [
+        {
+            "url": "https://talent.spa.com/api/jobs?page=1",
+            "data": {
+                "jobs": [
+                    {
+                        "data": {
+                            "full_location": "Vienna, Virginia; Dumfries, Virginia",
+                        }
+                    }
+                ]
+            },
+        }
+    ]
+
+    locations = _extract_locations_from_captured_json(captured_json)
+
+    assert "Vienna, VA" in locations
+    assert "Dumfries, VA" in locations
+    assert all(";" not in location for location in locations)

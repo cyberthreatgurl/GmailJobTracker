@@ -78,6 +78,7 @@ source venv/bin/activate  # Windows: venv\Scripts\activate
 
 # 3. Install dependencies
 pip install -r requirements.txt
+python -m playwright install chromium
 python -m spacy download en_core_web_sm
 
 # 4. Configure environment
@@ -106,6 +107,8 @@ python manage.py runserver
 If the configured default database is unreachable at startup, the server now stops immediately with a clean error instead of continuing in a broken state.
 
 The application now uses PostgreSQL across local development, CI, and Docker so the same database stack is exercised everywhere.
+
+JavaScript-heavy careers pages use a Playwright fallback. Install Chromium locally with `python -m playwright install chromium` if you want rendered job and company scraping to work outside Docker/CI. ATS-hosted job pages can also expose location data through JSON responses rather than visible HTML, and the scraper now captures those payloads when needed.
 
 **Visit:** <http://127.0.0.1:8000/>
 

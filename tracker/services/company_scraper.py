@@ -11,16 +11,26 @@ import re
 from urllib.parse import urlparse, urljoin
 from typing import Dict, Optional
 
-import requests
 from bs4 import BeautifulSoup
+
+from tracker.services.browser_scraper import (
+    fetch_best_effort_page,
+    fetch_rendered_page,
+    fetch_static_page,
+    should_fallback_to_browser,
+    should_use_browser_first,
+)
 
 
 class CompanyScraperError(Exception):
     """Base exception for company scraper errors."""
-    pass
 
 
-def scrape_company_info(homepage_url: str, timeout: int = 10) -> Dict[str, str]:
+def scrape_company_info(
+    homepage_url: str,
+    timeout: int = 10,
+    allow_browser_fallback: bool = True,
+) -> Dict[str, str]:
     """
     Scrape company information from a homepage URL.
 
@@ -50,44 +60,44 @@ def scrape_company_info(homepage_url: str, timeout: int = 10) -> Dict[str, str]:
             raise CompanyScraperError("Invalid URL format")
         domain = parsed.netloc.replace("www.", "")
     except Exception as e:
-        raise CompanyScraperError(f"Invalid URL: {e}")
+        raise CompanyScraperError(f"Invalid URL: {e}") from e
 
-    # Fetch the page
-    try:
-        # Use minimal headers - more complex headers can trigger anti-bot measures
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-        }
-        response = requests.get(homepage_url, headers=headers, timeout=timeout, allow_redirects=True)
-        response.raise_for_status()
-    except requests.Timeout:
-        raise CompanyScraperError(f"Request timed out after {timeout} seconds. The website may be slow or unavailable.")
-    except requests.HTTPError as e:
-        if e.response.status_code == 403:
-            raise CompanyScraperError(f"Access denied (403 Forbidden). The website '{domain}' is blocking automated requests. Try manually visiting their careers page instead.")
-        elif e.response.status_code == 404:
-            raise CompanyScraperError(f"Page not found (404). Please check if '{homepage_url}' is the correct URL.")
-        elif e.response.status_code >= 500:
-            raise CompanyScraperError(f"Server error ({e.response.status_code}). The website may be temporarily down.")
-        else:
-            raise CompanyScraperError(f"HTTP error {e.response.status_code}: {e}")
-    except requests.RequestException as e:
-        raise CompanyScraperError(f"Failed to connect to '{domain}': {str(e)}")
+    page_result = _fetch_page_result(
+        homepage_url,
+        timeout=timeout,
+        allow_browser_fallback=allow_browser_fallback,
+    )
+    if not page_result["success"]:
+        raise CompanyScraperError(page_result["error"] or f"Failed to connect to '{domain}'")
 
-    # Parse HTML
     try:
-        soup = BeautifulSoup(response.content, "html.parser")
+        soup = BeautifulSoup(page_result["html"], "html.parser")
     except Exception as e:
-        raise CompanyScraperError(f"Failed to parse HTML: {e}")
+        raise CompanyScraperError(f"Failed to parse HTML: {e}") from e
 
-    # Extract company name
     company_name = _extract_company_name(soup, domain)
-
-    # Extract career/jobs URL
     career_url = _extract_career_url(soup, homepage_url)
-
-    # Extract page content for focus area analysis
     page_content = _extract_page_content(soup)
+
+    if (
+        allow_browser_fallback
+        and page_result.get("source_method") == "static"
+        and should_fallback_to_browser(
+            homepage_url,
+            page_content,
+            page_result.get("status_code"),
+        )
+    ):
+        rendered_result = fetch_rendered_page(
+            homepage_url,
+            timeout=max(int(timeout * 1000), 1000),
+        )
+        if rendered_result["success"]:
+            page_result = rendered_result
+            soup = BeautifulSoup(page_result["html"], "html.parser")
+            company_name = _extract_company_name(soup, domain)
+            career_url = _extract_career_url(soup, homepage_url)
+            page_content = _extract_page_content(soup)
 
     # Enhanced crawling: Extract internal links and crawl 1 level deep
     internal_links = _extract_internal_links(soup, homepage_url, domain)
@@ -351,7 +361,28 @@ def _extract_about_url(soup: BeautifulSoup, base_url: str) -> Optional[str]:
     return None
 
 
-def _scrape_about_page(about_url: str, timeout: int = 10) -> str:
+def _fetch_page_result(
+    page_url: str,
+    timeout: int,
+    allow_browser_fallback: bool = True,
+):
+    """Fetch a page using the shared browser-aware scraper utilities."""
+    timeout_ms = max(int(timeout * 1000), 1000)
+    if not allow_browser_fallback:
+        return fetch_static_page(page_url, timeout=timeout_ms)
+
+    return fetch_best_effort_page(
+        page_url,
+        timeout=timeout_ms,
+        browser_first=should_use_browser_first(page_url),
+    )
+
+
+def _scrape_about_page(
+    about_url: str,
+    timeout: int = 10,
+    allow_browser_fallback: bool = True,
+) -> str:
     """
     Scrape content from About Us page.
 
@@ -362,18 +393,11 @@ def _scrape_about_page(about_url: str, timeout: int = 10) -> str:
     Returns:
         Extracted text content from the About page
     """
-    try:
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-        }
-        response = requests.get(about_url, headers=headers, timeout=timeout, allow_redirects=True)
-        response.raise_for_status()
-
-        soup = BeautifulSoup(response.content, "html.parser")
-        return _extract_page_content(soup)
-    except Exception:
-        # Return empty string if scraping fails
-        return ""
+    return _extract_page_content_from_url(
+        about_url,
+        timeout=timeout,
+        allow_browser_fallback=allow_browser_fallback,
+    )
 
 
 def _extract_page_content(soup: BeautifulSoup) -> str:
@@ -477,7 +501,11 @@ def _extract_internal_links(soup: BeautifulSoup, base_url: str, domain: str) -> 
     return relevant_links
 
 
-def _scrape_internal_page(page_url: str, timeout: int = 8) -> str:
+def _scrape_internal_page(
+    page_url: str,
+    timeout: int = 8,
+    allow_browser_fallback: bool = True,
+) -> str:
     """
     Scrape content from an internal page.
 
@@ -488,20 +516,54 @@ def _scrape_internal_page(page_url: str, timeout: int = 8) -> str:
     Returns:
         Extracted text content (max 2000 chars per page)
     """
-    try:
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-        }
-        response = requests.get(page_url, headers=headers, timeout=timeout, allow_redirects=True)
-        response.raise_for_status()
+    return _extract_page_content_from_url(
+        page_url,
+        timeout=timeout,
+        allow_browser_fallback=allow_browser_fallback,
+        content_limit=2000,
+    )
 
-        soup = BeautifulSoup(response.content, "html.parser")
+
+def _extract_page_content_from_url(
+    page_url: str,
+    timeout: int,
+    allow_browser_fallback: bool = True,
+    content_limit: Optional[int] = None,
+) -> str:
+    """Extract page content from a URL with optional rendered-page fallback."""
+    try:
+        page_result = _fetch_page_result(
+            page_url,
+            timeout=timeout,
+            allow_browser_fallback=allow_browser_fallback,
+        )
+        if not page_result["success"]:
+            return ""
+
+        soup = BeautifulSoup(page_result["html"], "html.parser")
         content = _extract_page_content(soup)
 
-        # Limit to 2000 chars per page to avoid excessive content
-        return content[:2000] if content else ""
+        if (
+            allow_browser_fallback
+            and page_result.get("source_method") == "static"
+            and should_fallback_to_browser(
+                page_url,
+                content,
+                page_result.get("status_code"),
+            )
+        ):
+            rendered_result = fetch_rendered_page(
+                page_url,
+                timeout=max(int(timeout * 1000), 1000),
+            )
+            if rendered_result["success"]:
+                soup = BeautifulSoup(rendered_result["html"], "html.parser")
+                content = _extract_page_content(soup)
+
+        if content_limit and content:
+            return content[:content_limit]
+        return content or ""
     except Exception:
-        # Return empty string if scraping fails
         return ""
 
 

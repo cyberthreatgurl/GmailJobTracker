@@ -28,6 +28,7 @@ en_core_web_sm @ https://github.com/explosion/spacy-models/releases/download/en_
 
 # Utilities
 matplotlib==3.10.6
+playwright==1.58.0
 psutil>=5.9
 thefuzz==0.22.1
 psycopg2-binary==2.9.10

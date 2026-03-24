@@ -252,9 +252,9 @@
               📍 {{ contract.company_location }}
               {% if contract.contract_number %} · 📝 {{ contract.contract_number }}{% endif %}
               {% if contract.naics_code %} · <span title="{{ contract.naics_description|default:'' }}">🏭 {{ contract.naics_code }}{% if contract.naics_description %} – {{ contract.naics_description }}{% endif %}</span>
-                <button type="button" onclick="addIgnoreRule('naics', '{{ contract.naics_code|escapejs }}', this)" title="Add NAICS {{ contract.naics_code }} to ignore list" class="text-red-400 hover:text-red-600 text-[0.6rem] ml-0.5 cursor-pointer">🚫</button>{% endif %}
+                <a href="#" data-ignore-rule-type="naics" data-ignore-value="{{ contract.naics_code|escapejs }}" title="Add NAICS {{ contract.naics_code }} to ignore list" class="js-ignore-rule inline-flex items-center text-red-400 hover:text-red-600 text-[0.7rem] ml-1 cursor-pointer transition-colors">🚫</a>{% endif %}
               {% if contract.product_service_code %} · <span title="{{ contract.product_service_code_description|default:'' }}">📦 {{ contract.product_service_code }}{% if contract.product_service_code_description %} – {{ contract.product_service_code_description }}{% endif %}</span>
-                <button type="button" onclick="addIgnoreRule('psc', '{{ contract.product_service_code|escapejs }}', this)" title="Add PSC {{ contract.product_service_code }} to ignore list" class="text-red-400 hover:text-red-600 text-[0.6rem] ml-0.5 cursor-pointer">🚫</button>{% endif %}
+                <a href="#" data-ignore-rule-type="psc" data-ignore-value="{{ contract.product_service_code|escapejs }}" title="Add PSC {{ contract.product_service_code }} to ignore list" class="js-ignore-rule inline-flex items-center text-red-400 hover:text-red-600 text-[0.7rem] ml-1 cursor-pointer transition-colors">🚫</a>{% endif %}
             </div>
             <div id="company-actions-{{ contract.id }}" class="flex items-center gap-1.5 flex-wrap mt-1.5">
               {% if not contract.company %}
@@ -486,23 +486,63 @@
         window.location.replace(url.toString());
       }
     }
+
+    bindIgnoreRuleLinks();
   });
   // ────────────────────────────────────────────────────────────────────────────
 
   function addIgnoreRule(ruleType, value, btn) {
-    btn.disabled = true;
+    console.debug('[ContractIgnoreRule] click', {
+      ruleType: ruleType,
+      value: value,
+    });
+    btn.setAttribute('aria-disabled', 'true');
+    btn.classList.add('pointer-events-none');
     btn.textContent = '⏳';
     fetch('{% url "add_contract_ignore_rule" %}', {
       method: 'POST',
       headers: {'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRFToken': CSRF_TOKEN},
       body: 'rule_type=' + encodeURIComponent(ruleType) + '&value=' + encodeURIComponent(value)
     }).then(r => r.json()).then(data => {
+      console.debug('[ContractIgnoreRule] response', data);
+      if (!data || !['created', 'exists', 'reactivated'].includes(data.status)) {
+        throw new Error(data && data.error ? data.error : 'Ignore rule save failed');
+      }
       btn.textContent = '✅';
       btn.classList.remove('text-red-400');
       btn.classList.add('text-green-500');
+      removeIgnoredContractCard(btn);
     }).catch(() => {
       btn.textContent = '❌';
-      btn.disabled = false;
+      btn.removeAttribute('aria-disabled');
+      btn.classList.remove('pointer-events-none');
+    });
+  }
+
+  function removeIgnoredContractCard(btn) {
+    const contractCard = btn.closest('[data-contract-id]');
+    if (contractCard) {
+      contractCard.remove();
+    }
+  }
+
+  function bindIgnoreRuleLinks() {
+    const ignoreLinks = document.querySelectorAll('.js-ignore-rule');
+    console.debug('[ContractIgnoreRule] bound links', ignoreLinks.length);
+    ignoreLinks.forEach((link) => {
+      if (link.dataset.ignoreBound === '1') {
+        return;
+      }
+      link.dataset.ignoreBound = '1';
+      link.addEventListener('click', function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        addIgnoreRule(
+          this.dataset.ignoreRuleType,
+          this.dataset.ignoreValue,
+          this,
+        );
+      });
     });
   }
 

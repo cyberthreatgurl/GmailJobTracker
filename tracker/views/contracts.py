@@ -154,18 +154,37 @@ def add_contract_ignore_rule(request):
     rule_type = request.POST.get('rule_type', '').strip()
     value = request.POST.get('value', '').strip()
     if rule_type not in ('naics', 'psc') or not value:
+        logger.warning(
+            "Contract ignore rule rejected: user=%s rule_type=%r value=%r",
+            request.user.username,
+            rule_type,
+            value,
+        )
         return JsonResponse({'error': 'Invalid rule_type or value'}, status=400)
     rule, created = ContractIgnoreRule.objects.get_or_create(
         rule_type=rule_type, value=value,
         defaults={'is_active': True, 'should_delete': False}
     )
+    status = 'created' if created else 'exists'
     if not created and not rule.is_active:
         rule.is_active = True
         rule.save(update_fields=['is_active'])
+        status = 'reactivated'
+
+    logger.info(
+        "Contract ignore rule saved: user=%s rule_type=%s value=%s status=%s rule_id=%s",
+        request.user.username,
+        rule_type,
+        value,
+        status,
+        rule.id,
+    )
+
     return JsonResponse({
-        'status': 'created' if created else 'exists',
+        'status': status,
         'rule_type': rule_type,
         'value': value,
+        'rule_id': rule.id,
     })
 
 

@@ -1,5 +1,5 @@
 {
-  "trained_on": "2026-03-22T12:57:43.084193",
+  "trained_on": "2026-03-24T12:58:51.237939",
   "labels": [
     "head_hunter",
     "interview_invite",
@@ -9,7 +9,7 @@
     "prescreen",
     "rejection"
   ],
-  "num_samples": 1968,
+  "num_samples": 2023,
   "total_features": 50000,
   "meaningful_features_sample": [
     "00 for",
@@ -18,6 +18,7 @@
     "000 product",
     "000 user",
     "000 web",
+    "004 sybex",
     "00am and",
     "0517 will",
     "08 usd",
@@ -29,6 +30,7 @@
     "100 remote",
     "100 venmo",
     "1074 cyber",
+    "11 after",
     "11 billion",
     "11 patch",
     "1128 electronic",
@@ -96,6 +98,7 @@
     "2026 issue",
     "2026 jaytech",
     "2026 march",
+    "2026 neo",
     "2026 the",
     "2026 week",
     "2027 ieee",
@@ -108,9 +111,6 @@
     "23andme",
     "25 soldiers",
     "25 travel",
-    "25 turbotax",
-    "26 jlm",
-    "26 num",
-    "26 san"
+    "25 turbotax"
   ]
 }

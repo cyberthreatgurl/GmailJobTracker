@@ -131,10 +131,32 @@
               <div class="text-xs italic text-gray-400 mt-1">{{ opp.sub_office|default:"" }}</div>
             </td>
             <td class="px-4 py-3 align-top font-mono text-gray-600">
-              {{ opp.naics_code|default:"-" }}
+              {% if opp.naics_code %}
+              <div class="inline-flex items-center gap-1">
+                <span>{{ opp.naics_code }}</span>
+                 <a href="#"
+                   data-ignore-rule-type="naics"
+                   data-ignore-value="{{ opp.naics_code|escapejs }}"
+                   title="Add NAICS {{ opp.naics_code }} to ignore list"
+                   class="js-ignore-rule inline-flex items-center rounded text-red-400 hover:text-red-600 text-[0.7rem] cursor-pointer transition-colors">🚫</a>
+              </div>
+              {% else %}
+              -
+              {% endif %}
             </td>
             <td class="px-4 py-3 align-top font-mono text-gray-600">
-              {{ opp.product_service_code|default:"-" }}
+              {% if opp.product_service_code %}
+              <div class="inline-flex items-center gap-1">
+                <span>{{ opp.product_service_code }}</span>
+                 <a href="#"
+                   data-ignore-rule-type="psc"
+                   data-ignore-value="{{ opp.product_service_code|escapejs }}"
+                   title="Add PSC {{ opp.product_service_code }} to ignore list"
+                   class="js-ignore-rule inline-flex items-center rounded text-red-400 hover:text-red-600 text-[0.7rem] cursor-pointer transition-colors">🚫</a>
+              </div>
+              {% else %}
+              -
+              {% endif %}
             </td>
             <td class="px-4 py-3 align-top text-right">
               <div class="flex flex-col gap-2 items-end">
@@ -367,6 +389,75 @@
             closeDebugModal();
         }
     });
+  const CSRF_TOKEN = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '{{ csrf_token }}';
+
+  function addIgnoreRule(ruleType, value, btn) {
+    console.debug('[ContractIgnoreRule] click', {
+      ruleType: ruleType,
+      value: value,
+    });
+    btn.setAttribute('aria-disabled', 'true');
+    btn.classList.add('pointer-events-none');
+    btn.textContent = '⏳';
+    fetch('{% url "add_contract_ignore_rule" %}', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'X-CSRFToken': CSRF_TOKEN,
+      },
+      body: 'rule_type=' + encodeURIComponent(ruleType) + '&value=' + encodeURIComponent(value),
+    }).then(response => response.json()).then((data) => {
+      console.debug('[ContractIgnoreRule] response', data);
+      if (!data || !['created', 'exists', 'reactivated'].includes(data.status)) {
+        throw new Error(data && data.error ? data.error : 'Ignore rule save failed');
+      }
+      btn.textContent = '✅';
+      btn.classList.remove('text-red-400');
+      btn.classList.add('text-green-500');
+      removeIgnoredOpportunityRows(btn);
+    }).catch(() => {
+      btn.textContent = '❌';
+      btn.removeAttribute('aria-disabled');
+      btn.classList.remove('pointer-events-none');
+    });
+  }
+
+  function removeIgnoredOpportunityRows(btn) {
+    const row = btn.closest('tr');
+    if (!row) {
+      return;
+    }
+    const detailRow = row.nextElementSibling;
+    if (detailRow && detailRow.id && detailRow.id.startsWith('opp-desc-')) {
+      detailRow.remove();
+    }
+    row.remove();
+  }
+
+  function bindIgnoreRuleLinks() {
+    const ignoreLinks = document.querySelectorAll('.js-ignore-rule');
+    console.debug('[ContractIgnoreRule] bound links', ignoreLinks.length);
+    ignoreLinks.forEach((link) => {
+      if (link.dataset.ignoreBound === '1') {
+        return;
+      }
+      link.dataset.ignoreBound = '1';
+      link.addEventListener('click', function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        addIgnoreRule(
+          this.dataset.ignoreRuleType,
+          this.dataset.ignoreValue,
+          this,
+        );
+      });
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    bindIgnoreRuleLinks();
+  });
   </script>
+
 </div>
 {% endblock %}

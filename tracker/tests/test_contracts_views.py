@@ -1,7 +1,7 @@
 from django.urls import reverse
 import pytest
 from django.utils import timezone
-from tracker.models import DefenseContract, Company
+from tracker.models import ContractIgnoreRule, DefenseContract, Company
 
 @pytest.mark.django_db
 def test_link_contract_company_bulk_update(client, django_user_model):
@@ -72,3 +72,22 @@ def test_unlink_contract(client, django_user_model):
     assert response.status_code == 200
     c1.refresh_from_db()
     assert c1.company is None
+
+
+@pytest.mark.django_db
+def test_add_contract_ignore_rule_logs_saved_rule(client, django_user_model, caplog):
+    user = django_user_model.objects.create_user(username='testuser3', password='password')
+    client.force_login(user)
+
+    response = client.post(
+        reverse('add_contract_ignore_rule'),
+        {'rule_type': 'naics', 'value': '541512'},
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data['status'] == 'created'
+    assert data['rule_type'] == 'naics'
+    assert data['value'] == '541512'
+    assert ContractIgnoreRule.objects.filter(rule_type='naics', value='541512').exists()
+    assert 'Contract ignore rule saved: user=testuser3 rule_type=naics value=541512 status=created' in caplog.text

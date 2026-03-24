@@ -1,10 +1,11 @@
 from unittest.mock import patch
 
 import pytest
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 from django.utils import timezone
 
-from tracker.models import Company
+from tracker.models import Company, CompanyDocument
 
 
 @pytest.mark.django_db
@@ -54,6 +55,41 @@ def test_label_companies_shows_homepage_domain_without_visible_input(
     assert "pure.net" in body
     assert '<label for="id_homepage">Homepage</label>' not in body
     assert '<label for="id_domain">Domain Name</label>' not in body
+
+
+@pytest.mark.django_db
+def test_label_companies_renders_uploaded_document_count_without_raw_template_text(
+    client,
+    django_user_model,
+    settings,
+    tmp_path,
+):
+    settings.MEDIA_ROOT = tmp_path
+    settings.ALLOWED_HOSTS = ["testserver", "localhost"]
+
+    user = django_user_model.objects.create_user(username="document-user", password="password")
+    client.force_login(user)
+
+    now = timezone.now()
+    company = Company.objects.create(
+        name="Obsidian",
+        domain="obsidian.example",
+        first_contact=now,
+        last_contact=now,
+    )
+    CompanyDocument.objects.create(
+        company=company,
+        file=SimpleUploadedFile("offer.txt", b"offer details", content_type="text/plain"),
+        description="Offer letter",
+    )
+
+    response = client.get(f"/label_companies/?company={company.id}", HTTP_HOST="localhost")
+
+    assert response.status_code == 200
+    body = response.content.decode("utf-8")
+    assert "Documents (1)" in body
+    assert "{{ company_documents|length }}" not in body
+    assert "offer.txt" in body
 
 
 @pytest.mark.django_db

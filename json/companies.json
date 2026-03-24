@@ -2,6 +2,7 @@
   "aliases": {
     "Amazon Web Services": "Amazon",
     "Arch Systems": "Arch Systems LLC",
+    "Business Consulting": "System One",
     "CGI": "CGI Inc.",
     "Ingalls Shipbuilding": "HII",
     "Mission Technologies": "HII",
@@ -19,7 +20,9 @@
     "arcfield.com": "Arcfield",
     "archsystemsinc.com": "Arch Systems LLC",
     "baesystems.com": "BAE Systems",
+    "cisco.com": "Cisco",
     "cyberbatinc.com": "Cyber Bat",
+    "eightfold.ai": "Modern Technology Solutions Inc",
     "email.monarch.com": "Monarch",
     "endyna.com": "Endyna",
     "google.com": "Firebase",
@@ -29,13 +32,16 @@
     "mfcyber.com": "MorganFranklin Cyber",
     "mtsi-va.com": "MTSI",
     "netdes.com": "Network Designs, Inc.",
+    "obsidian.global": "Obsidian",
     "parsons.com": "Parsons Corporation",
     "peraton.com": "Peraton",
     "psipax.com": "PSI Pax",
+    "pure.net": "Pure",
     "redriver.com": "Red River",
     "simventions.com": "SimVentions",
     "spa.com": "SPA",
     "substack.com": "Substack",
+    "systemone.com": "System One",
     "thomsonreuters.com": "Thomson Reuters",
     "vectorcsp.com": "VectorCSP"
   },
@@ -445,9 +451,12 @@
     "Four Points Technology": "http://www.4points.com/about-us/careers-at-four-points/",
     "HII": "https://hii.com/careers/life-at-hii/",
     "Cyber Bat": "https://www.cyberbatinc.com/career",
-    "SPA": "https://www.spa.com/joint-ventures/"
+    "SPA": "https://www.spa.com/joint-ventures/",
+    "System One": "https://systemone.com/careers/"
   },
-  "known": [],
+  "known": [
+    "Pure"
+  ],
   "ats_heuristic_patterns": [
     "workday",
     "greenhouse",

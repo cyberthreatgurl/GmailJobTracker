@@ -29,6 +29,7 @@ A local-only Django application that transforms your Gmail into an intelligent j
 - **Config-backed canonicalization**: Matches against `known`, `domain_to_company`, `JobSites`, and `aliases`
 - **Alias management**: Merge duplicate company names
 - **Domain intelligence**: Maps recruiter domains to companies
+- **Strong-source preservation on reingest**: Domain-mapped and other trusted company matches now survive reingest even when the message label is `noise`
 
 ### 📊 Dashboard & Analytics
 
@@ -38,6 +39,7 @@ A local-only Django application that transforms your Gmail into an intelligent j
 - **Bulk labeling**: Label 10/50/100 messages at once with checkboxes
 - **Confidence filtering**: Focus on low-confidence predictions
 - **Calendar view**: Upcoming interviews timeline
+- **Upcoming interview parity**: Dashboard interview cards now stay aligned with the sidebar's Upcoming list for future-dated interviews
 - **Label Companies workspace**: Refresh contracts in place, preview homepage-derived domains, and keep stored domains synchronized from saved homepages
 - **🔍 Job Search Tracker**: Proactively track which companies you've manually searched for opportunities
 
@@ -56,6 +58,7 @@ A local-only Django application that transforms your Gmail into an intelligent j
 - **OAuth-only**: Read-only Gmail access, revocable anytime
 - **Secret scanning**: detect-secrets baseline enforced in CI
 - **No tracking**: Zero telemetry, analytics, or external API calls
+- **Quieter local logs**: Heartbeat polling logs are disabled by default during development and can be re-enabled with `python manage.py runserver --heartbeat-logging on`
 
 ---
 
@@ -107,6 +110,8 @@ python manage.py runserver
 If the configured default database is unreachable at startup, the server now stops immediately with a clean error instead of continuing in a broken state.
 
 The application now uses PostgreSQL across local development, CI, and Docker so the same database stack is exercised everywhere.
+
+The development server suppresses `/api/ingestion_status/` heartbeat polling logs by default. If you want to see that traffic while debugging ingestion progress, start the server with `python manage.py runserver --heartbeat-logging on`.
 
 JavaScript-heavy careers pages use a Playwright fallback. Install Chromium locally with `python -m playwright install chromium` if you want rendered job and company scraping to work outside Docker/CI. ATS-hosted job pages can also expose location data through JSON responses rather than visible HTML, and the scraper now captures those payloads when needed.
 

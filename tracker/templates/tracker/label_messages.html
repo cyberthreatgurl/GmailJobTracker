@@ -75,34 +75,6 @@
       font-size: 0.9rem;
       min-width: 200px;
     }
-    .btn {
-      padding: 0.5rem 1rem;
-      border-radius: 6px;
-      border: none;
-      font-weight: 600;
-      font-size: 0.85rem;
-      cursor: pointer;
-      transition: all 0.2s;
-      white-space: nowrap;
-    }
-    .btn-primary {
-      background: #2563eb;
-      color: white;
-    }
-    .btn-primary:hover {
-      background: #1e40af;
-    }
-    .btn-primary:disabled {
-      background: #9ca3af;
-      cursor: not-allowed;
-    }
-    .btn-success {
-      background: #059669;
-      color: white;
-    }
-    .btn-success:hover {
-      background: #047857;
-    }
     table {
       width: 100%;
       border-collapse: collapse;
@@ -129,11 +101,11 @@
       background-color: #ecfdf5; /* light green */
     }
     .row-unreviewed {
-      background-color: #fef9c3; /* light yellow */
+      background-color: #fefce8; /* bg-yellow-50 */
     }
     /* Preserve highlight on hover */
     tr.row-reviewed-high:hover { background-color: #d1fae5; }
-    tr.row-unreviewed:hover { background-color: #fde68a; }
+    tr.row-unreviewed:hover { background-color: #fef9c3; }
     .checkbox-cell {
       width: 40px;
       text-align: center;
@@ -181,21 +153,6 @@
       display: flex;
       gap: 0.5rem;
     }
-    .pagination-controls button {
-      padding: 0.5rem 1rem;
-      border: 1px solid #d1d5db;
-      background: white;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 0.85rem;
-    }
-    .pagination-controls button:hover:not(:disabled) {
-      background: #f3f4f6;
-    }
-    .pagination-controls button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
     .alert {
       padding: 0.75rem 1rem;
       border-radius: 6px;
@@ -237,7 +194,7 @@
       background-color: #ecfdf5;
     }
     .legend-chip.yellow {
-      background-color: #fef9c3;
+      background-color: #fefce8;
     }
     /* Focus highlight animation for deep-linked message rows */
     .focus-flash {
@@ -334,7 +291,7 @@
           {% endif %}
         {% endfor %}
       </div>
-      <button onclick="document.getElementById('messageModal').style.display='none'" style="width:100%; padding:0.75rem; background:#2563eb; color:white; border:none; border-radius:6px; font-weight:600; font-size:1rem; cursor:pointer;">
+      <button onclick="document.getElementById('messageModal').style.display='none'" class="btn-primary" style="width:100%;">
         OK
       </button>
     </div>
@@ -438,27 +395,27 @@
           <option value="{{ label }}">{{ label }}</option>
         {% endfor %}
       </select>
-      <button type="submit" class="btn btn-primary" id="bulk-submit" disabled onclick="return submitBulkLabel()">
+      <button type="submit" class="btn-primary" id="bulk-submit" disabled onclick="return submitBulkLabel()">
         Apply Label
       </button>
       <input type="text" id="company-select-search" autocomplete="off" placeholder="Search company..." style="margin-left: 1rem; padding: 0.6rem; border-radius: 6px; border: 1px solid #d1d5db; font-size: 0.9rem; min-width: 200px;">
       <input type="hidden" name="company_id" id="company-select" value="">
-      <button type="submit" class="btn btn-primary" id="company-submit" disabled onclick="return submitCompanyReassign()">
+      <button type="submit" class="btn-primary" id="company-submit" disabled onclick="return submitCompanyReassign()">
         Reassign
       </button>
-      <button type="submit" class="btn" id="reingest-submit" disabled onclick="return submitReingest()" style="background:#f59e0b; color:white;">
+      <button type="submit" class="btn-secondary" id="reingest-submit" disabled onclick="return submitReingest()">
         🔄 Re-ingest
       </button>
       {% if message_list %}
-      <button type="submit" class="btn" id="mark-reviewed-submit" onclick="return submitMarkAllReviewed()" style="margin-left:auto; background:#059669; color:white;">
+      <button type="submit" class="btn-primary" id="mark-reviewed-submit" onclick="return submitMarkAllReviewed()" style="margin-left:auto;">
         ✓ Mark Reviewed
       </button>
       {% endif %}
       {% if message_list %}
-      <button type="submit" class="btn" id="clear-reviewed-submit" onclick="return submitClearReviewed()" style="margin-left:0.5rem; background:#ef4444; color:white;">
+      <button type="submit" class="btn-danger" id="clear-reviewed-submit" onclick="return submitClearReviewed()" style="margin-left:0.5rem;">
         ⤺ Clear
       </button>
-      <button type="submit" class="btn" id="delete-submit" disabled onclick="return submitDelete()" style="margin-left:0.5rem; background:#b91c1c; color:white;">
+      <button type="submit" class="btn-danger" id="delete-submit" disabled onclick="return submitDelete()" style="margin-left:0.5rem;">
         🗑️ Delete
       </button>
       {% endif %}
@@ -476,29 +433,29 @@
               <input type="checkbox" id="select-all" onclick="toggleSelectAll()">
             </th>
             <th>
-              <button type="button" onclick="sortBy('subject')" style="all:unset; cursor:pointer; font-weight:600; color:#374151;">
-                Subject {% if sort == 'subject' %}<span style="font-size:0.8rem; color:#6b7280;">{% if order == 'desc' %}▼{% else %}▲{% endif %}</span>{% endif %}
+                <button type="button" class="btn-secondary-sm" onclick="sortBy('subject')">
+                 Subject {% if sort == 'subject' %}<span style="font-size:0.8rem; color:#6b7280;">{% if order == 'desc' %}▼{% else %}▲{% endif %}</span>{% endif %}
               </button>
             </th>
             <th>
-              <button type="button" onclick="sortBy('company')" style="all:unset; cursor:pointer; font-weight:600; color:#374151;">
-                Company {% if sort == 'company' %}<span style="font-size:0.8rem; color:#6b7280;">{% if order == 'desc' %}▼{% else %}▲{% endif %}</span>{% endif %}
+                <button type="button" class="btn-secondary-sm" onclick="sortBy('company')">
+                 Company {% if sort == 'company' %}<span style="font-size:0.8rem; color:#6b7280;">{% if order == 'desc' %}▼{% else %}▲{% endif %}</span>{% endif %}
               </button>
             </th>
             <th>Current Label</th>
             <th>
-              <button type="button" onclick="sortBy('confidence')" style="all:unset; cursor:pointer; font-weight:600; color:#374151;">
-                Confidence {% if sort == 'confidence' %}<span style="font-size:0.8rem; color:#6b7280;">{% if order == 'desc' %}▼{% else %}▲{% endif %}</span>{% endif %}
+                <button type="button" class="btn-secondary-sm" onclick="sortBy('confidence')">
+                 Confidence {% if sort == 'confidence' %}<span style="font-size:0.8rem; color:#6b7280;">{% if order == 'desc' %}▼{% else %}▲{% endif %}</span>{% endif %}
               </button>
             </th>
             <th>
-              <button type="button" onclick="sortBy('sender_domain')" style="all:unset; cursor:pointer; font-weight:600; color:#374151;">
-                Sender Domain {% if sort == 'sender_domain' %}<span style="font-size:0.8rem; color:#6b7280;">{% if order == 'desc' %}▼{% else %}▲{% endif %}</span>{% endif %}
+                <button type="button" class="btn-secondary-sm" onclick="sortBy('sender_domain')">
+                 Sender Domain {% if sort == 'sender_domain' %}<span style="font-size:0.8rem; color:#6b7280;">{% if order == 'desc' %}▼{% else %}▲{% endif %}</span>{% endif %}
               </button>
             </th>
             <th>
-              <button type="button" onclick="sortBy('date')" style="all:unset; cursor:pointer; font-weight:600; color:#374151;">
-                Date {% if sort == 'date' %}<span style="font-size:0.8rem; color:#6b7280;">{% if order == 'desc' %}▼{% else %}▲{% endif %}</span>{% endif %}
+                <button type="button" class="btn-secondary-sm" onclick="sortBy('date')">
+                 Date {% if sort == 'date' %}<span style="font-size:0.8rem; color:#6b7280;">{% if order == 'desc' %}▼{% else %}▲{% endif %}</span>{% endif %}
               </button>
             </th>
             <th>Snippet</th>
@@ -571,10 +528,10 @@
             Showing {{ message_list|length }} of {{ total_count }} messages (Page {{ page }} of {{ total_pages }})
           </div>
           <div class="pagination-controls">
-            <button type="button" onclick="goToPage({{ page|add:'-1' }})" {% if not has_previous %}disabled{% endif %}>
+            <button type="button" class="btn-secondary" onclick="goToPage({{ page|add:'-1' }})" {% if not has_previous %}disabled{% endif %}>
               ← Previous
             </button>
-            <button type="button" onclick="goToPage({{ page|add:'1' }})" {% if not has_next %}disabled{% endif %}>
+            <button type="button" class="btn-secondary" onclick="goToPage({{ page|add:'1' }})" {% if not has_next %}disabled{% endif %}>
               Next →
             </button>
           </div>

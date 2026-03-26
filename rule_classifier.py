@@ -144,6 +144,10 @@ class RuleClassifier:
                 print(f"⚠️  Invalid pattern: {p} - {e}")
         return compiled
 
+    def _matches_any(self, text_to_check: str, patterns) -> bool:
+        """Return True when any compiled regex matches the supplied text."""
+        return any(rx.search(text_to_check) for rx in patterns)
+
     def _scan_all_pattern_matches(self, text: str):
         """Return all positive regex matches across labels for debugger tracing."""
         matches = []
@@ -361,9 +365,31 @@ class RuleClassifier:
         subject_text_only = subject or ""
 
         def is_excluded_noise(text_to_check):
-            if not noise_excludes:
-                return False
-            return any(ex.search(text_to_check) for ex in noise_excludes)
+            if self._matches_any(text_to_check, noise_excludes):
+                return True
+
+            job_related_patterns = []
+            for label in (
+                "job_application",
+                "rejection",
+                "interview_invite",
+                "prescreen",
+                "withdrew",
+                "referral",
+            ):
+                job_related_patterns.extend(self._msg_label_patterns.get(label, []))
+
+            if self._matches_any(text_to_check, job_related_patterns):
+                return True
+
+            early_job_related_patterns = []
+            early_job_related_patterns.extend(self._early_application_confirm)
+            early_job_related_patterns.extend(self._early_rejection_override)
+            early_job_related_patterns.extend(self._early_cancelled)
+            early_job_related_patterns.extend(self._early_referral)
+            early_job_related_patterns.extend(self._early_status_update)
+
+            return self._matches_any(text_to_check, early_job_related_patterns)
 
         if any(rx.search(subject_text_only) for rx in noise_patterns):
             if not is_excluded_noise(s):

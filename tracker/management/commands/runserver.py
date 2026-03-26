@@ -6,6 +6,7 @@ import os
 import pickle
 import subprocess
 import sys
+import logging
 from datetime import datetime, timezone
 from pathlib import Path
 from django.core.management.base import CommandError
@@ -28,6 +29,18 @@ class QuietTimeoutWSGIServer(WSGIServer):
         super().handle_error(request, client_address)
 
 
+class _HeartbeatEndpointFilter(logging.Filter):
+    """Suppress heartbeat endpoint logs unless explicitly enabled."""
+
+    heartbeat_path = "/api/ingestion_status/"
+
+    def filter(self, record):
+        if os.environ.get("ENABLE_HEARTBEAT_LOGGING", "0") == "1":
+            return True
+        message = record.getMessage()
+        return self.heartbeat_path not in message
+
+
 class Command(RunserverCommand):
     """Extended runserver command that displays environment configuration."""
 
@@ -37,8 +50,34 @@ class Command(RunserverCommand):
         "Starts a lightweight web server for development (displays .env configuration)"
     )
 
+    def add_arguments(self, parser):
+        """Add custom runserver flags."""
+        super().add_arguments(parser)
+        parser.add_argument(
+            "--heartbeat-logging",
+            choices=("on", "off"),
+            default="off",
+            help="Enable or disable logging for /api/ingestion_status/ polling (default: off).",
+        )
+
+    def _configure_heartbeat_logging(self, options):
+        """Apply heartbeat logging preference for both middleware and access logs."""
+        enabled = options.get("heartbeat_logging", "off") == "on"
+        os.environ["ENABLE_HEARTBEAT_LOGGING"] = "1" if enabled else "0"
+
+        heartbeat_filter = _HeartbeatEndpointFilter()
+        for logger_name in ("perf", "django.server"):
+            target_logger = logging.getLogger(logger_name)
+            has_filter = any(
+                isinstance(existing_filter, _HeartbeatEndpointFilter)
+                for existing_filter in target_logger.filters
+            )
+            if not has_filter:
+                target_logger.addFilter(heartbeat_filter)
+
     def run(self, **options):
         """Fail fast before starting Django's autoreloader thread."""
+        self._configure_heartbeat_logging(options)
         self._ensure_database_startup_ready()
         return super().run(**options)
 
@@ -48,6 +87,10 @@ class Command(RunserverCommand):
         self.stderr.write(self.style.SUCCESS("\n" + "=" * 70))
         self.stderr.write(self.style.SUCCESS("Environment Configuration (.env)"))
         self.stderr.write(self.style.SUCCESS("=" * 70))
+        heartbeat_logging = os.environ.get("ENABLE_HEARTBEAT_LOGGING", "0") == "1"
+        self.stderr.write(
+            f"  {'Heartbeat Logging':.<45} {'on' if heartbeat_logging else 'off'}"
+        )
 
         # Define the env vars to display (in order)
         env_vars = [

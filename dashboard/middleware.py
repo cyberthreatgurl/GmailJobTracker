@@ -12,6 +12,7 @@ browser DevTools → Network tab).
 """
 
 import logging
+import os
 import threading
 import time
 
@@ -24,6 +25,14 @@ _local = threading.local()
 _WARN_MS = 1_000       # escalate to WARNING
 _INFO_MS = 300         # escalate to INFO; below this → DEBUG only
 _SLOW_QUERY_MS = 150   # flag individual queries in a second log line
+_HEARTBEAT_PATH = "/api/ingestion_status/"
+
+
+def _should_log_heartbeat(path: str) -> bool:
+    """Return True when heartbeat endpoint logging is enabled."""
+    if path != _HEARTBEAT_PATH:
+        return True
+    return os.environ.get("ENABLE_HEARTBEAT_LOGGING", "0") == "1"
 
 
 def _db_timing_wrapper(execute, sql, params, many, context):
@@ -69,6 +78,9 @@ class RequestTimingMiddleware:
         slowest_ms = max((ms for ms, _ in queries), default=0.0)
 
         response["X-Response-Time-Ms"] = f"{elapsed_ms:.0f}"
+
+        if not _should_log_heartbeat(request.path):
+            return response
 
         level = (
             logging.WARNING if elapsed_ms > _WARN_MS

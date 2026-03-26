@@ -1,3 +1,4 @@
+from types import SimpleNamespace
 from unittest.mock import patch
 
 import pytest
@@ -5,7 +6,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 from django.utils import timezone
 
-from tracker.models import Company, CompanyDocument
+from tracker.models import AuditEvent, Company, CompanyDocument, Message, ThreadTracking
 
 
 @pytest.mark.django_db
@@ -31,7 +32,7 @@ def test_label_companies_renders_contract_refresh_targets(client, django_user_mo
 
 
 @pytest.mark.django_db
-def test_label_companies_shows_homepage_domain_without_visible_input(
+def test_label_companies_shows_visible_homepage_input_for_selected_company(
     client,
     django_user_model,
 ):
@@ -53,7 +54,9 @@ def test_label_companies_shows_homepage_domain_without_visible_input(
     body = response.content.decode("utf-8")
     assert "Domain:" in body
     assert "pure.net" in body
-    assert '<label for="id_homepage">Homepage</label>' not in body
+    assert '<label for="id_homepage">Homepage</label>' in body
+    assert 'name="homepage"' in body
+    assert 'value="http://www.pure.net"' in body
     assert '<label for="id_domain">Domain Name</label>' not in body
 
 
@@ -90,6 +93,268 @@ def test_label_companies_renders_uploaded_document_count_without_raw_template_te
     assert "Documents (1)" in body
     assert "{{ company_documents|length }}" not in body
     assert "offer.txt" in body
+
+
+@pytest.mark.django_db
+def test_label_companies_shows_exact_assigned_reingest_count(
+    client,
+    django_user_model,
+):
+    user = django_user_model.objects.create_user(username="reingest-count-user", password="password")
+    client.force_login(user)
+
+    now = timezone.now()
+    company = Company.objects.create(
+        name="Red River",
+        domain="redriver.com",
+        first_contact=now,
+        last_contact=now,
+    )
+    other_company = Company.objects.create(
+        name="OtherCo",
+        domain="redriver.com",
+        first_contact=now,
+        last_contact=now,
+    )
+
+    Message.objects.create(
+        msg_id="msg-assigned-1",
+        thread_id="thread-1",
+        subject="Assigned 1",
+        sender="jobs@redriver.com",
+        timestamp=now,
+        company=company,
+        ml_label="job_application",
+        confidence=0.9,
+        reviewed=True,
+    )
+    Message.objects.create(
+        msg_id="msg-assigned-2",
+        thread_id="thread-2",
+        subject="Assigned 2",
+        sender="jobs@redriver.com",
+        timestamp=now,
+        company=company,
+        ml_label="other",
+        confidence=0.9,
+        reviewed=True,
+    )
+    Message.objects.create(
+        msg_id="msg-same-domain-other-company",
+        thread_id="thread-3",
+        subject="Other company",
+        sender="jobs@redriver.com",
+        timestamp=now,
+        company=other_company,
+        ml_label="job_application",
+        confidence=0.9,
+        reviewed=True,
+    )
+
+    response = client.get(f"/label_companies/?company={company.id}")
+
+    assert response.status_code == 200
+    body = response.content.decode("utf-8")
+    assert "Re-ingest 2 Assigned Messages" in body
+    assert "Re-ingest exactly 2 messages explicitly assigned to this company" in body
+    assert "Preview Included Messages" in body
+    assert "This preview uses the exact assigned-message set that will be re-ingested." in body
+    assert "Assigned 1" in body
+    assert "Assigned 2" in body
+    assert "Other company" not in body
+
+
+@pytest.mark.django_db
+def test_label_companies_renders_cancelled_application_without_template_artifacts(
+    client,
+    django_user_model,
+):
+    user = django_user_model.objects.create_user(username="cancelled-app-user", password="password")
+    client.force_login(user)
+
+    now = timezone.now()
+    company = Company.objects.create(
+        name="Software Engineering Institute",
+        domain="sei.cmu.edu",
+        first_contact=now,
+        last_contact=now,
+    )
+
+    ThreadTracking.objects.create(
+        thread_id="thread-cancelled",
+        company=company,
+        job_title="application",
+        ml_label="job_application",
+        status="application",
+        sent_date=now.date(),
+        rejection_date=now.date(),
+        cancelled=True,
+        reviewed=True,
+    )
+    ThreadTracking.objects.create(
+        thread_id="thread-rejected",
+        company=company,
+        job_title="Senior AI Security Engineer",
+        ml_label="rejection",
+        status="rejected",
+        sent_date=now.date(),
+        rejection_date=now.date(),
+        reviewed=True,
+    )
+    Message.objects.create(
+        msg_id="msg-cancelled",
+        thread_id="thread-cancelled",
+        subject="Application received",
+        sender="jobs@sei.cmu.edu",
+        timestamp=now,
+        company=company,
+        ml_label="job_application",
+        confidence=0.9,
+        reviewed=True,
+    )
+    Message.objects.create(
+        msg_id="msg-rejected",
+        thread_id="thread-rejected",
+        subject="Application received",
+        sender="jobs@sei.cmu.edu",
+        timestamp=now,
+        company=company,
+        ml_label="job_application",
+        confidence=0.9,
+        reviewed=True,
+    )
+
+    response = client.get(f"/label_companies/?company={company.id}")
+
+    assert response.status_code == 200
+    body = response.content.decode("utf-8")
+    assert "CANCELLED" in body
+    assert "Senior AI Security Engineer" in body
+    assert "{% elif" not in body
+    assert "thread.withdrew" not in body
+    
+@patch("gmail_auth.get_gmail_service", return_value=object())
+def test_label_companies_reingest_company_only_reingests_assigned_messages_and_clears_reviewed_after_success(
+    _mock_service,
+    client,
+    django_user_model,
+):
+    user = django_user_model.objects.create_user(username="reingest-user", password="password")
+    client.force_login(user)
+
+    now = timezone.now()
+    company = Company.objects.create(
+        name="Red River",
+        domain="redriver.com",
+        first_contact=now,
+        last_contact=now,
+    )
+    other_company = Company.objects.create(
+        name="OtherCo",
+        domain="redriver.com",
+        first_contact=now,
+        last_contact=now,
+    )
+
+    success_msg = Message.objects.create(
+        msg_id="msg-success",
+        thread_id="thread-success",
+        subject="Assigned success",
+        sender="jobs@redriver.com",
+        timestamp=now,
+        company=company,
+        ml_label="job_application",
+        confidence=0.9,
+        reviewed=True,
+    )
+    failed_msg = Message.objects.create(
+        msg_id="msg-fail",
+        thread_id="thread-fail",
+        subject="Assigned fail",
+        sender="jobs@redriver.com",
+        timestamp=now,
+        company=company,
+        ml_label="other",
+        confidence=0.9,
+        reviewed=True,
+    )
+    untouched_msg = Message.objects.create(
+        msg_id="msg-other-company",
+        thread_id="thread-other",
+        subject="Same domain different company",
+        sender="jobs@redriver.com",
+        timestamp=now,
+        company=other_company,
+        ml_label="job_application",
+        confidence=0.9,
+        reviewed=True,
+    )
+
+    success_tt = ThreadTracking.objects.create(
+        thread_id="thread-success",
+        company=company,
+        reviewed=True,
+        sent_date=now.date(),
+        status="applied",
+    )
+    failed_tt = ThreadTracking.objects.create(
+        thread_id="thread-fail",
+        company=company,
+        reviewed=True,
+        sent_date=now.date(),
+        status="applied",
+    )
+    untouched_tt = ThreadTracking.objects.create(
+        thread_id="thread-other",
+        company=other_company,
+        reviewed=True,
+        sent_date=now.date(),
+        status="applied",
+    )
+
+    ingest_calls = []
+
+    def fake_ingest_message(_service, msg_id):
+        ingest_calls.append(msg_id)
+        if msg_id == "msg-fail":
+            raise RuntimeError("boom")
+
+    parser_module = SimpleNamespace(ingest_message=fake_ingest_message)
+
+    with patch("tracker.views.companies._get_parser_module", return_value=parser_module):
+        response = client.post(
+            f"/label_companies/?company={company.id}",
+            {"company": str(company.id), "action": "reingest_company"},
+        )
+
+    assert response.status_code == 302
+    assert set(ingest_calls) == {"msg-success", "msg-fail"}
+    assert "msg-other-company" not in ingest_calls
+
+    success_msg.refresh_from_db()
+    failed_msg.refresh_from_db()
+    untouched_msg.refresh_from_db()
+    success_tt.refresh_from_db()
+    failed_tt.refresh_from_db()
+    untouched_tt.refresh_from_db()
+
+    assert success_msg.reviewed is False
+    assert success_tt.reviewed is False
+    assert failed_msg.reviewed is True
+    assert failed_tt.reviewed is True
+    assert untouched_msg.reviewed is True
+    assert untouched_tt.reviewed is True
+
+    assert AuditEvent.objects.filter(
+        action="ui_reingest_clear",
+        source="reingest_company",
+        msg_id="msg-success",
+    ).count() == 1
+    assert AuditEvent.objects.filter(
+        action="ui_reingest_clear",
+        source="reingest_company",
+        msg_id="msg-fail",
+    ).count() == 0
 
 
 @pytest.mark.django_db

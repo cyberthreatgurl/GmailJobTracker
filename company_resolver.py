@@ -329,23 +329,10 @@ class CompanyResolver:
                 logger.debug(f"[DEBUG] ATS prefix matched configured company: {company}")
                 return company
 
-            if (
-                sender_prefix_key
-                and sender_prefix.isalpha()
-                and 3 <= len(sender_prefix) <= 20
-                and sender_prefix not in {
-                    "noreply",
-                    "donotreply",
-                    "recruiting",
-                    "recruiter",
-                    "careers",
-                    "jobs",
-                    "workday",
-                }
-            ):
-                company = sender_prefix.upper() if sender_prefix.isupper() else sender_prefix.title()
-                logger.debug(f"[DEBUG] ATS prefix fallback company: {company}")
-                return company
+            logger.debug(
+                "[DEBUG] ATS sender prefix '%s' did not match aliases or configured companies",
+                sender_prefix,
+            )
 
         return None
 

@@ -718,6 +718,91 @@ def test_reingest_duplicate_reminder_thread_is_downgraded_without_recreating_app
     assert ThreadTracking.objects.filter(company=company).count() == 2
 
 
+def test_reingest_noise_message_keeps_domain_mapped_company(monkeypatch):
+    company = Company.objects.create(
+        name="Idaho National Laboratory",
+        domain="inl.gov",
+        first_contact=timestamp,
+        last_contact=timestamp,
+    )
+    existing = Message.objects.create(
+        msg_id="19b14d7653cb21d0",
+        thread_id="19b14d7653cb21d0",
+        subject="Profile submitted to Idaho National Laboratory",
+        sender="Idaho National Laboratory <staffing@inl.gov>",
+        timestamp=timestamp,
+        body=(
+            "We have received the profile you submitted to our company. "
+            "Please review our current job opportunities and apply online."
+        ),
+        ml_label="noise",
+        confidence=1.0,
+        reviewed=False,
+    )
+
+    class Stats:
+        total_ignored = 0
+        total_skipped = 0
+        total_inserted = 0
+        date = timestamp.date()
+
+        def save(self):
+            pass
+
+    monkeypatch.setattr(
+        "parser.extract_metadata",
+        lambda s, m, raw_message=None: {
+            "subject": "Profile submitted to Idaho National Laboratory",
+            "body": (
+                "We have received the profile you submitted to our company. "
+                "Please review our current job opportunities and apply online."
+            ),
+            "date": "2025-12-12",
+            "thread_id": "19b14d7653cb21d0",
+            "sender": "Idaho National Laboratory <staffing@inl.gov>",
+            "sender_domain": "inl.gov",
+            "timestamp": timestamp,
+            "labels": [],
+            "last_updated": "now",
+        },
+    )
+    monkeypatch.setattr("parser.classify_message", lambda b: "other")
+    monkeypatch.setattr(
+        "parser.extract_status_dates",
+        lambda b, d: {
+            "response_date": None,
+            "follow_up_dates": [],
+            "rejection_date": None,
+            "interview_date": None,
+        },
+    )
+    monkeypatch.setattr(
+        "parser.predict_with_fallback",
+        lambda *a, **k: {"label": "noise", "confidence": 1.0},
+    )
+    monkeypatch.setattr(
+        "parser.parse_subject",
+        lambda *a, **k: {
+            "ignore": False,
+            "company": "Idaho National Laboratory",
+            "predicted_company": "Idaho National Laboratory",
+            "job_title": "",
+            "job_id": "",
+            "label": "noise",
+            "confidence": 1.0,
+        },
+    )
+    monkeypatch.setattr("parser.get_stats", lambda: Stats())
+
+    result = ingest_message(None, existing.msg_id)
+
+    existing.refresh_from_db()
+    assert result["status"] == "re-ingested"
+    assert existing.ml_label == "noise"
+    assert existing.company_id == company.id
+    assert existing.company_source == "domain_mapping"
+
+
 def test_offer_updates_associated_application_not_interview_thread():
     company = Company.objects.create(
         name="Endyna",

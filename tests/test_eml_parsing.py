@@ -1,10 +1,14 @@
+import base64
 from pathlib import Path
-from datetime import date
+from datetime import date, datetime, timezone
+
+import pytest
 
 # Faster sanity tests: import parser functions directly to avoid subprocess overhead.
 # parser sets up Django itself (DJANGO_SETTINGS_MODULE), so import is sufficient.
 
-from parser import parse_raw_message, parse_subject, rule_label  # noqa: E402
+from parser import ingest_message, parse_raw_message, parse_subject, rule_label  # noqa: E402
+from tracker.models import Message  # noqa: E402
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 EMAIL_DIR = REPO_ROOT / "tests" / "emails"
@@ -254,6 +258,150 @@ def test_trellix_rejection_extracts_company():
         "Should extract from ATS sender alias, not from 'interest in Manager' in body."
     )
     assert label == "rejection", f"Expected 'rejection' but got '{label}'"
+
+
+def test_trellix_rule_label_not_overridden_to_noise_by_workday_footer():
+    """Workday footer text should not override clear rejection language to noise."""
+    path = EMAIL_DIR / "Trellix career opportunity update on Manager, Threat Intelligence Services.eml"
+    raw = path.read_text(encoding="utf-8", errors="replace")
+    meta = parse_raw_message(raw)
+
+    label = rule_label(
+        meta.get("subject", ""),
+        meta.get("body", ""),
+        meta.get("sender_domain"),
+    )
+
+    assert label == "rejection", f"Expected 'rejection' but got '{label}'"
+
+
+def test_unknown_ats_sender_prefix_does_not_create_fallback_company():
+    """Unknown ATS sender prefixes should not become synthetic company names."""
+    result = parse_subject(
+        "Thank you for applying",
+        "We have received your application and will review it carefully.",
+        sender="Workday <gfit@myworkday.com>",
+        sender_domain="myworkday.com",
+    )
+
+    assert result.get("label") == "job_application"
+    assert result.get("company") in {"", None}, (
+        f"Expected no company for unknown ATS prefix, got '{result.get('company')}'"
+    )
+
+
+def test_cvs_workday_rejection_not_next_step_is_not_noise():
+    """CVS Workday rejection phrasing should classify as rejection, not noise."""
+    subject = "Thank you for your interest in CVS Health"
+    body = (
+        "Dear Adrian, "
+        "Thank you for taking the time to fill out your profile and review our current job opportunities at CVS Health. "
+        "After careful consideration, we will not be moving you to the next step in the hiring process for: "
+        "R0565456 Principal Threat Intelligence Engineer. "
+        "We hope you will keep CVS Health in mind for future endeavors."
+    )
+
+    label = rule_label(subject, body, "myworkday.com")
+    result = parse_subject(
+        subject,
+        body,
+        sender="Colleague Zone <cvshealth@myworkday.com>",
+        sender_domain="myworkday.com",
+    )
+
+    assert label == "rejection", f"Expected rejection but got {label!r}"
+    assert result.get("label") == "rejection", result
+    assert result.get("company") == "CVS Health", result
+
+
+@pytest.mark.django_db
+def test_reingest_selected_handles_nested_gmail_parts_for_workday_application():
+    """Nested Gmail multipart payloads should still reingest Workday applications correctly."""
+    msg_id = "cvs_nested_gmail_reingest"
+    Message.objects.filter(msg_id=msg_id).delete()
+
+    message = Message.objects.create(
+        msg_id=msg_id,
+        thread_id=msg_id,
+        subject="Your application with CVS Health has been received!",
+        sender="Colleague Zone <cvshealth@myworkday.com>",
+        body="stale body",
+        timestamp=datetime(2025, 5, 5, tzinfo=timezone.utc),
+        ml_label="noise",
+        confidence=1.0,
+        reviewed=False,
+    )
+
+    html_body = (
+        "<!doctype html><html><body>"
+        "<p>Dear Adrian Shaw,</p>"
+        "<p>Thank you for expressing interest in joining CVS Health! "
+        "This message is to notify you that we have successfully received your "
+        "submission to the following position(s): Principal Threat Intelligence Engineer.</p>"
+        "</body></html>"
+    )
+    plain_body = (
+        "Thank you for expressing interest in joining CVS Health! "
+        "We have successfully received your submission."
+    )
+
+    def encode_part(content: str) -> str:
+        return base64.urlsafe_b64encode(content.encode("utf-8")).decode("ascii")
+
+    raw_message = {
+        "threadId": msg_id,
+        "labelIds": ["INBOX"],
+        "payload": {
+            "headers": [
+                {
+                    "name": "Subject",
+                    "value": "Your application with CVS Health has been received!",
+                },
+                {"name": "Date", "value": "Sun, 4 May 2025 18:27:35 -0700"},
+                {
+                    "name": "From",
+                    "value": "Colleague Zone <cvshealth@myworkday.com>",
+                },
+                {"name": "To", "value": "kaver68@gmail.com"},
+                {"name": "Reply-To", "value": "noreply@cvshealth.com"},
+                {
+                    "name": "List-Unsubscribe",
+                    "value": "List-Unsubscribe=One-Click",
+                },
+            ],
+            "parts": [
+                {
+                    "mimeType": "multipart/related",
+                    "parts": [
+                        {"mimeType": "image/png", "body": {}},
+                    ],
+                },
+                {
+                    "mimeType": "multipart/alternative",
+                    "parts": [
+                        {
+                            "mimeType": "text/plain",
+                            "body": {"data": encode_part(plain_body)},
+                        },
+                        {
+                            "mimeType": "text/html",
+                            "body": {"data": encode_part(html_body)},
+                        },
+                    ],
+                },
+            ],
+        },
+    }
+
+    result = ingest_message(None, msg_id, raw_message=raw_message)
+    message.refresh_from_db()
+
+    assert result is not None
+    assert result.get("label") == "job_application", result
+    assert result.get("company") == "CVS Health", result
+    assert message.ml_label == "job_application"
+    assert message.company is not None
+    assert message.company.name == "CVS Health"
 
 
 def test_smoke_all_fixtures_do_not_crash():

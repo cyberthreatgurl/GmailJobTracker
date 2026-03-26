@@ -219,6 +219,47 @@ class TestEmlDuplicateDetection:
         assert tt.job_id == "2909847"
         assert tt.sent_date == date(2025, 3, 6)
 
+    def test_eml_duplicate_noise_keeps_domain_mapped_company(self):
+        """Duplicate EML updates should keep strong company matches even for noise."""
+        from parser import ingest_message_from_eml
+
+        now = timezone.now()
+        Message.objects.create(
+            msg_id="19b14d7653cb21d0",
+            thread_id="19b14d7653cb21d0",
+            subject="Profile submitted to Idaho National Laboratory",
+            sender="Idaho National Laboratory <staffing@inl.gov>",
+            timestamp=timezone.make_aware(
+                timezone.datetime(2025, 12, 12, 23, 13, 38)
+            ),
+            body=(
+                "We have received the profile you submitted to our company. "
+                "Please review our current job opportunities and apply online to be considered for employment."
+            ),
+            ml_label="noise",
+            confidence=1.0,
+            reviewed=False,
+        )
+        Company.objects.create(
+            name="Idaho National Laboratory",
+            domain="inl.gov",
+            first_contact=now,
+            last_contact=now,
+        )
+
+        eml = Path("tests/emails/Profile submitted to Idaho National Laboratory.eml").read_text(
+            encoding="utf-8",
+            errors="replace",
+        )
+
+        result = ingest_message_from_eml(eml)
+
+        msg = Message.objects.get(msg_id="19b14d7653cb21d0")
+        assert result == "skipped"
+        assert msg.company is not None
+        assert msg.company.name == "Idaho National Laboratory"
+        assert msg.company_source == "domain_mapping"
+
     def test_eml_different_sender_domain_not_matched(self):
         """EML with same subject/date but different sender domain should NOT
         be matched to an existing Gmail message."""

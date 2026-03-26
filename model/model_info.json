@@ -1,5 +1,5 @@
 {
-  "trained_on": "2026-03-24T12:58:51.237939",
+  "trained_on": "2026-03-25T14:26:56.617059",
   "labels": [
     "head_hunter",
     "interview_invite",
@@ -9,7 +9,7 @@
     "prescreen",
     "rejection"
   ],
-  "num_samples": 2023,
+  "num_samples": 2054,
   "total_features": 50000,
   "meaningful_features_sample": [
     "00 for",
@@ -99,18 +99,18 @@
     "2026 jaytech",
     "2026 march",
     "2026 neo",
+    "2026 research",
     "2026 the",
     "2026 week",
     "2027 ieee",
     "2030 deadline",
     "20657 cyber",
     "21 secure",
+    "22 dns",
     "22 saratoga",
     "23 february",
     "23 senior",
     "23andme",
-    "25 soldiers",
-    "25 travel",
-    "25 turbotax"
+    "25 soldiers"
   ]
 }

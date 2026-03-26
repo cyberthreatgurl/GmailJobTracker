@@ -20,8 +20,8 @@
     "arcfield.com": "Arcfield",
     "archsystemsinc.com": "Arch Systems LLC",
     "baesystems.com": "BAE Systems",
-    "cisco.com": "Cisco",
     "cyberbatinc.com": "Cyber Bat",
+    "cyberonesecurity.com": "CyberOne Security",
     "eightfold.ai": "Modern Technology Solutions Inc",
     "email.monarch.com": "Monarch",
     "endyna.com": "Endyna",
@@ -36,13 +36,13 @@
     "parsons.com": "Parsons Corporation",
     "peraton.com": "Peraton",
     "psipax.com": "PSI Pax",
-    "pure.net": "Pure",
     "redriver.com": "Red River",
     "simventions.com": "SimVentions",
     "spa.com": "SPA",
     "substack.com": "Substack",
     "systemone.com": "System One",
     "thomsonreuters.com": "Thomson Reuters",
+    "vailhealth.org": "Vail Health",
     "vectorcsp.com": "VectorCSP"
   },
   "headhunter_domains": [
@@ -452,11 +452,10 @@
     "HII": "https://hii.com/careers/life-at-hii/",
     "Cyber Bat": "https://www.cyberbatinc.com/career",
     "SPA": "https://www.spa.com/joint-ventures/",
-    "System One": "https://systemone.com/careers/"
+    "System One": "https://systemone.com/careers/",
+    "CyberOne Security": "https://cyberonesecurity.com/about/careers/"
   },
-  "known": [
-    "Pure"
-  ],
+  "known": [],
   "ats_heuristic_patterns": [
     "workday",
     "greenhouse",

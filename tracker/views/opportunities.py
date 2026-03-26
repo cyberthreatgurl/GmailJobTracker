@@ -3,6 +3,7 @@ import re
 import csv
 import io
 import time
+from urllib.parse import quote_plus
 from datetime import datetime, timedelta
 from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
@@ -10,15 +11,37 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.utils.dateparse import parse_date, parse_datetime
-from django.conf import settings
 from django.db.models import Q
 from tracker.models import SamGovOpportunity
 from tracker.services.sam_gov_service import SamGovClient
 
 logger = logging.getLogger(__name__)
 
+
+def _build_opportunity_ui_link(solicitation_number='', notice_id='', api_ui_link=''):
+    """Build a stable SAM.gov URL for an opportunity.
+
+    Direct /opp/.../view links returned by the API can 404 for many notice types,
+    including award notices. SAM.gov's live UI uses a structured search query with
+    sfm[simpleSearch][keywordTags], and that URL lands on the relevant result rather
+    than the empty default search shell.
+    """
+    query_value = (solicitation_number or notice_id or '').strip()
+    if query_value:
+        encoded_value = quote_plus(query_value.lower())
+        return (
+            "https://sam.gov/search/?index=opp&page=1&pageSize=25"
+            "&sort=-modifiedDate"
+            "&sfm%5BsimpleSearch%5D%5BkeywordRadio%5D=ALL"
+            f"&sfm%5BsimpleSearch%5D%5BkeywordTags%5D%5B0%5D%5Bkey%5D={encoded_value}"
+            f"&sfm%5BsimpleSearch%5D%5BkeywordTags%5D%5B0%5D%5Bvalue%5D={encoded_value}"
+            "&sfm%5Bstatus%5D%5Bis_active%5D=true"
+            "&sfm%5Bstatus%5D%5Bis_inactive%5D=true"
+        )
+    return api_ui_link or "https://sam.gov/content/opportunities"
+
 @login_required
-def get_opportunity_debug(request, opportunity_id):
+def get_opportunity_debug(_request, opportunity_id):
     """Fetch raw API response for debugging."""
     opp = get_object_or_404(SamGovOpportunity.objects.only('raw_response'), id=opportunity_id)
     return JsonResponse(opp.raw_response or {}, safe=False)
@@ -30,8 +53,6 @@ def opportunities_dashboard(request):
     Fetches real-time data from SAM.gov API and saves interesting ones locally.
     """
     query = request.GET.get("q", "")
-    psc_query = request.GET.get("psc", "")
-    exclude_psc_query = request.GET.get("exclude_psc", "")
     page_number = request.GET.get("page", 1)
 
     # Handle CSV Upload
@@ -60,7 +81,7 @@ def opportunities_dashboard(request):
             if count > 0:
                 messages.success(request, f"Successfully ingested {count} opportunities from CSV ({new_count} new).")
             else:
-                 messages.warning(request, "No valid opportunities found in CSV.")
+                messages.warning(request, "No valid opportunities found in CSV.")
 
         except Exception as e:
             logger.error(f"Error processing CSV upload: {e}")
@@ -119,7 +140,7 @@ def opportunities_dashboard(request):
             elif "error" in api_response:
                 messages.error(request, f"API Error: {api_response['error']}")
             else:
-                 messages.info(request, "No opportunities found.")
+                messages.info(request, "No opportunities found.")
 
         except Exception as e:
             logger.error(f"Error fetching opportunities: {e}")
@@ -130,10 +151,6 @@ def opportunities_dashboard(request):
         params_list = []
         if query:
             params_list.append(f"q={query}")
-        if psc_query:
-            params_list.append(f"psc={psc_query}")
-        if exclude_psc_query:
-            params_list.append(f"exclude_psc={exclude_psc_query}")
 
         if params_list:
             url += "?" + "&".join(params_list)
@@ -177,23 +194,22 @@ def opportunities_dashboard(request):
                 Q(department__icontains=term) |
                 Q(office__icontains=term) |
                 Q(solicitation_number__icontains=term) |
+                Q(naics_code__icontains=term) |
                 Q(product_service_code__icontains=term)
             )
-
-    if psc_query:
-        qs = qs.filter(product_service_code__icontains=psc_query)
-
-    if exclude_psc_query:
-        qs = qs.exclude(product_service_code__icontains=exclude_psc_query)
 
     paginator = Paginator(qs, 15)
     page_obj = paginator.get_page(page_number)
 
+    for opp in page_obj.object_list:
+        opp.display_ui_link = _build_opportunity_ui_link(
+            solicitation_number=opp.solicitation_number or '',
+            api_ui_link=opp.ui_link or '',
+        )
+
     return render(request, "tracker/opportunities.html", {
         "page_obj": page_obj,
         "query": query,
-        "psc_query": psc_query,
-        "exclude_psc_query": exclude_psc_query,
     })
 
 
@@ -257,11 +273,12 @@ def _save_opportunity(data, save_mode='create_or_update'):
             if SamGovOpportunity.objects.filter(solicitation_number=solicitation).exists():
                 return None, False
 
-        # Construct public UI link manually if noticeId is present (more reliable than API's workspace link)
-        ui_link = data.get("uiLink", "")
         notice_id = data.get("noticeId")
-        if notice_id:
-             ui_link = f"https://sam.gov/opp/{notice_id}/view"
+        ui_link = _build_opportunity_ui_link(
+            solicitation_number=solicitation,
+            notice_id=notice_id or '',
+            api_ui_link=data.get("uiLink", ""),
+        )
 
         opp, created = SamGovOpportunity.objects.update_or_create(
             solicitation_number=solicitation,
@@ -352,13 +369,13 @@ def _parse_csv_date(date_str):
             pass
 
         return clean
-    except Exception as e:
+    except Exception:
         logger.warning(f"Could not parse CSV date: {date_str}")
         return None
 
 
 @login_required
-def refresh_opportunity_json(request, opportunity_id):
+def refresh_opportunity_json(_request, opportunity_id):
     """
     AJAX endpoint: refresh a single opportunity and return updated fields as JSON.
     Used by the inline 'Load Description' button on the opportunities page.

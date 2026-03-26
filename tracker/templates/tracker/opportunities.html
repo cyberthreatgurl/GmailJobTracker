@@ -19,10 +19,6 @@
       <form method="get" class="flex gap-2 items-center">
           <input type="text" name="q" value="{{ query }}" placeholder="By keyword/title..." 
                  class="px-3 py-2 border rounded-lg text-sm focus:ring-blue-500 focus:border-blue-500 w-48">
-          <input type="text" name="psc" value="{{ psc_query }}" placeholder="Filter PSC..." 
-                 class="px-3 py-2 border rounded-lg text-sm focus:ring-blue-500 focus:border-blue-500 w-32">
-          <input type="text" name="exclude_psc" value="{{ exclude_psc_query }}" placeholder="Exclude PSC..."
-                 class="px-3 py-2 border rounded-lg text-sm focus:ring-blue-500 focus:border-blue-500 w-32">
           <button type="submit" 
                   class="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg px-4 py-2 transition-colors text-sm">
             Search
@@ -61,7 +57,7 @@
   <!-- Results Table -->
   <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
     <div class="overflow-x-auto">
-      <table class="w-full text-sm text-left">
+      <table class="w-full min-w-[1100px] text-sm text-left">
         <thead class="bg-gray-50 text-gray-700 font-semibold border-b border-gray-200">
           <tr>
             <th class="px-4 py-3 min-w-[300px]">Title / Solicitation</th>
@@ -71,7 +67,7 @@
             <th class="px-4 py-3 w-48">Department / Office</th>
             <th class="px-4 py-3 w-24">NAICS</th>
             <th class="px-4 py-3 w-24">PSC</th>
-            <th class="px-4 py-3 w-20">Actions</th>
+            <th class="sticky right-0 z-10 w-32 min-w-[8.5rem] bg-gray-50 px-4 py-3 text-right shadow-[-1px_0_0_rgba(229,231,235,1)]">Actions</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-200">
@@ -79,7 +75,7 @@
           <tr class="hover:bg-gray-50 transition-colors group cursor-pointer" onclick="toggleOppDesc(event, {{ opp.id }})">
             <td class="px-4 py-3 align-top">
               <div class="font-medium text-blue-700 hover:underline mb-1">
-                <a href="{{ opp.ui_link }}" target="_blank" onclick="event.stopPropagation()">{{ opp.title }}</a>
+                <a href="{{ opp.display_ui_link|default:opp.ui_link }}" target="_blank" onclick="event.stopPropagation()">{{ opp.title }}</a>
               </div>
               <div class="text-xs text-gray-500 font-mono mb-1 flex items-center gap-1.5">
                 <span id="opp-caret-{{ opp.id }}" class="text-gray-400 text-[0.6rem] transition-transform duration-150">▶</span>
@@ -158,9 +154,9 @@
               -
               {% endif %}
             </td>
-            <td class="px-4 py-3 align-top text-right">
-              <div class="flex flex-col gap-2 items-end">
-                <a href="{{ opp.ui_link }}" target="_blank"
+            <td class="sticky right-0 z-10 bg-white px-4 py-3 align-top text-right shadow-[-1px_0_0_rgba(229,231,235,1)] group-hover:bg-gray-50">
+              <div class="flex min-w-[7.5rem] flex-col gap-2 items-end">
+                 <a href="{{ opp.display_ui_link|default:opp.ui_link }}" target="_blank"
                    onclick="event.stopPropagation()"
                    class="inline-flex items-center justify-center p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                    title="View on SAM.gov">
@@ -169,7 +165,7 @@
                 
                 <a href="{% url 'refresh_opportunity' opp.id %}" 
                    onclick="event.stopPropagation(); return confirm('Refresh this opportunity from SAM.gov?')"
-                   class="inline-flex items-center justify-center px-2 py-1 text-xs font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded border border-emerald-200 transition-colors shadow-sm"
+                   class="inline-flex items-center justify-center whitespace-nowrap rounded border border-emerald-200 bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700 shadow-sm transition-colors hover:bg-emerald-100"
                    title="Refresh data from API">
                    🔄 Refresh
                 </a>

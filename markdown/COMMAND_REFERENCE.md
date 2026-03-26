@@ -813,7 +813,70 @@ messages = Message.objects.all().iterator(chunk_size=100)
 
 ## Backup & Recovery
 
-### Backup Database
+### `backup_state`
+
+Create a point-in-time backup bundle for the full local application state.
+
+```bash
+# Default backup location under backups/
+python manage.py backup_state
+
+# Write to a custom directory
+python manage.py backup_state --output-dir ~/Backups/GmailJobTracker
+
+# Keep only the expanded directory and skip the tar.gz archive
+python manage.py backup_state --skip-compress
+```
+
+**What it captures**:
+
+- PostgreSQL custom dump for `pg_restore`
+- Plain SQL dump for `psql`
+- PostgreSQL globals when `pg_dumpall` is available
+- OAuth credentials and tokens from supported root, `json/`, and `model/` paths when present
+- Full `model/` directory
+- Full `json/` directory
+- `.env` and `.env.local` when present
+- Optional `media/` files when present
+- Git bundle, tracked source archive, `git status`, `git diff`, dependency snapshot, manifest, and restore notes
+
+**Requirements**:
+
+- `pg_dump` must be installed
+- The PostgreSQL client tools must match the database server major version
+
+### `restore_state`
+
+Restore a previously created backup bundle into a local checkout and PostgreSQL database.
+
+```bash
+# Restore files and database into the current checkout
+python manage.py restore_state backups/gmailjobtracker-backup-YYYYMMDDTHHMMSSZ.tar.gz --force
+
+# Restore into a fresh clone created from the bundled git archive
+python manage.py restore_state backups/gmailjobtracker-backup-YYYYMMDDTHHMMSSZ.tar.gz --repo-target-dir ~/restore/GmailJobTracker --restore-globals
+
+# Restore files only
+python manage.py restore_state backups/gmailjobtracker-backup-YYYYMMDDTHHMMSSZ.tar.gz --skip-db --project-root /path/to/checkout --force
+```
+
+**Options**:
+
+- `--project-root PATH`: Restore files into a specific checkout
+- `--repo-target-dir PATH`: Clone the saved git bundle into a fresh directory first
+- `--skip-db`: Restore files only
+- `--skip-files`: Restore PostgreSQL only
+- `--use-plain-sql`: Use the plain SQL dump instead of the custom dump
+- `--restore-globals`: Apply PostgreSQL globals when present
+- `--force`: Overwrite a dirty checkout or reuse a non-empty target directory
+
+**Requirements**:
+
+- `pg_restore` or `psql` must be installed
+- The PostgreSQL client tools must match the database server major version
+- Stop the development server and any ingestion job before restoring
+
+### Legacy Manual Backup Database
 
 ```bash
 # PostgreSQL
@@ -823,7 +886,7 @@ PGPASSWORD="$DB_PASSWORD" pg_dump -h "$DB_HOST" -U "$DB_USERNAME" "$DB_NAME" > t
 python manage.py dumpdata > backup.json
 ```
 
-### Restore Database
+### Legacy Manual Restore Database
 
 ```bash
 # PostgreSQL

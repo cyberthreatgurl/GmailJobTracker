@@ -491,7 +491,8 @@ Once you have the dashboard running:
 
 - All data stays on your machine
 - No cloud sync or external APIs
-- Back up your PostgreSQL database regularly with `pg_dump`
+- Use `python manage.py backup_state` for a full local-state backup bundle
+- Make sure your PostgreSQL client tools match the server major version before running backup or restore commands
 
 ✅ **Privacy-first:**
 

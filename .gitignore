@@ -36,6 +36,7 @@ token.pickle
 # Data directories
 db/
 logs/
+backups/
 model/*.pkl
 
 # IDE
@@ -77,9 +78,6 @@ node_modules/
 # Docker
 *.tar.gz
 docker-compose.override.yml
-
-# Backups
-backups/
 
 # Project-specific (keep these for now)
 remind/

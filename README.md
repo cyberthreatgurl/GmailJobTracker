@@ -439,6 +439,84 @@ Tip: If you see “database is locked”, ensure no other process is using the D
 
 ---
 
+## 💾 Backup And Restore
+
+If you want a point-in-time backup that can rebuild the app as it exists right now, use the bundled backup and restore utilities. They capture the PostgreSQL database, OAuth tokens and credentials, the entire `model/` directory, the full `json/` config directory, local environment files, optional `media/` assets, and repository metadata needed to get back to the same code state.
+
+### Create A Backup Bundle
+
+Script:
+
+```bash
+python scripts/backup_current_state.py
+```
+
+Management command:
+
+```bash
+python manage.py backup_state
+```
+
+Useful options:
+
+```bash
+python scripts/backup_current_state.py --output-dir ~/Backups/GmailJobTracker
+python manage.py backup_state --skip-compress
+```
+
+Each backup writes a timestamped directory under `backups/` by default, plus a `.tar.gz` archive unless you pass `--skip-compress`.
+
+Included artifacts:
+
+- PostgreSQL custom dump for `pg_restore`
+- Plain SQL PostgreSQL dump for `psql`
+- PostgreSQL globals dump when `pg_dumpall` is available
+- `token.pickle` and `credentials.json` from supported root, `json/`, and `model/` locations when present
+- Full `model/` directory
+- Full `json/` directory
+- `.env` and `.env.local` when present
+- `media/` when present
+- Git bundle, tracked source archive, `git status`, `git diff`, dependency snapshot, manifest, and restore notes
+
+### Restore From A Backup Bundle
+
+Script:
+
+```bash
+python scripts/restore_current_state.py backups/gmailjobtracker-backup-YYYYMMDDTHHMMSSZ.tar.gz --force
+```
+
+Management command:
+
+```bash
+python manage.py restore_state backups/gmailjobtracker-backup-YYYYMMDDTHHMMSSZ.tar.gz --force
+```
+
+Useful options:
+
+```bash
+python scripts/restore_current_state.py backups/gmailjobtracker-backup-YYYYMMDDTHHMMSSZ.tar.gz --repo-target-dir ~/restore/GmailJobTracker --restore-globals
+python manage.py restore_state backups/gmailjobtracker-backup-YYYYMMDDTHHMMSSZ.tar.gz --skip-db --project-root /path/to/checkout --force
+```
+
+Restore behavior:
+
+- Restores the PostgreSQL database from the custom dump by default
+- Can restore PostgreSQL globals when requested with `--restore-globals`
+- Restores environment files, secrets, the `model/` directory, the `json/` directory, and optional media files
+- Can clone the saved git bundle into a fresh directory with `--repo-target-dir`
+- Refuses to overwrite a dirty working tree unless you pass `--force`
+
+Prerequisites:
+
+- `pg_dump` is required for backup
+- `pg_restore` or `psql` is required for restore
+- The PostgreSQL client tools must match the server major version; for example, PostgreSQL 18 requires `pg_dump`, `pg_restore`, and `psql` from PostgreSQL 18
+- Stop the development server and any ingestion job before restoring over an existing checkout
+- Backup bundles contain secrets and tokens, so store them outside source control and protect them like production credentials
+
+---
+
 ## 🛠️ Development
 
 ### Project Structure

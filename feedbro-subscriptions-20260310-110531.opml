@@ -74,6 +74,7 @@
       <outline text="HigherEdJobs - Adult and Continuing Education Programs" title="HigherEdJobs - Adult and Continuing Education Programs" type="rss" xmlUrl="https://www.higheredjobs.com/rss/categoryFeed.cfm?catID=219" htmlUrl="https://www.higheredjobs.com/search/advanced_action.cfm?JobCat=219" />
       <outline text="Remote OK" title="Remote OK" type="rss" xmlUrl="https://remoteok.com/remote-engineer-jobs.rss" htmlUrl="" />
       <outline text="Peraton" title="Peraton" type="rss" xmlUrl="http://www.peraton.com/feed" htmlUrl="https://www.peraton.com/" />
+      <outline text="CyberOne" title="CyberOne" type="rss" xmlUrl="https://cyberonesecurity.com/feed/" htmlUrl="https://cyberonesecurity.com" />
     </outline>
   </body>
 </opml>

@@ -803,6 +803,86 @@ def test_reingest_noise_message_keeps_domain_mapped_company(monkeypatch):
     assert existing.company_source == "domain_mapping"
 
 
+def test_linkedin_is_treated_as_job_board_domain():
+    from parser import _domain_mapper
+
+    assert _domain_mapper.is_job_board_domain("linkedin.com") is True
+    assert _domain_mapper.is_job_board_domain("www.linkedin.com") is True
+
+
+def test_reingest_noise_message_from_job_board_drops_parsed_company(monkeypatch):
+    existing = Message.objects.create(
+        msg_id="linkedin-noise-1",
+        thread_id="linkedin-noise-1",
+        subject="Yakira just messaged you",
+        sender="LinkedIn <jobs-noreply@linkedin.com>",
+        timestamp=timestamp,
+        body="1 new message awaits your response.",
+        ml_label="noise",
+        confidence=1.0,
+        reviewed=False,
+    )
+
+    class Stats:
+        total_ignored = 0
+        total_skipped = 0
+        total_inserted = 0
+        date = timestamp.date()
+
+        def save(self):
+            pass
+
+    monkeypatch.setattr(
+        "parser.extract_metadata",
+        lambda s, m, raw_message=None: {
+            "subject": "Yakira just messaged you",
+            "body": "1 new message awaits your response.",
+            "date": "2026-03-26",
+            "thread_id": "linkedin-noise-1",
+            "sender": "LinkedIn <jobs-noreply@linkedin.com>",
+            "sender_domain": "linkedin.com",
+            "timestamp": timestamp,
+            "labels": [],
+            "last_updated": "now",
+        },
+    )
+    monkeypatch.setattr("parser.classify_message", lambda b: "other")
+    monkeypatch.setattr(
+        "parser.extract_status_dates",
+        lambda b, d: {
+            "response_date": None,
+            "follow_up_dates": [],
+            "rejection_date": None,
+            "interview_date": None,
+        },
+    )
+    monkeypatch.setattr(
+        "parser.predict_with_fallback",
+        lambda *a, **k: {"label": "noise", "confidence": 1.0},
+    )
+    monkeypatch.setattr(
+        "parser.parse_subject",
+        lambda *a, **k: {
+            "ignore": False,
+            "company": "Robert Siciliano via LinkedIn",
+            "predicted_company": "Robert Siciliano via LinkedIn",
+            "job_title": "",
+            "job_id": "",
+            "label": "noise",
+            "confidence": 1.0,
+        },
+    )
+    monkeypatch.setattr("parser.get_stats", lambda: Stats())
+
+    result = ingest_message(None, existing.msg_id)
+
+    existing.refresh_from_db()
+    assert result["status"] == "re-ingested"
+    assert existing.ml_label == "noise"
+    assert existing.company is None
+    assert existing.company_source == ""
+
+
 def test_offer_updates_associated_application_not_interview_thread():
     company = Company.objects.create(
         name="Endyna",

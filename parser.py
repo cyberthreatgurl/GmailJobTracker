@@ -47,6 +47,7 @@ from datetime import datetime, timedelta, date
 from email.utils import parseaddr, parsedate_to_datetime
 from email.header import decode_header as eml_decode_header
 from pathlib import Path
+from urllib.parse import urlparse
 
 import django
 import joblib
@@ -469,9 +470,11 @@ class DomainMapper:
             self.headhunter_domains = [
                 d.lower() for d in self.company_data.get("headhunter_domains", [])
             ]
-            self.job_board_domains = [
-                d.lower() for d in self.company_data.get("job_boards", [])
-            ]
+            self.job_board_domains = []
+            for raw_job_board in self.company_data.get("job_boards", []):
+                normalized_job_board = self._normalize_domain_entry(raw_job_board)
+                if normalized_job_board and normalized_job_board not in self.job_board_domains:
+                    self.job_board_domains.append(normalized_job_board)
             self.known_companies = {
                 c.lower() for c in self.company_data.get("known", [])
             }
@@ -522,6 +525,22 @@ class DomainMapper:
         except Exception as e:
             print(f"[Error] Unable to read companies.json: {e}")
             self.company_data = {}
+
+    @staticmethod
+    def _normalize_domain_entry(raw_value: str) -> str:
+        """Normalize a domain-like config entry to a bare hostname."""
+        value = (raw_value or "").strip().lower()
+        if not value:
+            return ""
+
+        if "://" not in value:
+            value = f"https://{value}"
+
+        parsed = urlparse(value)
+        host = (parsed.netloc or parsed.path or "").strip().lower()
+        if host.startswith("www."):
+            host = host[4:]
+        return host.split("/", 1)[0]
 
     def reload_if_needed(self):
         """Reload company data from companies.json if the file has been modified.
@@ -611,7 +630,12 @@ class DomainMapper:
         """
         if not domain:
             return False
-        return domain.lower() in self.job_board_domains
+        normalized_domain = self._normalize_domain_entry(domain)
+        return any(
+            normalized_domain == job_board
+            or normalized_domain.endswith("." + job_board)
+            for job_board in self.job_board_domains
+        )
 
     def is_headhunter_domain(self, domain: str) -> bool:
         """Return True if domain is a known headhunter/recruiting agency domain.
@@ -2481,9 +2505,12 @@ def _fallback_thread_tracking_creation(
     _increment_stat(stats, "total_skipped")
 
 
-def _should_preserve_company_for_noise(label, company_source):
+def _should_preserve_company_for_noise(label, company_source, sender_domain=""):
     """Return True when a noise label should still keep a resolved company."""
     if label != "noise":
+        return False
+
+    if sender_domain and _domain_mapper.is_job_board_domain(sender_domain):
         return False
 
     return company_source in {
@@ -2573,6 +2600,7 @@ def _handle_reingest(
         preserve_noise_company = _should_preserve_company_for_noise(
             label_guard,
             company_source,
+            metadata.get("sender_domain", ""),
         )
         if preserve_noise_company and company_obj:
             existing.company = company_obj
@@ -3738,6 +3766,7 @@ def ingest_message(service, msg_id, raw_message=None):
     preserve_noise_company = _should_preserve_company_for_noise(
         label_guard,
         company_source,
+        metadata.get("sender_domain", ""),
     )
 
     if user_email and sender_email.startswith(user_email):
@@ -4479,6 +4508,7 @@ def ingest_message_from_eml(eml_content: str, fake_msg_id: str | None = None):
     preserve_noise_company = _should_preserve_company_for_noise(
         ml_label,
         company_source if company else "",
+        metadata.get("sender_domain", ""),
     )
 
     # Skip company assignment for head_hunter messages.

@@ -71,22 +71,6 @@
     margin-top: 0.3rem;
   }
 
-  .edit-form button {
-    background: #2563eb;
-    color: white;
-    font-weight: 600;
-    padding: 0.6rem 1.2rem;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    margin-top: 1.5rem;
-    font-size: 1rem;
-  }
-
-  .edit-form button:hover {
-    background: #1e40af;
-  }
-
   .label-info {
     margin-top: 1.5rem;
     font-size: 0.95rem;
@@ -140,16 +124,16 @@
 </style>
 {% endblock %}
 {% block content %}
-<div style="display: flex; flex-direction: column; height: calc(100vh - 4rem); overflow: hidden;">
+<div class="app-page" style="display: flex; flex-direction: column; height: calc(100vh - 4rem); overflow: hidden;">
   <!-- Header Section -->
   <div style="flex-shrink: 0; margin-bottom: 1rem;">
-    <h1>Label Companies</h1>
+    <h1 class="page-title">Label Companies</h1>
 
     <form method="get" class="company-select" id="company-form">
-      <label for="company-search">Select Company:</label>
+      <label for="company-search" class="form-label" style="margin: 0;">Select Company:</label>
       <!-- Value cleared to allow easy searching of next company -->
-      <input type="text" id="company-search" autocomplete="off" placeholder="Search companies..." value=""
-        style="padding:0.4rem 0.6rem; border-radius:4px; border:1px solid #d1d5db; font-size:1rem; min-width:260px;">
+      <input type="text" id="company-search" class="input" autocomplete="off" placeholder="Search companies..." value=""
+        style="font-size:1rem; min-width:260px; max-width:360px;">
       <input type="hidden" name="company" id="company-id" value="">
     </form>
     {% load static %}
@@ -185,8 +169,8 @@
     {% if selected_company or creating_new_company %}
     {% if creating_new_company %}
     <!-- Creating New Company Form -->
-    <div
-      style="background:#f0fdf4; border:1px solid #86efac; border-radius:8px; padding:1rem 1.5rem; margin-bottom:1.5rem;">
+    <div class="card-padded"
+      style="background:#f0fdf4; border-color:#86efac; margin-bottom:1.5rem;">
       <h2 style="margin:0 0 0.75rem 0; color:#166534; font-size:1.1rem;">✨ Create New Company: {{ new_company_name }}
       </h2>
       <p style="color:#4b5563; margin:0; font-size:0.95rem;">Fill in the details below and click <strong>Create
@@ -196,7 +180,7 @@
       <div style="flex: 1;">
         <form method="post"
           action="{% url 'label_companies' %}?company=new&new_company_name={{ new_company_name|urlencode }}"
-          class="edit-form">
+          class="edit-form card-padded">
           {% csrf_token %}
           <input type="hidden" name="action" value="create_new_company" />
           <label for="id_name">Company Name</label>
@@ -235,7 +219,7 @@
           <div style="display: flex; gap: 0.5rem; align-items: center;">
             {{ form.homepage }}
             <button type="submit" name="action" value="populate_from_homepage"
-              style="background:#059669; color:white; font-weight:600; border-radius:6px; padding:0.6rem 1rem; border:none; cursor:pointer; white-space:nowrap;"
+              class="btn-primary"
               title="Scrape company info from homepage">🔍 Populate</button>
           </div>
           <small style="color:#6b7280; display:block; margin-top:0.25rem; margin-bottom:0.5rem;">Enter URL and click
@@ -250,13 +234,12 @@
             </label>
           </div>
           <label for="id_operating_cities_text">Additional Operating Cities</label>
-          <textarea id="id_operating_cities_text" name="operating_cities_text" rows="3"
-            style="width:100%; padding:0.65rem; border-radius:6px; border:1px solid #d1d5db; font-size:0.95rem;">{{ operating_cities_text|default:'' }}</textarea>
+          <textarea id="id_operating_cities_text" name="operating_cities_text" rows="3" class="textarea"
+            style="font-size:0.95rem;">{{ operating_cities_text|default:'' }}</textarea>
           <small style="color:#6b7280; display:block; margin-top:0.25rem; margin-bottom:0.5rem;">One city per line
             (e.g., Dahlgren, Virginia). City-only values are allowed.</small>
           <div style="margin-bottom:0.75rem;">
-            <button type="button" onclick="openLocationExtractor()"
-              style="background:#eff6ff; color:#1d4ed8; font-weight:600; border-radius:6px; padding:0.55rem 0.9rem; border:1px solid #bfdbfe; cursor:pointer;">Open Location Extractor</button>
+            <button type="button" onclick="openLocationExtractor()" class="btn-secondary">Open Location Extractor</button>
             <small style="color:#6b7280; display:block; margin-top:0.35rem;">Use a pop-out box to extract cities from a URL or pasted HTML.</small>
           </div>
           <label for="id_contact_name">Contact Name</label>
@@ -267,22 +250,20 @@
           {{ form.status }}
           <div style="display:flex; gap:0.75rem; margin-top:1rem;">
             <button type="submit" name="action" value="create_new_company"
-              style="background:#16a34a; color:white; font-weight:600; border-radius:6px; padding:0.6rem 1.2rem; border:none; cursor:pointer;">✅
+              class="btn-primary">✅
               Create Company</button>
             <a href="{% url 'label_companies' %}"
-              style="background:#6b7280; color:white; font-weight:600; border-radius:6px; padding:0.6rem 1.2rem; text-decoration:none; display:inline-block;">Cancel</a>
+              class="btn-secondary" style="text-decoration:none;">Cancel</a>
           </div>
         </form>
       </div>
       <div style="flex: 1; display: flex; flex-direction: column; gap: 1rem;">
         <!-- Notes Section (expandable) -->
-        <details open
-          style="background: #fefce8; border-radius: 8px; padding: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
-          <summary
-            style="cursor: pointer; padding: 1rem 1.5rem; font-weight: 600; color: #854d0e; font-size: 1rem; list-style: none; display: flex; align-items: center; gap: 0.5rem;">
-            <span style="transition: transform 0.2s;">▶</span> Notes
+        <details open class="expandable-section expandable-tone-amber">
+          <summary class="expandable-section-summary">
+            <span class="accordion-chevron">▶</span> Notes
           </summary>
-          <div style="padding: 0 1.5rem 1.5rem 1.5rem;">
+          <div class="expandable-section-body">
             <label for="id_notes"
               style="display: block; font-weight: 600; color: #854d0e; margin-bottom: 0.5rem;">Company Notes</label>
             {{ form.notes }}
@@ -291,7 +272,7 @@
           </div>
         </details>
 
-        <div style="background: #f3f4f6; border-radius: 8px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+        <div class="card-padded" style="background: #f3f4f6;">
           <h2 style="margin-top:0; color:#1e40af; font-size:1.1rem;">Tips</h2>
           <ul style="margin:0.5rem 0 0 0; padding-left:1.2rem; font-size:0.95rem; color:#4b5563;">
             <li>At least one of Domain or Homepage is required</li>
@@ -305,29 +286,69 @@
     {% else %}
     <!-- Existing Company Edit Form -->
     <!-- DEBUG: Company ID={{ selected_company.id }}, Name={{ selected_company.name }}, creating_new_company={{ creating_new_company }} -->
-    <div id="companyContent"
-      style="background:#d1fae5; border:2px solid #10b981; border-radius:8px; padding:0.75rem 1.5rem; margin-bottom:1rem;">
+    <div id="companyContent" class="card-padded"
+      style="background:#d1fae5; border-width:2px; border-color:#10b981; padding:0.75rem 1.5rem; margin-bottom:1rem;">
       <div style="font-weight:600; font-size:1rem; color:#065f46;">
         📋 Company Profile: {{ selected_company.name }}
       </div>
     </div>
     <!-- Company Metrics and Quick Actions at the top -->
-    <div
-      style="background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px; padding:1rem 1.5rem; margin-bottom:1.5rem;">
+    <div class="card-padded"
+      style="background:#f9fafb; padding:1rem 1.5rem; margin-bottom:1.5rem;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
         <h2 style="margin:0; color:#1e40af; font-size:1.1rem;">Company Metrics</h2>
-        <div style="display:flex; gap:0.5rem;">
-          <form method="post" style="margin:0;">
-            {% csrf_token %}
-            <input type="hidden" name="company" value="{{ selected_company.id }}" />
-            <button type="submit" name="action" value="reingest_company" style="background:#ca8a04; color:white; font-weight:600; border-radius:6px; padding:0.45rem 1rem; border:none; cursor:pointer;" title="Re-ingest all messages from this company">🔄 Re-ingest</button>
-          </form>
-          <button type="button" id="refresh-contracts-btn" onclick="refreshContracts({{ selected_company.id }})" style="background:#0891b2; color:white; font-weight:600; border-radius:6px; padding:0.45rem 1rem; border:none; cursor:pointer;" title="Fetch latest USASpending contracts">🏛️ Refresh Contracts</button>
+        <div style="display:flex; gap:0.5rem; align-items:flex-start; flex-wrap:wrap;">
+          <div style="display:flex; flex-direction:column; align-items:flex-start; gap:0.35rem;">
+            <form method="post" style="margin:0;">
+              {% csrf_token %}
+              <input type="hidden" name="company" value="{{ selected_company.id }}" />
+              <button type="submit" name="action" value="reingest_company" class="btn-secondary" title="Re-ingest exactly {{ reingest_message_count }} messages explicitly assigned to this company" onclick="return confirm('Re-ingest {{ reingest_message_count }} assigned message{{ reingest_message_count|pluralize }} for {{ selected_company.name|escapejs }}? Only explicitly assigned messages will be reprocessed, and messages will be marked unreviewed only after successful re-ingest.');">🔄 Re-ingest {{ reingest_message_count }} Assigned Message{{ reingest_message_count|pluralize }}</button>
+            </form>
+            <details style="margin:0;">
+              <summary style="cursor:pointer; list-style:none; color:#2563eb; font-size:0.78rem; line-height:1.2; text-decoration:underline; text-underline-offset:2px;">
+                Preview included messages
+              </summary>
+              <div style="margin-top:0.5rem; width:min(32rem, 70vw); padding:0.85rem 1rem 1rem 1rem; border:1px solid #d1d5db; border-radius:8px; background:#fff; box-shadow:0 1px 2px rgba(0,0,0,0.05);">
+                <div style="font-weight:600; color:#374151; font-size:0.9rem; margin-bottom:0.5rem;">
+                  Preview Included Messages ({{ reingest_message_count }})
+                </div>
+                <p style="margin:0 0 0.75rem 0; color:#6b7280; font-size:0.85rem;">
+                  This preview uses the exact assigned-message set that will be re-ingested.
+                </p>
+                {% if reingest_preview_messages %}
+                <div style="display:flex; flex-direction:column; gap:0.5rem; max-height:18rem; overflow-y:auto;">
+                  {% for msg_id, msg_timestamp, msg_subject, msg_label, msg_reviewed in reingest_preview_messages %}
+                  <a href="{% url 'label_messages' %}?message={{ msg_id }}" style="display:block; text-decoration:none; color:inherit; background:#f9fafb; border:1px solid #e5e7eb; border-radius:6px; padding:0.65rem 0.8rem;">
+                    <div style="display:flex; justify-content:space-between; gap:0.75rem; align-items:flex-start;">
+                      <div style="min-width:0;">
+                        <div style="font-size:0.95rem; font-weight:600; color:#111827; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ msg_subject }}</div>
+                        <div style="font-size:0.8rem; color:#6b7280; margin-top:0.2rem;">{{ msg_timestamp|date:"Y-m-d H:i" }}</div>
+                      </div>
+                      <div style="display:flex; gap:0.35rem; flex-wrap:wrap; justify-content:flex-end;">
+                        <span style="background:#eef2ff; color:#3730a3; border-radius:999px; padding:0.15rem 0.55rem; font-size:0.78rem;">{{ msg_label|default:"unlabeled" }}</span>
+                        <span style="background:{% if msg_reviewed %}#ecfdf5{% else %}#fefce8{% endif %}; color:{% if msg_reviewed %}#166534{% else %}#854d0e{% endif %}; border-radius:999px; padding:0.15rem 0.55rem; font-size:0.78rem;">{% if msg_reviewed %}Reviewed{% else %}Unreviewed{% endif %}</span>
+                      </div>
+                    </div>
+                  </a>
+                  {% endfor %}
+                </div>
+                {% if reingest_preview_remaining > 0 %}
+                <div style="margin-top:0.75rem; color:#6b7280; font-size:0.85rem;">
+                  Showing the most recent {{ reingest_preview_messages|length }} of {{ reingest_message_count }} included messages.
+                </div>
+                {% endif %}
+                {% else %}
+                <div style="margin-top:0.25rem; color:#6b7280; font-style:italic; font-size:0.85rem;">No assigned messages will be included.</div>
+                {% endif %}
+              </div>
+            </details>
+          </div>
+          <button type="button" id="refresh-contracts-btn" onclick="refreshContracts({{ selected_company.id }})" class="btn-secondary" title="Fetch latest USASpending contracts">🏛️ Refresh Contracts</button>
           {# Status is now auto-calculated based on latest message and GHOSTED_DAYS_THRESHOLD #}
-          <a href="{% url 'manual_entry' %}?company={{ selected_company.id }}" style="background:#2563eb; color:white; font-weight:600; border-radius:6px; padding:0.45rem 1rem; border:none; cursor:pointer; text-decoration:none; display:inline-block;" title="Create a new application for this company">➕ Create Application</a>
-          <button type="button" onclick="document.getElementById('merge-panel').style.display = document.getElementById('merge-panel').style.display === 'none' ? 'block' : 'none';" style="background:#7c3aed; color:white; font-weight:600; border-radius:6px; padding:0.45rem 1rem; border:none; cursor:pointer;" title="Merge this company with a duplicate">🔗 Merge...</button>
+          <a href="{% url 'manual_entry' %}?company={{ selected_company.id }}" class="btn-primary" style="text-decoration:none;" title="Create a new application for this company">➕ Create Application</a>
+          <button type="button" onclick="document.getElementById('merge-panel').style.display = document.getElementById('merge-panel').style.display === 'none' ? 'block' : 'none';" class="btn-secondary" title="Merge this company with a duplicate">🔗 Merge...</button>
           <form method="get" action="{% url 'delete_company' selected_company.id %}" style="margin:0;">
-            <button type="submit" style="background:#b91c1c; color:white; font-weight:600; border-radius:6px; padding:0.45rem 1rem; border:none; cursor:pointer;">Delete Company</button>
+            <button type="submit" class="btn-danger">Delete Company</button>
           </form>
         </div>
       </div>
@@ -363,22 +384,22 @@
         {% csrf_token %}
         <input type="hidden" name="company" value="{{ selected_company.id }}" />
         <label style="display:flex; align-items:center; cursor:pointer; font-size:0.95rem; color:#166534;">
-          <input type="checkbox" name="mark_searched" value="1" style="width:auto; margin-right:0.5rem; cursor:pointer;" onchange="this.form.submit()">
+          <input type="checkbox" name="mark_searched" value="1" class="checkbox" style="width:auto; margin-right:0.5rem; cursor:pointer;" onchange="this.form.submit()">
           <strong>🔍 I manually searched this company's website for jobs today</strong>
         </label>
       </form>
     </div>
-    <div id="merge-panel" style="display:none; background:#faf5ff; border:1px solid #c4b5fd; border-radius:8px; padding:1rem 1.5rem; margin-bottom:1.5rem;">
+    <div id="merge-panel" class="card-padded" style="display:none; background:#faf5ff; border-color:#c4b5fd; padding:1rem 1.5rem; margin-bottom:1.5rem;">
       <h3 style="margin:0 0 0.75rem 0; color:#5b21b6; font-size:1rem;">🔗 Merge with Another Company</h3>
       <p style="color:#6b7280; font-size:0.9rem; margin:0 0 0.75rem 0;">
         Search for the duplicate company below. All messages, applications, and data will be merged.
         You will be asked to choose the canonical name on the next page.
       </p>
       <div style="display:flex; gap:0.75rem; align-items:center; flex-wrap:wrap;">
-        <input type="text" id="merge-company-search" autocomplete="off" placeholder="Search for duplicate company..." style="padding:0.4rem 0.6rem; border-radius:4px; border:1px solid #c4b5fd; font-size:1rem; min-width:260px;">
+        <input type="text" id="merge-company-search" class="input" autocomplete="off" placeholder="Search for duplicate company..." style="font-size:1rem; min-width:260px; max-width:360px; border-color:#c4b5fd;">
         <input type="hidden" id="merge-company-id" value="">
-        <button type="button" id="merge-go-btn" disabled onclick="goToMergePage()" style="background:#7c3aed; color:white; font-weight:600; border-radius:6px; padding:0.45rem 1rem; border:none; cursor:pointer; opacity:0.5;">Go to Merge Page &rarr;</button>
-        <button type="button" onclick="document.getElementById('merge-panel').style.display='none';" style="background:#6b7280; color:white; font-weight:600; border-radius:6px; padding:0.45rem 0.75rem; border:none; cursor:pointer;">Cancel</button>
+        <button type="button" id="merge-go-btn" disabled onclick="goToMergePage()" class="btn-primary">Go to Merge Page &rarr;</button>
+        <button type="button" onclick="document.getElementById('merge-panel').style.display='none';" class="btn-secondary">Cancel</button>
       </div>
     </div>
     <script>
@@ -410,7 +431,7 @@
     </script>
     <div style="display: flex; gap: 2rem; align-items: flex-start;">
       <div style="flex: 1;">
-        <form method="post" class="edit-form">
+        <form method="post" class="edit-form card-padded">
           {% csrf_token %}
           <input type="hidden" name="company" value="{{ selected_company.id }}" />
           <label for="id_name">Company Name</label>
@@ -441,17 +462,19 @@
             </div>
           </div>
           <small style="color:#6b7280; display:block; margin-top:0.25rem; margin-bottom:0.5rem;">DUNS (9 digits) and UEI (12 chars) for government contracting</small>
-          <div style="display:none;">
-            {{ form.homepage }}
-          </div>
-          <label>Homepage</label>
+          <label for="id_homepage">Homepage</label>
           <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap; margin-top:0.3rem;">
+            <div style="flex:1; min-width:260px;">
+              {{ form.homepage }}
+            </div>
+            <button type="button" onclick="populateCompanyInfo()" class="btn-primary" title="Scrape company info from homepage">🔍 Populate</button>
+          </div>
+          <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap; margin-top:0.35rem;">
             {% if selected_company.homepage %}
             <a href="{{ selected_company.homepage }}" target="_blank" rel="noopener noreferrer" style="color:#2563eb; text-decoration:none; word-break:break-all;">{{ selected_company.homepage }}</a>
             {% else %}
             <span style="color:#9ca3af; font-style:italic;">No homepage URL saved.</span>
             {% endif %}
-            <button type="button" onclick="populateCompanyInfo()" style="background:#059669; color:white; font-weight:600; border-radius:6px; padding:0.6rem 1rem; border:none; cursor:pointer; white-space:nowrap;" title="Scrape company info from homepage">🔍 Populate</button>
           </div>
           <small style="color:#6b7280; display:block; margin-top:0.25rem; margin-bottom:0.5rem;">Populate uses the saved homepage URL to auto-fill company details.</small>
           <div id="populate_status" style="margin-top:0.5rem; display:none;"></div>
@@ -465,13 +488,12 @@
           </div>
 
           <label for="id_operating_cities_text">Additional Operating Cities</label>
-          <textarea id="id_operating_cities_text" name="operating_cities_text" rows="3"
-            style="width:100%; padding:0.65rem; border-radius:6px; border:1px solid #d1d5db; font-size:0.95rem;">{{ operating_cities_text|default:'' }}</textarea>
+          <textarea id="id_operating_cities_text" name="operating_cities_text" rows="3" class="textarea"
+            style="font-size:0.95rem;">{{ operating_cities_text|default:'' }}</textarea>
           <small style="color:#6b7280; display:block; margin-top:0.25rem; margin-bottom:0.5rem;">One city per line
             (e.g., Dahlgren, Virginia). City-only values are allowed.</small>
           <div style="margin-bottom:0.75rem;">
-            <button type="button" onclick="openLocationExtractor()"
-              style="background:#eff6ff; color:#1d4ed8; font-weight:600; border-radius:6px; padding:0.55rem 0.9rem; border:1px solid #bfdbfe; cursor:pointer;">Open Location Extractor</button>
+            <button type="button" onclick="openLocationExtractor()" class="btn-secondary">Open Location Extractor</button>
             <small style="color:#6b7280; display:block; margin-top:0.35rem;">Use a pop-out box to extract cities from a URL or pasted HTML.</small>
           </div>
           <label for="id_contact_name">Contact Name</label>
@@ -485,14 +507,14 @@
           <small style="color:#6b7280; display:block; margin-top:0.25rem; margin-bottom:0.5rem;">Company focus area
             analysis will appear here after clicking Populate. You can also add your own notes.</small>
           <button type="button" onclick="saveCompanyChanges()"
-            style="background:#2563eb; color:white; font-weight:600; border-radius:6px; padding:0.6rem 1.2rem; border:none; cursor:pointer; margin-top:1rem;">Save
+            class="btn-primary" style="margin-top:1rem;">Save
             Changes</button>
           <div id="save_status" style="margin-top:0.5rem; display:none;"></div>
         </form>
       </div>
       <div style="flex: 1; display: flex; flex-direction: column; gap: 1rem;">
         <!-- DEBUG: About to render Company Data Preview for company={{ selected_company.name }}, message_count={{ message_count }}, application_threads count={{ application_threads|length }} -->
-        <div style="background: #f3f4f6; border-radius: 8px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+        <div class="card-padded" style="background: #f3f4f6;">
           <h2 style="margin-top:0; color:#1e40af; font-size:1.1rem;">Company Data Preview</h2>
           <div style="margin-bottom:1rem;"><strong>Company:</strong> {{ selected_company.name }}</div>
           <div style="margin-bottom:1rem;">
@@ -568,8 +590,16 @@
                   <span style="color:#1e40af; font-size:0.85rem; white-space:nowrap;">🗓️ {{ thread.interview_date|date:"M d" }}</span>
                   {% endif %}
                   {% if thread.rejection_date %}
-                  <span style="color:#991b1b; font-size:0.85rem; white-space:nowrap;">{% if thread.cancelled %}🚫{% elif
-                    thread.withdrew %}🚶{% else %}❌{% endif %} {{ thread.rejection_date|date:"M d" }}</span>
+                  <span style="color:#991b1b; font-size:0.85rem; white-space:nowrap;">
+                    {% if thread.cancelled %}
+                    🚫
+                    {% elif thread.withdrew %}
+                    🚶
+                    {% else %}
+                    ❌
+                    {% endif %}
+                    {{ thread.rejection_date|date:"M d" }}
+                  </span>
                   {% endif %}
                   {% if thread.offer_date %}
                   <span style="color:#065f46; font-size:0.85rem; white-space:nowrap;">🎉 {{ thread.offer_date|date:"M d" }}</span>
@@ -588,9 +618,7 @@
               {% for interaction in company_interactions %}
               <li style="margin-bottom:0.25rem; color:#374151;">
                 <span style="color:#6b7280;">{{ interaction.interaction_date|date:"M d, Y" }}</span>
-                &mdash; <span
-                  style="font-size:0.82rem; background:#d1fae5; border-radius:3px; padding:0.1rem 0.35rem;">{{
-                  interaction.type_icons }}</span>
+                &mdash; <span style="font-size:0.82rem; background:#d1fae5; border-radius:3px; padding:0.1rem 0.35rem;">{{ interaction.type_icons }}</span>
                 &mdash; {{ interaction.contact_person }}
               </li>
               {% endfor %}
@@ -619,18 +647,17 @@
           </div>
         </div>
         <style>
-          details[open] summary span:first-child {
+          details[open] summary .accordion-chevron {
             transform: rotate(90deg);
           }
         </style>
 
         <!-- Documents Section (expandable) -->
-        <details style="background: #e0e7ff; border-radius: 8px; padding: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
-          <summary
-            style="cursor: pointer; padding: 1rem 1.5rem; font-weight: 600; color: #3730a3; font-size: 1rem; list-style: none; display: flex; align-items: center; gap: 0.5rem;">
-            <span style="transition: transform 0.2s;">▶</span> 📎 Documents{% if company_documents %} ({{ company_documents|length }}){% endif %}
+        <details class="expandable-section expandable-tone-indigo">
+          <summary class="expandable-section-summary">
+            <span class="accordion-chevron">▶</span> 📎 Documents{% if company_documents %} ({{ company_documents|length }}){% endif %}
           </summary>
-          <div style="padding: 0 1.5rem 1.5rem 1.5rem;">
+          <div class="expandable-section-body">
             <!-- Existing Documents -->
             {% if company_documents %}
             <div style="margin-bottom: 1rem;">
@@ -648,14 +675,12 @@
                     {% if doc.description %}
                     <div style="font-size: 0.85rem; color: #6b7280;">{{ doc.description }}</div>
                     {% endif %}
-                    <div style="font-size: 0.8rem; color: #9ca3af;">{{ doc.file_size_display }} • {{
-                      doc.uploaded_at|date:"M d, Y" }}</div>
+                    <div style="font-size: 0.8rem; color: #9ca3af;">{{ doc.file_size_display }} • {{ doc.uploaded_at|date:"M d, Y" }}</div>
                   </div>
                   <form method="post" action="{% url 'delete_company_document' doc.id %}" style="margin: 0;"
                     onsubmit="return confirm('Delete this document?');">
                     {% csrf_token %}
-                    <button type="submit"
-                      style="background: #fee2e2; color: #991b1b; border: none; border-radius: 4px; padding: 0.35rem 0.6rem; cursor: pointer; font-size: 0.85rem;"
+                    <button type="submit" class="btn-danger"
                       title="Delete document">🗑️</button>
                   </form>
                 </li>
@@ -669,14 +694,19 @@
             <!-- Upload Form -->
             <form method="post" action="{% url 'upload_company_document' selected_company.id %}"
               enctype="multipart/form-data"
-              style="background: white; padding: 1rem; border-radius: 6px; border: 1px solid #c7d2fe;">
+              class="form-section" style="background: white; padding: 1rem; border-radius: 6px; border-color: #c7d2fe;">
               {% csrf_token %}
               <div style="margin-bottom: 0.75rem;">
                 <label for="document"
                   style="display: block; font-weight: 500; color: #374151; margin-bottom: 0.25rem;">Upload
                   Document:</label>
-                <input type="file" name="document" id="document" accept=".pdf,.txt,.xlsx,.docx" required
-                  style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem;" />
+                <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; margin-top: 0.5rem;">
+                  <input type="file" name="document" id="document" accept=".pdf,.txt,.xlsx,.docx" required class="sr-only" />
+                  <label for="document" class="btn-secondary" style="cursor: pointer;">
+                    Choose File
+                  </label>
+                  <span id="document-file-name" style="color: #6b7280; font-size: 0.95rem;">No file selected</span>
+                </div>
                 <small style="color: #6b7280; display: block; margin-top: 0.25rem;">PDF, TXT, XLSX, DOCX only. Max
                   5MB.</small>
               </div>
@@ -684,11 +714,10 @@
                 <label for="description"
                   style="display: block; font-weight: 500; color: #374151; margin-bottom: 0.25rem;">Description
                   (optional):</label>
-                <input type="text" name="description" id="description" placeholder="e.g., Offer Letter, Contract, NDA"
-                  style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem; box-sizing: border-box;" />
+                <input type="text" name="description" id="description" class="input" placeholder="e.g., Offer Letter, Contract, NDA"
+                  style="font-size: 0.95rem; box-sizing: border-box;" />
               </div>
-              <button type="submit"
-                style="background: #4f46e5; color: white; font-weight: 600; border-radius: 6px; padding: 0.5rem 1rem; border: none; cursor: pointer;">📤
+              <button type="submit" class="btn-primary">📤
                 Upload</button>
             </form>
           </div>
@@ -697,12 +726,11 @@
         <!-- Government Contracts Section (expandable) -->
         <div id="company-contracts-section">
           {% if company_contracts %}
-          <details style="background: #ecfdf5; border-radius: 8px; padding: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
-            <summary
-              style="cursor: pointer; padding: 0.75rem 1rem; font-weight: 600; color: #065f46; font-size: 0.95rem; list-style: none; display: flex; align-items: center; gap: 0.5rem;">
-              <span style="transition: transform 0.2s;">▶</span> 🏛️ Government Contracts ({{ company_contracts|length }})
+          <details class="expandable-section expandable-tone-emerald">
+            <summary class="expandable-section-summary-compact">
+              <span class="accordion-chevron">▶</span> 🏛️ Government Contracts ({{ company_contracts|length }})
             </summary>
-            <div style="padding: 0 0.75rem 0.75rem 0.75rem; max-height:600px; overflow-y:auto;">
+            <div class="expandable-section-body-compact" style="max-height:600px; overflow-y:auto;">
               {% for contract in company_contracts %}
               <div id="co-contract-{{ contract.id }}"
                 style="background:white; border-radius:6px; margin-bottom:0.5rem; border:1px solid #d1fae5; overflow:hidden;">
@@ -772,37 +800,22 @@
         </div>
 
         <!-- Recent News Section (lazy-loaded via AJAX after page render) -->
-        <style>
-          .recent-news-summary,
-          .recent-news-summary * {
-            writing-mode: horizontal-tb !important;
-            transform: none !important;
-          }
-
-          .recent-news-summary {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-          }
-        </style>
         {% if selected_company %}
-        <details id="news-details" class="recent-news-details"
-          style="background: #fef3c7; border-radius: 8px; padding: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
-          <summary class="recent-news-summary"
-            style="cursor: pointer; padding: 1rem 1.5rem; font-weight: 600; color: #92400e; font-size: 1rem; list-style: none; gap: 0.5rem; writing-mode: horizontal-tb; transform: none;">
+        <details id="news-details" class="expandable-section expandable-tone-amber recent-news-details">
+          <summary class="expandable-section-summary recent-news-summary">
             <span style="display: flex; align-items: center; gap: 0.5rem;">
-              <span style="transition: transform 0.2s;">▶</span> 📰 <span id="news-title">Recent News</span>
+              <span class="accordion-chevron">▶</span> 📰 <span id="news-title">Recent News</span>
             </span>
             <button id="news-refresh-btn" type="button" onclick="refreshCompanyNews({{ selected_company.id }})"
-              style="background: #f59e0b; color: white; font-weight: 600; border-radius: 4px; padding: 0.25rem 0.75rem; border: none; cursor: pointer; font-size: 0.85rem; margin-right: 0.5rem;">🔄
+              class="btn-secondary expandable-section-action"
+              >🔄
               Refresh</button>
           </summary>
           <div id="news-add-bar"
             style="padding: 0.5rem 1.5rem; display: flex; gap: 0.5rem; align-items: center; border-top: 1px solid #fde68a;">
-            <input id="news-add-url-input" type="url" placeholder="Paste a URL to add it as a news article..."
-              style="flex:1;font-size:0.8rem;border:1px solid #fcd34d;border-radius:4px;padding:0.3rem 0.6rem;" />
-            <button type="button" onclick="addNewsUrl({{ selected_company.id }})"
-              style="background:#10b981;color:white;font-weight:600;border-radius:4px;padding:0.3rem 0.75rem;border:none;cursor:pointer;font-size:0.8rem;white-space:nowrap;">➕
+            <input id="news-add-url-input" type="url" class="input-sm" placeholder="Paste a URL to add it as a news article..."
+              style="flex:1;font-size:0.8rem;border-color:#fcd34d;" />
+            <button type="button" onclick="addNewsUrl({{ selected_company.id }})" class="btn-primary">➕
               Add URL</button>
           </div>
           <div id="news-add-feedback" style="font-size:0.75rem;padding:0 1.5rem 0.35rem;display:none;"></div>
@@ -817,27 +830,26 @@
 
         <!-- Interactions Section -->
         {% if selected_company %}
-        <details style="background: #d1fae5; border-radius: 8px; padding: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
-          <summary
-            style="cursor: pointer; padding: 1rem 1.5rem; font-weight: 600; color: #065f46; font-size: 1rem; list-style: none; display: flex; align-items: center; gap: 0.5rem;">
-            <span style="transition: transform 0.2s;">▶</span> 🤝 Interactions ({{ company_interactions|length }}
+        <details class="expandable-section expandable-tone-emerald">
+          <summary class="expandable-section-summary">
+            <span class="accordion-chevron">▶</span> 🤝 Interactions ({{ company_interactions|length }}
             record{{ company_interactions|length|pluralize }})
           </summary>
-          <div style="padding: 0 1.5rem 1.5rem 1.5rem;">
+          <div class="expandable-section-body">
 
             <!-- Add New Interaction Form -->
             <form method="post" action="{% url 'add_company_interaction' selected_company.id %}"
-              style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 1.5rem;"
+              class="form-section" style="background: white; margin-bottom: 1.5rem;"
               onsubmit="return validateInteractionForm(this);">
               {% csrf_token %}
 
               <div style="margin-bottom: 1rem;">
                 <label for="id_interaction_date"
-                  style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.25rem;">📅 Date &amp;
+                  class="form-label" style="margin-bottom: 0.25rem;">📅 Date &amp;
                   Time:</label>
                 <input type="datetime-local" name="interaction_date" id="id_interaction_date"
                   value="{% now 'Y-m-d' %}T{% now 'H:i' %}"
-                  style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem;" />
+                  class="input" style="font-size: 0.95rem;" />
               </div>
 
               <div style="margin-bottom: 1rem;">
@@ -847,19 +859,19 @@
                 <div
                   style="display: flex; gap: 1.5rem; flex-wrap: wrap; padding: 0.75rem; background: #f0fdf4; border-radius: 6px;">
                   <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer;">
-                    <input type="checkbox" name="is_phone" class="interaction-type-cb" style="width:1rem;height:1rem;">
+                    <input type="checkbox" name="is_phone" class="interaction-type-cb checkbox">
                     ☎️ Phone Call
                   </label>
                   <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer;">
-                    <input type="checkbox" name="is_video" class="interaction-type-cb" style="width:1rem;height:1rem;">
+                    <input type="checkbox" name="is_video" class="interaction-type-cb checkbox">
                     🎥 Video Call
                   </label>
                   <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer;">
-                    <input type="checkbox" name="is_text" class="interaction-type-cb" style="width:1rem;height:1rem;">
+                    <input type="checkbox" name="is_text" class="interaction-type-cb checkbox">
                     💬 Text
                   </label>
                   <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer;">
-                    <input type="checkbox" name="is_chat" class="interaction-type-cb" style="width:1rem;height:1rem;">
+                    <input type="checkbox" name="is_chat" class="interaction-type-cb checkbox">
                     🖥️ Chat
                   </label>
                 </div>
@@ -869,44 +881,43 @@
 
               <div style="margin-bottom: 1rem;">
                 <label for="id_contact_person"
-                  style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.25rem;">👤 Contact Person
+                  class="form-label" style="margin-bottom: 0.25rem;">👤 Contact Person
                   <span style="color:#ef4444;">*</span></label>
                 <input type="text" name="contact_person" id="id_contact_person" required placeholder="e.g., Jane Smith"
-                  style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem; box-sizing: border-box;" />
+                  class="input" style="font-size: 0.95rem; box-sizing: border-box;" />
               </div>
 
               <div style="display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap;">
                 <div style="flex: 1; min-width: 200px;">
                   <label for="id_contact_phone"
-                    style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.25rem;">📱 Contact Phone
+                    class="form-label" style="margin-bottom: 0.25rem;">📱 Contact Phone
                     <small style="font-weight:400; color:#6b7280;">(optional)</small></label>
                   <input type="text" name="contact_phone" id="id_contact_phone" placeholder="e.g., 555-867-5309"
-                    style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem; box-sizing: border-box;" />
+                    class="input" style="font-size: 0.95rem; box-sizing: border-box;" />
                 </div>
                 <div style="flex: 1; min-width: 200px;">
                   <label for="id_contact_email"
-                    style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.25rem;">✉️ Contact Email
+                    class="form-label" style="margin-bottom: 0.25rem;">✉️ Contact Email
                     <small style="font-weight:400; color:#6b7280;">(optional)</small></label>
                   <input type="email" name="contact_email" id="id_contact_email" placeholder="e.g., jane@company.com"
-                    style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem; box-sizing: border-box;" />
+                    class="input" style="font-size: 0.95rem; box-sizing: border-box;" />
                 </div>
               </div>
 
               <div style="margin-bottom: 1.25rem;">
                 <label for="id_interaction_notes"
-                  style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.25rem;">📝 Notes <small
+                  class="form-label" style="margin-bottom: 0.25rem;">📝 Notes <small
                     style="font-weight:400; color:#6b7280;">(optional)</small></label>
                 <textarea name="notes" id="id_interaction_notes" rows="4"
                   placeholder="What was discussed? Any action items?"
-                  style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem; resize: vertical; font-family: inherit; box-sizing: border-box; min-height: 80px; max-height: 400px; overflow-y: auto;"></textarea>
+                  class="textarea"
+                  style="font-size: 0.95rem; font-family: inherit; box-sizing: border-box; min-height: 80px; max-height: 400px; overflow-y: auto;"></textarea>
               </div>
 
               <div style="display: flex; gap: 0.75rem;">
-                <button type="submit"
-                  style="background: #059669; color: white; font-weight: 600; border-radius: 6px; padding: 0.5rem 1.25rem; border: none; cursor: pointer;">💾
+                <button type="submit" class="btn-primary">💾
                   Save Interaction</button>
-                <button type="reset"
-                  style="background: #f3f4f6; color: #374151; font-weight: 600; border-radius: 6px; padding: 0.5rem 1.25rem; border: 1px solid #d1d5db; cursor: pointer;">✖
+                <button type="reset" class="btn-secondary">✖
                   Cancel</button>
               </div>
             </form>
@@ -920,11 +931,8 @@
                 style="background: white; border-radius: 6px; padding: 0.85rem 1rem; margin-bottom: 0.6rem; border: 1px solid #a7f3d0; display: flex; gap: 1rem; align-items: flex-start;">
                 <div style="flex: 1;">
                   <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-bottom: 0.3rem;">
-                    <span style="color: #6b7280; font-size: 0.85rem; white-space: nowrap;">{{
-                      interaction.interaction_date|date:"M d, Y H:i" }}</span>
-                    <span
-                      style="background: #d1fae5; color: #065f46; border-radius: 3px; padding: 0.1rem 0.4rem; font-size: 0.8rem; font-weight: 600;">{{
-                      interaction.type_icons }}</span>
+                    <span style="color: #6b7280; font-size: 0.85rem; white-space: nowrap;">{{ interaction.interaction_date|date:"M d, Y H:i" }}</span>
+                    <span style="background: #d1fae5; color: #065f46; border-radius: 3px; padding: 0.1rem 0.4rem; font-size: 0.8rem; font-weight: 600;">{{ interaction.type_icons }}</span>
                     <span style="font-weight: 600; color: #374151;">{{ interaction.contact_person }}</span>
                   </div>
                   {% if interaction.contact_phone or interaction.contact_email %}
@@ -935,15 +943,13 @@
                   </div>
                   {% endif %}
                   {% if interaction.notes %}
-                  <div style="font-size: 0.88rem; color: #374151; margin-top: 0.25rem; white-space: pre-wrap;">{{
-                    interaction.notes }}</div>
+                  <div style="font-size: 0.88rem; color: #374151; margin-top: 0.25rem; white-space: pre-wrap;">{{ interaction.notes }}</div>
                   {% endif %}
                 </div>
                 <form method="post" action="{% url 'delete_company_interaction' selected_company.id interaction.id %}"
                   style="margin: 0; flex-shrink: 0;" onsubmit="return confirm('Delete this interaction record?');">
                   {% csrf_token %}
-                  <button type="submit"
-                    style="background: #fee2e2; color: #991b1b; border: none; border-radius: 4px; padding: 0.35rem 0.6rem; cursor: pointer; font-size: 0.85rem;"
+                  <button type="submit" class="btn-danger"
                     title="Delete">🗑️</button>
                 </form>
               </div>
@@ -958,15 +964,13 @@
 
         <!-- Application Details Section -->
         {% if application_threads %}
-        <details style="background: #dbeafe; border-radius: 8px; padding: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
-          <summary
-            style="cursor: pointer; padding: 1rem 1.5rem; font-weight: 600; color: #1e40af; font-size: 1rem; list-style: none; display: flex; align-items: center; gap: 0.5rem;">
-            <span style="transition: transform 0.2s;">▶</span> Application Details ({{ application_threads|length }}
+        <details class="expandable-section expandable-tone-blue">
+          <summary class="expandable-section-summary">
+            <span class="accordion-chevron">▶</span> Application Details ({{ application_threads|length }}
             record{{ application_threads|length|pluralize }})
           </summary>
-          <div style="padding: 0 1.5rem 1.5rem 1.5rem;">
-            <form method="post"
-              style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+          <div class="expandable-section-body">
+            <form method="post" class="form-section" style="background: white;">
               {% csrf_token %}
               <input type="hidden" name="company" value="{{ selected_company.id }}" />
               <input type="hidden" name="action" value="save_application_details" />
@@ -976,10 +980,10 @@
               {% if application_threads|length > 1 %}
               <div style="margin-bottom: 1.5rem; padding: 1rem; background: #f3f4f6; border-radius: 6px;">
                 <label for="application_selector"
-                  style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.5rem;">📋 Select Application
+                  class="form-label" style="margin-bottom: 0.5rem;">📋 Select Application
                   to Edit:</label>
-                <select id="application_selector"
-                  style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem; background: white;">
+                <select id="application_selector" class="select"
+                  style="font-size: 0.95rem; background: white;">
                   {% for thread in application_threads %}
                   <option value="{{ thread.thread_id }}" data-jobtitle="{{ thread.job_title|default:'' }}"
                     data-location="{{ thread.location|default:'' }}"
@@ -1012,69 +1016,68 @@
                   </option>
                   {% endfor %}
                 </select>
-                <small style="color: #6b7280; display: block; margin-top: 0.25rem;">This company has {{
-                  application_threads|length }} application records</small>
+                <small style="color: #6b7280; display: block; margin-top: 0.25rem;">This company has {{ application_threads|length }} application records</small>
               </div>
               {% endif %}
 
               <div style="margin-bottom: 1rem;"> <label for="id_job_title"
-                  style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.5rem;">💼 Job Title:</label>
+                  class="form-label" style="margin-bottom: 0.5rem;">💼 Job Title:</label>
                 <input type="text" name="job_title" id="id_job_title"
                   value="{% if application_threads %}{{ application_threads.0.job_title|default:'' }}{% endif %}"
                   placeholder="e.g., Senior Software Engineer, Product Manager"
-                  style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem; box-sizing: border-box;" />
+                  class="input" style="font-size: 0.95rem; box-sizing: border-box;" />
                 <small style="color: #6b7280; display: block; margin-top: 0.25rem;">Title of the position you applied
                   for</small>
               </div>
 
               <div style="margin-bottom: 1rem;">
                 <label for="id_location"
-                  style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.5rem;">📍 Location:</label>
+                  class="form-label" style="margin-bottom: 0.5rem;">📍 Location:</label>
                 <input type="text" name="location" id="id_location"
                   value="{% if application_threads %}{{ application_threads.0.location|default:'' }}{% endif %}"
                   placeholder="e.g., Remote, New York, NY, Hybrid - San Francisco"
-                  style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem; box-sizing: border-box;" />
+                  class="input" style="font-size: 0.95rem; box-sizing: border-box;" />
                 <small style="color: #6b7280; display: block; margin-top: 0.25rem;">Job location or work
                   arrangement</small>
               </div>
 
               <div style="margin-bottom: 1.5rem;">
                 <label for="id_sent_date"
-                  style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.25rem;">📅 Application
+                  class="form-label" style="margin-bottom: 0.25rem;">📅 Application
                   Date</label>
                 <input type="date" name="sent_date" id="id_sent_date"
                   value="{% if application_threads %}{{ application_threads.0.sent_date|date:'Y-m-d'|default:'' }}{% endif %}"
-                  style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem;" />
+                  class="input" style="font-size: 0.95rem;" />
                 <small style="color: #6b7280; display: block; margin-top: 0.25rem;">Date you submitted the
                   application</small>
               </div>
 
               <div style="margin-bottom: 1.5rem;"> <label for="id_prescreen_date"
-                  style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.25rem;">📞 Prescreen
+                  class="form-label" style="margin-bottom: 0.25rem;">📞 Prescreen
                   Date</label>
                 <input type="date" name="prescreen_date" id="id_prescreen_date"
                   value="{% if application_threads %}{{ application_threads.0.prescreen_date|date:'Y-m-d'|default:'' }}{% endif %}"
-                  style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem;" />
+                  class="input" style="font-size: 0.95rem;" />
                 <small style="color: #6b7280; display: block; margin-top: 0.25rem;">Date of prescreen phone call</small>
               </div>
 
               <div style="margin-bottom: 1rem;">
                 <label for="id_interview_date"
-                  style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.25rem;">🗓️ Interview
+                  class="form-label" style="margin-bottom: 0.25rem;">🗓️ Interview
                   Date</label>
                 <input type="date" name="interview_date" id="id_interview_date"
                   value="{% if application_threads %}{{ application_threads.0.interview_date|date:'Y-m-d'|default:'' }}{% endif %}"
-                  style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem;" />
+                  class="input" style="font-size: 0.95rem;" />
                 <small style="color: #6b7280; display: block; margin-top: 0.25rem;">Date of scheduled interview</small>
               </div>
 
               <div style="margin-bottom: 1.5rem;">
                 <label for="id_rejection_date"
-                  style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.25rem;">❌ Rejection
+                  class="form-label" style="margin-bottom: 0.25rem;">❌ Rejection
                   Date</label>
                 <input type="date" name="rejection_date" id="id_rejection_date"
                   value="{% if application_threads %}{{ application_threads.0.rejection_date|date:'Y-m-d'|default:'' }}{% endif %}"
-                  style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem;" />
+                  class="input" style="font-size: 0.95rem;" />
                 <small style="color: #6b7280; display: block; margin-top: 0.25rem;">Date rejection was received (or date
                   of cancellation/withdrawal)</small>
 
@@ -1083,13 +1086,13 @@
                   style="display: flex; gap: 1.5rem; margin-top: 0.75rem; padding: 0.75rem; background: #fef3c7; border-radius: 6px;">
                   <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.9rem;">
                     <input type="checkbox" name="cancelled" id="id_cancelled" {% if application_threads and application_threads.0.cancelled %}checked{% endif %}
-                      style="width: 1rem; height: 1rem; cursor: pointer;" />
+                      class="checkbox" style="cursor: pointer;" />
                     <span style="color: #92400e;">🚫 Cancelled</span>
                     <small style="color: #78716c;">(job was cancelled)</small>
                   </label>
                   <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.9rem;">
                     <input type="checkbox" name="withdrew" id="id_withdrew" {% if application_threads and application_threads.0.withdrew %}checked{% endif %}
-                      style="width: 1rem; height: 1rem; cursor: pointer;" />
+                      class="checkbox" style="cursor: pointer;" />
                     <span style="color: #92400e;">🚶 Withdrew</span>
                     <small style="color: #78716c;">(I withdrew)</small>
                   </label>
@@ -1098,25 +1101,24 @@
 
               <div style="margin-bottom: 1.5rem;">
                 <label for="id_offer_date"
-                  style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.25rem;">🎉 Offer
+                  class="form-label" style="margin-bottom: 0.25rem;">🎉 Offer
                   Date</label>
                 <input type="date" name="offer_date" id="id_offer_date"
                   value="{% if application_threads %}{{ application_threads.0.offer_date|date:'Y-m-d'|default:'' }}{% endif %}"
-                  style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem;" />
+                  class="input" style="font-size: 0.95rem;" />
                 <small style="color: #6b7280; display: block; margin-top: 0.25rem;">Date offer was received</small>
               </div>
 
               <div style="margin-bottom: 1rem;">
                 <label for="id_application_url"
-                  style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.25rem;">🔗 Application
+                  class="form-label" style="margin-bottom: 0.25rem;">🔗 Application
                   URL</label>
                 <div style="display: flex; gap: 0.5rem; align-items: start;">
-                  <input type="url" name="application_url" id="id_application_url"
+                  <input type="url" name="application_url" id="id_application_url" class="input"
                     value="{% if application_threads %}{{ application_threads.0.application_url|default:'' }}{% endif %}"
                     placeholder="https://company.com/job/12345"
-                    style="flex: 1; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem;" />
-                  <button type="button" id="scrape_button" onclick="manualScrapeJobPosting()"
-                    style="background: #10b981; color: white; font-weight: 600; border-radius: 6px; padding: 0.5rem 1rem; border: none; cursor: pointer; white-space: nowrap; font-size: 0.9rem; transition: background 0.2s;">
+                    style="flex: 1; font-size: 0.95rem;" />
+                  <button type="button" id="scrape_button" onclick="manualScrapeJobPosting()" class="btn-secondary" style="white-space:nowrap; transition: background 0.2s;">
                     🔄 Scrape Text
                   </button>
                 </div>
@@ -1126,17 +1128,17 @@
 
               <div style="margin-bottom: 1rem;">
                 <label for="id_application_text"
-                  style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.25rem;">📝 Application
+                  class="form-label" style="margin-bottom: 0.25rem;">📝 Application
                   Text</label>
                 <textarea name="application_text" id="id_application_text" rows="4"
                   placeholder="Cover letter or notes about your application"
-                  style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem; resize: vertical; font-family: inherit; box-sizing: border-box;">{% if application_threads %}{{ application_threads.0.application_text|default:'' }}{% endif %}</textarea>
+                  class="textarea"
+                  style="font-size: 0.95rem; font-family: inherit; box-sizing: border-box;">{% if application_threads %}{{ application_threads.0.application_text|default:'' }}{% endif %}</textarea>
                 <small style="color: #6b7280; display: block; margin-top: 0.25rem;">Cover letter or application notes
                   (max 10,000 characters)</small>
               </div>
 
-              <button type="submit"
-                style="background: #2563eb; color: white; font-weight: 600; border-radius: 6px; padding: 0.5rem 1rem; border: none; cursor: pointer;">Save
+              <button type="submit" class="btn-primary">Save
                 Application Details</button>
             </form>
           </div>
@@ -1158,6 +1160,16 @@
   <script>
     // Application selector handler - load selected application data
     (function () {
+      const documentInput = document.getElementById('document');
+      const documentFileName = document.getElementById('document-file-name');
+      if (documentInput && documentFileName) {
+        documentInput.addEventListener('change', function () {
+          documentFileName.textContent = this.files && this.files.length
+            ? this.files[0].name
+            : 'No file selected';
+        });
+      }
+
       const selector = document.getElementById('application_selector');
       if (!selector) return;
 
@@ -1223,7 +1235,7 @@
       const originalButtonText = scrapeButton.innerHTML;
       scrapeButton.innerHTML = '⏳ Scraping...';
       scrapeButton.disabled = true;
-      scrapeButton.style.background = '#6b7280';
+      scrapeButton.style.opacity = '0.75';
 
       const originalPlaceholder = textArea.placeholder;
       textArea.placeholder = '🔄 Scraping job posting...';
@@ -1266,7 +1278,7 @@
           // Restore button and textarea state
           scrapeButton.innerHTML = originalButtonText;
           scrapeButton.disabled = false;
-          scrapeButton.style.background = '#10b981';
+          scrapeButton.style.opacity = '1';
           textArea.placeholder = originalPlaceholder;
           textArea.disabled = false;
         });
@@ -1471,7 +1483,7 @@
             + `<div style="display:flex;justify-content:space-between;align-items:center;font-size:0.75rem;color:#999;"><span>${escapeHtml(dateDisplay)}</span><span style="background:#f0f0f0;padding:0.15rem 0.4rem;border-radius:3px;color:#666;">${escapeHtml(source)}</span></div>`
             + `<div style="margin-top:0.5rem;display:flex;justify-content:space-between;align-items:center;">`
             + `<a href="${a.url}" target="_blank" style="font-size:0.8rem;color:#0066cc;text-decoration:none;">Read more →</a>`
-            + (companyId ? `<button onclick="removeNewsArticle(${companyId}, '${encodeURIComponent(a.url)}')" title="Hide this article" style="background:none;border:none;cursor:pointer;color:#d1d5db;font-size:0.9rem;padding:0;line-height:1;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#d1d5db'">✕</button>` : '')
+            + (companyId ? `<button onclick="removeNewsArticle(${companyId}, '${encodeURIComponent(a.url)}')" title="Hide this article" class="inline-flex items-center px-2 py-1 border border-red-300 text-red-700 bg-white hover:bg-red-50 rounded-lg">✕</button>` : '')
             + `</div>`
             + `</div>`;
         });
@@ -1485,7 +1497,10 @@
             const dateStr = a.date || '';
             historyItems += `<div style="padding:0.75rem;border-bottom:1px solid #eee;font-size:0.85rem;"><div style="margin-bottom:0.25rem;"><a href="${a.url}" target="_blank" style="color:#0066cc;text-decoration:none;font-weight:500;">${escapeHtml(words)}</a></div><div style="color:#999;">${escapeHtml(dateStr)} • ${escapeHtml(a.source || '')}</div></div>`;
           });
-          html += `<details style="margin-top:1rem;padding:1rem;background:#f9f9f9;border-radius:6px;"><summary style="cursor:pointer;font-weight:600;color:#92400e;font-size:0.9rem;">📚 Full History (${allArticles.length} total articles)</summary><div style="margin-top:1rem;max-height:400px;overflow-y:auto;">${historyItems}</div></details>`;
+          html += `<details class="expandable-section expandable-tone-amber" style="margin-top:1rem;">`
+            + `<summary class="expandable-section-summary-compact"><span class="accordion-chevron">▶</span> 📚 Full History (${allArticles.length} total articles)</summary>`
+            + `<div class="expandable-section-body-compact" style="max-height:400px;overflow-y:auto;">${historyItems}</div>`
+            + `</details>`;
         }
       } else if (!data.error) {
         html += '<div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:6px;padding:1rem;color:#9a3412;">📰 No recent articles found. Try refreshing or check back later.</div>';
@@ -1661,7 +1676,7 @@
       const originalText = button.innerHTML;
       button.innerHTML = '⏳ Fetching...';
       button.disabled = true;
-      button.style.background = '#d97706';
+      button.style.opacity = '0.75';
 
       fetch(`/company/${companyId}/news/?force=1`)
         .then(r => r.json())
@@ -1670,13 +1685,13 @@
           showNotification('✅ News refreshed', '#10b981');
           button.innerHTML = originalText;
           button.disabled = false;
-          button.style.background = '#f59e0b';
+          button.style.opacity = '1';
         })
         .catch(err => {
           showNotification(`❌ Error: ${err.message}`, '#ef4444');
           button.innerHTML = originalText;
           button.disabled = false;
-          button.style.background = '#f59e0b';
+          button.style.opacity = '1';
         });
     }
 
@@ -1745,22 +1760,20 @@
           <div style="font-size:1rem; font-weight:700; color:#1d4ed8;">Extract Locations</div>
           <div style="font-size:0.85rem; color:#6b7280; margin-top:0.2rem;">Provide a careers URL or paste HTML, then append detected cities to Additional Operating Cities.</div>
         </div>
-        <button type="button" onclick="closeLocationExtractor()" style="background:none; border:none; color:#6b7280; font-size:1.5rem; cursor:pointer; line-height:1;">&times;</button>
+        <button type="button" onclick="closeLocationExtractor()" class="btn-secondary">&times;</button>
       </div>
       <div style="padding:1rem 1.25rem 1.25rem;">
         <label for="extract_url_modal" style="margin-top:0;">Website URL</label>
-        <input type="url" id="extract_url_modal" placeholder="https://www.careers.example.com/jobs"
-          style="width:100%; padding:0.6rem; border-radius:6px; border:1px solid #d1d5db; font-size:0.95rem; margin-top:0.3rem; box-sizing:border-box;">
+        <input type="url" id="extract_url_modal" class="input" placeholder="https://www.careers.example.com/jobs"
+          style="font-size:0.95rem; margin-top:0.3rem; box-sizing:border-box;">
         <small style="color:#6b7280; display:block; margin-top:0.25rem; margin-bottom:0.75rem;">Use this when the page is publicly fetchable.</small>
         <label for="extract_html_modal">Raw HTML/CSS</label>
-        <textarea id="extract_html_modal" rows="10" placeholder="Paste HTML from the careers page here"
-          style="width:100%; padding:0.75rem; border-radius:6px; border:1px solid #d1d5db; font-size:0.95rem; margin-top:0.3rem; box-sizing:border-box;"></textarea>
+        <textarea id="extract_html_modal" rows="10" class="textarea" placeholder="Paste HTML from the careers page here"
+          style="font-size:0.95rem; margin-top:0.3rem; box-sizing:border-box;"></textarea>
         <small style="color:#6b7280; display:block; margin-top:0.25rem; margin-bottom:1rem;">Paste the page source when the site blocks direct scraping.</small>
         <div style="display:flex; gap:0.75rem; align-items:center; flex-wrap:wrap;">
-          <button type="button" onclick="processExtraction()"
-            style="background:#2563eb; color:white; font-weight:600; border-radius:6px; padding:0.6rem 1rem; border:none; cursor:pointer;">Extract Locations</button>
-          <button type="button" onclick="closeLocationExtractor()"
-            style="background:#f3f4f6; color:#374151; font-weight:600; border-radius:6px; padding:0.6rem 1rem; border:1px solid #d1d5db; cursor:pointer;">Cancel</button>
+          <button type="button" onclick="processExtraction()" class="btn-primary">Extract Locations</button>
+          <button type="button" onclick="closeLocationExtractor()" class="btn-secondary">Cancel</button>
           <span id="extractionMessage" style="font-size:0.9rem; color:#374151;"></span>
         </div>
       </div>

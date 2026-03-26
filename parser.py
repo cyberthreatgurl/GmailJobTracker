@@ -657,18 +657,54 @@ class DomainMapper:
 # ======================================================================================
 
 # --- Load patterns.json ---
-if PATTERNS_PATH.exists():
-    with open(PATTERNS_PATH, "r", encoding="utf-8") as f:
-        patterns_data = json.load(f)
-    PATTERNS = patterns_data
-else:
-    PATTERNS = {}
+PATTERNS = {}
+APPLICATION_PATTERNS = []
+_patterns_mtime = None
+
+
+def _build_application_patterns(patterns: dict):
+    """Compile application-related regexes used by newsletter safeguards."""
+    application_patterns = []
+    app_pattern_sources = []
+    if "message_labels" in patterns and "application" in patterns["message_labels"]:
+        app_pattern_sources.extend(patterns["message_labels"]["application"])
+    if (
+        "early_detection" in patterns
+        and "application_confirmation" in patterns["early_detection"]
+    ):
+        app_pattern_sources.extend(patterns["early_detection"]["application_confirmation"])
+
+    if "message_labels" in patterns:
+        if "rejection" in patterns["message_labels"]:
+            app_pattern_sources.extend(patterns["message_labels"]["rejection"])
+        if "interview" in patterns["message_labels"]:
+            app_pattern_sources.extend(patterns["message_labels"]["interview"])
+        if "cancelled" in patterns["message_labels"]:
+            app_pattern_sources.extend(patterns["message_labels"]["cancelled"])
+        if "head_hunter" in patterns["message_labels"]:
+            app_pattern_sources.extend(patterns["message_labels"]["head_hunter"])
+
+    if "early_detection" in patterns:
+        if "rejection_override" in patterns["early_detection"]:
+            app_pattern_sources.extend(patterns["early_detection"]["rejection_override"])
+        if "scheduling_language" in patterns["early_detection"]:
+            app_pattern_sources.extend(patterns["early_detection"]["scheduling_language"])
+        if "cancelled_position" in patterns["early_detection"]:
+            app_pattern_sources.extend(patterns["early_detection"]["cancelled_position"])
+
+    if app_pattern_sources:
+        application_patterns = [
+            re.compile(pattern, re.IGNORECASE) for pattern in app_pattern_sources
+        ]
+
+    return application_patterns
+
 
 # Initialize refactored components
 COMPANIES_PATH = Path(__file__).parent / "json" / "companies.json"
+_domain_mapper = DomainMapper(COMPANIES_PATH)
 _company_validator = CompanyValidator(PATTERNS)
 _rule_classifier = RuleClassifier(PATTERNS)
-_domain_mapper = DomainMapper(COMPANIES_PATH)
 _company_resolver = CompanyResolver(
     company_data=_domain_mapper.company_data,
     domain_mapper=_domain_mapper,
@@ -678,6 +714,49 @@ _company_resolver = CompanyResolver(
     ats_domains=_domain_mapper.ats_domains,
 )
 _metadata_extractor = MetadataExtractor(_rule_classifier)
+
+
+def _reload_patterns_if_needed():
+    """Reload patterns.json and dependent parser helpers when the file changes."""
+    global PATTERNS, APPLICATION_PATTERNS, _patterns_mtime
+    global _company_validator, _rule_classifier, _company_resolver, _metadata_extractor
+
+    if not PATTERNS_PATH.exists():
+        return
+
+    try:
+        mtime = PATTERNS_PATH.stat().st_mtime
+    except Exception:
+        return
+
+    if _patterns_mtime == mtime:
+        return
+
+    try:
+        with open(PATTERNS_PATH, "r", encoding="utf-8") as f:
+            patterns_data = json.load(f)
+    except Exception:
+        logger.exception("Failed to reload patterns.json")
+        return
+
+    PATTERNS = patterns_data
+    APPLICATION_PATTERNS = _build_application_patterns(PATTERNS)
+    _company_validator = CompanyValidator(PATTERNS)
+    _rule_classifier = RuleClassifier(PATTERNS)
+    _company_resolver = CompanyResolver(
+        company_data=_domain_mapper.company_data,
+        domain_mapper=_domain_mapper,
+        company_validator=_company_validator,
+        known_companies=_domain_mapper.known_companies,
+        job_board_domains=_domain_mapper.job_board_domains,
+        ats_domains=_domain_mapper.ats_domains,
+    )
+    _metadata_extractor = MetadataExtractor(_rule_classifier)
+    _patterns_mtime = mtime
+    logger.debug("[INFO] Reloaded patterns.json (mtime changed)")
+
+
+_reload_patterns_if_needed()
 
 # --- Load personal_domains.json ---
 PERSONAL_DOMAINS_PATH = Path(__file__).parent / "json" / "personal_domains.json"
@@ -696,43 +775,6 @@ else:
         "icloud.com",
     }
 
-# Compile application patterns for efficient matching
-# Include application confirmations, rejections, and interview invites
-# to prevent ATS emails with List-Unsubscribe headers from being marked as newsletters
-APPLICATION_PATTERNS = []
-app_pattern_sources = []
-if "message_labels" in PATTERNS and "application" in PATTERNS["message_labels"]:
-    app_pattern_sources.extend(PATTERNS["message_labels"]["application"])
-if (
-    "early_detection" in PATTERNS
-    and "application_confirmation" in PATTERNS["early_detection"]
-):
-    app_pattern_sources.extend(PATTERNS["early_detection"]["application_confirmation"])
-
-# Also include rejection and interview patterns to prevent false newsletter detection
-if "message_labels" in PATTERNS:
-    if "rejection" in PATTERNS["message_labels"]:
-        app_pattern_sources.extend(PATTERNS["message_labels"]["rejection"])
-    if "interview" in PATTERNS["message_labels"]:
-        app_pattern_sources.extend(PATTERNS["message_labels"]["interview"])
-    if "cancelled" in PATTERNS["message_labels"]:
-        app_pattern_sources.extend(PATTERNS["message_labels"]["cancelled"])
-    if "head_hunter" in PATTERNS["message_labels"]:
-        app_pattern_sources.extend(PATTERNS["message_labels"]["head_hunter"])
-
-# Add early detection patterns for rejections and interviews
-if "early_detection" in PATTERNS:
-    if "rejection_override" in PATTERNS["early_detection"]:
-        app_pattern_sources.extend(PATTERNS["early_detection"]["rejection_override"])
-    if "scheduling_language" in PATTERNS["early_detection"]:
-        app_pattern_sources.extend(PATTERNS["early_detection"]["scheduling_language"])
-    if "cancelled_position" in PATTERNS["early_detection"]:
-        app_pattern_sources.extend(PATTERNS["early_detection"]["cancelled_position"])
-
-if app_pattern_sources:
-    APPLICATION_PATTERNS = [
-        re.compile(pattern, re.IGNORECASE) for pattern in app_pattern_sources
-    ]
 # Map from label names used in code to JSON keys
 LABEL_MAP = {
     "interview_invite": ["interview", "interview_invite"],
@@ -765,6 +807,7 @@ def rule_label(
     reduce false positives (e.g., prefer noise over rejected for newsletters).
     Returns one of the known labels or None if no rule matches.
     """
+    _reload_patterns_if_needed()
     return _rule_classifier.classify(
         subject=subject,
         body=body,
@@ -866,6 +909,7 @@ def is_application_related(subject, body):
     Returns:
         True if any job-related pattern matches (application/rejection/interview), False otherwise
     """
+    _reload_patterns_if_needed()
     if not APPLICATION_PATTERNS:
         return False
     text = f"{subject or ''} {body or ''}".lower()
@@ -904,6 +948,7 @@ def is_valid_company_name(name):
 
     Delegates to CompanyValidator class (refactored).
     """
+    _reload_patterns_if_needed()
     return _company_validator.is_valid_company_name(name)
 
 
@@ -917,6 +962,7 @@ def normalize_company_name(name: str) -> str:
 
     Delegates to CompanyValidator class (refactored).
     """
+    _reload_patterns_if_needed()
     return _company_validator.normalize_company_name(name)
 
 
@@ -1072,6 +1118,7 @@ def looks_like_person(name: str) -> bool:
 
     Delegates to CompanyValidator class (refactored).
     """
+    _reload_patterns_if_needed()
     return _company_validator.looks_like_person(name)
 
 
@@ -1179,7 +1226,7 @@ def extract_metadata(service, msg_id, raw_message=None):
 
     # Ensure raw HTML is saved and body is converted to plain text
     # extract_from_gmail_parts prefers HTML, so if we got content, treat it as HTML
-    if body and body != "Empty Body":
+    if body:
         body_html = body  # Save raw HTML for metadata
         try:
             # Convert to plain text using BeautifulSoup to strip tags/scripts
@@ -1195,7 +1242,7 @@ def extract_metadata(service, msg_id, raw_message=None):
 
     for part in parts:
         mime_type = part.get("mimeType")
-        data = part["body"].get("data")
+        data = part.get("body", {}).get("data")
         if not data:
             continue
         # decoded = base64.urlsafe_b64decode(data).decode("utf-8", errors="ignore")
@@ -1205,14 +1252,15 @@ def extract_metadata(service, msg_id, raw_message=None):
         if data:
             decoded = EmailBodyParser.decode_mime_part(data, encoding)
 
-        if mime_type == "text/plain" and body == "Empty Body" and decoded:
+        if mime_type == "text/plain" and not body and decoded:
             body = decoded.strip()
-        elif mime_type == "text/html" and body != "Empty Body" and decoded:
+        elif mime_type == "text/html" and decoded:
             body_html = html.unescape(decoded)
             # also provide a plain-text fallback
-            body = BeautifulSoup(body_html, "html.parser").get_text(
-                separator=" ", strip=True
-            )
+            if not body:
+                body = BeautifulSoup(body_html, "html.parser").get_text(
+                    separator=" ", strip=True
+                )
 
     # Fallback if no parts
     if not body and "body" in msg["payload"]:
@@ -1308,6 +1356,7 @@ def extract_metadata(service, msg_id, raw_message=None):
 
 def extract_status_dates(body, received_date):
     """Extract status dates from body (delegates to MetadataExtractor)."""
+    _reload_patterns_if_needed()
     return _metadata_extractor.extract_status_dates(body, received_date)
 
 
@@ -1335,6 +1384,8 @@ def extract_organizer_from_icalendar(body):
 
 def parse_subject(subject, body="", sender=None, sender_domain=None):
     """Extract company, job title, and job ID from subject line, sender, and optionally sender domain."""
+
+    _reload_patterns_if_needed()
 
     # Reload companies.json if it has changed
     _domain_mapper.reload_if_needed()
@@ -2430,6 +2481,19 @@ def _fallback_thread_tracking_creation(
     _increment_stat(stats, "total_skipped")
 
 
+def _should_preserve_company_for_noise(label, company_source):
+    """Return True when a noise label should still keep a resolved company."""
+    if label != "noise":
+        return False
+
+    return company_source in {
+        "domain_mapping",
+        "subject_parse",
+        "organization_header",
+        "user_sent_to_company",
+    }
+
+
 def _handle_reingest(
     existing, msg_id, metadata, result, company_obj, company_source, company,
     skip_company_assignment, parsed_subject, stats
@@ -2505,8 +2569,20 @@ def _handle_reingest(
             skip_company_assignment, recipient_domain
         )
     elif skip_company_assignment:
-        existing.company = None
-        existing.company_source = ""
+        label_guard = result.get("label") if result else None
+        preserve_noise_company = _should_preserve_company_for_noise(
+            label_guard,
+            company_source,
+        )
+        if preserve_noise_company and company_obj:
+            existing.company = company_obj
+            existing.company_source = company_source
+        elif orig_company and orig_company_source == "manual":
+            existing.company = orig_company
+            existing.company_source = orig_company_source
+        else:
+            existing.company = None
+            existing.company_source = ""
     elif company_obj:
         existing.company = company_obj
         existing.company_source = company_source
@@ -3408,7 +3484,8 @@ def ingest_message(service, msg_id, raw_message=None):
         if not looks_like_person(org):
             org_fallback = org
             logger.debug(f"[HEADER HINTS] Organization header available: {org}")
-    if not skip_company_assignment:
+    allow_company_resolution = not skip_company_assignment or label_guard == "noise"
+    if allow_company_resolution:
         sender_domain = metadata.get("sender_domain", "").lower()
         is_headhunter = sender_domain in HEADHUNTER_DOMAINS
         is_job_board = sender_domain in JOB_BOARD_DOMAINS
@@ -3658,6 +3735,11 @@ def ingest_message(service, msg_id, raw_message=None):
     confidence = float(result.get("confidence", 0.0)) if result else 0.0
 
     # For user-sent messages, guarantee company_obj and label 'other' are set using recipient domain
+    preserve_noise_company = _should_preserve_company_for_noise(
+        label_guard,
+        company_source,
+    )
+
     if user_email and sender_email.startswith(user_email):
         mapped_company = None
         if recipient_domain:
@@ -3688,7 +3770,7 @@ def ingest_message(service, msg_id, raw_message=None):
                 result["predicted_company"] = mapped_company
     else:
         # Skip company assignment if message is labeled as noise
-        if company and not skip_company_assignment:
+        if company and (not skip_company_assignment or preserve_noise_company):
             # Final normalization before persistence
             company = normalize_company_name(company)
             # Resolve alias, create company, set domain/ATS (shared helper)
@@ -4375,10 +4457,18 @@ def ingest_message_from_eml(eml_content: str, fake_msg_id: str | None = None):
 
     # Extract company name from parse result
     company = None
+    company_source = ""
     if isinstance(parse_result, dict):
         company = parse_result.get("company") or parse_result.get("predicted_company")
     elif isinstance(parse_result, str):
         company = parse_result
+
+    if company:
+        mapped_company = _map_company_by_domain(metadata.get("sender_domain", ""))
+        if mapped_company and mapped_company.lower() == str(company).lower():
+            company_source = "domain_mapping"
+        else:
+            company_source = "subject_parse"
 
     # Apply label overrides (internal intro, internal recruiter, personal domain)
     ml_label, result = _apply_label_overrides(
@@ -4386,8 +4476,15 @@ def ingest_message_from_eml(eml_content: str, fake_msg_id: str | None = None):
     )
     ml_confidence = result.get("confidence", 0.0) if result else 0.0
 
-    # Skip company assignment for noise and head_hunter messages
-    if ml_label in ("noise", "head_hunter"):
+    preserve_noise_company = _should_preserve_company_for_noise(
+        ml_label,
+        company_source if company else "",
+    )
+
+    # Skip company assignment for head_hunter messages.
+    # For noise, keep strong direct matches like domain mapping so reassignment
+    # survives duplicate EML updates and local re-ingest.
+    if ml_label == "head_hunter" or (ml_label == "noise" and not preserve_noise_company):
         company = None
         logger.debug(f"[EML] Skipping company assignment for {ml_label} message")
     logger.debug(f"[EML] Parsed company: {company}")
@@ -4407,6 +4504,7 @@ def ingest_message_from_eml(eml_content: str, fake_msg_id: str | None = None):
         existing.sender = metadata["sender"]
         existing.timestamp = metadata["date"]
         existing.company = company_obj
+        existing.company_source = company_source if company_obj else ""
         existing.ml_label = ml_label
         existing.confidence = ml_confidence
         existing.save()
@@ -4506,6 +4604,7 @@ def ingest_message_from_eml(eml_content: str, fake_msg_id: str | None = None):
             sender=metadata["sender"],
             timestamp=metadata["date"],
             company=company_obj,
+            company_source=company_source if company_obj else "",
             ml_label=ml_label,
             confidence=ml_confidence,
             body=body,

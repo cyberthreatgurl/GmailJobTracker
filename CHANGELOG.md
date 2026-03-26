@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.6.0] - 2026-03-26
+
+### Added
+- Added a shared Tailwind design-system layer and migrated the main dashboard, message labeling, company labeling, reingest, upload, debugger, and contract surfaces onto the shared card, button, form, and expandable-section primitives.
+- Added richer opportunities dashboard controls, including per-column filters, sortable columns, lookup-backed NAICS and PSC autocomplete inputs, and awarded-contractor display that links matching companies by UEI or name.
+- Added targeted regression coverage for nested Gmail multipart Workday messages, ATS rejection overrides, explicit company reingest previews and audit behavior, and preserving Idaho National Laboratory during duplicate `.eml` and Gmail reingest flows.
+
+### Changed
+- `runserver` now supports `--heartbeat-logging on|off` and suppresses `/api/ingestion_status/` polling noise by default in both request timing and development server logs.
+- The company page now previews the exact message set included in company reingest, limits that action to explicitly assigned messages, and only clears reviewed state after a successful reingest.
+- The dashboard interviews card now includes upcoming interviews even when the selected date range ends before the scheduled interview date, keeping it aligned with the sidebar's Upcoming view.
+- Gmail multipart parsing now prefers nested HTML bodies while retaining a plain-text fallback, improving local reingest and Workday parsing accuracy.
+
+### Fixed
+- Workday and similar ATS messages no longer invent fallback company names from unknown sender prefixes, and clearer rejection language such as "will not be moving you to the next step" now classifies correctly as rejection instead of noise.
+- Manual company reassignment from Label Messages now persists `company_source="manual"`, and reingest logic preserves strong company resolutions for noise-labeled messages when they come from trusted sources such as domain mapping.
+- Duplicate `.eml` updates now retain company assignments and company-source metadata for strong matches like `inl.gov -> Idaho National Laboratory`, preventing reassignment from being silently lost.
+
 ## [3.5.0] - 2026-03-22
 
 ### Added

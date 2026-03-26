@@ -7,8 +7,20 @@
     {% csrf_token %}
     <div style="margin-bottom:1rem;">
       <label for="message_file"><b>Upload Raw Gmail Message (JSON or EML)</b></label>
-      <input type="file" id="message_file" name="message_file" accept=".json,.eml,.txt" />
-      <button class="button" type="submit" style="margin-left:1em;">Analyze</button>
+      <div class="flex flex-wrap items-center gap-3" style="margin-top:0.5rem;">
+        <input
+          type="file"
+          id="message_file"
+          name="message_file"
+          accept=".json,.eml,.txt"
+          class="sr-only"
+        />
+        <label for="message_file" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" style="cursor:pointer;">
+          Choose File
+        </label>
+        <span id="message_file_name" style="color:#6b7280; font-size:0.95rem;">No file selected</span>
+        <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">Analyze</button>
+      </div>
     </div>
     <div style="margin-bottom:1rem;">
       <label for="pasted_message"><b>Or paste full message source</b></label>
@@ -120,4 +132,20 @@
     </div>
   {% endif %}
 </div>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const fileInput = document.getElementById("message_file");
+    const fileName = document.getElementById("message_file_name");
+
+    if (!fileInput || !fileName) {
+      return;
+    }
+
+    fileInput.addEventListener("change", function () {
+      fileName.textContent = this.files && this.files.length
+        ? this.files[0].name
+        : "No file selected";
+    });
+  });
+</script>
 {% endblock %}

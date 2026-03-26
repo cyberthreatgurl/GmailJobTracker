@@ -214,13 +214,12 @@
 
   <!-- Contracts List -->
   {% if contracts %}
-  <div class="space-y-3">
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 divide-y divide-gray-200 overflow-hidden">
     {% for contract in contracts %}
-    <div id="contract-{{ contract.id }}" class="bg-white rounded-lg shadow-sm border border-gray-200 hover:border-blue-300 transition-colors" data-contract-id="{{ contract.id }}">
-      <div class="p-4">
+    <div id="contract-{{ contract.id }}" class="p-4 hover:bg-gray-50 transition-colors" data-contract-id="{{ contract.id }}">
         <!-- Header Row -->
-        <div class="flex flex-wrap items-start justify-between gap-2 mb-2">
-          <div class="flex-1">
+        <div class="flex flex-col gap-3 md:flex-row md:items-start mb-3">
+          <div class="min-w-0 flex-1">
             <div class="flex items-center gap-2 flex-wrap">
               <h3 class="text-base font-semibold text-gray-900">
                 <span id="company-name-display-{{ contract.id }}">
@@ -235,20 +234,20 @@
                 </span>
               </h3>
               {% if contract.data_source == 'war_gov' %}
-              <span class="inline-flex items-center bg-green-100 text-green-800 text-[0.65rem] font-medium px-1.5 py-0.5 rounded" title="Department of Defense contract from war.gov">DoD</span>
-              <a href="{{ contract.source_url }}" target="_blank" class="inline-flex items-center bg-gray-100 text-gray-700 text-[0.65rem] font-medium px-1.5 py-0.5 rounded hover:bg-gray-200 transition" title="View Source on war.gov">war.gov ⧉</a>
+              <span class="inline-flex items-center bg-gray-100 text-gray-700 text-[0.65rem] font-medium px-1.5 py-0.5 rounded" title="Department of Defense contract from war.gov">DoD</span>
+              <a href="{{ contract.source_url }}" target="_blank" class="inline-flex items-center bg-gray-100 text-gray-600 text-[0.65rem] font-medium px-1.5 py-0.5 rounded hover:bg-gray-200 transition" title="View Source on war.gov">war.gov ⧉</a>
               {% elif contract.data_source == 'usaspending' %}
-              <span class="inline-flex items-center bg-blue-100 text-blue-800 text-[0.65rem] font-medium px-1.5 py-0.5 rounded" title="Federal contract from USASpending.gov">Federal</span>
-              <a href="{{ contract.source_url }}" target="_blank" class="inline-flex items-center bg-gray-100 text-gray-700 text-[0.65rem] font-medium px-1.5 py-0.5 rounded hover:bg-gray-200 transition" title="View Source on USASpending.gov">SAM.gov DataSource ⧉</a>
+              <span class="inline-flex items-center bg-gray-100 text-gray-700 text-[0.65rem] font-medium px-1.5 py-0.5 rounded" title="Federal contract from USASpending.gov">Federal</span>
+              <a href="{{ contract.source_url }}" target="_blank" class="inline-flex items-center bg-gray-100 text-gray-600 text-[0.65rem] font-medium px-1.5 py-0.5 rounded hover:bg-gray-200 transition" title="View Source on USASpending.gov">SAM.gov DataSource ⧉</a>
               {% endif %}
               {% if contract.is_small_business %}
-              <span class="inline-flex items-center bg-amber-100 text-amber-800 text-[0.65rem] font-medium px-1.5 py-0.5 rounded">SB</span>
+              <span class="inline-flex items-center bg-gray-100 text-gray-700 text-[0.65rem] font-medium px-1.5 py-0.5 rounded">SB</span>
               {% endif %}
               {% if contract.is_modification %}
-              <span class="inline-flex items-center bg-slate-100 text-slate-700 text-[0.65rem] font-medium px-1.5 py-0.5 rounded">MOD</span>
+              <span class="inline-flex items-center bg-gray-100 text-gray-700 text-[0.65rem] font-medium px-1.5 py-0.5 rounded">MOD</span>
               {% endif %}
             </div>
-            <div class="text-xs text-gray-500 mt-0.5">
+            <div class="mt-1 text-sm text-gray-500 leading-6">
               📍 {{ contract.company_location }}
               {% if contract.contract_number %} · 📝 {{ contract.contract_number }}{% endif %}
               {% if contract.naics_code %} · <span title="{{ contract.naics_description|default:'' }}">🏭 {{ contract.naics_code }}{% if contract.naics_description %} – {{ contract.naics_description }}{% endif %}</span>
@@ -286,34 +285,26 @@
               {% endif %}
             </div>
           </div>
-          <div class="text-right">
-            <div class="text-lg font-bold text-green-700">{{ contract.amount_display }}</div>
-            <div class="text-xs text-gray-500">{{ contract.article_date|date:"M d, Y" }}</div>
+          <div class="md:ml-auto md:shrink-0 md:min-w-[160px] text-left md:text-right">
+            <div class="text-xl font-semibold text-gray-900">{{ contract.amount_display }}</div>
+            <div class="text-sm text-gray-500">{{ contract.article_date|date:"M d, Y" }}</div>
           </div>
         </div>
 
         <!-- Branch/Agency Badge -->
         <div class="mb-2 flex flex-wrap gap-2">
           {% if contract.data_source == 'war_gov' and contract.branch %}
-          <span class="inline-flex items-center text-[0.7rem] font-semibold px-2 py-0.5 rounded-full
-            {% if contract.branch == 'army' %}bg-green-100 text-green-800
-            {% elif contract.branch == 'navy' %}bg-blue-100 text-blue-800
-            {% elif contract.branch == 'air_force' %}bg-sky-100 text-sky-800
-            {% elif contract.branch == 'defense_logistics_agency' %}bg-orange-100 text-orange-800
-            {% elif contract.branch == 'special_operations' %}bg-red-100 text-red-800
-            {% elif contract.branch == 'missile_defense' %}bg-violet-100 text-violet-800
-            {% else %}bg-gray-100 text-gray-800
-            {% endif %}">
+          <span class="inline-flex items-center text-[0.7rem] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-700">
             {{ contract.get_branch_display }}
           </span>
           {% elif contract.data_source == 'usaspending' %}
             {% if contract.awarding_agency %}
-            <span class="inline-flex items-center bg-indigo-100 text-indigo-800 text-[0.7rem] font-semibold px-2 py-0.5 rounded-full">
+            <span class="inline-flex items-center bg-gray-100 text-gray-700 text-[0.7rem] font-semibold px-2 py-0.5 rounded-full">
               🏛️ {{ contract.awarding_agency }}
             </span>
             {% endif %}
             {% if contract.awarding_sub_agency %}
-            <span class="inline-flex items-center bg-violet-100 text-violet-700 text-[0.65rem] font-medium px-1.5 py-0.5 rounded">
+            <span class="inline-flex items-center bg-gray-100 text-gray-600 text-[0.65rem] font-medium px-1.5 py-0.5 rounded">
               {{ contract.awarding_sub_agency }}
             </span>
             {% endif %}
@@ -329,48 +320,48 @@
               <span class="italic text-gray-400">No explicit description available.</span>
             {% endif %}
           </summary>
-          <div class="mt-2 text-sm text-gray-600 space-y-1">
+          <div class="mt-3 space-y-2 border-t border-gray-100 pt-3">
             {% if contract.work_location %}
-            <p class="text-xs"><strong>📍 Work Location:</strong> {{ contract.work_location }}</p>
+            <p class="text-sm text-gray-500"><strong class="text-gray-700">📍 Work Location:</strong> {{ contract.work_location }}</p>
             {% endif %}
             {% if contract.data_source == 'usaspending' %}
-            <p class="text-xs"><strong>📍 Performance State:</strong> {{ contract.place_of_performance_state|default:"-" }}</p>
-            <p class="text-xs"><strong>📍 Performance County:</strong> {{ contract.primary_place_of_performance_county_name|default:"-" }}</p>
-            <p class="text-xs"><strong>🌍 Performance Country:</strong> {{ contract.primary_place_of_performance_country_name|default:"-" }}</p>
+            <p class="text-sm text-gray-500"><strong class="text-gray-700">📍 Performance State:</strong> {{ contract.place_of_performance_state|default:"-" }}</p>
+            <p class="text-sm text-gray-500"><strong class="text-gray-700">📍 Performance County:</strong> {{ contract.primary_place_of_performance_county_name|default:"-" }}</p>
+            <p class="text-sm text-gray-500"><strong class="text-gray-700">🌍 Performance Country:</strong> {{ contract.primary_place_of_performance_country_name|default:"-" }}</p>
             
-            <div class="mt-2 text-xs border-t border-gray-100 pt-2">
-                <strong>👔 Highly Compensated Officers:</strong>
+            <div class="mt-3">
+                <strong class="text-sm text-gray-700">👔 Highly Compensated Officers:</strong>
                 {% if contract.highly_compensated_officer_1_name %}
-                <ul class="list-disc list-inside mt-1 ml-1 text-gray-500">
-                    <li>{{ contract.highly_compensated_officer_1_name }}{% if contract.highly_compensated_officer_1_amount %} – ${{ contract.highly_compensated_officer_1_amount|floatformat:0|intcomma }}{% endif %}</li>
+                <ul class="mt-2 divide-y divide-gray-200 rounded-lg bg-gray-50">
+                    <li class="flex items-start justify-between gap-4 px-3 py-2 text-sm text-gray-500"><span>{{ contract.highly_compensated_officer_1_name }}</span>{% if contract.highly_compensated_officer_1_amount %}<span class="ml-auto whitespace-nowrap text-right text-gray-700">${{ contract.highly_compensated_officer_1_amount|floatformat:0|intcomma }}</span>{% endif %}</li>
                     {% if contract.highly_compensated_officer_2_name %}
-                    <li>{{ contract.highly_compensated_officer_2_name }}{% if contract.highly_compensated_officer_2_amount %} – ${{ contract.highly_compensated_officer_2_amount|floatformat:0|intcomma }}{% endif %}</li>
+                    <li class="flex items-start justify-between gap-4 px-3 py-2 text-sm text-gray-500"><span>{{ contract.highly_compensated_officer_2_name }}</span>{% if contract.highly_compensated_officer_2_amount %}<span class="ml-auto whitespace-nowrap text-right text-gray-700">${{ contract.highly_compensated_officer_2_amount|floatformat:0|intcomma }}</span>{% endif %}</li>
                     {% endif %}
                     {% if contract.highly_compensated_officer_3_name %}
-                    <li>{{ contract.highly_compensated_officer_3_name }}{% if contract.highly_compensated_officer_3_amount %} – ${{ contract.highly_compensated_officer_3_amount|floatformat:0|intcomma }}{% endif %}</li>
+                    <li class="flex items-start justify-between gap-4 px-3 py-2 text-sm text-gray-500"><span>{{ contract.highly_compensated_officer_3_name }}</span>{% if contract.highly_compensated_officer_3_amount %}<span class="ml-auto whitespace-nowrap text-right text-gray-700">${{ contract.highly_compensated_officer_3_amount|floatformat:0|intcomma }}</span>{% endif %}</li>
                     {% endif %}
                     {% if contract.highly_compensated_officer_4_name %}
-                    <li>{{ contract.highly_compensated_officer_4_name }}{% if contract.highly_compensated_officer_4_amount %} – ${{ contract.highly_compensated_officer_4_amount|floatformat:0|intcomma }}{% endif %}</li>
+                    <li class="flex items-start justify-between gap-4 px-3 py-2 text-sm text-gray-500"><span>{{ contract.highly_compensated_officer_4_name }}</span>{% if contract.highly_compensated_officer_4_amount %}<span class="ml-auto whitespace-nowrap text-right text-gray-700">${{ contract.highly_compensated_officer_4_amount|floatformat:0|intcomma }}</span>{% endif %}</li>
                     {% endif %}
                     {% if contract.highly_compensated_officer_5_name %}
-                    <li>{{ contract.highly_compensated_officer_5_name }}{% if contract.highly_compensated_officer_5_amount %} – ${{ contract.highly_compensated_officer_5_amount|floatformat:0|intcomma }}{% endif %}</li>
+                    <li class="flex items-start justify-between gap-4 px-3 py-2 text-sm text-gray-500"><span>{{ contract.highly_compensated_officer_5_name }}</span>{% if contract.highly_compensated_officer_5_amount %}<span class="ml-auto whitespace-nowrap text-right text-gray-700">${{ contract.highly_compensated_officer_5_amount|floatformat:0|intcomma }}</span>{% endif %}</li>
                     {% endif %}
                 </ul>
                 {% else %}
-                <p class="text-gray-400 italic ml-1">No officer compensation data available.</p>
+                <p class="mt-1 text-sm text-gray-500 italic">No officer compensation data available.</p>
                 {% endif %}
             </div>
             {% endif %}
             {% if contract.completion_date %}
-            <p class="text-xs"><strong>📅 Completion:</strong> {{ contract.completion_date }}</p>
+            <p class="text-sm text-gray-500"><strong class="text-gray-700">📅 Completion:</strong> {{ contract.completion_date }}</p>
             {% endif %}
             {% if contract.contracting_activity %}
-            <p class="text-xs"><strong>🏢 Contracting Activity:</strong> {{ contract.contracting_activity }}</p>
+            <p class="text-sm text-gray-500"><strong class="text-gray-700">🏢 Contracting Activity:</strong> {{ contract.contracting_activity }}</p>
             {% endif %}
             {% if contract.award_id %}
-            <p class="text-xs"><strong>🆔 Award ID:</strong> {{ contract.award_id }}</p>
+            <p class="text-sm text-gray-500"><strong class="text-gray-700">🆔 Award ID:</strong> {{ contract.award_id }}</p>
             {% endif %}
-            <p class="text-xs text-gray-400 mt-1 flex flex-wrap items-center gap-3">
+            <p class="mt-1 flex flex-wrap items-center gap-3 text-sm text-gray-500">
               {% if contract.data_source == 'war_gov' %}
               <a href="{{ contract.source_url }}" target="_blank" class="text-blue-500 hover:underline">View on war.gov &rarr;</a>
               {% elif contract.data_source == 'usaspending' %}
@@ -389,7 +380,6 @@
             </p>
           </div>
         </details>
-      </div>
     </div>
     {% endfor %}
   </div>

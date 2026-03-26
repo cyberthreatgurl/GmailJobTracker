@@ -10,7 +10,26 @@
             {% csrf_token %}
             
             <div class="form-row">
-                {{ form.as_p }}
+                {% if form.non_field_errors %}
+                    {{ form.non_field_errors }}
+                {% endif %}
+
+                <div style="margin-bottom: 1rem;">
+                    <label for="{{ form.eml_file.id_for_label }}"><strong>{{ form.eml_file.label }}</strong></label>
+                    <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; margin-top: 0.5rem;">
+                        {{ form.eml_file.as_widget(attrs={"class": "vLargeTextField sr-only"}) }}
+                        <label for="{{ form.eml_file.id_for_label }}" style="cursor: pointer;" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            Choose File
+                        </label>
+                        <span id="eml-file-name" style="color: #6b7280; font-size: 0.95rem;">No file selected</span>
+                    </div>
+                    {% if form.eml_file.help_text %}
+                        <p class="help">{{ form.eml_file.help_text }}</p>
+                    {% endif %}
+                    {% if form.eml_file.errors %}
+                        {{ form.eml_file.errors }}
+                    {% endif %}
+                </div>
             </div>
             
             <div class="submit-row">
@@ -32,4 +51,20 @@
         <p><strong>Note:</strong> .eml files are raw email files that can be saved from most email clients (Gmail, Outlook, etc.)</p>
     </div>
 </div>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const fileInput = document.getElementById("{{ form.eml_file.id_for_label }}");
+        const fileName = document.getElementById("eml-file-name");
+
+        if (!fileInput || !fileName) {
+            return;
+        }
+
+        fileInput.addEventListener("change", function () {
+            fileName.textContent = this.files && this.files.length
+                ? this.files[0].name
+                : "No file selected";
+        });
+    });
+</script>
 {% endblock %}

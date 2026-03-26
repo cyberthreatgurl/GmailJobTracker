@@ -59,14 +59,16 @@ class EmailBodyParser:
     def extract_from_gmail_parts(parts: list) -> str:
         """Extract the first HTML part's body from a Gmail message payload tree.
 
-        Walks nested multipart sections; prefers HTML and returns full HTML string.
+        Walks nested multipart sections; prefers HTML and falls back to plain text.
 
         Args:
             parts: List of Gmail API message parts
 
         Returns:
-            HTML body string, "Empty Body" if empty, or "" if not found
+            HTML body string, plain-text body string, or "" if not found
         """
+        plain_fallback = ""
+
         for part in parts:
             mime_type = part.get("mimeType")
             body_data = part.get("body", {}).get("data")
@@ -75,18 +77,21 @@ class EmailBodyParser:
                 decoded = base64.urlsafe_b64decode(body_data).decode(
                     "utf-8", errors="ignore"
                 )
-                if not decoded:
-                    decoded = "Empty Body"
-                    logger.debug("Decoded Body/HTML part is empty.")
-                return decoded  # preserve full HTML
-            elif "parts" in part:
-                result = EmailBodyParser.extract_from_gmail_parts(part["parts"])
+                if decoded:
+                    return decoded  # preserve full HTML
+                logger.debug("Decoded Body/HTML part is empty.")
+            elif mime_type == "text/plain" and body_data and not plain_fallback:
+                plain_fallback = base64.urlsafe_b64decode(body_data).decode(
+                    "utf-8", errors="ignore"
+                )
+
+            nested_parts = part.get("parts") or []
+            if nested_parts:
+                result = EmailBodyParser.extract_from_gmail_parts(nested_parts)
                 if result:
                     return result
-                else:
-                    return "Empty Body"
 
-        return ""
+        return plain_fallback or ""
 
     @staticmethod
     def decode_header_value(raw_val: str) -> str:

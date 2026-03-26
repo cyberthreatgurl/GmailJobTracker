@@ -17,6 +17,9 @@
     <!-- Action Toolbar -->
     <div class="flex gap-2 items-center flex-wrap">
       <form method="get" class="flex gap-2 items-center">
+          {% for key, value in search_preserved_params %}
+          <input type="hidden" name="{{ key }}" value="{{ value }}">
+          {% endfor %}
           <input type="text" name="q" value="{{ query }}" placeholder="By keyword/title..." 
                  class="px-3 py-2 border rounded-lg text-sm focus:ring-blue-500 focus:border-blue-500 w-48">
           <button type="submit" 
@@ -26,6 +29,9 @@
       </form>
       
       <form method="get" action="">
+          {% for key, value in fetch_preserved_params %}
+          <input type="hidden" name="{{ key }}" value="{{ value }}">
+          {% endfor %}
           <input type="hidden" name="fetch" value="true">
           <button type="submit"
                   class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg px-4 py-2 transition-colors shadow-sm text-sm">
@@ -55,35 +61,105 @@
   {% endif %}
 
   <!-- Results Table -->
-  <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+  <form method="get" class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+    {% for key, value in column_filter_preserved_params %}
+    <input type="hidden" name="{{ key }}" value="{{ value }}">
+    {% endfor %}
     <div class="overflow-x-auto">
-      <table class="w-full min-w-[1100px] text-sm text-left">
+      <table class="w-full min-w-[1240px] text-sm text-left">
         <thead class="bg-gray-50 text-gray-700 font-semibold border-b border-gray-200">
           <tr>
-            <th class="px-4 py-3 min-w-[300px]">Title / Solicitation</th>
-            <th class="px-4 py-3 w-32">Posted</th>
-            <th class="px-4 py-3 w-32">Response Date</th>
-            <th class="px-4 py-3 w-40">Type</th>
-            <th class="px-4 py-3 w-48">Department / Office</th>
-            <th class="px-4 py-3 w-24">NAICS</th>
-            <th class="px-4 py-3 w-24">PSC</th>
+            <th class="px-4 py-3 min-w-[300px]"><a href="{{ sort_urls.title }}" class="inline-flex items-center gap-1 hover:text-gray-900">Title / Solicitation <span class="text-xs text-gray-400">{% if sort_key == 'title' %}{% if sort_dir == 'asc' %}▲{% else %}▼{% endif %}{% else %}↕{% endif %}</span></a></th>
+            <th class="px-3 py-3 w-20 min-w-[5.5rem]"><a href="{{ sort_urls.posted }}" class="inline-flex items-center gap-1 hover:text-gray-900">Posted <span class="text-xs text-gray-400">{% if sort_key == 'posted' %}{% if sort_dir == 'asc' %}▲{% else %}▼{% endif %}{% else %}↕{% endif %}</span></a></th>
+            <th class="px-3 py-3 w-20 min-w-[5.5rem]"><a href="{{ sort_urls.response }}" class="inline-flex items-center gap-1 hover:text-gray-900">Response Date <span class="text-xs text-gray-400">{% if sort_key == 'response' %}{% if sort_dir == 'asc' %}▲{% else %}▼{% endif %}{% else %}↕{% endif %}</span></a></th>
+            <th class="px-4 py-3 w-40"><a href="{{ sort_urls.type }}" class="inline-flex items-center gap-1 hover:text-gray-900">Type <span class="text-xs text-gray-400">{% if sort_key == 'type' %}{% if sort_dir == 'asc' %}▲{% else %}▼{% endif %}{% else %}↕{% endif %}</span></a></th>
+            <th class="px-4 py-3 w-48"><a href="{{ sort_urls.department }}" class="inline-flex items-center gap-1 hover:text-gray-900">Department / Office <span class="text-xs text-gray-400">{% if sort_key == 'department' %}{% if sort_dir == 'asc' %}▲{% else %}▼{% endif %}{% else %}↕{% endif %}</span></a></th>
+            <th class="px-4 py-3 w-32 min-w-[8rem]"><a href="{{ sort_urls.naics }}" class="inline-flex items-center gap-1 hover:text-gray-900">NAICS <span class="text-xs text-gray-400">{% if sort_key == 'naics' %}{% if sort_dir == 'asc' %}▲{% else %}▼{% endif %}{% else %}↕{% endif %}</span></a></th>
+            <th class="px-4 py-3 w-56 min-w-[14rem]"><a href="{{ sort_urls.psc }}" class="inline-flex items-center gap-1 hover:text-gray-900">PSC <span class="text-xs text-gray-400">{% if sort_key == 'psc' %}{% if sort_dir == 'asc' %}▲{% else %}▼{% endif %}{% else %}↕{% endif %}</span></a></th>
             <th class="sticky right-0 z-10 w-32 min-w-[8.5rem] bg-gray-50 px-4 py-3 text-right shadow-[-1px_0_0_rgba(229,231,235,1)]">Actions</th>
+          </tr>
+          <tr class="border-t border-gray-200 align-top text-xs font-normal text-gray-600">
+            <th class="px-4 pb-3 pt-1 min-w-[300px]">
+              <input id="filter-title" type="text" name="title" value="{{ filter_values.title }}" placeholder="Title or notice id"
+                     class="w-full rounded-md border border-gray-300 px-2 py-1.5 text-xs text-gray-700 placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500">
+            </th>
+            <th class="px-3 pb-3 pt-1 w-20 min-w-[5.5rem]">
+              <div class="grid gap-1">
+                <label for="filter-posted-from" class="text-[0.65rem] font-medium uppercase tracking-wide text-gray-500">From</label>
+                <input id="filter-posted-from" type="date" name="posted_from" value="{{ filter_values.posted_from }}"
+                       class="w-full rounded-md border border-gray-300 px-1.5 py-1 text-[0.68rem] text-gray-700 focus:border-blue-500 focus:ring-blue-500">
+                <label for="filter-posted-to" class="text-[0.65rem] font-medium uppercase tracking-wide text-gray-500">To</label>
+                <input id="filter-posted-to" type="date" name="posted_to" value="{{ filter_values.posted_to }}"
+                       class="w-full rounded-md border border-gray-300 px-1.5 py-1 text-[0.68rem] text-gray-700 focus:border-blue-500 focus:ring-blue-500">
+              </div>
+            </th>
+            <th class="px-3 pb-3 pt-1 w-20 min-w-[5.5rem]">
+              <div class="grid gap-1">
+                <label for="filter-response-from" class="text-[0.65rem] font-medium uppercase tracking-wide text-gray-500">From</label>
+                <input id="filter-response-from" type="date" name="response_from" value="{{ filter_values.response_from }}"
+                       class="w-full rounded-md border border-gray-300 px-1.5 py-1 text-[0.68rem] text-gray-700 focus:border-blue-500 focus:ring-blue-500">
+                <label for="filter-response-to" class="text-[0.65rem] font-medium uppercase tracking-wide text-gray-500">To</label>
+                <input id="filter-response-to" type="date" name="response_to" value="{{ filter_values.response_to }}"
+                       class="w-full rounded-md border border-gray-300 px-1.5 py-1 text-[0.68rem] text-gray-700 focus:border-blue-500 focus:ring-blue-500">
+              </div>
+            </th>
+            <th class="px-4 pb-3 pt-1 w-40">
+              <select id="filter-type" name="type"
+                      class="w-full rounded-md border border-gray-300 px-2 py-1.5 text-xs text-gray-700 focus:border-blue-500 focus:ring-blue-500">
+                <option value="">All types</option>
+                {% for opportunity_type in type_options %}
+                <option value="{{ opportunity_type }}" {% if filter_values.type == opportunity_type %}selected{% endif %}>{{ opportunity_type }}</option>
+                {% endfor %}
+              </select>
+            </th>
+            <th class="px-4 pb-3 pt-1 w-48">
+              <input id="filter-department" type="text" name="department" value="{{ filter_values.department }}" placeholder="Agency or office"
+                     class="w-full rounded-md border border-gray-300 px-2 py-1.5 text-xs text-gray-700 placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500">
+            </th>
+            <th class="px-4 pb-3 pt-1 w-32 min-w-[8rem]">
+              <input id="filter-naics" type="text" name="naics" value="{{ filter_values.naics }}" placeholder="NAICS" list="naics-options"
+                     class="w-full rounded-md border border-gray-300 px-2 py-1.5 text-xs text-gray-700 placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500">
+              <datalist id="naics-options">
+                {% for code, description in naics_lookup_options %}
+                <option value="{{ code }} - {{ description }}" label="{{ code }}"></option>
+                {% endfor %}
+              </datalist>
+            </th>
+            <th class="px-4 pb-3 pt-1 w-56 min-w-[14rem]">
+              <input id="filter-psc" type="text" name="psc" value="{{ filter_values.psc }}" placeholder="PSC" list="psc-options"
+                     class="w-full rounded-md border border-gray-300 px-2 py-1.5 text-xs text-gray-700 placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500">
+              <datalist id="psc-options">
+                {% for code, description in psc_lookup_options %}
+                <option value="{{ code }} - {{ description }}" label="{{ code }}"></option>
+                {% endfor %}
+              </datalist>
+            </th>
+            <th class="sticky right-0 z-10 bg-gray-50 px-4 pb-3 pt-1 text-right shadow-[-1px_0_0_rgba(229,231,235,1)]">
+              <div class="flex flex-col items-end gap-1.5">
+                <button type="submit" class="inline-flex items-center rounded-md bg-blue-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm transition-colors hover:bg-blue-700">
+                  Apply
+                </button>
+                <a href="{% url 'opportunities_dashboard' %}" class="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50">
+                  Clear
+                </a>
+              </div>
+            </th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-200">
           {% for opp in page_obj %}
-          <tr class="hover:bg-gray-50 transition-colors group cursor-pointer" onclick="toggleOppDesc(event, {{ opp.id }})">
+          <tr class="group cursor-pointer text-[0.72rem] leading-4 transition-colors hover:bg-gray-50" onclick="toggleOppDesc(event, {{ opp.id }})">
             <td class="px-4 py-3 align-top">
               <div class="font-medium text-blue-700 hover:underline mb-1">
                 <a href="{{ opp.display_ui_link|default:opp.ui_link }}" target="_blank" onclick="event.stopPropagation()">{{ opp.title }}</a>
               </div>
-              <div class="text-xs text-gray-500 font-mono mb-1 flex items-center gap-1.5">
+              <div class="mb-1 flex items-center gap-1.5 font-mono text-[0.68rem] text-gray-500">
                 <span id="opp-caret-{{ opp.id }}" class="text-gray-400 text-[0.6rem] transition-transform duration-150">▶</span>
                 {{ opp.solicitation_number|default:"No Solicitation #" }}
               </div>
 
               <!-- Nested Details (Award, POC) -->
-              <div class="text-xs space-y-1">
+              <div class="space-y-1 text-[0.68rem]">
                   {% if opp.point_of_contact %}
                   <div class="text-gray-500 flex gap-1 items-center">
                     <span class="text-xs">👤</span>
@@ -103,10 +179,10 @@
                   {% endif %}
               </div>
             </td>
-            <td class="px-4 py-3 align-top whitespace-nowrap text-gray-600">
+            <td class="px-3 py-3 align-top text-[0.68rem] text-gray-600">
               {{ opp.posted_date|date:"M d, Y" }}
             </td>
-            <td class="px-4 py-3 align-top whitespace-nowrap text-gray-600">
+            <td class="px-3 py-3 align-top text-[0.68rem] text-gray-600">
               {% if opp.response_date %}
                 {{ opp.response_date|date:"M d, Y" }}
               {% else %}
@@ -114,41 +190,89 @@
               {% endif %}
             </td>
             <td class="px-4 py-3 align-top">
-               <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
+                 <span class="inline-flex items-center rounded bg-gray-100 px-2 py-0.5 text-[0.68rem] font-medium text-gray-800">
                    {{ opp.type }}
                </span>
+               {% if opp.type == 'Award Notice' %}
+                 {% if opp.awardee_display.name or opp.awardee_display.uei %}
+                 <div class="mt-2 space-y-1 text-[0.68rem] text-gray-500">
+                 {% if opp.awardee_display.name %}
+                 <div>
+                   <span class="font-medium text-gray-700">Winning Organization:</span>
+                   {% if opp.awardee_display.company %}
+                   <a href="{% url 'label_companies' %}?company={{ opp.awardee_display.company.id }}"
+                      onclick="event.stopPropagation()"
+                      class="text-blue-600 hover:text-blue-800 hover:underline">
+                     {{ opp.awardee_display.name }}
+                   </a>
+                   {% else %}
+                   <span class="text-gray-600">{{ opp.awardee_display.name }}</span>
+                   {% endif %}
+                 </div>
+                 {% endif %}
+                 {% if opp.awardee_display.uei %}
+                 <div>
+                   <span class="font-medium text-gray-700">UEI:</span>
+                   <span class="ml-1 font-mono text-gray-600">{{ opp.awardee_display.uei }}</span>
+                 </div>
+                 {% endif %}
+               </div>
+                 {% endif %}
+               {% endif %}
                {% if opp.base_type and opp.base_type != opp.type %}
-               <div class="text-xs text-gray-500 mt-1">Base: {{ opp.base_type }}</div>
+               <div class="mt-1 text-[0.68rem] text-gray-500">Base: {{ opp.base_type }}</div>
                {% endif %}
             </td>
-            <td class="px-4 py-3 align-top text-gray-600">
+            <td class="px-4 py-3 align-top text-gray-600 min-w-[8rem]">
               <div class="font-medium text-gray-900">{{ opp.department|default:"-" }}</div>
-              <div class="text-xs">{{ opp.office|default:"" }}</div>
-              <div class="text-xs italic text-gray-400 mt-1">{{ opp.sub_office|default:"" }}</div>
+              <div class="text-[0.68rem]">{{ opp.office|default:"" }}</div>
+              <div class="mt-1 text-[0.68rem] italic text-gray-400">{{ opp.sub_office|default:"" }}</div>
             </td>
-            <td class="px-4 py-3 align-top font-mono text-gray-600">
-              {% if opp.naics_code %}
-              <div class="inline-flex items-center gap-1">
-                <span>{{ opp.naics_code }}</span>
+            <td class="px-4 py-3 align-top text-gray-600">
+              {% if opp.naics_display.code or opp.naics_display.description %}
+              <div class="space-y-1">
+                <div class="inline-flex items-center gap-1 font-mono text-[0.7rem] leading-4">
+                {% if opp.naics_display.code %}
+                <span>{{ opp.naics_display.code }}</span>
+                {% else %}
+                <span>-</span>
+                {% endif %}
+                {% if opp.naics_display.ignore_value %}
                  <a href="#"
                    data-ignore-rule-type="naics"
-                   data-ignore-value="{{ opp.naics_code|escapejs }}"
-                   title="Add NAICS {{ opp.naics_code }} to ignore list"
+                   data-ignore-value="{{ opp.naics_display.ignore_value|escapejs }}"
+                   title="Add NAICS {{ opp.naics_display.ignore_value }} to ignore list"
                    class="js-ignore-rule inline-flex items-center rounded text-red-400 hover:text-red-600 text-[0.7rem] cursor-pointer transition-colors">🚫</a>
+                {% endif %}
+                </div>
+                {% if opp.naics_display.description %}
+                <div class="text-[0.7rem] leading-4 text-gray-500">{{ opp.naics_display.description }}</div>
+                {% endif %}
               </div>
               {% else %}
               -
               {% endif %}
             </td>
-            <td class="px-4 py-3 align-top font-mono text-gray-600">
-              {% if opp.product_service_code %}
-              <div class="inline-flex items-center gap-1">
-                <span>{{ opp.product_service_code }}</span>
+            <td class="px-4 py-3 align-top text-gray-600 min-w-[14rem] text-xs leading-4">
+              {% if opp.psc_display.code or opp.psc_display.description %}
+              <div class="space-y-1">
+                <div class="inline-flex items-center gap-1 font-mono text-[0.7rem] leading-4">
+                {% if opp.psc_display.code %}
+                <span>{{ opp.psc_display.code }}</span>
+                {% else %}
+                <span>-</span>
+                {% endif %}
+                {% if opp.psc_display.ignore_value %}
                  <a href="#"
                    data-ignore-rule-type="psc"
-                   data-ignore-value="{{ opp.product_service_code|escapejs }}"
-                   title="Add PSC {{ opp.product_service_code }} to ignore list"
+                   data-ignore-value="{{ opp.psc_display.ignore_value|escapejs }}"
+                   title="Add PSC {{ opp.psc_display.ignore_value }} to ignore list"
                    class="js-ignore-rule inline-flex items-center rounded text-red-400 hover:text-red-600 text-[0.7rem] cursor-pointer transition-colors">🚫</a>
+                {% endif %}
+                </div>
+                {% if opp.psc_display.description %}
+                <div class="text-[0.7rem] leading-4 text-gray-500 break-words">{{ opp.psc_display.description }}</div>
+                {% endif %}
               </div>
               {% else %}
               -
@@ -165,19 +289,19 @@
                 
                 <a href="{% url 'refresh_opportunity' opp.id %}" 
                    onclick="event.stopPropagation(); return confirm('Refresh this opportunity from SAM.gov?')"
-                   class="inline-flex items-center justify-center whitespace-nowrap rounded border border-emerald-200 bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700 shadow-sm transition-colors hover:bg-emerald-100"
+                   class="inline-flex items-center justify-center whitespace-nowrap rounded border border-emerald-200 bg-emerald-50 px-2 py-1 text-[0.68rem] font-medium text-emerald-700 shadow-sm transition-colors hover:bg-emerald-100"
                    title="Refresh data from API">
                    🔄 Refresh
                 </a>
                 
-                <button onclick="event.stopPropagation(); openDebugModal({{ opp.id }})" class="text-xs text-gray-400 hover:text-blue-600 underline cursor-pointer mt-1">
+                <button onclick="event.stopPropagation(); openDebugModal({{ opp.id }})" class="mt-1 cursor-pointer text-[0.68rem] text-gray-400 underline hover:text-blue-600">
                   [Debug]
                 </button>
               </div>
             </td>
           </tr>
           <!-- Expandable description row -->
-          <tr id="opp-desc-{{ opp.id }}" class="hidden bg-blue-50 border-b border-blue-100">
+          <tr id="opp-desc-{{ opp.id }}" class="hidden border-b border-blue-100 bg-blue-50 text-[0.72rem] leading-4">
             <td colspan="8" class="px-6 py-4">
               {% if opp.description and "api.sam.gov/prod/opportunities" not in opp.description %}
               <div class="text-sm text-gray-800 space-y-2 max-w-4xl">{{ opp.description|striptags|linebreaksbr }}</div>
@@ -193,7 +317,7 @@
           </tr>
           {% empty %}
           <tr>
-            <td colspan="6" class="px-4 py-12 text-center text-gray-500">
+            <td colspan="8" class="px-4 py-12 text-center text-gray-500">
               <div class="text-4xl mb-3">📭</div>
               <p class="text-lg font-medium text-gray-900">No opportunities found</p>
               <p class="mt-1">Try fetching fresh data or adjusting your search.</p>
@@ -221,7 +345,7 @@
         </div>
         <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
           {% if page_obj.has_previous %}
-          <a href="?page={{ page_obj.previous_page_number }}&q={{ query }}" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+          <a href="?page={{ page_obj.previous_page_number }}{% if page_query %}&{{ page_query }}{% endif %}" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
             <span class="sr-only">Previous</span>
             ◀
           </a>
@@ -232,7 +356,7 @@
           </span>
 
           {% if page_obj.has_next %}
-          <a href="?page={{ page_obj.next_page_number }}&q={{ query }}" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+          <a href="?page={{ page_obj.next_page_number }}{% if page_query %}&{{ page_query }}{% endif %}" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
             <span class="sr-only">Next</span>
             ▶
           </a>
@@ -241,7 +365,7 @@
       </div>
     </div>
     {% endif %}
-  </div>
+  </form>
 
   <!-- Upload Modal -->
   <div id="uploadModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-75 z-50 overflow-y-auto">

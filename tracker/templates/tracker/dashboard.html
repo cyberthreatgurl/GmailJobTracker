@@ -21,9 +21,10 @@
     }
     .chart-card {
       background: white;
-      padding: 1rem;
-      border-radius: 8px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      padding: 1.5rem;
+      border-radius: 0.75rem;
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
       flex: 1 1 33%;
   min-width: 200px;
   max-width: 25%;
@@ -60,13 +61,6 @@
       max-width: 100%;
       margin-top: 0.5rem;
     }
-    .date-filter-container {
-      margin-top: 1rem;
-      padding: 0.75rem;
-      background: #f9fafb;
-      border-radius: 6px;
-      border: 1px solid #e5e7eb;
-    }
     .filter-wrapper {
       display: flex;
       gap: 0.75rem;
@@ -95,38 +89,23 @@
       align-items: center;
     }
     .date-input-group .sep { color: #6b7280; font-size: 0.75rem; }
-    .reset-btn {
-      background: #6b7280;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      padding: 0.3rem 0.6rem;
-      font-size: 0.75rem;
-      cursor: pointer;
-      height: 1.85rem;
-      line-height: 1.25;
-      vertical-align: middle;
-      box-sizing: border-box;
+    .metric-list {
       margin: 0;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      transition: background 0.2s;
+      padding-left: 0;
+      list-style: none;
+      font-size: 0.9rem;
+      line-height: 1.6;
+      color: #374151;
     }
-    .reset-btn:hover {
-      background: #4b5563;
+    .metric-list li {
+      border-top: 1px solid #e5e7eb;
+      padding: 0.5rem 0;
+      font-size: 0.8rem;
     }
-    .copy-btn {
-      background: #e5e7eb;
-      color: #111827;
-      border: none;
-      border-radius: 4px;
-      padding: 0.25rem 0.5rem;
-  font-size: 0.7rem;
-      margin-left: 0.5rem;
-      cursor: pointer;
+    .metric-list li:first-child {
+      border-top: none;
+      padding-top: 0;
     }
-    .copy-btn:hover { background: #d1d5db; }
     @media (max-width: 900px) {
       .charts-row { flex-direction: column; }
   .chart-card { max-width: 100%; min-width: 180px; }
@@ -136,14 +115,14 @@
 
 {% block content %}
   <!-- Company Filter (Full Width) -->
-  <div style="display:flex; align-items:center; gap:1rem; margin-bottom: 1rem;">
-    <label for="dashboard_company" style="font-size:0.9rem;">Go to Company:</label>
-    <input type="text" id="dashboard_company" autocomplete="off" placeholder="Search companies..." style="padding:0.3rem 0.5rem; border-radius:4px; border:1px solid #d1d5db; font-size:0.9rem; min-width:260px;">
+  <div class="card-padded" style="display:flex; align-items:center; gap:1rem; margin-bottom: 1rem; flex-wrap: wrap;">
+    <label for="dashboard_company" class="form-label" style="margin: 0;">Go to Company:</label>
+    <input type="text" id="dashboard_company" class="input" autocomplete="off" placeholder="Search companies..." style="font-size:0.9rem; min-width:260px; max-width: 320px;">
     <input type="hidden" id="dashboard_company_id">
 
-    <label for="dashboard_city" style="font-size:0.9rem; margin-left:0.75rem;">Search by City:</label>
-    <input type="text" id="dashboard_city" placeholder="e.g., Dahlgren" style="padding:0.3rem 0.5rem; border-radius:4px; border:1px solid #d1d5db; font-size:0.9rem; min-width:200px;">
-    <button type="button" id="dashboard_city_btn" style="background:#2563eb; color:white; border:none; border-radius:6px; padding:0.35rem 0.7rem; font-size:0.85rem; cursor:pointer;">Find Companies</button>
+    <label for="dashboard_city" class="form-label" style="margin: 0 0 0 0.75rem;">Search by City:</label>
+    <input type="text" id="dashboard_city" class="input" placeholder="e.g., Dahlgren" style="font-size:0.9rem; min-width:200px; max-width: 260px;">
+    <button type="button" id="dashboard_city_btn" class="btn-primary">Find Companies</button>
   </div>
   
   {% load static %}
@@ -186,17 +165,17 @@
   <div class="flex gap-6 mb-5 w-full">
     <!-- Job Search Activity Chart (2/3 width) -->
     <div style="flex: 0 0 66.666%; max-width: 66.666%;">
-      <div class="chart-card expanded h-full" id="activityCard" style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+      <div class="chart-card expanded h-full p-6" id="activityCard">
 
         <h2>Job Search Activity by Type</h2>
-        <div class="date-filter-container">
+        <div class="filter-panel">
           <!-- Row 1: Date Range controls -->
           <div class="flex gap-2 items-center mb-2">
             <span class="text-xs font-medium text-gray-700 h-8 inline-flex items-center whitespace-nowrap">Range:</span>
-            <input type="date" id="startDateInput" class="text-xs px-2 h-8 border border-gray-300 rounded" />
+            <input type="date" id="startDateInput" class="input-sm" />
             <span class="text-xs text-gray-500 h-8 inline-flex items-center">to</span>
-            <input type="date" id="endDateInput" class="text-xs px-2 h-8 border border-gray-300 rounded" />
-            <select id="quickRange" class="text-xs px-2 h-8 border border-gray-300 rounded bg-white">
+            <input type="date" id="endDateInput" class="input-sm" />
+            <select id="quickRange" class="select-sm">
               <option value="today">Today</option>
               <option value="all">All</option>
               <option value="7" selected>Last 7 days</option>
@@ -205,13 +184,13 @@
               <option value="60">Last 60 days</option>
               <option value="90">Last 90 days</option>
             </select>
-            <button style="background:#6b7280; color:white; border:none; border-radius:4px; padding:0 0.75rem; font-size:0.75rem; height:2rem; cursor:pointer; white-space:nowrap;" onclick="resetActivityDateRange()">Reset</button>
+            <button type="button" class="btn-muted-sm" onclick="resetActivityDateRange()">Reset</button>
           </div>
           <!-- Row 2: X-Axis and Series -->
           <div class="flex gap-4 items-center">
             <div class="flex gap-2 items-center">
               <span class="text-xs font-medium text-gray-700 h-8 inline-flex items-center whitespace-nowrap">X-Axis:</span>
-              <select id="xAxisType" class="text-xs px-2 h-8 border border-gray-300 rounded bg-white">
+              <select id="xAxisType" class="select-sm">
                 <option value="date" selected>Date</option>
                 <option value="week">Week</option>
                 <option value="month">Month</option>
@@ -220,7 +199,7 @@
             <div class="flex gap-2 items-center relative">
               <span class="text-xs font-medium text-gray-700 h-8 inline-flex items-center whitespace-nowrap">Series:</span>
               <div class="relative">
-                <button type="button" id="plotSeriesButton" class="text-xs px-3 h-8 border border-gray-300 rounded bg-white hover:bg-gray-50 inline-flex justify-between items-center gap-2 whitespace-nowrap">
+                <button type="button" id="plotSeriesButton" class="btn-secondary-sm" style="min-width: 9rem; justify-content: space-between; gap: 0.5rem;">
                   <span id="plotSeriesLabel">All Selected</span>
                   <span>▼</span>
                 </button>
@@ -242,7 +221,7 @@
 
     <!-- Top 10 Focus Areas (1/3 width) -->
     <div style="flex: 0 0 33.333%; max-width: 33.333%;">
-      <div class="h-full" style="background: white; padding: 1rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; flex-direction: column;">
+      <div class="h-full bg-white shadow-sm border border-gray-200 rounded-xl p-6" style="display: flex; flex-direction: column;">
         <h2 style="font-size: 0.9rem; color: #1f2937; margin: 0 0 0.75rem 0;">&#127775; Top 10 Focus Areas</h2>
         <div id="focusAreaList" style="flex: 1; display: flex; flex-direction: column; gap: 0.35rem; overflow-y: auto;">
           <!-- Rows inserted by JavaScript -->
@@ -254,13 +233,13 @@
   <h1>📊 Gmail Job Tracker Dashboard</h1>
   {% if is_first_time %}
   <div id="first-time-modal" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:1000;">
-    <div style="background:#fff; padding:24px; max-width:560px; width:90%; border-radius:8px; box-shadow:0 10px 25px rgba(0,0,0,0.2);">
+    <div class="card-padded" style="max-width:560px; width:90%; box-shadow:0 10px 25px rgba(0,0,0,0.2);">
       <h2 style="margin-top:0;">Welcome new user!</h2>
       <p style="margin-bottom:12px;">You'll need to ensure that you have downloaded your <b>credentials.json</b> file from Google Cloud. Then, update the <b>.env</b> file as needed.</p>
       <p style="margin-bottom:18px;">Click <b>OK</b> to begin ingestion of email from Google. Click <b>Cancel</b> to allow you to double-check the above.</p>
       <div style="display:flex; gap:12px; justify-content:flex-end;">
-        <button id="ft-cancel" style="padding:8px 14px; background:#e5e7eb; border:1px solid #d1d5db; border-radius:6px;">Cancel</button>
-        <a id="ft-ok" href="{% url 'reingest_admin' %}" style="padding:8px 14px; background:#2563eb; color:#fff; text-decoration:none; border-radius:6px;">OK</a>
+        <button id="ft-cancel" type="button" class="btn-secondary">Cancel</button>
+        <a id="ft-ok" href="{% url 'reingest_admin' %}" class="btn-primary" style="text-decoration:none;">OK</a>
       </div>
     </div>
   </div>
@@ -372,72 +351,72 @@
   <h2>Companies by Activity Type (filtered entirely by the date range above)</h2>
     <div style="display: flex; gap: 2rem; flex-wrap: wrap; margin-top: 1rem;">
       <!-- Rejections -->
-      <div style="flex: 1; min-width: 250px; background: #fef2f2; padding: 1rem; border-radius: 8px; border-left: 4px solid #ef4444;">
-        <h3 style="color: #991b1b; margin: 0 0 0.75rem 0; font-size: 1rem; font-weight: 600; display:flex; align-items:center; gap:0.5rem;">
+      <div class="metric-card" style="flex: 1; min-width: 250px; border-top-color: #ef4444;">
+        <h3 class="metric-card-title">
           <span>🚫 Rejections From (<span id="rejectionCount">{{ initial_rejection_companies|length }}</span>)</span>
-          <button class="copy-btn" onclick="copyCompanyList('rejectionList', this)">Copy</button>
+          <button type="button" class="btn-secondary-sm" onclick="copyCompanyList('rejectionList', this)">Copy</button>
         </h3>
-        <ul id="rejectionList" style="margin: 0; padding-left: 1.25rem; list-style: disc; color: #7f1d1d; font-size: 0.9rem; line-height: 1.6;">
+        <ul id="rejectionList" class="metric-list divide-y divide-gray-200">
           {% if initial_rejection_companies %}
             {% for c in initial_rejection_companies %}
-              <li style="font-size:0.8rem;">
+              <li>
                 <a href="/label_companies/?company={{ c.id }}" style="text-decoration:none; color:inherit;">{{ c.name }}</a>
                 {% if c.cancelled %}<span style="color:#9333ea; font-size:0.7rem; margin-left:0.25rem;" title="Cancelled">🚫 CANCELLED</span>{% endif %}
                 {% if c.withdrew %}<span style="color:#0891b2; font-size:0.7rem; margin-left:0.25rem;" title="Withdrew">🚶 WITHDREW</span>{% endif %}
               </li>
             {% endfor %}
           {% else %}
-            <li style="color: #9ca3af; font-size:0.8rem;">No data in selected range</li>
+            <li style="color: #9ca3af;">No data in selected range</li>
           {% endif %}
         </ul>
       </div>
 
       <!-- Applications Sent -->
-      <div style="flex: 1; min-width: 250px; background: #eff6ff; padding: 1rem; border-radius: 8px; border-left: 4px solid #2563eb;">
-        <h3 style="color: #1e40af; margin: 0 0 0.75rem 0; font-size: 1rem; font-weight: 600; display:flex; align-items:center; gap:0.5rem;">
+      <div class="metric-card" style="flex: 1; min-width: 250px; border-top-color: #2563eb;">
+        <h3 class="metric-card-title">
           <span>📤 Applications Sent to (distinct companies) (<span id="applicationCount">{{ initial_application_companies|length }}</span>)</span>
-          <button class="copy-btn" onclick="copyCompanyList('applicationList', this)">Copy</button>
+          <button type="button" class="btn-secondary-sm" onclick="copyCompanyList('applicationList', this)">Copy</button>
         </h3>
-        <ul id="applicationList" style="margin: 0; padding-left: 1.25rem; list-style: disc; color: #1e3a8a; font-size: 0.9rem; line-height: 1.6;">
+        <ul id="applicationList" class="metric-list divide-y divide-gray-200">
           {% if initial_application_companies %}
             {% for c in initial_application_companies %}
-              <li style="font-size:0.8rem;"><a href="/label_companies/?company={{ c.id }}" style="text-decoration:none; color:inherit;">{{ c.name }}{% if c.count %} ({{ c.count }}){% endif %}</a></li>
+              <li><a href="/label_companies/?company={{ c.id }}" style="text-decoration:none; color:inherit;">{{ c.name }}{% if c.count %} ({{ c.count }}){% endif %}</a></li>
             {% endfor %}
           {% else %}
-            <li style="color: #9ca3af; font-size:0.8rem;">No data in selected range</li>
+            <li style="color: #9ca3af;">No data in selected range</li>
           {% endif %}
         </ul>
       </div>
 
       <!-- Ghosted By (Always Visible - Shows Current Total) -->
-      <div id="ghostedSection" style="flex: 1; min-width: 250px; background: #f5f5f5; padding: 1rem; border-radius: 8px; border-left: 4px solid #737373;">
-        <h3 style="color: #404040; margin: 0 0 0.75rem 0; font-size: 1rem; font-weight: 600; display:flex; align-items:center; gap:0.5rem;">
+      <div id="ghostedSection" class="metric-card" style="flex: 1; min-width: 250px; border-top-color: #6b7280;">
+        <h3 class="metric-card-title">
           <span>👻 Ghosted By (<span id="ghostedCount">{{ ghosted_count }}</span>)</span>
-          <button class="copy-btn" onclick="copyCompanyList('ghostedList', this)">Copy</button>
+          <button type="button" class="btn-secondary-sm" onclick="copyCompanyList('ghostedList', this)">Copy</button>
         </h3>
-        <ul id="ghostedList" style="margin: 0; padding-left: 1.25rem; list-style: disc; color: #525252; font-size: 0.9rem; line-height: 1.6;">
+        <ul id="ghostedList" class="metric-list divide-y divide-gray-200">
           {% if ghosted_companies_list %}
             {% for c in ghosted_companies_list %}
-              <li style="font-size:0.8rem;"><a href="/label_companies/?company={{ c.id }}" style="text-decoration:none; color:inherit;">{{ c.name }}</a></li>
+              <li><a href="/label_companies/?company={{ c.id }}" style="text-decoration:none; color:inherit;">{{ c.name }}</a></li>
             {% endfor %}
           {% else %}
-            <li style="color: #9ca3af; font-size:0.8rem;">No companies currently ghosted</li>
+            <li style="color: #9ca3af;">No companies currently ghosted</li>
           {% endif %}
         </ul>
       </div>
       <!-- Interviews -->
-      <div style="flex: 1; min-width: 250px; background: #e0f7fa; padding: 1rem; border-radius: 8px; border-left: 4px solid #22c55e;">
-        <h3 style="color: #0d9488; margin: 0 0 0.75rem 0; font-size: 1rem; font-weight: 600; display:flex; align-items:center; gap:0.5rem;">
+      <div class="metric-card" style="flex: 1; min-width: 250px; border-top-color: #14b8a6;">
+        <h3 class="metric-card-title">
           <span>🗓️ Interviews With (includes upcoming) (<span id="interviewCount">{{ initial_interview_companies|length }}</span>)</span>
-          <button class="copy-btn" onclick="copyCompanyList('interviewList', this)">Copy</button>
+          <button type="button" class="btn-secondary-sm" onclick="copyCompanyList('interviewList', this)">Copy</button>
         </h3>
-        <ul id="interviewList" style="margin: 0; padding-left: 1.25rem; list-style: disc; color: #0d9488; font-size: 0.9rem; line-height: 1.6;">
+        <ul id="interviewList" class="metric-list divide-y divide-gray-200">
           {% if initial_interview_companies %}
             {% for c in initial_interview_companies %}
-              <li style="font-size:0.8rem;"><a href="/label_companies/?company={{ c.id }}" style="text-decoration:none; color:inherit;">{{ c.name }}</a></li>
+              <li><a href="/label_companies/?company={{ c.id }}" style="text-decoration:none; color:inherit;">{{ c.name }}</a></li>
             {% endfor %}
           {% else %}
-            <li style="color: #9ca3af; font-size:0.8rem;">No data in selected range</li>
+            <li style="color: #9ca3af;">No data in selected range</li>
           {% endif %}
         </ul>
       </div>
@@ -857,10 +836,13 @@
       
       console.log('Filtered ghosted companies:', ghosted.length);
       
+      const todayNum = toDayNumber(formatDate(new Date()));
       const interviews = interviewCompanies
         .filter(item => {
           const d = toDayNumber(item.interview_date);
-          const matched = !isNaN(d) && !isNaN(startNum) && !isNaN(endNum) && d >= startNum && d <= endNum;
+          const inSelectedRange = !isNaN(d) && !isNaN(startNum) && !isNaN(endNum) && d >= startNum && d <= endNum;
+          const isUpcoming = !isNaN(d) && !isNaN(todayNum) && d >= todayNum;
+          const matched = inSelectedRange || isUpcoming;
           if (matched) console.log('Interview matched:', item.company__name, item.interview_date);
           return matched;
         })

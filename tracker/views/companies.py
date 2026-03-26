@@ -79,6 +79,52 @@ def _synchronized_domain(domain_value, homepage_url):
         return homepage_domain
     return (domain_value or "").strip().lower()
 
+
+def _get_company_reingest_queryset(selected_company):
+    """Return the exact set of messages eligible for company re-ingest.
+
+    Company re-ingest is intentionally limited to messages explicitly assigned
+    to the selected company to avoid broad domain-based expansion.
+    """
+    if not selected_company:
+        return Message.objects.none()
+    return Message.objects.filter(company=selected_company).order_by("id")
+
+
+def _audit_company_reingest_clear(request, selected_company, message_obj):
+    """Persist an audit record when a successful re-ingest clears reviewed state."""
+    try:
+        audit_path = Path("logs") / "clear_reviewed_audit.log"
+        audit_path.parent.mkdir(parents=True, exist_ok=True)
+        entry = {
+            "ts": now().isoformat(),
+            "user": request.user.username if hasattr(request, "user") else "unknown",
+            "action": "ui_reingest_clear",
+            "source": "reingest_company",
+            "msg_id": message_obj.msg_id,
+            "company": selected_company.name if selected_company else None,
+            "company_id": selected_company.id if selected_company else None,
+            "thread_id": message_obj.thread_id,
+            "db_id": message_obj.id,
+            "details": "cleared after successful company re-ingest",
+            "pid": os.getpid(),
+        }
+        with open(audit_path, "a", encoding="utf-8") as af:
+            af.write(json.dumps(entry, ensure_ascii=False) + "\n")
+        AuditEvent.objects.create(
+            user=entry.get("user"),
+            action=entry.get("action"),
+            source=entry.get("source"),
+            msg_id=entry.get("msg_id"),
+            db_id=entry.get("db_id"),
+            thread_id=entry.get("thread_id"),
+            company_id=entry.get("company_id"),
+            details=json.dumps(entry, ensure_ascii=False),
+            pid=entry.get("pid"),
+        )
+    except Exception:
+        logger.exception("Failed to write AuditEvent DB record for successful company re-ingest clear")
+
 # Module-level constants
 python_path = sys.executable
 logger = logging.getLogger(__name__)
@@ -840,6 +886,9 @@ def label_companies(request):
         ghosted_days_threshold = 30
     form = None
     message_count = 0
+    reingest_message_count = 0
+    reingest_preview_messages = []
+    reingest_preview_remaining = 0
     message_info_list = []
     operating_cities_text = ""
     operating_cities_list = []
@@ -901,6 +950,16 @@ def label_companies(request):
                 .order_by("-timestamp")
             )
             message_count = messages_qs.count()
+            reingest_queryset = _get_company_reingest_queryset(selected_company)
+            reingest_message_count = reingest_queryset.count()
+            reingest_preview_messages = list(
+                reingest_queryset.order_by("-timestamp").values_list(
+                    "id", "timestamp", "subject", "ml_label", "reviewed"
+                )[:25]
+            )
+            reingest_preview_remaining = max(
+                0, reingest_message_count - len(reingest_preview_messages)
+            )
             # Provide (id, timestamp, subject, ml_label) for deep links to label_messages focus
             message_info_list = list(
                 messages_qs.values_list("id", "timestamp", "subject", "ml_label")
@@ -925,208 +984,26 @@ def label_companies(request):
                                 request, "❌ Failed to initialize Gmail service."
                             )
                         else:
-                            # Find all message IDs for this company
-                            # Include messages currently assigned to this company
-                            company_messages_query = Message.objects.filter(
-                                company=selected_company
+                            company_messages = list(
+                                _get_company_reingest_queryset(selected_company).values(
+                                    "id", "msg_id", "thread_id", "subject", "ml_label"
+                                )
                             )
 
-                            # Also include messages from company's domain or ATS domain
-                            domains_to_check = []
-                            if selected_company.domain:
-                                domains_to_check.append(selected_company.domain.strip().lower())
-                            if selected_company.ats:
-                                domains_to_check.append(selected_company.ats.strip().lower())
-
-                            # Filter out broad ATS domains and common email providers
-                            try:
-                                with open("json/companies.json", "r", encoding="utf-8") as f:
-                                    company_data = json.load(f)
-                                ats_metadata = set(d.lower() for d in company_data.get("ats_domains", []))
-                            except Exception:
-                                ats_metadata = set()
-                                logging.warning("Could not load ats_domains from companies.json")
-
-                            common_providers = {
-                                "gmail.com", "yahoo.com", "outlook.com", "hotmail.com", "icloud.com",
-                                "aol.com", "protonmail.com", "me.com", "msn.com", "live.com",
-                                "googlemail.com", "yandex.com", "mail.com", "zoho.com"
-                            }
-
-                            safe_domains = []
-                            for d in domains_to_check:
-                                is_broad_ats = d in ats_metadata
-                                is_common_provider = d in common_providers
-                                if not is_broad_ats and not is_common_provider:
-                                    safe_domains.append(d)
-                                else:
-                                    logging.warning(
-                                        f"Skipping broad re-ingest domain '{d}' for company '{selected_company.name}'"
-                                    )
-
-                            # Build query to include sender domains
-                            if safe_domains:
-                                from django.db.models import Q
-
-                                domain_query = Q()
-                                for domain in safe_domains:
-                                    domain_query |= Q(sender__icontains=f"@{domain}")
-
-                                # Combine: messages assigned to company OR from company domains
-                                company_messages_query = Message.objects.filter(
-                                    Q(company=selected_company) | domain_query
-                                ).distinct()
-
-                            company_messages = company_messages_query.values(
-                                "msg_id", "subject", "ml_label"
-                            )
+                            if not company_messages:
+                                messages.warning(
+                                    request,
+                                    f"⚠️ No messages are explicitly assigned to {selected_company.name}.",
+                                )
+                                return redirect(f"/label_companies/?company={selected_company.id}")
 
                             processed = 0
                             updated_labels = 0
                             errors = 0
 
-                            for msg_info in company_messages[
-                                :1000
-                            ]:  # Limit to avoid timeout
+                            for msg_info in company_messages:
                                 try:
                                     old_label = msg_info["ml_label"]
-                                    # Clear reviewed flag for messages reingested from the UI
-                                    try:
-                                        mobj = Message.objects.filter(
-                                            msg_id=msg_info["msg_id"]
-                                        ).first()
-                                        if mobj:
-                                            mobj.reviewed = False
-                                            mobj.save(update_fields=["reviewed"])
-                                            # Also clear ThreadTracking reviewed state for the thread
-                                            if mobj.thread_id:
-                                                ThreadTracking.objects.filter(
-                                                    thread_id=mobj.thread_id
-                                                ).update(reviewed=False)
-                                    except Exception:
-                                        # Best-effort: continue even if clearing fails
-                                        logger.exception(
-                                            f"Failed to clear reviewed for {msg_info['msg_id']}"
-                                        )
-
-                                    # Audit: record UI-initiated clear for traceability (batch/company reingest)
-                                    try:
-                                        audit_path = (
-                                            Path("logs") / "clear_reviewed_audit.log"
-                                        )
-                                        audit_path.parent.mkdir(
-                                            parents=True, exist_ok=True
-                                        )
-                                        entry = {
-                                            "ts": now().isoformat(),
-                                            "user": (
-                                                request.user.username
-                                                if hasattr(request, "user")
-                                                else "unknown"
-                                            ),
-                                            "action": "ui_reingest_clear",
-                                            "source": "reingest_company",
-                                            "msg_id": msg_info["msg_id"],
-                                            "company": (
-                                                selected_company.name
-                                                if selected_company
-                                                else None
-                                            ),
-                                            "company_id": (
-                                                selected_company.id
-                                                if selected_company
-                                                else None
-                                            ),
-                                            "thread_id": msg_info.get("thread_id"),
-                                            "db_id": msg_info.get("id"),
-                                            "pid": os.getpid(),
-                                        }
-                                        with open(
-                                            audit_path, "a", encoding="utf-8"
-                                        ) as af:
-                                            af.write(
-                                                json.dumps(entry, ensure_ascii=False)
-                                                + "\n"
-                                            )
-                                        # Also persist to DB for easier querying
-                                        try:
-                                            AuditEvent.objects.create(
-                                                user=entry.get("user"),
-                                                action=entry.get("action"),
-                                                source=entry.get("source"),
-                                                msg_id=entry.get("msg_id"),
-                                                db_id=entry.get("db_id"),
-                                                thread_id=entry.get("thread_id"),
-                                                company_id=entry.get("company_id"),
-                                                details=json.dumps(
-                                                    entry, ensure_ascii=False
-                                                ),
-                                                pid=entry.get("pid"),
-                                            )
-                                        except Exception:
-                                            logger.exception(
-                                                "Failed to write AuditEvent DB record for ui_reingest_clear"
-                                            )
-                                    except Exception as e:
-                                        # Include stack trace in logger; also write a minimal audit entry with error
-                                        logger.exception(
-                                            "Failed to write audit log for UI reingest clear"
-                                        )
-                                        try:
-                                            import traceback
-
-                                            audit_path = (
-                                                Path("logs")
-                                                / "clear_reviewed_audit.log"
-                                            )
-                                            audit_path.parent.mkdir(
-                                                parents=True, exist_ok=True
-                                            )
-                                            entry = {
-                                                "ts": now().isoformat(),
-                                                "user": (
-                                                    request.user.username
-                                                    if hasattr(request, "user")
-                                                    else "unknown"
-                                                ),
-                                                "action": "ui_reingest_clear",
-                                                "source": "reingest_company",
-                                                "msg_id": msg_info["msg_id"],
-                                                "error": str(e),
-                                                "trace": traceback.format_exc(),
-                                            }
-                                            with open(
-                                                audit_path, "a", encoding="utf-8"
-                                            ) as af:
-                                                af.write(
-                                                    json.dumps(
-                                                        entry, ensure_ascii=False
-                                                    )
-                                                    + "\n"
-                                                )
-                                            try:
-                                                AuditEvent.objects.create(
-                                                    user=entry.get("user"),
-                                                    action=entry.get("action"),
-                                                    source=entry.get("source"),
-                                                    msg_id=entry.get("msg_id"),
-                                                    details=json.dumps(
-                                                        entry, ensure_ascii=False
-                                                    ),
-                                                    error=entry.get("error"),
-                                                    trace=entry.get("trace"),
-                                                )
-                                            except Exception:
-                                                logger.exception(
-                                                    "Failed to write fallback "
-                                                    "AuditEvent DB record for "
-                                                    "ui_reingest_clear"
-                                                )
-                                        except Exception:
-                                            logger.exception(
-                                                "Also failed to write error audit for UI reingest clear"
-                                            )
-
                                     # Suppress auto-mark-reviewed during this UI-initiated re-ingest
                                     try:
                                         os.environ["SUPPRESS_AUTO_REVIEW"] = "1"
@@ -1136,6 +1013,20 @@ def label_companies(request):
                                             del os.environ["SUPPRESS_AUTO_REVIEW"]
                                         except Exception:
                                             pass
+
+                                    updated_msg = Message.objects.filter(
+                                        msg_id=msg_info["msg_id"]
+                                    ).first()
+                                    if updated_msg:
+                                        updated_msg.reviewed = False
+                                        updated_msg.save(update_fields=["reviewed"])
+                                        if updated_msg.thread_id:
+                                            ThreadTracking.objects.filter(
+                                                thread_id=updated_msg.thread_id
+                                            ).update(reviewed=False)
+                                        _audit_company_reingest_clear(
+                                            request, selected_company, updated_msg
+                                        )
 
                                     # Check if label changed
                                     updated_msg = Message.objects.get(
@@ -1153,7 +1044,7 @@ def label_companies(request):
 
                             messages.success(
                                 request,
-                                f"✅ Re-ingested {processed} messages for {selected_company.name}. "
+                                f"✅ Re-ingested {processed} of {len(company_messages)} assigned messages for {selected_company.name}. "
                                 f"{updated_labels} labels updated. {errors} errors.",
                             )
                     except Exception as e:
@@ -1708,6 +1599,9 @@ def label_companies(request):
             "days_since_last_message": days_since_last_message,
             "ghosted_days_threshold": ghosted_days_threshold,
             "message_count": message_count,
+            "reingest_message_count": reingest_message_count,
+            "reingest_preview_messages": reingest_preview_messages,
+            "reingest_preview_remaining": reingest_preview_remaining,
             "message_info_list": message_info_list,
             "operating_cities_text": operating_cities_text,
             "operating_cities_list": operating_cities_list,

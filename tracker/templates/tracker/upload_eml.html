@@ -12,7 +12,67 @@
   {% endif %}
   <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
-    {{ form.as_p }}
+    {% if form.non_field_errors %}
+      {{ form.non_field_errors }}
+    {% endif %}
+
+    <div style="margin-bottom: 1rem;">
+      <label for="{{ form.eml_file.id_for_label }}" style="display: block; font-weight: 600; margin-bottom: 0.5rem;">{{ form.eml_file.label }}</label>
+      <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+        {{ form.eml_file.as_widget(attrs={"class": "sr-only"}) }}
+        <label for="{{ form.eml_file.id_for_label }}" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" style="cursor: pointer;">
+          Choose File
+        </label>
+        <span id="upload-eml-file-name" style="color: #6b7280; font-size: 0.95rem;">No file selected</span>
+      </div>
+      {% if form.eml_file.help_text %}
+        <small style="display: block; color: #6b7280; margin-top: 0.35rem;">{{ form.eml_file.help_text }}</small>
+      {% endif %}
+      {% if form.eml_file.errors %}
+        {{ form.eml_file.errors }}
+      {% endif %}
+    </div>
+
+    <div style="margin-bottom: 1rem;">
+      <label for="{{ form.thread_id.id_for_label }}" style="display: block; font-weight: 600; margin-bottom: 0.5rem;">{{ form.thread_id.label }}</label>
+      {{ form.thread_id }}
+      {% if form.thread_id.help_text %}
+        <small style="display: block; color: #6b7280; margin-top: 0.35rem;">{{ form.thread_id.help_text }}</small>
+      {% endif %}
+      {% if form.thread_id.errors %}
+        {{ form.thread_id.errors }}
+      {% endif %}
+    </div>
+
+    <div style="margin-bottom: 1rem; display: flex; align-items: flex-start; gap: 0.5rem;">
+      {{ form.no_tt }}
+      <div>
+        <label for="{{ form.no_tt.id_for_label }}" style="font-weight: 600;">{{ form.no_tt.label }}</label>
+        {% if form.no_tt.help_text %}
+          <small style="display: block; color: #6b7280; margin-top: 0.2rem;">{{ form.no_tt.help_text }}</small>
+        {% endif %}
+        {% if form.no_tt.errors %}
+          {{ form.no_tt.errors }}
+        {% endif %}
+      </div>
+    </div>
+
     <button class="btn btn-primary" type="submit">Upload & Ingest</button>
   </form>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const fileInput = document.getElementById("{{ form.eml_file.id_for_label }}");
+      const fileName = document.getElementById("upload-eml-file-name");
+
+      if (!fileInput || !fileName) {
+        return;
+      }
+
+      fileInput.addEventListener("change", function () {
+        fileName.textContent = this.files && this.files.length
+          ? this.files[0].name
+          : "No file selected";
+      });
+    });
+  </script>
 {% endblock %}

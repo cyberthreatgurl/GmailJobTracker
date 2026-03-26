@@ -139,8 +139,9 @@ def label_messages(request):
                         try:
                             msg = Message.objects.get(pk=msg_id)
                             msg.company = company
+                            msg.company_source = "manual" if company else ""
                             # Explicitly preserve existing label - only update company
-                            msg.save(update_fields=["company"])
+                            msg.save(update_fields=["company", "company_source"])
                             updated_count += 1
                         except Message.DoesNotExist:
                             continue

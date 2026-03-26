@@ -1,31 +1,32 @@
 {# tracker/templates/tracker/_sidebar.html #}
-<div class="max-w-60 min-w-[200px] flex-none">
-  <!-- Main Dashboard Button -->
-  <div class="mb-5">
-    <a href="{% url 'dashboard' %}" class="block w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg py-3 text-center text-lg transition-colors">🏠 Dashboard</a>
-  </div>
-
-  <!-- Ingest New Messages - Prominent Action -->
-  <div class="mb-5 relative">
-    <a href="{% url 'reingest_admin' %}" class="block w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg py-3 text-center transition-colors">📥 Ingest New Messages</a>
-    <div id="ingestion-indicator" class="hidden absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-4 h-4 animate-pulse">
-      <span class="block w-full h-full rounded-full bg-red-500 animate-ping"></span>
+<div class="max-w-60 min-w-[200px] min-h-full flex-none bg-white p-4">
+  <div class="relative mb-5 rounded-xl border border-gray-200 bg-gray-50 p-3 shadow-sm">
+    <div class="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-gray-500">Navigation</div>
+    <nav class="space-y-1">
+      <a href="{% url 'dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}flex items-center px-4 py-2 text-blue-700 bg-blue-50 border-l-4 border-blue-600 rounded-md{% else %}flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded-md{% endif %}">
+        <span class="mr-3">🏠</span>
+        <span>Dashboard</span>
+      </a>
+      <a href="{% url 'reingest_admin' %}" class="{% if request.resolver_match.url_name == 'reingest_admin' %}flex items-center px-4 py-2 text-blue-700 bg-blue-50 border-l-4 border-blue-600 rounded-md{% else %}flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded-md{% endif %}">
+        <span class="mr-3">📥</span>
+        <span>Ingest New Messages</span>
+      </a>
+      <a href="{% url 'defense_contracts' %}" class="{% if request.resolver_match.url_name == 'defense_contracts' %}flex items-center px-4 py-2 text-blue-700 bg-blue-50 border-l-4 border-blue-600 rounded-md{% else %}flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded-md{% endif %}">
+        <span class="mr-3">🏛️</span>
+        <span>Contract Awards</span>
+      </a>
+      <a href="{% url 'opportunities_dashboard' %}" class="{% if request.resolver_match.url_name == 'opportunities_dashboard' or request.resolver_match.url_name == 'refresh_opportunity' %}flex items-center px-4 py-2 text-blue-700 bg-blue-50 border-l-4 border-blue-600 rounded-md{% else %}flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded-md{% endif %}">
+        <span class="mr-3">📑</span>
+        <span>RFPs</span>
+      </a>
+      <a href="{% url 'rss_dashboard' %}" class="{% if request.resolver_match.url_name == 'rss_dashboard' %}flex items-center px-4 py-2 text-blue-700 bg-blue-50 border-l-4 border-blue-600 rounded-md{% else %}flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded-md{% endif %}">
+        <span class="mr-3">📰</span>
+        <span>News / RSS</span>
+      </a>
+    </nav>
+    <div id="ingestion-indicator" class="hidden absolute -top-2 -right-2 h-4 w-4 rounded-full bg-red-500 text-white animate-pulse">
+      <span class="block h-full w-full rounded-full bg-red-500 animate-ping"></span>
     </div>
-  </div>
-
-  <!-- Defense Contract Awards -->
-  <div class="mb-5">
-    <a href="{% url 'defense_contracts' %}" class="block w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg py-3 text-center text-lg transition-colors">🏛️ Contract Awards</a>
-  </div>
-
-  <!-- Federal Contract  Opportunities -->
-  <div class="mb-5">
-    <a href="{% url 'opportunities_dashboard' %}" class="block w-full bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-lg py-3 text-center text-lg transition-colors">📑 RFPs</a>
-  </div>
-
-  <!-- RSS Feed Reader -->
-  <div class="mb-5">
-    <a href="{% url 'rss_dashboard' %}" class="block w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold rounded-lg py-3 text-center text-lg transition-colors">📰 News / RSS</a>
   </div>
 
   <!-- Offers Section -->

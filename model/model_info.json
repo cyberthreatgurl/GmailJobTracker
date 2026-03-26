@@ -1,5 +1,5 @@
 {
-  "trained_on": "2026-03-25T14:26:56.617059",
+  "trained_on": "2026-03-26T16:39:50.819960",
   "labels": [
     "head_hunter",
     "interview_invite",
@@ -9,7 +9,7 @@
     "prescreen",
     "rejection"
   ],
-  "num_samples": 2054,
+  "num_samples": 2101,
   "total_features": 50000,
   "meaningful_features_sample": [
     "00 for",
@@ -22,6 +22,7 @@
     "00am and",
     "0517 will",
     "08 usd",
+    "10 awg",
     "10 python",
     "10 underrated",
     "10 zero",
@@ -65,12 +66,14 @@
     "1pm edt",
     "1st black",
     "1st round",
+    "1tb internal",
     "20 off",
     "20 tls",
     "200 days",
     "200 lines",
     "200 off",
     "2007 lead",
+    "2022 refund",
     "2025 acm",
     "2025 arriving",
     "2025 between",
@@ -108,9 +111,6 @@
     "21 secure",
     "22 dns",
     "22 saratoga",
-    "23 february",
-    "23 senior",
-    "23andme",
-    "25 soldiers"
+    "23 february"
   ]
 }

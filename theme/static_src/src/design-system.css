@@ -1,0 +1,419 @@
+/* ===========================
+   Design System Components
+   =========================== */
+
+@layer components {
+  /* Layout & Shell */
+
+  .app-shell {
+    @apply min-h-screen bg-gray-50 text-gray-900;
+  }
+
+  .app-sidebar {
+    @apply bg-white border-r border-gray-200;
+  }
+
+  .app-sidebar-link {
+    @apply flex items-center px-4 py-2 text-sm font-medium text-gray-700
+           hover:bg-gray-100 hover:text-gray-900 rounded-md;
+  }
+
+  .app-sidebar-link-icon {
+    @apply mr-3 h-5 w-5 text-gray-400;
+  }
+
+  .app-sidebar-link-active {
+    @apply bg-blue-50 text-blue-700 border-l-4 border-blue-600 rounded-none;
+  }
+
+  .app-topbar {
+    @apply flex items-center justify-between px-6 py-4 bg-white border-b border-gray-200;
+  }
+
+  .app-page {
+    @apply px-6 py-6;
+  }
+
+  /* Cards & Containers */
+
+  .card {
+    @apply bg-white rounded-xl shadow-sm border border-gray-200;
+  }
+
+  .card-padded {
+    @apply bg-white rounded-xl shadow-sm border border-gray-200 p-6;
+  }
+
+  .card-header {
+    @apply flex items-center justify-between mb-4;
+  }
+
+  .card-title {
+    @apply text-lg font-semibold text-gray-900;
+  }
+
+  .card-subtitle {
+    @apply text-sm text-gray-500;
+  }
+
+  .card-metric {
+    @apply text-2xl font-semibold text-gray-900;
+  }
+
+  .card-metric-label {
+    @apply text-sm text-gray-500;
+  }
+
+  .card-top-border-red {
+    @apply border-t-4 border-t-red-500;
+  }
+
+  .card-top-border-blue {
+    @apply border-t-4 border-t-blue-500;
+  }
+
+  .card-top-border-green {
+    @apply border-t-4 border-t-green-500;
+  }
+
+  .card-top-border-yellow {
+    @apply border-t-4 border-t-yellow-500;
+  }
+
+  /* Buttons */
+
+  .btn {
+    @apply inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg
+           focus:outline-none focus:ring-2 focus:ring-offset-2;
+  }
+
+  .btn:disabled {
+    @apply opacity-50 cursor-not-allowed;
+  }
+
+  .btn-icon-left > svg,
+  .btn-icon-left > span > svg {
+    @apply mr-2 h-4 w-4;
+  }
+
+  .btn-icon-right > svg,
+  .btn-icon-right > span > svg {
+    @apply ml-2 h-4 w-4;
+  }
+
+  .btn-primary {
+      @apply inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg
+        focus:outline-none focus:ring-2 focus:ring-offset-2 border border-transparent text-white bg-blue-600 shadow-sm
+           hover:bg-blue-700 focus:ring-blue-500;
+  }
+
+  .btn-secondary {
+      @apply inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg
+        focus:outline-none focus:ring-2 focus:ring-offset-2 border border-gray-300 text-gray-700 bg-white shadow-sm
+           hover:bg-gray-50 focus:ring-blue-500;
+  }
+
+  .btn-ghost {
+      @apply inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg
+        focus:outline-none focus:ring-2 focus:ring-offset-2 border border-transparent text-gray-700 bg-transparent
+           hover:bg-gray-50 focus:ring-blue-500;
+  }
+
+  .btn-danger {
+      @apply inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg
+        focus:outline-none focus:ring-2 focus:ring-offset-2 border border-red-300 text-red-700 bg-white
+           hover:bg-red-50 focus:ring-red-500;
+  }
+
+  .btn-danger-solid {
+      @apply inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg
+        focus:outline-none focus:ring-2 focus:ring-offset-2 border border-transparent text-white bg-red-600 shadow-sm
+           hover:bg-red-700 focus:ring-red-500;
+  }
+
+  .btn-secondary-sm {
+    @apply inline-flex items-center justify-center px-2 py-1 text-sm font-medium rounded-lg
+           focus:outline-none focus:ring-2 focus:ring-offset-2 border border-gray-300 text-gray-700 bg-white shadow-sm
+           hover:bg-gray-50 focus:ring-blue-500;
+  }
+
+  .btn-muted-sm {
+    @apply inline-flex items-center justify-center px-3 py-1.5 text-xs font-medium rounded-md
+           focus:outline-none focus:ring-2 focus:ring-offset-2 border border-transparent text-white bg-gray-500
+           hover:bg-gray-600 focus:ring-gray-400;
+  }
+
+  /* Forms */
+
+  .form-section {
+    @apply bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-6;
+  }
+
+  .form-grid {
+    @apply grid grid-cols-1 gap-6 sm:grid-cols-2;
+  }
+
+  .form-field {
+    @apply space-y-1;
+  }
+
+  .form-label {
+    @apply block text-sm font-medium text-gray-700;
+  }
+
+  .form-help {
+    @apply text-xs text-gray-500;
+  }
+
+  .input {
+    @apply block w-full rounded-lg border border-gray-300 shadow-sm
+           focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+           sm:text-sm;
+  }
+
+  .input-sm {
+    @apply block rounded-md border border-gray-300 bg-white px-2 py-1.5 text-xs text-gray-900 shadow-sm
+           focus:ring-2 focus:ring-blue-500 focus:border-blue-500;
+  }
+
+  .textarea {
+    @apply block w-full rounded-lg border border-gray-300 shadow-sm
+           focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+           sm:text-sm resize-y;
+  }
+
+  .select {
+    @apply block w-full rounded-lg border border-gray-300 shadow-sm
+           focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+           sm:text-sm bg-white;
+  }
+
+  .select-sm {
+    @apply block rounded-md border border-gray-300 bg-white px-2 py-1.5 text-xs text-gray-900 shadow-sm
+           focus:ring-2 focus:ring-blue-500 focus:border-blue-500;
+  }
+
+  .checkbox {
+    @apply h-4 w-4 text-blue-600 border-gray-300 rounded
+           focus:ring-blue-500;
+  }
+
+  .radio {
+    @apply h-4 w-4 text-blue-600 border-gray-300
+           focus:ring-blue-500;
+  }
+
+  /* Typography */
+
+  .page-title {
+    @apply text-2xl font-semibold text-gray-900;
+  }
+
+  .page-subtitle {
+    @apply mt-1 text-sm text-gray-500;
+  }
+
+  .section-title {
+    @apply text-lg font-semibold text-gray-900;
+  }
+
+  .section-subtitle {
+    @apply text-sm text-gray-500;
+  }
+
+  .meta-text {
+    @apply text-xs text-gray-500;
+  }
+
+  .label-text {
+    @apply text-sm font-medium text-gray-700;
+  }
+
+  /* Tables & Lists */
+
+  .table-card {
+    @apply bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden;
+  }
+
+  .table-header {
+    @apply bg-gray-50;
+  }
+
+  .table-header-cell {
+    @apply px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider;
+  }
+
+  .table-row {
+    @apply bg-white;
+  }
+
+  .table-row-alt {
+    @apply bg-gray-50;
+  }
+
+  .table-cell {
+    @apply px-4 py-3 text-sm text-gray-700;
+  }
+
+  .table-cell-right {
+    @apply px-4 py-3 text-sm text-gray-700 text-right;
+  }
+
+  .table-body-divided {
+    @apply divide-y divide-gray-200;
+  }
+
+  .list-divided {
+    @apply divide-y divide-gray-200;
+  }
+
+  .list-item {
+    @apply py-3;
+  }
+
+  /* Status & Highlighting */
+
+  .status-pill {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  .status-pill-green {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700;
+  }
+
+  .status-pill-yellow {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-50 text-yellow-700;
+  }
+
+  .status-pill-red {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-700;
+  }
+
+  .status-dot {
+    @apply inline-block h-2 w-2 rounded-full;
+  }
+
+  .status-dot-green {
+    @apply inline-block h-2 w-2 rounded-full bg-green-500;
+  }
+
+  .status-dot-yellow {
+    @apply inline-block h-2 w-2 rounded-full bg-yellow-400;
+  }
+
+  .status-dot-red {
+    @apply inline-block h-2 w-2 rounded-full bg-red-500;
+  }
+
+  .row-unreviewed-soft {
+    @apply border-l-4 border-yellow-400 bg-white;
+  }
+
+  .row-unreviewed-pale {
+    @apply bg-yellow-50;
+  }
+
+  /* Charts & Analytics */
+
+  .chart-card {
+    @apply bg-white rounded-xl shadow-sm border border-gray-200 p-6;
+  }
+
+  .chart-container {
+    @apply mt-4 p-6 bg-white rounded-xl border border-gray-200;
+  }
+
+  .filter-panel {
+    @apply mt-4 rounded-lg border border-gray-200 bg-white p-3;
+  }
+
+  .metric-card {
+    @apply bg-white rounded-xl border border-gray-200 shadow-sm p-4 border-t-4;
+  }
+
+  .metric-card-title {
+    @apply flex items-center gap-2 text-base font-semibold text-gray-800;
+  }
+
+  .metric-list {
+    @apply list-none pl-0 text-sm leading-6 text-gray-700;
+  }
+
+  .surface-console {
+    @apply overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm;
+  }
+
+  .surface-console-header {
+    @apply flex items-center gap-2 border-b border-gray-200 bg-gray-100 px-4 py-3;
+  }
+
+  .surface-console-body {
+    @apply m-0 max-h-[400px] overflow-auto p-4 text-sm;
+  }
+
+  .expandable-section {
+    @apply overflow-hidden rounded-xl border shadow-sm;
+  }
+
+  .expandable-tone-indigo {
+    @apply border-indigo-200 bg-indigo-50 text-indigo-800;
+  }
+
+  .expandable-tone-emerald {
+    @apply border-emerald-200 bg-emerald-50 text-emerald-800;
+  }
+
+  .expandable-tone-amber {
+    @apply border-amber-200 bg-amber-50 text-amber-800;
+  }
+
+  .expandable-tone-blue {
+    @apply border-blue-200 bg-blue-50 text-blue-800;
+  }
+
+  .expandable-section-summary {
+    @apply flex list-none items-center gap-2 px-6 py-4 text-base font-semibold cursor-pointer;
+  }
+
+  .expandable-section-summary-compact {
+    @apply flex list-none items-center gap-2 px-4 py-3 text-sm font-semibold cursor-pointer;
+  }
+
+  .expandable-section-action {
+    @apply ml-auto shrink-0;
+  }
+
+  .expandable-section-body {
+    @apply px-6 pb-6;
+  }
+
+  .expandable-section-body-compact {
+    @apply px-4 pb-4;
+  }
+
+  .accordion-chevron {
+    @apply inline-block transition-transform duration-200;
+  }
+
+  /* Utility-ish Composites */
+
+  .section-divider {
+    @apply my-6 border-t border-gray-200;
+  }
+
+  .advanced-section {
+    @apply mt-6 pt-6 border-t border-gray-200;
+  }
+
+  .accordion-header {
+    @apply flex items-center justify-between cursor-pointer;
+  }
+
+  .accordion-title {
+    @apply text-sm font-medium text-gray-900;
+  }
+
+  .accordion-icon {
+    @apply h-5 w-5 text-gray-400;
+  }
+}

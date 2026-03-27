@@ -21,6 +21,7 @@
     "Pcaobus": "Public Company Accounting Oversight Board",
     "Red River": "Red River",
     "Systems Planning and Analysis": "SPA",
+    "Tech Wizards": "Tech Wizards Inc.",
     "cfainstitute": "CFA Institute",
     "cmu": "Software Engineering Institute",
     "home": "The Home Depot",
@@ -34,6 +35,7 @@
   "ats_domains": [],
   "domain_to_company": {
     "4points.com": "Four Points Technology",
+    "allenintegratedsolutions.com": "Allen Integrated Solutions",
     "amazonaws.com": "Amazon",
     "arcfield.com": "Arcfield",
     "archsystemsinc.com": "Arch Systems LLC",
@@ -58,6 +60,7 @@
     "indivior.com": "Indivior",
     "inl.gov": "Idaho National Laboratory",
     "jrcisi.com": "JRC Integrated Systems",
+    "linkedin.com": "Robert Siciliano via LinkedIn",
     "mail.amazon.jobs": "Keep track of your",
     "maximus.com": "TmpMaximus",
     "mfcyber.com": "MorganFranklin Cyber",
@@ -79,10 +82,12 @@
     "spa.com": "SPA",
     "substack.com": "Substack",
     "systemone.com": "System One",
+    "tech-wizards.com": "Tech Wizards Inc.",
     "thomsonreuters.com": "Thomson Reuters",
     "trellix.com": "Trellix",
     "vailhealth.org": "Vail Health",
-    "vectorcsp.com": "VectorCSP"
+    "vectorcsp.com": "VectorCSP",
+    "wiz.io": "Wiz"
   },
   "headhunter_domains": [
     "agreeya.com",
@@ -504,7 +509,10 @@
     "Default": "https://pcaobus.org/careers",
     "Public Company Accounting Oversight Board": "https://pcaobus.org/careers",
     "CVS": "https://jobs.cvshealth.com/",
-    "CVS Health": "https://jobs.cvshealth.com/"
+    "CVS Health": "https://jobs.cvshealth.com/",
+    "wiz.io": "https://www.wiz.io/careers",
+    "Wiz": "https://www.wiz.io/careers",
+    "Allen Integrated Solutions": "https://www.allenintegratedsolutions.com/careers/"
   },
   "known": [],
   "ats_heuristic_patterns": [

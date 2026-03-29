@@ -2507,18 +2507,8 @@ def _fallback_thread_tracking_creation(
 
 def _should_preserve_company_for_noise(label, company_source, sender_domain=""):
     """Return True when a noise label should still keep a resolved company."""
-    if label != "noise":
-        return False
-
-    if sender_domain and _domain_mapper.is_job_board_domain(sender_domain):
-        return False
-
-    return company_source in {
-        "domain_mapping",
-        "subject_parse",
-        "organization_header",
-        "user_sent_to_company",
-    }
+    del label, company_source, sender_domain
+    return False
 
 
 def _handle_reingest(

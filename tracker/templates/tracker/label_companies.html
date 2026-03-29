@@ -121,6 +121,44 @@
   .post-selector-content small {
     font-size: 0.78rem !important;
   }
+
+  .company-metrics-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: stretch;
+    flex-wrap: wrap;
+  }
+
+  .company-metrics-action-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.35rem;
+  }
+
+  .company-metrics-action-form {
+    margin: 0;
+    display: flex;
+  }
+
+  .company-metrics-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 1.5rem;
+    padding: 0.35rem 0.7rem;
+    border-radius: 0.65rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    line-height: 1.1;
+    white-space: nowrap;
+    text-decoration: none;
+    box-sizing: border-box;
+  }
+
+  .company-metrics-action:disabled {
+    opacity: 0.6;
+  }
 </style>
 {% endblock %}
 {% block content %}
@@ -297,12 +335,12 @@
       style="background:#f9fafb; padding:1rem 1.5rem; margin-bottom:1.5rem;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
         <h2 style="margin:0; color:#1e40af; font-size:1.1rem;">Company Metrics</h2>
-        <div style="display:flex; gap:0.5rem; align-items:flex-start; flex-wrap:wrap;">
-          <div style="display:flex; flex-direction:column; align-items:flex-start; gap:0.35rem;">
-            <form method="post" style="margin:0;">
+        <div class="company-metrics-actions">
+          <div class="company-metrics-action-stack">
+            <form method="post" class="company-metrics-action-form">
               {% csrf_token %}
               <input type="hidden" name="company" value="{{ selected_company.id }}" />
-              <button type="submit" name="action" value="reingest_company" class="btn-secondary" title="Re-ingest exactly {{ reingest_message_count }} messages explicitly assigned to this company" onclick="return confirm('Re-ingest {{ reingest_message_count }} assigned message{{ reingest_message_count|pluralize }} for {{ selected_company.name|escapejs }}? Only explicitly assigned messages will be reprocessed, and messages will be marked unreviewed only after successful re-ingest.');">🔄 Re-ingest {{ reingest_message_count }} Assigned Message{{ reingest_message_count|pluralize }}</button>
+              <button type="submit" name="action" value="reingest_company" class="btn-secondary company-metrics-action" title="Re-ingest exactly {{ reingest_message_count }} messages explicitly assigned to this company" onclick="return confirm('Re-ingest {{ reingest_message_count }} assigned message{{ reingest_message_count|pluralize }} for {{ selected_company.name|escapejs }}? Only explicitly assigned messages will be reprocessed, and messages will be marked unreviewed only after successful re-ingest.');">🔄 Re-ingest {{ reingest_message_count }} Assigned Message{{ reingest_message_count|pluralize }}</button>
             </form>
             <details style="margin:0;">
               <summary style="cursor:pointer; list-style:none; color:#2563eb; font-size:0.78rem; line-height:1.2; text-decoration:underline; text-underline-offset:2px;">
@@ -343,12 +381,12 @@
               </div>
             </details>
           </div>
-          <button type="button" id="refresh-contracts-btn" onclick="refreshContracts({{ selected_company.id }})" class="btn-secondary" title="Fetch latest USASpending contracts">🏛️ Refresh Contracts</button>
+          <button type="button" id="refresh-contracts-btn" onclick="refreshContracts({{ selected_company.id }})" class="btn-secondary company-metrics-action" title="Fetch latest USASpending contracts">🏛️ Refresh Contracts</button>
           {# Status is now auto-calculated based on latest message and GHOSTED_DAYS_THRESHOLD #}
-          <a href="{% url 'manual_entry' %}?company={{ selected_company.id }}" class="btn-primary" style="text-decoration:none;" title="Create a new application for this company">➕ Create Application</a>
-          <button type="button" onclick="document.getElementById('merge-panel').style.display = document.getElementById('merge-panel').style.display === 'none' ? 'block' : 'none';" class="btn-secondary" title="Merge this company with a duplicate">🔗 Merge...</button>
-          <form method="get" action="{% url 'delete_company' selected_company.id %}" style="margin:0;">
-            <button type="submit" class="btn-danger">Delete Company</button>
+          <a href="{% url 'manual_entry' %}?company={{ selected_company.id }}" class="btn-secondary company-metrics-action" title="Create a new application for this company">➕ Create Application</a>
+          <button type="button" onclick="document.getElementById('merge-panel').style.display = document.getElementById('merge-panel').style.display === 'none' ? 'block' : 'none';" class="btn-secondary company-metrics-action" title="Merge this company with a duplicate">🔗 Merge...</button>
+          <form method="get" action="{% url 'delete_company' selected_company.id %}" class="company-metrics-action-form">
+            <button type="submit" class="btn-secondary company-metrics-action">Delete Company</button>
           </form>
         </div>
       </div>

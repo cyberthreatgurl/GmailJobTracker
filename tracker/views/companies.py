@@ -14,6 +14,7 @@ import os
 import re
 import subprocess
 import sys
+from email.utils import parseaddr
 from urllib.parse import urlparse
 from difflib import SequenceMatcher
 from datetime import timedelta
@@ -89,6 +90,200 @@ def _get_company_reingest_queryset(selected_company):
     if not selected_company:
         return Message.objects.none()
     return Message.objects.filter(company=selected_company).order_by("id")
+
+
+def _extract_sender_domain(sender):
+    """Extract a normalized email domain from a sender string."""
+    _display_name, email_addr = parseaddr(sender or "")
+    if email_addr and "@" in email_addr:
+        return email_addr.rsplit("@", 1)[-1].strip().lower()
+    if sender and "@" in sender:
+        return sender.rsplit("@", 1)[-1].strip(" >").lower()
+    return ""
+
+
+def _get_domain_impacted_companies(domain, domain_to_company):
+    """Return company rows that would be affected by classifying a domain as personal."""
+    company_ids = set()
+
+    mapped_company = domain_to_company.get(domain)
+    if mapped_company:
+        company_ids.update(
+            Company.objects.filter(name__iexact=mapped_company).values_list("id", flat=True)
+        )
+
+    company_ids.update(
+        Company.objects.filter(domain__iexact=domain).values_list("id", flat=True)
+    )
+    company_ids.update(
+        Message.objects.filter(sender__icontains=f"@{domain}", company__isnull=False)
+        .values_list("company_id", flat=True)
+        .distinct()
+    )
+
+    if not company_ids:
+        return []
+
+    return list(Company.objects.filter(id__in=company_ids).order_by(Lower("name")))
+
+
+def _build_company_cleanup_stats(company):
+    """Summarize destructive cleanup impact for a single company."""
+    total_messages = Message.objects.filter(company=company).count()
+    noise_messages = Message.objects.filter(company=company, ml_label="noise").count()
+    applications = ThreadTracking.objects.filter(company=company).count()
+
+    return {
+        "company_id": company.id,
+        "company_name": company.name,
+        "total_messages": total_messages,
+        "noise_messages": noise_messages,
+        "non_noise_messages": total_messages - noise_messages,
+        "applications": applications,
+    }
+
+
+def _build_domain_cleanup_summaries(domains, domain_to_company):
+    """Summarize company deletion impact for one or more domains."""
+    summaries = []
+    for domain in sorted(set(domains)):
+        impacted_companies = _get_domain_impacted_companies(domain, domain_to_company)
+        company_stats = [_build_company_cleanup_stats(company) for company in impacted_companies]
+        summaries.append(
+            {
+                "domain": domain,
+                "mapped_company_name": domain_to_company.get(domain, ""),
+                "companies": company_stats,
+                "company_names": [item["company_name"] for item in company_stats],
+                "total_messages": sum(item["total_messages"] for item in company_stats),
+                "noise_messages": sum(item["noise_messages"] for item in company_stats),
+                "non_noise_messages": sum(
+                    item["non_noise_messages"] for item in company_stats
+                ),
+                "applications": sum(item["applications"] for item in company_stats),
+            }
+        )
+    return summaries
+
+
+def _aggregate_cleanup_summaries(cleanup_summaries):
+    """Aggregate domain cleanup summaries by unique company."""
+    unique_companies = {}
+    for summary in cleanup_summaries:
+        for company in summary["companies"]:
+            unique_companies[company["company_id"]] = company
+
+    company_list = sorted(unique_companies.values(), key=lambda item: item["company_name"].lower())
+    return {
+        "company_count": len(company_list),
+        "company_names": [item["company_name"] for item in company_list],
+        "total_messages": sum(item["total_messages"] for item in company_list),
+        "noise_messages": sum(item["noise_messages"] for item in company_list),
+        "non_noise_messages": sum(item["non_noise_messages"] for item in company_list),
+        "applications": sum(item["applications"] for item in company_list),
+        "companies": company_list,
+    }
+
+
+def _delete_domain_cleanup_companies(cleanup_summaries):
+    """Delete unique impacted companies for personal-domain cleanup."""
+    from tracker.services.company_service import CompanyService
+
+    deleted_names = []
+    failed = []
+    deleted_stats = {
+        "companies": 0,
+        "messages": 0,
+        "noise_messages": 0,
+        "non_noise_messages": 0,
+        "applications": 0,
+    }
+
+    seen_company_ids = set()
+    for summary in cleanup_summaries:
+        for company in summary["companies"]:
+            company_id = company["company_id"]
+            if company_id in seen_company_ids:
+                continue
+            seen_company_ids.add(company_id)
+
+            success, error, stats = CompanyService.delete_company(
+                company_id,
+                retrain_model=False,
+            )
+            if success and stats:
+                deleted_names.append(stats["company_name"])
+                deleted_stats["companies"] += 1
+                deleted_stats["messages"] += stats["total_messages"]
+                deleted_stats["noise_messages"] += stats["noise_messages"]
+                deleted_stats["non_noise_messages"] += stats["non_noise_messages"]
+                deleted_stats["applications"] += stats["applications"]
+            else:
+                failed.append(error or f"Failed to delete company ID {company_id}.")
+
+    return {
+        "deleted_names": deleted_names,
+        "failed": failed,
+        "stats": deleted_stats,
+    }
+
+
+@login_required
+@require_POST
+def preview_personal_domain_cleanup(request):
+    """Return company-deletion impact for one or more domains before marking personal."""
+    try:
+        payload = json.loads(request.body.decode("utf-8") or "{}")
+    except json.JSONDecodeError:
+        payload = {}
+
+    domains = payload.get("domains") or request.POST.getlist("domains")
+    domains = [str(domain).strip().lower() for domain in domains if str(domain).strip()]
+    if not domains:
+        return JsonResponse({"error": "At least one domain is required."}, status=400)
+
+    companies_path = Path(__file__).parent.parent.parent / "json" / "companies.json"
+    companies_data = {}
+    if companies_path.exists():
+        with open(companies_path, "r", encoding="utf-8") as f:
+            companies_data = json.load(f)
+
+    cleanup_summaries = _build_domain_cleanup_summaries(
+        domains,
+        companies_data.get("domain_to_company", {}),
+    )
+    aggregate = _aggregate_cleanup_summaries(cleanup_summaries)
+    requires_confirmation = aggregate["non_noise_messages"] > 0
+    message_count = aggregate["non_noise_messages"]
+    message_label = "messages" if message_count != 1 else "message"
+    company_label = "company" if aggregate["company_count"] == 1 else "companies"
+
+    warning_text = (
+        "You have looked at this company for a job and there are "
+        f"{message_count} such related {message_label}. Are you sure that you want to "
+        "delete? If you delete, you will lose all messages and company tracking."
+    )
+    if aggregate["company_count"] > 1:
+        warning_text = (
+            "You have looked at these companies for a job and there are "
+            f"{message_count} such related {message_label}. Are you sure that you want to "
+            "delete? If you delete, you will lose all messages and company tracking."
+        )
+
+    return JsonResponse(
+        {
+            "domains": cleanup_summaries,
+            "requires_confirmation": requires_confirmation,
+            "company_count": aggregate["company_count"],
+            "company_names": aggregate["company_names"],
+            "total_messages": aggregate["total_messages"],
+            "noise_messages": aggregate["noise_messages"],
+            "non_noise_messages": aggregate["non_noise_messages"],
+            "applications": aggregate["applications"],
+            "company_label": company_label,
+            "warning_text": warning_text,
+        }
+    )
 
 
 def _audit_company_reingest_clear(request, selected_company, message_obj):
@@ -2081,6 +2276,28 @@ def manage_domains(request):
                 messages.error(request, "⚠️ No label type specified.")
             else:
                 try:
+                    cleanup_summaries = []
+                    cleanup_aggregate = None
+                    confirm_personal_delete = (
+                        request.POST.get("confirm_personal_delete") == "1"
+                    )
+                    if label_type == "personal":
+                        cleanup_summaries = _build_domain_cleanup_summaries(
+                            domains,
+                            domain_to_company,
+                        )
+                        cleanup_aggregate = _aggregate_cleanup_summaries(cleanup_summaries)
+                        if (
+                            cleanup_aggregate["non_noise_messages"] > 0
+                            and not confirm_personal_delete
+                        ):
+                            messages.error(
+                                request,
+                                "⚠️ Confirmation is required before deleting companies "
+                                "with job-related messages.",
+                            )
+                            return redirect("manage_domains")
+
                     # Remove from all categories first
                     for domain in domains:
                         personal_domains.discard(domain)
@@ -2229,9 +2446,27 @@ def manage_domains(request):
                         _domain_labels, source="companies.bulk_label"
                     )
 
+                    cleanup_result = None
+                    if label_type == "personal" and cleanup_summaries:
+                        cleanup_result = _delete_domain_cleanup_companies(cleanup_summaries)
+
                     messages.success(
                         request, f"✅ Labeled {len(domains)} domain(s) as {label_type}."
                     )
+                    if cleanup_result and cleanup_result["stats"]["companies"]:
+                        stats = cleanup_result["stats"]
+                        messages.info(
+                            request,
+                            "🗑️ Deleted "
+                            f"{stats['companies']} company record(s), removed {stats['messages']} "
+                            f"message(s), and removed {stats['applications']} application(s).",
+                        )
+                    if cleanup_result and cleanup_result["failed"]:
+                        messages.warning(
+                            request,
+                            "⚠️ Some company cleanup operations failed: "
+                            + "; ".join(cleanup_result["failed"]),
+                        )
                     return redirect("manage_domains")
                 except Exception as e:
                     messages.error(request, f"⚠️ Error saving domain labels: {e}")
@@ -2240,6 +2475,29 @@ def manage_domains(request):
             domain = request.POST.get("domain")
             if domain and label_type:
                 try:
+                    cleanup_summaries = []
+                    confirm_personal_delete = (
+                        request.POST.get("confirm_personal_delete") == "1"
+                    )
+                    if label_type == "personal":
+                        cleanup_summaries = _build_domain_cleanup_summaries(
+                            [domain],
+                            domain_to_company,
+                        )
+                        cleanup_aggregate = _aggregate_cleanup_summaries(cleanup_summaries)
+                        if (
+                            cleanup_aggregate["non_noise_messages"] > 0
+                            and not confirm_personal_delete
+                        ):
+                            messages.error(
+                                request,
+                                "⚠️ Confirmation is required before deleting companies "
+                                "with job-related messages.",
+                            )
+                            return redirect(
+                                f"{request.path}?filter={request.GET.get('filter', 'unlabeled')}"
+                            )
+
                     # Remove from all categories first
                     personal_domains.discard(domain)
                     ats_domains.discard(domain)
@@ -2369,7 +2627,25 @@ def manage_domains(request):
                         source="companies.label_single",
                     )
 
+                    cleanup_result = None
+                    if label_type == "personal" and cleanup_summaries:
+                        cleanup_result = _delete_domain_cleanup_companies(cleanup_summaries)
+
                     messages.success(request, f"✅ Labeled {domain} as {label_type}.")
+                    if cleanup_result and cleanup_result["stats"]["companies"]:
+                        stats = cleanup_result["stats"]
+                        messages.info(
+                            request,
+                            "🗑️ Deleted "
+                            f"{stats['companies']} company record(s), removed {stats['messages']} "
+                            f"message(s), and removed {stats['applications']} application(s).",
+                        )
+                    if cleanup_result and cleanup_result["failed"]:
+                        messages.warning(
+                            request,
+                            "⚠️ Some company cleanup operations failed: "
+                            + "; ".join(cleanup_result["failed"]),
+                        )
                     return redirect(
                         f"{request.path}?filter={request.GET.get('filter', 'unlabeled')}"
                     )
@@ -2400,7 +2676,10 @@ def manage_domains(request):
     domain_counter = Counter()
     domain_senders = defaultdict(list)
 
-    for msg in messages_qs.values("sender"):
+    domain_first_seen = {}
+    domain_latest_seen = {}
+
+    for msg in messages_qs.values("sender", "timestamp"):
         sender = msg["sender"]
         if "@" in sender:
             # Parse email from "Name <email@domain.com>" or "email@domain.com"
@@ -2425,6 +2704,13 @@ def manage_domains(request):
                     continue
 
                 domain_counter[domain] += 1
+
+                msg_timestamp = msg.get("timestamp")
+                if msg_timestamp:
+                    if domain not in domain_first_seen or msg_timestamp < domain_first_seen[domain]:
+                        domain_first_seen[domain] = msg_timestamp
+                    if domain not in domain_latest_seen or msg_timestamp > domain_latest_seen[domain]:
+                        domain_latest_seen[domain] = msg_timestamp
 
                 # Store sample senders (limit to 3)
                 if len(domain_senders[domain]) < 3:
@@ -2456,13 +2742,21 @@ def manage_domains(request):
                 "label": label,
                 "company_name": company_name,
                 "sample_senders": domain_senders[domain],
+                "first_seen": domain_first_seen.get(domain),
+                "first_seen_sort": (
+                    domain_first_seen[domain].isoformat()
+                    if domain in domain_first_seen else ""
+                ),
+                "latest_seen": domain_latest_seen.get(domain),
             }
         )
+
+    all_domains_info = list(domains_info)
 
     # Filter based on query parameter
     current_filter = request.GET.get("filter", "unlabeled")
     search_query = request.GET.get("search", "").strip().lower()
-    sort_by = request.GET.get("sort", "domain")  # domain, count, label
+    sort_by = request.GET.get("sort", "domain")  # domain, count, label, first_seen
     sort_order = request.GET.get("order", "asc")  # asc, desc
 
     # Apply search filter
@@ -2503,6 +2797,11 @@ def manage_domains(request):
     # Apply sorting
     if sort_by == "count":
         domains_info.sort(key=lambda d: d["count"], reverse=sort_order == "desc")
+    elif sort_by == "first_seen":
+        domains_info.sort(
+            key=lambda d: d["first_seen_sort"],
+            reverse=sort_order == "desc",
+        )
     elif sort_by == "label":
 
         def label_sort_key(d):
@@ -2536,11 +2835,18 @@ def manage_domains(request):
         "job_boards": len(set(job_boards)),
     }
 
+    recent_domains = sorted(
+        [domain_info for domain_info in all_domains_info if domain_info["first_seen_sort"]],
+        key=lambda d: d["first_seen_sort"],
+        reverse=True,
+    )[:10]
+
     ctx = {
         "domains": domains_info,
         "current_filter": current_filter,
         "stats": stats,
         "reingest_summary": reingest_summary,
+        "recent_domains": recent_domains,
         "search_query": search_query,
         "sort_by": sort_by,
         "sort_order": sort_order,
@@ -3298,6 +3604,7 @@ __all__ = [
     "companies_in_city",
     "merge_companies",
     "manage_domains",
+    "preview_personal_domain_cleanup",
     "job_search_tracker",
     "scrape_job_posting",
     "missing_applications",

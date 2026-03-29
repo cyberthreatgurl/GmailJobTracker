@@ -53,6 +53,11 @@ urlpatterns = [
     path("settings/", views.configure_settings, name="configure_settings"),
     path("settings/domains/", views.manage_domains, name="manage_domains"),
     path(
+        "settings/domains/personal-preview/",
+        views.preview_personal_domain_cleanup,
+        name="preview_personal_domain_cleanup",
+    ),
+    path(
         "api/ingestion_status/", views.ingestion_status_api, name="ingestion_status_api"
     ),
     path("api/company_search/", views.company_search_api, name="company_search_api"),

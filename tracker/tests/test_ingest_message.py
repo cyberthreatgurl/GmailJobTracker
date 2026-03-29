@@ -718,8 +718,8 @@ def test_reingest_duplicate_reminder_thread_is_downgraded_without_recreating_app
     assert ThreadTracking.objects.filter(company=company).count() == 2
 
 
-def test_reingest_noise_message_keeps_domain_mapped_company(monkeypatch):
-    company = Company.objects.create(
+def test_reingest_noise_message_drops_domain_mapped_company(monkeypatch):
+    Company.objects.create(
         name="Idaho National Laboratory",
         domain="inl.gov",
         first_contact=timestamp,
@@ -799,8 +799,8 @@ def test_reingest_noise_message_keeps_domain_mapped_company(monkeypatch):
     existing.refresh_from_db()
     assert result["status"] == "re-ingested"
     assert existing.ml_label == "noise"
-    assert existing.company_id == company.id
-    assert existing.company_source == "domain_mapping"
+    assert existing.company is None
+    assert existing.company_source == ""
 
 
 def test_linkedin_is_treated_as_job_board_domain():

@@ -29,6 +29,8 @@ def test_label_companies_renders_contract_refresh_targets(client, django_user_mo
     assert 'id="refresh-contracts-btn"' in body
     assert 'id="company-contracts-summary"' in body
     assert 'id="company-contracts-section"' in body
+    assert body.count("company-metrics-action") >= 5
+    assert body.count("btn-secondary company-metrics-action") >= 5
 
 
 @pytest.mark.django_db

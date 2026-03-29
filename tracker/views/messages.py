@@ -33,6 +33,26 @@ python_path = sys.executable
 logger = logging.getLogger(__name__)
 
 
+def _get_reingest_company(company_name, timestamp, confidence, ml_label):
+    """Resolve a company for local re-ingest unless the final label is noise."""
+    if ml_label == "noise" or not company_name:
+        return None
+
+    company_obj = Company.objects.filter(name__iexact=company_name).first()
+    if company_obj:
+        return company_obj
+
+    company_obj, _ = Company.objects.get_or_create(
+        name=company_name,
+        defaults={
+            "first_contact": timestamp,
+            "last_contact": timestamp,
+            "confidence": confidence,
+        },
+    )
+    return company_obj
+
+
 def label_applications(request):
     """Simple UI to assign labels to application threads and mark them reviewed."""
     if request.method == "POST":
@@ -438,6 +458,7 @@ def label_messages(request):
                                     # Update message
                                     msg.ml_label = ml_label
                                     msg.confidence = ml_confidence
+                                    company_obj = None
                                     if company:
                                         # Resolve alias before DB lookup (e.g. "Parsons" -> "Parsons Corporation")
                                         from parser import resolve_company_alias
@@ -448,27 +469,23 @@ def label_messages(request):
                                                 db_id, company, resolved_company,
                                             )
                                         company = resolved_company
-                                        # Case-insensitive lookup to prevent duplicates
-                                        company_obj = Company.objects.filter(name__iexact=company).first()
-                                        if not company_obj:
-                                            company_obj, _ = Company.objects.get_or_create(
-                                                name=company,
-                                                defaults={
-                                                    "first_contact": msg.timestamp,
-                                                    "last_contact": msg.timestamp,
-                                                    "confidence": ml_confidence,
-                                                },
-                                            )
+                                        company_obj = _get_reingest_company(
+                                            company,
+                                            msg.timestamp,
+                                            ml_confidence,
+                                            ml_label,
+                                        )
+                                        if company_obj:
                                             logger.info(
-                                                "reingest_selected: created new company db_id=%s company=%r",
-                                                db_id, company,
-                                            )
-                                        else:
-                                            logger.info(
-                                                "reingest_selected: matched existing company db_id=%s company=%r",
+                                                "reingest_selected: matched reingest company db_id=%s company=%r",
                                                 db_id, company_obj.name,
                                             )
+
+                                    if company_obj:
                                         msg.company = company_obj
+                                    elif ml_label == "noise":
+                                        msg.company = None
+                                        msg.company_source = ""
                                     msg.save()
                                     logger.info(
                                         "reingest_selected: saved db_id=%s final_label=%r company=%r",

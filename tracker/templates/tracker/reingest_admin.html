@@ -13,6 +13,134 @@
     <p class="section-subtitle" style="margin: 0 0 1.5rem 0;">
       Default behavior: only processes messages that have not been seen before. Already processed or reviewed messages are skipped automatically.
     </p>
+
+    <details id="folder-training-card" class="card" style="margin-bottom: 1.5rem; overflow: hidden;">
+      <summary class="accordion-header" style="list-style: none; padding: 1rem 1.25rem; background: #f9fafb;">
+        <span>🧪 Import a Folder for Model Training</span>
+        <span class="meta-text">No messages will be stored</span>
+      </summary>
+      <div style="padding: 1rem 1.25rem; display: flex; flex-direction: column; gap: 1rem;">
+        <label style="display: flex; align-items: flex-start; gap: 0.5rem; cursor: pointer; color: #4b5563;">
+          <input type="checkbox" name="training_only" id="training-only-checkbox" class="checkbox" style="margin-top: 3px;">
+          <span><strong>Use imported folder only for model training</strong>. Parsed messages are converted to training rows and are not saved as Message records.</span>
+        </label>
+
+        <div>
+          <label class="form-label" for="folder-path-select" style="margin-bottom: 0.5rem;">Folder</label>
+          <select
+            name="folder_path"
+            id="folder-path-select"
+            class="select"
+            style="width: 100%;"
+          >
+            {% for folder in folder_choices %}
+              <option value="{{ folder.value }}" {% if folder.value == selected_folder_path %}selected{% endif %}>{{ folder.label }}</option>
+            {% endfor %}
+          </select>
+          <p class="meta-text" style="margin: 0.5rem 0 0 0;">Only folders inside <strong>tests/emails</strong> are available here.</p>
+        </div>
+
+        <div>
+          <label class="form-label" for="train-as-select" style="margin-bottom: 0.5rem;">Train As</label>
+          <select name="train_as" id="train-as-select" class="select" style="font-size: 1rem; min-width: 220px;" disabled>
+            <option value="">Select a label</option>
+            {% for val, label in train_as_choices %}
+              <option value="{{ val }}">{{ label }}</option>
+            {% endfor %}
+          </select>
+          <p class="meta-text" style="margin: 0.5rem 0 0 0;">Use <strong>noise</strong> for spam, promotions, and other unwanted mail.</p>
+        </div>
+
+        <div style="border-top: 1px solid #e5e7eb; padding-top: 1rem; display: flex; flex-direction: column; gap: 1rem;">
+          <label style="display: flex; align-items: flex-start; gap: 0.5rem; cursor: pointer; color: #4b5563;">
+            <input type="checkbox" name="include_csv_training" id="include-csv-training-checkbox" class="checkbox" style="margin-top: 3px;" {% if include_csv_training %}checked{% endif %}>
+            <span><strong>Also include a CSV training file</strong>. CSV rows are only added when this option is checked.</span>
+          </label>
+
+          <div>
+            <label class="form-label" for="training-csv-file" style="margin-bottom: 0.5rem;">CSV File</label>
+            <input type="file" name="training_csv_file" id="training-csv-file" accept=".csv" class="input" style="width: 100%;">
+            <p class="meta-text" style="margin: 0.5rem 0 0 0;">CSV rows must contain a <strong>subject</strong> or <strong>body</strong> column. Browsers clear file inputs after submit, so re-select the CSV before training if you preview first.</p>
+          </div>
+
+          <div>
+            <label class="form-label" for="csv-train-as-select" style="margin-bottom: 0.5rem;">CSV Label</label>
+            <select name="csv_train_as" id="csv-train-as-select" class="select" style="font-size: 1rem; min-width: 220px;" {% if not include_csv_training %}disabled{% endif %}>
+              <option value="">Select a label</option>
+              {% for val, label in train_as_choices %}
+                <option value="{{ val }}" {% if val == selected_csv_train_as %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <button type="submit" name="action" value="folder_preview" id="folder-preview-submit" class="btn-secondary" style="margin-right: 0.75rem;">
+            👀 Preview Folder
+          </button>
+          <button type="submit" name="action" value="folder_train" id="folder-train-submit" class="btn-primary">
+            🧠 Import Folder & Retrain Model
+          </button>
+        </div>
+      </div>
+    </details>
+
+    {% if folder_preview %}
+      <div class="card" style="margin-bottom: 1.5rem; overflow: hidden;">
+        <div class="accordion-header" style="padding: 1rem 1.25rem; background: #f9fafb; list-style: none;">
+          <span>📂 Folder Preview</span>
+          <span class="meta-text">{{ folder_preview.train_as }}</span>
+        </div>
+        <div style="padding: 1rem 1.25rem; display: flex; flex-direction: column; gap: 1rem;">
+          <div class="meta-text"><strong>Folder:</strong> {{ folder_preview.folder_path }}</div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0.75rem;">
+            <div class="card-padded" style="background: #f9fafb;">
+              <div class="meta-text">Discovered</div>
+              <div style="font-size: 1.25rem; font-weight: 700; color: #111827;">{{ folder_preview.discovered_count }}</div>
+            </div>
+            <div class="card-padded" style="background: #f9fafb;">
+              <div class="meta-text">Parsed</div>
+              <div style="font-size: 1.25rem; font-weight: 700; color: #065f46;">{{ folder_preview.parsed_count }}</div>
+            </div>
+            <div class="card-padded" style="background: #f9fafb;">
+              <div class="meta-text">Skipped</div>
+              <div style="font-size: 1.25rem; font-weight: 700; color: #92400e;">{{ folder_preview.skipped_count }}</div>
+            </div>
+          </div>
+          {% if folder_preview.parsed_files %}
+            <div>
+              <div class="form-label" style="margin-bottom: 0.5rem;">Parsed Files</div>
+              <ul style="margin: 0; padding-left: 1.25rem; color: #374151;">
+                {% for file_name in folder_preview.parsed_files %}
+                  <li>{{ file_name }}</li>
+                {% endfor %}
+              </ul>
+              {% if folder_preview.parsed_remaining > 0 %}
+                <p class="meta-text" style="margin: 0.5rem 0 0 0;">And {{ folder_preview.parsed_remaining }} more parsed files.</p>
+              {% endif %}
+            </div>
+          {% endif %}
+          {% if folder_preview.skipped %}
+            <div>
+              <div class="form-label" style="margin-bottom: 0.5rem;">Skipped Files</div>
+              <ul style="margin: 0; padding-left: 1.25rem; color: #374151;">
+                {% for skipped in folder_preview.skipped %}
+                  <li>{{ skipped.file }}: {{ skipped.reason }}</li>
+                {% endfor %}
+              </ul>
+            </div>
+          {% endif %}
+          {% if folder_preview.csv_preview %}
+            <div>
+              <div class="form-label" style="margin-bottom: 0.5rem;">CSV Preview</div>
+              <div class="meta-text"><strong>File:</strong> {{ folder_preview.csv_preview.file_name }}</div>
+              <div class="meta-text"><strong>Label:</strong> {{ folder_preview.csv_preview.train_as }}</div>
+              <div class="meta-text"><strong>Rows:</strong> {{ folder_preview.csv_preview.row_count }}</div>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    {% endif %}
     
     <!-- Single Message Upload/Paste -->
     <details id="single-message-card" class="card" style="margin-bottom: 1.5rem; overflow: hidden;">
@@ -141,8 +269,38 @@
   const uploadBtn = document.getElementById('upload-submit-btn');
   const fileNameDisplay = document.getElementById('file-name-display');
   const singleMessageCard = document.getElementById('single-message-card');
+  const folderTrainingCard = document.getElementById('folder-training-card');
+  const trainingOnlyCheckbox = document.getElementById('training-only-checkbox');
+  const trainAsSelect = document.getElementById('train-as-select');
+  const folderPathSelect = document.getElementById('folder-path-select');
+  const includeCsvTrainingCheckbox = document.getElementById('include-csv-training-checkbox');
+  const trainingCsvFileInput = document.getElementById('training-csv-file');
+  const csvTrainAsSelect = document.getElementById('csv-train-as-select');
   
   function append(text){ box.textContent += text; box.scrollTop = box.scrollHeight; }
+
+  function updateTrainingControls() {
+    const enabled = trainingOnlyCheckbox && trainingOnlyCheckbox.checked;
+    const csvEnabled = enabled && includeCsvTrainingCheckbox && includeCsvTrainingCheckbox.checked;
+    if (trainAsSelect) {
+      trainAsSelect.disabled = !enabled;
+      trainAsSelect.required = enabled;
+    }
+    if (folderPathSelect) {
+      folderPathSelect.required = enabled;
+    }
+    if (trainingCsvFileInput) {
+      trainingCsvFileInput.disabled = !csvEnabled;
+      trainingCsvFileInput.required = csvEnabled;
+    }
+    if (csvTrainAsSelect) {
+      csvTrainAsSelect.disabled = !csvEnabled;
+      csvTrainAsSelect.required = csvEnabled;
+    }
+    if (folderTrainingCard && enabled) {
+      folderTrainingCard.open = true;
+    }
+  }
   
   // Show/hide upload button based on file or paste content
   function updateUploadButton() {
@@ -170,10 +328,82 @@
     pastedInput.addEventListener('input', updateUploadButton);
   }
 
+  if (trainingOnlyCheckbox) {
+    trainingOnlyCheckbox.addEventListener('change', updateTrainingControls);
+    updateTrainingControls();
+  }
+
+  if (includeCsvTrainingCheckbox) {
+    includeCsvTrainingCheckbox.addEventListener('change', updateTrainingControls);
+  }
+
   form.addEventListener('submit', async (e) => {
     const fd = new FormData(form);
     const hasFile = fileInput && fileInput.files && fileInput.files.length > 0;
     const hasPaste = pastedInput && pastedInput.value.trim().length > 0;
+    const action = (document.activeElement && document.activeElement.value) || '';
+
+    if (action === 'folder_train') {
+      if (!trainingOnlyCheckbox || !trainingOnlyCheckbox.checked) {
+        e.preventDefault();
+        alert("Check 'Use imported folder only for model training' before importing a folder.");
+        return;
+      }
+      if (!folderPathSelect || !folderPathSelect.value.trim()) {
+        e.preventDefault();
+        alert('Select a folder to import.');
+        return;
+      }
+      if (!trainAsSelect || !trainAsSelect.value) {
+        e.preventDefault();
+        alert("Select a 'Train As' label before importing a folder.");
+        return;
+      }
+      if (includeCsvTrainingCheckbox && includeCsvTrainingCheckbox.checked) {
+        if (!trainingCsvFileInput || !trainingCsvFileInput.files || trainingCsvFileInput.files.length === 0) {
+          e.preventDefault();
+          alert('Choose a CSV file before including CSV training data.');
+          return;
+        }
+        if (!csvTrainAsSelect || !csvTrainAsSelect.value) {
+          e.preventDefault();
+          alert('Select a label for the CSV training file.');
+          return;
+        }
+      }
+      return;
+    }
+
+    if (action === 'folder_preview') {
+      if (!trainingOnlyCheckbox || !trainingOnlyCheckbox.checked) {
+        e.preventDefault();
+        alert("Check 'Use imported folder only for model training' before previewing a folder.");
+        return;
+      }
+      if (!folderPathSelect || !folderPathSelect.value.trim()) {
+        e.preventDefault();
+        alert('Select a folder to preview.');
+        return;
+      }
+      if (!trainAsSelect || !trainAsSelect.value) {
+        e.preventDefault();
+        alert("Select a 'Train As' label before previewing a folder.");
+        return;
+      }
+      if (includeCsvTrainingCheckbox && includeCsvTrainingCheckbox.checked) {
+        if (!trainingCsvFileInput || !trainingCsvFileInput.files || trainingCsvFileInput.files.length === 0) {
+          e.preventDefault();
+          alert('Choose a CSV file before including CSV training data.');
+          return;
+        }
+        if (!csvTrainAsSelect || !csvTrainAsSelect.value) {
+          e.preventDefault();
+          alert('Select a label for the CSV training file.');
+          return;
+        }
+      }
+      return;
+    }
     
     // If uploading a file or pasting content, use AJAX to show log output
     if (hasFile || hasPaste) {

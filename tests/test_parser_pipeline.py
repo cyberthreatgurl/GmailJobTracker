@@ -5,9 +5,19 @@ Focus on rule_label function and edge cases to increase coverage.
 """
 
 import re
+from pathlib import Path
 
-import pytest
-from parser import rule_label, parse_subject, predict_with_fallback, predict_subject_type
+from parser import (
+    detect_noise_category,
+    parse_raw_message,
+    parse_subject,
+    predict_subject_type,
+    predict_with_fallback,
+    rule_label,
+)
+
+
+EMAIL_FIXTURES = Path(__file__).resolve().parents[1] / "tests" / "emails"
 
 
 class TestRuleLabelFunction:
@@ -59,6 +69,35 @@ class TestRuleLabelFunction:
         result = rule_label(subject, body)
         # Should detect noise due to List-Unsubscribe
         assert result == "noise" or result is None
+
+    def test_rule_label_detects_advertisement_noise(self):
+        """Promotional bulk mail should classify as noise before rejection patterns."""
+        fixture_path = EMAIL_FIXTURES / "Kelly, upgrade your everyday with the new Bespoke Refrigerator.eml"
+        raw_message = fixture_path.read_text(encoding="utf-8", errors="replace")
+
+        metadata = parse_raw_message(raw_message)
+
+        assert detect_noise_category(
+            metadata["subject"],
+            metadata["body"],
+            metadata["sender_domain"],
+        ) == "advertisement"
+        assert rule_label(
+            metadata["subject"],
+            metadata["body"],
+            metadata["sender_domain"],
+        ) == "noise"
+
+        parsed = parse_subject(
+            metadata["subject"],
+            metadata["body"],
+            sender=metadata["sender"],
+            sender_domain=metadata["sender_domain"],
+        )
+        assert parsed["ignore"] is True
+        assert parsed["label"] == "noise"
+        assert parsed["noise_category"] == "advertisement"
+        assert parsed["company"] == ""
 
     def test_rule_label_detects_application_confirmation(self):
         """Application confirmation patterns should be detected."""

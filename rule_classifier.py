@@ -13,6 +13,9 @@ import logging
 logger = logging.getLogger("parser")
 
 
+NOISE_SUBTYPES = ("advertisement", "spam")
+
+
 class RuleClassifier:
     """Classifies email messages using rule-based regex patterns.
 
@@ -134,6 +137,13 @@ class RuleClassifier:
             re.compile(referral_lang, re.I) if referral_lang else None
         )
 
+        noise_categories = self.patterns.get("noise_categories", {})
+        self._noise_category_patterns = {}
+        for subtype in NOISE_SUBTYPES:
+            self._noise_category_patterns[subtype] = self._compile_pattern_list(
+                noise_categories.get(subtype, [])
+            )
+
     def _compile_pattern_list(self, pattern_list):
         """Helper to compile a list of regex patterns."""
         compiled = []
@@ -164,6 +174,41 @@ class RuleClassifier:
                     )
         return matches
 
+    def _get_noise_category_matches(self, subject: str, body: str = ""):
+        """Return matching evidence for configured noise subtypes."""
+        combined = f"{subject or ''} {body or ''}"
+        matches = []
+        for subtype, patterns in self._noise_category_patterns.items():
+            for rx in patterns:
+                match = rx.search(combined)
+                if not match:
+                    continue
+                matches.append(
+                    {
+                        "subtype": subtype,
+                        "pattern": rx.pattern,
+                        "matched_text": match.group(0),
+                        "subject_match": bool(rx.search(subject or "")),
+                    }
+                )
+        return matches
+
+    def classify_noise_category(self, subject: str, body: str = ""):
+        """Return a noise subtype when strong spam/advertisement evidence is present."""
+        matches = self._get_noise_category_matches(subject, body)
+        if not matches:
+            return None
+
+        for subtype in NOISE_SUBTYPES:
+            subtype_matches = [m for m in matches if m["subtype"] == subtype]
+            if not subtype_matches:
+                continue
+
+            if any(m["subject_match"] for m in subtype_matches) or len(subtype_matches) >= 2:
+                return subtype
+
+        return matches[0]["subtype"]
+
     def debug_classify(
         self,
         subject: str,
@@ -179,6 +224,8 @@ class RuleClassifier:
         subject_text = subject or ""
         domain = (sender_domain or "").lower()
         raw_matches = self._scan_all_pattern_matches(text)
+        noise_category_matches = self._get_noise_category_matches(subject, body)
+        noise_category = self.classify_noise_category(subject, body)
         skipped_matches = []
 
         # Track explicit exclude-based skips.
@@ -296,6 +343,8 @@ class RuleClassifier:
         return {
             "final_rule_label": final_rule_label,
             "raw_matches": raw_matches,
+            "noise_category": noise_category,
+            "noise_category_matches": noise_category_matches,
             "skipped_matches": deduped_skips,
             "subject_text": subject_text,
             "decision_trace": decision_trace,
@@ -359,6 +408,26 @@ class RuleClassifier:
             logger.debug("[DEBUG rule_label] Early cancelled match - position was cancelled")
             return "cancelled"
         self._add_trace(trace, "early_cancelled", "checked", "No cancelled-position language matched.")
+
+        noise_category = self.classify_noise_category(subject, body)
+        if noise_category:
+            self._add_trace(
+                trace,
+                "strong_noise_category",
+                "matched",
+                f"Matched strong noise subtype '{noise_category}', so the classifier exits as noise.",
+            )
+            logger.debug(
+                "[DEBUG rule_label] Strong noise subtype detected (%s) -> noise",
+                noise_category,
+            )
+            return "noise"
+        self._add_trace(
+            trace,
+            "strong_noise_category",
+            "checked",
+            "No strong advertisement/spam noise subtype matched.",
+        )
 
         noise_patterns = self._msg_label_patterns.get("noise", [])
         noise_excludes = self._msg_label_excludes.get("noise", [])

@@ -4,6 +4,7 @@ from collections import Counter
 from django.core.management.base import BaseCommand
 from django.db.models import Count
 
+from parser import detect_noise_category
 from tracker.models import Message
 
 
@@ -60,15 +61,22 @@ class Command(BaseCommand):
         qs = qs.order_by("-timestamp")
         if limit:
             qs = qs[:limit]
-        rows = qs.values("msg_id", "ml_label", "subject", "sender", "timestamp")
+        rows = qs.values("msg_id", "ml_label", "subject", "body", "sender", "timestamp")
         with open(path, "w", newline="", encoding="utf-8") as f:
             w = csv.writer(f)
-            w.writerow(["msg_id", "label", "subject", "sender", "timestamp"])
+            w.writerow(["msg_id", "label", "noise_subtype", "subject", "sender", "timestamp"])
             for r in rows:
+                noise_subtype = ""
+                if r["ml_label"] == "noise":
+                    noise_subtype = detect_noise_category(
+                        r["subject"],
+                        r.get("body", "") or "",
+                    ) or ""
                 w.writerow(
                     [
                         r["msg_id"],
                         r["ml_label"],
+                        noise_subtype,
                         r["subject"],
                         r["sender"],
                         r["timestamp"],

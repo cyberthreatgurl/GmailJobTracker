@@ -466,6 +466,14 @@ def json_file_viewer(request):
 def reingest_admin(request):
     """Run the ingest_gmail command with options and show output, or ingest a single uploaded message."""
     from parser import ingest_message_from_eml
+    from tracker.services.folder_training_service import (
+        FolderTrainingImportError,
+        collect_training_examples_from_csv,
+        collect_training_examples_from_folder,
+        list_training_folder_options,
+        resolve_training_folder,
+        train_model_from_imports,
+    )
 
     base_dir = Path(__file__).resolve().parents[2]
     day_choices = [
@@ -476,23 +484,159 @@ def reingest_admin(request):
         (30, "30 days"),
     ]
     default_days = 7
+    folder_paths = list_training_folder_options(base_dir)
+    default_folder_path = folder_paths[0] if folder_paths else "tests/emails"
+    folder_choices = []
+    for folder_path in folder_paths:
+        relative_parts = Path(folder_path).parts
+        depth = max(0, len(relative_parts) - 2)
+        if depth == 0:
+            label = folder_path
+        else:
+            label = f"{'  ' * depth}|- {relative_parts[-1]}"
+        folder_choices.append({"value": folder_path, "label": label})
 
     ctx = {
         "result": None,
         "error": None,
+        "folder_preview": None,
         "day_choices": day_choices,
         "default_days": default_days,
+        "default_folder_path": default_folder_path,
+        "folder_choices": folder_choices,
+        "selected_folder_path": default_folder_path,
+        "include_csv_training": False,
+        "selected_csv_train_as": "",
+        "train_as_choices": [
+            ("noise", "noise"),
+            ("job_application", "job_application"),
+            ("other", "other"),
+            ("rejection", "rejection"),
+            ("interview_invite", "interview_invite"),
+            ("prescreen", "prescreen"),
+        ],
     }
     # Include reporting default start date info for the template
     env_start_date = os.environ.get("REPORTING_DEFAULT_START_DATE")
     ctx["reporting_default_start_date"] = env_start_date or ""
 
     if request.method == "POST":
+        action = request.POST.get("action") or ""
         # Check for single message upload/paste first
         pasted = (request.POST.get("pasted_message") or "").strip()
         upload = request.FILES.get("message_file")
+        training_only = request.POST.get("training_only") == "on"
+        folder_path = (request.POST.get("folder_path") or "").strip()
+        train_as = (request.POST.get("train_as") or "").strip()
+        include_csv_training = request.POST.get("include_csv_training") == "on"
+        csv_train_as = (request.POST.get("csv_train_as") or "").strip()
+        training_csv_file = request.FILES.get("training_csv_file")
+        if folder_path:
+            ctx["selected_folder_path"] = folder_path
+        ctx["include_csv_training"] = include_csv_training
+        ctx["selected_csv_train_as"] = csv_train_as
 
-        if pasted or upload:
+        if action == "folder_train":
+            if not training_only:
+                ctx["error"] = (
+                    "Check 'Use imported folder only for model training' to run a "
+                    "folder-based training import."
+                )
+            elif folder_path not in folder_paths:
+                ctx["error"] = "Select a folder from the tests/emails dropdown."
+            elif not train_as:
+                ctx["error"] = "Select a 'Train As' label before importing a folder."
+            elif include_csv_training and training_csv_file is None:
+                ctx["error"] = "Choose a CSV file before including CSV training data."
+            elif include_csv_training and not csv_train_as:
+                ctx["error"] = "Select a label for the CSV training file."
+            else:
+                try:
+                    summary = train_model_from_imports(
+                        folder_path,
+                        train_as,
+                        base_dir=base_dir,
+                        csv_file=training_csv_file if include_csv_training else None,
+                        csv_train_as=csv_train_as if include_csv_training else None,
+                        verbose=True,
+                    )
+                    output_lines = [
+                        f"📁 Folder training import: {summary['folder_path']}",
+                        f"🏷️ Train as: {summary['train_as']}",
+                        f"✅ Parsed messages: {summary['messages_parsed']}",
+                        f"⏭️ Skipped messages: {summary['messages_skipped']}",
+                        "💾 Messages persisted: 0 (training-only import)",
+                    ]
+                    if summary["csv_file_name"]:
+                        output_lines.extend(
+                            [
+                                f"🧾 CSV training import: {summary['csv_file_name']}",
+                                f"🏷️ CSV label: {summary['csv_train_as']}",
+                                f"✅ CSV rows: {summary['csv_row_count']}",
+                            ]
+                        )
+                    output_lines.extend(
+                        [
+                        "-" * 60,
+                        summary["output"],
+                        ]
+                    )
+                    if summary["skipped"]:
+                        output_lines.append("-" * 60)
+                        output_lines.append("Skipped files:")
+                        for skipped in summary["skipped"]:
+                            output_lines.append(
+                                f"- {skipped['file']}: {skipped['reason']}"
+                            )
+                    ctx["result"] = "\n".join(output_lines)
+                except FolderTrainingImportError as exc:
+                    ctx["error"] = str(exc)
+                except Exception as exc:
+                    ctx["error"] = f"Failed to train from folder: {exc}"
+        elif action == "folder_preview":
+            if not training_only:
+                ctx["error"] = (
+                    "Check 'Use imported folder only for model training' to preview a "
+                    "folder-based training import."
+                )
+            elif folder_path not in folder_paths:
+                ctx["error"] = "Select a folder from the tests/emails dropdown."
+            elif not train_as:
+                ctx["error"] = "Select a 'Train As' label before previewing a folder."
+            elif include_csv_training and training_csv_file is None:
+                ctx["error"] = "Choose a CSV file before including CSV training data."
+            elif include_csv_training and not csv_train_as:
+                ctx["error"] = "Select a label for the CSV training file."
+            else:
+                try:
+                    resolved_folder = resolve_training_folder(folder_path, base_dir)
+                    preview = collect_training_examples_from_folder(resolved_folder, train_as)
+                    preview_summary = {
+                        "folder_path": preview["folder_path"],
+                        "train_as": preview["normalized_label"],
+                        "discovered_count": preview["discovered_count"],
+                        "parsed_count": preview["parsed_count"],
+                        "parsed_files": preview["parsed_files"][:10],
+                        "parsed_remaining": max(0, preview["parsed_count"] - 10),
+                        "skipped_count": preview["skipped_count"],
+                        "skipped": preview["skipped"][:10],
+                    }
+                    if include_csv_training and training_csv_file is not None:
+                        csv_preview = collect_training_examples_from_csv(
+                            training_csv_file,
+                            csv_train_as,
+                        )
+                        preview_summary["csv_preview"] = {
+                            "file_name": csv_preview["file_name"],
+                            "train_as": csv_preview["normalized_label"],
+                            "row_count": csv_preview["row_count"],
+                        }
+                    ctx["folder_preview"] = preview_summary
+                except FolderTrainingImportError as exc:
+                    ctx["error"] = str(exc)
+                except Exception as exc:
+                    ctx["error"] = f"Failed to preview folder: {exc}"
+        elif pasted or upload:
             # Handle single message ingestion
             import io
             import sys

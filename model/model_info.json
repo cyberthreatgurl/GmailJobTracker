@@ -1,5 +1,5 @@
 {
-  "trained_on": "2026-03-28T21:56:00.339676",
+  "trained_on": "2026-03-31T21:38:44.431136",
   "labels": [
     "head_hunter",
     "interview_invite",
@@ -9,7 +9,7 @@
     "prescreen",
     "rejection"
   ],
-  "num_samples": 2121,
+  "num_samples": 2074,
   "total_features": 50000,
   "meaningful_features_sample": [
     "00 for",
@@ -48,7 +48,6 @@
     "14 days",
     "14th not",
     "14th street",
-    "15 min",
     "16 chrome",
     "16 february",
     "16 march",
@@ -65,7 +64,6 @@
     "1998 topps",
     "1pm edt",
     "1st black",
-    "1st round",
     "1tb internal",
     "20 off",
     "20 tls",
@@ -111,6 +109,8 @@
     "21 secure",
     "22 dns",
     "22 saratoga",
-    "23 february"
+    "23 february",
+    "23 march",
+    "23 senior"
   ]
 }

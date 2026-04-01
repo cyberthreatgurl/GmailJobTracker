@@ -34,3 +34,28 @@ def test_label_rule_debugger_shows_rule_trace_sections(client, django_user_model
     assert "head_hunter" in body
     assert "special_indeed_subject" in body
     assert "priority_other" in body
+
+
+@pytest.mark.django_db
+def test_label_rule_debugger_shows_noise_subtype_for_advertisement(client, django_user_model):
+    user = django_user_model.objects.create_user(
+        username="debugger-noise-user", password="password"
+    )
+    client.force_login(user)
+
+    fixture_path = Path(__file__).resolve().parents[2] / "tests" / "emails" / (
+        "Kelly, upgrade your everyday with the new Bespoke Refrigerator.eml"
+    )
+    raw_message = fixture_path.read_text(encoding="utf-8", errors="replace")
+
+    response = client.post(
+        reverse("label_rule_debugger"),
+        {"pasted_message": raw_message},
+    )
+
+    assert response.status_code == 200
+    body = response.content.decode("utf-8")
+    assert "Final Label:" in body
+    assert "noise" in body
+    assert "Noise Subtype:" in body
+    assert "advertisement" in body

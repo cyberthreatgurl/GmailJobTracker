@@ -75,6 +75,9 @@
       <outline text="Remote OK" title="Remote OK" type="rss" xmlUrl="https://remoteok.com/remote-engineer-jobs.rss" htmlUrl="" />
       <outline text="Peraton" title="Peraton" type="rss" xmlUrl="http://www.peraton.com/feed" htmlUrl="https://www.peraton.com/" />
       <outline text="CyberOne" title="CyberOne" type="rss" xmlUrl="https://cyberonesecurity.com/feed/" htmlUrl="https://cyberonesecurity.com" />
+      <outline text="GuidePoint Security" title="GuidePoint Security" type="rss" xmlUrl="https://www.guidepointsecurity.com/feed/" htmlUrl="https://www.guidepointsecurity.com/" />
+      <outline text="GovCon Wire" title="GovCon Wire" type="rss" xmlUrl="https://www.govconwire.com/feed" htmlUrl="https://www.govconwire.com" />
+      <outline text="https://www.govconwire.com/category/contract-awards/feed" title="https://www.govconwire.com/category/contract-awards/feed" type="rss" xmlUrl="https://www.govconwire.com/category/contract-awards/feed" htmlUrl="" />
     </outline>
   </body>
 </opml>

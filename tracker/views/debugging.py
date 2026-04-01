@@ -49,6 +49,7 @@ def label_rule_debugger(request):
     no_matches = False
     extracted_company = ""
     company_confidence = 0
+    noise_category = None
     if request.method == "POST":
         pasted = (request.POST.get("pasted_message") or "").strip()
         upload = request.FILES.get("message_file")
@@ -105,6 +106,7 @@ def label_rule_debugger(request):
 
                 matched_label = result.get("label", "noise")
                 ml_label = result.get("ml_label") or result.get("label")
+                noise_category = result.get("noise_category")
                 final_classification_source = (
                     "rules"
                     if result.get("fallback") in ("rule", "rules")
@@ -121,6 +123,7 @@ def label_rule_debugger(request):
                     map_company_by_domain_fn=parser_module._map_company_by_domain,
                 )
                 rule_based_label = debug_trace.get("final_rule_label")
+                noise_category = noise_category or debug_trace.get("noise_category")
                 decision_trace = debug_trace.get("decision_trace", [])
 
                 highlights_set = set()
@@ -232,6 +235,7 @@ def label_rule_debugger(request):
                     "final_classification_source": final_classification_source,
                     "rule_based_label": rule_based_label,
                     "ml_label": ml_label,
+                    "noise_category": noise_category,
                     "decision_trace": decision_trace,
                 }
             except Exception as e:
@@ -253,6 +257,7 @@ def label_rule_debugger(request):
         "final_classification_source": final_classification_source,
         "rule_based_label": rule_based_label,
         "ml_label": ml_label,
+        "noise_category": noise_category,
         "decision_trace": decision_trace,
     }
     return render(request, "tracker/label_rule_debugger.html", ctx)

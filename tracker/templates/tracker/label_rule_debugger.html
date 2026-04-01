@@ -54,6 +54,11 @@
         <span style="color:#9ca3af; font-style:italic;">None</span>
       {% endif %}
     </div>
+    {% if noise_category %}
+    <div style="margin-top:0.5rem;"><b>Noise Subtype:</b>
+      <span style="color:#b45309; font-weight:600; text-transform:uppercase;">{{ noise_category }}</span>
+    </div>
+    {% endif %}
     {% if override_note %}
     <div style="margin-top:0.5rem; padding:0.75rem; background:#d1fae5; border-left:4px solid #10b981; border-radius:4px;">
       <b style="color:#065f46;">⚙️ Label Override Applied:</b>

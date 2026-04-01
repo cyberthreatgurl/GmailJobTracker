@@ -79,6 +79,30 @@
     "head_hunter_signature_pattern": "(?:Regards|Best regards|Sincerely|Best|Thanks|Thank you)[\\s,]*[\\r\\n]+[A-Z][a-z]+",
     "referral_explicit_language": "\\b(referred|referral|referred by|referrer)\\b"
   },
+  "noise_categories": {
+    "advertisement": [
+      "\\bwhile\\s+supplies\\s+last\\b",
+      "\\bvalued\\s+subscriber\\b",
+      "\\bshop\\s+now\\b",
+      "\\bbuy\\s+now\\b",
+      "\\bpre-?order\\b",
+      "\\bupgrade\\s+your\\s+everyday\\b",
+      "\\bcomplete\\s+your\\s+set\\s+and\\s+save\\b",
+      "\\bsave\\s+an?\\s+extra\\b",
+      "\\bupdates\\s+and\\s+promotions\\b",
+      "\\bpromotions?\\b"
+    ],
+    "spam": [
+      "\\byou(?:(?:'|’)?ve|\\s+have)?\\s+won\\b",
+      "\\bclaim\\s+your\\s+prize\\b",
+      "\\bweight\\s+loss\\b",
+      "\\bmiracle\\b",
+      "\\bloan\\s+forgiveness\\b",
+      "\\bcrypto(?:currency)?\\b",
+      "\\bact\\s+now\\b",
+      "\\bclick\\s+here\\s+to\\s+(?:claim|verify|redeem)\\b"
+    ]
+  },
   "message_labels": {
     "cancelled": [
       "\\b(?:position|job|role|requisition|opportunity)\\s+(?:has\\s+been\\s+)?(?:cancelled|canceled|closed)\\b",

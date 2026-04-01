@@ -843,6 +843,15 @@ def rule_label(
     )
 
 
+def detect_noise_category(
+    subject: str, body: str = "", sender_domain: str | None = None
+) -> str | None:
+    """Return a strong noise subtype for promotional or spam mail."""
+    del sender_domain
+    _reload_patterns_if_needed()
+    return _rule_classifier.classify_noise_category(subject=subject, body=body)
+
+
 def predict_with_fallback(
     predict_subject_type_fn,
     subject: str,
@@ -889,12 +898,16 @@ def predict_with_fallback(
     # If rule_label returned a result, use it authoritatively (skip ML overrides)
     # BUT preserve the original ML prediction for downstream override logic
     if rl is not None:
+        noise_category = None
+        if rl == "noise":
+            noise_category = detect_noise_category(subject, body, sender_domain)
         logger.debug(f"[DEBUG predict_with_fallback] Using rule-based label '{rl}' authoritatively")
         return {
             "label": rl,
             "confidence": 1.0,
             "fallback": "rule",
             "ml_label": ml.get("label") if ml else None,
+            "noise_category": noise_category,
         }
 
     # If ML confidence is low, use rules as fallback
@@ -906,10 +919,20 @@ def predict_with_fallback(
                 "confidence": conf,
                 "fallback": "rules",
                 "ml_label": ml.get("label") if ml else None,
+                "noise_category": (
+                    detect_noise_category(subject, body, sender_domain)
+                    if rl == "noise"
+                    else None
+                ),
             }
 
     if ml and "confidence" not in ml and "proba" in ml:
         ml = {**ml, "confidence": float(ml["proba"])}
+    if ml and ml.get("label") == "noise":
+        ml = {
+            **ml,
+            "noise_category": detect_noise_category(subject, body, sender_domain),
+        }
     return ml
 
 def get_stats():
@@ -1436,11 +1459,14 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
     )
     confidence = float(result.get("confidence", result.get("proba", 0.0))) if result else 0.0
     label = result["label"]
+    noise_category = result.get("noise_category") if result else None
 
     logger.debug(f"[DEBUG parse_subject] subject='{subject[:80]}'")
     logger.debug(f"[DEBUG parse_subject] sender='{sender}'")
     logger.debug(f"[DEBUG parse_subject] sender_domain='{sender_domain}'")
     logger.debug(f"[DEBUG parse_subject] label={label}, confidence={confidence}")
+    if noise_category:
+        logger.debug(f"[DEBUG parse_subject] noise_category={noise_category}")
     # --- Initialize variables ---
     company = ""
     job_title = ""
@@ -1503,6 +1529,19 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
         ):
             logger.debug("[DEBUG] Downgrading label interview_invite -> other (generic meeting, low confidence)")
             label = "other"
+
+    if label == "noise" and noise_category in {"advertisement", "spam"}:
+        return {
+            "company": "",
+            "job_title": "",
+            "job_id": "",
+            "predicted_company": "",
+            "label": "noise",
+            "confidence": max(confidence, 0.98),
+            "ignore": True,
+            "ignore_reason": f"noise_{noise_category}",
+            "noise_category": noise_category,
+        }
 
     # Upgrade: Calendar meeting invites with meeting details should be interview_invite
     # if they're from a company domain and have meeting/interview/call language
@@ -1761,6 +1800,8 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
                 "label": "noise",
                 "confidence": 0.9,
                 "ignore": True,
+                "ignore_reason": "ml_ignore",
+                "noise_category": noise_category,
             }
         else:
             logger.debug(
@@ -1827,6 +1868,7 @@ def parse_subject(subject, body="", sender=None, sender_domain=None):
         "label": label,
         "confidence": confidence,
         "ignore": False,
+        "noise_category": noise_category,
     }
 
 

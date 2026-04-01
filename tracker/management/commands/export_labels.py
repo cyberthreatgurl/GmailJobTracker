@@ -4,17 +4,18 @@ import csv
 
 from django.core.management.base import BaseCommand
 
+from parser import detect_noise_category
 from tracker.models import Message, ThreadTracking  # ✅ include Message
 
 
 class Command(BaseCommand):
     help = "Export labeled Applications and Messages for ML training"
 
-    def handle(self, *args, **kwargs):
+    def handle(self, *_args, **_kwargs):
         with open("labeled_subjects.csv", "w", newline="", encoding="utf-8") as f:
             writer = csv.writer(f)
             # ✅ Add a "type" column so you know if the row came from Application or Message
-            writer.writerow(["type", "id", "subject", "body", "ml_label"])
+            writer.writerow(["type", "id", "subject", "body", "ml_label", "noise_subtype"])
 
             # --- Applications ---
             for app in ThreadTracking.objects.filter(
@@ -29,11 +30,26 @@ class Command(BaseCommand):
                         ),  # some apps may not have subject field
                         "",  # Applications don’t have body text
                         app.ml_label,
+                        "",
                     ]
                 )
 
             # --- Messages ---
             for msg in Message.objects.filter(reviewed=True, ml_label__isnull=False):
+                noise_subtype = ""
+                if msg.ml_label == "noise":
+                    noise_subtype = detect_noise_category(
+                        msg.subject,
+                        msg.body,
+                        msg.sender_domain,
+                    ) or ""
                 writer.writerow(
-                    ["message", msg.id, msg.subject, msg.body, msg.ml_label]
+                    [
+                        "message",
+                        msg.id,
+                        msg.subject,
+                        msg.body,
+                        msg.ml_label,
+                        noise_subtype,
+                    ]
                 )

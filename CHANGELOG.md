@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.7.0] - 2026-03-31
+
+### Added
+- Added a training-only import workflow on the reingest admin page so `.eml`, `.txt`, and `.json` fixtures under `tests/emails` can be previewed and injected into model retraining without creating `Message` records.
+- Added an explicit CSV training import option in the same admin workflow, including a required label selector and preview details before retraining.
+- Added regression coverage for training-folder allowlisting, explicit CSV imports, and the Samsung promotional-email noise classification/debugger path.
+
+### Changed
+- The reingest admin training-folder selector is now locked to `tests/emails` and its subfolders, with friendlier nested labels in the dropdown while still submitting the full relative path.
+- `train_model.py` no longer auto-loads `synthetic_data.csv`; CSV rows are included only when a file and label are explicitly selected.
+
+### Fixed
+- Strong advertisement and spam-like messages now short-circuit to `noise` before rejection/company extraction logic, preventing promotional mail from being misclassified as a company rejection.
+- Folder-based training retrains no longer contaminate the active model with legacy CSV rows that were not intentionally selected for the run.
+
 ## [3.6.0] - 2026-03-26
 
 ### Added

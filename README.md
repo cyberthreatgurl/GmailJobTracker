@@ -21,6 +21,7 @@ A local-only Django application that transforms your Gmail into an intelligent j
 - **Auto-labeling**: 85%+ confidence messages auto-reviewed
 - **6 Message Types**: job_application, interview_invite, rejection, head_hunter, noise, other
 - **Confidence scoring**: See ML certainty for each classification
+- **Stronger unwanted-mail detection**: Promotions and spam-like messages now short-circuit to `noise` before company extraction or rejection fallback logic
 
 ### 🏢 Company Resolution
 
@@ -42,6 +43,8 @@ A local-only Django application that transforms your Gmail into an intelligent j
 - **Upcoming interview parity**: Dashboard interview cards now stay aligned with the sidebar's Upcoming list for future-dated interviews
 - **Label Companies workspace**: Refresh contracts in place, preview homepage-derived domains, and keep stored domains synchronized from saved homepages
 - **🔍 Job Search Tracker**: Proactively track which companies you've manually searched for opportunities
+- **Training-only admin imports**: Preview and retrain from fixture folders under `tests/emails` without persisting imported messages
+- **Explicit CSV opt-in**: Add CSV training rows only when you upload a file and choose the label for that import
 
 ### 🏛️ Defense Contract Awards
 
@@ -228,7 +231,19 @@ graph TD
 
 3. **Model retrains automatically** after every 20 labels
 
-4. **Re-classify existing messages:**
+4. **Optional: import fixture folders for targeted retraining:**
+   - Visit: <http://127.0.0.1:8000/reingest_admin/>
+   - Open **Import a Folder for Model Training**
+   - Select a folder from the locked `tests/emails` dropdown
+   - Choose the training label, preview the import, then retrain
+   - Imported files are used only for training and are not saved as `Message` rows
+
+5. **Optional: include a CSV import in the same retrain:**
+   - Check **Also include a CSV training file**
+   - Upload the CSV and select the label that should be applied to every row
+   - CSV rows are no longer auto-loaded from `synthetic_data.csv`; they are included only when explicitly selected
+
+6. **Re-classify existing messages:**
 
    ```bash
    python manage.py reclassify_messages

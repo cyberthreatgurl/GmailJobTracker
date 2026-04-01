@@ -317,6 +317,19 @@ The ML model ships with pre-trained weights, but you should retrain with your ow
    - Wait 30-60 seconds
    - Check new accuracy on <http://127.0.0.1:8000/metrics/>
 
+3. **Optional: train on local fixture folders without saving messages:**
+   - Visit <http://127.0.0.1:8000/reingest_admin/>
+   - Expand **Import a Folder for Model Training**
+   - Check **Use imported folder only for model training**
+   - Pick a folder from the dropdown rooted at `tests/emails`
+   - Select the label, preview the folder, and then retrain
+
+4. **Optional: include CSV rows in that retrain:**
+   - Check **Also include a CSV training file**
+   - Upload a CSV with a `subject` column, a `body` column, or both
+   - Choose the label that should be applied to every row in that CSV
+   - CSV data is only included when explicitly selected; `synthetic_data.csv` is no longer auto-imported during retraining
+
 ### 7.2 Model Performance
 
 **Expected Accuracy After Initial Training:**
@@ -333,6 +346,7 @@ The ML model ships with pre-trained weights, but you should retrain with your ow
 - Add custom patterns to `json/patterns.json`
 - Review "Other" category and reclassify
 - Model auto-retrains every 20 labels
+- Use the training-only folder import for focused regression cases such as spam/promotions without polluting stored message history
 
 ---
 

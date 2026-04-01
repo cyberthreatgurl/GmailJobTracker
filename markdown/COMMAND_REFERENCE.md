@@ -390,6 +390,38 @@ python check_env.py
 
 ---
 
+### `train_model.py`
+
+Retrain the message classifier from reviewed messages, with optional explicit CSV imports.
+
+```bash
+# Retrain from reviewed data only
+python train_model.py --verbose
+
+# Retrain and explicitly include a CSV file as one label
+python train_model.py --verbose --csv-path synthetic_data.csv --csv-label noise
+```
+
+**Options**:
+
+- `--verbose`: Print label distributions, validation predictions, and effective class weights
+- `--csv-path PATH`: Include one CSV file in the current training run
+- `--csv-label LABEL`: Label applied to every imported CSV row; required when `--csv-path` is used
+
+**CSV Requirements**:
+
+- Must include a `subject` column, a `body` column, or both
+- Blank subject/body rows are ignored during training cleanup
+- CSV data is only used when you explicitly pass `--csv-path`; the trainer no longer auto-loads `synthetic_data.csv`
+
+**Admin UI Equivalent**:
+
+- Visit `/reingest_admin/`
+- Use **Import a Folder for Model Training** for fixture folders under `tests/emails`
+- Optionally enable **Also include a CSV training file** and choose the CSV label before retraining
+
+---
+
 ### `scripts/reingest-by-messageID.py`
 
 Re-ingest specific messages by Gmail message ID.

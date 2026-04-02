@@ -36,7 +36,9 @@
     "sailpoint": "SailPoint Technologies",
     "sei": "Software Engineering Institute"
   },
-  "ats_domains": [],
+  "ats_domains": [
+    "send.applicantemails.com"
+  ],
   "domain_to_company": {
     "4points.com": "Four Points Technology",
     "agr-us.com": "Advanced Global Resources",
@@ -101,7 +103,6 @@
     "sailpoint.com": "SailPoint Technologies",
     "sei.cmu.edu": "Software Engineering Institute",
     "sei.example": "Tmp SEI",
-    "send.applicantemails.com": "our company",
     "simventions.com": "SimVentions",
     "sleekshop.com": "SleekShop.com",
     "snorkel.ai": "Snorkel AI",

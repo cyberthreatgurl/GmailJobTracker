@@ -21,6 +21,7 @@ from django.db.models import QuerySet
 from django.utils.timezone import now
 
 from tracker.models import Company, Message, ThreadTracking
+from tracker.utils.companies_io import companies_store
 
 
 class CompanyService:
@@ -57,6 +58,12 @@ class CompanyService:
             )
 
         company_name = company.name
+        company_domain = company.domain
+        company_ats = company.ats
+        remove_ats_domain = bool(
+            company_ats
+            and not Company.objects.exclude(pk=company.pk).filter(ats=company_ats).exists()
+        )
 
         # Count related data before deletion
         total_message_count = Message.objects.filter(company=company).count()
@@ -69,6 +76,13 @@ class CompanyService:
         # Delete all related data
         Message.objects.filter(company=company).delete()
         ThreadTracking.objects.filter(company=company).delete()
+        companies_store.remove_company_registration(
+            company_name,
+            domain=company_domain or None,
+            ats_domain=company_ats or None,
+            remove_ats_domain=remove_ats_domain,
+            source="company_service.delete_company",
+        )
         company.delete()
 
         stats = {

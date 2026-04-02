@@ -844,6 +844,12 @@ def delete_company(request, company_id):
 
     if request.method == "POST":
         company_name = company.name
+        company_domain = company.domain
+        company_ats = company.ats
+        remove_ats_domain = bool(
+            company_ats
+            and not Company.objects.exclude(pk=company.pk).filter(ats=company_ats).exists()
+        )
 
         # Count related data before deletion (including noise messages)
         total_message_count = Message.objects.filter(company=company).count()
@@ -856,6 +862,19 @@ def delete_company(request, company_id):
         # Delete all related messages, applications, etc.
         Message.objects.filter(company=company).delete()
         ThreadTracking.objects.filter(company=company).delete()
+        try:
+            companies_store.remove_company_registration(
+                company_name,
+                domain=company_domain or None,
+                ats_domain=company_ats or None,
+                remove_ats_domain=remove_ats_domain,
+                source="companies.delete_company",
+            )
+        except Exception as exc:
+            messages.warning(
+                request,
+                f"⚠️ Company deleted but companies.json cleanup failed: {exc}",
+            )
         # Remove company itself
         company.delete()
 

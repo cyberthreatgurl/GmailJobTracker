@@ -661,6 +661,37 @@ class CompanyResolver:
                     )
                     return company
 
+        signature_source = re.split(
+            r"\b(?:to unsubscribe|unsubscribe click|do not reply)\b",
+            body_plain,
+            maxsplit=1,
+            flags=re.IGNORECASE,
+        )[0]
+        signature_lines = [line.strip() for line in signature_source.splitlines() if line.strip()]
+        signature_tail = "\n".join(signature_lines[-8:])
+        if signature_tail:
+            configured_candidates = []
+            for company in self._configured_company_names():
+                configured_candidates.append((company, company))
+            for alias, canonical in self.company_data.get("aliases", {}).items():
+                configured_candidates.append((alias, canonical))
+
+            for candidate, canonical in sorted(
+                configured_candidates,
+                key=lambda item: len(item[0]),
+                reverse=True,
+            ):
+                if not candidate:
+                    continue
+                pattern = r"(?<![A-Za-z0-9])" + re.escape(candidate) + r"(?![A-Za-z0-9])"
+                if re.search(pattern, signature_tail, re.IGNORECASE):
+                    logger.debug(
+                        "[DEBUG] ATS signature matched configured company: %s -> %s",
+                        candidate,
+                        canonical,
+                    )
+                    return canonical
+
         return None
 
     def extract_from_subject_patterns(self, subject: str):

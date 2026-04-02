@@ -457,6 +457,7 @@ class RuleClassifier:
             early_job_related_patterns.extend(self._early_cancelled)
             early_job_related_patterns.extend(self._early_referral)
             early_job_related_patterns.extend(self._early_status_update)
+            early_job_related_patterns.extend(self._early_scheduling)
 
             return self._matches_any(text_to_check, early_job_related_patterns)
 

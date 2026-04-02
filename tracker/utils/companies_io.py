@@ -461,9 +461,7 @@ class CompaniesStore:
 
             # --- ATS domain (add-only; shared across companies) ---
             if ats_domain:
-                ats = data.setdefault("ats_domains", [])
-                if ats_domain not in ats:
-                    ats.append(ats_domain)
+                if _classify_domain_in_data(data, ats_domain, "ats", None):
                     changed = True
 
             # --- aliases ---
@@ -479,6 +477,57 @@ class CompaniesStore:
 
             if changed:
                 self._write(data, source or f"update_company/{name}")
+
+        return changed
+
+    def remove_company_registration(
+        self,
+        name: str,
+        *,
+        domain: str | None = None,
+        ats_domain: str | None = None,
+        remove_ats_domain: bool = False,
+        source: str = "",
+    ) -> bool:
+        """Remove a company's JSON registry entries while preserving unrelated data."""
+        with _lock:
+            data = self._load()
+            changed = False
+
+            known = data.setdefault("known", [])
+            if name in known:
+                data["known"] = [item for item in known if item != name]
+                changed = True
+
+            dtc = data.setdefault("domain_to_company", {})
+            stale_domains = [mapped_domain for mapped_domain, company in dtc.items() if company == name]
+            if domain and dtc.get(domain) == name and domain not in stale_domains:
+                stale_domains.append(domain)
+            for stale_domain in stale_domains:
+                del dtc[stale_domain]
+                changed = True
+            if changed:
+                data["domain_to_company"] = dict(sorted(dtc.items()))
+
+            sites = data.setdefault("JobSites", {})
+            if name in sites:
+                del sites[name]
+                changed = True
+
+            alias_map = data.setdefault("aliases", {})
+            aliases_to_remove = [alias for alias, company in alias_map.items() if company == name]
+            for alias in aliases_to_remove:
+                del alias_map[alias]
+                changed = True
+
+            if remove_ats_domain and ats_domain:
+                ats_domains = data.setdefault("ats_domains", [])
+                if ats_domain in ats_domains:
+                    data["ats_domains"] = [item for item in ats_domains if item != ats_domain]
+                    changed = True
+
+            if changed:
+                self._write(data, source or f"remove_company_registration/{name}")
 
         return changed
 

@@ -413,7 +413,8 @@
       box.textContent = '📤 Uploading and processing message...\n';
       
       try {
-        const resp = await fetch(form.action || window.location.href, {
+        const formActionUrl = form.getAttribute('action') || window.location.href;
+        const resp = await fetch(formActionUrl, {
           method: 'POST',
           body: fd
         });

@@ -399,14 +399,75 @@ def opportunities_dashboard(request):
     paginator = Paginator(qs, 15)
     page_obj = paginator.get_page(page_number)
 
-    for opp in page_obj.object_list:
+    # Pre-batch DB lookups for all rows on this page to avoid N+1 queries.
+    page_items = list(page_obj.object_list)
+
+    # Collect NAICS codes from the simple model field (numeric codes only, no extra DB hits)
+    _naics_code_set = set()
+    for _opp in page_items:
+        if _opp.naics_code:
+            _m = re.match(r'^(\d{4,8})', str(_opp.naics_code).strip())
+            if _m:
+                _naics_code_set.add(_m.group(1))
+    naics_map = (
+        dict(NAICSCode.objects.filter(code__in=_naics_code_set).values_list('code', 'description'))
+        if _naics_code_set else {}
+    )
+
+    # Collect PSC codes from the simple model field
+    _psc_code_set = set()
+    for _opp in page_items:
+        if _opp.product_service_code:
+            _m = re.match(r'^([A-Za-z0-9]{4})\b', str(_opp.product_service_code).strip())
+            if _m:
+                _psc_code_set.add(_m.group(1).upper())
+    psc_map = (
+        dict(PSCCode.objects.filter(code__in=_psc_code_set).values_list('code', 'description'))
+        if _psc_code_set else {}
+    )
+
+    # Collect awardee UEIs and names for batch company lookup
+    _uei_set = set()
+    _name_set = set()
+    for _opp in page_items:
+        _payloads = []
+        if isinstance(_opp.award, dict):
+            _payloads.append(_opp.award)
+        if isinstance(_opp.raw_response, dict):
+            _payloads.append(_opp.raw_response.get('award') or {})
+            _payloads.append(_opp.raw_response)
+        for _payload in _payloads:
+            if not isinstance(_payload, dict):
+                continue
+            _uei = (
+                _payload.get('uei') or _payload.get('uniqueEntityId') or
+                _payload.get('awardeeUei') or _payload.get('recipientUei') or ''
+            ).strip()
+            _name = (
+                _payload.get('awardee') or _payload.get('awardeeName') or
+                _payload.get('awardeeLegalBusinessName') or _payload.get('legalBusinessName') or ''
+            ).strip()
+            if _uei:
+                _uei_set.add(_uei.lower())
+            if _name:
+                _name_set.add(_name.lower())
+    company_by_uei = (
+        {c.uei.lower(): c for c in Company.objects.filter(uei__in=_uei_set).only('id', 'name', 'uei')}
+        if _uei_set else {}
+    )
+    company_by_name = (
+        {c.name.lower(): c for c in Company.objects.filter(name__in=_name_set).only('id', 'name')}
+        if _name_set else {}
+    )
+
+    for opp in page_items:
         opp.display_ui_link = _build_opportunity_ui_link(
             solicitation_number=opp.solicitation_number or '',
             api_ui_link=opp.ui_link or '',
         )
-        opp.naics_display = _resolve_naics_display(opp)
-        opp.psc_display = _resolve_psc_display(opp)
-        opp.awardee_display = _resolve_awardee_display(opp)
+        opp.naics_display = _resolve_naics_display(opp, naics_map=naics_map)
+        opp.psc_display = _resolve_psc_display(opp, psc_map=psc_map)
+        opp.awardee_display = _resolve_awardee_display(opp, company_by_uei=company_by_uei, company_by_name=company_by_name)
 
     return render(request, "tracker/opportunities.html", {
         "page_obj": page_obj,
@@ -543,7 +604,7 @@ def _extract_candidates(payload):
     return candidates
 
 
-def _resolve_naics_display(opp):
+def _resolve_naics_display(opp, naics_map=None):
     """Build a stable NAICS display payload with code, description, and ignore value."""
     code, description = _extract_code_description_pair(opp.naics_code, _normalize_naics_code)
 
@@ -565,9 +626,12 @@ def _resolve_naics_display(opp):
             break
 
     if code and not description:
-        match = NAICSCode.objects.filter(code=code).first()
-        if match:
-            description = match.description
+        if naics_map is not None:
+            description = naics_map.get(code, '')
+        else:
+            match = NAICSCode.objects.filter(code=code).first()
+            if match:
+                description = match.description
 
     if not code and description:
         code = _normalize_naics_code(description)
@@ -581,7 +645,7 @@ def _resolve_naics_display(opp):
     }
 
 
-def _resolve_psc_display(opp):
+def _resolve_psc_display(opp, psc_map=None):
     """Build a stable PSC display payload with code, description, and ignore value."""
     code, description = _extract_code_description_pair(opp.product_service_code, _normalize_psc_code)
 
@@ -617,9 +681,12 @@ def _resolve_psc_display(opp):
             break
 
     if code and not description:
-        match = PSCCode.objects.filter(code=code).first()
-        if match:
-            description = match.description
+        if psc_map is not None:
+            description = psc_map.get(code, '')
+        else:
+            match = PSCCode.objects.filter(code=code).first()
+            if match:
+                description = match.description
 
     if not code and description:
         code = _normalize_psc_code(description)
@@ -633,7 +700,7 @@ def _resolve_psc_display(opp):
     }
 
 
-def _resolve_awardee_display(opp):
+def _resolve_awardee_display(opp, company_by_uei=None, company_by_name=None):
     """Extract awarded contractor name and UEI for award notices and link to Company when possible."""
     payloads = []
     if isinstance(opp.award, dict):
@@ -685,9 +752,15 @@ def _resolve_awardee_display(opp):
 
     company = None
     if uei:
-        company = Company.objects.filter(uei__iexact=uei).only('id', 'name').first()
+        if company_by_uei is not None:
+            company = company_by_uei.get(uei.lower())
+        else:
+            company = Company.objects.filter(uei__iexact=uei).only('id', 'name').first()
     if not company and contractor_name:
-        company = Company.objects.filter(name__iexact=contractor_name).only('id', 'name').first()
+        if company_by_name is not None:
+            company = company_by_name.get(contractor_name.lower())
+        else:
+            company = Company.objects.filter(name__iexact=contractor_name).only('id', 'name').first()
 
     return {
         'name': contractor_name,

@@ -628,6 +628,11 @@ def label_messages(request):
         "1",
         "yes",
     )  # checkbox filter
+    hide_head_hunters = request.GET.get("hide_head_hunters", "true").lower() in (
+        "true",
+        "1",
+        "yes",
+    )
     # Sorting params (default to date desc when not provided)
     sort = (
         request.GET.get("sort") or ""
@@ -695,6 +700,9 @@ def label_messages(request):
     # Apply hide noise filter
     if hide_noise:
         qs = qs.exclude(ml_label="noise")
+
+    if hide_head_hunters:
+        qs = qs.exclude(ml_label="head_hunter")
 
     # Do not exclude messages with blank or very short bodies; show all for debugging
 
@@ -888,6 +896,7 @@ def label_messages(request):
         "filter_reviewed": filter_reviewed,
         "search_query": search_query,
         "hide_noise": hide_noise,
+        "hide_head_hunters": hide_head_hunters,
         "sort": sort,
         "order": order,
         "distinct_labels": distinct_labels,

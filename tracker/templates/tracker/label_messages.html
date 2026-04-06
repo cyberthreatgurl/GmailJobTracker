@@ -378,6 +378,10 @@
       <input type="checkbox" id="hide-noise-checkbox" onchange="applyFilters()" {% if hide_noise %}checked{% endif %} style="width: 18px; height: 18px; margin: 0;">
       <label for="hide-noise-checkbox" style="margin: 0; text-transform: none; font-size: 0.85rem; font-weight: 500; color: #374151; cursor: pointer;">Hide Noise</label>
     </div>
+    <div class="filter-group" style="flex-direction: row; align-items: center; gap: 0.5rem;">
+      <input type="checkbox" id="hide-head-hunters-checkbox" onchange="applyFilters()" {% if hide_head_hunters %}checked{% endif %} style="width: 18px; height: 18px; margin: 0;">
+      <label for="hide-head-hunters-checkbox" style="margin: 0; text-transform: none; font-size: 0.85rem; font-weight: 500; color: #374151; cursor: pointer;">Hide Head Hunters</label>
+    </div>
   </div>
 
   <!-- Bulk Actions Form -->
@@ -740,12 +744,14 @@
   const reviewed = document.getElementById('reviewed-filter').value;
   const search = document.getElementById('search-box').value;
   const hideNoiseChecked = document.getElementById('hide-noise-checkbox').checked;
+  const hideHeadHuntersChecked = document.getElementById('hide-head-hunters-checkbox').checked;
   // keep current sort/order when changing filters
   const sort = currentSort || '';
   const order = currentOrder || 'asc';
   // Only include hide_noise parameter if checked
   const hideNoiseParam = hideNoiseChecked ? '&hide_noise=true' : '';
-  window.location.href = `{% url 'label_messages' %}?label=${label}&confidence=${confidence}&company=${company}&per_page=${perPage}&reviewed=${reviewed}&search=${encodeURIComponent(search)}${hideNoiseParam}&sort=${sort}&order=${order}&page=1`;
+  const hideHeadHuntersParam = hideHeadHuntersChecked ? '&hide_head_hunters=true' : '';
+  window.location.href = `{% url 'label_messages' %}?label=${label}&confidence=${confidence}&company=${company}&per_page=${perPage}&reviewed=${reviewed}&search=${encodeURIComponent(search)}${hideNoiseParam}${hideHeadHuntersParam}&sort=${sort}&order=${order}&page=1`;
     }
     
     function changePerPage() {
@@ -764,11 +770,13 @@
       const reviewed = document.getElementById('reviewed-filter').value;
       const search = document.getElementById('search-box').value;
       const hideNoiseChecked = document.getElementById('hide-noise-checkbox').checked;
+      const hideHeadHuntersChecked = document.getElementById('hide-head-hunters-checkbox').checked;
       const sort = currentSort || '';
       const order = currentOrder || 'asc';
       // Only include hide_noise parameter if checked
       const hideNoiseParam = hideNoiseChecked ? '&hide_noise=true' : '';
-      window.location.href = `{% url 'label_messages' %}?label=${label}&confidence=${confidence}&company=${company}&per_page=${perPage}&reviewed=${reviewed}&search=${encodeURIComponent(search)}${hideNoiseParam}&sort=${sort}&order=${order}&page=${pageNum}`;
+      const hideHeadHuntersParam = hideHeadHuntersChecked ? '&hide_head_hunters=true' : '';
+      window.location.href = `{% url 'label_messages' %}?label=${label}&confidence=${confidence}&company=${company}&per_page=${perPage}&reviewed=${reviewed}&search=${encodeURIComponent(search)}${hideNoiseParam}${hideHeadHuntersParam}&sort=${sort}&order=${order}&page=${pageNum}`;
     }
 
     function sortBy(field) {
@@ -783,6 +791,7 @@
       const reviewed = document.getElementById('reviewed-filter').value;
       const search = document.getElementById('search-box').value;
       const hideNoiseChecked = document.getElementById('hide-noise-checkbox').checked;
+      const hideHeadHuntersChecked = document.getElementById('hide-head-hunters-checkbox').checked;
 
       // toggle order if clicking same field, else default asc
       let nextOrder = 'asc';
@@ -792,7 +801,8 @@
 
       // Only include hide_noise parameter if checked
       const hideNoiseParam = hideNoiseChecked ? '&hide_noise=true' : '';
-      window.location.href = `{% url 'label_messages' %}?label=${label}&confidence=${confidence}&company=${company}&per_page=${perPage}&reviewed=${reviewed}&search=${encodeURIComponent(search)}${hideNoiseParam}&sort=${field}&order=${nextOrder}&page=1`;
+      const hideHeadHuntersParam = hideHeadHuntersChecked ? '&hide_head_hunters=true' : '';
+      window.location.href = `{% url 'label_messages' %}?label=${label}&confidence=${confidence}&company=${company}&per_page=${perPage}&reviewed=${reviewed}&search=${encodeURIComponent(search)}${hideNoiseParam}${hideHeadHuntersParam}&sort=${field}&order=${nextOrder}&page=1`;
     }
     
     // Confirm before submitting - only require label for bulk_label action

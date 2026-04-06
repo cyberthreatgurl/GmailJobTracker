@@ -49,7 +49,7 @@ class SamGovClient:
             default_params.update(params)
 
         try:
-            response = requests.get(self.BASE_URL, params=default_params)
+            response = requests.get(self.BASE_URL, params=default_params, timeout=30)
 
             # Manual retry on 429 (Too Many Requests) with Retry-After support
             if response.status_code == 429:
@@ -65,7 +65,7 @@ class SamGovClient:
 
                 logger.warning(f"SAM.gov returned 429 Rate Limit Exceeded. Backing off for {wait_time} seconds...")
                 time.sleep(wait_time)
-                response = requests.get(self.BASE_URL, params=default_params)
+                response = requests.get(self.BASE_URL, params=default_params, timeout=30)
 
             response.raise_for_status()
             return response.json()

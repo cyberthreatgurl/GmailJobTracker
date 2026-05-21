@@ -86,6 +86,7 @@ source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 python -m playwright install chromium
 python -m spacy download en_core_web_sm
+python manage.py tailwind install # Required for CSS build
 
 # 4. Configure environment
 cp .env.example .env

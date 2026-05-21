@@ -27,7 +27,7 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install dependencies
+      - name: Install dependenciespy
         run: |
           python -m pip install --upgrade pip
           pip install safety bandit detect-secrets

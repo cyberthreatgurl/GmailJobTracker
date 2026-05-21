@@ -52,6 +52,32 @@ python manage.py tailwind start
 python manage.py collectstatic --noinput
 ```
 
+### Missing tailwindcss command errors
+
+If you see an error like `sh: tailwindcss: command not found` when trying to build or start the tailwind watcher, it means the required Node.js dependencies are missing. 
+
+Run the install command to fix this:
+
+```bash
+python manage.py tailwind install
+# Then try building again:
+python manage.py tailwind build
+```
+
+*(Note: Ensure you have Node.js and npm installed on your system!)*
+
+If `python manage.py tailwind install` still doesn't fix it (or if you see errors like `Failed to find 'tailwindcss'` or missing `@tailwind` directives), you may have upgraded to Tailwind CSS v4 accidentally. **django-tailwind expects v3.** 
+
+To downgrade your `theme` dependencies back to v3, run:
+
+```bash
+cd theme/static_src
+npm uninstall tailwindcss autoprefixer postcss
+npm install tailwindcss@^3.4.17 autoprefixer@^10.4.19 postcss@^8.4.38
+cd ../../
+python manage.py tailwind build
+```
+
 ## Quick Diagnostic
 
 If UI features aren't working:

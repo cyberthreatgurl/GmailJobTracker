@@ -439,14 +439,23 @@ def opportunities_dashboard(request):
         for _payload in _payloads:
             if not isinstance(_payload, dict):
                 continue
-            _uei = (
+            
+            _uei_val = (
                 _payload.get('uei') or _payload.get('uniqueEntityId') or
-                _payload.get('awardeeUei') or _payload.get('recipientUei') or ''
-            ).strip()
-            _name = (
+                _payload.get('awardeeUei') or _payload.get('recipientUei')
+            )
+            if isinstance(_uei_val, dict):
+                _uei_val = _uei_val.get('uei') or _uei_val.get('uniqueEntityId')
+            _uei = str(_uei_val).strip() if _uei_val else ''
+            
+            _name_val = (
                 _payload.get('awardee') or _payload.get('awardeeName') or
-                _payload.get('awardeeLegalBusinessName') or _payload.get('legalBusinessName') or ''
-            ).strip()
+                _payload.get('awardeeLegalBusinessName') or _payload.get('legalBusinessName')
+            )
+            if isinstance(_name_val, dict):
+                _name_val = _name_val.get('name') or _name_val.get('legalBusinessName') or _name_val.get('awardeeName')
+            _name = str(_name_val).strip() if _name_val else ''
+
             if _uei:
                 _uei_set.add(_uei.lower())
             if _name:

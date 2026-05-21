@@ -39,7 +39,8 @@ def format_database_unreachable_message() -> str:
         host = db_settings.get("HOST", "localhost")
         port = db_settings.get("PORT", 5432)
         name = db_settings.get("NAME", "")
-        return f"PostgrSQL {name} {host}:{port} is unreachable."
+        password = db_settings.get("PASSWORD", "")
+        return f"PostgrSQL {name} {host}:{port} with password {password} is unreachable."
 
     if "sqlite" in engine:
         name = db_settings.get("NAME", "")

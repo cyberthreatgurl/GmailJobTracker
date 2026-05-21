@@ -48,7 +48,9 @@ python manage.py mark_ghosted
 # Find and mark newsletter/bulk mail as ignored (RECOMMENDED)
 python manage.py mark_newsletters_ignored --dry-run  # Preview changes
 python manage.py mark_newsletters_ignored            # Mark as ignored
-python manage.py mark_newsletters_ignored --delete-marked  # Also delete from Message table
+python manage.py mark_newsletters_ignored --delete-marked  # Also del
+
+ete from Message table
 python manage.py mark_newsletters_ignored --limit 500     # Check only recent messages
 
 # Direct deletion of newsletter messages (use with caution)

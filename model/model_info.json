@@ -1,5 +1,5 @@
 {
-  "trained_on": "2026-04-05T17:16:18.077847",
+  "trained_on": "2026-05-20T23:12:51.468165",
   "labels": [
     "head_hunter",
     "interview_invite",
@@ -9,7 +9,7 @@
     "prescreen",
     "rejection"
   ],
-  "num_samples": 2102,
+  "num_samples": 2163,
   "total_features": 50000,
   "meaningful_features_sample": [
     "00 for",
